@@ -1,0 +1,66 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo|default:"Formulario de Grado" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0">{{ titulo|default:"Formulario de Grado" }}</h1>
+        <a href="{% url 'gestion_academica:lista_grados' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a la Lista
+        </a>
+    </div>
+    <hr>
+
+    <form method="post" novalidate class="shadow-sm p-4 bg-white rounded-3">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="row g-4">
+            {# --- COLUMNA IZQUIERDA --- #}
+            <div class="col-md-6">
+                <fieldset class="border p-3 h-100 rounded-3">
+                    <legend class="w-auto px-2 h5"><i class="bi bi-info-circle-fill me-2"></i>Información Principal</legend>
+                    
+                    {{ form.nombre|as_crispy_field }}
+                    {{ form.nivel_escolaridad|as_crispy_field }}
+
+                </fieldset>
+            </div>
+
+            {# --- COLUMNA DERECHA --- #}
+            <div class="col-md-6">
+                <fieldset class="border p-3 h-100 rounded-3">
+                    <legend class="w-auto px-2 h5"><i class="bi bi-gear-fill me-2"></i>Configuración Académica</legend>
+                    
+                    {{ form.orden|as_crispy_field }}
+                    {{ form.siguiente_grado|as_crispy_field }}
+                    {{ form.tipo_evaluacion|as_crispy_field }}
+
+                </fieldset>
+            </div>
+        </div>
+
+        {# Campo oculto para la institución, si es necesario #}
+        {% if form.institucion %}
+            {{ form.institucion }}
+        {% endif %}
+
+        <hr class="mt-4">
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success me-2">
+                <i class="bi bi-check-circle-fill"></i> Guardar Cambios
+            </button>
+            <a href="{% url 'gestion_academica:lista_grados' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock contenido %}

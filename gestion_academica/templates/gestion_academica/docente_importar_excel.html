@@ -1,0 +1,15 @@
+{% extends "base_academico.html" %}
+{% block contenido %}
+<h2>Cargar Docentes por Excel</h2>
+
+<a class="btn btn-success mb-3" href="{% url 'gestion_academica:descargar_plantilla_docentes' %}">
+    Descargar Plantilla Excel
+</a>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary">Subir Archivo</button>
+</form>
+
+{% endblock contenido %}

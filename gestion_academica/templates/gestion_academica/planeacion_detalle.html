@@ -1,0 +1,202 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:planeador_clases' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Volver al Planeador</a>
+    </div>
+    <p class="lead text-muted">{{ planeacion.curso.materia.nombre_materia }} - {{ planeacion.curso.grado.nombre }}</p>
+    <hr>
+
+    {% if planeacion.estado_generacion == 'COMPLETADO' %}
+        <!-- ESTADO 1: CONTENIDO GENERADO CON ÉXITO -->
+        <div class="row">
+            <div class="col-lg-8">
+                <h4 class="mb-3">Detalle de Clases</h4>
+                <div class="accordion" id="accordionClases">
+                    {% for detalle in planeacion.detalles_clase.all %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ detalle.pk }}">
+                            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ detalle.pk }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ detalle.pk }}">
+                                <strong>Clase {{ detalle.numero_clase }}:</strong> &nbsp;{{ detalle.tema_clase }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ detalle.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ detalle.pk }}" data-bs-parent="#accordionClases">
+                            <div class="accordion-body">
+                                <h6>Actividades de Inicio</h6><p>{{ detalle.actividades_inicio|linebreaksbr }}</p><hr>
+                                <h6>Actividades de Desarrollo</h6><p>{{ detalle.actividades_desarrollo|linebreaksbr }}</p><hr>
+                                <h6>Actividades de Cierre</h6><p>{{ detalle.actividades_cierre|linebreaksbr }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Información General</h5>
+                        <h6><i class="bi bi-bullseye text-primary me-2"></i>Objetivos</h6><p>{{ planeacion.objetivos_aprendizaje }}</p>
+                        <h6><i class="bi bi-tools text-primary me-2"></i>Recursos</h6><p>{{ planeacion.recursos_necesarios }}</p>
+                        <h6><i class="bi bi-clipboard-check-fill text-primary me-2"></i>Evaluación</h6><p>{{ planeacion.criterios_evaluacion }}</p>
+                        
+                        <!-- SECCIÓN DE ACCIONES -->
+                        <hr>
+                        <h5 class="card-title mt-3">Acciones</h5>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'gestion_academica:generar_planeacion_pdf' pk=planeacion.pk %}" class="btn btn-outline-danger" target="_blank">
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Descargar PDF
+                            </a>
+                            <!-- Este botón ahora abre el modal -->
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmAddLeccionesModal">
+                                <i class="bi bi-calendar-plus-fill me-2"></i>Añadir a Clases Diarias
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% elif planeacion.estado_generacion == 'GENERANDO' %}
+        <!-- ESTADO 2: CONTENIDO EN PROCESO DE GENERACIÓN -->
+        <div class="card shadow-sm text-center p-5">
+            <div class="card-body">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <h4 class="card-title mt-3">La IA está generando tu planeación...</h4>
+                <p>Este proceso puede tardar. La página se actualizará automáticamente cuando el contenido esté listo.</p>
+                <hr>
+                <p class="text-muted small">Si el proceso parece atascado, puedes detenerlo.</p>
+                <form action="{% url 'gestion_academica:cancelar_generacion_planeacion' pk=planeacion.pk %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-stop-circle-fill me-2"></i>Detener Generación
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    {% elif planeacion.estado_generacion == 'FALLIDO' %}
+        <!-- ESTADO 3: LA GENERACIÓN FALLÓ -->
+        <div class="card shadow-sm text-center p-5 border-danger">
+            <div class="card-body">
+                <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
+                <h4 class="card-title mt-3">Ocurrió un Error</h4>
+                <p>La IA no pudo completar la generación de la planeación.</p>
+                <div class="alert alert-danger text-start">
+                    <strong>Detalle del error:</strong> {{ planeacion.error_generacion }}
+                </div>
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning btn-lg">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Reintentar Generación
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    {% else %} {# Por defecto, el estado es 'PENDIENTE' #}
+        <!-- ESTADO 4: PENDIENTE DE GENERACIÓN -->
+        <div class="card shadow-sm text-center p-5">
+            <div class="card-body">
+                <i class="bi bi-robot" style="font-size: 4rem; color: var(--bs-primary);"></i>
+                <h4 class="card-title mt-3">Esta planeación está lista para ser generada</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-magic me-2"></i>Generar Planeación con IA
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- MODAL DE CONFIRMACIÓN -->
+{% if planeacion.estado_generacion == 'COMPLETADO' %}
+<div class="modal fade" id="confirmAddLeccionesModal" tabindex="-1" aria-labelledby="confirmAddLeccionesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="confirmAddLeccionesModalLabel">
+                    <i class="bi bi-check-circle-fill me-2"></i>Confirmar Acción
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas añadir esta planeación a tus clases diarias?</p>
+                <p class="text-muted">Se crearán automáticamente <strong>{{ planeacion.duracion_clases }} registro(s) de lección diaria</strong> en las próximas fechas disponibles de tu horario para el curso <strong>{{ planeacion.curso }}</strong>.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form action="{% url 'gestion_academica:anadir_planeacion_a_lecciones' pk=planeacion.pk %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">Sí, estoy seguro</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block body_end %}
+    {{ block.super }}
+    
+    <!-- ▼▼▼ SCRIPT DE BOOTSTRAP AÑADIDO ▼▼▼ -->
+    <!-- Este script es necesario para que los componentes interactivos como los modales funcionen. -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ▲▲▲ FIN DEL SCRIPT ▲▲▲ -->
+
+    {# Script de auto-recarga (sin cambios) #}
+    {% if planeacion.estado_generacion == 'GENERANDO' %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const planeacionId = {{ planeacion.pk }};
+        const statusUrl = `/academico/api/planeacion/${planeacionId}/status/`;
+
+        console.log("Iniciando verificación de estado para planeación ID:", planeacionId);
+
+        const checkStatus = () => {
+            fetch(statusUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('La respuesta de la red no fue OK');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // --- ZONA DE DEPURACIÓN ---
+                    // Imprimimos en la consola del navegador lo que recibimos.
+                    console.log("Respuesta recibida del API:", data);
+                    const estadoActual = data.status.trim().toUpperCase(); // Limpiamos y convertimos a mayúsculas
+                    console.log("Estado procesado para comparación:", estadoActual);
+                    // ---------------------------
+
+                    // --- LÓGICA DE RECARGA MEJORADA ---
+                    // Comparamos el estado procesado. Ahora es inmune a mayúsculas/minúsculas y espacios.
+                    if (estadoActual !== 'GENERANDO') {
+                        console.log("¡El estado ha cambiado! Recargando la página...");
+                        window.location.reload();
+                    } else {
+                        console.log("El estado sigue siendo 'GENERANDO'. Esperando 10 segundos más.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al verificar el estado:', error);
+                    // Opcional: Detener las verificaciones si hay un error para no sobrecargar.
+                    // clearInterval(intervalId);
+                });
+        };
+
+        // Preguntamos al servidor cada 10 segundos.
+        const intervalId = setInterval(checkStatus, 10000);
+
+        // Hacemos una primera verificación inmediata para una respuesta más rápida.
+        checkStatus();
+    });
+</script>
+    {% endif %}
+{% endblock %}

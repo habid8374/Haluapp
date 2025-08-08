@@ -1,0 +1,173 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina|default:"Detalle del Estudiante" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Detalle del Estudiante" }}</h1>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary"><i class="bi bi-arrow-left-circle-fill"></i> Volver</a>
+    </div>
+    <hr>
+
+    {% if estudiante %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}</h4>
+                        {% if estudiante.codigo_estudiante %}<small class="text-muted">Código: {{ estudiante.codigo_estudiante }}</small>{% endif %}
+                    </div>
+                    {% if estudiante.usuario.is_active %}<span class="badge bg-success">Estudiante Activo</span>{% else %}<span class="badge bg-danger">Estudiante Inactivo</span>{% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <h5 class="card-title text-primary mb-3"><i class="bi bi-person-fill me-2"></i> Datos de Usuario</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Nombres:</strong> {{ estudiante.usuario.first_name|default:"-" }}</li>
+                            <li><strong>Apellidos:</strong> {{ estudiante.usuario.last_name|default:"-" }}</li>
+                            <li><strong>Email:</strong> {{ estudiante.usuario.email|default:"-" }}</li>
+                            <li><strong>Usuario (Login):</strong> {{ estudiante.usuario.username }}</li>
+                            <li><strong>Rol:</strong> {{ estudiante.usuario.get_rol_display|default:"-" }}</li>
+                            <li><strong>Fecha de Ingreso:</strong> {{ estudiante.usuario.date_joined|date:"d M, Y" }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <h5 class="card-title text-primary mb-3"><i class="bi bi-mortarboard-fill me-2"></i> Datos Académicos</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Documento:</strong> {{ estudiante.documento_identidad|default:"-" }}</li>
+                            <li><strong>Grado Actual:</strong> {{ estudiante.grado_actual.nombre|default:"No asignado" }}</li>
+                            <li><strong>Colegio de Procedencia:</strong> {{ estudiante.colegio_procedencia|default:"-" }}</li>
+                            <li><strong>Institución:</strong> {{ estudiante.institucion.nombre|default:"-" }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-12 col-lg-4 mb-3">
+                        <h5 class="card-title text-primary mb-3"><i class="bi bi-geo-alt-fill me-2"></i> Datos Adicionales</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Fecha de Nacimiento:</strong> {{ estudiante.fecha_nacimiento|date:"d F, Y"|default:"-" }}</li>
+                            <li><strong>Sexo:</strong> {{ estudiante.get_sexo_display|default:"-" }}</li>
+                            <li><strong>Dirección:</strong> {{ estudiante.direccion|default:"-" }}</li>
+                            <li><strong>Municipio/Ciudad:</strong> {{ estudiante.municipio_ciudad|capfirst|default:"-" }}</li>
+                            <li><strong>Departamento:</strong> {{ estudiante.departamento|capfirst|default:"-" }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-end">
+                {% if perms.gestion_academica.change_estudiante %}<a href="{% url 'gestion_academica:editar_estudiante' estudiante.pk %}" class="btn btn-warning me-2"><i class="bi bi-pencil-square"></i> Editar</a>{% endif %}
+                {% if perms.gestion_academica.delete_estudiante %}<a href="{% url 'gestion_academica:eliminar_estudiante' estudiante.pk %}" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Eliminar</a>{% endif %}
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-envelope-fill me-2"></i>Asistente de Comunicación con Acudientes</h5>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <p>Genera un borrador de correo electrónico para enviar al acudiente, resumiendo el desempeño del estudiante.</p>
+                        {% if periodo_activo %}
+                            <button type="button" class="btn btn-success mt-auto" data-bs-toggle="modal" data-bs-target="#emailPreviewModal">
+                                <i class="bi bi-magic me-1"></i> Generar Borrador de Correo
+                            </button>
+                        {% else %}
+                            <div class="alert alert-secondary mt-auto">No hay un periodo académico activo para generar la comunicación.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="emailPreviewModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Borrador de Correo para Acudiente</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="email-spinner" class="text-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2">HALU está redactando el correo...</p>
+                        </div>
+                        <div id="email-content" class="d-none">
+                            <textarea id="email-textarea" class="form-control" rows="15"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" id="copyEmailBtn" class="btn btn-primary d-none"><i class="bi bi-clipboard-check-fill me-2"></i>Copiar Texto</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró la información del estudiante.
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailModalEl = document.getElementById('emailPreviewModal');
+        if (emailModalEl) {
+            const emailModal = new bootstrap.Modal(emailModalEl);
+            const emailSpinner = document.getElementById('email-spinner');
+            const emailContent = document.getElementById('email-content');
+            const emailTextarea = document.getElementById('email-textarea');
+            const copyEmailBtn = document.getElementById('copyEmailBtn');
+            // Asegúrate de que este token esté disponible si tu base no lo provee aquí.
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '{{ csrf_token }}';
+
+            emailModalEl.addEventListener('show.bs.modal', function() {
+                emailSpinner.classList.remove('d-none');
+                emailContent.classList.add('d-none');
+                copyEmailBtn.classList.add('d-none');
+                
+                const estudiantePk = "{{ estudiante.pk }}";
+                const periodoPk = "{{ periodo_activo.pk }}";
+                if (!estudiantePk || !periodoPk) return;
+
+                const url = `/academico/api/generar-correo-acudiente/${estudiantePk}/${periodoPk}/`;
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        emailTextarea.value = data.correo;
+                    } else {
+                        emailTextarea.value = `Error al generar el correo: ${data.message}`;
+                    }
+                })
+                .catch(error => {
+                    emailTextarea.value = "Error de conexión al generar el correo.";
+                })
+                .finally(() => {
+                    emailSpinner.classList.add('d-none');
+                    emailContent.classList.remove('d-none');
+                    copyEmailBtn.classList.remove('d-none');
+                });
+            });
+
+            copyEmailBtn.addEventListener('click', function() {
+                emailTextarea.select();
+                navigator.clipboard.writeText(emailTextarea.value).then(() => {
+                    this.innerHTML = '<i class="bi bi-check-lg"></i> ¡Copiado!';
+                    setTimeout(() => { this.innerHTML = '<i class="bi bi-clipboard-check-fill me-2"></i>Copiar Texto'; }, 2000);
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

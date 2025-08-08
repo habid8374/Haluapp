@@ -1,0 +1,61 @@
+{# gestion_academica/templates/gestion_academica/grado_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Grado" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Grado" }}</h1>
+    <hr>
+
+    {% if grado %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar el grado: <strong>{{ grado.nombre }}</strong>
+            {% if grado.nivel %} ({{ grado.nivel }}){% endif %}?</p>
+
+            <hr>
+            <p class="mb-0">Esta acción es **irreversible** y **eliminará permanentemente este registro**.</p>
+            
+            {% if grado.cursos.exists or grado.estudiantes_actuales.exists or grado.directores_grado.exists %}
+                <p class="mt-3 text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este grado está actualmente asociado con:
+                    <ul class="list-unstyled mb-0 ms-3">
+                        {% if grado.cursos.exists %}
+                            <li>- **{{ grado.cursos.count }} curso(s)**.</li>
+                        {% endif %}
+                        {% if grado.estudiantes_actuales.exists %}
+                            <li>- **{{ grado.estudiantes_actuales.count }} estudiante(s)**.</li>
+                        {% endif %}
+                        {% if grado.directores_grado.exists %}
+                            <li>- **{{ grado.directores_grado.count }} director(es) de curso**.</li>
+                        {% endif %}
+                        {% if grado.planes_curriculares_grado.exists %} {# Si tienes planes curriculares asociados a grados #}
+                            <li>- **{{ grado.planes_curriculares_grado.count }} plan(es) curricular(es)**.</li>
+                        {% endif %}
+                    </ul>
+                    <strong class="d-block mt-2">Eliminar este grado afectará o podría borrar permanentemente estos registros asociados</strong> (dependiendo de la configuración `on_delete` en tus modelos).
+                </p>
+            {% endif %}
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Grado
+            </button>
+            <a href="{% url 'gestion_academica:lista_grados' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró la información del grado a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_grados' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

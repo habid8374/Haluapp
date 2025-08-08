@@ -1,0 +1,75 @@
+{# gestion_academica/templates/gestion_academica/actividad_calificable_detalle.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Detalle de Actividad Calificable" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Detalle de Actividad Calificable" }}</h1>
+        <a href="{% url 'gestion_academica:lista_actividades_calificables' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    </div>
+    <hr>
+
+    {% if actividad %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h4 class="mb-0">{{ actividad.titulo }}</h4>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3 text-secondary">Curso:</dt>
+                <dd class="col-sm-9">{{ actividad.curso }}</dd>
+
+                <dt class="col-sm-3 text-secondary">Tipo de Actividad:</dt>
+                <dd class="col-sm-9">{{ actividad.tipo_actividad.nombre }}</dd>
+
+                <dt class="col-sm-3 text-secondary">Descripción:</dt>
+                <dd class="col-sm-9">{{ actividad.descripcion|linebreaksbr|default:"No especificada" }}</dd>
+
+                <dt class="col-sm-3 text-secondary">Fecha de Publicación:</dt>
+                <dd class="col-sm-9">{{ actividad.fecha_publicacion|date:"d F, Y" }}</dd>
+
+                <dt class="col-sm-3 text-secondary">Fecha Límite de Entrega:</dt>
+                <dd class="col-sm-9">{{ actividad.fecha_entrega_limite|date:"d F, Y"|default:"No especificada" }}</dd>
+
+                <dt class="col-sm-3 text-secondary">Porcentaje en Periodo:</dt>
+                <dd class="col-sm-9">{{ actividad.porcentaje_en_periodo|default:"No especificado" }}%</dd>
+
+                {# Solo intentar mostrar el enlace si hay un archivo adjunto #}
+                {% if actividad.material_adjunto %}
+                <dt class="col-sm-3 text-secondary">Material Adjunto:</dt>
+                <dd class="col-sm-9">
+                    <a href="{{ actividad.material_adjunto.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-download"></i> Descargar {{ actividad.material_adjunto.name|cut:"actividades_materiales/" }}
+                    </a>
+                </dd>
+                {% else %}
+                <dt class="col-sm-3 text-secondary">Material Adjunto:</dt>
+                <dd class="col-sm-9">No adjuntado</dd>
+                {% endif %}
+            </dl>
+        </div>
+        <div class="card-footer text-end">
+            {% if perms.gestion_academica.change_actividadcalificable %}
+                <a href="{% url 'gestion_academica:editar_actividad_calificable' actividad.pk %}" class="btn btn-warning me-2">
+                    <i class="bi bi-pencil-square"></i> Editar Actividad
+                </a>
+            {% endif %}
+            {% if perms.gestion_academica.delete_actividadcalificable %}
+                <a href="{% url 'gestion_academica:eliminar_actividad_calificable' actividad.pk %}" class="btn btn-danger">
+                    <i class="bi bi-trash-fill"></i> Eliminar Actividad
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró la información de la actividad calificable.
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}

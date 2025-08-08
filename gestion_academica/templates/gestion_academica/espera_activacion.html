@@ -1,0 +1,33 @@
+{% extends "base_academico.html" %}
+
+{% block contenido %}
+<div class="container mt-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <i class="bi bi-person-check-fill text-success" style="font-size: 4rem;"></i>
+                    <h2 class="card-title mt-3">¡Tu cuenta ha sido creada exitosamente!</h2>
+                    <p class="lead text-muted">Hola, {{ usuario_actual.get_full_name|default:usuario_actual.username }}.</p>
+                    <p>Hemos registrado tu cuenta en nuestro sistema. El siguiente paso es que un administrador de la institución te asigne un rol (Estudiante, Docente o Familiar) para que puedas acceder a todas las funcionalidades.</p>
+                    <p><strong>Por favor, contacta a la administración de tu colegio para que activen tu perfil.</strong></p>
+                    <hr>
+
+                    <!-- ▼▼▼ INICIO DE LA CORRECCIÓN CLAVE ▼▼▼ -->
+                    <!-- Formulario oculto que realiza el POST para cerrar sesión -->
+                    <form id="logout-form-espera" method="post" action="{% url 'account_logout' %}" style="display: none;">
+                        {% csrf_token %}
+                    </form>
+                    
+                    <!-- El "botón" ahora es un enlace que activa el formulario -->
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form-espera').submit();" class="btn btn-secondary">
+                        Cerrar Sesión
+                    </a>
+                    <!-- ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲ -->
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

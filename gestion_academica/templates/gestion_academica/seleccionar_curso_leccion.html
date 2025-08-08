@@ -1,0 +1,26 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="h2 mb-4">{{ titulo_pagina }}</h1>
+    {% if periodo_activo %}
+        <p class="lead">Periodo: {{ periodo_activo.nombre }}</p>
+        <div class="list-group">
+        {% for curso in cursos %}
+            <a href="{% url 'gestion_academica:registrar_leccion' curso.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">{{ curso.materia.nombre_materia }}</h5>
+                    <small>{{ curso.grado.nombre }}</small>
+                </div>
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        {% empty %}
+            <div class="alert alert-info">No tienes cursos asignados en este periodo.</div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning">No hay un periodo académico activo.</div>
+    {% endif %}
+</div>
+{% endblock %}

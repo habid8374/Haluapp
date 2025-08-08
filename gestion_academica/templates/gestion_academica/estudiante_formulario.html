@@ -1,0 +1,58 @@
+{# gestion_academica/templates/gestion_academica/estudiante_formulario.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+{% load crispy_forms_tags %} {# Asegúrate que esto esté al principio después de extends #}
+
+{% block titulo %}{{ titulo|default:"Formulario de Estudiante" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo|default:"Formulario de Estudiante" }}</h1>
+    <hr>
+
+    {# enctype="multipart/form-data" es importante si tus formularios manejan subida de archivos (ej: fotos) #}
+    <form method="post" enctype="multipart/form-data" novalidate class="shadow-sm p-4 bg-white rounded-3">
+        {% csrf_token %}
+
+        {# Mostrar errores generales del formulario (que no son de un campo específico) #}
+        {% if usuario_form.non_field_errors or estudiante_form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> Errores del Formulario:</h4>
+                <ul class="mb-0 ps-3">
+                    {% for error in usuario_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    {% for error in estudiante_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <fieldset class="border p-3 mb-3 h-100"> {# Añadido h-100 para altura consistente #}
+                    <legend class="w-auto px-2 h5"><i class="bi bi-person-fill me-2"></i> Datos de Usuario</legend>
+                    {{ usuario_form|crispy }} {# Renderiza el formulario de usuario con crispy-forms #}
+                </fieldset>
+            </div>
+            <div class="col-md-6">
+                <fieldset class="border p-3 mb-3 h-100"> {# Añadido h-100 para altura consistente #}
+                    <legend class="w-auto px-2 h5"><i class="bi bi-mortarboard-fill me-2"></i> Datos Académicos</legend>
+                    {{ estudiante_form|crispy }} {# Renderiza el formulario de estudiante con crispy-forms #}
+                </fieldset>
+            </div>
+        </div>
+
+        <hr>
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success me-2">
+                <i class="bi bi-check-circle-fill"></i> Guardar Cambios
+            </button>
+            <a href="{% url 'gestion_academica:lista_grados_para_estudiantes' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock contenido %}

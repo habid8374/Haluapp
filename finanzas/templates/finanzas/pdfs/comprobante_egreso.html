@@ -1,0 +1,159 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comprobante de Egreso No. {{ gasto.numero_documento|stringformat:"06d" }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            color: #333;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .header-table .logo-cell {
+            width: 20%;
+            text-align: left;
+            vertical-align: top;
+        }
+        .header-table .info-cell {
+            width: 50%;
+            text-align: center;
+        }
+        .header-table .doc-cell {
+            width: 30%;
+            text-align: right;
+            vertical-align: top;
+        }
+        .header-table .logo {
+            max-width: 100px;
+            max-height: 80px;
+        }
+        .header-table h2 {
+            margin: 0;
+            font-size: 14pt;
+        }
+        .header-table p {
+            margin: 2px 0;
+            font-size: 9pt;
+        }
+        .doc-box {
+            border: 1px solid #333;
+            padding: 10px;
+            display: inline-block;
+        }
+        .doc-box h3 {
+            margin: 0 0 5px 0;
+            font-size: 12pt;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid #333;
+        }
+        .info-table td {
+            padding: 8px;
+            border: 1px solid #333;
+        }
+        .info-table .label {
+            font-weight: bold;
+            width: 150px;
+        }
+        .items-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .items-table th, .items-table td {
+            border: 1px solid #333;
+            padding: 8px;
+        }
+        .items-table th {
+            background-color: #f2f2f2;
+        }
+        .text-right { text-align: right; }
+        .signatures {
+            margin-top: 80px;
+            width: 100%;
+        }
+        .signatures td {
+            width: 33%;
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid #333;
+            font-size: 9pt;
+        }
+    </style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td class="logo-cell">
+                {% if institucion.logo %}
+                    <img src="{{ institucion.logo.path }}" class="logo" alt="Logo">
+                {% endif %}
+            </td>
+            <td class="info-cell">
+                <h2>{{ institucion.nombre }}</h2>
+                <p>NIT: {{ institucion.nit }}</p>
+            </td>
+            <td class="doc-cell">
+                <div class="doc-box">
+                    <h3>COMPROBANTE DE EGRESO</h3>
+                    <p><strong>No. {{ gasto.numero_documento|stringformat:"06d" }}</strong></p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="info-table">
+        <tr>
+            <td class="label">Fecha:</td>
+            <td>{{ gasto.fecha|date:"d \d\e F \d\e Y" }}</td>
+            <td class="label">Ciudad:</td>
+            <td>{{ institucion.ciudad_departamento|default:"N/A" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Pagado a:</td>
+            <td colspan="3">{{ gasto.pagado_a }}</td>
+        </tr>
+    </table>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Concepto</th>
+                <th class="text-right">Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <p>{{ gasto.concepto }}</p>
+                    {% if gasto.observacion %}
+                        <p style="font-size: 9pt; color: #555;"><em>Observación: {{ gasto.observacion }}</em></p>
+                    {% endif %}
+                </td>
+                <td class="text-right" style="vertical-align: middle;"><strong>${{ gasto.monto|floatformat:2|intcomma }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="signatures">
+        <tr>
+            <td>Elaborado por</td>
+            <td>Aprobado por</td>
+            <td>Recibido por</td>
+        </tr>
+    </table>
+</body>
+</html>

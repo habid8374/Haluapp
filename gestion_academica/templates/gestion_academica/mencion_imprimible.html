@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mención de Honor - {{ mencion.estudiante }}</title>
+    <style type="text/css">
+        @page {
+            size: letter landscape;
+            margin: 1cm;
+        }
+        body {
+            font-family: "Georgia", "Times New Roman", serif;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+        .diploma-table {
+            width: 100%;
+            border: 5px double #c9a964; /* Borde doble dorado */
+            border-collapse: collapse;
+        }
+        .diploma-table td {
+            text-align: center;
+            padding: 5px 20px; /* Padding general reducido */
+        }
+    </style>
+</head>
+<body>
+
+    <table class="diploma-table">
+        <!-- Fila del Encabezado: Escudo, República y Nombre de la Institución -->
+        <tr>
+            <td style="padding-top: 20px; padding-bottom: 10px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Coat_of_arms_of_Colombia.svg/1200px-Coat_of_arms_of_Colombia.svg.png" style="max-height: 55px;" alt="Escudo">
+                <p style="font-family: serif; font-style: italic; font-size: 18pt; margin: 0;">República de Colombia</p>
+                <h1 style="font-family: serif; font-style: italic; font-size: 24pt; color: #003366; margin: 5px 0 0 0;">{{ mencion.institucion.nombre }}</h1>
+            </td>
+        </tr>
+
+        <!-- Fila del Contenido Principal -->
+        <tr>
+            <td style="padding-top: 15px; padding-bottom: 15px;">
+                <p style="font-size: 12pt; margin:0;">Otorga la siguiente:</p>
+                <p style="font-size: 28pt; font-weight: bold; color: #d4a017; margin: 5px 0; letter-spacing: 2px;">MENCIÓN DE HONOR</p>
+                <p style="font-size: 14pt; margin:0;">A:</p>
+                <p style="font-family: serif; font-style: italic; font-size: 26pt; margin: 5px 0 10px 0;">{{ mencion.estudiante.usuario.get_full_name }}</p>
+                <p style="font-size: 12pt; font-weight: bold; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 5px 0; margin: 5px 0; text-transform: uppercase;">{{ mencion.tipo|upper }}</p>
+            </td>
+        </tr>
+        
+        <!-- Fila de Firmas y Sello -->
+        <tr>
+            <td style="vertical-align: bottom; padding-top: 30px;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="width: 50%; text-align: center;">
+                            <div style="border-top: 1px solid #000; width: 70%; margin: 0 auto 5px auto;"></div>
+                            <div style="font-size: 10pt;">Rector(a)</div>
+                        </td>
+                        <td style="width: 50%; text-align: center;">
+                            <div style="border-top: 1px solid #000; width: 70%; margin: 0 auto 5px auto;"></div>
+                            <div style="font-size: 10pt;">Director(a) de Grupo</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- Fila de la Fecha -->
+        <tr>
+            <td style="text-align: center; padding-top: 10px; padding-bottom: 20px;">
+                <img src="https://i.imgur.com/4SAnwYt.png" style="height: 70px; margin-bottom: 5px;" alt="Sello">
+                <p style="font-size: 10pt; font-style: italic; margin: 0;">
+                    {{ mencion.institucion.ciudad_departamento|default:"la ciudad" }}, {{ mencion.fecha_otorgamiento|date:"d \d\e F \d\e Y" }}
+                </p>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

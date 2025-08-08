@@ -1,0 +1,59 @@
+    {% extends "gestion_academica/base.html" %}
+
+    {% block titulo %}{{ titulo_pagina|default:"Mis Cursos y Calificaciones" }}{% endblock %}
+
+    {% block contenido %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>{{ titulo_pagina|default:"Mis Cursos y Calificaciones" }}</h1>
+    </div>
+    <p class="lead">Bienvenido, {{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}.</p>
+    {% if estudiante.grado_actual %}
+        <p>Actualmente estás en el grado: <strong>{{ estudiante.grado_actual.nombre }}</strong>.</p>
+    {% endif %}
+    {% if periodo_activo %}
+        <p>Mostrando cursos para el periodo: <strong>{{ periodo_activo.nombre }} ({{ periodo_activo.año_escolar }})</strong>.</p>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            No hay un periodo académico activo definido. No se pueden mostrar cursos.
+        </div>
+    {% endif %}
+    <hr>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if cursos %}
+        <h3 class="mb-3">Tus Cursos</h3>
+        <div class="list-group shadow-sm">
+            {% for curso_obj in cursos %}
+            <a href="{% url 'gestion_academica:detalle_mis_calificaciones_por_curso' curso_pk=curso_obj.pk %}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ curso_obj.materia.nombre_materia }}</h5>
+                    <small class="text-muted">Grado: {{ curso_obj.grado.nombre }}</small>
+                </div>
+                <p class="mb-1">
+                    Docentes:
+                    {% for docente in curso_obj.docentes_asignados.all %}
+                        {{ docente.usuario.get_full_name|default:docente.usuario.username }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        <span class="text-italic">No asignados</span>
+                    {% endfor %}
+                </p>
+                {# Aquí podrías mostrar un promedio si lo calculas en la vista #}
+            </a>
+            {% endfor %}
+        </div>
+    {% elif periodo_activo and estudiante.grado_actual %}
+        <div class="alert alert-info mt-3" role="alert">
+            No tienes cursos asignados para el periodo activo en tu grado actual.
+        </div>
+    {% endif %}
+
+    {% endblock %}
+    

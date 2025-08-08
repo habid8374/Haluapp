@@ -1,0 +1,119 @@
+    {% extends "gestion_academica/base.html" %}
+
+    {% block titulo %}{{ titulo_pagina|default:"Libro de Notas" }}{% endblock %}
+    
+    {% block extrastyles %}
+    <style>
+        .table-libro-notas th, .table-libro-notas td {
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.85rem;
+            padding: 0.4rem;
+        }
+        .table-libro-notas th.actividad-titulo {
+            writing-mode: vertical-rl; /* Títulos de actividad verticales */
+            text-orientation: mixed;
+            white-space: nowrap;
+            max-width: 50px; /* Ajusta según necesidad */
+            height: 150px; /* Altura para que quepa el texto vertical */
+        }
+        .table-libro-notas td.estudiante-nombre {
+            text-align: left;
+            font-weight: 500;
+        }
+        .nota-final {
+            font-weight: bold;
+            background-color: #f0f4f8;
+        }
+    </style>
+    {% endblock %}
+
+    {% block contenido %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1>{{ titulo_pagina|default:"Libro de Notas" }}</h1>
+            <h5 class="text-muted">Curso: {{ curso.materia.nombre_materia }} - {{ curso.grado.nombre }}</h5>
+            <p class="text-muted">Periodo: {{ curso.periodo_academico.nombre }} ({{ curso.periodo_academico.año_escolar }})</p>
+        </div>
+        <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver a Seleccionar Curso
+        </a>
+    </div>
+    <hr>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if libro_notas_data %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover shadow-sm table-libro-notas">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 20%;">Estudiante</th>
+                        {% for actividad_info in actividades_del_curso %}
+                            <th class="actividad-titulo" title="{{ actividad_info.titulo }} ({{ actividad_info.porcentaje_en_periodo|default:0 }}%)">
+                                {{ actividad_info.titulo|truncatechars:20 }}
+                            </th>
+                        {% endfor %}
+                        <th class="nota-final" style="width: 10%;">Nota Final Curso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item_estudiante in libro_notas_data %}
+                    <tr>
+                        <td class="estudiante-nombre">
+                            {{ item_estudiante.estudiante.usuario.get_full_name|default:item_estudiante.estudiante.usuario.username }}
+                        </td>
+                        {% for actividad_curso in actividades_del_curso %}
+                            {% with calificacion_actual=None %} {# Inicializar #}
+                                {% for nota_info in item_estudiante.notas_actividades %}
+                                    {% if nota_info.actividad_id == actividad_curso.id %}
+                                        {% with calificacion_actual=nota_info.calificacion %}{% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                                <td>
+                                    <a href="{% url 'gestion_academica:registrar_editar_calificacion' actividad_pk=actividad_curso.pk estudiante_pk=item_estudiante.estudiante.pk %}" 
+                                       class="text-decoration-none" 
+                                       title="Calificar/Editar {{ actividad_curso.titulo }} para {{ item_estudiante.estudiante.usuario.username }}">
+                                    {% if calificacion_actual %}
+                                        {% if calificacion_actual.valor_numerico is not None %}
+                                            {{ calificacion_actual.valor_numerico|floatformat:2 }}
+                                        {% elif calificacion_actual.valor_cualitativo %}
+                                            {{ calificacion_actual.valor_cualitativo }}
+                                        {% else %}
+                                            <span class="text-warning">--</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-danger">S/C</span> {# Sin Calificar #}
+                                    {% endif %}
+                                    </a>
+                                </td>
+                            {% endwith %}
+                        {% endfor %}
+                        <td class="nota-final">
+                            {{ item_estudiante.nota_final_curso|floatformat:2|default:"N/C" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-3" role="alert">
+            No hay estudiantes en este curso o no hay actividades calificables definidas.
+        </div>
+    {% endif %}
+    <div class="mt-3">
+        <a href="{% url 'gestion_academica:lista_actividades_calificables' %}" class="btn btn-outline-info btn-sm">
+            <i class="bi bi-card-list"></i> Gestionar Actividades Calificables de este Curso
+        </a>
+         {# Podrías añadir un botón para exportar el libro de notas si implementas esa funcionalidad #}
+    </div>
+    {% endblock %}
+    

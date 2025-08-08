@@ -1,0 +1,94 @@
+{% extends "base_finanzas.html" %}
+
+{% block titulo %}Cuentas por Cobrar - Finanzas{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Cuentas por Cobrar</h1>
+        <a href="{% url 'finanzas:crear_cuenta_por_cobrar' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Asignar Nueva Cuenta
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if cuentas_por_cobrar %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Concepto</th>
+                                <th class="text-end">Monto Asignado</th>
+                                <th class="text-end">Saldo Pendiente</th>
+                                <th>Vencimiento</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cuenta in cuentas_por_cobrar %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'finanzas:historial_cuentas_estudiante' cuenta.estudiante.pk %}" title="Ver historial de {{ cuenta.estudiante.usuario.get_full_name }}">
+                                        {{ cuenta.estudiante.usuario.get_full_name }}
+                                    </a>
+                                </td>
+                                <td>{{ cuenta.concepto_pago.nombre_concepto }}</td>
+                                <td class="text-end">${{ cuenta.monto_asignado|floatformat:2 }}</td>
+                                <td class="text-end"><strong>${{ cuenta.saldo_pendiente|floatformat:2 }}</strong></td>
+                                <td>{{ cuenta.fecha_vencimiento_especifica|date:"d M, Y" }}</td>
+                                <td class="text-center">
+                                    <span class="badge 
+                                        {% if cuenta.estado == 'PAGADO' %}bg-success
+                                        {% elif cuenta.estado == 'VENCIDO' %}bg-danger
+                                        {% elif cuenta.estado == 'PAGADO_PARCIAL' %}bg-warning text-dark
+                                        {% else %}bg-secondary
+                                        {% endif %}">
+                                        {{ cuenta.get_estado_display }}
+                                    </span>
+                                </td>
+                                
+                                {# --- COLUMNA DE ACCIONES CON LOS NUEVOS BOTONES --- #}
+                                <td class="text-end text-nowrap">
+                                    {% if cuenta.estado != 'PAGADO' and cuenta.estado != 'ANULADO' %}
+                                        {# Botón para REGISTRAR un PAGO #}
+                                        <a href="{% url 'finanzas:registrar_pago' cuenta.pk %}" class="btn btn-sm btn-success" title="Registrar Pago">
+                                            <i class="bi bi-cash-coin"></i>
+                                        </a>
+
+                                        {# Botón para generar VOLANTE DE PAGO #}
+                                        {% if 'matrícula' in cuenta.concepto_pago.nombre_concepto|lower %}
+                                            <a href="{% url 'finanzas:volante_matricula' cuenta.estudiante.pk %}" class="btn btn-sm btn-info" target="_blank" title="Generar Volante de Matrícula">
+                                                <i class="bi bi-file-earmark-text"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'finanzas:volante_mensualidad' cuenta.pk %}" class="btn btn-sm btn-info" target="_blank" title="Generar Volante de Mensualidad">
+                                                <i class="bi bi-file-earmark-text"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                    
+                                    {# Botones para EDITAR y ELIMINAR la cuenta #}
+                                    <a href="{% url 'finanzas:editar_cuenta_por_cobrar' cuenta.pk %}" class="btn btn-sm btn-warning mx-1" title="Editar Cuenta">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <a href="{% url 'finanzas:eliminar_cuenta_por_cobrar' cuenta.pk %}" class="btn btn-sm btn-danger" title="Eliminar Cuenta">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    No hay cuentas por cobrar registradas.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock contenido %}

@@ -1,0 +1,22 @@
+{% extends 'base_finanzas.html' %}
+{% load crispy_forms_tags %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="h2 mb-4">{{ titulo_pagina }}</h1>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <hr>
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-success me-2">Guardar</button>
+                    <a href="{% url 'finanzas:lista_cuentas_contables' %}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

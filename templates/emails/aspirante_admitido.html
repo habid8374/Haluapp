@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>¡Has sido admitido!</title>
+</head>
+<body>
+    <h2>¡Felicidades, {{ aspirante.nombres }}!</h2>
+    <p>Nos complace informarte que has sido <strong>admitido/a</strong> en {{ institucion.nombre }}.</p>
+    <p>Tu pago de inscripción ha sido procesado exitosamente.</p>
+    <hr>
+    <h3>Siguientes Pasos:</h3>
+    <p>Para completar tu proceso, por favor, ingresa a tu portal para subir los documentos requeridos y agendar tu entrevista.</p>
+    <p>
+        <a href="{{ portal_pagado_url }}" style="padding: 10px 15px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px;">
+            Continuar con mi Proceso
+        </a>
+    </p>
+    <p>Puedes usar este enlace siempre que necesites volver a tu portal para revisar el estado de tus documentos o modificar tu cita.</p>
+    <br>
+    <p>Atentamente,<br>El equipo de admisiones de {{ institucion.nombre }}</p>
+</body>
+</html>

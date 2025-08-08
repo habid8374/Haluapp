@@ -1,0 +1,48 @@
+    {% extends "gestion_academica/base.html" %}
+
+    {% block titulo %}{{ titulo_pagina|default:"Seleccionar Curso - Libro de Notas" }}{% endblock %}
+
+    {% block contenido %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>{{ titulo_pagina|default:"Seleccionar Curso - Libro de Notas" }}</h1>
+    </div>
+    <hr>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if periodo_activo %}
+        <p class="text-muted">Mostrando cursos asignados para el periodo activo: <strong>{{ periodo_activo.nombre }} ({{ periodo_activo.año_escolar }})</strong>.</p>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            No hay un periodo académico activo definido. No se pueden mostrar cursos.
+        </div>
+    {% endif %}
+
+    {% if cursos_asignados %}
+        <p>Selecciona un curso para ver su libro de notas:</p>
+        <div class="list-group shadow-sm">
+            {% for curso_obj in cursos_asignados %}
+            <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=curso_obj.pk %}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ curso_obj.materia.nombre_materia }}</h5>
+                    <small>Grado: {{ curso_obj.grado.nombre }}</small>
+                </div>
+                <p class="mb-1 text-muted">Periodo: {{ curso_obj.periodo_academico.nombre }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    {% elif periodo_activo %}
+        <div class="alert alert-info mt-3" role="alert">
+            No tienes cursos asignados para el periodo activo.
+        </div>
+    {% endif %}
+
+    {% endblock %}
+    

@@ -1,0 +1,134 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h1 class="h3 mb-1">{{ titulo_pagina }}</h1>
+            <p class="text-muted mb-0">Estudiante: <strong>{{ estudiante.usuario.get_full_name }}</strong> | Periodo: {{ periodo.nombre }}</p>
+        </div>
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="{{ form.observacion.id_for_label }}" class="form-label fw-bold">Observación para el Boletín:</label>
+                            
+                            <textarea name="{{ form.observacion.name }}" id="{{ form.observacion.id_for_label }}" 
+                                      class="form-control" 
+                                      rows="12" 
+                                      placeholder="Escribe aquí la observación o usa el asistente de la derecha...">{{ form.observacion.value|default_if_none:'' }}</textarea>
+                            
+                            {% if form.observacion.errors %}
+                                <div class="text-danger small mt-1">{{ form.observacion.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title text-primary"><i class="bi bi-robot me-2"></i>Asistente HALU</h6>
+                                <p class="card-text small text-muted">Genera un borrador basado en los datos académicos del estudiante.</p>
+                                <div class="d-grid">
+                                    <button type="button" id="generarResumenBtn" class="btn btn-info" 
+                                            data-estudiante-pk="{{ estudiante.pk }}" 
+                                            data-periodo-pk="{{ periodo.pk }}">
+                                        <span id="resumen-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        <i id="resumen-icon" class="bi bi-magic me-1"></i>
+                                        <span id="resumen-btn-text">Generar Borrador</span>
+                                    </button>
+                                </div>
+                                <hr>
+                                <h6 class="card-title small">Frases Rápidas</h6>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm quick-phrase-btn">Felicitaciones por su excelente desempeño...</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm quick-phrase-btn">Se recomienda reforzar los temas vistos en...</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm quick-phrase-btn">Ha demostrado un gran progreso en...</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                <div class="text-end">
+                    <a href="{% url 'gestion_academica:gestionar_observaciones' grado_pk=estudiante.grado_actual.pk periodo_pk=periodo.pk %}" class="btn btn-secondary">
+                        Volver a la Lista
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save-fill me-2"></i> Guardar Observación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const generarBtn = document.getElementById('generarResumenBtn');
+    const observacionTextarea = document.getElementById('id_observacion');
+
+    // Lógica para el botón de la IA
+    if (generarBtn && observacionTextarea) {
+        const spinner = document.getElementById('resumen-spinner');
+        const icon = document.getElementById('resumen-icon');
+        const btnText = document.getElementById('resumen-btn-text');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        generarBtn.addEventListener('click', function() {
+            const estudiantePk = this.dataset.estudiantePk;
+            const periodoPk = this.dataset.periodoPk;
+            const url = `/academico/api/generar-resumen-estudiante/${estudiantePk}/${periodoPk}/`;
+
+            this.disabled = true;
+            spinner.classList.remove('d-none');
+            icon.classList.add('d-none');
+            btnText.textContent = 'Generando...';
+            observacionTextarea.value = "HALU está analizando el rendimiento del estudiante...";
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            })
+            .then(response => response.json())
+            .then(data => {
+                observacionTextarea.value = (data.status === 'success') ? data.resumen : `Error: ${data.message}`;
+            })
+            .catch(error => {
+                console.error("Error al generar resumen:", error);
+                observacionTextarea.value = "Error de conexión al intentar generar el resumen.";
+            })
+            .finally(() => {
+                this.disabled = false;
+                spinner.classList.add('d-none');
+                icon.classList.remove('d-none');
+                btnText.textContent = 'Generar Borrador con IA';
+            });
+        });
+    }
+
+    // Lógica para los botones de frases rápidas
+    document.querySelectorAll('.quick-phrase-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const currentText = observacionTextarea.value;
+            const phrase = this.textContent;
+            
+            // Añade la frase con un espacio, si ya hay texto.
+            if (currentText.trim() === '') {
+                observacionTextarea.value = phrase;
+            } else {
+                observacionTextarea.value = currentText + ' ' + phrase;
+            }
+            observacionTextarea.focus();
+        });
+    });
+});
+</script>
+{% endblock %}

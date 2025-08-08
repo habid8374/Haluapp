@@ -1,0 +1,54 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                
+                {# CAMBIO 1: El h2 ahora usa titulo_pagina para ser consistente con la función. #}
+                <h2 class="h3 mb-0">{{ titulo_pagina }}</h2>
+                
+                {# CAMBIO 2: La lógica del botón ahora refleja la de la vista (si el usuario tiene perfil de estudiante). #}
+                {% if user.estudiante %}
+                    <a href="{% url 'gestion_academica:dashboard_estudiante' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al Panel
+                    </a>
+                {% else %}
+                    <a href="{% url 'gestion_academica:lista_lecciones_diarias' leccion.curso.pk %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al Historial
+                    </a>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-0">
+                {# El tema se muestra aquí como un subtítulo. #}
+                Tema: <strong>{{ leccion.tema_tratado }}</strong>
+            </p>
+        </div>
+        <div class="card-body p-4">
+            <h5 class="card-title">Resumen de la Clase</h5>
+            
+            {# Se asume que la función provee 'leccion.resumen_clase' y se mantiene. #}
+            <p class="card-text" style="white-space: pre-wrap;">{{ leccion.resumen_clase|linebreaksbr }}</p>
+
+            {% if leccion.archivo_adjunto %}
+                <hr>
+                <h5 class="card-title">Material Adicional</h5>
+                <a href="{{ leccion.archivo_adjunto.url }}" target="_blank" class="btn btn-primary">
+                    <i class="bi bi-download me-2"></i> Descargar Archivo Adjunto
+                </a>
+            {% endif %}
+        </div>
+        <div class="card-footer text-muted">
+            <div class="d-flex justify-content-between">
+                <span>Registrado por: Prof. {{ leccion.creado_por.get_full_name|default:leccion.creado_por.username }}</span>
+                
+                {# CAMBIO 3: La fecha ahora usa el formato de la función. #}
+                <span>Materia: <strong>{{ leccion.curso.materia }}</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

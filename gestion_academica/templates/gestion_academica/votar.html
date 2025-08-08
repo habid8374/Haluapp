@@ -1,0 +1,33 @@
+{% extends "base_academico.html" %}
+{% block titulo %}Votación: {{ eleccion.nombre }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <h2 class="mb-4">{{ eleccion.cargo }} - {{ eleccion.nombre }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            {% for candidato in candidatos %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body d-flex flex-column">
+    <h5 class="card-title">{{ candidato.nombre }}</h5>
+    <p class="card-text"><strong>Propuesta:</strong><br> {{ candidato.propuesta|truncatewords:25 }}</p>
+
+    {% if candidato.analisis_ia %}
+    <div class="alert alert-info small text-start mt-2">
+        <strong>Análisis de la IA:</strong><br>
+        {{ candidato.analisis_ia|linebreaks }}
+    </div>
+    {% endif %}
+
+    <button type="submit" name="candidato" value="{{ candidato.id }}" class="btn btn-success mt-auto">
+        Votar por {{ candidato.nombre }}
+    </button>
+</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+</div>
+{% endblock %}

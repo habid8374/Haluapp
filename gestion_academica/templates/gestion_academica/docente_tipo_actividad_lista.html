@@ -1,0 +1,65 @@
+{% extends "base_academico.html" %}
+{% block titulo %}Mis Categorías de Calificación{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Categorías de Calificación</h1>
+        <a href="{% url 'gestion_academica:docente_crear_tipo_actividad' %}" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Crear Nueva Categoría</a>
+    </div>
+    <p class="text-muted">
+        Define las categorías y su peso porcentual para cada materia. La suma total no debe exceder el 100%.
+    </p>
+
+    {% if porcentaje_excedido %}
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>¡Atención!</strong> La suma de los porcentajes de tus categorías es de <strong>{{ total_porcentaje }}%</strong>, lo cual supera el 100%. Esto puede causar errores en el cálculo de la nota definitiva. Por favor, ajusta los valores.
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre de la Categoría</th>
+                            <th class="text-center">Porcentaje (%)</th>
+                            <th>Creado por</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in categorias %}
+                        <tr>
+                            <td><strong>{{ cat.nombre }}</strong></td>
+                            <td class="text-center">{{ cat.porcentaje|default:"N/A" }}</td>
+                            <td>{{ cat.creado_por.get_full_name|default:"Sistema" }}</td>
+                            <td class="text-center">
+                                {% if cat.creado_por == user or user.is_superuser %}
+                                <a href="{% url 'gestion_academica:docente_editar_tipo_actividad' pk=cat.pk %}" class="btn btn-sm btn-warning" title="Editar"><i class="bi bi-pencil-fill"></i></a>
+                                <a href="{% url 'gestion_academica:docente_eliminar_tipo_actividad' pk=cat.pk %}" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash-fill"></i></a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center">No hay categorías creadas. ¡Crea la primera!</td></tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-group-divider fw-bold">
+                        <tr>
+                            <td class="text-end">Total Porcentajes:</td>
+                            <td class="text-center 
+                                {% if porcentaje_excedido %}text-danger{% endif %}">
+                                {{ total_porcentaje }}%
+                            </td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="h2 mb-4">Gestionar Cita con {{ cita.familiar.usuario.get_full_name }}</h1>
+    <p class="lead"><strong>Estudiante:</strong> {{ cita.estudiante.usuario.get_full_name }}</p>
+    <p class="text-muted"><strong>Asunto:</strong> {{ cita.asunto }}</p>
+    <hr>
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a href="{% url 'gestion_academica:docente_mis_citas' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

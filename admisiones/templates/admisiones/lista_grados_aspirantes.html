@@ -1,0 +1,28 @@
+{% extends 'base_academico.html' %}
+
+{% block contenido %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">{{ titulo_pagina }}</h3>
+        <a href="{% url 'admisiones:dashboard_admisiones' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <p class="card-text text-muted">Selecciona un grado para ver la lista de aspirantes.</p>
+            <div class="list-group">
+                {% for grado in grados %}
+                    <a href="{% url 'admisiones:lista_aspirantes_por_grado' grado.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        {{ grado.nombre }}
+                        <span class="badge bg-primary rounded-pill">{{ grado.num_aspirantes }} Aspirante(s)</span>
+                    </a>
+                {% empty %}
+                    <div class="alert alert-info">No hay grados con aspirantes para mostrar.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock contenido %}

@@ -1,0 +1,64 @@
+{# gestion_academica/templates/gestion_academica/periodo_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Periodo Académico" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Periodo Académico" }}</h1>
+    <hr>
+
+    {% if periodo %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar el periodo académico: <strong>{{ periodo.nombre }} ({{ periodo.año_escolar }})</strong>?</p>
+            
+            <p class="mb-1">Fecha de Inicio: {{ periodo.fecha_inicio|date:"d F, Y" }}</p>
+            <p class="mb-0">Fecha de Fin: {{ periodo.fecha_fin|date:"d F, Y" }}</p>
+
+            <hr>
+            <p class="mb-0">Esta acción es **irreversible** y eliminará permanentemente este registro.</p>
+            
+            {# Advertencias si el periodo está en uso #}
+            {% if periodo.cursos.exists %}
+                <p class="mt-3 text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este periodo está asignado a **{{ periodo.cursos.count }} curso(s)**. Eliminarlo **podría afectar gravemente** los registros de esos cursos, como sus actividades y calificaciones asociadas.
+                </p>
+            {% endif %}
+            {% if periodo.directores_grado.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este periodo está asociado a **{{ periodo.directores_grado.count }} director(es) de grado**. Eliminarlo afectará la asignación de esos directores.
+                </p>
+            {% endif %}
+            {% if periodo.conceptos_pago.exists %} {# Si los ConceptosPago tienen FK a PeriodoAcademico #}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este periodo está asociado a **{{ periodo.conceptos_pago.count }} concepto(s) de pago**. Eliminarlo podría afectar los registros de finanzas.
+                </p>
+            {% endif %}
+            {% if periodo.planes_curriculares_periodo.exists %} {# Si tienes planes curriculares asociados a periodos #}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este periodo está asociado a **{{ periodo.planes_curriculares_periodo.count }} plan(es) curricular(es)**. Eliminarlo podría afectar estos registros.
+                </p>
+            {% endif %}
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Periodo
+            </button>
+            <a href="{% url 'gestion_academica:lista_periodos' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró el periodo académico a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_periodos' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

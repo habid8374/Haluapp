@@ -1,0 +1,20 @@
+{% extends 'base_academico.html' %}
+{% load crispy_forms_tags %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h3>{{ titulo_pagina }}</h3>
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                    <a href="{% url 'gestion_academica:logro_lista' %}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

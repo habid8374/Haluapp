@@ -1,0 +1,66 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">{{ titulo_pagina }}</h3>
+                
+                <!-- CORRECCIÓN 1: Se reemplazó el <form> erróneo por un enlace <a> simple y correcto -->
+                <a href="{% url 'gestion_academica:lista_lecciones_diarias' curso.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver al curso
+                </a>
+            </div>
+            <p class="text-muted mb-0">
+                Clase de <strong>{{ curso.materia }}</strong> ({{ curso.grado }}) del <strong>{{ leccion.fecha|date:"d \d\e F \d\e Y" }}</strong>
+            </p>
+        </div>
+        
+        {# --- Lógica principal del template --- #}
+
+        {# Si el usuario es un docente, se muestra el formulario de edición #}
+        {% if es_docente %}
+            <div class="card-body p-4">
+                <!-- CORRECCIÓN 2: Se añadió el 'action' para que el formulario se envíe a sí mismo -->
+                <form method="post" enctype="multipart/form-data" action="{% url 'gestion_academica:detalle_leccion' leccion.pk %}">
+                    {% csrf_token %}
+                    
+                    <h5 class="mb-3">Editar Lección</h5>
+                    {{ form|crispy }}
+                    
+                    <div class="d-flex justify-content-end mt-4 border-top pt-3">
+                        <a href="{% url 'gestion_academica:lista_lecciones_diarias' curso.pk %}" class="btn btn-secondary me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        {# Si no es docente, se muestra la información en modo lectura #}
+        {% else %}
+            <div class="card-body p-4">
+                <h5 class="card-title">Tema Tratado</h5>
+                <p class="card-text fs-5">{{ leccion.tema_tratado }}</p>
+                <hr>
+
+                <h5 class="card-title mt-4">Resumen y Actividades</h5>
+                <div class="p-3 bg-light rounded" style="white-space: pre-wrap;">{{ leccion.resumen_clase|linebreaksbr }}</div>
+
+                {% if leccion.archivo_adjunto %}
+                    <hr>
+                    <h5 class="card-title mt-4">Material Adicional</h5>
+                    <a href="{{ leccion.archivo_adjunto.url }}" class="btn btn-success" target="_blank">
+                        <i class="bi bi-download me-2"></i>Descargar Archivo
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+    </div>
+</div>
+{% endblock %}

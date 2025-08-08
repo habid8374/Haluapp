@@ -1,0 +1,26 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+{% block titulo %}{{ titulo_formulario|default:"Formulario de Categoría" }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h3 class="mb-0">{{ titulo_formulario|default:"Formulario de Categoría" }}</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Define una categoría (Ej: Tareas) y su peso en la nota final (Ej: 20%).</p>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="mt-4 text-end">
+                        <a href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-success">Guardar Categoría</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

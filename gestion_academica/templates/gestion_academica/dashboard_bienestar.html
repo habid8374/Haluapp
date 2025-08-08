@@ -1,0 +1,229 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="h2 mb-0"><i class="bi bi-heart-pulse-fill text-danger me-2"></i> {{ titulo_pagina }}</h1>
+        <div>
+            <button type="button" id="executeAnalysisBtn" class="btn btn-primary me-2">
+                <span id="btn-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                <i id="btn-icon" class="bi bi-arrow-repeat me-2"></i>
+                <span id="btn-text">Ejecutar Análisis de Patrones</span>
+            </button>
+            <a href="{% url 'gestion_academica:dashboard_coordinador' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver al Panel</a>
+        </div>
+    </div>
+
+    <div id="analysis-status-alert" class="alert alert-info d-none" role="alert">
+        <div class="d-flex align-items-center">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            <strong>Análisis en progreso...</strong> Los resultados aparecerán aquí automáticamente cuando finalice. No es necesario que permanezcas en esta página.
+        </div>
+    </div>
+
+    <div class="alert alert-warning" role="alert">
+        <h4 class="alert-heading">Información Confidencial</h4>
+        <p>Esta sección muestra observaciones que, según el análisis de inteligencia artificial, podrían indicar una situación de riesgo para el bienestar del estudiante. Por favor, maneja esta información con la máxima discreción y profesionalismo.</p>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-robot me-1"></i> Resúmenes de Comportamiento Generados por IA
+        </div>
+        <div class="card-body">
+            {% for resumen in resumenes_ia %}
+                <div class="border-bottom pb-2 mb-2">
+                    <p class="mb-1">
+                        <strong>Estudiante:</strong> 
+                        <a href="{% url 'gestion_academica:detalle_estudiante' resumen.estudiante.pk %}">{{ resumen.estudiante.usuario.get_full_name }}</a>
+                    </p>
+                    <p class="mb-1"><strong>Análisis de HALU:</strong></p>
+                    <blockquote class="blockquote-footer bg-light p-2 rounded">
+                        {{ resumen.resumen_ia|linebreaksbr }}
+                    </blockquote>
+                    {% if resumen.patrones_detectados %}
+                        <p class="mb-0">
+                            <strong>Patrones Clave:</strong>
+                            {% for patron in resumen.patrones_detectados %}
+                                <span class="badge bg-secondary">{{ patron }}</span>
+                            {% endfor %}
+                        </p>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="text-center text-muted">Aún no se han generado análisis de comportamiento. Presiona "Ejecutar Análisis de Patrones" para comenzar.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <i class="bi bi-list-check me-1"></i> Alertas Individuales para Revisión
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Estudiante</th>
+                        <th>Observación del Docente</th>
+                        <th>Sugerencia de la IA</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for alerta in alertas %}
+                <tr class="table-danger">
+                    <td>{{ alerta.fecha_hora|date:"d M, Y" }}</td>
+                    <td><strong>{{ alerta.estudiante.usuario.get_full_name }}</strong></td>
+                    <td><small>{{ alerta.descripcion|truncatewords:15 }}</small></td>
+                    <td>
+                        {% if alerta.analisis_ia %}
+                            <small><em>{{ alerta.analisis_ia|truncatewords:15 }}</em></small>
+                        {% else %}
+                            <small class="text-muted">Análisis pendiente.</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'gestion_academica:detalle_alerta_bienestar' alerta.pk %}" class="btn btn-sm btn-outline-danger">
+                            Ver Detalle Completo
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center p-4">¡Buenas noticias! No hay alertas de bienestar pendientes.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmAnalysisModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"><i class="bi bi-robot text-primary"></i> Confirmar Análisis con IA</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Estás a punto de iniciar un análisis de comportamiento para <strong>todos los estudiantes activos</strong>. Este proceso se ejecutará en segundo plano y puede tardar varios minutos.</p>
+                <p>¿Deseas continuar?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="confirmAnalysisBtn" class="btn btn-primary">Sí, Iniciar Análisis</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="analysisResultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="resultModalLabel"><i class="bi bi-check-circle-fill me-2"></i>Análisis Finalizado</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="resultModalBody">
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const executeBtn = document.getElementById('executeAnalysisBtn');
+    const confirmBtn = document.getElementById('confirmAnalysisBtn');
+    const statusAlert = document.getElementById('analysis-status-alert');
+    const btnSpinner = document.getElementById('btn-spinner');
+    const btnIcon = document.getElementById('btn-icon');
+    const btnText = document.getElementById('btn-text');
+    const csrfToken = '{{ csrf_token }}';
+    
+    const analysisModal = new bootstrap.Modal(document.getElementById('confirmAnalysisModal'));
+    const resultModalElement = document.getElementById('analysisResultModal');
+    const resultModal = new bootstrap.Modal(resultModalElement);
+    const resultModalBody = document.getElementById('resultModalBody');
+    
+    resultModalElement.addEventListener('hidden.bs.modal', function () {
+        window.location.reload();
+    });
+
+    function checkTaskStatus(taskId) {
+        const interval = setInterval(() => {
+            fetch(`{% url 'gestion_academica:analisis_status' %}?task_id=${taskId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'SUCCESS' || data.status === 'FAILURE') {
+                        clearInterval(interval);
+                        statusAlert.classList.add('d-none');
+
+                        if (data.status === 'SUCCESS') {
+                            resultModalBody.textContent = data.result;
+                        } else {
+                            resultModalBody.textContent = 'La tarea falló al ejecutarse. Revisa la consola del servidor de Celery para más detalles.';
+                        }
+                        resultModal.show();
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al verificar el estado de la tarea:", error);
+                    clearInterval(interval);
+                    statusAlert.classList.add('d-none');
+                });
+        }, 5000);
+    }
+
+    executeBtn.addEventListener('click', function() {
+        analysisModal.show();
+    });
+
+    confirmBtn.addEventListener('click', function() {
+        analysisModal.hide();
+
+        executeBtn.disabled = true;
+        btnSpinner.classList.remove('d-none');
+        btnIcon.classList.add('d-none');
+        btnText.textContent = 'Iniciando...';
+        
+        fetch("{% url 'gestion_academica:ejecutar_analisis_comportamiento' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.task_id) {
+                statusAlert.classList.remove('d-none');
+                btnText.textContent = 'Análisis en Proceso';
+                checkTaskStatus(data.task_id);
+            } else {
+                alert('Error al iniciar la tarea.');
+                executeBtn.disabled = false;
+                btnSpinner.classList.add('d-none');
+                btnIcon.classList.remove('d-none');
+                btnText.textContent = 'Ejecutar Análisis de Patrones';
+            }
+        })
+        .catch(error => {
+            console.error("Error al iniciar la tarea:", error);
+            alert('Error de conexión al iniciar el análisis.');
+            executeBtn.disabled = false;
+            btnSpinner.classList.add('d-none');
+            btnIcon.classList.remove('d-none');
+            btnText.textContent = 'Ejecutar Análisis de Patrones';
+        });
+    });
+});
+</script>
+{% endblock %}

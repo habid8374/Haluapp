@@ -1,0 +1,64 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4">{{ titulo_pagina }}</h1>
+
+            {% if entrega.alerta_plagio %}
+                <div class="alert alert-danger shadow-sm" role="alert">
+                    <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>¡Alerta de Posible Plagio Detectada!</h4>
+                    <p>
+                        El sistema HALU ha detectado una similitud del <strong>{{ entrega.porcentaje_similitud }}%</strong> en este trabajo al compararlo con otras entregas.
+                    </p>
+                    <hr>
+                    <p class="mb-0">Se recomienda revisar el contenido cuidadosamente antes de asignar una calificación.</p>
+                </div>
+            {% endif %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5>Entrega del Estudiante</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Estudiante:</strong> {{ entrega.estudiante.usuario.get_full_name }}</p>
+                    <p><strong>Tarea:</strong> {{ entrega.deber.titulo }}</p>
+                    {% if entrega.archivo_adjunto_estudiante %}
+                        <p>
+                            <strong>Archivo Entregado:</strong> 
+                            <a href="{{ entrega.archivo_adjunto_estudiante.url }}" target="_blank" class="btn btn-sm btn-info">
+                                <i class="bi bi-download me-1"></i> Descargar Tarea
+                            </a>
+                        </p>
+                    {% endif %}
+                    {% if entrega.comentarios_estudiante %}
+                        <p><strong>Comentarios del estudiante:</p>
+                        <blockquote class="blockquote bg-light p-3 rounded">
+                            <p class="mb-0">{{ entrega.comentarios_estudiante|linebreaks }}</p>
+                        </blockquote>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5>Asignar Calificación</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-flex justify-content-end mt-3">
+                            <a href="{% url 'gestion_academica:tareas_por_calificar' %}" class="btn btn-secondary me-2">Cancelar</a>
+                            <button type="submit" class="btn btn-success">Guardar Calificación</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,258 @@
+{% extends "base_academico.html" %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>{{ titulo_pagina }}</h4>
+        </div>
+        <div class="card-body">
+            <p class="card-text">Seleccione el reporte que desea generar de la siguiente lista.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-primary"><i class="fas fa-user-graduate me-2"></i>Rendimiento por Estudiante</h5>
+                    <p class="card-text flex-grow-1">
+                        Genere un reporte detallado de las calificaciones y el promedio de un estudiante específico en un periodo académico.
+                    </p>
+                    <a href="{% url 'gestion_academica:reporte_rendimiento_estudiante' %}" class="btn btn-primary mt-auto">
+                        Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-layer-group me-2"></i>Reporte Acumulado</h5>
+            <p class="card-text flex-grow-1">
+                Muestra el historial de notas de un estudiante a lo largo de todos los periodos del año.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_acumulado_periodo' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-trophy me-2"></i>Ranking por Grado</h5>
+            <p class="card-text flex-grow-1">
+                Visualiza el ranking de estudiantes de un grado según su promedio general en un periodo.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_promedio_general_grado' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-id-card me-2"></i>Dashboard del Estudiante</h5>
+            <p class="card-text flex-grow-1">
+                Consulta un resumen 360° del rendimiento, asistencia y estado general de un estudiante.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_estudiante_dashboard' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-signal me-2"></i>Rendimiento por Grado</h5>
+            <p class="card-text flex-grow-1">
+                Compara el promedio general de cada materia dentro de un grado y periodo específico.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_rendimiento_por_grado' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-sitemap me-2"></i>Promedio por Áreas</h5>
+            <p class="card-text flex-grow-1">
+                Compara el rendimiento general entre las diferentes áreas académicas de un grado.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_promedio_por_area' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-danger"><i class="fas fa-user-times me-2"></i>Informe de Reprobación</h5>
+            <p class="card-text flex-grow-1">
+                Genera una lista de estudiantes con materias reprobadas al final del año escolar.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_reprobacion' %}" class="btn btn-danger mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-table me-2"></i>Consolidado por Materia</h5>
+            <p class="card-text flex-grow-1">
+                Genera una planilla de notas detallada para una materia, mostrando las calificaciones de todos los estudiantes.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_consolidado_materia' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-cubes me-2"></i>Consolidado por Áreas</h5>
+            <p class="card-text flex-grow-1">
+                Muestra una planilla con el promedio de cada estudiante por área académica (Ciencias, Humanidades, etc.).
+            </p>
+            <a href="{% url 'gestion_academica:reporte_consolidado_areas' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-crown me-2"></i>Ranking Institucional</h5>
+            <p class="card-text flex-grow-1">
+                Genera un ranking general de todos los estudiantes de la institución para un periodo.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_ranking_institucion' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-shapes me-2"></i>Resumen Cualitativo</h5>
+            <p class="card-text flex-grow-1">
+                Muestra un resumen estadístico y gráfico de los desempeños (LA, LP, etc.) para un grado de preescolar.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_promedio_cualitativo' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-chart-line me-2"></i>Promedio por Materia</h5>
+            <p class="card-text flex-grow-1">
+                Compara el rendimiento de una misma materia a través de los diferentes grados de la institución.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_promedio_por_materia' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-trophy me-2"></i>Cuadro de Honor por Grado</h5>
+            <p class="card-text flex-grow-1">
+                Visualiza el ranking de estudiantes dentro de un grado específico.
+            </p>
+            <a href="{% url 'gestion_academica:cuadro_honor_grado' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-calendar-check me-2"></i>Asistencia Diaria</h5>
+            <p class="card-text flex-grow-1">
+                Consulta un resumen estadístico y gráfico de la asistencia de toda la institución en una fecha específica.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_asistencia_diaria' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-user-check me-2"></i>Asistencia por Materia</h5>
+            <p class="card-text flex-grow-1">
+                Genera una planilla de asistencia detallada para un curso, con los totales por estudiante.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_asistencia_materia' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary"><i class="fas fa-eye me-2"></i>Reporte de Incidencias</h5>
+            <p class="card-text flex-grow-1">
+                Consulta el historial completo de anotaciones en el observador para un estudiante específico.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_incidencias' %}" class="btn btn-primary mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-danger"><i class="fas fa-shield-alt me-2"></i>Consolidado de Convivencia</h5>
+            <p class="card-text flex-grow-1">
+                Muestra un resumen de todos los casos de convivencia (Halu Sentinel) registrados en la institución.
+            </p>
+            <a href="{% url 'gestion_academica:reporte_consolidado_convivencia' %}" class="btn btn-danger mt-auto">
+                Ir al Reporte <i class="fas fa-arrow-circle-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+        
+        </div>
+</div>
+{% endblock %}

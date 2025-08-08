@@ -1,0 +1,54 @@
+{% extends 'base_academico.html' %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <a href="{% url 'admisiones:revision_documentos_lista' %}" class="btn btn-outline-secondary mb-3">
+        <i class="bi bi-arrow-left"></i> Volver a la lista
+    </a>
+    <h3 class="mb-2">{{ titulo_pagina }}</h3>
+    <p class="text-muted">Grado al que aspira: {{ aspirante.grado_aspira.nombre }}</p>
+
+    <div class="card">
+        <div class="card-body">
+            {% for item in lista_documentos %}
+            <div class="row align-items-center py-3 {% if not forloop.last %}border-bottom{% endif %}">
+                <div class="col-md-3">
+                    <strong>{{ item.requerido.nombre }}</strong>
+                    {% if item.requerido.es_obligatorio %}<span class="badge bg-danger ms-1">Obligatorio</span>{% endif %}
+                </div>
+                <div class="col-md-9">
+                    {% if item.entregado %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="documento_id" value="{{ item.entregado.id }}">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <a href="{{ item.entregado.archivo.url }}" target="_blank" class="btn btn-info btn-sm">
+                                        <i class="bi bi-eye-fill"></i> Ver Archivo
+                                    </a>
+                                </div>
+                                <div class="col">
+                                    <select name="estado" class="form-select form-select-sm">
+                                        <option value="subido" {% if item.entregado.estado == 'subido' %}selected{% endif %}>Subido</option>
+                                        <option value="aprobado" {% if item.entregado.estado == 'aprobado' %}selected{% endif %}>Aprobado</option>
+                                        <option value="rechazado" {% if item.entregado.estado == 'rechazado' %}selected{% endif %}>Rechazado</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <input type="text" name="observaciones" class="form-control form-control-sm" value="{{ item.entregado.observaciones_revision|default:'' }}" placeholder="Observaciones (si se rechaza)">
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-success btn-sm">Guardar</button>
+                                </div>
+                            </div>
+                        </form>
+                    {% else %}
+                        <span class="badge bg-secondary">Aún no entregado</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock contenido %}

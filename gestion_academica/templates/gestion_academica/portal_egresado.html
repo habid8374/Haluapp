@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-graduate fa-5x mb-3 text-primary"></i>
+                    <h5 class="card-title">{{ egresado.estudiante.usuario.get_full_name }}</h5>
+                    <p class="card-text text-muted">Egresado(a) - Promoción {{ egresado.año_graduacion }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0">Mi Archivo Histórico</h5></div>
+                <div class="card-body">
+                    {% if archivos %}
+                    <ul class="list-group list-group-flush">
+                        {% for archivo in archivos %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-file-pdf text-danger me-2"></i>{{ archivo.get_tipo_documento_display }} ({{ archivo.año_academico }})</span>
+                            <a href="{{ archivo.archivo_pdf.url }}" class="btn btn-sm btn-outline-primary" download>Descargar</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">No tienes documentos en tu archivo histórico.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0">Solicitar Nuevos Documentos</h5></div>
+                <div class="card-body">
+                    <p>Selecciona el documento que necesitas. Serás redirigido a la pasarela de pago.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <select class="form-select" name="tipo_documento" required>
+                                <option value="" selected disabled>-- Selecciona un certificado --</option>
+                                {% for cert in certificados_solicitables %}
+                                    <option value="{{ cert.nombre_concepto }}">{{ cert.nombre_concepto }} (${{ cert.valor|floatformat:2|intcomma }})</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-success" type="submit">Solicitar y Pagar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Estado de mis Solicitudes</h5></div>
+                <div class="card-body">
+                    {% if solicitudes %}
+                    <ul class="list-group list-group-flush">
+                        {% for sol in solicitudes %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold">{{ sol.tipo_documento_solicitado }}</span>
+                                <small class="d-block text-muted">Solicitado el {{ sol.fecha_solicitud|date:"d/m/Y" }}</small>
+                            </div>
+                            {% if sol.estado == 'LISTO_DESCARGA' and sol.archivo_generado %}
+                                <a href="{{ sol.archivo_generado.url }}" class="btn btn-sm btn-primary" download>Descargar Documento</a>
+                            {% else %}
+                                <span class="badge 
+                                    {% if sol.estado == 'PENDIENTE_PAGO' %}bg-warning text-dark
+                                    {% elif sol.estado == 'EN_PROCESO' %}bg-info text-dark
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ sol.get_estado_display }}
+                                </span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">No tienes solicitudes activas.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

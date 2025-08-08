@@ -1,0 +1,92 @@
+{% extends "base_academico.html" %}
+{% load humanize %}
+{% load socialaccount %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Columna Izquierda: Tarjeta de Usuario -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-circle" style="font-size: 80px; color: #6c757d;"></i>
+                    <h3 class="card-title mt-3">{{ user.get_full_name }}</h3>
+                    <p class="text-muted mb-1">@{{ user.username }}</p>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <span class="badge bg-primary fs-6">{{ user.get_rol_display }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Detalles y Acciones -->
+        <div class="col-lg-8">
+            <!-- Tarjeta de Detalles del Perfil -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Detalles del Perfil</h5>
+                </div>
+                <div class="card-body">
+                    {% if estudiante_profile %}
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Documento:</strong> <span>{{ estudiante_profile.documento_identidad }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Grado Actual:</strong> <span>{{ estudiante_profile.grado_actual.nombre }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Saldo Pendiente:</strong> <span class="fw-bold {% if esta_en_mora %}text-danger{% else %}text-success{% endif %}">${{ saldo_pendiente|intcomma }}</span></li>
+                        </ul>
+                    {% elif docente_profile %}
+                        <h6 class="card-subtitle mb-2 text-muted">Cursos Asignados (Periodo Actual)</h6>
+                        <ul class="list-group list-group-flush">
+                            {% for curso in cursos_del_docente %}
+                                <li class="list-group-item">{{ curso.materia.nombre_materia }} - {{ curso.grado.nombre }}</li>
+                            {% empty %}
+                                <li class="list-group-item">No tienes cursos asignados en el periodo activo.</li>
+                            {% endfor %}
+                        </ul>
+                    {% elif familiar_profile %}
+                        <h6 class="card-subtitle mb-2 text-muted">Estudiantes Asociados</h6>
+                        <ul class="list-group list-group-flush">
+                            {% for est in familiar_profile.estudiantes_asociados.all %}
+                                <li class="list-group-item">{{ est.usuario.get_full_name }} ({{ est.grado_actual.nombre }})</li>
+                            {% empty %}
+                                <li class="list-group-item">No tienes estudiantes asociados.</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>Este usuario no tiene un perfil detallado de estudiante, docente o familiar.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tarjeta de Configuración de Cuenta -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>Configuración de Cuenta</h5>
+                </div>
+                <div class="card-body">
+                    <p>Gestiona las opciones de seguridad y conexión de tu cuenta.</p>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <a href="{% url 'password_change' %}" class="btn btn-outline-danger"><i class="bi bi-key-fill me-2"></i>Cambiar Contraseña</a>
+                        
+                        <!-- ▼▼▼ BOTÓN PARA CONECTAR CON GOOGLE ▼▼▼ -->
+                        <a href="{% url 'socialaccount_connections' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-google me-2"></i>Conectar mi cuenta de Google
+                        </a>
+                         <!-- ▼▼▼ LÓGICA DEL BOTÓN DE CALENDARIO AÑADIDA AQUÍ ▼▼▼ -->
+                        {% if not user.google_calendar_id %}
+                            <a href="{% provider_login_url 'google' process='connect' scope='https://www.googleapis.com/auth/calendar' %}" class="btn btn-outline-success">
+                                <i class="bi bi-calendar-plus-fill me-2"></i>Sincronizar Calendario
+                            </a>
+                        {% else %}
+                            <button class="btn btn-success" disabled>
+                                <i class="bi bi-check-circle-fill me-2"></i>Calendario Sincronizado
+                            </button>
+                        {% endif %}
+                        <!-- ▲▲▲ FIN DE LA LÓGICA DEL BOTÓN ▲▲▲ -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

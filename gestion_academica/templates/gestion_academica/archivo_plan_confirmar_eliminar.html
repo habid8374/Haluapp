@@ -1,0 +1,33 @@
+{# gestion_academica/templates/gestion_academica/archivo_plan_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Archivo" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Archivo" }}</h1>
+    <hr>
+
+    <div class="alert alert-warning shadow-sm" role="alert">
+        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+        <p>¿Estás seguro de que deseas eliminar el registro del archivo/material:</p>
+        <p class="mb-1"><strong>Nombre descriptivo:</strong> {{ archivo_plan.nombre_archivo_descriptivo }}</p>
+        {% if archivo_plan.archivo %}
+            <p class="mb-0"><strong>Archivo físico:</strong> {{ archivo_plan.archivo.name|cut:"planes_academicos_materiales/" }}</p>
+        {% endif %}
+        <hr>
+        <p class="mb-0">Esta acción **eliminará permanentemente el registro de la base de datos**. La eliminación del archivo físico del servidor **depende de la configuración de tu almacenamiento de Django** (por defecto, Django no borra el archivo físico del disco). </p>
+    </div>
+
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger me-2">
+            <i class="bi bi-trash-fill"></i> Sí, Eliminar Registro
+        </button>
+        <a href="{% url 'gestion_academica:lista_archivos_plan' %}" class="btn btn-secondary">
+            <i class="bi bi-x-circle-fill"></i> No, Cancelar
+        </a>
+    </form>
+</div>
+{% endblock contenido %}

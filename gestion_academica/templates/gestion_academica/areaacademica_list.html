@@ -1,0 +1,50 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{ titulo_pagina }}</h2>
+        <a href="{% url 'gestion_academica:crear_area_academica' %}" class="btn btn-primary">+ Nueva Área</a>
+    </div>
+
+    {% if areas %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre del Área</th>
+                        <th>Materias Asociadas</th>
+                        <th>Institución</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for area in areas %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ area.nombre }}</td>
+                            <td>
+                                {% for materia in area.materias.all %}
+                                    <span class="badge bg-secondary">{{ materia.nombre_materia }}</span>
+                                {% empty %}
+                                    <span class="text-muted">Sin materias</span>
+                                {% endfor %}
+                            </td>
+                            <td>{{ area.institucion.nombre }}</td>
+                            <td>
+                                <a href="{% url 'gestion_academica:editar_area_academica' area.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                                <a href="{% url 'gestion_academica:eliminar_area_academica' area.pk %}" class="btn btn-sm btn-danger"
+                                   onclick="return confirm('¿Estás seguro de eliminar esta área académica?')">Eliminar</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">No hay áreas académicas registradas.</div>
+    {% endif %}
+</div>
+{% endblock %}

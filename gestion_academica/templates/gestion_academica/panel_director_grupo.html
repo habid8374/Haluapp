@@ -1,0 +1,102 @@
+{% extends "base_academico.html" %}
+{% load humanize %} {# Para formatear los números con comas #}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Tus estilos personalizados para la tabla se mantienen intactos */
+    .table-panel-director th, .table-panel-director td { 
+        vertical-align: middle; 
+        text-align: center; 
+        min-width: 90px; 
+    }
+    .table-panel-director .student-name { 
+        text-align: left; 
+        font-weight: 500; 
+        min-width: 250px; 
+        position: sticky; 
+        left: 0; 
+        background-color: white; 
+        z-index: 1;
+        color: #212529;
+    }
+    .table-panel-director thead th { 
+        position: sticky; 
+        top: 0; 
+        z-index: 2;
+    }
+    .nota-baja { background-color: #f8d7da !important; }
+    .nota-media { background-color: #fff3cd !important; }
+    .nota-alta { background-color: #d1e7dd !important; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina }}</h1>
+        <div class="btn-group">
+            <a href="{% url 'gestion_academica:dashboard_docente' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver al Panel</a>
+            {# Este botón de exportar necesitará una lógica más avanzada para manejar múltiples grados. Lo dejamos comentado por ahora. #}
+            {# <a href="{% url 'gestion_academica:exportar_panel_director' %}" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i> Exportar a Excel</a> #}
+        </div>
+    </div>
+
+    {# --- INICIO DE LA LÓGICA CORREGIDA --- #}
+    {# Bucle principal que crea una sección para CADA grado que el docente dirige #}
+    {% for panel in paneles_data %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Resumen del Grado: {{ panel.grado.nombre }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive" style="max-height: 75vh;">
+                    <table class="table table-bordered table-hover table-sm table-panel-director">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="student-name">Estudiante</th>
+                                {# Creamos una columna por cada materia del grado #}
+                                {% for curso in panel.cursos_header %}
+                                    <th>{{ curso.materia.nombre_materia }}</th>
+                                {% endfor %}
+                                <th style="min-width: 120px;">Promedio Final</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for data in panel.data_estudiantes %}
+                            <tr>
+                                <td class="student-name">
+                                    <a href="{% url 'gestion_academica:historial_observador' estudiante_pk=data.estudiante.pk %}">
+                                        {{ data.estudiante.usuario.get_full_name }}
+                                    </a>
+                                </td>
+                                {% for nota in data.notas_ordenadas %}
+                                    <td class="fw-bold 
+                                        {% if nota is not None and nota < 3.0 %}nota-baja
+                                        {% elif nota is not None and nota < 4.0 %}nota-media
+                                        {% elif nota is not None %}nota-alta
+                                        {% endif %}">
+                                        {{ nota|floatformat:2|default:"-" }}
+                                    </td>
+                                {% endfor %}
+                                <td class="fw-bold fs-6
+                                    {% if data.promedio_estudiante is not None and data.promedio_estudiante < 3.0 %}nota-baja
+                                    {% elif data.promedio_estudiante is not None and data.promedio_estudiante < 4.0 %}nota-media
+                                    {% elif data.promedio_estudiante is not None %}nota-alta
+                                    {% endif %}">
+                                    {{ data.promedio_estudiante|floatformat:2|default:"-" }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="alert alert-warning">No se encontraron datos para mostrar.</div>
+    {% endfor %}
+    {# --- FIN DE LA LÓGICA CORREGIDA --- #}
+</div>
+{% endblock %}

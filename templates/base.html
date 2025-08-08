@@ -1,0 +1,279 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+
+    <title>{% block titulo %}{{ branding.NOMBRE|default:"Plataforma Escolar" }}{% endblock %}</title>
+
+    <!-- Enlaces a CSS y Fuentes -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilos CSS en línea -->
+    <style>
+        :root {
+            --color-fondo-cuerpo: #f0f4f8; 
+            --color-fondo-contenido: #ffffff; 
+            --color-texto-principal: #2a3342; 
+            --color-texto-secundario: #5D6D7E; 
+            --color-texto-muted: #85929E; 
+            --color-borde: #ccd1d9;
+            --fuente-principal: 'Roboto', sans-serif; 
+            --fuente-titulos: 'Nunito', sans-serif;
+            --windows-azul: #0078D4; 
+            --windows-verde: #7FBA00; 
+            --windows-rojo: #F25022; 
+            --windows-amarillo: #FFB900;
+            --color-primario-interaccion: var(--windows-azul); 
+            --color-primario-interaccion-hover: #005a9e;
+            --color-menu-panel-bg: #f8f9fa; 
+            --color-menu-item-hover-bg: #e9ecef; 
+            --color-menu-header: var(--windows-azul);
+        }
+        body { 
+            background-color: var(--color-fondo-cuerpo); 
+            color: var(--color-texto-principal); 
+            font-family: var(--fuente-principal); 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+            padding-top: 4.5rem; /* Espacio para la navbar fija */
+            padding-bottom: 4rem; /* Espacio para el footer */
+        }
+        main.container { 
+            background-color: var(--color-fondo-contenido); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08); 
+            margin-bottom: 2rem; 
+            flex: 1 0 auto; 
+            border: 1px solid var(--color-borde); 
+        }
+        .top-navbar { 
+            background-color: var(--windows-azul) !important; 
+            border-bottom: 1px solid var(--color-primario-interaccion-hover); 
+            padding: 0.5rem 1rem; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 1030; 
+        }
+        .navbar-brand img.logo-navbar { max-height: 35px; margin-right: 10px; }
+        .navbar-brand { font-weight: 700; color: #ffffff !important; font-family: var(--fuente-titulos); font-size: 1.25rem; }
+        .navbar-dark .navbar-nav .nav-link { color: rgba(255,255,255,0.85); }
+        .navbar-dark .navbar-nav .nav-link:hover, 
+        .navbar-dark .navbar-nav .nav-link:focus, 
+        .navbar-dark .navbar-nav .nav-link.active { color: #ffffff; }
+        .dropdown-menu { background-color: var(--color-fondo-contenido); border: 1px solid var(--color-borde); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }
+        .dropdown-item { color: var(--color-texto-principal); }
+        .dropdown-item:hover, .dropdown-item:focus { color: var(--color-primario-interaccion); background-color: var(--color-menu-item-hover-bg); }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--fuente-titulos); font-weight: 600; color: #005a9e; }
+        .floating-menu-toggle { position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px; background: var(--windows-azul); color: white; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; cursor: pointer; box-shadow: 0 6px 18px rgba(0, 120, 212, 0.5); transition: all 0.3s ease; z-index: 1050; }
+        .floating-menu-toggle:hover { background-color: var(--color-primario-interaccion-hover); transform: scale(1.1); }
+        .floating-menu-toggle .icon-open { display: block; } 
+        .floating-menu-toggle .icon-close { display: none; }
+        .floating-menu-toggle.active .icon-open { display: none; } 
+        .floating-menu-toggle.active .icon-close { display: block; }
+        .floating-menu-toggle.active { background: var(--windows-rojo); }
+        .main-menu-panel { position: fixed; bottom: 110px; right: 35px; width: 320px; max-height: calc(100vh - 130px - 2rem); overflow-y: auto; background-color: var(--color-menu-panel-bg); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); padding: 0.75rem; z-index: 1040; opacity: 0; transform: translateY(20px) scale(0.95); visibility: hidden; transition: all 0.3s ease; }
+        .main-menu-panel.active { opacity: 1; transform: translateY(0) scale(1); visibility: visible; }
+        .main-menu-panel h5.menu-section-title { color: var(--color-menu-header); margin-top: 1rem; margin-bottom: 0.5rem; padding-left: 0.25rem; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; border-bottom: 1px solid var(--color-borde); padding-bottom: 0.3rem; }
+        .main-menu-panel h5.menu-section-title:first-of-type { margin-top: 0.25rem; }
+        .main-menu-panel .nav-link { color: var(--color-texto-secundario); padding: 0.6rem 0.75rem; display: flex; align-items: center; transition: all 0.2s ease; border-radius: 6px; margin-bottom: 0.2rem; font-size: 0.9rem; text-decoration: none; }
+        .main-menu-panel .nav-link i { margin-right: 12px; font-size: 1.15rem; width: 22px; text-align: center; }
+        .main-menu-panel .nav-item.item-color-1 .nav-link i { color: var(--windows-azul); } 
+        .main-menu-panel .nav-item.item-color-2 .nav-link i { color: var(--windows-verde); } 
+        .main-menu-panel .nav-item.item-color-3 .nav-link i { color: var(--windows-rojo); } 
+        .main-menu-panel .nav-item.item-color-4 .nav-link i { color: var(--windows-amarillo); }
+        .main-menu-panel .nav-link:hover, 
+        .main-menu-panel .nav-link.active { color: var(--color-primario-interaccion); background-color: var(--color-menu-item-hover-bg); padding-left: 1.1rem; }
+        .main-menu-panel hr.menu-divider { margin: 0.75rem 0; border-top: 1px solid var(--color-borde); opacity: 0.5; }
+        footer.container { background-color: #fff; border-top: 1px solid var(--color-borde); color: var(--color-texto-muted); }
+    </style>
+    
+    {% block extrastyles %}{% endblock %}
+</head>
+<body>
+
+    {% if messages %}
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+    {% for message in messages %}
+    <div class="toast align-items-center text-white bg-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                {% if message.tags == "success" %}
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                {% elif message.tags == "error" or message.tags == "danger" %}
+                    <i class="bi bi-x-circle-fill me-2"></i>
+                {% elif message.tags == "warning" %}
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {% else %}
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                {% endif %}
+                {{ message }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+    
+    <nav class="navbar navbar-expand-sm navbar-dark fixed-top shadow-sm top-navbar">
+        <div class="container-fluid">
+            
+            <a class="navbar-brand" href="/">
+                <img src="{% static branding.LOGO_URL %}" alt="Logo {{ branding.NOMBRE }}" class="logo-navbar">
+                {{ branding.NOMBRE }}
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNavContent">
+                {% block navbar_links %}
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle"></i> {{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUser">
+                                <li><a class="dropdown-item" href="{% url 'gestion_academica:ver_mi_perfil' %}">Mi Perfil</a></li>
+                                <li><a class="dropdown-item" href="{% url 'password_change' %}">Cambiar Contraseña</a></li>
+                                
+                                {% if user.is_staff %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'admin:index' %}">
+                                            <i class="bi bi-shield-lock-fill"></i> Panel de Administración
+                                        </a>
+                                    </li>
+                                {% endif %}
+                
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form id="logout-form-navbar" action="{% url 'logout' %}" method="post" style="display: none;">
+                                        {% csrf_token %}
+                                    </form>
+                                    <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form-navbar').submit();">
+                                        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
+                        </li>
+                    {% endif %}
+                </ul>
+                {% endblock navbar_links %}
+            </div>
+
+        </div>
+    </nav>
+
+    <main class="container">
+        {% if messages %}
+            <div class="mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="mt-4">
+            {% block contenido %}
+                <p>Bienvenido. Selecciona una opción del menú para comenzar.</p>
+            {% endblock %}
+        </div>
+    </main>
+
+    {% if user.is_authenticated %}
+        <button class="floating-menu-toggle" id="floatingMenuToggle" aria-label="Abrir menú" aria-expanded="false">
+            <i class="bi bi-grid-fill icon-open"></i>
+            <i class="bi bi-x-lg icon-close"></i>
+        </button>
+        <div class="main-menu-panel" id="mainMenuPanel">
+            <nav>
+                {% block floating_menu_content %}
+                    {# Contenido por defecto del menú flotante que será reemplazado por las plantillas hijas #}
+                {% endblock floating_menu_content %}
+            </nav>
+        </div>
+    {% endif %}
+
+    <footer class="container mt-auto py-3 text-center">
+        <p class="mb-0">© {% now "Y" %} {{ branding.NOMBRE }} - {{ branding.LEMA }}. Todos los derechos reservados.</p>
+    </footer>
+
+    {% include 'partials/asistente_halu.html' %}
+
+    <!-- 1. Script de Bootstrap (cargado una sola vez) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 2. Script para la funcionalidad del menú flotante -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuPanel = document.getElementById('mainMenuPanel');
+            const toggleButton = document.getElementById('floatingMenuToggle');
+            
+            if (toggleButton && menuPanel) {
+                toggleButton.addEventListener('click', function(event) {
+                    event.stopPropagation(); 
+                    menuPanel.classList.toggle('active');
+                    toggleButton.classList.toggle('active');
+                    const isExpanded = toggleButton.classList.contains('active');
+                    toggleButton.setAttribute('aria-expanded', isExpanded);
+                });
+
+                document.addEventListener('click', function(event) {
+                    if (menuPanel.classList.contains('active') && !menuPanel.contains(event.target) && !toggleButton.contains(event.target)) {
+                        menuPanel.classList.remove('active');
+                        toggleButton.classList.remove('active');
+                        toggleButton.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape' && menuPanel.classList.contains('active')) {
+                        menuPanel.classList.remove('active');
+                        toggleButton.classList.remove('active');
+                        toggleButton.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+        toastElList.forEach(function (toastEl) {
+            const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+            toast.show();
+        });
+    });
+</script>
+
+ {# ✅ SE CARGA EL ARCHIVO .JS DE HALU #}
+    <script src="{% static 'js/halu.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+
+    
+
+</body>
+
+</html>

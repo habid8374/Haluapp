@@ -1,0 +1,96 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+
+    <h3 class="h4">Cuestionarios con Respuestas Abiertas</h3>
+    <p class="text-muted">Estos son los cuestionarios que requieren tu revisión manual.</p>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>Cuestionario</th>
+                            <th>Curso</th>
+                            <th>Fecha</th>
+                            <th>Puntaje Automático</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for intento in intentos_pendientes %}
+                        <tr>
+                            <td>{{ intento.estudiante }}</td>
+                            <td>{{ intento.cuestionario.titulo }}</td>
+                            <td>{{ intento.cuestionario.actividad_calificable.curso }}</td>
+                            <td>{{ intento.fecha_fin|date:"d M, Y" }}</td>
+                            <td><span class="badge bg-info">{{ intento.puntaje_obtenido|floatformat:2 }}</span></td>
+                            <td>
+                                <a href="{% url 'cuestionarios:revisar_intento' intento_pk=intento.pk %}" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-pencil-square"></i> Revisar y Calificar
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted p-4">No hay cuestionarios pendientes de revisión manual.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="h4">Deberes y Tareas</h3>
+<p class="text-muted">Estas son las entregas de tareas y deberes estándar.</p>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Tarea</th>
+                        <th>Curso</th>
+                        <th>Fecha de Entrega</th>
+                        <th class="text-center">Alerta IA</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entrega in entregas_pendientes %}
+                        <tr {% if entrega.alerta_plagio %}class="table-danger"{% endif %}>
+                        <td>{{ entrega.estudiante }}</td>
+                            <td>{{ entrega.deber.titulo }}</td>
+                            <td>{{ entrega.deber.curso }}</td>
+                            <td>{{ entrega.fecha_entrega_real|date:"d M, Y" }}</td>
+                            <td class="text-center">
+                                {% if entrega.alerta_plagio %}
+                                    <span class="badge bg-danger" title="Posible plagio detectado: {{ entrega.porcentaje_similitud }}% de similitud">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> {{ entrega.porcentaje_similitud }}%
+                                    </span>
+                                {% endif %}
+                                </td>
+                            <td>
+                                <a href="{% url 'gestion_academica:calificar_entrega' pk=entrega.pk %}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-pencil"></i> Calificar
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted p-4">No hay deberes pendientes de calificación.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

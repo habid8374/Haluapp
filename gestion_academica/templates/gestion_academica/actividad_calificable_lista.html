@@ -1,0 +1,87 @@
+{# gestion_academica/templates/gestion_academica/actividad_calificable_lista.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Listado de Actividades Calificables" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Listado de Actividades Calificables" }}</h1>
+        {% if perms.gestion_academica.add_actividadcalificable %} {# Permiso para crear actividad #}
+            <a href="{% url 'gestion_academica:crear_actividad_calificable' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle-fill"></i> Crear Nueva Actividad
+            </a>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if actividades %}
+        <div class="table-responsive shadow-sm rounded-3">
+            <table class="table table-striped table-hover table-bordered mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Título de la Actividad</th>
+                        <th>Curso</th>
+                        <th>Tipo</th>
+                        <th>Fecha Publicación</th>
+                        <th>Fecha Límite</th>
+                        <th>Porcentaje (%)</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for actividad_obj in actividades %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'gestion_academica:detalle_actividad_calificable' actividad_obj.pk %}">{{ actividad_obj.titulo }}</a>
+                        </td>
+                        <td>{{ actividad_obj.curso }}</td>
+                        <td>{{ actividad_obj.tipo_actividad.nombre }}</td>
+                        <td>{{ actividad_obj.fecha_publicacion|date:"d/m/Y" }}</td>
+                        <td>{{ actividad_obj.fecha_entrega_limite|date:"d/m/Y"|default:"N/A" }}</td>
+                        <td>{{ actividad_obj.porcentaje_en_periodo|floatformat:2|default:"N/A" }}</td>
+                        <td class="text-center text-nowrap"> {# text-nowrap para evitar saltos de línea en los botones #}
+                            {% if perms.gestion_academica.puede_calificar_estudiantes %} {# Permiso para calificar #}
+                                <a href="{% url 'gestion_academica:listar_estudiantes_para_calificar' actividad_obj.pk %}" class="btn btn-sm btn-success me-1" title="Calificar Actividad">
+                                    <i class="bi bi-check2-square"></i> Calificar
+                                </a>
+                            {% endif %}
+                            {% if perms.gestion_academica.view_actividadcalificable %} {# Permiso para ver detalles #}
+                                <a href="{% url 'gestion_academica:detalle_actividad_calificable' actividad_obj.pk %}" class="btn btn-sm btn-info me-1" title="Ver Detalles">
+                                    <i class="bi bi-eye-fill"></i> Ver
+                                </a>
+                            {% endif %}
+                            {% if perms.gestion_academica.change_actividadcalificable %} {# Permiso para editar #}
+                                <a href="{% url 'gestion_academica:editar_actividad_calificable' actividad_obj.pk %}" class="btn btn-sm btn-warning me-1" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i> Editar
+                                </a>
+                            {% endif %}
+                            {% if perms.gestion_academica.delete_actividadcalificable %} {# Permiso para eliminar #}
+                                <a href="{% url 'gestion_academica:eliminar_actividad_calificable' actividad_obj.pk %}" class="btn btn-sm btn-danger me-1" title="Eliminar">
+                                    <i class="bi bi-trash-fill"></i> Eliminar
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {# Incluye tu partial de paginación #}
+        {% include "gestion_academica/partials/paginacion.html" %} 
+    {% else %}
+        <div class="alert alert-info text-center mt-3" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No hay actividades calificables registradas. ¡Puedes crear la primera!
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}

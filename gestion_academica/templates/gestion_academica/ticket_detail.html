@@ -1,0 +1,66 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0 h2">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:ayuda_soporte' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver a Mis Tickets
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Historial de Conversación -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Conversación sobre: "{{ ticket.titulo }}"</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Mensaje Original -->
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <p class="mb-1"><strong>Tú:</strong></p>
+                        <p>{{ ticket.descripcion|linebreaksbr }}</p>
+                        <small class="text-muted">{{ ticket.fecha_creacion|date:"d M, Y, h:i A" }}</small>
+                    </div>
+                    <!-- Respuestas -->
+                    {% for respuesta in respuestas %}
+                        <div class="mb-3 p-3 {% if respuesta.autor.is_superuser %}bg-primary-light{% else %}bg-light{% endif %} rounded">
+                            <p class="mb-1"><strong>{{ respuesta.autor.get_full_name }}:</strong></p>
+                            <p>{{ respuesta.mensaje|linebreaksbr }}</p>
+                            {% if respuesta.adjunto %}
+                                <p><a href="{{ respuesta.adjunto.url }}" target="_blank"><i class="bi bi-paperclip"></i> Ver adjunto</a></p>
+                            {% endif %}
+                            <small class="text-muted">{{ respuesta.fecha_creacion|date:"d M, Y, h:i A" }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <!-- Formulario de Respuesta y Detalles -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Añadir una Respuesta</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-primary">Enviar Respuesta</button>
+                        </div>
+                    </form>
+                    <hr>
+                    <h6>Detalles del Ticket</h6>
+                    <p><strong>Estado:</strong> {{ ticket.get_estado_display }}</p>
+                    <p><strong>Prioridad:</strong> {{ ticket.get_prioridad_display }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

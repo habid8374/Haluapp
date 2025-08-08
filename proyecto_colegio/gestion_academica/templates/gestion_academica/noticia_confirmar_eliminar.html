@@ -1,0 +1,43 @@
+{% extends "gestion_academica/base.html" %}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Noticia" }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1>{{ titulo_pagina|default:"Confirmar Eliminación de Noticia/Anuncio" }}</h1>
+    <hr>
+
+    {% if noticia %}
+        <p>¿Estás seguro de que deseas eliminar la noticia/anuncio: 
+            <br><strong>"{{ noticia.titulo }}"</strong>?
+        </p>
+        
+        {% if noticia.imagen_destacada %}
+            <p class="text-muted">
+                <img src="{{ noticia.imagen_destacada.url }}" alt="Imagen destacada" style="max-height: 100px; margin-bottom: 10px; border-radius: .2rem;">
+            </p>
+        {% endif %}
+
+        <p class="text-danger mt-3">
+            Esta acción no se puede deshacer.
+        </p>
+
+        <form method="post" class="mt-3">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar
+            </button>
+            <a href="{% url 'gestion_academica:lista_noticias_gestion' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            No se encontró la noticia a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_noticias_gestion' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver a la Gestión de Noticias
+        </a>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">{{ titulo_pagina }}</h1>
+    <div class="btn-group">
+        <a href="{% url 'gestion_academica:exportar_reporte_nota_minima_excel' curso_pk=curso.pk %}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel-fill"></i> Exportar a Excel
+        </a>
+        <a href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+    <p class="text-muted">Este reporte calcula la nota promedio que cada estudiante necesita obtener en el <strong>{{ reporte.porcentaje_restante|floatformat:2 }}%</strong> restante de la materia...</p>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Estudiante</th>
+                            <th class="text-center">Promedio Actual</th>
+                            <th class="text-center">% Evaluado</th>
+                            <th class="text-center">Nota Requerida en el % Restante</th>
+                            <th class="text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reporte in reporte_data %}
+                        <tr>
+                            <td>{{ reporte.estudiante.usuario.get_full_name }}</td>
+                            <td class="text-center">{{ reporte.promedio_actual|floatformat:2 }}</td>
+                            <td class="text-center">{{ reporte.porcentaje_evaluado|floatformat:2 }}%</td>
+                            <td class="text-center fw-bold">
+                                {% if reporte.nota_requerida is not None and reporte.nota_requerida > 0 and reporte.nota_requerida <= 5.0 %}
+                                    {{ reporte.nota_requerida|floatformat:2 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            <td class="text-center">
+                                {% if reporte.estado == "Reprobado" %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-x-octagon-fill me-1"></i> {{ reporte.estado }}
+                                    </span>
+                                {% elif reporte.estado == "Situación Crítica (Imposible aprobar)" %}
+                                    <span class="badge bg-dark text-white">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ reporte.estado }}
+                                    </span>
+                                {% elif reporte.estado == "En Riesgo" %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-exclamation-circle-fill me-1"></i> {{ reporte.estado }}
+                                    </span>
+                                {% elif reporte.estado == "Aprobado (No necesita más puntos)" %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle-fill me-1"></i> {{ reporte.estado }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-check2-all me-1"></i> {{ reporte.estado }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

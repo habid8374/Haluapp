@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load static %}
+
+{# ==================================================================== #}
+{# TÍTULO DE LA PÁGINA                                                  #}
+{# ==================================================================== #}
+{% block titulo %}Módulo de Admisiones - {{ branding.NOMBRE }}{% endblock %}
+
+
+{# ==================================================================== #}
+{# NAVBAR SUPERIOR (MENÚ HORIZONTAL)                                    #}
+{# ==================================================================== #}
+{% block navbar_links %}
+    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+            <a class="nav-link {% if 'lista_grados_aspirantes' in request.path or 'lista_aspirantes_por_grado' in request.path %}active{% endif %}" href="{% url 'admisiones:lista_grados_aspirantes' %}">
+                <i class="bi bi-list-ul me-1"></i>Aspirantes
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_admisiones' %}active{% endif %}" href="{% url 'admisiones:dashboard_admisiones' %}">
+                <i class="bi bi-bar-chart-line-fill me-1"></i>Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'pipeline_admisiones' %}active{% endif %}" href="{% url 'admisiones:pipeline_admisiones' %}">
+                <i class="bi bi-kanban-fill me-1"></i>Pipeline
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'gestion_academica:inicio_academico' %}">
+                <i class="bi bi-arrow-right-square me-1"></i>Ir a Módulo Académico
+            </a>
+        </li>
+    </ul>
+    {{ block.super }}
+{% endblock navbar_links %}
+
+
+{# ==================================================================== #}
+{# MENÚ LATERAL FLOTANTE (MENÚ VERTICAL)                                #}
+{# ==================================================================== #}
+{% block floating_menu_content %}
+<ul class="nav flex-column">
+    <li class="nav-item menu-main-title">
+        <span class="nav-link disabled"><i class="bi bi-person-badge"></i> Módulo Admisiones</span>
+    </li>
+    <hr class="menu-divider">
+
+    <h5 class="menu-section-title">Análisis y Gestión</h5>
+    <li class="nav-item item-color-4">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_admisiones' %}active{% endif %}" href="{% url 'admisiones:dashboard_admisiones' %}">
+            <i class="bi bi-bar-chart-line-fill"></i> Dashboard
+        </a>
+    </li>
+    <li class="nav-item item-color-5">
+        <a class="nav-link {% if request.resolver_match.url_name == 'pipeline_admisiones' %}active{% endif %}" href="{% url 'admisiones:pipeline_admisiones' %}">
+            <i class="bi bi-kanban-fill"></i> Pipeline de Admisiones
+        </a>
+    </li>
+
+    <hr class="menu-divider">
+
+    <h5 class="menu-section-title">Registros</h5>
+    <li class="nav-item item-color-1">
+       <a class="nav-link {% if 'lista_grados_aspirantes' in request.path or 'lista_aspirantes_por_grado' in request.path %}active{% endif %}" href="{% url 'admisiones:lista_grados_aspirantes' %}">
+           <i class="bi bi-people-fill"></i> Ver Aspirantes
+       </a>
+    </li>
+    <li class="nav-item item-color-2">
+         <a class="nav-link {% if request.resolver_match.url_name == 'crear_aspirante_manual' %}active{% endif %}" href="{% url 'admisiones:crear_aspirante_manual' %}">
+            <i class="bi bi-person-plus-fill"></i> Registrar Aspirante
+        </a>
+    </li>
+
+    <hr class="menu-divider">
+    
+    <h5 class="menu-section-title">Portal del Postulante</h5>
+    <li class="nav-item item-color-3">
+        <a class="nav-link" href="{% url 'admisiones:revision_documentos_lista' %}">
+            <i class="bi bi-folder2-open"></i> Gestionar Documentos
+        </a>
+    </li>
+
+    <hr class="menu-divider">
+
+    <h5 class="menu-section-title">Herramientas</h5>
+    <li class="nav-item item-color-3">
+        <a class="nav-link {% if request.resolver_match.url_name == 'importar_aspirantes' %}active{% endif %}" href="{% url 'admisiones:importar_aspirantes' %}">
+            <i class="bi bi-file-earmark-arrow-up-fill"></i> Importar Excel
+        </a>
+    </li>
+    <li class="nav-item item-color-5">
+        <a class="nav-link" href="{% url 'admisiones:exportar_matriculados' %}">
+            <i class="bi bi-file-earmark-excel-fill"></i> Exportar Matriculados
+        </a>
+    </li>
+</ul>
+{% endblock floating_menu_content %}
+
+
+{# ==================================================================== #}
+{# CONTENIDO PRINCIPAL DE LA PÁGINA                                    #}
+{# ==================================================================== #}
+{% block contenido %}
+    {# Este bloque será reemplazado por el contenido de cada página hija, #}
+    {# como la del dashboard, la lista de aspirantes, etc. #}
+{% endblock contenido %}

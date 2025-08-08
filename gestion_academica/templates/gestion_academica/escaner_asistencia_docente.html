@@ -1,0 +1,101 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    #qr-reader {
+        width: 100%;
+        max-width: 500px;
+        border: 2px solid #0d6efd;
+        border-radius: 8px;
+        margin: 0 auto;
+    }
+    #qr-status {
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container text-center mt-4">
+    <h1 class="h2 mb-1">{{ titulo_pagina }}</h1>
+    <p class="text-muted">Fecha: {% now "d M, Y" %}</p>
+    
+    <div id="qr-reader" class="shadow-sm"></div>
+    <div id="qr-status" class="alert alert-info mt-3">Apunta la cámara al código QR del docente...</div>
+<div class="mt-5">
+    <h4 class="mb-3">Asistencias registradas hoy</h4>
+    <div id="asistencias-hoy">
+        <!-- Se llenará por AJAX -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const statusElement = document.getElementById('qr-status');
+    const scanCooldown = 3000;
+    let lastScanTime = 0;
+
+    function actualizarAsistenciasHoy() {
+        fetch("{% url 'gestion_academica:asistencias_docentes_hoy_api' %}")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('asistencias-hoy').innerHTML = data.html;
+            });
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        const now = Date.now();
+        if (now - lastScanTime < scanCooldown) return;
+        lastScanTime = now;
+
+        statusElement.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Procesando...`;
+        statusElement.className = "alert alert-warning";
+
+        fetch("{% url 'gestion_academica:registrar_asistencia_docente_api' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ qr_identifier: decodedText })
+        })
+        .then(res => res.json())
+        .then(data => {
+            statusElement.className = `alert alert-${data.status === 'success' ? 'success' : 'danger'}`;
+            statusElement.innerHTML = `<strong>${data.status === 'success' ? 'Éxito:' : 'Error:'}</strong> ${data.message}`;
+
+            if (data.status === 'success') {
+                actualizarAsistenciasHoy();  // ✅ recarga tabla si éxito
+            }
+        })
+        .catch(err => {
+            statusElement.className = "alert alert-danger";
+            statusElement.innerHTML = `<strong>Error:</strong> No se pudo registrar la asistencia.`;
+        })
+        .finally(() => {
+            setTimeout(() => {
+                statusElement.className = "alert alert-info";
+                statusElement.innerHTML = "Apunta la cámara al código QR del docente...";
+            }, scanCooldown);
+        });
+    }
+
+    const qrScanner = new Html5QrcodeScanner("qr-reader", {
+        fps: 10,
+        qrbox: { width: 250, height: 250 }
+    });
+    qrScanner.render(onScanSuccess);
+
+    // ✅ Llama a actualizar la tabla al cargar por primera vez
+    actualizarAsistenciasHoy();
+});
+</script>
+{% endblock %}
+
+

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+<div class="container text-center mt-5 mb-5">
+    <h2 class="mb-3">Estamos confirmando tu pago...</h2>
+    <p class="lead text-muted">Por favor, espera un momento. Esto puede tardar unos segundos.</p>
+    
+    <div class="spinner-border text-primary mt-4" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlVerificacion = "{{ url_verificacion }}";
+        const urlFinal = "{{ url_final }}";
+        let intentos = 0;
+        const maxIntentos = 15; // Intentar por un máximo de 30 segundos (15 intentos * 2 segundos)
+
+        const verificarPago = setInterval(() => {
+            intentos++;
+            if (intentos > maxIntentos) {
+                clearInterval(verificarPago);
+                // Si después de 30 segundos no hay respuesta, informamos al usuario.
+                document.body.innerHTML = `
+                    <div class="container mt-5">
+                        <div class="alert alert-warning">
+                            <h4>La confirmación está tardando más de lo esperado.</h4>
+                            <p>No te preocupes, si tu pago fue exitoso, lo procesaremos en segundo plano. Puedes revisar el portal más tarde o contactar a soporte.</p>
+                            <a href="{% url 'gestion_academica:inicio_academico' %}" class="btn btn-primary">Volver al Inicio</a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            fetch(urlVerificacion)
+                .then(response => response.json())
+                .then(data => {
+                    // Si el estado es 'PAGADO', detenemos el intervalo y redirigimos.
+                    if (data.estado === 'PAGADO') {
+                        clearInterval(verificarPago);
+                        window.location.href = urlFinal;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error verificando el pago:", error);
+                });
+        }, 2000); // Revisa cada 2 segundos
+    });
+</script>
+{% endblock %}

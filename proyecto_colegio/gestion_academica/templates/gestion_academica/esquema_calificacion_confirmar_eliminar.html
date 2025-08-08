@@ -1,0 +1,41 @@
+{% extends "gestion_academica/base.html" %}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Esquema" }}{% endblock %}
+
+{% block contenido %}
+<h1>{{ titulo_pagina|default:"Confirmar Eliminación de Esquema de Calificación" }}</h1>
+<hr>
+
+{% if esquema %} {# Verificar que el objeto 'esquema' exista en el contexto #}
+    <p>¿Estás seguro de que deseas eliminar el esquema de calificación: 
+        <br><strong>Nombre:</strong> {{ esquema.nombre }}
+    </p>
+    {% if esquema.descripcion %}
+        <p><strong>Descripción:</strong> {{ esquema.descripcion|linebreaksbr|default:"No especificada." }}</p>
+    {% endif %}
+
+    <p class="text-danger mt-3">
+        Esta acción no se puede deshacer. 
+        Asegúrate de que este esquema no esté siendo utilizado por ningún "Tipo de Actividad" 
+        u otra entidad antes de eliminarlo, o configura las relaciones para manejarlo adecuadamente.
+    </p>
+
+    <form method="post" class="mt-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash-fill"></i> Sí, Eliminar Esquema
+        </button>
+        <a href="{% url 'gestion_academica:lista_esquemas_calificacion' %}" class="btn btn-secondary">
+            <i class="bi bi-x-circle-fill"></i> No, Cancelar
+        </a>
+    </form>
+{% else %}
+    <div class="alert alert-warning" role="alert">
+        No se encontró el esquema de calificación a eliminar.
+    </div>
+    <a href="{% url 'gestion_academica:lista_esquemas_calificacion' %}" class="btn btn-primary mt-2">
+        <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+    </a>
+{% endif %}
+
+{% endblock %}

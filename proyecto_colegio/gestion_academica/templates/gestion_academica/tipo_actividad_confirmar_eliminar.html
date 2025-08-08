@@ -1,0 +1,27 @@
+    {% extends "gestion_academica/base.html" %}
+
+    {% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación" }}{% endblock %}
+
+    {% block contenido %}
+    <h1>{{ titulo_pagina|default:"Confirmar Eliminación" }}</h1>
+    <hr>
+
+    <p>¿Estás seguro de que deseas eliminar el tipo de actividad: <strong>{{ tipo_actividad.nombre }}</strong>?</p>
+    {% if tipo_actividad.descripcion %}
+        <p>Descripción: {{ tipo_actividad.descripcion|truncatewords:30 }}</p>
+    {% endif %}
+
+    <p class="text-danger mt-3">Esta acción no se puede deshacer.</p>
+    {# Aquí podrías añadir una advertencia si el tipo de actividad está en uso #}
+
+    <form method="post" class="mt-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash-fill"></i> Sí, Eliminar
+        </button>
+        <a href="{% url 'gestion_academica:lista_tipos_actividad' %}" class="btn btn-secondary">
+            <i class="bi bi-x-circle-fill"></i> No, Cancelar
+        </a>
+    </form>
+    {% endblock %}
+    

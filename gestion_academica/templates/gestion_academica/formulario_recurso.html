@@ -1,0 +1,23 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="h2">Añadir Recurso a: <span class="text-primary">{{ curso.materia.nombre_materia }}</span></h1>
+    <p class="text-muted">Sube un archivo (PDF, presentación, imagen, etc.) para tus estudiantes.</p>
+    <hr>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div class="d-flex justify-content-end mt-4">
+            <a href="{% url 'gestion_academica:aula_virtual' curso.pk %}" class="btn btn-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-cloud-arrow-up-fill"></i> Subir Recurso
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

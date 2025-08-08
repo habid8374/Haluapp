@@ -1,0 +1,51 @@
+{% extends "base_academico.html" %}
+{% block titulo %}Mis Actividades Evaluativas{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Mis Actividades Evaluativas</h1>
+        <a href="{% url 'gestion_academica:docente_crear_actividad' %}" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Crear Nueva Actividad</a>
+    </div>
+    <div class="card shadow-sm"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>Actividad</th><th>Curso</th><th>Categoría (% Peso)</th><th>Acciones</th></tr></thead>
+            <tbody>
+                {% for act in actividades %}
+                        <tr>
+                            <td>{{ act.titulo }}</td>
+                            <td>{{ act.curso }}</td>
+                            <td>{{ act.tipo_actividad }}</td>
+                            <td class="text-center">
+                                <!-- Grupo de botones para una mejor alineación y espaciado -->
+                                <div class="btn-group" role="group" aria-label="Acciones de actividad">
+                                    
+                                    <!-- Botón para Editar la Actividad -->
+                                    <a href="{% url 'gestion_academica:docente_editar_actividad' pk=act.pk %}" class="btn btn-sm btn-warning" title="Editar Actividad">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+
+                                    <!-- ▼▼▼ ESTE ES EL NUEVO BOTÓN AÑADIDO CORRECTAMENTE ▼▼▼ -->
+                                    <a href="{% url 'gestion_academica:gestionar_preguntas_actividad' act.pk %}" class="btn btn-sm btn-info" title="Gestionar Preguntas">
+                                        <i class="bi bi-question-circle-fill"></i>
+                                    </a>
+                                    <!-- ▲▲▲ FIN DEL BOTÓN AÑADIDO ▲▲▲ -->
+
+                                    <!-- Botón para Eliminar la Actividad -->
+                                    <a href="{% url 'gestion_academica:docente_eliminar_actividad' pk=act.pk %}" class="btn btn-sm btn-danger" title="Eliminar Actividad">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </a>
+                                    <a href="{% url 'cuestionarios:editor_cuestionario' act.pk %}" class="btn btn-sm btn-success" title="Crear/Editar Cuestionario">
+                                        <i class="bi bi-patch-question-fill"></i> Cuestionario
+                                    </a>
+                                  </td>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                <tr><td colspan="4" class="text-center">Aún no has creado ninguna actividad evaluativa.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div></div>
+</div>
+{% endblock %}

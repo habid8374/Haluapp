@@ -1,0 +1,87 @@
+{% extends "base_academico.html" %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-calendar-check me-2"></i>{{ titulo_pagina }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+
+            <form method="get" class="mb-4 p-3 border rounded bg-light">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-10">
+                        <label for="fecha" class="form-label fw-bold">Seleccione la Fecha:</label>
+                        <input type="date" name="fecha" id="fecha" class="form-control" value="{{ fecha_seleccionada|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Consultar</button>
+                    </div>
+                </div>
+            </form>
+
+            {% if reporte_data %}
+                <h5 class="border-bottom pb-2 mb-3">
+                    Resultados para el día: <strong class="text-primary">{{ fecha_seleccionada|date:"d \d\e F \d\e Y" }}</strong>
+                </h5>
+
+                <div class="row text-center mb-4 g-3">
+                    <div class="col"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle text-muted">Total Estudiantes</h6><p class="fs-4 fw-bold">{{ reporte_data.total_estudiantes }}</p></div></div></div>
+                    <div class="col"><div class="card h-100 bg-success-light"><div class="card-body"><h6 class="card-subtitle text-muted">Presentes</h6><p class="fs-4 fw-bold text-success">{{ reporte_data.resumen.Presentes }}</p></div></div></div>
+                    <div class="col"><div class="card h-100 bg-danger-light"><div class="card-body"><h6 class="card-subtitle text-muted">Ausentes</h6><p class="fs-4 fw-bold text-danger">{{ reporte_data.resumen.Ausentes }}</p></div></div></div>
+                    <div class="col"><div class="card h-100 bg-warning-light"><div class="card-body"><h6 class="card-subtitle text-muted">Tardanzas</h6><p class="fs-4 fw-bold text-warning">{{ reporte_data.resumen.Tardanzas }}</p></div></div></div>
+                    <div class="col"><div class="card h-100 bg-secondary-light"><div class="card-body"><h6 class="card-subtitle text-muted">Sin Registro</h6><p class="fs-4 fw-bold text-secondary">{{ reporte_data.resumen.Sin_Registro }}</p></div></div></div>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <h6>Distribución de Asistencia</h6>
+                        <canvas id="asistenciaChart"></canvas>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if reporte_data.chart_labels %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('asistenciaChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: {{ reporte_data.chart_labels|safe }},
+                datasets: [{
+                    label: 'Cantidad de Estudiantes',
+                    data: {{ reporte_data.chart_data|safe }},
+                    backgroundColor: [
+                        'rgba(25, 135, 84, 0.7)',  // Presentes (verde)
+                        'rgba(220, 53, 69, 0.7)',  // Ausentes (rojo)
+                        'rgba(255, 193, 7, 0.7)',  // Tardanzas (amarillo)
+                        'rgba(13, 202, 240, 0.7)', // Justificados (celeste)
+                        'rgba(108, 117, 125, 0.7)' // Sin Registro (gris)
+                    ],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

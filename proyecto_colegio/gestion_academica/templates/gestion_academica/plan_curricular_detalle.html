@@ -1,0 +1,79 @@
+{% extends "gestion_academica/base.html" %}
+
+{% block titulo %}{{ titulo_pagina|default:"Detalle del Plan Curricular" }}{% endblock %}
+
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>{{ titulo_pagina|default:"Detalle del Plan Curricular" }}</h1>
+    <a href="{% url 'gestion_academica:lista_planes_curriculares' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+    </a>
+</div>
+<hr>
+
+{% if plan %}
+<div class="card shadow-sm">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">{{ plan.nombre }}</h4>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Descripción:</dt>
+            <dd class="col-sm-9">{{ plan.descripcion|linebreaksbr|default:"No especificada." }}</dd>
+
+            <dt class="col-sm-3">Fecha de Publicación/Vigencia:</dt>
+            <dd class="col-sm-9">{{ plan.fecha_publicacion|date:"d F, Y" }}</dd>
+
+            {% if plan.grado_asociado %}
+            <dt class="col-sm-3">Grado Asociado:</dt>
+            <dd class="col-sm-9">{{ plan.grado_asociado.nombre }}</dd>
+            {% endif %}
+
+            {% if plan.materia_asociada %}
+            <dt class="col-sm-3">Materia Asociada:</dt>
+            <dd class="col-sm-9">{{ plan.materia_asociada.nombre_materia }}</dd>
+            {% endif %}
+
+            {% if plan.periodo_academico_asociado %}
+            <dt class="col-sm-3">Periodo Académico Asociado:</dt>
+            <dd class="col-sm-9">{{ plan.periodo_academico_asociado.nombre }} ({{ plan.periodo_academico_asociado.año_escolar }})</dd>
+            {% endif %}
+
+            {% if plan.documento_adjunto %}
+            <dt class="col-sm-3">Documento Adjunto:</dt>
+            <dd class="col-sm-9">
+                <a href="{{ plan.documento_adjunto.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-download"></i> Descargar {{ plan.documento_adjunto.name|cut:"planes_curriculares/" }}
+                </a>
+            </dd>
+            {% else %}
+            <dt class="col-sm-3">Documento Adjunto:</dt>
+            <dd class="col-sm-9">No adjuntado</dd>
+            {% endif %}
+
+            {% if plan.creado_por %}
+            <dt class="col-sm-3">Creado por:</dt>
+            <dd class="col-sm-9">{{ plan.creado_por.username }}</dd>
+            {% endif %}
+
+            <dt class="col-sm-3">Fecha de Subida:</dt> {# Asumiendo que el modelo ArchivoPlanAcademico tiene fecha_subida #}
+            <dd class="col-sm-9">{{ plan.fecha_subida|date:"d/m/Y H:i" }}</dd>
+
+        </dl>
+    </div>
+    <div class="card-footer text-end">
+        <a href="{% url 'gestion_academica:editar_plan_curricular' plan.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil-square"></i> Editar Plan
+        </a>
+        <a href="{% url 'gestion_academica:eliminar_plan_curricular' plan.pk %}" class="btn btn-danger ms-2">
+            <i class="bi bi-trash-fill"></i> Eliminar Plan
+        </a>
+    </div>
+</div>
+{% else %}
+    <div class="alert alert-warning" role="alert">
+      No se encontró la información del plan curricular.
+    </div>
+{% endif %}
+
+{% endblock %}

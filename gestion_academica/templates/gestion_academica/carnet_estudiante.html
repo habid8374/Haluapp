@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ titulo_pagina }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .carnet {
+            width: 8.5cm;
+            height: 5.4cm;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            padding: 15px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        .carnet-info {
+            flex-grow: 1;
+            padding-right: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .carnet-qr {
+            flex-shrink: 0;
+            width: 4.5cm;
+            height: 4.5cm;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .carnet-qr img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .carnet-header {
+            font-size: 8pt;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .carnet-nombre {
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .carnet-grado, .carnet-id {
+            font-size: 10pt;
+            color: #333;
+            margin-top: 5px;
+        }
+        .carnet-footer {
+            margin-top: auto;
+            font-size: 7pt;
+            color: #888;
+            font-style: italic;
+        }
+        /* Estilos para el botón de imprimir y para la impresión */
+        .print-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        @media print {
+            body {
+                background-color: white;
+            }
+            .no-print {
+                display: none;
+            }
+            .carnet {
+                box-shadow: none;
+                border: 1px solid #ccc; /* Añadir un borde para el corte */
+            }
+        }
+    </style>
+</head>
+<body>
+    <button onclick="window.print()" class="no-print print-button">Imprimir Carnet</button>
+    <div class="carnet">
+        <div class="carnet-info">
+            <div class="carnet-header">
+                {{ estudiante.institucion.nombre|upper }}
+            </div>
+            <p class="carnet-nombre">{{ estudiante.usuario.get_full_name }}</p>
+            <p class="carnet-grado"><strong>Grado:</strong> {{ estudiante.grado_actual.nombre }}</p>
+            <p class="carnet-id"><strong>ID:</strong> {{ estudiante.documento_identidad }}</p>
+            <div class="carnet-footer">
+                Carnet Estudiantil
+            </div>
+        </div>
+        <div class="carnet-qr">
+            <img src="{{ qr_code_url }}" alt="Código QR del Estudiante">
+        </div>
+    </div>
+</body>
+</html>

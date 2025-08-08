@@ -1,0 +1,92 @@
+{% extends 'base_finanzas.html' %}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+
+    <form action="{% url 'finanzas:sincronizar_cuentas_masivo' %}" method="post" onsubmit="return confirm('¿Estás seguro de que quieres sincronizar las cuentas de TODOS los estudiantes activos? Este proceso puede tardar unos momentos.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-arrow-repeat"></i> Sincronizar Todas las Cuentas
+            </button>
+        </form>
+    </div>
+    
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header"><i class="bi bi-funnel-fill me-2"></i> Filtros de Búsqueda</div>
+        <div class="card-body">
+            <form method="GET" action="{% url 'finanzas:reporte_general_cuentas' %}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="id_estudiante" class="form-label">Estudiante:</label>
+                        <select name="estudiante" id="id_estudiante" class="form-select">
+                            <option value="">--- Buscar por Nombre ---</option>
+                            {% for est in estudiantes_disponibles_filtro %}
+                                <option value="{{ est.pk }}" {% if selected_estudiante == est.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ est.usuario.get_full_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="id_grado" class="form-label">Grado:</label>
+                        <select name="grado" id="id_grado" class="form-select">
+                            <option value="">--- Todos los Grados ---</option>
+                            {% for grado in grados_disponibles %}
+                                <option value="{{ grado.pk }}" {% if selected_grado == grado.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ grado.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="id_estado" class="form-label">Con Cuentas en Estado:</label>
+                        <select name="estado" id="id_estado" class="form-select">
+                            <option value="">--- Cualquier Estado ---</option>
+                            {% for valor, texto in estados_pago %}
+                                <option value="{{ valor }}" {% if selected_estado == valor %}selected{% endif %}>
+                                    {{ texto }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="accordion" id="acordeonGrados">
+        {% for nombre_grado, lista_estudiantes in grados_agrupados %}
+             
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-{{ forloop.counter }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse-{{ forloop.counter }}">
+                        <strong>{{ nombre_grado }}</strong>
+                        <span class="badge bg-secondary ms-2">{{ lista_estudiantes|length }} Estudiante(s)</span>
+                    </button>
+                </h2>
+                <div id="collapse-{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ forloop.counter }}" data-bs-parent="#acordeonGrados">
+                    <div class="list-group list-group-flush">
+                        {% for estudiante in lista_estudiantes %}
+                            <a href="{% url 'finanzas:historial_cuentas_estudiante' estudiante_id=estudiante.pk %}" class="list-group-item list-group-item-action">
+                                {{ estudiante.usuario.get_full_name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="alert alert-info text-center">
+                No se encontraron estudiantes que coincidan con los filtros.
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

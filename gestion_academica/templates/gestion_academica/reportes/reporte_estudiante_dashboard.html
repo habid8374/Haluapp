@@ -1,0 +1,104 @@
+{% extends "base_academico.html" %}
+{% load humanize %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-id-card me-2"></i>{{ titulo_pagina }}</h4>
+        </div>
+        <div class="card-body">
+
+            <div class="mb-3">
+                <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+
+            <form method="get" class="mb-4 p-3 border rounded bg-light">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="grado" class="form-label fw-bold">1. Grado:</label>
+                        <select name="grado" id="grado" class="form-select" onchange="this.form.submit();">
+                            <option value="">--- Seleccione un Grado ---</option>
+                            {% for g in grados %}<option value="{{ g.id }}" {% if g.id|stringformat:"s" == grado_seleccionado_id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="estudiante" class="form-label fw-bold">2. Estudiante:</label>
+                        <select name="estudiante" id="estudiante" class="form-select" onchange="this.form.submit();" {% if not estudiantes_del_grado %}disabled{% endif %}>
+                            <option value="">--- Seleccione un Estudiante ---</option>
+                            {% for e in estudiantes_del_grado %}<option value="{{ e.pk }}" {% if e.pk|stringformat:"s" == estudiante_seleccionado_id %}selected{% endif %}>{{ e.usuario.get_full_name|default:e.usuario.username }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </form>
+
+            {% if estudiante_seleccionado and contexto_reporte %}
+                <div class="text-center border-bottom pb-3 mb-4">
+                    
+                    <div class="mb-2">
+                        <i class="bi bi-person-circle" style="font-size: 6rem; color: #6c757d;"></i>
+                    </div>
+                    <h4 class="mb-0">{{ estudiante_seleccionado.usuario.get_full_name }}</h4>
+                    <p class="text-muted mb-0">{{ estudiante_seleccionado.grado_actual.nombre }}</p>
+                </div>
+
+                {% if contexto_reporte.tipo_reporte == 'CUANTITATIVO' %}
+                    <div class="row text-center mb-4 g-3">
+                        <div class="col-md-3"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Promedio Periodo</h6><p class="card-text fs-4 fw-bold text-primary">{{ contexto_reporte.promedio_actual|floatformat:2|default:"N/A" }}</p></div></div></div>
+                        <div class="col-md-3"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Materias en Riesgo</h6><p class="card-text fs-4 fw-bold text-danger">{{ contexto_reporte.materias_riesgo }}</p></div></div></div>
+                        <div class="col-md-3"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Inasistencias</h6><p class="card-text fs-4 fw-bold text-warning">{{ contexto_reporte.inasistencias }}</p></div></div></div>
+                        <div class="col-md-3"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Estado de Cartera</h6><p class="card-text fs-4 fw-bold {% if contexto_reporte.esta_al_dia %}text-success{% else %}text-danger{% endif %}">{% if contexto_reporte.esta_al_dia %}Al día{% else %}En Mora{% endif %}</p></div></div></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-8"><div class="card"><div class="card-body"><h5 class="card-title">Evolución Anual</h5><canvas id="trendChart"></canvas></div></div></div>
+                        <div class="col-lg-4"><div class="card"><div class="card-body"><h5 class="card-title">Observador Reciente</h5><ul class="list-group list-group-flush">{% for an in contexto_reporte.anotaciones_recientes %}<li class="list-group-item"><strong>{{ an.get_tipo_display }}:</strong> {{ an.descripcion|truncatewords:10 }}<br><small class="text-muted">{{ an.fecha_hora|date:"d/m/Y" }}</small></li>{% empty %}<li class="list-group-item">Sin anotaciones.</li>{% endfor %}</ul></div></div></div>
+                    </div>
+                {% endif %}
+
+                {% if contexto_reporte.tipo_reporte == 'CUALITATIVO' %}
+                    <div class="row text-center mb-4 g-3">
+                        <div class="col-md-4"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Logros Alcanzados</h6><p class="card-text fs-4 fw-bold text-success">{{ contexto_reporte.logros_alcanzados }}</p></div></div></div>
+                        <div class="col-md-4"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Logros en Proceso</h6><p class="card-text fs-4 fw-bold text-warning">{{ contexto_reporte.logros_en_proceso }}</p></div></div></div>
+                        <div class="col-md-4"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Estado de Cartera</h6><p class="card-text fs-4 fw-bold {% if contexto_reporte.esta_al_dia %}text-success{% else %}text-danger{% endif %}">{% if contexto_reporte.esta_al_dia %}Al día{% else %}En Mora{% endif %}</p></div></div></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12"><div class="card"><div class="card-body"><h5 class="card-title">Observador Reciente</h5><ul class="list-group list-group-flush">{% for an in contexto_reporte.anotaciones_recientes %}<li class="list-group-item"><strong>{{ an.get_tipo_display }}:</strong> {{ an.descripcion|truncatewords:15 }}<br><small class="text-muted">{{ an.fecha_hora|date:"d/m/Y" }}</small></li>{% empty %}<li class="list-group-item">Sin anotaciones.</li>{% endfor %}</ul></div></div></div>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if contexto_reporte.tipo_reporte == 'CUANTITATIVO' and contexto_reporte.chart_labels %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ contexto_reporte.chart_labels|safe }},
+                datasets: [{
+                    label: 'Promedio General',
+                    data: {{ contexto_reporte.chart_data|safe }},
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: false, max: 5.0 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+{# finanzas/templates/finanzas/no_autorizado.html #}
+{% extends 'base.html' %} {# Este template puede heredar directamente de base.html ya que es una página de error genérica #}
+{% load static %} {# Añadido por si acaso necesitas recursos estáticos #}
+
+{% block titulo %}HALU - Acceso Denegado{% endblock %} {# Se añadió el nombre del software #}
+
+{% block contenido %}
+<div class="container text-center mt-5">
+    <h1 class="display-4 text-danger mb-3">
+        <i class="bi bi-x-circle-fill me-3"></i> ¡Acceso Denegado!
+    </h1>
+    <p class="lead">No tienes los permisos necesarios para ver esta página o realizar esta acción.</p>
+    
+    <div class="alert alert-info mt-4 mx-auto" style="max-width: 600px;" role="alert">
+        <i class="bi bi-person-exclamation me-2"></i> Si crees que esto es un error, por favor contacta al administrador del sistema para solicitar los permisos adecuados.
+    </div>
+    
+    <a href="{% url 'gestion_academica:inicio_academico' %}" class="btn btn-primary mt-3 me-2">
+        <i class="bi bi-house-door-fill"></i> Volver al Inicio
+    </a>
+    <a href="javascript:history.back()" class="btn btn-outline-secondary mt-3">
+        <i class="bi bi-arrow-left-circle"></i> Ir a la página anterior
+    </a>
+</div>
+{% endblock contenido %}

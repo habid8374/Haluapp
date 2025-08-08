@@ -1,0 +1,13 @@
+{% extends "base_admisiones.html" %}
+
+{% block titulo %}Proceso Completado{% endblock %}
+
+{% block contenido %}
+<div class="text-center py-5">
+    <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+    <h1 class="display-5 mt-3">¡Proceso Exitoso!</h1>
+    <p class="lead">{{ request.session.flash.success }}</p>
+    <p>Gracias por utilizar nuestro sistema.</p>
+    <a href="{% url 'admisiones:lista_aspirantes' %}" class="btn btn-primary mt-3">Volver a la Lista de Aspirantes</a>
+</div>
+{% endblock contenido %}

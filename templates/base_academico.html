@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+{% load static %}
+{% load notificaciones_tags %}
+
+{% block titulo %}Módulo Académico - {{ branding.NOMBRE }}{% endblock %}
+
+
+{% block navbar_content %}
+<li class="nav-item">
+    <a class="nav-link position-relative" href="{% url 'gestion_academica:lista_notificaciones' %}">
+        <i class="bi bi-bell-fill fs-5"></i>
+        {% if unread_count > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ unread_count }}
+            </span>
+        {% endif %}
+    {# Tu barra de navegación superior se mantiene igual, pero añadimos la campana #}
+    <a class="navbar-brand" href="{% url 'gestion_academica:inicio_academico' %}">
+        {% if configuracion_institucion and configuracion_institucion.logo %}
+            <img src="{{ configuracion_institucion.logo.url }}" alt="Logo" class="logo-navbar">
+        {% else %}
+            <i class="bi bi-mortarboard-fill"></i>
+        {% endif %}
+        {{ configuracion_institucion.nombre_institucion|default:"Módulo Académico" }}
+    </a>
+    <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
+        {% if user.is_authenticated %}
+        
+            {% notificaciones_bell %}
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle ps-2" href="#" id="navbarDropdownUserLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i> {{ user.get_full_name|default:user.username }}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUserLink">
+                    <li><a class="dropdown-item" href="{% url 'gestion_academica:ver_mi_perfil' %}">Mi Perfil</a></li>
+                    <li><a class="dropdown-item" href="{% url 'socialaccount_connections' %}">Conexiones de Cuenta</a></li>
+                    <li><a class="dropdown-item" href="{% url 'password_change' %}">Cambiar Contraseña</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form id="logout-form-navbar" action="{% url 'logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
+                        <a class="dropdown-item" href="#" onclick="document.getElementById('logout-form-navbar').submit(); return false;"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a>
+                    </li>
+                </ul>
+            </li>
+        {% endif %}
+    </ul>
+{% endblock navbar_content %}
+
+{% block floating_menu_content %}
+     <ul class="nav flex-column">
+        <h5 class="menu-section-title">Principal</h5>
+        <li class="nav-item item-color-1"><a class="nav-link {% if request.resolver_match.url_name == 'inicio_academico' %}active{% endif %}" href="{% url 'gestion_academica:inicio_academico' %}"><i class="bi bi-house-door-fill"></i> Inicio</a></li>
+        
+
+        
+        {# ========================================================== #}
+        {#      MENÚ PARA ESTUDIANTES                                 #}
+        {# ========================================================== #}
+        {% if user.rol == 'estudiante' %}
+    <hr class="menu-divider">
+    <h5 class="menu-section-title">Mi Espacio</h5>
+    <li class="nav-item item-color-1">
+        <a class="nav-link" href="{% url 'gestion_academica:dashboard_estudiante' %}"><i class="bi bi-grid-1x2-fill"></i> Mi Panel</a>
+    </li>
+    <li class="nav-item item-color-2">
+        <a class="nav-link" href="{% url 'gestion_academica:dashboard_estudiante' %}#seccion-horario"><i class="bi bi-table"></i> Mi Horario</a>
+    </li>
+    <li class="nav-item item-color-3">
+        <a class="nav-link" href="{% url 'gestion_academica:dashboard_estudiante' %}#seccion-calendario"><i class="bi bi-calendar3"></i> Mi Agenda</a>
+    </li>
+    <li class="nav-item item-color-4">
+        <a class="nav-link" href="{% url 'gestion_academica:mi_boletin_periodo_actual' %}"><i class="bi bi-file-earmark-text-fill"></i> Mi Boletín</a>
+    </li>
+{% endif %}
+        
+        {# ========================================================== #}
+        {#      MENÚ PARA ADMINISTRADORES Y PERSONAL (STAFF)          #}
+        {# ========================================================== #}
+        {% if user.is_staff %}
+    
+    {# Módulo de Admisiones #}
+    {% if perms.admisiones.view_aspirante %}
+    <hr class="menu-divider">
+    <h5 class="menu-section-title">Procesos</h5>
+    <li class="nav-item item-color-3"><a class="nav-link" href="{% url 'admisiones:dashboard_admisiones' %}"><i class="bi bi-bar-chart-line-fill"></i> Módulo de Admisiones</a></li>
+    {% endif %}
+    {% if user.is_staff %}
+    <li class="nav-item item-color-1">
+        <a class="nav-link" href="{% url 'gestion_academica:proceso_graduacion' %}">
+            <i class="bi bi-patch-check-fill"></i> Proceso de Graduación
+        </a>
+    </li>
+    {% endif %}
+
+    {# Módulo de Gestión Académica #}
+    {% if perms.gestion_academica.acceso_modulo_academico %}
+        <hr class="menu-divider">
+        <h5 class="menu-section-title">Gestión General</h5>
+        {% if perms.gestion_academica.view_grado %}<li class="nav-item item-color-1"><a class="nav-link" href="{% url 'gestion_academica:lista_grados' %}"><i class="bi bi-diagram-3-fill"></i> Grados</a></li>{% endif %}
+        {% if perms.gestion_academica.view_estudiante %}<li class="nav-item item-color-2"><a class="nav-link" href="{% url 'gestion_academica:lista_grados_para_estudiantes' %}"><i class="bi bi-people-fill"></i> Estudiantes</a></li>{% endif %}
+        
+        <li class="nav-item item-color-6">
+    <a class="nav-link" href="{% url 'gestion_academica:admin_asistencia_diaria' %}">
+        <i class="bi bi-calendar-check"></i> Control de Asistencia
+    </a>
+</li>
+{% if perms.gestion_academica.view_usuario %}
+            <li class="nav-item item-color-blue"> {# Puedes usar un nuevo color #}
+                <a class="nav-link" href="{% url 'gestion_academica:lista_usuarios' %}">
+                    <i class="bi bi-people-fill"></i> Gestión de Usuarios
+                </a>
+            </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_docente %}
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#submenuDocentes" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="submenuDocentes">
+        <i class="bi bi-person-workspace"></i> Docentes <i class="bi bi-chevron-down float-end"></i>
+    </a>
+    <div class="collapse ps-3" id="submenuDocentes">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_docentes' %}">
+                    <i class="bi bi-card-list"></i> Lista de Docentes
+                </a>
+            </li>
+            
+           
+
+<li class="nav-item item-color-5">
+    <a class="nav-link" href="{% url 'gestion_academica:escaner_asistencia_docente' %}">
+        <i class="bi bi-qr-code-scan"></i> Escanear Asistencia Docente
+    </a>
+</li>
+
+<li class="nav-item item-color-4">
+    <a class="nav-link" href="{% url 'gestion_academica:historial_asistencia_docente' %}"   >
+        <i class="bi bi-clipboard-check-fill"></i> Historial Asistencia Docentes
+    </a>
+</li>
+            {% if perms.gestion_academica.add_docente %}
+            <li class="nav-item">
+                <a class="nav-link sub-item" href="{% url 'gestion_academica:importar_docentes_excel' %}">
+                    <i class="bi bi-upload"></i> Importar desde Excel
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link sub-item" href="{% url 'gestion_academica:descargar_plantilla_docentes' %}">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Descargar Plantilla
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</li>
+{% endif %}
+        
+        {# --- ENLACE AÑADIDO Y CORREGIDO --- #}
+        {% if perms.gestion_academica.add_familiar %}<li class="nav-item item-color-4"><a class="nav-link" href="{% url 'gestion_academica:crear_familiar' %}"><i class="bi bi-person-heart"></i> Registrar Familiar</a></li>{% endif %}
+        
+        <h5 class="menu-section-title mt-3">Configuración Académica</h5>
+        {% if perms.gestion_academica.view_areaacademica %}
+        <li class="nav-item item-color-4">
+         <a class="nav-link" href="{% url 'gestion_academica:listar_areas_academicas' %}">
+          <i class="bi bi-intersect"></i> Áreas Académicas
+         </a>
+        </li> 
+        <li class="nav-item item-color-X"> {# Elige un color #}
+         <a class="nav-link" href="{% url 'gestion_academica:gestion_horarios' %}">
+          <i class="bi bi-calendar-week-fill"></i> Gestión de Horarios
+         </a>
+        </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_materia %}<li class="nav-item item-color-1"><a class="nav-link" href="{% url 'gestion_academica:lista_materias' %}"><i class="bi bi-journal-bookmark-fill"></i> Materias</a></li>{% endif %}
+        {% if perms.gestion_academica.view_curso %}<li class="nav-item item-color-5"><a class="nav-link" href="{% url 'gestion_academica:lista_cursos' %}"><i class="bi bi-collection-fill"></i> Cursos</a></li>{% endif %}
+        {% if perms.gestion_academica.view_aula %}
+          <li class="nav-item item-color-6">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_aulas' %}">
+              <i class="bi bi-door-open-fill"></i> Gestión de Aulas
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_directorcurso %}<li class="nav-item item-color-1"><a class="nav-link" href="{% url 'gestion_academica:lista_directores_curso' %}"><i class="bi bi-person-badge-fill"></i> Directores de Curso</a></li>{% endif %}
+        {% if perms.gestion_academica.view_descriptorlogro %}<li class="nav-item item-color-5"><a class="nav-link" href="/admin/gestion_academica/descriptorlogro/"><i class="bi bi-patch-check-fill"></i> Descriptores</a></li>{% endif %}
+        {% if perms.gestion_academica.view_periodoacademico %}<li class="nav-item item-color-2"><a class="nav-link" href="{% url 'gestion_academica:lista_periodos' %}"><i class="bi bi-calendar-range"></i> Periodos</a></li>{% endif %}
+        {% if perms.gestion_academica.view_tipoactividad %}<li class="nav-item item-color-3"><a class="nav-link" href="{% url 'gestion_academica:lista_tipos_actividad' %}"><i class="bi bi-tags-fill"></i> Tipos de Actividad</a></li>{% endif %}
+    {% endif %}
+
+            {% if perms.finanzas.acceso_modulo_finanzas %}
+        <hr class="menu-divider">
+        <h5 class="menu-section-title">Otros Módulos</h5>
+        <li class="nav-item item-color-2"><a class="nav-link" href="{% url 'finanzas:dashboard_financiero' %}"><i class="bi bi-currency-dollar"></i> Ir a Módulo de Finanzas</a></li>
+    {% endif %}
+
+    {# Panel de Admin Avanzado #}
+    <hr class="menu-divider">
+    <li class="nav-item item-color-4"><a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Admin Avanzado</a></li>
+{# ▼▼▼ ENLACE AÑADIDO PARA SUPERADMIN ▼▼▼ #}
+        {% if user.is_superuser %}
+            <li class="nav-item item-color-danger">
+                <a class="nav-link" href="{% url 'finanzas:superadmin_tickets' %}">
+                    <i class="bi bi-headset"></i> Panel de Soporte
+                </a>
+            </li>
+        {% endif %}
+        {# ▲▲▲ FIN DEL ENLACE AÑADIDO ▲▲▲ #}
+
+    {% endif %} {# <-- ESTE ES EL CIERRE DEL BLOQUE if user.is_staff #}
+        
+        {# MENÚS PARA OTROS ROLES (SI NO SON STAFF) #}
+        {% if user.rol == 'docente' %}
+            <hr class="menu-divider">
+            <h5 class="menu-section-title">Panel de Docente</h5>
+            <li class="nav-item item-color-1">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_docente' %}active{% endif %}" href="{% url 'gestion_academica:dashboard_docente' %}">
+                    <i class="bi bi-grid-fill"></i> Mi Panel Principal
+                </a>
+            </li>
+            <!-- ▼▼▼ ENLACE AÑADIDO ▼▼▼ -->
+    <li class="nav-item item-color-purple"> {# Puedes usar un nuevo color #}
+        <a class="nav-link {% if request.resolver_match.url_name == 'planeador_clases' %}active{% endif %}" href="{% url 'gestion_academica:planeador_clases' %}">
+            <i class="bi bi-robot me-2"></i> Planeador de Clases (IA)
+        </a>
+    </li>
+    <!-- ▲▲▲ FIN DEL ENLACE ▲▲▲ -->
+    
+            <li class="nav-item item-color-2">
+                <a class="nav-link collapsed" href="#gestionSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="gestionSubmenu">
+                    <i class="bi bi-tools"></i> Centro de Gestión <i class="bi bi-chevron-down float-end"></i>
+                </a>
+         <div class="collapse" id="gestionSubmenu">
+                    <ul class="nav flex-column ps-3">
+                <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}"><i class="bi bi-tags-fill"></i> Gestionar Categorías</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_actividades' %}"><i class="bi bi-card-list"></i> Definir Actividades</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_deberes' %}"><i class="bi bi-journal-check"></i> Gestionar Deberes</a>
+               </li>
+                <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_descriptores' %}"><i class="bi bi-card-list"></i> Gestionar Descriptores</a>
+                </li>
+                 <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}"><i class="bi bi-pencil-square"></i> Libro de Notas</a>
+                </li>
+                 <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_materiales' %}"><i class="bi bi-folder-plus"></i> Materiales de Apoyo</a>
+                </li>
+                 <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_menciones' %}"><i class="bi bi-award"></i> Menciones y Honores</a>
+                </li>
+                 <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}"><i class="bi bi-eye"></i> Observador</a>
+                 </li>
+                                    
+                <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}"><i class="bi bi-graph-up-arrow"></i> Reporte Nota Mínima</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_materiales' %}"><i class="bi bi-folder-plus"></i> Archivos y Materiales</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:reporte_riesgo_global' %}"><i class="bi bi-graph-up-arrow"></i> Reporte Global de Riesgo</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:gestionar_disponibilidad' %}"><i class="bi bi-clock-history"></i> Mi Disponibilidad</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_para_lecciones' %}"><i class="bi bi-calendar-week"></i> Historial de Lecciones</a>
+                </li>   
+                
+            
+                </li>
+            </ul>
+        </div>
+    </li>
+    
+            <li class="nav-item item-color-3">
+                <a class="nav-link {% if request.resolver_match.url_name == 'seleccionar_curso_asistencia' %}active{% endif %}" href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}">
+                   <i class="bi bi-people-fill"></i> Asistir en Otro Curso
+                </a>
+             </li>
+        {% endif %}
+
+         {# NUEVO MENÚ PARA COORDINADORES Y ADMINISTRADORES STAFF #}
+        {% if user.is_staff and user.rol in 'coordinador,administrador' %}
+             <hr class="menu-divider">
+            <h5 class="menu-section-title">Panel de Coordinación</h5>
+            <li class="nav-item item-color-5">
+                <a class="nav-link" href="{% url 'gestion_academica:dashboard_coordinador' %}">
+                    <i class="bi bi-person-video3"></i> Dashboard Principal
+                </a>
+            </li>
+            <li class="nav-item item-color-purple"> {# Nuevo color o el que prefieras #}
+                <a class="nav-link {% if request.resolver_match.url_name == 'sincronizar_permisos' %}active{% endif %}" href="{% url 'gestion_academica:sincronizar_permisos' %}">
+                    <i class="bi bi-shield-lock-fill"></i> Sincronizar Permisos
+                </a>
+            </li>
+            <li class="nav-item item-color-6">
+                <a class="nav-link" href="{% url 'gestion_academica:admin_asistencia_diaria' %}">
+                    <i class="bi bi-calendar-check"></i> Control de Asistencia
+                </a>
+            </li>  
+            
+             <li class="nav-item item-color-7">
+                <a class="nav-link" href="{% url 'gestion_academica:reporte_riesgo_academico' %}">
+                     <i class="bi bi-shield-exclamation"></i> Reporte de Riesgo (IA)
+                </a>
+            </li>
+            
+            <li class="nav-item item-color-8">
+            <a class="nav-link {% if 'reportes' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'gestion_academica:reportes_dashboard' %}">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i> Dashboard de Reportes
+            </a>
+            </li>
+            
+          
+                <li class="nav-item item-color-8">
+                   <a class="nav-link" href="{% url 'gestion_academica:optimizador_horarios' %}">
+                       <i class="bi bi-grid-3x3-gap-fill"></i> Optimizador de Horarios
+                   </a>
+                </li>
+                                      
+
+
+            <li class="nav-item item-color-7">
+                <a class="nav-link" href="{% url 'gestion_academica:dashboard_bienestar' %}">
+                    <i class="bi bi-heart-pulse-fill"></i> Alertas de Bienestar
+                </a>
+            </li>
+            <li class="nav-item item-color-8">
+                <a class="nav-link" href="{% url 'gestion_academica:historial_convivencia' %}">
+                    <i class="bi bi-journal-richtext"></i> Historial de Convivencia
+                </a>
+            </li>
+            <li class="nav-item item-color-8">
+                <a class="nav-link" href="{% url 'gestion_academica:supervisar_citas' %}">
+                    <i class="bi bi-calendar2-week-fill"></i> Supervisión de Citas
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link sub-item" href="{% url 'gestion_academica:gestionar_promocion_grados' %}">
+                <i class="bi bi-calendar2-week-fill"></i>Secuencia de Promoción
+            </a>
+        </li>
+            <li class="nav-item">
+    <a class="nav-link collapsed" href="#gestionGeneralStaff" data-bs-toggle="collapse" role="button">
+        <i class="bi bi-buildings-fill"></i> Gestión General <i class="bi bi-chevron-down float-end"></i>
+    </a>
+    <div class="collapse" id="gestionGeneralStaff">
+        <ul class="nav flex-column ps-3">
+            {# ... tus otros enlaces (Estudiantes, Docentes, etc.) ... #}
+            
+            <li class="nav-item">
+                <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_estudiante_certificado' %}">Generar Certificados</a>
+            </li>
+            </ul>
+    </div>
+</li>
+        {% endif %}
+
+        {% if user.rol == 'familiar' %}
+            <h5 class="menu-section-title">Portal Familiar</h5>
+            <li class="nav-item item-color-1"><a class="nav-link" href="{% url 'gestion_academica:portal_familiar_inicio' %}"><i class="bi bi-people"></i> Mis Estudiantes</a></li>
+        {% endif %}
+
+        {% if user.rol == 'egresado' %}
+            <hr class="menu-divider">
+            <h5 class="menu-section-title">Mi Portal</h5>
+            <li class="nav-item item-color-1">
+                <a class="nav-link" href="{% url 'gestion_academica:portal_egresado' %}">
+                    <i class="bi bi-mortarboard-fill"></i> Portal de Egresado
+                </a>
+            </li>
+        {% endif %}
+
+        <hr class="menu-divider">
+        <h5 class="menu-section-title">Cuenta</h5>
+        <li class="nav-item item-color-2"><a class="nav-link {% if request.resolver_match.url_name == 'ver_mi_perfil' %}active{% endif %}" href="{% url 'gestion_academica:ver_mi_perfil' %}"><i class="bi bi-person-lines-fill"></i> Mi Perfil</a></li>
+        <li class="nav-item item-color-3">
+            <form id="logout-form-menu" action="{% url 'logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
+            <a class="nav-link" href="#" onclick="event.preventDefault(); document.getElementById('logout-form-menu').submit();"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a>
+        </li>
+    </ul>
+{% endblock floating_menu_content %}
+{# 👉 ESTE ES EL BLOQUE DE CONTENIDO PRINCIPAL #}
+{% block contenido %}
+    <div class="container-fluid mt-4">
+        <h1 class="h4">Bienvenido/a al Módulo Académico</h1>
+        <p class="text-muted">Selecciona una opción del menú para comenzar.</p>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+     {{ block.super }}
+
+    {% if user.is_authenticated and user.is_staff %}
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1200;">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="cursor: move; min-width: 300px;">
+            <div class="toast-header bg-primary text-white">
+                <i class="bi bi-bell-fill me-2"></i>
+                <strong class="me-auto">Nueva Notificación</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-body-content">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const notificationSocket = new WebSocket(
+                (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
+                + window.location.host
+                + '/ws/notifications/'
+            );
+
+            notificationSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                const toastBody = document.getElementById('toast-body-content');
+                const toastElement = document.getElementById('liveToast');
+                
+                if (toastBody && toastElement) {
+                    toastBody.textContent = data.message;
+                    const toast = new bootstrap.Toast(toastElement);
+                    toast.show();
+                }
+            };
+
+            notificationSocket.onclose = function(e) {
+                console.error('Socket de notificaciones cerrado inesperadamente.');
+            };
+
+            // Hacer el toast draggable
+            const toastElement = document.getElementById('liveToast');
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+
+            toastElement.addEventListener('mousedown', function(e) {
+                // Solo iniciar arrastre si se hace clic en el header del toast
+                if (e.target.closest('.toast-header')) {
+                    initialX = e.clientX - currentX;
+                    initialY = e.clientY - currentY;
+                    isDragging = true;
+                    toastElement.style.transition = 'none'; // Desactivar todas las transiciones durante el arrastre
+                    toastElement.style.transform = 'none'; // Evitar cualquier escalado
+                    toastElement.style.minWidth = '300px'; // Mantener el ancho mínimo
+                }
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    toastElement.style.position = 'absolute';
+                    toastElement.style.left = currentX + 'px';
+                    toastElement.style.top = currentY + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+                toastElement.style.transition = 'opacity 0.3s ease'; // Restaurar solo la transición de opacidad
+                toastElement.style.minWidth = '300px'; // Asegurar que el ancho mínimo se mantenga
+            });
+
+            // Inicializar posición relativa
+            currentX = 0;
+            currentY = 0;
+        });
+    </script>
+    {% endif %}
+{% endblock extra_js %}
+

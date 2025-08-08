@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Boletín - {{ estudiante.usuario.get_full_name }} - {{ periodo.nombre }}</title>
+    <style>
+         body { font-family: Arial, sans-serif; font-size: 9pt; color: #333; line-height: 1.3; }
+        table { width: 100%; border-collapse: collapse; }
+        .header-table, .student-info-table { margin-bottom: 10px; }
+        .header-table td, .student-info-table td { padding: 2px 5px; vertical-align: top; }
+        .logo { max-height: 80px; max-width: 120px; }
+        .school-info { text-align: center; font-size: 10pt; }
+        .school-info h1 { font-size: 14pt; margin: 0; color: #003366; }
+        .school-info p { margin: 1px 0; }
+        .title-informe { text-align: center; font-weight: bold; font-size: 11pt; border: 1px solid black; padding: 5px; margin-bottom: 10px; background-color: #f2f2f2; }
+        .student-info-table td { border: 1px solid black; padding: 4px; }
+        .main-table { margin-top: 10px; }
+        .main-table th, .main-table td { border: 1px solid black; padding: 4px; vertical-align: top; }
+        .main-table thead th { background-color: #e9ecef; font-weight: bold; text-align: center; }
+        .area-row { background-color: #f2f2f2; font-weight: bold; }
+        .materia-desc p { margin: 0 0 5px 0; padding-left: 10px; font-size: 8pt; }
+        .materia-desc strong { font-size: 9.5pt; }
+        td.center { text-align: center; vertical-align: middle; }
+        .observaciones { border: 1px solid black; padding: 10px; margin-top: 15px; min-height: 50px; }
+        .escala-valorativa { font-size: 8pt; text-align: center; margin-top: 10px; }
+        .footer-signatures { margin-top: 40px; }
+        .signature-box { display: inline-block; width: 48%; text-align: center; vertical-align: top; }
+        .signature-line { border-top: 1px solid black; margin: 40px auto 5px auto; width: 80%; }
+        /* Ya no necesitamos la clase .promedio-box */
+        .footer-signatures { 
+        margin-top: 60px; 
+        page-break-inside: avoid; 
+    }
+    .signature-box { 
+        width: 48%; 
+        text-align: center;
+    }
+    .signature-box img {
+        display: block; /* Asegura que la imagen sea un bloque */
+        margin: 0 auto; /* Centra la imagen horizontalmente */
+        height: 40px;   /* Altura fija */
+        width: auto;    /* Ancho automático para mantener proporción */
+        margin-bottom: 1px; /* Pequeño espacio entre imagen y línea */
+    }
+</style>
+</head>
+<body>
+    <header class="header-table">
+        <table>
+            <tr>
+                <td style="width: 20%; text-align: center;">
+                    {% if institucion.logo %}
+                        <img src="{{ institucion.logo.url }}" class="logo">
+                    {% endif %}
+                </td>
+                <td style="width: 60%;" class="school-info">
+                    <h1>{{ institucion.nombre|upper }}</h1>
+                    <p>{{ institucion.texto_aprobacion|linebreaksbr }}</p>
+                    <p>{{ institucion.texto_resolucion|linebreaksbr }}</p>
+                    <p><strong>Código De Identificación DANE {{ institucion.codigo_dane|default:"N/A" }}</strong></p>
+                    <p>{{ institucion.ciudad_departamento }}</p>
+                </td>
+                <td style="width: 20%; text-align: center;">
+                    {# Espacio para la bandera u otro logo #}
+                </td>
+            </tr>
+        </table>
+    </header>
+    <div class="title-informe">INFORME ACADÉMICO EVALUATIVO {{ periodo.nombre|upper }}</div>
+
+    <table class="student-info-table">
+        <tr>
+            <td><strong>Nombre completo:</strong> {{ estudiante.usuario.get_full_name|upper }}</td>
+            <td style="width: 30%;"><strong>Año:</strong> {{ periodo.año_escolar }}</td>
+        </tr>
+        <tr>
+            <td><strong>Curso:</strong> {{ estudiante.grado_actual.nombre }}</td>
+            <td><strong>Fecha de entrega:</strong> {{ fecha_emision|date:"d/m/Y" }}</td>
+        </tr>
+    </table>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th style="width: 5%;">Ihs</th>
+                <th style="width: 70%;">Descripción Valorativa</th>
+                <th style="width: 8%;">Calif.</th>
+                <th style="width: 8%;">Des</th>
+                <th style="width: 9%;">Inas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for area in boletin_data %}
+                <tr class="area-row">
+                    <td colspan="5">{{ area.nombre|upper }}</td>
+                </tr>
+                {% for materia in area.materias %}
+                    <tr>
+                        <td class="center">{{ materia.ihs }}</td>
+                        <td class="materia-desc">
+                            <strong>{{ materia.nombre|upper }}</strong>
+                            {% for desc in materia.descriptores %}
+                                <p>- {{ desc }}</p>
+                            {% empty %}
+                                <p style="color: #777;">- No hay descriptores para este periodo.</p>
+                            {% endfor %}
+                        </td>
+                        <td class="center"><strong>{{ materia.calificacion|floatformat:1|default:"-" }}</strong></td>
+                        <td class="center">{{ materia.desempeno|default:"-" }}</td>
+                        <td class="center">{{ materia.inasistencias|default:"0" }}</td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+        {% if promedio_general is not None %}
+        <tfoot>
+            <tr style="background-color: #e9ecef;">
+                <td colspan="4" style="text-align: right; font-weight: bold; font-size: 10pt;">PROMEDIO GENERAL DEL PERIODO:</td>
+                <td class="center" style="font-weight: bold; font-size: 10pt;">{{ promedio_general|floatformat:2 }}</td>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+    
+    <div class="observaciones">
+        <strong>Observaciones:</strong><br>
+        {{ observaciones|linebreaksbr }}
+    </div>
+
+    <div class="escala-valorativa">
+        <strong>Interpretación de la escala valorativa:</strong>
+        {% for escala in institucion.escala_valorativa.all %}
+            {{ escala.abreviatura }} = {{ escala.nombre_desempeno }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="footer-signatures">
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td class="signature-box">
+                <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                    <tr style="height: 50px;">
+                        <td colspan="3" style="vertical-align: bottom; padding-bottom: 2px;">
+                            {% if director_de_grupo and director_de_grupo.docente.firma_docente %}
+                                <img src="{{ director_de_grupo.docente.firma_docente.url }}" style="max-height: 45px; width: auto;">
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 10%;"></td> <td style="width: 60%; border-top: 1px solid black;"></td> <td style="width: 10%;"></td> </tr>
+                    <tr>
+                        <td colspan="3" style="padding-top: 5px;">
+                            {% if director_de_grupo %}
+                                {{ director_de_grupo.docente.usuario.get_full_name }}<br>
+                                <small>Director(a) de Grupo</small>
+                            {% else %}
+                                <br>
+                                <small>Director(a) de Grupo</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            
+            <td style="width: 4%;"></td> <td class="signature-box">
+                <table style="width: 100%; text-align: center; border-collapse: collapse;">
+                     <tr style="height: 50px;">
+                        <td colspan="3" style="vertical-align: bottom; padding-bottom: 2px;">
+                            {% if institucion.firma_rectora %}
+                                <img src="{{ institucion.firma_rectora.url }}" style="max-height: 45px; width: auto;">
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 10%;"></td> <td style="width: 80%; border-top: 1px solid black;"></td> <td style="width: 10%;"></td> </tr>
+                    <tr>
+                        <td colspan="3" style="padding-top: 5px;">
+                            {{ institucion.nombre_rectora|default:"[Nombre del Rector(a)]" }}<br>
+                            <small>DIRECTOR(A)</small>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>

@@ -1,0 +1,77 @@
+{# gestion_academica/templates/gestion_academica/deber_detalle.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Detalle del Deber" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Detalle del Deber" }}</h1>
+        <a href="{% url 'gestion_academica:lista_deberes' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    </div>
+    <hr>
+
+    {% if deber %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h4 class="mb-0">{{ deber.titulo }}</h4>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title text-primary mb-3"><i class="bi bi-info-circle-fill me-2"></i> Información del Deber</h5>
+            <dl class="row">
+                <dt class="col-sm-3 text-secondary">Curso:</dt>
+                <dd class="col-sm-9">{{ deber.curso.materia.nombre_materia }} del grado {{ deber.curso.grado.nombre }} ({{ deber.curso.periodo_academico.nombre }})</dd>
+
+                <dt class="col-sm-3 text-secondary">Descripción / Instrucciones:</dt>
+                <dd class="col-sm-9">{{ deber.descripcion|linebreaksbr|default:"No especificada" }}</dd>
+
+                <dt class="col-sm-3 text-secondary">Fecha de Asignación:</dt>
+                <dd class="col-sm-9">{{ deber.fecha_asignacion|date:"d F, Y" }}</dd>
+
+                <dt class="col-sm-3 text-secondary">Fecha Límite de Entrega:</dt>
+                <dd class="col-sm-9">{{ deber.fecha_entrega|date:"d F, Y" }}</dd>
+
+                {% if deber.material_adjunto %}
+                <dt class="col-sm-3 text-secondary">Material de Apoyo Adjunto:</dt>
+                <dd class="col-sm-9">
+                    <a href="{{ deber.material_adjunto.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-download"></i> Descargar {{ deber.material_adjunto.name|cut:"deberes_materiales/" }}
+                    </a>
+                </dd>
+                {% else %}
+                <dt class="col-sm-3 text-secondary">Material de Apoyo Adjunto:</dt>
+                <dd class="col-sm-9">No adjuntado</dd>
+                {% endif %}
+                
+                {# Si tuvieras un campo 'creado_por' en el modelo Deber #}
+                {% comment %}
+                {% if deber.creado_por %}
+                <dt class="col-sm-3 text-secondary">Creado por:</dt>
+                <dd class="col-sm-9">{{ deber.creado_por.usuario.get_full_name|default:deber.creado_por.usuario.username }}</dd>
+                {% endif %}
+                {% endcomment %}
+            </dl>
+        </div>
+        <div class="card-footer text-end">
+            {% if perms.gestion_academica.change_deber %} {# Permiso para editar #}
+                <a href="{% url 'gestion_academica:editar_deber' deber.pk %}" class="btn btn-warning me-2">
+                    <i class="bi bi-pencil-square"></i> Editar Deber
+                </a>
+            {% endif %}
+            {% if perms.gestion_academica.delete_deber %} {# Permiso para eliminar #}
+                <a href="{% url 'gestion_academica:eliminar_deber' deber.pk %}" class="btn btn-danger ms-2">
+                    <i class="bi bi-trash-fill"></i> Eliminar Deber
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró la información del deber.
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}

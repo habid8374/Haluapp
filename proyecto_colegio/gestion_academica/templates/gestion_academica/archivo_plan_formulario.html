@@ -1,0 +1,87 @@
+{% extends "gestion_academica/base.html" %}
+{% load crispy_forms_tags %} {# Opcional, si usas django-crispy-forms #}
+
+{% block titulo %}{{ titulo_formulario|default:"Formulario de Archivo/Material" }}{% endblock %}
+
+{% block contenido %}
+<h1>{{ titulo_formulario|default:"Formulario de Archivo/Material" }}</h1>
+<hr>
+{# enctype="multipart/form-data" es CRUCIAL para la subida de archivos #}
+<form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+                <p class="mb-0">{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# Puedes usar el filtro |crispy si lo tienes configurado #}
+    {# {{ form|crispy }} #}
+
+    {# O renderizar manualmente para más control #}
+    <div class="mb-3">
+        <label for="{{ form.nombre_archivo_descriptivo.id_for_label }}" class="form-label">{{ form.nombre_archivo_descriptivo.label }} {% if form.nombre_archivo_descriptivo.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+        {{ form.nombre_archivo_descriptivo }}
+        {% for error in form.nombre_archivo_descriptivo.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+        {% if form.nombre_archivo_descriptivo.help_text %}<small class="form-text text-muted">{{ form.nombre_archivo_descriptivo.help_text }}</small>{% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ form.archivo.id_for_label }}" class="form-label">{{ form.archivo.label }} {% if form.archivo.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+        {{ form.archivo }}
+        {% if form.instance.pk and form.instance.archivo %} {# Mostrar archivo actual si se está editando #}
+            <p class="mt-2">
+                <small>Archivo actual: 
+                    <a href="{{ form.instance.archivo.url }}" target="_blank">{{ form.instance.archivo.name|cut:"planes_academicos_materiales/" }}</a>
+                </small>
+                <br>
+                {# El widget ClearableFileInput ya incluye una casilla para borrar el archivo actual, pero puedes añadir un texto si quieres #}
+                {# <input type="checkbox" name="{{ form.archivo.html_name }}_clear" id="{{ form.archivo.html_name }}_clear_id"> #}
+                {# <label for="{{ form.archivo.html_name }}_clear_id">Borrar archivo actual</label> #}
+            </p>
+        {% endif %}
+        {% for error in form.archivo.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+        {% if form.archivo.help_text %}<small class="form-text text-muted">{{ form.archivo.help_text }}</small>{% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ form.descripcion.id_for_label }}" class="form-label">{{ form.descripcion.label }} {% if form.descripcion.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+        {{ form.descripcion }}
+        {% for error in form.descripcion.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+        {% if form.descripcion.help_text %}<small class="form-text text-muted">{{ form.descripcion.help_text }}</small>{% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ form.tipo_documento.id_for_label }}" class="form-label">{{ form.tipo_documento.label }} {% if form.tipo_documento.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+        {{ form.tipo_documento }}
+        {% for error in form.tipo_documento.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+        {% if form.tipo_documento.help_text %}<small class="form-text text-muted">{{ form.tipo_documento.help_text }}</small>{% endif %}
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="{{ form.curso_asociado.id_for_label }}" class="form-label">{{ form.curso_asociado.label }} {% if form.curso_asociado.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ form.curso_asociado }}
+            {% for error in form.curso_asociado.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.curso_asociado.help_text %}<small class="form-text text-muted">{{ form.curso_asociado.help_text }}</small>{% endif %}
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="{{ form.materia_asociada.id_for_label }}" class="form-label">{{ form.materia_asociada.label }} {% if form.materia_asociada.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ form.materia_asociada }}
+            {% for error in form.materia_asociada.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.materia_asociada.help_text %}<small class="form-text text-muted">{{ form.materia_asociada.help_text }}</small>{% endif %}
+        </div>
+    </div>
+
+    <hr>
+    <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-circle-fill"></i> Guardar Archivo/Material
+    </button>
+    <a href="{% url 'gestion_academica:lista_archivos_plan' %}" class="btn btn-secondary">
+        <i class="bi bi-x-circle-fill"></i> Cancelar
+    </a>
+</form>
+{% endblock %}

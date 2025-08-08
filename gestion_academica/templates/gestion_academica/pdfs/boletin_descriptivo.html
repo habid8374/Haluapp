@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe Descriptivo - {{ estudiante.usuario.get_full_name }}</title>
+    <style>/* Puedes usar estilos similares a tus otros boletines */</style>
+</head>
+<body>
+    <header>
+        <h1>INFORME DESCRIPTIVO – CUALITATIVO</h1>
+        <h2>PROCESO DE APRENDIZAJE NIVEL PREESCOLAR</h2>
+        <p><strong>Estudiante:</strong> {{ estudiante.usuario.get_full_name }}</p>
+        <p><strong>Grado:</strong> {{ estudiante.grado_actual.nombre }} | <strong>Periodo:</strong> {{ periodo.nombre }}</p>
+    </header>
+
+    {% for data in materias_con_logros %}
+    <section>
+        <h3>{{ data.materia.nombre_materia|upper }}</h3>
+        <table border="1" style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="width:70%; padding: 5px;">Logro</th>
+                    <th style="width:10%; text-align:center; padding: 5px;">LA</th>
+                    <th style="width:10%; text-align:center; padding: 5px;">LP</th>
+                    <th style="width:10%; text-align:center; padding: 5px;">LPE</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in data.logros_evaluados %}
+                <tr>
+                    <td style="padding: 5px;">{{ item.logro.descripcion }}</td>
+                    <td style="text-align:center; padding: 5px;">{% if item.evaluacion.estado == 'LA' %}X{% endif %}</td>
+                    <td style="text-align:center; padding: 5px;">{% if item.evaluacion.estado == 'LP' %}X{% endif %}</td>
+                    <td style="text-align:center; padding: 5px;">{% if item.evaluacion.estado == 'LPE' %}X{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+    </section>
+    {% endfor %}
+
+    <section>
+        <h4>OBSERVACIONES GENERALES DEL DOCENTE</h4>
+        <p>{{ observacion_general.observacion|default:"Sin observaciones para este periodo."|linebreaks }}</p>
+    </section>
+</body>
+</html>

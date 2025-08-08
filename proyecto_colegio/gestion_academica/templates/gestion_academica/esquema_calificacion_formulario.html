@@ -1,0 +1,48 @@
+{% extends "gestion_academica/base.html" %}
+{% load crispy_forms_tags %} {# Opcional, solo si usas django-crispy-forms y quieres usar el filtro |crispy #}
+
+{% block titulo %}{{ titulo_formulario|default:"Formulario de Esquema de Calificación" }}{% endblock %}
+
+{% block contenido %}
+<h1>{{ titulo_formulario|default:"Formulario de Esquema de Calificación" }}</h1>
+<hr>
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    {# Mostrar errores generales del formulario (que no son de un campo específico) #}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+                <p class="mb-0">{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# Opción 1: Usar Crispy Forms (si está configurado y lo prefieres) #}
+    {# Descomenta la siguiente línea y comenta el bucle manual si usas crispy-forms #}
+    {# {{ form|crispy }} #}
+
+    {# Opción 2: Renderizar manualmente cada campo para más control (o si no usas crispy-forms) #}
+    {# Este bucle asegura que todos los campos definidos en EsquemaCalificacionForm se muestren #}
+    {% for field in form %}
+        <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ field }} {# ESTA LÍNEA ES CRUCIAL: renderiza el widget del campo (input, textarea, etc.) #}
+            {% if field.help_text %}
+                <small class="form-text text-muted">{{ field.help_text }}</small>
+            {% endif %}
+            {% for error_message in field.errors %} {# Iterar sobre los mensajes de error del campo #}
+                <div class="text-danger mt-1"><small>{{ error_message }}</small></div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+    <hr>
+    <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-circle-fill"></i> Guardar Cambios
+    </button>
+    <a href="{% url 'gestion_academica:lista_esquemas_calificacion' %}" class="btn btn-secondary">
+        <i class="bi bi-x-circle-fill"></i> Cancelar
+    </a>
+</form>
+{% endblock %}

@@ -1,0 +1,297 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}
+<style>
+    #schedule-output { min-height: 70vh; }
+    .fc-event {
+        cursor: grab;
+        padding: 5px;
+        font-size: 0.8em;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <form method="get" class="mb-3 card shadow-sm">
+        <div class="card-body">
+            <div class="row align-items-end">
+                <div class="col-md-4">
+                    <label for="grado_id" class="form-label fw-bold">Selecciona un Grado para Empezar</label>
+                    <select name="grado_id" id="grado_id" class="form-select">
+                        <option value="">--- Elige un grado ---</option>
+                        {% for grado in grados %}
+                            <option value="{{ grado.pk }}" {% if grado_seleccionado.pk == grado.pk %}selected{% endif %}>
+                                {{ grado.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-secondary">Cargar Datos del Grado</button>
+                </div>
+            </div>
+        </div>
+    </form>
+    {% if grado_seleccionado %}
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h1 class="h2 mb-0">Optimizador para: <span class="text-primary">{{ grado_seleccionado.nombre }}</span></h1>
+            <div>
+                <button type="button" id="generateScheduleBtn" class="btn btn-primary">
+                    <span id="btn-spinner-gen" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    <i id="btn-icon-gen" class="bi bi-robot me-2"></i>
+                    <span id="btn-text-gen">Generar Propuesta con IA</span>
+                </button>
+                <button type="button" id="saveScheduleBtn" class="btn btn-success d-none">
+                    <span id="btn-spinner-save" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    <i id="btn-icon-save" class="bi bi-save-fill me-2"></i>
+                    <span id="btn-text-save">Guardar Horario</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="status-alert" class="alert alert-info d-none" role="alert"></div>
+
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="card mb-3">
+                    <div class="card-header"><h5 class="mb-0">1. Docentes ({{ docentes_disponibles.count }})</h5></div>
+                    <ul class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+                        {% for docente in docentes_disponibles %}<li class="list-group-item">{{ docente.usuario.get_full_name }}</li>{% empty %}<li class="list-group-item text-muted">No hay docentes para este grado.</li>{% endfor %}
+                    </ul>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header"><h5 class="mb-0">2. Cursos ({{ cursos_a_programar.count }})</h5></div>
+                    <ul class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+                        {% for curso in cursos_a_programar %}<li class="list-group-item">{{ curso.materia.nombre_materia }}</li>{% empty %}<li class="list-group-item text-muted">No hay cursos para este grado.</li>{% endfor %}
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h5 class="mb-0">3. Aulas ({{ aulas_disponibles.count }})</h5></div>
+                    <ul class="list-group list-group-flush" style="max-height: 200px; overflow-y: auto;">
+                        {% for aula in aulas_disponibles %}<li class="list-group-item">{{ aula.nombre }} (Cap: {{ aula.capacidad }})</li>{% empty %}<li class="list-group-item text-muted">No hay aulas registradas.</li>{% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="schedule-output"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-3">Por favor, selecciona un grado para comenzar a optimizar su horario.</div>
+    {% endif %}
+</div>
+
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="notificationModalHeader">
+                <h5 class="modal-title" id="notificationModalLabel"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="notificationModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Solo ejecutar el script si hemos seleccionado un grado
+    {% if grado_seleccionado %}
+        // --- Referencias a Elementos del DOM ---
+        const generateBtn = document.getElementById('generateScheduleBtn');
+        const saveBtn = document.getElementById('saveScheduleBtn');
+        const statusAlert = document.getElementById('status-alert');
+        const scheduleOutput = document.getElementById('schedule-output');
+        const csrfToken = '{{ csrf_token }}';
+        let calendar;
+
+        // --- Mapeo de Datos (para mostrar nombres en lugar de IDs) ---
+        const cursosMap = { {% for c in cursos_a_programar %}{{ c.pk }}: "{{ c.materia.nombre_materia|escapejs }}",{% endfor %} };
+        const docentesMap = { {% for d in docentes_disponibles %}{{ d.pk }}: "{{ d.usuario.get_full_name|truncatechars:15|escapejs }}",{% endfor %} };
+        const aulasMap = { {% for a in aulas_disponibles %}{{ a.pk }}: "{{ a.nombre|escapejs }}",{% endfor %} };
+
+        // --- Función de Notificación Modal Profesional ---
+        const notificationModalEl = document.getElementById('notificationModal');
+        const notificationModal = new bootstrap.Modal(notificationModalEl);
+        const modalHeader = document.getElementById('notificationModalHeader');
+        const modalTitle = document.getElementById('notificationModalLabel');
+        const modalBody = document.getElementById('notificationModalBody');
+
+        function showNotification(title, message, isSuccess = true) {
+            modalTitle.innerHTML = isSuccess 
+                ? `<i class="bi bi-check-circle-fill me-2"></i> ${title}` 
+                : `<i class="bi bi-exclamation-triangle-fill me-2"></i> ${title}`;
+            modalBody.innerHTML = message;
+            modalHeader.className = 'modal-header text-white';
+            modalHeader.classList.add(isSuccess ? 'bg-success' : 'bg-danger');
+            notificationModal.show();
+        }
+
+        // --- Función para Inicializar o "Dibujar" el Calendario ---
+        function renderCalendar(events = []) {
+            if (calendar) { calendar.destroy(); }
+            calendar = new FullCalendar.Calendar(scheduleOutput, {
+                initialView: 'timeGridWeek',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'timeGridWeek,timeGridDay'
+                },
+                locale: 'es',
+                allDaySlot: false,
+                slotDuration: '00:15:00',
+                slotLabelInterval: '01:00',
+                slotMinTime: '06:00:00',
+                weekends: false,
+                slotMaxTime: '18:00:00',
+                editable: true,
+                events: events,
+                eventContent: function(arg) {
+                    const timeText = arg.timeText;
+                    const title = arg.event.title;
+                    const docente = arg.event.extendedProps.docente;
+                    const aula = arg.event.extendedProps.aula;
+                    
+                    let innerHtml = `<div class="fc-event-time">${timeText}</div>`;
+                    innerHtml += `<div class="fc-event-title fw-bold">${title}</div>`;
+                    innerHtml += `<div>${docente}</div>`;
+                    innerHtml += `<i>${aula}</i>`;
+
+                    return { html: innerHtml };
+                }
+            });
+            calendar.render();
+            saveBtn.classList.remove('d-none');
+        }
+
+        // --- Lógica para Generar Propuesta con IA ---
+        generateBtn.addEventListener('click', function() {
+            this.disabled = true;
+            document.getElementById('btn-spinner-gen').classList.remove('d-none');
+            document.getElementById('btn-icon-gen').classList.add('d-none');
+            document.getElementById('btn-text-gen').textContent = 'Generando...';
+            statusAlert.textContent = 'HALU está creando la propuesta de horario para {{ grado_seleccionado.nombre }}. Esto puede tardar varios minutos...';
+            statusAlert.classList.remove('d-none');
+            
+            fetch("{% url 'gestion_academica:optimizador_horarios' %}", { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                body: JSON.stringify({ grado_pk: "{{ grado_seleccionado.pk }}" })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.task_id) {
+                    checkTaskStatus(data.task_id);
+                } else {
+                    showNotification('Error', 'No se pudo iniciar la tarea de generación.', false);
+                }
+            });
+        });
+
+        // --- Función que Pregunta por el Estado de la Tarea ---
+        function checkTaskStatus(taskId) {
+            const interval = setInterval(() => {
+                fetch(`{% url 'gestion_academica:analisis_status' %}?task_id=${taskId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'SUCCESS' || data.status === 'FAILURE') {
+                        clearInterval(interval);
+                        statusAlert.classList.add('d-none');
+                        generateBtn.disabled = false;
+                        document.getElementById('btn-spinner-gen').classList.add('d-none');
+                        document.getElementById('btn-icon-gen').classList.remove('d-none');
+                        document.getElementById('btn-text-gen').textContent = 'Generar Propuesta con IA';
+
+                        if (data.status === 'SUCCESS' && data.result.status === 'SUCCESS') {
+                            const events = data.result.horario.map(e => ({
+                                title: cursosMap[e.curso_id] || 'Curso Desconocido',
+                                start: e.hora_inicio,
+                                end: e.hora_fin,
+                                extendedProps: {
+                                    docente: docentesMap[e.docente_id] || 'N/A',
+                                    aula: aulasMap[e.aula_id] || 'N/A',
+                                    curso_id: e.curso_id,
+                                    docente_id: e.docente_id,
+                                    aula_id: e.aula_id
+                                }
+                            }));
+                            renderCalendar(events);
+                            showNotification('¡Éxito!', 'Propuesta de horario generada. Ya puedes arrastrar los bloques para ajustarla.', true);
+                        } else {
+                            const errorMsg = data.result ? data.result.error : "Error desconocido.";
+                            showNotification('Error de la IA', `La IA no pudo generar un horario. Motivo: ${errorMsg}`, false);
+                        }
+                    }
+                });
+            }, 5000);
+        }
+
+        // --- Lógica para Guardar el Horario Final ---
+        saveBtn.addEventListener('click', function() {
+            if (!calendar) return;
+            
+            const finalEvents = calendar.getEvents().map(event => {
+                const dayOfWeek = event.start.getDay();
+                return {
+                    dia_semana: (dayOfWeek === 0) ? 6 : dayOfWeek - 1,
+                    hora_inicio: event.start.toTimeString().substring(0, 8),
+                    hora_fin: event.end.toTimeString().substring(0, 8),
+                    curso_id: event.extendedProps.curso_id,
+                    docente_id: event.extendedProps.docente_id,
+                    aula_id: event.extendedProps.aula_id,
+                };
+            });
+
+            this.disabled = true;
+            document.getElementById('btn-text-save').textContent = 'Guardando...';
+            document.getElementById('btn-spinner-save').classList.remove('d-none');
+            document.getElementById('btn-icon-save').classList.add('d-none');
+
+            fetch("{% url 'gestion_academica:guardar_horario' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                body: JSON.stringify({
+                    horario: finalEvents,
+                    periodo_pk: "{{ periodo_activo.pk }}",
+                    grado_pk: "{{ grado_seleccionado.pk }}"
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    showNotification('¡Horario Guardado!', data.message, true);
+                } else {
+                    showNotification('Error al Guardar', data.message, false);
+                }
+            })
+            .finally(() => {
+                this.disabled = false;
+                document.getElementById('btn-text-save').textContent = 'Guardar y Publicar Horario';
+                document.getElementById('btn-spinner-save').classList.add('d-none');
+                document.getElementById('btn-icon-save').classList.remove('d-none');
+            });
+        });
+
+        // Inicializamos un calendario vacío al cargar la página
+        renderCalendar();
+    {% endif %}
+});
+</script>
+{% endblock %}

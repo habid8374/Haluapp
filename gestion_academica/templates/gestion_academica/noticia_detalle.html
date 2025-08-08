@@ -1,0 +1,84 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}{{ noticia.titulo|default:"Detalle de Noticia" }}{% endblock titulo %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+    .noticia-detalle-img {
+        max-height: 450px;
+        width: 100%;
+        object-fit: cover;
+        border-radius: .25rem;
+        margin-bottom: 1.5rem;
+    }
+    .noticia-meta {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1rem;
+    }
+    .noticia-contenido {
+        line-height: 1.7;
+    }
+</style>
+{% endblock extrastyles %}
+
+{% block contenido %}
+<div class="container mt-4">
+    {% if noticia %}
+        <article class="shadow-sm p-4 bg-white rounded-3">
+            <header class="mb-4">
+                <h1 class="fw-bolder mb-1">{{ noticia.titulo }}</h1>
+                <div class="noticia-meta">
+                    Publicado el {{ noticia.fecha_publicacion|date:"d F, Y" }}
+                    {% if noticia.publicado_por %}
+                        por <strong>{{ noticia.publicado_por.get_full_name|default:noticia.publicado_por.username }}</strong>
+                    {% endif %}
+                </div>
+            </header>
+            
+            {% if noticia.imagen_destacada %}
+            <figure class="mb-4 text-center">
+                <img class="img-fluid rounded noticia-detalle-img" src="{{ noticia.imagen_destacada.url }}" alt="{{ noticia.titulo }}">
+            </figure>
+            {% endif %}
+            
+            <section class="mb-5 fs-5 noticia-contenido">
+                {{ noticia.contenido|safe }}
+            </section>
+        </article>
+        <hr class="mt-4">
+        <div class="d-flex justify-content-between flex-wrap mt-3">
+            <a href="{% url 'gestion_academica:lista_noticias' %}" class="btn btn-outline-primary mb-2">
+                <i class="bi bi-arrow-left-circle"></i> Volver a Noticias
+            </a>
+            
+            <div class="btn-group mb-2" role="group">
+                {# Botones de gestión para Admin/Superusuario/Docente que la publicó #}
+                {% if user.is_authenticated %}
+                    {% if perms.gestion_academica.change_noticia and user.is_superuser or user.rol == 'administrativo' or noticia.publicado_por == user %}
+                         <a href="{% url 'gestion_academica:editar_noticia' noticia.pk %}" class="btn btn-warning">
+                            <i class="bi bi-pencil-square"></i> Editar
+                        </a>
+                    {% endif %}
+                    {% if perms.gestion_academica.delete_noticia and user.is_superuser or user.rol == 'administrativo' or noticia.publicado_por == user %}
+                        <a href="{% url 'gestion_academica:eliminar_noticia' noticia.pk %}" class="btn btn-danger">
+                            <i class="bi bi-trash-fill"></i> Eliminar
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró la noticia solicitada.
+        </div>
+        <a href="{% url 'gestion_academica:lista_noticias' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver a Noticias
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

@@ -1,0 +1,106 @@
+{# gestion_academica/templates/gestion_academica/cuenta_por_cobrar_lista.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Cuentas por Cobrar a Estudiantes" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Cuentas por Cobrar a Estudiantes" }}</h1>
+        {% if perms.finanzas.add_cuentaporcobrarestudiante %} {# Permiso de finanzas para crear cuentas #}
+            <a href="{% url 'gestion_academica:crear_cuenta_por_cobrar' %}" class="btn btn-primary">
+                <i class="bi bi-file-earmark-plus-fill"></i> Crear Nueva Cuenta por Cobrar
+            </a>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if cuentas_por_cobrar %}
+        <div class="table-responsive shadow-sm rounded-3">
+            <table class="table table-striped table-hover table-bordered mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Concepto de Pago</th>
+                        <th class="text-end">Monto Asignado</th>
+                        <th class="text-end">Monto Pagado</th>
+                        <th class="text-end">Saldo Pendiente</th>
+                        <th>Fecha Vencimiento</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th> {# Corregido a text-center para uniformidad #}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cuenta in cuentas_por_cobrar %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'gestion_academica:detalle_estudiante' cuenta.estudiante.pk %}"> {# Enlace al detalle del estudiante #}
+                                {{ cuenta.estudiante.usuario.get_full_name|default:cuenta.estudiante.usuario.username }}
+                            </a>
+                        </td>
+                        <td>{{ cuenta.concepto_pago.nombre_concepto }}</td>
+                        <td class="text-end">${{ cuenta.monto_asignado|floatformat:2 }}</td>
+                        <td class="text-end">${{ cuenta.monto_pagado_actual|floatformat:2 }}</td> {# ¡CORREGIDO: Usar monto_pagado_actual! #}
+                        <td class="text-end">
+                            {% if cuenta.saldo_pendiente > 0 %}
+                                <span class="text-danger fw-bold">${{ cuenta.saldo_pendiente|floatformat:2 }}</span>
+                            {% elif cuenta.saldo_pendiente == 0 %}
+                                <span class="text-success">${{ cuenta.saldo_pendiente|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="text-info fw-bold">${{ cuenta.saldo_pendiente|floatformat:2 }}</span> {# Podría ser negativo si hay sobrepago, usar text-info #}
+                            {% endif %}
+                        </td>
+                        <td>{{ cuenta.fecha_vencimiento_especifica|date:"d/m/Y" }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if cuenta.estado == 'PAGADO' %}bg-success
+                                {% elif cuenta.estado == 'PENDIENTE' %}bg-warning text-dark
+                                {% elif cuenta.estado == 'VENCIDO' %}bg-danger
+                                {% elif cuenta.estado == 'PAGADO_PARCIAL' %}bg-info text-dark
+                                {% elif cuenta.estado == 'ANULADO' %}bg-secondary
+                                {% else %}bg-light text-dark{% endif %}">
+                                {{ cuenta.get_estado_display }}
+                            </span>
+                        </td>
+                        <td class="text-center text-nowrap"> {# text-nowrap para evitar saltos de línea en los botones #}
+                            {% if cuenta.estado != 'ANULADO' %} {# No permitir registrar pago si está anulado #}
+                                {% if perms.finanzas.add_pagoregistrado %} {# Permiso de finanzas para registrar pagos #}
+                                    <a href="{% url 'gestion_academica:registrar_pago' cuenta.pk %}" class="btn btn-sm btn-success me-1" title="Registrar Pago">
+                                        <i class="bi bi-cash-coin"></i> Pagar
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                            {% if perms.finanzas.change_cuentaporcobrarestudiante %} {# Permiso de finanzas para editar #}
+                                <a href="{% url 'gestion_academica:editar_cuenta_por_cobrar' cuenta.pk %}" class="btn btn-sm btn-warning me-1" title="Editar Cuenta">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                            {% endif %}
+                            {% if perms.finanzas.delete_cuentaporcobrarestudiante %} {# Permiso de finanzas para eliminar #}
+                                <a href="{% url 'gestion_academica:eliminar_cuenta_por_cobrar' cuenta.pk %}" class="btn btn-sm btn-danger ms-1" title="Eliminar Cuenta">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {# Incluye tu partial de paginación si aplica aquí #}
+        {% include "gestion_academica/partials/paginacion.html" %} 
+    {% else %}
+        <div class="alert alert-info text-center mt-3" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No hay cuentas por cobrar registradas.
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}

@@ -1,0 +1,130 @@
+{% extends "base_academico.html" %}
+{% load humanize %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-signal me-2"></i>{{ titulo_pagina }}</h4>
+        </div>
+        <div class="card-body">
+            
+            <div class="mb-3">
+                <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+
+            <form method="get" class="mb-4 p-3 border rounded bg-light">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5"><label for="grado" class="form-label fw-bold">1. Grado:</label><select name="grado" id="grado" class="form-select"><option value="">--- Seleccione un Grado ---</option>{% for g in grados %}<option value="{{ g.id }}" {% if g.id == grado_seleccionado.id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}</select></div>
+                    <div class="col-md-5"><label for="periodo" class="form-label fw-bold">2. Periodo:</label><select name="periodo" id="periodo" class="form-select"><option value="">--- Seleccione un Periodo ---</option>{% for p in periodos %}<option value="{{ p.id }}" {% if p.id == periodo_seleccionado.id %}selected{% endif %}>{{ p.nombre }} ({{ p.año_escolar }})</option>{% endfor %}</select></div>
+                    <div class="col-md-2"><button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Generar</button></div>
+                </div>
+            </form>
+
+            {% if grado_seleccionado and periodo_seleccionado %}
+                <h5 class="border-bottom pb-2 mb-3">
+                    Mostrando rendimiento para: <strong class="text-primary">{{ grado_seleccionado.nombre }}</strong> | Periodo: <strong class="text-primary">{{ periodo_seleccionado.nombre }}</strong>
+                </h5>
+
+                {% if reporte_data.tipo_reporte == 'CUANTITATIVO' %}
+                <div class="row">
+                    <div class="col-lg-7">
+                        <h6>Tabla de Promedios por Materia</h6>
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark"><tr><th>Materia</th><th class="text-center">Promedio General del Grado</th></tr></thead>
+                            <tbody>
+                                {% for item in reporte_data.datos_tabla %}
+                                <tr><td>{{ item.materia }}</td><td class="text-center"><span class="badge {% if item.promedio >= 3.0 %}bg-success{% else %}bg-danger{% endif %} fs-6">{{ item.promedio|floatformat:2 }}</span></td></tr>
+                                {% empty %}
+                                <tr><td colspan="2" class="text-center">No se encontraron datos para los filtros seleccionados.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-lg-5">
+                        <h6>Gráfico Comparativo</h6>
+                        <canvas id="reporteChart"></canvas>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if reporte_data.tipo_reporte == 'CUALITATIVO' %}
+                <div class="row">
+                    <div class="col-lg-7">
+                        <h6>Resumen de Logros del Grado</h6>
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark"><tr><th>Nivel de Desempeño</th><th class="text-center">Total de Logros Evaluados</th></tr></thead>
+                            <tbody>
+                                {% for escala, cantidad in reporte_data.conteo_logros.items %}
+                                <tr><td>{{ escala }}</td><td class="text-center fw-bold">{{ cantidad }}</td></tr>
+                                {% empty %}
+                                <tr><td colspan="2" class="text-center">No se encontraron escalas de valoración definidas.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% if reporte_data.total_evaluaciones == 0 %}
+                            <div class="alert alert-info mt-2">No se han registrado evaluaciones de logros para este grado en el periodo seleccionado.</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-lg-5">
+                        <h6>Distribución de Desempeños</h6>
+                        <canvas id="reporteChart" style="max-height: 350px;"></canvas>
+                    </div>
+                </div>
+                {% endif %}
+
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if reporte_data.chart_labels %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... (el script se mantiene igual, no necesita cambios)
+        const ctx = document.getElementById('reporteChart').getContext('2d');
+        let chartType = 'bar';
+        let chartOptions = {
+            scales: { y: { beginAtZero: true, max: 5.0 } },
+            plugins: { legend: { display: false } }
+        };
+
+        if ("{{ reporte_data.tipo_reporte }}" === "CUALITATIVO") {
+            chartType = 'pie';
+            chartOptions = {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Distribución de Logros del Grado' }
+                }
+            };
+        }
+
+        new Chart(ctx, {
+            type: chartType,
+            data: {
+                labels: {{ reporte_data.chart_labels|safe }},
+                datasets: [{
+                    label: 'Resultados',
+                    data: {{ reporte_data.chart_data|safe }},
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)',
+                        'rgba(255, 99, 132, 0.6)', 'rgba(153, 102, 255, 0.6)',
+                        'rgba(54, 162, 235, 0.6)', 'rgba(255, 159, 64, 0.6)'
+                    ],
+                    borderColor: '#fff',
+                    borderWidth: 1
+                }]
+            },
+            options: chartOptions
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

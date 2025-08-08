@@ -1,0 +1,124 @@
+{% extends "base_academico.html" %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-shapes me-2"></i>{{ titulo_pagina }}</h4>
+        </div>
+        <div class="card-body">
+            
+            <div class="mb-3">
+                <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+
+            <form method="get" class="mb-4 p-3 border rounded bg-light">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label for="grado" class="form-label fw-bold">1. Grado (Preescolar):</label>
+                        <select name="grado" id="grado" class="form-select">
+                            <option value="">--- Seleccione un Grado ---</option>
+                            {% for g in grados %}<option value="{{ g.id }}" {% if g.id == grado_seleccionado.id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="periodo" class="form-label fw-bold">2. Periodo:</label>
+                        <select name="periodo" id="periodo" class="form-select">
+                            <option value="">--- Seleccione un Periodo ---</option>
+                            {% for p in periodos %}<option value="{{ p.id }}" {% if p.id == periodo_seleccionado.id %}selected{% endif %}>{{ p.nombre }} ({{ p.año_escolar }})</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Generar</button>
+                    </div>
+                </div>
+            </form>
+
+            {% if grado_seleccionado and periodo_seleccionado %}
+                <h5 class="border-bottom pb-2 mb-3">
+                    Resultados para: <strong class="text-primary">{{ grado_seleccionado.nombre }}</strong> | Periodo: <strong class="text-primary">{{ periodo_seleccionado.nombre }}</strong>
+                </h5>
+
+                <div class="row">
+                    <div class="col-lg-7">
+                        <h6>Tabla de Resumen</h6>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Nivel de Desempeño</th>
+                                        <th class="text-center">Total Evaluaciones</th>
+                                        <th class="text-center">Porcentaje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in reporte_data.datos_tabla %}
+                                    <tr>
+                                        <td>{{ item.escala }}</td>
+                                        <td class="text-center fw-bold">{{ item.cantidad }}</td>
+                                        <td class="text-center">{{ item.porcentaje|floatformat:2 }}%</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="3" class="text-center">No se encontraron evaluaciones para los filtros seleccionados.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                                {% if reporte_data.total_evaluaciones > 0 %}
+                                <tfoot class="table-group-divider">
+                                    <tr class="fw-bold">
+                                        <td>Total</td>
+                                        <td class="text-center">{{ reporte_data.total_evaluaciones }}</td>
+                                        <td class="text-center">100.00%</td>
+                                    </tr>
+                                </tfoot>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <h6>Distribución de Desempeños</h6>
+                        <canvas id="cualitativoChart" style="max-height: 400px;"></canvas>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if reporte_data.chart_labels %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('cualitativoChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut', // Gráfico de dona/pastel
+            data: {
+                labels: {{ reporte_data.chart_labels|safe }},
+                datasets: [{
+                    label: 'Cantidad de Evaluaciones',
+                    data: {{ reporte_data.chart_data|safe }},
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(54, 162, 235, 0.7)'
+                    ],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Distribución de Desempeños del Grado' }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

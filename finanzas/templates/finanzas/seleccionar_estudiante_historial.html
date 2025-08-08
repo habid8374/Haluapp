@@ -1,0 +1,38 @@
+{% extends "base_finanzas.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="get" class="mb-4">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="Buscar por nombre o documento..." value="{{ query }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </form>
+
+            <div class="list-group">
+                {% for estudiante in estudiantes %}
+                    <a href="{% url 'finanzas:historial_cuentas_estudiante' estudiante.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ estudiante.usuario.get_full_name }}</h5>
+                            <small>Grado: {{ estudiante.grado_actual.nombre }}</small>
+                        </div>
+                        <p class="mb-1 text-muted">Documento: {{ estudiante.documento_identidad }}</p>
+                    </a>
+                {% empty %}
+                    <div class="list-group-item text-center">
+                        No se encontraron estudiantes con los criterios de búsqueda.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

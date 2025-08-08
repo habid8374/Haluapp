@@ -1,0 +1,407 @@
+{% extends "base_academico.html" %}
+{% load static %}
+{% load horario_filters %}
+
+{% block titulo %}{{ titulo_pagina|default:"Panel de Docente" }}{% endblock %}
+
+{% block extrastyles %}
+    {{ block.super }}
+
+    <link href="https://cdn.jsdelivr.net/npm/gridstack@10.1.2/dist/gridstack.min.css" rel="stylesheet"/>
+
+    <style>
+        .grid-stack {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .grid-stack-item-content {
+            background-color: transparent;
+            border: none;
+            overflow: hidden;
+            padding: 0;
+        }
+        .grid-stack-item-content .card {
+            margin: 0 !important;
+        }
+
+        /* ▼▼▼ CORRECCIÓN PARA EL SCROLL ▼▼▼ */
+        .grid-stack-item .card-body {
+            display: flex;
+            flex-direction: column; /* Apila los elementos verticalmente */
+        }
+        .grid-stack-item .card-body > p {
+            margin-top: auto; /* Empuja el número grande o el texto hacia abajo */
+            line-height: 1.1; /* Reduce el espacio extra del texto grande */
+        }
+        /* ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲ */
+    </style>
+{% endblock extrastyles %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <h1 class="h2 mb-0">Bienvenido/a, Prof. {{ docente.usuario.get_full_name|default:docente.usuario.username }}</h1>
+        
+        <div>
+            <button id="guardarDisenoBtn" class="btn btn-primary">
+                <i class="bi bi-save-fill me-2"></i>Guardar Diseño
+            </button>
+            <a href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}" class="btn btn-outline-success">
+                <i class="bi bi-people-fill me-1"></i> Asistir en Otro Curso
+            </a>
+        </div>
+    </div>
+    
+    <div class="grid-stack">
+
+    <div class="grid-stack-item" gs-x="0" gs-y="0" gs-w="3" gs-h="1" gs-id="tareas-pendientes">
+        <div class="grid-stack-item-content">
+            <div class="card text-dark bg-warning h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-pencil-square me-2"></i>Tareas por Calificar
+                        <a href="{% url 'gestion_academica:tareas_por_calificar' %}" class="stretched-link"></a>
+                    </h5>
+                    <p class="fs-1 fw-bold mb-0">{{ entregas_pendientes_calificar }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-stack-item" gs-x="3" gs-y="0" gs-w="3" gs-h="1" gs-id="cursos-asignados">
+        <div class="grid-stack-item-content">
+            <div class="card text-white bg-primary h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-journal-bookmark-fill me-2"></i>Cursos Asignados
+                        <a href="#cursos-asignados-lista" class="stretched-link"></a>
+                    </h5>
+                    <p class="fs-1 fw-bold mb-0">{{ cursos_asignados|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid-stack-item" gs-x="6" gs-y="0" gs-w="3" gs-h="1" gs-id="historial-entregas">
+        <div class="grid-stack-item-content">
+            <div class="card text-white bg-secondary h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-archive-fill me-2"></i>Historial Entregas
+                        <a href="{% url 'gestion_academica:historial_entregas' %}" class="stretched-link"></a>
+                    </h5>
+                    <p class="card-text">Revisa trabajos y evaluaciones.</p>
+                </div>
+           </div>
+        </div>
+    </div>
+
+    <div class="grid-stack-item" gs-x="9" gs-y="0" gs-w="3" gs-h="1" gs-id="notificaciones">
+        <div class="grid-stack-item-content">
+            <div class="card text-white bg-info h-100 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-bell-fill me-2"></i>Notificaciones
+                        <a href="{% url 'gestion_academica:lista_notificaciones' %}" class="stretched-link"></a>
+                    </h5>
+                    <p class="fs-1 fw-bold mb-0">{{ notificaciones_sin_leer|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-stack-item" gs-x="0" gs-y="1" gs-w="3" gs-h="1" gs-id="alerta-grupo">
+        <div class="grid-stack-item-content">
+            <div class="card text-white bg-danger h-100 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Alerta de Grupo
+                        <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="stretched-link"></a>
+                    </h5>
+                    <p class="fs-1 fw-bold mb-0">{{ cantidad_estudiantes_riesgo }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-stack-item" gs-x="3" gs-y="1" gs-w="3" gs-h="1" gs-id="citas-proximas">
+        <div class="grid-stack-item-content">
+            <div class="card text-white bg-success h-100 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-calendar2-check-fill me-2"></i>Citas Próximas
+                        <a href="{% url 'gestion_academica:docente_mis_citas' %}" class="stretched-link"></a>
+                    </h5>
+                    <p class="fs-1 fw-bold mb-0">{{ citas_proxima_semana }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid-stack-item" gs-x="6" gs-y="1" gs-w="6" gs-h="2" gs-id="cuestionarios-recientes">
+        <div class="grid-stack-item-content">
+            <div class="card shadow-sm h-100 d-flex flex-column">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Mis Cuestionarios Recientes</h5>
+                    <a href="{% url 'cuestionarios:lista' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+                </div>
+                <div class="list-group list-group-flush" style="overflow-y: auto;">
+                    {% for cuestionario in ultimos_cuestionarios %}
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <strong>{{ cuestionario.titulo }}</strong>
+                        <small class="d-block text-muted">{{ cuestionario.actividad_calificable.curso.materia.nombre_materia }} | {{ cuestionario.preguntas.count }} preguntas</small>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item d-flex align-items-center justify-content-center h-100">
+                        <p class="text-muted text-center mb-0">Aún no has creado ningún cuestionario.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+     <hr class="my-4">
+    
+     <h2 class="h3 mb-3"><i class="bi bi-check2-square me-2"></i>Mis Clases de Hoy ({{ "now"|date:"l, d \d\e F" }})</h2>
+    <div class="row">
+        {% for curso in cursos_de_hoy %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ curso.materia.nombre_materia }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ curso.grado.nombre }}</h6>
+                        <ul class="list-unstyled text-start mt-3">
+                            {% for bloque in curso.horarios.all %}
+                                {% if bloque.dia_semana == dia_semana_hoy %}
+                                    <li><i class="bi bi-clock-fill text-primary"></i> {{ bloque.hora_inicio|time:"g:i A" }} - {{ bloque.hora_fin|time:"g:i A" }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                        <div class="mt-auto text-center">
+                            <a href="{% url 'gestion_academica:pasar_lista' curso.pk %}" class="btn btn-primary"><i class="bi bi-person-check-fill me-2"></i>Pasar Lista</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">No tienes clases programadas para el día de hoy.</div>
+            </div>
+        {% endfor %}
+    </div>
+
+
+   <h2 class="h3 mt-5 mb-3"><i class="bi bi-calendar-week me-2"></i>Mi Horario Semanal</h2>
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-light">
+        <ul class="nav nav-tabs card-header-tabs" id="horarioTab" role="tablist">
+            {% for dia_num, dia_nombre in dias_semana %}
+                {% if dia_num < 5 %} {# Mostramos solo de Lunes a Viernes #}
+                    <li class="nav-item" role="presentation">
+                        <button 
+                            class="nav-link {% if dia_num == dia_semana_hoy %}active{% endif %}" 
+                            id="dia-{{ dia_num }}-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#dia-{{ dia_num }}" 
+                            type="button" 
+                            role="tab" 
+                            aria-controls="dia-{{ dia_num }}" 
+                            aria-selected="{% if dia_num == dia_semana_hoy %}true{% else %}false{% endif %}">
+                            {{ dia_nombre }}
+                        </button>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="horarioTabContent">
+            {% for dia_num, dia_nombre in dias_semana %}
+                {% if dia_num < 5 %}
+                    <div 
+                        class="tab-pane fade {% if dia_num == dia_semana_hoy %}show active{% endif %}" 
+                        id="dia-{{ dia_num }}" 
+                        role="tabpanel" 
+                        aria-labelledby="dia-{{ dia_num }}-tab">
+                        
+                        <ul class="list-group list-group-flush">
+                            {% with bloques_del_dia=horario_agrupado|get_item:dia_num %}
+                                {% for bloque in bloques_del_dia %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-bold">{{ bloque.curso.materia.nombre_materia }}</div>
+                                            <small class="text-muted">{{ bloque.curso.grado.nombre }} | Aula: {{ bloque.aula.nombre|default:"N/A" }}</small>
+                                        </div>
+                                        <span class="badge bg-primary rounded-pill">{{ bloque.hora_inicio|time:"g:i A" }} - {{ bloque.hora_fin|time:"g:i A" }}</span>
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item text-center text-muted fst-italic p-3">
+                                        No tienes clases programadas para este día.
+                                    </li>
+                                {% endfor %}
+                            {% endwith %}
+                        </ul>
+
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+    <!-- ▲▲▲ FIN DE LA SECCIÓN DE HORARIO ▲▲▲ -->
+                
+
+    <!-- Sección 2: Lista de Cursos y Acciones Rápidas -->
+    <h2 class="h3 mt-5 mb-3"><i class="bi bi-list-task me-2"></i>Mis Cursos y Acciones</h2>
+    <div class="card shadow-sm">
+        <div class="list-group list-group-flush">
+            {% for curso in cursos_asignados %}
+                <div class="list-group-item">
+                    <div class="row align-items-center gy-2">
+                        <div class="col-md-4">
+                            <h5 class="mb-1">{{ curso.materia.nombre_materia }}</h5>
+                            <p class="mb-0 text-muted">
+                           {{ curso.grado.nombre }}<br>
+                         <i class="bi bi-door-closed-fill"></i> Aula: {{ curso.aula.nombre|default:"Sin aula asignada" }}
+                           </p>
+                        </div>
+                        <div class="col-md-8 text-md-end">
+                            <div class="btn-group flex-wrap" role="group" aria-label="Acciones para el curso">
+                                
+                                <!-- INICIO DE LA LÓGICA INTELIGENTE -->
+                            {% if curso.grado.tipo_evaluacion == 'CUALITATIVO' %}
+                                <!-- Botones para Preescolar -->
+                                <a href="{% url 'gestion_academica:gestionar_curso_cualitativo' curso_pk=curso.pk %}" class="btn btn-success" title="Gestionar Logros y Dimensiones">
+                                    <i class="bi bi-sliders me-1"></i> Gestionar Curso
+                                </a>
+                                <a href="{% url 'gestion_academica:evaluar_logros_curso' curso_pk=curso.pk %}" class="btn btn-info" title="Evaluar Logros de Preescolar">
+                                    <i class="bi bi-check2-square me-1"></i> Evaluar Logros
+                                </a>
+                                <a href="{% url 'gestion_academica:lista_escala_cualitativa' %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-star-fill me-1"></i> Gestionar Escala
+                                </a>
+                            {% else %}
+                                <!-- Botones para otros grados -->
+                                <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=curso.pk %}" class="btn btn-primary" title="Ir al Libro de Notas">
+                                    <i class="bi bi-pencil-square me-1"></i> Libro de Notas
+                                </a>
+                            {% endif %}
+                                <a href="{% url 'gestion_academica:escaner_asistencia' curso_pk=curso.pk %}" class="btn btn-outline-danger" title="Pasar Lista">
+                                    <i class="bi bi-qr-code-scan me-1"></i> Pasar Lista
+                                </a>
+                                <a href="{% url 'gestion_academica:registrar_leccion' curso_pk=curso.pk %}" class="btn btn-outline-info" title="Registrar Lección Diaria">
+                                    <i class="bi bi-journal-plus me-1"></i> Registrar Lección
+                                </a>
+                                
+                                
+                                <!-- ================================================================ -->
+                                <!--   INICIO: CORRECCIÓN DEL ENLACE DE OBSERVACIONES                 -->
+                                <!-- ================================================================ -->
+                                <a href="{% url 'gestion_academica:gestionar_observaciones' grado_pk=curso.grado.pk periodo_pk=curso.periodo_academico.pk %}" class="btn btn-outline-warning" title="Añadir Observaciones para Boletín">
+                                    <i class="bi bi-chat-left-text-fill me-1"></i> Observaciones
+                                </a>
+                                {% if es_director_de_grupo %}
+                                <a href="{% url 'gestion_academica:panel_director_grupo' %}" class="btn btn-warning">
+                                    <i class="bi bi-person-video3 me-2"></i> Ver Panel de Mi Grupo
+                                </a>
+                                {% endif %}
+                                
+                                
+                                <a href="{% url 'gestion_academica:centro_gestion_docente' %}" class="btn btn-success">
+                                    <i class="bi bi-tools me-2"></i> Ir a mi Centro de Gestión
+                                    
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="list-group-item text-center p-4">No tienes cursos asignados para el periodo académico activo.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@10.1.2/dist/gridstack-all.min.js"></script>
+
+    <script>
+    // Función CSRF (se queda igual)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const grid = GridStack.init({
+            column: 12,
+            cellHeight: '130px', 
+            float: true, 
+        });
+
+        // --- LÓGICA DE CARGA (se queda igual) ---
+        try {
+            const layoutGuardado = JSON.parse('{{ dashboard_layout_json|escapejs }}');
+            if (layoutGuardado && Array.isArray(layoutGuardado) && layoutGuardado.length > 0) {
+                grid.load(layoutGuardado.filter(item => item.id));
+            }
+        } catch (e) {
+            console.error("No se pudo cargar el diseño guardado.");
+        }
+
+        // --- NUEVA LÓGICA DE GUARDADO MANUAL ---
+        const guardarBtn = document.getElementById('guardarDisenoBtn');
+
+        if (guardarBtn) {
+            guardarBtn.addEventListener('click', function() {
+                // Serializamos todos los widgets presentes en el grid
+                const serializedData = grid.save(); 
+
+                const datosLimpios = serializedData.filter(item => item.id);
+
+                console.log("Guardando por botón:", datosLimpios); // Para depurar
+
+                // Mostramos un feedback visual al usuario
+                guardarBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Guardado';
+                guardarBtn.classList.remove('btn-primary');
+                guardarBtn.classList.add('btn-success');
+                setTimeout(() => {
+                    guardarBtn.innerHTML = '<i class="bi bi-save-fill me-2"></i>Guardar Diseño';
+                    guardarBtn.classList.remove('btn-success');
+                    guardarBtn.classList.add('btn-primary');
+                }, 2000);
+
+                // Enviamos los datos al servidor
+                fetch("{% url 'gestion_academica:guardar_layout_dashboard' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify(datosLimpios)
+                })
+                .then(response => response.json())
+                .then(data => console.log('Respuesta del servidor:', data.message))
+                .catch(error => console.error('Error al guardar:', error));
+            });
+        }
+    });
+    </script>
+{% endblock %}

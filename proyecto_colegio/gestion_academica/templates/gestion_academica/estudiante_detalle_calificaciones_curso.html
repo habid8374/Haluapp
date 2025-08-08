@@ -1,0 +1,84 @@
+    {% extends "gestion_academica/base.html" %}
+
+    {% block titulo %}{{ titulo_pagina|default:"Detalle de Calificaciones" }}{% endblock %}
+
+    {% block contenido %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1>{{ titulo_pagina|default:"Detalle de Calificaciones" }}</h1>
+            <h5 class="text-muted">Curso: {{ curso.materia.nombre_materia }} - {{ curso.grado.nombre }}</h5>
+            <p class="text-muted">Periodo: {{ curso.periodo_academico.nombre }} ({{ curso.periodo_academico.año_escolar }})</p>
+        </div>
+        <a href="{% url 'gestion_academica:mis_cursos_calificaciones' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver a Mis Cursos
+        </a>
+    </div>
+    <hr>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if actividades_con_calificacion %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover shadow-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Actividad Calificable</th>
+                        <th>Tipo</th>
+                        <th>Fecha Publicación</th>
+                        <th>Fecha Límite Entrega</th>
+                        <th>Porcentaje (%)</th>
+                        <th>Mi Calificación Numérica</th>
+                        <th>Mi Calificación Cualitativa</th>
+                        <th>Observaciones del Docente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in actividades_con_calificacion %}
+                    <tr>
+                        <td>{{ item.actividad.titulo }}</td>
+                        <td>{{ item.actividad.tipo_actividad.nombre }}</td>
+                        <td>{{ item.actividad.fecha_publicacion|date:"d/m/Y" }}</td>
+                        <td>{{ item.actividad.fecha_entrega_limite|date:"d/m/Y"|default:"N/A" }}</td>
+                        <td>{{ item.actividad.porcentaje_en_periodo|default:"N/A" }}</td>
+                        <td>
+                            {% if item.calificacion and item.calificacion.valor_numerico is not None %}
+                                {{ item.calificacion.valor_numerico }}
+                            {% else %}
+                                <span class="text-muted">--</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.calificacion and item.calificacion.valor_cualitativo %}
+                                {{ item.calificacion.valor_cualitativo }}
+                            {% else %}
+                                <span class="text-muted">--</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.calificacion and item.calificacion.observaciones %}
+                                {{ item.calificacion.observaciones|linebreaksbr }}
+                            {% else %}
+                                <span class="text-muted">--</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {# Aquí podrías mostrar el promedio calculado para el curso #}
+    {% else %}
+        <div class="alert alert-info mt-3" role="alert">
+            Aún no hay actividades calificables o calificaciones registradas para este curso.
+        </div>
+    {% endif %}
+
+    {% endblock %}
+    

@@ -1,0 +1,115 @@
+{% extends 'base_finanzas.html' %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="fecha_inicio" class="form-label">Fecha de Inicio:</label>
+                    <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ fecha_inicio }}" class="form-control">
+                </div>
+                <div class="col-md-5">
+                    <label for="fecha_fin" class="form-label">Fecha de Fin:</label>
+                    <input type="date" name="fecha_fin" id="fecha_fin" value="{{ fecha_fin }}" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Consultar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Saldo Inicial del Período</h6>
+                    <h4 class="card-title">${{ saldo_inicial|floatformat:2|intcomma }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-success border-success">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Ingresos del Período</h6>
+                    <h4 class="card-title">+ ${{ ingresos_periodo|floatformat:2|intcomma }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-danger border-danger">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Gastos del Período</h6>
+                    <h4 class="card-title">- ${{ gastos_periodo|floatformat:2|intcomma }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-primary border-primary">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Saldo Final del Período</h6>
+                    <h4 class="card-title">${{ saldo_final|floatformat:2|intcomma }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Evolución del Saldo de Caja (Diario)</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="flujoCajaChart"></canvas>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'finanzas:dashboard_financiero' %}" class="btn btn-secondary">Volver al Dashboard</a>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('flujoCajaChart').getContext('2d');
+        
+        const flujoCajaChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    label: 'Saldo de Caja ($)',
+                    data: {{ chart_saldos|safe }},
+                    fill: true,
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString('es-CO');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

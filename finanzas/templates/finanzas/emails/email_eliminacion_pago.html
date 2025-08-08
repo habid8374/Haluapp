@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <p>Estimado(a) acudiente de <strong>{{ pago.estudiante.usuario.get_full_name }}</strong>,</p>
+    <p>
+        Le informamos que un pago por valor de <strong>${{ pago.valor|floatformat:2 }}</strong>
+        con fecha <strong>{{ pago.fecha|date:"d M, Y" }}</strong>, correspondiente al concepto 
+        <strong>"{{ pago.concepto }}"</strong>, ha sido <strong>eliminado</strong> de nuestro sistema.
+    </p>
+    <p>Esto usualmente ocurre para corregir un error administrativo o un registro duplicado. Su saldo pendiente ha sido recalculado.</p>
+    <p>Por favor, revise su estado de cuenta en el portal para verificar los cambios. Si tiene alguna duda, contáctenos.</p>
+    <p>Atentamente,<br>Departamento de Finanzas</p>
+</body>
+</html>

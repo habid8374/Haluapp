@@ -1,0 +1,63 @@
+{# gestion_academica/templates/gestion_academica/plan_curricular_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Plan Curricular" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Plan Curricular" }}</h1>
+    <hr>
+
+    {% if plan %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar el plan curricular: 
+                <br><strong>"{{ plan.nombre }}"</strong>?
+            </p>
+
+            {% if plan.descripcion %}
+                <p class="mb-1 text-muted">Descripción: {{ plan.descripcion|truncatewords:20|default:"N/A" }}</p>
+            {% endif %}
+
+            {% if plan.documento_adjunto %}
+                <p class="mb-0 text-muted">Archivo adjunto: 
+                    <a href="{{ plan.documento_adjunto.url }}" target="_blank" class="fw-bold">{{ plan.documento_adjunto.name|cut:"planes_curriculares/" }} <i class="bi bi-box-arrow-up-right"></i></a>
+                </p>
+            {% endif %}
+
+            <hr>
+            <p class="mb-0 text-danger">
+                Esta acción es **irreversible** y eliminará permanentemente el registro de este plan curricular de la base de datos. 
+                La eliminación del archivo físico del servidor **depende de la configuración de tu almacenamiento de Django** (por defecto, Django no borra el archivo físico del disco).
+            </p>
+
+            {# Podrías añadir advertencias si el plan está referenciado en otras entidades #}
+            {% comment %}
+            {% if plan.alumnos_asociados.exists %}
+                <p class="mt-3 text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este plan curricular está asignado a X estudiantes. Eliminarlo podría afectar sus registros.
+                </p>
+            {% endif %}
+            {% endcomment %}
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Plan
+            </button>
+            <a href="{% url 'gestion_academica:lista_planes_curriculares' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró el plan curricular a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_planes_curriculares' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

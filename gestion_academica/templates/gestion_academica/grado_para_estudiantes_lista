@@ -1,0 +1,16 @@
+{% extends 'base_academico.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+    <div class="list-group">
+        {% for grado in grados %}
+            <a href="{% url 'gestion_academica:lista_estudiantes_por_grado' grado.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                {{ grado.nombre }}
+                <span class="badge bg-primary rounded-pill">{{ grado.num_estudiantes }} estudiantes</span>
+            </a>
+        {% empty %}
+            <div class="alert alert-info">No hay grados con estudiantes para mostrar.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

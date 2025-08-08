@@ -1,0 +1,48 @@
+{# gestion_academica/templates/gestion_academica/mencion_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Mención/Reconocimiento" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Mención/Reconocimiento" }}</h1>
+    <hr>
+
+    {% if mencion %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar la mención/reconocimiento de tipo **"{{ mencion.tipo }}"** otorgada a 
+                **{{ mencion.estudiante.usuario.get_full_name|default:mencion.estudiante.usuario.username }}** el **{{ mencion.fecha_otorgamiento|date:"d F, Y" }}**?
+            </p>
+            <p class="mb-1">**Descripción:** <em>{{ mencion.descripcion|linebreaksbr }}</em></p>
+
+            {% if mencion.curso %}
+                <p class="mb-1 text-muted">**Curso asociado:** {{ mencion.curso.materia.nombre_materia }} ({{ mencion.curso.grado.nombre }})</p>
+            {% endif %}
+            {% if mencion.periodo %}
+                <p class="mb-0 text-muted">**Periodo asociado:** {{ mencion.periodo.nombre }} ({{ mencion.periodo.año_escolar }})</p>
+            {% endif %}
+            <hr>
+            <p class="mb-0 text-danger">Esta acción es **irreversible** y eliminará permanentemente este registro.</p>
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Mención
+            </button>
+            <a href="{% url 'gestion_academica:lista_menciones' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró la mención/reconocimiento a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_menciones' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

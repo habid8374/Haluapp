@@ -1,0 +1,32 @@
+{% extends "gestion_academica/base.html" %}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Grado" }}{% endblock %}
+
+{% block contenido %}
+<h1>{{ titulo_pagina|default:"Confirmar Eliminación de Grado" }}</h1>
+<hr>
+
+<p>¿Estás seguro de que deseas eliminar el grado: <strong>{{ grado.nombre }}</strong>
+{% if grado.nivel %} ({{ grado.nivel }}){% endif %}?</p>
+
+<p class="text-danger mt-3">
+    Esta acción no se puede deshacer.
+    {% if grado.cursos.exists or grado.estudiantes_actuales.exists or grado.directores_grado.exists %}
+        <br><strong>Advertencia:</strong> Este grado está asociado con
+        {% if grado.cursos.exists %}{{ grado.cursos.count }} curso(s){% if grado.estudiantes_actuales.exists or grado.directores_grado.exists %}, {% endif %}{% endif %}
+        {% if grado.estudiantes_actuales.exists %}{{ grado.estudiantes_actuales.count }} estudiante(s){% if grado.directores_grado.exists %}, {% endif %}{% endif %}
+        {% if grado.directores_grado.exists %}{{ grado.directores_grado.count }} director(es) de curso{% endif %}.
+        Eliminarlo podría afectar estos registros o estar restringido por la base de datos (dependiendo de la configuración `on_delete`).
+    {% endif %}
+</p>
+
+<form method="post" class="mt-3">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash-fill"></i> Sí, Eliminar
+    </button>
+    <a href="{% url 'gestion_academica:lista_grados' %}" class="btn btn-secondary">
+        <i class="bi bi-x-circle-fill"></i> No, Cancelar
+    </a>
+</form>
+{% endblock %}

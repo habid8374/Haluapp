@@ -1,0 +1,62 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+  <h2 class="mb-4">{{ titulo_pagina }}</h2>
+
+  <div class="mb-3 text-end">
+    <a href="{% url 'gestion_academica:crear_aula' %}" class="btn btn-primary">+ Nueva Aula</a>
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Ubicación</th>
+        <th>Capacidad</th>
+        <th>Institución</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for aula in aulas %}
+      <tr>
+        <td>{{ aula.nombre }}</td>
+        <td>{{ aula.ubicacion }}</td>
+        <td>{{ aula.capacidad }}</td>
+        <td>{{ aula.institucion.nombre }}</td>
+        <td>
+          <a href="{% url 'gestion_academica:editar_aula' aula.id %}" class="btn btn-sm btn-warning">Editar</a>
+          <a href="{% url 'gestion_academica:eliminar_aula' aula.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5">No hay aulas registradas.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if is_paginated %}
+  <div class="pagination">
+    <span class="page-links">
+      {% if page_obj.has_previous %}
+        <a href="?page=1">&laquo; primero</a>
+        <a href="?page={{ page_obj.previous_page_number }}">anterior</a>
+      {% endif %}
+
+      <span class="current">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+      </span>
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">siguiente</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}">última &raquo;</a>
+      {% endif %}
+    </span>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

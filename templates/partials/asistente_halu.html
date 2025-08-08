@@ -1,0 +1,62 @@
+{# Este archivo contiene solo el HTML y CSS de HALU #}
+{% if user.is_authenticated and user.is_staff %}
+    <style>
+        /* ✅ SE CAMBIÓ 'right' POR 'left' EN AMBAS REGLAS */
+        #halu-chat-bubble { 
+            position: fixed; 
+            bottom: 25px; 
+            left: 25px; /* <-- CORREGIDO */
+            width: 60px; 
+            height: 60px; 
+            background-color: #0d6efd; 
+            color: white; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 28px; 
+            cursor: pointer; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+            z-index: 1050; 
+        }
+        #halu-chat-window { 
+            position: fixed; 
+            bottom: 100px; 
+            left: 25px; /* <-- CORREGIDO */
+            width: 350px; 
+            max-height: 80vh; 
+            background: white; 
+            border-radius: 15px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+            display: none; 
+            flex-direction: column; 
+            z-index: 1049; 
+        }
+        /* El resto de los estilos se mantienen igual */
+        #halu-chat-header { background-color: #0d6efd; color: white; padding: 15px; border-top-left-radius: 15px; border-top-right-radius: 15px; font-weight: bold; }
+        #halu-chat-body { flex-grow: 1; padding: 15px; overflow-y: auto; }
+        .halu-message { background: #f1f1f1; padding: 10px; border-radius: 10px; margin-bottom: 10px; max-width: 80%; word-wrap: break-word; }
+        .user-message { background: #e1edff; margin-left: auto; }
+        #halu-chat-footer { padding: 10px; border-top: 1px solid #ddd; }
+
+        
+    </style>
+
+    <div id="halu-chat-bubble" data-api-url="{% url 'gestion_academica:asistente_halu_api' %}">
+        <i class="bi bi-robot"></i>
+    </div>
+    <div id="halu-chat-window">
+        <div id="halu-chat-header">Asistente HALU</div>
+        <div id="halu-chat-body">
+            <div class="halu-message">¡Hola! Soy HALU. ¿En qué puedo ayudarte?</div>
+        </div>
+        <div id="halu-chat-footer">
+            <form id="halu-input-form">
+                <div class="input-group">
+                    <input type="text" id="halu-user-input" class="form-control" placeholder="Escribe tu pregunta..." autocomplete="off">
+                    <button class="btn btn-primary" type="submit">Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endif %}

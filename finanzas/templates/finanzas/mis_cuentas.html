@@ -1,0 +1,78 @@
+{% extends 'base_finanzas.html' %}
+{% load static %}
+
+{% block titulo %}Cuentas por Cobrar{% endblock %}
+
+{% block contenido %}
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">Cuentas por Cobrar</h1>
+            <a href="{% url 'finanzas:crear_cuenta_por_cobrar' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Asignar Nueva Cuenta
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="tablaCuentas" class="table table-hover align-middle" style="width:100%">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Concepto</th>
+                                <th class="text-end">Monto</th>
+                                <th class="text-end">Pagado</th>
+                                <th class="text-end">Saldo</th>
+                                <th>Vencimiento</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-center">Acciones</th> {# Columna de Acciones corregida #}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cuenta in cuentas %}
+                            <tr>
+                                <td>{{ cuenta.estudiante.usuario.get_full_name }}</td>
+                                <td>{{ cuenta.concepto_pago.nombre_concepto }}</td>
+                                <td class="text-end">${{ cuenta.monto_asignado|floatformat:2 }}</td>
+                                <td class="text-end">${{ cuenta.monto_pagado_actual|floatformat:2 }}</td>
+                                <td class="text-end"><strong>${{ cuenta.saldo_pendiente|floatformat:2 }}</strong></td>
+                                <td>{{ cuenta.fecha_vencimiento_especifica|date:"d M, Y" }}</td>
+                                <td class="text-center">
+                                    <span class="badge {% if cuenta.estado == 'PAGADO' %}bg-success{% elif cuenta.estado == 'VENCIDO' %}bg-danger{% elif cuenta.estado == 'PAGADO_PARCIAL' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                        {{ cuenta.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    {# Botón que lleva a la página de detalle de pagos #}
+                                    <a href="{% url 'finanzas:registrar_pago' cuenta.pk %}" class="btn btn-sm btn-success" title="Ver/Registrar Pagos">
+                                        <i class="bi bi-cash-coin"></i> Pagos
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">No hay cuentas por cobrar registradas.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock contenido %}
+
+{% block extrajavascript %}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script> 
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#tablaCuentas').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.5/i18n/es-ES.json'
+                }
+            });
+        });
+    </script>
+{% endblock extrajavascript %}

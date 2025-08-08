@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recibo de Pago No. {{ pago.id }}</title>
+    <style>
+        /* Estilos optimizados para PDF y Email */
+        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; background: #fff; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .logo { max-height: 80px; margin-bottom: 10px; }
+        .header h1 { color: #005a9e; margin: 0; }
+        .details-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .details-table th, .details-table td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        .details-table th { background-color: #f8f8f8; }
+        .footer { text-align: center; font-size: 12px; color: #777; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {% if institucion.logo %}
+                <img src="{{ domain }}{{ institucion.logo.url }}" alt="Logo {{ institucion.nombre }}" class="logo">
+            {% endif %}
+            <h1>Recibo de Pago</h1>
+            <p>{{ institucion.nombre }}</p>
+        </div>
+        
+        <p>Hola <strong>{{ pago.estudiante.usuario.get_full_name }}</strong>,</p>
+        <p>Confirmamos la recepción de tu pago. A continuación, los detalles:</p>
+        
+        <table class="details-table">
+            <tr>
+                <th>Recibo No.</th>
+                <td>#{{ pago.numero_documento|stringformat:"06d" }}</td>
+            </tr>
+            <tr>
+                <th>Fecha del Pago</th>
+                <td>{{ pago.fecha_pago|date:"d F, Y" }}</td>
+            </tr>
+            <tr>
+                <th>Concepto Pagado</th>
+                <td>{{ pago.cuenta.concepto_pago.nombre_concepto }}</td>
+            </tr>
+            <tr>
+                <th>Monto Pagado</th>
+                <td><strong>${{ pago.valor_pagado|floatformat:2 }} COP</strong></td>
+            </tr>
+            <tr>
+                <th>Método de Pago</th>
+                <td>{{ pago.get_metodo_pago_display }}</td>
+            </tr>
+            {% if pago.referencia_transaccion %}
+            <tr>
+                <th>Referencia</th>
+                <td>{{ pago.referencia_transaccion }}</td>
+            </tr>
+            {% endif %}
+        </table>
+
+        <div class="footer">
+            <p>© {% now "Y" %} {{ institucion.nombre }}. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

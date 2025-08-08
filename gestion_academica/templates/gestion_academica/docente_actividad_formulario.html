@@ -1,0 +1,15 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+{% block titulo %}Formulario de Actividad{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <h1>Formulario de Actividad Evaluativa</h1>
+    <p class="text-muted">Crea una actividad (como "Examen Parcial 1") y asígnala a una categoría (como "Exámenes - 30%").</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-success">Guardar Actividad</button>
+        <a href="{% url 'gestion_academica:docente_lista_actividades' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="card shadow-sm">
+            <div class="card-header">Datos de la Cuenta de Usuario</div>
+            <div class="card-body">
+                {{ usuario_form|crispy }}
+            </div>
+        </div>
+        <div class="card shadow-sm mt-4">
+            <div class="card-header">Datos del Perfil de Familiar</div>
+            <div class="card-body">
+                {{ familiar_form|crispy }}
+            </div>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Guardar Familiar</button>
+            <a href="{% url 'admin:gestion_academica_familiar_changelist' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

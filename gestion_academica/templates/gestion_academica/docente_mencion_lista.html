@@ -1,0 +1,30 @@
+{% extends "base_academico.html" %}
+{% block titulo %}Mis Menciones Otorgadas{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Mis Menciones Otorgadas</h1>
+        <a href="{% url 'gestion_academica:docente_crear_mencion' %}" class="btn btn-primary"><i class="bi bi-award-fill me-2"></i>Otorgar Nueva Mención</a>
+    </div>
+    <div class="card shadow-sm"><div class="card-body">
+        <table class="table table-hover">
+            <thead><tr><th>Estudiante</th><th>Tipo de Mención</th><th>Fecha</th><th>Acciones</th></tr></thead>
+            <tbody>
+                {% for mencion in menciones %}
+                <tr>
+                    <td>{{ mencion.estudiante.usuario.get_full_name }}</td>
+                    <td>{{ mencion.tipo }}</td>
+                    <td>{{ mencion.fecha_otorgamiento|date:"d M, Y" }}</td>
+                    <td>
+                        <a href="{% url 'gestion_academica:docente_editar_mencion' pk=mencion.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil-fill"></i></a>
+                        <a href="{% url 'gestion_academica:docente_eliminar_mencion' pk=mencion.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash-fill"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center">Aún no has otorgado ninguna mención.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo Ticket de Soporte</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { padding: 20px; border: 1px solid #ddd; border-radius: 5px; max-width: 600px; margin: 20px auto; }
+        .header { background-color: #0d6efd; color: white; padding: 10px; text-align: center; border-radius: 5px 5px 0 0; }
+        .content { padding: 20px; }
+        ul { list-style: none; padding: 0; }
+        li { margin-bottom: 10px; }
+        strong { color: #0056b3; }
+        .button { background-color: #28a745; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Nuevo Ticket de Soporte Creado en HALU</h2>
+        </div>
+        <div class="content">
+            <p>Se ha generado un nuevo ticket de soporte que requiere tu atención.</p>
+            <ul>
+                <li><strong>Ticket ID:</strong> {{ ticket.ticket_id }}</li>
+                <li><strong>Asunto:</strong> {{ ticket.titulo }}</li>
+                <li><strong>Institución:</strong> {{ ticket.institucion.nombre }}</li>
+                <li><strong>Reportado por:</strong> {{ ticket.usuario_reporta.get_full_name }} ({{ ticket.usuario_reporta.email }})</li>
+                <li><strong>Prioridad:</strong> {{ ticket.get_prioridad_display }}</li>
+            </ul>
+            <hr>
+            <p><strong>Descripción del problema:</strong></p>
+            <blockquote style="border-left: 4px solid #ccc; padding-left: 15px; margin-left: 0;">
+                <p><em>{{ ticket.descripcion|linebreaksbr }}</em></p>
+            </blockquote>
+            <hr>
+            <p>Puedes ver y responder a este ticket haciendo clic en el siguiente enlace:</p>
+            <p style="text-align: center;">
+                <a href="{{ url_absoluta }}" class="button">Ver Ticket en el Panel de Soporte</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

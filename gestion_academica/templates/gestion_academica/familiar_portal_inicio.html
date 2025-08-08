@@ -1,0 +1,89 @@
+{# gestion_academica/templates/gestion_academica/familiar_portal_inicio.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Asegúrate de tener esto si usas {% static ... %} #}
+
+{% block titulo %}{{ titulo_pagina|default:"Portal de Familiares" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Portal de Familiares" }}</h1>
+        {# Podrías añadir aquí un botón para ir a editar el perfil del familiar si implementas esa funcionalidad #}
+        {% comment %}
+        {% if familiar %}
+            <a href="{% url 'gestion_academica:editar_familiar' familiar.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-person-fill-gear"></i> Editar Perfil Familiar
+            </a>
+        {% endif %}
+        {% endcomment %}
+    </div>
+
+    {% if familiar and familiar.usuario %}
+        <p class="lead">Bienvenido/a, <strong>{{ familiar.usuario.get_full_name|default:familiar.usuario.username }}</strong>.</p>
+        {% if familiar.institucion %}
+            <p class="mb-0">Tu institución: <strong>{{ familiar.institucion.nombre }}</strong>.</p>
+        {% endif %}
+    {% else %}
+        <p class="lead">Bienvenido/a al Portal de Familiares.</p>
+    {% endif %}
+    <hr>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if estudiantes_a_cargo %}
+        <h3 class="mb-3"><i class="bi bi-people-fill me-2"></i> Estudiantes a tu Cargo:</h3>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for est in estudiantes_a_cargo %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-person-fill me-2"></i> {{ est.usuario.get_full_name|default:est.usuario.username }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text mb-1">
+                            <strong>Grado:</strong> {{ est.grado_actual.nombre|default:"No asignado" }}
+                        </p>
+                        {% if est.codigo_estudiante %}
+                            <p class="card-text mb-1"><strong>Código:</strong> {{ est.codigo_estudiante }}</p>
+                        {% endif %}
+                        {% if est.documento_identidad %}
+                            <p class="card-text mb-0"><strong>Documento:</strong> {{ est.documento_identidad }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-light p-2">
+                        <div class="d-grid gap-2">
+                            {% if perms.gestion_academica.ver_calificaciones_estudiante_familiar %}
+                                <a href="{% url 'gestion_academica:familiar_ver_calificaciones_estudiante' estudiante_pk=est.pk %}" class="btn btn-info btn-sm">
+                                    <i class="bi bi-card-checklist"></i> Ver Calificaciones
+                                </a>
+                            {% endif %}
+                            {% if perms.gestion_academica.ver_boletin_estudiante_familiar %}
+                                <a href="{% url 'gestion_academica:familiar_ver_boletin_estudiante' estudiante_pk=est.pk %}" class="btn btn-secondary btn-sm">
+                                    <i class="bi bi-file-earmark-text-fill"></i> Ver Boletín
+                                </a>
+                            {% endif %}
+                            {% if perms.gestion_academica.ver_deberes_estudiante_familiar %}
+                                <a href="{% url 'gestion_academica:familiar_ver_deberes_estudiante' estudiante_pk=est.pk %}" class="btn btn-light btn-sm border">
+                                    <i class="bi bi-journal-arrow-up"></i> Ver Deberes
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-3 text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> Actualmente no tienes estudiantes asociados a tu cuenta. Si esto es un error, por favor, contacta a la administración de la institución.
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}

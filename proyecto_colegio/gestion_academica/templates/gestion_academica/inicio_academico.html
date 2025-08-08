@@ -1,0 +1,247 @@
+{% extends "gestion_academica/base.html" %}
+{% load static %}
+
+{% block titulo %}
+    {% if configuracion_institucion and configuracion_institucion.nombre_institucion %}
+        {{ configuracion_institucion.nombre_institucion }} - 
+    {% endif %}
+    Bienvenido al Módulo Académico
+{% endblock %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+    .welcome-section {
+        padding: 2rem 1rem;
+        text-align: center;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: .5rem;
+        margin-top: 1rem;
+    }
+
+   
+    .welcome-title { animation-delay: 0.3s; }
+    .welcome-lead { animation-delay: 0.5s; }
+    .welcome-user-info { animation-delay: 0.7s; }
+    /* Ajustamos el retraso del primer botón si el segundo se elimina */
+    .welcome-actions .btn-action-1 { animation-delay: 0.9s; }
+    /* .welcome-actions .btn-action-2 { animation-delay: 1.1s; } Ya no es necesario si solo hay un botón */
+
+    .info-cards .card { animation-delay: 1.3s; }
+
+
+    .welcome-logo img {
+    max-width: 700px; /* Aumentado desde 500px o lo que tenías antes */
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    }
+    .welcome-logo .icon-placeholder {
+        font-size: 4rem; 
+        color: #007bff;
+        margin-bottom: 1.5rem;
+        display: inline-block;
+    }
+    .logo-grande {
+    max-width: 800px;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.35));
+    }
+
+    .welcome-title {
+        font-size: 2.5rem;
+        font-weight: 300;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+    }
+
+    .welcome-lead {
+        font-size: 1.2rem;
+        color: #495057;
+        margin-bottom: 1.5rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .welcome-user-info {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 2rem;
+    }
+    
+    .welcome-actions .btn {
+        margin: 0.5rem 0.75rem;
+        padding: 0.65rem 1.25rem;
+        font-size: 0.95rem;
+        min-width: 200px;
+    }
+
+    .info-cards .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .info-cards .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .info-cards .card-body i {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+
+    @keyframes fadeInSlideUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    @keyframes zoomIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.welcome-logo.animated-item {
+    animation: zoomIn 1.2s ease-out forwards;
+}
+</style>
+{% endblock %}
+
+{% block contenido %}
+<section class="welcome-section">
+    <div class="container">
+        <div class="welcome-logo animated-item">
+            {% if configuracion_institucion and configuracion_institucion.logo %}
+                <img src="{{ configuracion_institucion.logo.url }}" alt="Logo {{ configuracion_institucion.nombre_institucion }}" class="logo-grande">
+            {% else %}
+                <i class="bi bi-mortarboard-fill icon-placeholder"></i>
+            {% endif %}
+        </div>
+
+        <h1 class="welcome-title animated-item">
+            {{ mensaje|default:"¡Bienvenido!" }}
+        </h1>
+        
+        <p class="welcome-lead animated-item">
+            {% if configuracion_institucion and configuracion_institucion.nombre_institucion %}
+                Estás en el Módulo Académico de <strong>{{ configuracion_institucion.nombre_institucion }}</strong>.
+            {% else %}
+                Sistema de Gestión Académica.
+            {% endif %}
+        </p>
+
+        {% if user.is_authenticated %}
+        <p class="welcome-user-info animated-item">
+            Has iniciado sesión como: <strong>{{ nombre_usuario }}</strong>
+            {% if rol_usuario and rol_usuario != 'Desconocido' %}
+                (Rol: {{ rol_usuario }})
+            {% endif %}
+        </p>
+        {% endif %}
+
+        {# Sección de Acciones Rápidas #}
+        <div class="welcome-actions">
+            {% if user.is_authenticated %}
+                {% if user.rol == 'estudiante' %}
+                    <a href="{% url 'gestion_academica:mis_cursos_calificaciones' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
+                        <i class="bi bi-card-checklist"></i> Ver Mis Calificaciones
+                    </a>
+                    <a href="{% url 'gestion_academica:mis_deberes_lista' %}" class="btn btn-info btn-lg animated-item btn-action-2">
+                        <i class="bi bi-journal-arrow-up"></i> Mis Deberes
+                    </a>
+                {% elif user.rol == 'docente' %}
+                     <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
+                        <i class="bi bi-journal-richtext"></i> Ver Libro de Notas
+                    </a>
+                    <a href="{% url 'gestion_academica:lista_actividades_calificables' %}" class="btn btn-info btn-lg animated-item btn-action-2">
+                        <i class="bi bi-card-list"></i> Gestionar Actividades
+                    </a>
+                {% elif user.rol == 'familiar' %}
+                    <a href="{% url 'gestion_academica:portal_familiar_inicio' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
+                        <i class="bi bi-people-fill"></i> Ir al Portal Familiar
+                    </a>
+                {% elif user.is_superuser or user.rol == 'administrativo' %}
+                    <a href="{% url 'admin:index' %}" class="btn btn-success btn-lg animated-item btn-action-1">
+                        <i class="bi bi-speedometer2"></i> Panel de Administración
+                    </a>
+                    {# BOTÓN "Gestionar Cursos" ELIMINADO DE AQUÍ #}
+                {% endif %}
+            {% else %}
+                 <a href="{% url 'login' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
+                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{# --- SECCIÓN DE TARJETAS DE INFORMACIÓN --- #}
+<div class="container mt-5 mb-4 info-cards">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-sm h-100 animated-item">
+                <div class="card-body">
+                    <i class="bi bi-calendar-check-fill text-primary"></i>
+                    <h5 class="card-title mt-2">Calendario Académico</h5>
+                    <p class="card-text">Consulta fechas importantes, eventos y festivos programados.</p>
+                    <a href="{% url 'gestion_academica:calendario_academico' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-calendar3"></i> Ver Calendario
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-sm h-100 animated-item">
+                <div class="card-body">
+                    <i class="bi bi-newspaper text-success"></i>
+                    <h5 class="card-title mt-2">Noticias y Anuncios</h5>
+                    <p class="card-text">Mantente al día con las últimas novedades y comunicados de la institución.</p>
+                    <a href="{% url 'gestion_academica:lista_noticias' %}" class="btn btn-outline-success">
+                        <i class="bi bi-card-text"></i> Leer Noticias
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-sm h-100 animated-item">
+                <div class="card-body">
+                    <i class="bi bi-question-circle-fill text-info"></i>
+                    <h5 class="card-title mt-2">Ayuda y Soporte</h5>
+                    <p class="card-text">Encuentra respuestas a preguntas frecuentes o contacta con nosotros.</p>
+                    <a href="{% url 'gestion_academica:ayuda_soporte' %}" class="btn btn-outline-info">
+                        <i class="bi bi-info-lg"></i> Centro de Ayuda
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajavascript %}
+{{ block.super }}
+<script>
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const infoCards = document.querySelectorAll('.info-cards .card.animated-item');
+        let cardDelay = 1.3; 
+        
+        infoCards.forEach(card => {
+            card.style.animationDelay = cardDelay + 's';
+            cardDelay += 0.2; 
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,58 @@
+    {% extends "gestion_academica/base.html" %} {# Asume que tu base.html está en gestion_academica/templates/gestion_academica/ #}
+    {% load crispy_forms_tags %} {# Opcional, si usas crispy-forms globalmente #}
+
+    {% block titulo %}Iniciar Sesión{% endblock %}
+
+    {% block contenido %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Iniciar Sesión</h3>
+                </div>
+                <div class="card-body">
+                    {% if form.errors %}
+                        <div class="alert alert-danger" role="alert">
+                            Tu nombre de usuario y contraseña no coinciden. Por favor, inténtalo de nuevo.
+                        </div>
+                    {% endif %}
+
+                    {% if next %}
+                        {% if user.is_authenticated %}
+                            <div class="alert alert-warning" role="alert">
+                                Tu cuenta no tiene acceso a esta página. Para proceder,
+                                por favor inicia sesión con una cuenta que tenga acceso.
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info" role="alert">
+                                Por favor, inicia sesión para ver esta página.
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <form method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        
+                        {# Si no usas crispy-forms, puedes renderizar el form.as_p o manualmente #}
+                        {# {{ form.as_p }} #}
+                        
+                        {# Con crispy-forms (asegúrate de tenerlo configurado) #}
+                        {{ form|crispy }}
+                        <button type="submit">Iniciar Sesión</button>
+                        <input type="hidden" name="next" value="{{ next }}">
+                    </form>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Iniciar Sesión</button>
+                        </div>
+                        <input type="hidden" name="next" value="{{ next }}">
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+    

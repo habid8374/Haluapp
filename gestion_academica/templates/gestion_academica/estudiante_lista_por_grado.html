@@ -1,0 +1,38 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina|default:"Lista de Estudiantes" }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-3">{{ titulo_pagina }}</h1>
+    <a href="{% url 'gestion_academica:lista_grados_para_estudiantes' %}" class="btn btn-secondary mb-4">
+        <i class="bi bi-arrow-left"></i> Volver a la lista de grados
+    </a>
+
+    {% if estudiantes %}
+        <ul class="list-group shadow-sm rounded">
+            {% for estudiante in estudiantes %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ estudiante.usuario.get_full_name|default:"Sin nombre" }}</strong><br>
+                        <small class="text-muted">{{ estudiante.usuario.email|default:"-" }} - {{ estudiante.documento|default:"-" }}</small>
+                    </div>
+                    <div class="btn-group">
+                        <a href="{% url 'gestion_academica:detalle_estudiante' estudiante.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-person-lines-fill"></i>
+                        </a>
+                        <a href="{% url 'gestion_academica:generar_carnet_estudiante' estudiante.pk %}" target="_blank" class="btn btn-outline-dark btn-sm" title="Imprimir carnet">
+                            <i class="bi bi-person-vcard-fill"></i>
+                        </a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-info text-center mt-4">
+            <i class="bi bi-info-circle-fill"></i> No hay estudiantes registrados en este grado.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

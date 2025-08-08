@@ -1,0 +1,82 @@
+{% extends "gestion_academica/base.html" %}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina|default:"Noticias y Anuncios" }}{% endblock %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+    .noticia-card {
+        margin-bottom: 1.5rem;
+        transition: box-shadow .3s ease-in-out;
+    }
+    .noticia-card:hover {
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .noticia-card img {
+        max-height: 200px;
+        object-fit: cover; /* Para que la imagen cubra el espacio sin deformarse */
+    }
+    .noticia-card .card-footer {
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>{{ titulo_pagina|default:"Noticias y Anuncios" }}</h1>
+    {# --- CORRECCIÓN EN LA CONDICIÓN IF --- #}
+    {% if user.is_authenticated %}
+        {% if user.is_superuser or user.rol == 'administrativo' or user.rol == 'docente' %}
+            <a href="{% url 'gestion_academica:lista_noticias_gestion' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-pencil-square"></i> Gestionar Noticias
+            </a>
+        {% endif %}
+    {% endif %}
+    {# --- FIN DE LA CORRECCIÓN --- #}
+</div>
+<hr>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if noticias %}
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for noticia_item in noticias %}
+        <div class="col">
+            <div class="card h-100 noticia-card shadow-sm">
+                {% if noticia_item.imagen_destacada %}
+                    <img src="{{ noticia_item.imagen_destacada.url }}" class="card-img-top" alt="{{ noticia_item.titulo }}">
+                {% else %}
+                     <img src="https://placehold.co/600x200/007bff/FFF?text=Anuncio&font=roboto" class="card-img-top" alt="Imagen Placeholder">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ noticia_item.titulo }}</h5>
+                    <p class="card-text">{{ noticia_item.contenido|truncatewords_html:30|safe }}</p> {# Mostrar un extracto #}
+                    <a href="{% url 'gestion_academica:detalle_noticia' noticia_item.pk %}" class="btn btn-primary btn-sm">Leer Más <i class="bi bi-arrow-right-short"></i></a>
+                </div>
+                <div class="card-footer text-muted">
+                    Publicado el {{ noticia_item.fecha_publicacion|date:"d F, Y" }}
+                    {% if noticia_item.publicado_por %}
+                        por {{ noticia_item.publicado_por.get_full_name|default:noticia_item.publicado_por.username }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info mt-3" role="alert">
+        No hay noticias o anuncios publicados por el momento.
+    </div>
+{% endif %}
+
+{% include "gestion_academica/partials/paginacion.html" %} {# Paginación #}
+{% endblock %}

@@ -1,0 +1,100 @@
+{# gestion_academica/templates/gestion_academica/estudiante_detalle_calificaciones_curso.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Detalle de Calificaciones" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="mb-0">{{ titulo_pagina|default:"Detalle de Calificaciones" }}</h1>
+            <h5 class="text-muted mt-2">Curso: <strong>{{ curso.materia.nombre_materia }}</strong> - Grado: <strong>{{ curso.grado.nombre }}</strong></h5>
+            <p class="text-muted mb-0">Periodo: <strong>{{ curso.periodo_academico.nombre }} ({{ curso.periodo_academico.año_escolar }})</strong></p>
+            {% if estudiante and es_vista_familiar %} {# Si es vista familiar, se muestra el estudiante específico #}
+                <p class="lead mt-2 mb-0">Estudiante: <strong>{{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}</strong></p>
+            {% endif %}
+        </div>
+        <a href="{% if es_vista_familiar %}{% url 'gestion_academica:familiar_ver_calificaciones_estudiante' estudiante.pk %}{% else %}{% url 'gestion_academica:mis_cursos_calificaciones' %}{% endif %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver a {% if es_vista_familiar %}Calificaciones del Estudiante{% else %}Mis Cursos{% endif %}
+        </a>
+    </div>
+    <hr>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if actividades_con_calificacion %}
+        <div class="table-responsive shadow-sm rounded-3">
+            <table class="table table-striped table-hover table-bordered mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Actividad Calificable</th>
+                        <th>Tipo</th>
+                        <th>Fecha Publicación</th>
+                        <th>Fecha Límite Entrega</th>
+                        <th>Porcentaje (%)</th>
+                        <th class="text-center">Mi Calificación Numérica</th>
+                        <th class="text-center">Mi Calificación Cualitativa</th>
+                        <th>Observaciones del Docente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in actividades_con_calificacion %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.actividad.titulo }}</strong>
+                            {% if item.actividad.descripcion %}
+                                <br><small class="text-muted">{{ item.actividad.descripcion|truncatewords:10 }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.actividad.tipo_actividad.nombre }}</td>
+                        <td>{{ item.actividad.fecha_publicacion|date:"d/m/Y" }}</td>
+                        <td>{{ item.actividad.fecha_entrega_limite|date:"d/m/Y"|default:"N/A" }}</td>
+                        <td>{{ item.actividad.porcentaje_en_periodo|floatformat:2|default:"N/A" }}</td>
+                        <td class="text-center">
+                            {% if item.calificacion and item.calificacion.valor_numerico is not None %}
+                                <span class="fw-bold">{{ item.calificacion.valor_numerico|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="text-muted">--</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if item.calificacion and item.calificacion.valor_cualitativo %}
+                                <span class="fw-bold">{{ item.calificacion.valor_cualitativo }}</span>
+                            {% else %}
+                                <span class="text-muted">--</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.calificacion and item.calificacion.observaciones %}
+                                {{ item.calificacion.observaciones|linebreaksbr|default:"--" }}
+                            {% else %}
+                                <span class="text-muted">--</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {# Aquí podrías mostrar el promedio calculado para el curso #}
+        {# Por ejemplo, si pasas 'nota_final_curso' desde la vista #}
+        {% if nota_final_curso is not None %}
+            <div class="alert alert-success mt-4 text-center lead fw-bold">
+                <i class="bi bi-award-fill me-2"></i> Tu nota final para este curso es: {{ nota_final_curso|floatformat:2 }}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info text-center mt-3" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> Aún no hay actividades calificables o calificaciones registradas para este curso.
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}

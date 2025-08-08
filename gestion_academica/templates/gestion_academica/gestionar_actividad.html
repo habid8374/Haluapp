@@ -1,0 +1,59 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h3 class="mb-0">Gestionando Actividad: {{ actividad.titulo }}</h3>
+            <p class="text-muted mb-0">{{ actividad.curso }}</p>
+        </div>
+        <div class="card-body">
+            <h4>Descripción</h4>
+            <p>{{ actividad.descripcion|default:"No hay descripción." }}</p>
+
+            {% if actividad.cuestionario %}
+                <h4 class="mt-4">Intentos de Estudiantes</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Fecha de Finalización</th>
+                                <th>Puntaje Obtenido</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for intento in intentos %}
+                                <tr>
+                                    <td>{{ intento.estudiante }}</td>
+                                    <td>{{ intento.fecha_fin|date:"d M, Y - h:i A" }}</td>
+                                    <td>{{ intento.puntaje_obtenido|floatformat:2 }}</td>
+                                    <td>
+                                        <a href="{% url 'cuestionarios:revisar_intento' intento_pk=intento.pk %}" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-search"></i> Revisar Intento
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Aún no hay intentos para este cuestionario.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">Esta actividad no es un cuestionario.</div>
+            {% endif %}
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=actividad.curso.pk %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver al Libro de Notas
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

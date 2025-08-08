@@ -1,0 +1,46 @@
+{# gestion_academica/templates/gestion_academica/esquema_calificacion_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Esquema" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Esquema de Calificación" }}</h1>
+    <hr>
+
+    {% if esquema %} {# Verificar que el objeto 'esquema' exista en el contexto #}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar el esquema de calificación:</p>
+            <p class="mb-1">
+                <strong>Nombre:</strong> {{ esquema.nombre }}
+            </p>
+            {% if esquema.descripcion %}
+                <p class="mb-0"><strong>Descripción:</strong> {{ esquema.descripcion|linebreaksbr|default:"No especificada." }}</p>
+            {% endif %}
+            <hr>
+            <p class="mb-0 text-danger">
+                Esta acción es **irreversible**. Asegúrate de que este esquema **no esté siendo utilizado** por ningún "Tipo de Actividad" (o cualquier otro modelo que lo referencie con `models.PROTECT`) u otra entidad antes de eliminarlo, o podrías encontrar errores de integridad.
+            </p>
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Esquema
+            </button>
+            <a href="{% url 'gestion_academica:lista_esquemas_calificacion' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró el esquema de calificación a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_esquemas_calificacion' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

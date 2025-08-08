@@ -1,0 +1,187 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Constancia de Matrícula</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 1.5cm;
+        }
+
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 10.5pt;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-table td {
+            vertical-align: top;
+        }
+
+        .logo-cell {
+            width: 30%;
+            text-align: left;
+        }
+
+        .logo {
+            max-width: 100px;
+            height: auto;
+        }
+
+        .title-cell {
+            width: 70%;
+            text-align: center;
+        }
+
+        .title-cell h1 {
+            margin: 0;
+            font-size: 13pt;
+            font-weight: bold;
+        }
+
+        .title-cell p {
+            margin: 2px 0;
+            font-size: 8.5pt;
+        }
+
+        .main-title {
+            text-align: center;
+            font-size: 13pt;
+            font-weight: bold;
+            margin: 25px 0 10px;
+            text-transform: uppercase;
+        }
+
+        .content {
+            text-align: justify;
+            margin: 20px 40px;
+        }
+
+        .table-costos {
+            width: 70%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            font-size: 10.5pt;
+        }
+
+        .table-costos th,
+        .table-costos td {
+            border: 1px solid #000;
+            padding: 5px 8px;
+        }
+
+        .table-costos th {
+            background-color: #f0f0f0;
+            text-align: left;
+        }
+
+        .table-costos td {
+            text-align: right;
+        }
+
+        .table-costos td:first-child {
+            text-align: left;
+        }
+
+        .signature-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .signature-line {
+            border-top: 1px solid black;
+            width: 220px;
+            margin: 5px auto 2px auto;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 9pt;
+            margin-top: 30px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <table class="header-table">
+            <tr>
+                <td class="logo-cell">
+                    {% if institucion.logo %}
+                        <img src="{{ institucion.logo.path }}" class="logo">
+                    {% endif %}
+                </td>
+                <td class="title-cell">
+                    <h1>{{ institucion.nombre|upper }}</h1>
+                    <p>{{ institucion.texto_aprobacion }}<br>
+                    {{ institucion.texto_resolucion|linebreaksbr }}<br>
+                    DANE: {{ institucion.codigo_dane }} - NIT: {{ institucion.nit }}</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <p class="main-title">EL/LA SUSCRITO(A) RECTOR(A) DE LA INSTITUCIÓN EDUCATIVA</p>
+    <p class="main-title" style="margin-top: -15px;">CERTIFICA:</p>
+
+    <div class="content">
+        <p>
+            Que el/la estudiante <strong>{{ estudiante.usuario.get_full_name|upper }}</strong>, identificado(a) con documento de identidad No. 
+            <strong>{{ estudiante.documento_identidad }}</strong>, se encuentra legalmente matriculado(a) y cursando el grado 
+            <strong>{{ estudiante.grado_actual.nombre|upper }}</strong> de Educación Básica para el año lectivo 
+            <strong>{{ periodo_activo.año_escolar }}</strong> en esta Institución Educativa, según los planes y programas vigentes,
+            contemplados en la Ley 115 de Educación Nacional y su Decreto Reglamentario 1290 de 2009.
+        </p>
+
+        <p>Jornada única con los siguientes costos educativos:</p>
+
+        <table class="table-costos">
+            <thead>
+                <tr>
+                    <th>CONCEPTO</th>
+                    <th>VALOR</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Matrícula año lectivo {{ periodo_activo.año_escolar }}</td>
+                    <td>${{ valor_matricula|intcomma }}</td>
+                </tr>
+                <tr>
+                    <td>Pensión mensual año lectivo {{ periodo_activo.año_escolar }}</td>
+                    <td>${{ valor_pension|intcomma }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>
+            Se expide la presente certificación a solicitud de la parte interesada a los {{ fecha_generacion|date:"d" }} días del 
+            mes de {{ fecha_generacion|date:"F" }} del año {{ fecha_generacion|date:"Y" }}.
+        </p>
+    </div>
+
+    <div class="signature-section">
+        {% if institucion.firma_rectora %}
+            <img src="{{ institucion.firma_rectora.path }}" alt="Firma" style="max-height: 40px; margin-bottom: 0px;">
+        {% endif %}
+        <div class="signature-line"></div>
+        <strong>{{ institucion.nombre_rectora }}</strong><br>
+        Rector(a)
+    </div>
+
+    <div class="footer">
+        <p>{{ institucion.direccion }} - Teléfono: {{ institucion.telefono }}</p>
+        <p>Email: {{ institucion.correo_electronico }} - {{ institucion.ciudad_departamento|upper }}</p>
+    </div>
+
+</body>
+</html>

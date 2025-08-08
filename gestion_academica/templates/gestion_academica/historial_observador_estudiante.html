@@ -1,0 +1,41 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:exportar_observador_pdf' estudiante_pk=estudiante.pk %}" target="_blank" class="btn btn-success"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Exportar a PDF</a>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">Añadir Nueva Anotación</div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-primary w-100">Registrar Anotación</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            {% for anotacion in anotaciones %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ anotacion.get_tipo_display }}</h5>
+                    <p class="card-text">{{ anotacion.descripcion|linebreaks }}</p>
+                </div>
+                <div class="card-footer text-muted">
+                    {{ anotacion.fecha_hora|date:"d M, Y - h:i a" }} por {{ anotacion.registrado_por.get_full_name }}
+                    {% if anotacion.curso %} | En clase de: {{ anotacion.curso.materia }}{% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-info">No hay anotaciones para este estudiante.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

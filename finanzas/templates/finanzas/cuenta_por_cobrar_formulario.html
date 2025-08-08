@@ -1,0 +1,24 @@
+{% extends "base_finanzas.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{% if object %}Editar{% else %}Asignar{% endif %} Cuenta por Cobrar{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header"><h3 class="mb-0">{% if object %}Editar Cuenta por Cobrar{% else %}Asignar Nueva Cuenta por Cobrar{% endif %}</h3></div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="mt-4 d-flex justify-content-end">
+                        <a href="{% url 'finanzas:lista_cuentas_por_cobrar' %}" class="btn btn-secondary me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-success">Guardar Cuenta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock contenido %}

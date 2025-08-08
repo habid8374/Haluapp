@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ titulo_pagina }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .carnet {
+            width: 8.5cm;
+            height: 5.4cm;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            padding: 15px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        .carnet-info {
+            flex-grow: 1;
+            padding-right: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .carnet-qr {
+            flex-shrink: 0;
+            width: 4.5cm;
+            height: 4.5cm;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .carnet-qr img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .carnet-header {
+            font-size: 8pt;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .carnet-nombre {
+            font-size: 11pt;
+            font-weight: bold;
+            margin: 0;
+            line-height: 1.1;
+        }
+        .carnet-id, .carnet-codigo, .carnet-especialidad {
+            font-size: 9pt;
+            color: #333;
+            margin-top: 2px;
+            line-height: 1.1;
+        }
+        .carnet-footer {
+            margin-top: auto;
+            font-size: 5.5pt;
+            color: #888;
+            font-style: italic;
+            padding-bottom: 6px;
+        }
+        .print-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        @media print {
+            body {
+                background-color: white;
+            }
+            .no-print {
+                display: none;
+            }
+            .carnet {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button onclick="window.print()" class="no-print print-button">Imprimir Carnet</button>
+    <div class="carnet">
+        <div class="carnet-info">
+            <div class="carnet-header">
+                {{ docente.institucion.nombre|upper }}
+            </div>
+            <p class="carnet-nombre">{{ docente.usuario.get_full_name }}</p>
+<p class="carnet-id"><strong>Documento:</strong> {{ docente.documento_identidad }}</p>
+<p class="carnet-codigo"><strong>Código:</strong> {{ docente.codigo_docente }}</p>
+<p class="carnet-codigo"><strong>Rol:</strong> DOCENTE</p>
+<p class="carnet-especialidad"><strong>Especialidad:</strong> {{ docente.especialidad }}</p>
+
+{% if docente.firma_docente %}
+    <div style="margin-top: 5px;">
+        <img src="{{ docente.firma_docente.url }}" alt="Firma" style="height: 25px;">
+    </div>
+{% endif %}
+
+<div class="carnet-footer">
+    Carnet Docente - Emitido: {{ docente.usuario.date_joined|date:"d/m/Y" }}
+</div>
+        </div>
+        <div class="carnet-qr">
+            <img src="{{ qr_code_url }}" alt="Código QR del Docente">
+        </div>
+    </div>
+</body>
+</html>

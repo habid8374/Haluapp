@@ -1,0 +1,61 @@
+{% extends "base_publica.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-5 mb-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h2>Bienvenido, {{ aspirante.nombres }} {{ aspirante.apellidos }}</h2>
+            <p class="mb-0">Este es tu portal de seguimiento del proceso de admisión.</p>
+        </div>
+        <div class="card-body p-4">
+            <h4>Estado de tu Solicitud: 
+                <span class="badge bg-secondary text-dark fs-6">{{ aspirante.get_estado_display }}</span>
+            </h4>
+            <hr>
+
+            <!-- Bloque para Pago de Inscripción -->
+            {% if aspirante.requiere_pago_inscripcion and aspirante.estado == 'INSCRITO' %}
+                {% if cuenta_inscripcion %}
+                    <div class="alert alert-warning border-warning">
+                        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Paso 1: Pago de Inscripción</h4>
+                        <p>Para continuar con el proceso, debes realizar el pago de la inscripción.</p>
+                        <p><strong>Monto a Pagar:</strong> ${{ cuenta_inscripcion.monto_asignado|floatformat:2 }} COP</p>
+                        <a href="{% url 'admisiones:crear_preferencia_mercadopago' cuenta_inscripcion.id %}" class="btn btn-primary btn-lg mt-2">
+                            <img src="https://img.icons8.com/color/48/000000/mercado-pago.png" alt="Mercado Pago" style="height: 24px; vertical-align: middle; margin-right: 8px;"/>
+                            Pagar Inscripción
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">Tu cuenta de pago para la inscripción está siendo generada. Por favor, recarga en unos minutos.</div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Bloque para Pago de Matrícula -->
+            {% if aspirante.estado == 'APROBADO_MATRICULA' %}
+                {% if cuenta_matricula %}
+                    <div class="alert alert-success border-success">
+                        <h4 class="alert-heading"><i class="bi bi-check-circle-fill"></i> ¡Felicitaciones! Último Paso: Pago de Matrícula</h4>
+                        <p>Has sido aprobado para matricularte. Para finalizar el proceso, por favor realiza el pago de la matrícula.</p>
+                        <p><strong>Monto a Pagar:</strong> ${{ cuenta_matricula.monto_asignado|floatformat:2 }} COP</p>
+                        <a href="{% url 'admisiones:crear_preferencia_mercadopago' cuenta_matricula.id %}" class="btn btn-success btn-lg mt-2">
+                            <img src="https://img.icons8.com/color/48/000000/mercado-pago.png" alt="Mercado Pago" style="height: 24px; vertical-align: middle; margin-right: 8px;"/>
+                            Pagar Matrícula
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">Tu cuenta de pago para la matrícula está siendo generada. Por favor, recarga en unos minutos.</div>
+                {% endif %}
+            {% endif %}
+            
+
+            <!-- Mensaje para cuando no hay pagos pendientes -->
+            {% if aspirante.estado == 'ADMITIDO' or aspirante.estado == 'EN_PROCESO' %}
+                 <div class="alert alert-light">Tu solicitud está en proceso. Te notificaremos por correo electrónico sobre los siguientes pasos.</div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

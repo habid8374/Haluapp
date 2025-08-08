@@ -1,0 +1,111 @@
+{% extends "base_academico.html" %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white"><h4 class="mb-0"><i class="fas fa-table me-2"></i>{{ titulo_pagina }}</h4></div>
+        <div class="card-body">
+            <div class="mb-3"><a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Volver al Dashboard</a></div>
+            
+            <form method="get" class="mb-4 p-3 border rounded bg-light">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3"><label for="grado" class="form-label fw-bold">1. Grado:</label><select name="grado" id="grado" class="form-select" onchange="this.form.submit();"><option value="">--- Seleccione ---</option>{% for g in grados %}<option value="{{ g.id }}" {% if g.id == grado_seleccionado.id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}</select></div>
+                    <div class="col-md-3"><label for="periodo" class="form-label fw-bold">2. Periodo:</label><select name="periodo" id="periodo" class="form-select"><option value="">--- Seleccione ---</option>{% for p in periodos %}<option value="{{ p.id }}" {% if p.id == periodo_seleccionado.id %}selected{% endif %}>{{ p.nombre }} ({{ p.año_escolar }})</option>{% endfor %}</select></div>
+                    <div class="col-md-4"><label for="materia" class="form-label fw-bold">3. Materia (si aplica):</label><select name="materia" id="materia" class="form-select" {% if not materias_del_grado or grado_seleccionado.tipo_evaluacion == 'CUALITATIVO' %}disabled{% endif %}><option value="">--- Seleccione ---</option>{% for m in materias_del_grado %}<option value="{{ m.id }}" {% if m.id == materia_seleccionada.id %}selected{% endif %}>{{ m.nombre_materia }}</option>{% endfor %}</select></div>
+                    <div class="col-md-2"><button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Generar</button></div>
+                </div>
+            </form>
+
+            {% if reporte_data %}
+                <h5 class="border-bottom pb-2 mb-3">Resultados para: <strong class="text-primary">{{ grado_seleccionado.nombre }}</strong> | Periodo: <strong class="text-primary">{{ periodo_seleccionado.nombre }}</strong></h5>
+
+                {% if reporte_data.tipo_reporte == 'CUANTITATIVO' %}
+                    <div class="row">
+                        <div class="col-lg-8"><h6>Planilla de Notas</h6><div class="table-responsive"><table class="table table-bordered table-sm" style="font-size: 0.8rem;"><thead class="table-dark"><tr><th style="min-width: 150px;">Estudiante</th>{% for act in reporte_data.actividades_header %}<th class="text-center" style="writing-mode: vertical-rl; transform: rotate(180deg);">{{ act.titulo|truncatechars:20 }}</th>{% endfor %}<th class="text-center" style="writing-mode: vertical-rl; transform: rotate(180deg);">Definitiva</th></tr></thead><tbody>{% for item in reporte_data.datos_tabla %}<tr><td>{{ item.estudiante.usuario.get_full_name }}</td>{% for cal in item.calificaciones %}<td class="text-center">{{ cal|floatformat:2|default:"-" }}</td>{% endfor %}<td class="text-center fw-bold table-primary">{{ item.nota_final|floatformat:2|default:"-" }}</td></tr>{% endfor %}</tbody></table></div></div>
+                        <div class="col-lg-4"><h6>Distribución de Desempeños</h6><canvas id="consolidadoChart"></canvas></div>
+                    </div>
+                {% endif %}
+
+                {% if reporte_data.tipo_reporte == 'CUALITATIVO' %}
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h6>Planilla de Logros</h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm" style="font-size: 0.8rem;">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th rowspan="2" style="min-width: 150px; vertical-align: middle;">Estudiante</th>
+                                        {% for dimension, logros in reporte_data.logros_agrupados.items %}
+                                            <th colspan="{{ logros|length }}" class="text-center">{{ dimension.nombre }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                    <tr class="table-secondary">
+                                        {% for dimension, logros in reporte_data.logros_agrupados.items %}
+                                            {% for logro in logros %}
+                                                <th class="text-center" style="writing-mode: vertical-rl; transform: rotate(180deg);">{{ logro.descripcion|truncatechars:30 }}</th>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in reporte_data.datos_tabla %}
+                                    <tr>
+                                        <td>{{ item.estudiante.usuario.get_full_name }}</td>
+                                        {% for evaluacion in item.evaluaciones %}
+                                            <td class="text-center">
+                                                {% if evaluacion %}
+                                                    <span class="badge bg-info">{{ evaluacion.abreviatura }}</span>
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <h6>Distribución General de Logros</h6>
+                        <canvas id="consolidadoChart"></canvas>
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if reporte_data.chart_labels %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('consolidadoChart').getContext('2d');
+        let chartType = 'bar';
+        let chartOptions = { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }};
+        
+        if ("{{ reporte_data.tipo_reporte }}" === "CUALITATIVO") {
+            chartType = 'pie';
+            chartOptions = { responsive: true, plugins: { legend: { position: 'top' }}};
+        }
+
+        new Chart(ctx, {
+            type: chartType,
+            data: {
+                labels: {{ reporte_data.chart_labels|safe }},
+                datasets: [{
+                    label: 'Resultados',
+                    data: {{ reporte_data.chart_data|safe }},
+                    backgroundColor: ['rgba(220, 53, 69, 0.6)','rgba(255, 206, 86, 0.6)','rgba(75, 192, 192, 0.6)','rgba(54, 162, 235, 0.6)'],
+                }]
+            },
+            options: chartOptions
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Módulo de Finanzas - {% if configuracion_institucion and configuracion_institucion.nombre_institucion %}{{ configuracion_institucion.nombre_institucion }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+
+{% block navbar_content %}
+    <a class="navbar-brand" href="{% url 'finanzas:dashboard_financiero' %}">
+        {% if configuracion_institucion and configuracion_institucion.logo %}
+            <img src="{{ configuracion_institucion.logo.url }}" alt="Logo {{ configuracion_institucion.nombre_institucion }}" class="logo-navbar">
+        {% else %}
+            <i class="bi bi-currency-dollar"></i>
+        {% endif %}
+        {{ configuracion_institucion.nombre_institucion|default:"Módulo de Finanzas" }}
+    </a>
+    {# Puedes añadir aquí items específicos para la navbar del módulo financiero si lo necesitas #}
+    <ul class="navbar-nav me-auto">
+         <li class="nav-item">
+            <a class="nav-link" href="{% url 'gestion_academica:inicio_academico' %}">Ir a Módulo Académico</a>
+        </li>
+    </ul>
+    <ul class="navbar-nav ms-auto">
+        {% if user.is_authenticated %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUserLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i> {{ user.get_full_name|default:user.username }}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUserLink">
+                    <li><a class="dropdown-item" href="#">Mi Perfil</a></li>
+                    <li><a class="dropdown-item" href="{% url 'password_change' %}">Cambiar Contraseña</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form id="logout-form-navbar" action="{% url 'logout' %}" method="post" style="display: none;">
+                            {% csrf_token %}
+                        </form>
+                        <a class="dropdown-item" href="#" onclick="document.getElementById('logout-form-navbar').submit(); return false;">
+                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        {% else %}
+             <li class="nav-item">
+                <a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión</a>
+            </li>
+        {% endif %}
+    </ul>
+{% endblock navbar_content %}
+
+{% block floating_menu_content %}
+    <ul class="nav flex-column">
+        <h5 class="menu-section-title">Principal</h5>
+        <li class="nav-item item-color-1"> 
+            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_financiero' %}active{% endif %}" href="{% url 'finanzas:dashboard_financiero' %}">
+                <i class="bi bi-graph-up"></i> Dashboard
+            </a>
+        </li>
+
+        {# ======================================================= #}
+        {#     MENÚ CORREGIDO Y UNIFICADO                          #}
+        {# ======================================================= #}
+        <h5 class="menu-section-title">Gestión Financiera</h5>
+        
+        <li class="nav-item item-color-2">
+            <a class="nav-link {% if request.resolver_match.url_name == 'reporte_general_cuentas' %}active{% endif %}" href="{% url 'finanzas:reporte_general_cuentas' %}">
+                <i class="bi bi-journal-text"></i> Reporte General
+            </a>
+        </li>
+
+        <h5 class="menu-section-title">Configuración</h5>
+        <li class="nav-item item-color-4">
+            <a class="nav-link {% if 'tipo' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'finanzas:lista_tipos_concepto_pago' %}">
+                <i class="bi bi-tags-fill"></i> Tipos de Concepto
+            </a>
+        </li>
+        <li class="nav-item item-color-1">
+            <a class="nav-link {% if 'concepto_pago' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'finanzas:lista_conceptos_pago' %}">
+                <i class="bi bi-receipt-cutoff"></i> Conceptos de Pago
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'finanzas:configurar_pagos' %}">
+                <i class="bi bi-gear-fill"></i> Pasarelas de Pago
+            </a>
+        </li>
+
+        {% if user.is_superuser %}
+        <li class="nav-item item-color-danger"> 
+            <a class="nav-link active" href="{% url 'finanzas:dashboard_superadmin' %}">
+                <i class="bi bi-shield-lock-fill"></i> Panel Super-Admin
+            </a>
+        </li>
+        <hr class="menu-divider">
+        {% endif %}
+        
+        {# ======================================================= #}
+        {#     SECCIONES DE NAVEGACIÓN Y CUENTA (se mantienen igual) #}
+        {# ======================================================= #}
+        <hr class="menu-divider">
+        <h5 class="menu-section-title">Ir a Módulos</h5>
+        <li class="nav-item item-color-2">
+            <a class="nav-link" href="{% url 'gestion_academica:inicio_academico' %}">
+                <i class="bi bi-mortarboard-fill"></i> Módulo Académico
+            </a>
+        </li>
+        
+        <hr class="menu-divider">
+        <h5 class="menu-section-title">Cuenta</h5>
+        <li class="nav-item item-color-1"><a class="nav-link" href="#"><i class="bi bi-person-fill"></i> Mi Perfil</a></li>
+        <li class="nav-item item-color-2"><a class="nav-link" href="{% url 'password_change' %}"><i class="bi bi-key-fill"></i> Cambiar Contraseña</a></li>
+        <li class="nav-item item-color-3">
+            <form id="logout-form-menu" action="{% url 'logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
+            <a class="nav-link" href="#" onclick="document.getElementById('logout-form-menu').submit(); return false;">
+                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+            </a>
+        </li>
+    </ul>
+{% endblock floating_menu_content %}

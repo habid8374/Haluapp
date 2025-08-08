@@ -1,0 +1,53 @@
+{# gestion_academica/templates/gestion_academica/tipo_actividad_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Tipo de Actividad" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Tipo de Actividad" }}</h1>
+    <hr>
+
+    {% if tipo_actividad %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar el tipo de actividad: <strong>"{{ tipo_actividad.nombre }}"</strong>?</p>
+            {% if tipo_actividad.descripcion %}
+                <p class="mb-1 text-muted">Descripción: {{ tipo_actividad.descripcion|truncatewords:20|default:"N/A" }}</p>
+            {% endif %}
+            <hr>
+            <p class="mb-0">Esta acción es **irreversible** y eliminará permanentemente este registro.</p>
+            
+            {# Advertencia si el tipo de actividad está en uso #}
+            {% comment %}
+            Si tu modelo ActividadCalificable tiene un on_delete=models.PROTECT para tipo_actividad,
+            o si eliminar este tipo de actividad causa problemas con otras entidades (ej. calificaciones),
+            considera añadir una advertencia aquí:
+            {% if tipo_actividad.actividadcalificable_set.exists %}
+                <p class="mt-3 text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este tipo de actividad está asignado a {{ tipo_actividad.actividadcalificable_set.count }} actividades calificables. Eliminarlo podría causar errores.
+                </p>
+            {% endif %}
+            {% endcomment %}
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Tipo de Actividad
+            </button>
+            <a href="{% url 'gestion_academica:lista_tipos_actividad' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró el tipo de actividad a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_tipos_actividad' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

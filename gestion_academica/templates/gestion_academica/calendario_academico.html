@@ -1,0 +1,62 @@
+{# gestion_academica/templates/gestion_academica/calendario_academico.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Aseguramos que static esté cargado #}
+
+{% block titulo %}{{ titulo_pagina|default:"Calendario Académico" }}{% endblock titulo %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+    .calendar-placeholder {
+        border: 2px dashed var(--color-borde); /* Usa variable de color para el borde */
+        padding: 4rem;
+        text-align: center;
+        background-color: var(--color-fondo-contenido); /* Usa variable de color para el fondo */
+        border-radius: .5rem;
+        min-height: 400px; 
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08); /* Añade sombra */
+    }
+    .calendar-placeholder i {
+        font-size: 4rem;
+        color: var(--windows-azul); /* Usa variable de color para el icono */
+        margin-bottom: 1rem;
+    }
+    .calendar-placeholder h4 {
+        color: var(--color-texto-principal); /* Usa variable de color para el título */
+    }
+    .calendar-placeholder p.text-muted {
+        color: var(--color-texto-muted)!important; /* Usa variable de color para texto muted */
+    }
+</style>
+{% endblock extrastyles %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:inicio_academico' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Inicio
+        </a>
+    </div>
+    <hr>
+
+    <p class="lead">Consulta las fechas importantes, eventos programados, periodos de exámenes y días festivos.</p>
+
+    <div class="mt-4">
+        {% if institucion_actual.google_calendar_embed_code %}
+            {# El filtro |safe es CRUCIAL para que Django renderice el HTML del iframe #}
+            {{ institucion_actual.google_calendar_embed_code|safe }}
+        {% else %}
+            <div class="alert alert-info text-center shadow-sm">
+                <i class="bi bi-calendar-x fs-1"></i>
+                <h4 class="alert-heading mt-2">Calendario no configurado</h4>
+                <p>El calendario académico para esta institución aún no ha sido configurado por el administrador.</p>
+            </div>
+        {% endif %}
+    </div>
+    </div>
+{% endblock contenido %}

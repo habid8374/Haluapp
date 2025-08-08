@@ -1,0 +1,51 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina }}</h1>
+        <span class="badge bg-primary fs-6">Fecha: {{ fecha|date:"l, d \d\e F" }}</span>
+    </div>
+    <p class="lead text-muted">La asistencia se carga automáticamente como "Presente" si el estudiante ingresó a la institución. Modifica únicamente los casos de ausencia o tardanza.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Estudiante</th>
+                                <th class="text-center" style="width: 350px;">Estado de Asistencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asistencia in asistencias %}
+                            <tr>
+                                <td><strong>{{ asistencia.estudiante.usuario.get_full_name }}</strong></td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        {% for val, name in estados %}
+                                            <input type="radio" class="btn-check" name="estado_{{ asistencia.pk }}" id="estado-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" value="{{ val }}" {% if asistencia.estado == val %}checked{% endif %}>
+                                            <label class="btn btn-outline-primary" for="estado-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">{{ name }}</label>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-end">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle-fill me-2"></i>Guardar Cambios en la Asistencia
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

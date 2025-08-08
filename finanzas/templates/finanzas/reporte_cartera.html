@@ -1,0 +1,123 @@
+{% extends 'base_finanzas.html' %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="id_grado" class="form-label">Filtrar por Grado:</label>
+                    <select name="grado" id="id_grado" class="form-select">
+                        <option value="">--- Todos los Grados ---</option>
+                        {% for grado in grados_filtro %}
+                            <option value="{{ grado.pk }}" {% if selected_grado == grado.pk|stringformat:"s" %}selected{% endif %}>
+                                {{ grado.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="id_estudiante" class="form-label">Filtrar por Estudiante:</label>
+                    <select name="estudiante" id="id_estudiante" class="form-select">
+                        <option value="">--- Todos los Estudiantes ---</option>
+                        {% for estudiante in estudiantes_filtro %}
+                            <option value="{{ estudiante.pk }}" {% if selected_estudiante == estudiante.pk|stringformat:"s" %}selected{% endif %}>
+                                {{ estudiante.usuario.get_full_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card text-center text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">CARTERA VENCIDA TOTAL (FILTRADA)</h5>
+                    <p class="card-text display-5">${{ resumen.total_vencido|default:0|floatformat:2|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-header">1 a 30 días vencido</div>
+                <div class="card-body"><p class="card-text fs-4">${{ resumen.de_1_a_30_dias|default:0|floatformat:2|intcomma }}</p></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-header">31 a 60 días</div>
+                <div class="card-body"><p class="card-text fs-4">${{ resumen.de_31_a_60_dias|default:0|floatformat:2|intcomma }}</p></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-header">61 a 90 días</div>
+                <div class="card-body"><p class="card-text fs-4">${{ resumen.de_61_a_90_dias|default:0|floatformat:2|intcomma }}</p></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-header bg-warning">Más de 90 días</div>
+                <div class="card-body"><p class="card-text fs-4">${{ resumen.mas_de_90_dias|default:0|floatformat:2|intcomma }}</p></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Detalle de Cartera Vencida</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>Concepto</th>
+                            <th class="text-end">Saldo Pendiente</th>
+                            <th>Fecha Vencimiento</th>
+                            <th class="text-center">Días Vencido</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cuenta in detalle_cartera %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'finanzas:historial_cuentas_estudiante' estudiante_id=cuenta.estudiante.pk %}">
+                                    {{ cuenta.estudiante.usuario.get_full_name }}
+                                </a>
+                            </td>
+                            <td>{{ cuenta.concepto_pago.nombre_concepto }}</td>
+                            <td class="text-end"><strong>${{ cuenta.saldo_pendiente_calc|floatformat:2|intcomma }}</strong></td>
+                            <td>{{ cuenta.fecha_vencimiento_especifica|date:"d M, Y" }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-danger">{{ cuenta.dias_vencido.days }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center p-4">
+                                <p class="mb-0">No se encontraron cuentas vencidas que coincidan con los filtros.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="mt-4">
+        <a href="{% url 'finanzas:dashboard_financiero' %}" class="btn btn-secondary">Volver al Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-shield-exclamation me-2"></i>Reporte de Riesgo por Estudiante</h5>
+        {% if ultimo_analisis %}
+            <small class="text-muted">Último análisis: {{ ultimo_analisis.fecha_analisis|date:"d/m/Y, h:i A" }}</small>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% if estudiantes_con_riesgo %}
+            <div class="accordion" id="acordeonRiesgoGlobal">
+                
+                {% for estudiante, lista_predicciones in estudiantes_con_riesgo.items %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading-{{ estudiante.pk }}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ estudiante.pk }}" aria-expanded="false" aria-controls="collapse-{{ estudiante.pk }}">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <strong class="text-primary">{{ estudiante.usuario.get_full_name }}</strong>
+                                    <small class="ms-2 text-muted">Grado: {{ estudiante.grado_actual.nombre }}</small>
+                                </div>
+                                <span class="badge bg-danger rounded-pill">{{ lista_predicciones|length }} Alerta(s)</span>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse-{{ estudiante.pk }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ estudiante.pk }}" data-bs-parent="#acordeonRiesgoGlobal">
+                        <div class="accordion-body">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Materia</th>
+                                        <th class="text-center">Nivel de Riesgo</th>
+                                        <th>Factores Clave</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for prediccion in lista_predicciones %}
+                                    <tr>
+                                        <td>{{ prediccion.materia.nombre_materia }}</td>
+                                        <td class="text-center">
+                                            <span class="badge {% if prediccion.nivel_riesgo == 'ALTO' %}bg-danger{% elif prediccion.nivel_riesgo == 'MEDIO' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">
+                                                {{ prediccion.get_nivel_riesgo_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if prediccion.factores_influyentes %}
+                                                <small>
+                                                {% for key, value in prediccion.factores_influyentes.items %}
+                                                    <strong>{{ key|capfirst }}:</strong> {{ value|floatformat:2 }} <br>
+                                                {% endfor %}
+                                                </small>
+                                            {% else %}
+                                                <small class="text-muted">N/A</small>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="#" class="btn btn-outline-primary" title="Ver Detalles del Estudiante"><i class="bi bi-person-lines-fill"></i></a>
+                                                <a href="#" class="btn btn-outline-secondary" title="Crear Plan de Mejora"><i class="bi bi-check2-square"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-success text-center">
+                <i class="bi bi-check-circle-fill fs-3"></i>
+                <h4 class="alert-heading mt-2">¡Excelente!</h4>
+                <p class="mb-0">No se encontraron estudiantes con predicciones de riesgo según los filtros seleccionados.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,102 @@
+{% extends "gestion_academica/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %} {# Opcional, si usas django-crispy-forms y quieres usar el filtro |crispy #}
+
+{% block titulo %}{{ titulo_formulario|default:"Formulario de Noticia/Anuncio" }}{% endblock %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+    /* Puedes añadir estilos específicos para este formulario si es necesario */
+    .ck-editor__editable_inline { /* Estilo para el editor de texto enriquecido si usas CKEditor */
+        min-height: 250px;
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1>{{ titulo_formulario|default:"Formulario de Noticia/Anuncio" }}</h1>
+    <hr>
+
+    {# enctype="multipart/form-data" es CRUCIAL para la subida de archivos (imagen_destacada) #}
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {# Mostrar errores generales del formulario (que no son de un campo específico) #}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}
+                    <p class="mb-0">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# Renderizar cada campo manualmente para más control #}
+        {# O puedes usar {{ form|crispy }} si tienes crispy-forms configurado #}
+
+        <div class="mb-3">
+            <label for="{{ form.titulo.id_for_label }}" class="form-label">{{ form.titulo.label }} {% if form.titulo.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ form.titulo }}
+            {% for error in form.titulo.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.titulo.help_text %}<small class="form-text text-muted">{{ form.titulo.help_text }}</small>{% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.contenido.id_for_label }}" class="form-label">{{ form.contenido.label }} {% if form.contenido.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ form.contenido }} {# Si usas un widget de texto enriquecido, se renderizará aquí #}
+            {% for error in form.contenido.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.contenido.help_text %}<small class="form-text text-muted">{{ form.contenido.help_text }}</small>{% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.imagen_destacada.id_for_label }}" class="form-label">{{ form.imagen_destacada.label }} {% if form.imagen_destacada.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ form.imagen_destacada }}
+            {% if form.instance.pk and form.instance.imagen_destacada %} {# Mostrar imagen actual si se está editando y existe #}
+                <div class="mt-2">
+                    <small>Imagen actual:</small><br>
+                    <img src="{{ form.instance.imagen_destacada.url }}" alt="Imagen destacada actual" style="max-height: 150px; margin-top: 5px; border-radius: .25rem;">
+                </div>
+            {% endif %}
+            {% for error in form.imagen_destacada.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.imagen_destacada.help_text %}<small class="form-text text-muted">{{ form.imagen_destacada.help_text }}</small>{% endif %}
+        </div>
+        
+        {# Ejemplo si tuvieras un campo 'es_publica':
+        <div class="mb-3 form-check">
+            {{ form.es_publica }}
+            <label for="{{ form.es_publica.id_for_label }}" class="form-check-label">{{ form.es_publica.label }}</label>
+            {% for error in form.es_publica.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.es_publica.help_text %}<small class="form-text text-muted">{{ form.es_publica.help_text }}</small>{% endif %}
+        </div>
+        #}
+
+        <hr>
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle-fill"></i> Guardar Noticia/Anuncio
+        </button>
+        <a href="{% if 'gestion' in request.path %}{% url 'gestion_academica:lista_noticias_gestion' %}{% else %}{% url 'gestion_academica:lista_noticias' %}{% endif %}" class="btn btn-secondary">
+            <i class="bi bi-x-circle-fill"></i> Cancelar
+        </a>
+    </form>
+</div>
+{% endblock %}
+
+{% block extrajavascript %}
+{{ block.super }}
+{# Si usas un editor de texto enriquecido como CKEditor, aquí iría el script para inicializarlo.
+   Ejemplo (necesitarías incluir la librería de CKEditor en tu base.html o aquí):
+<script src="https://cdn.ckeditor.com/ckeditor5/35.3.2/classic/ckeditor.js"></script>
+<script>
+    ClassicEditor
+        .create(document.querySelector('#{{ form.contenido.id_for_label }}'), {
+            // Configuración de CKEditor
+            toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo' ]
+        })
+        .catch(error => {
+            console.error(error);
+        });
+</script>
+#}
+{% endblock %}
+

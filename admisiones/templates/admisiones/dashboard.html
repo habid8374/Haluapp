@@ -1,0 +1,170 @@
+{% extends "base_admisiones.html" %}
+
+{% block titulo %}Dashboard de Admisiones{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2"><i class="bi bi-bar-chart-line-fill me-2"></i>Dashboard de Admisiones</h1>
+    </div>
+    
+    <div class="row g-4">
+        {# Primera fila de gráficos #}
+        <div class="col-lg-5 col-md-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Aspirantes por Estado</h5>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="chartPorEstado"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7 col-md-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Distribución por Grado</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartPorGrado"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-4">
+        {# Segunda fila de gráficos #}
+        <div class="col-lg-8 col-md-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top Colegios de Procedencia</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartPorColegio"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- ================================================================ -->
+        <!--  INICIO: GRÁFICO DE SEXO AÑADIDO                                   -->
+        <!-- ================================================================ -->
+        <div class="col-lg-4 col-md-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Distribución por Sexo</h5>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="graficoPorSexo"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- ================================================================ -->
+        <!--  FIN: GRÁFICO DE SEXO AÑADIDO                                      -->
+        <!-- ================================================================ -->
+    </div>
+    
+    <div class="row g-4 mt-4">
+        {# Tercera fila para el gráfico de municipios #}
+        <div class="col-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top Municipios de Procedencia</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartPorMunicipio"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // CORRECCIÓN: Apuntamos a la URL correcta 'dashboard_data'
+    fetch("{% url 'admisiones:dashboard_data' %}")
+        .then(response => {
+            if (!response.ok) { throw new Error('La respuesta de la API no fue exitosa.'); }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Datos recibidos para el dashboard:", data);
+
+            // --- GRÁFICO 1: ASPIRANTES POR ESTADO ---
+            const canvasEstado = document.getElementById('chartPorEstado');
+            if (canvasEstado) {
+                new Chart(canvasEstado.getContext('2d'), { type: 'pie', data: { labels: data.porEstado.labels.map(l => l.replace(/_/g, ' ')), datasets: [{ label: 'Aspirantes', data: data.porEstado.data, backgroundColor: ['rgba(25, 135, 84, 0.8)', 'rgba(13, 202, 240, 0.8)', 'rgba(255, 193, 7, 0.8)', 'rgba(220, 53, 69, 0.8)', 'rgba(108, 117, 125, 0.8)'], borderColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false } });
+            }
+
+            // --- GRÁFICO 2: ASPIRANTES POR GRADO ---
+            const canvasGrado = document.getElementById('chartPorGrado');
+            if (canvasGrado) {
+                new Chart(canvasGrado.getContext('2d'), { type: 'bar', data: { labels: data.porGrado.labels, datasets: [{ label: 'Nº de Aspirantes', data: data.porGrado.data, backgroundColor: 'rgba(13, 110, 253, 0.7)' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
+            }
+
+            // --- GRÁFICO 3: TOP COLEGIOS DE PROCEDENCIA ---
+            const canvasColegio = document.getElementById('chartPorColegio');
+            if (canvasColegio && data.porColegio.labels.length > 0) {
+                new Chart(canvasColegio.getContext('2d'), { type: 'bar', data: { labels: data.porColegio.labels, datasets: [{ label: 'Nº de Aspirantes', data: data.porColegio.data, backgroundColor: 'rgba(108, 117, 125, 0.7)' }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+            } else if (canvasColegio) {
+                 canvasColegio.parentElement.innerHTML = '<p class="text-center text-muted mt-4">No hay datos de colegios para mostrar.</p>';
+            }
+
+            // --- GRÁFICO 4: TOP MUNICIPIOS DE PROCEDENCIA ---
+            const canvasMunicipio = document.getElementById('chartPorMunicipio');
+            if (canvasMunicipio && data.porMunicipio.labels.length > 0) {
+                new Chart(canvasMunicipio.getContext('2d'), { type: 'bar', data: { labels: data.porMunicipio.labels, datasets: [{ label: 'Nº de Aspirantes', data: data.porMunicipio.data, backgroundColor: 'rgba(23, 162, 184, 0.7)' }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+            } else if (canvasMunicipio) {
+                canvasMunicipio.parentElement.innerHTML = '<p class="text-center text-muted mt-4">No hay datos de municipios para mostrar.</p>';
+            }
+
+            // ================================================================
+            // --- INICIO DEL CÓDIGO NUEVO PARA EL GRÁFICO DE SEXO ---
+            // ================================================================
+            const canvasSexo = document.getElementById('graficoPorSexo');
+            if (canvasSexo && data.porSexo.labels.length > 0) {
+                new Chart(canvasSexo.getContext('2d'), {
+                    type: 'doughnut', // Gráfico de dona
+                    data: {
+                        labels: data.porSexo.labels,
+                        datasets: [{
+                            label: 'Aspirantes',
+                            data: data.porSexo.data,
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.7)',  // Azul
+                                'rgba(255, 99, 132, 0.7)',   // Rosa
+                                'rgba(255, 206, 86, 0.7)',   // Amarillo
+                                'rgba(75, 192, 192, 0.7)'    // Verde azulado
+                            ],
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        }
+                    }
+                });
+            } else if (canvasSexo) {
+                 canvasSexo.parentElement.innerHTML = '<p class="text-center text-muted mt-4">No hay datos de sexo para mostrar.</p>';
+            }
+            // ================================================================
+            // --- FIN DEL CÓDIGO NUEVO ---
+            // ================================================================
+        })
+        .catch(error => {
+            console.error("Error al cargar datos del dashboard:", error);
+            // Opcional: mostrar un mensaje de error en la página
+            document.querySelector('.container-fluid').innerHTML = '<div class="alert alert-danger">No se pudieron cargar los datos del dashboard. Por favor, intenta de nuevo más tarde.</div>';
+        });
+});
+</script>
+{% endblock extra_js %}

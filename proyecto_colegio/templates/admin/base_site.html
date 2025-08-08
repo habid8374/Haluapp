@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block branding %}
+    <h1 id="site-name">
+        {% if request.user.is_authenticated and request.user.institucion_asociada %}
+            {{ request.user.institucion_asociada.nombre }}
+        {% else %}
+            Plataforma Académica
+        {% endif %}
+    </h1>
+{% endblock %}

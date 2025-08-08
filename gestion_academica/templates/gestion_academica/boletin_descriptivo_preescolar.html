@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Boletín Descriptivo - {{ estudiante.usuario.get_full_name }}</title>
+    <style>
+         body { font-family: Arial, sans-serif; font-size: 9pt; color: #333; line-height: 1.3; }
+        table { width: 100%; border-collapse: collapse; }
+        .header-table, .student-info-table { margin-bottom: 10px; }
+        .header-table td, .student-info-table td { padding: 2px 5px; vertical-align: top; }
+        .logo { max-height: 80px; max-width: 120px; }
+        .school-info { text-align: center; font-size: 10pt; }
+        .school-info h1 { font-size: 14pt; margin: 0; color: #003366; }
+        .school-info p { margin: 1px 0; }
+        .title-informe { text-align: center; font-weight: bold; font-size: 11pt; border: 1px solid black; padding: 5px; margin-bottom: 10px; background-color: #f2f2f2; }
+        .student-info-table td { border: 1px solid black; padding: 4px; }
+        .main-table { margin-top: 10px; }
+        .main-table th, .main-table td { border: 1px solid black; padding: 4px; vertical-align: top; }
+        .main-table thead th { background-color: #e9ecef; font-weight: bold; text-align: center; }
+        .area-row { background-color: #f2f2f2; font-weight: bold; }
+        .materia-desc p { margin: 0 0 5px 0; padding-left: 10px; font-size: 8pt; }
+        .materia-desc strong { font-size: 9.5pt; }
+        td.center { text-align: center; vertical-align: middle; }
+        .observaciones { border: 1px solid black; padding: 10px; margin-top: 15px; min-height: 50px; }
+        .escala-valorativa { font-size: 8pt; text-align: center; margin-top: 10px; }
+        .footer-signatures { margin-top: 40px; }
+        .signature-box { display: inline-block; width: 48%; text-align: center; vertical-align: top; }
+        .signature-line { border-top: 1px solid black; margin: 40px auto 5px auto; width: 80%; }
+        /* Ya no necesitamos la clase .promedio-box */
+        .footer-signatures { 
+        margin-top: 60px; 
+        page-break-inside: avoid; 
+    }
+    .signature-box { 
+        width: 48%; 
+        text-align: center;
+    }
+    .signature-box img {
+        display: block; /* Asegura que la imagen sea un bloque */
+        margin: 0 auto; /* Centra la imagen horizontalmente */
+        height: 40px;   /* Altura fija */
+        width: auto;    /* Ancho automático para mantener proporción */
+        margin-bottom: 1px; /* Pequeño espacio entre imagen y línea */
+    }
+    </style>
+</head>
+<body>
+    <header class="header-table">
+        <table>
+            <tr>
+                <td style="width: 20%; text-align: center;">
+                    {% if institucion.logo %}
+                        <img src="{{ institucion.logo.path }}" class="logo">
+                    {% endif %}
+                </td>
+                <td style="width: 60%;" class="school-info">
+                    <h1>{{ institucion.nombre|upper }}</h1>
+                    <p>{{ institucion.texto_aprobacion|linebreaksbr }}</p>
+                    <p>{{ institucion.texto_resolucion|linebreaksbr }}</p>
+                    <p><strong>Código De Identificación DANE {{ institucion.codigo_dane|default:"N/A" }}</strong></p>
+                    <p>{{ institucion.ciudad_departamento }}</p>
+                </td>
+                <td style="width: 20%;"></td>
+            </tr>
+        </table>
+    </header>
+    <div class="title-informe">INFORME DESCRIPTIVO Y VALORATIVO - {{ periodo.nombre|upper }}</div>
+    <table class="student-info-table">
+        <tr>
+            <td><strong>ESTUDIANTE:</strong> {{ estudiante.usuario.get_full_name|upper }}</td>
+            <td style="width: 30%;"><strong>AÑO:</strong> {{ periodo.año_escolar }}</td>
+        </tr>
+        <tr>
+            <td><strong>CURSO:</strong> {{ estudiante.grado_actual.nombre }}</td>
+            <td><strong>FECHA:</strong> {{ fecha_emision|date:"d/m/Y" }}</td>
+        </tr>
+    </table>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th style="width: 70%;">DESCRIPCIÓN CUALITATIVA</th>
+                <th colspan="{{ escala_cualitativa|length }}">ESCALA DE VALORACIÓN</th>
+            </tr>
+            <tr>
+                <th>DIMENSIONES Y LOGROS</th>
+                {% for escala in escala_cualitativa %}
+                    <th style="width: 10%;">{{ escala.abreviatura }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for dimension in dimensiones_data %}
+                {% if dimension.logros_de_la_dimension %}
+                    <tr class="dimension-row">
+                        <td colspan="{{ escala_cualitativa|length|add:1 }}">DIMENSIÓN {{ dimension.nombre|upper }}</td>
+                    </tr>
+                    {% for logro in dimension.logros_de_la_dimension %}
+                        <tr>
+                            <td style="padding-left: 25px;">- {{ logro.descripcion }}</td>
+                            {% for escala in escala_cualitativa %}
+                                <td class="center">
+                                    {# Lógica simplificada: ahora accedemos directamente a 'logro.evaluacion' #}
+                                    {% if logro.evaluacion and logro.evaluacion.id == escala.id %}✓{% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="observaciones">
+        <strong>Observaciones:</strong><br>
+        {{ observaciones|linebreaksbr }}
+    </div>
+
+    <div class="escala-valorativa">
+        <strong>Nivel de Desempeño:</strong>
+        {% for escala in escala_cualitativa %}
+            {{ escala.abreviatura }}: {{ escala.nombre_escala }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="footer-signatures">
+        <table style="border: none;">
+            <tr style="border: none;">
+                <td class="signature-box" style="border: none;">
+                    <div class="signature-line"></div>
+                    {% if director_de_grupo %}
+                        {{ director_de_grupo.docente.usuario.get_full_name }}<br>
+                        <small>Director(a) de Grupo</small>
+                    {% else %}
+                        <small>Director(a) de Grupo</small>
+                    {% endif %}
+                </td>
+                <td class="signature-box" style="border: none;">
+                    <div class="signature-line"></div>
+                    {{ institucion.nombre_rectora|default:"[Nombre Rector(a)]" }}<br>
+                    <small>DIRECTOR(A)</small>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

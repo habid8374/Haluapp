@@ -1,0 +1,84 @@
+{% extends "base_academico.html" %}
+{% load static %}
+{# --- INICIO DE LA CORRECCIÓN: Añadimos la carga de las etiquetas de Crispy Forms --- #}
+{% load crispy_forms_tags %}
+{# --- FIN DE LA CORRECCIÓN --- #}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'gestion_academica:docente_lista_actividades' %}">Mis Actividades</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ actividad.titulo }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Columna Izquierda: Lista de Preguntas -->
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h3 mb-0">Preguntas de la Actividad</h1>
+                <a href="{% url 'gestion_academica:crear_pregunta' actividad.pk %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Añadir Pregunta
+                </a>
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    {% if preguntas %}
+                        <ul class="list-group list-group-flush">
+                            {% for pregunta in preguntas %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Pregunta {{ forloop.counter }}:</strong> 
+                                    <span class="ms-2">{{ pregunta.enunciado|safe|truncatewords:15 }}</span>
+                                    <small class="badge bg-secondary rounded-pill ms-2">{{ pregunta.get_tipo_display }}</small>
+                                </div>
+                                <div class="btn-group">
+                                    <a href="{% url 'gestion_academica:editar_pregunta' pregunta.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                                    <a href="{% url 'gestion_academica:eliminar_pregunta' pregunta.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="alert alert-info m-3 text-center">
+                            <p class="mb-0">Esta actividad aún no tiene preguntas. ¡Añade la primera!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Formulario de Configuración -->
+        <div class="col-lg-4">
+            <h1 class="h3 mb-3">Configuración General</h1>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted">Los cambios aquí afectan a toda la actividad.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- El formulario de configuración se renderiza aquí -->
+                        {{ config_form|crispy }}
+                        
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save-fill me-2"></i>Guardar Configuración
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock contenido %}
+<script>
+  document.querySelector("form").addEventListener("submit", function (e) {
+    console.log("Fecha publicada:", document.querySelector('[name="fecha_publicacion"]').value);
+    console.log("Fecha límite:", document.querySelector('[name="fecha_entrega_limite"]').value);
+  });
+</script>
+

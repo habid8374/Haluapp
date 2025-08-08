@@ -1,0 +1,55 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">Detalle de Riesgo Académico</h1>
+            <p class="text-muted mb-0">Estudiante: <strong>{{ estudiante.usuario.get_full_name }}</strong></p>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'gestion_academica:reporte_riesgo_academico' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a la Lista
+            </a>
+            </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <i class="bi bi-shield-exclamation me-2"></i> Materias en Riesgo para este Estudiante
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Materia en Riesgo</th>
+                        <th>Estado Actual</th>
+                        <th>Nota Requerida (promedio en lo que resta)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alerta in alertas_del_estudiante %}
+                    <tr>
+                        <td>{{ alerta.curso.materia.nombre_materia }}</td>
+                        <td>
+                            <span class="badge {% if alerta.estado == 'Situación Crítica' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                {{ alerta.estado }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if alerta.nota_requerida %}
+                                Necesita un promedio de <strong>{{ alerta.nota_requerida|floatformat:2 }}</strong>
+                            {% else %}
+                                --
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

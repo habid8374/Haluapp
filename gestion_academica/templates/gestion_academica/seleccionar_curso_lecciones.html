@@ -1,0 +1,24 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+    <p class="lead text-muted">Elige un curso para ver el historial completo de lecciones diarias que han sido registradas.</p>
+
+    <div class="list-group shadow-sm">
+        {% for curso in cursos %}
+            <a href="{% url 'gestion_academica:lista_lecciones_diarias' curso.pk %}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ curso.materia.nombre_materia }}</h5>
+                    <small>{{ curso.periodo_academico.nombre }}</small>
+                </div>
+                <p class="mb-1">Grado: {{ curso.grado.nombre }}</p>
+            </a>
+        {% empty %}
+            <div class="list-group-item">No tienes cursos asignados en el periodo activo.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

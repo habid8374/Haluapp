@@ -1,0 +1,23 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:centro_gestion_docente' %}" class="btn btn-outline-secondary">Volver al Centro de Gestión</a>
+    </div>
+    <p>Selecciona un estudiante para añadir o editar su observación para el boletín del periodo <strong>{{ periodo.nombre }}</strong>.</p>
+    
+    <div class="list-group shadow-sm">
+        {% for estudiante in estudiantes %}
+            <a href="{% url 'gestion_academica:gestionar_observacion_formulario' estudiante_pk=estudiante.pk periodo_pk=periodo.pk %}" class="list-group-item list-group-item-action">
+                {{ forloop.counter }}. {{ estudiante.usuario.get_full_name }}
+            </a>
+        {% empty %}
+            <div class="list-group-item text-center p-3 text-muted">No se encontraron estudiantes matriculados en este grado.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

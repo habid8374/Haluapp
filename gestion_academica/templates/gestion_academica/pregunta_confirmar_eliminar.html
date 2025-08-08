@@ -1,0 +1,27 @@
+{% extends 'base_academico.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card text-center shadow-lg">
+                <div class="card-header bg-danger text-white">
+                    <h3>Confirmar Eliminación</h3>
+                </div>
+                <div class="card-body">
+                    <p class="fs-5">¿Estás seguro de que quieres eliminar la siguiente pregunta?</p>
+                    <blockquote class="blockquote">
+                        <p>{{ pregunta.enunciado|safe }}</p>
+                    </blockquote>
+                    <p class="text-danger"><strong>¡Atención!</strong> Esta acción no se puede deshacer. Se eliminarán también todas las opciones de respuesta asociadas.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <a href="{% url 'gestion_academica:gestionar_preguntas_actividad' pregunta.actividad.pk %}" class="btn btn-secondary btn-lg">Cancelar</a>
+                        <button type="submit" class="btn btn-danger btn-lg">Sí, Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

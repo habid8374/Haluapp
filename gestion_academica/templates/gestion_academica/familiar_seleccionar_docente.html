@@ -1,0 +1,16 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="h2 mb-4">{{ titulo_pagina }}</h1>
+    <div class="list-group">
+        {% for docente in docentes %}
+            <a href="{% url 'gestion_academica:familiar_agendar_cita' docente_pk=docente.pk %}" class="list-group-item list-group-item-action">
+                {{ docente.usuario.get_full_name }}
+            </a>
+        {% empty %}
+            <p>No hay docentes disponibles para agendar citas en este momento.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

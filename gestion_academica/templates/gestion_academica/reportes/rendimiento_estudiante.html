@@ -1,0 +1,164 @@
+{% extends "base_academico.html" %}
+{% load humanize %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-chart-pie me-2"></i>{{ titulo_pagina }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+            <form method="get" action="{% url 'gestion_academica:reporte_rendimiento_estudiante' %}" id="reporteForm" class="mb-4 p-3 border rounded bg-light">
+            
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="grado" class="form-label fw-bold">1. Grado:</label>
+                        <select name="grado" id="grado" class="form-select" onchange="document.getElementById('reporteForm').submit();">
+                            <option value="">--- Seleccione ---</option>
+                            {% for g in grados %}<option value="{{ g.id }}" {% if g.id|stringformat:"s" == grado_seleccionado_id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="estudiante" class="form-label fw-bold">2. Estudiante:</label>
+                        <select name="estudiante" id="estudiante" class="form-select" {% if not estudiantes_del_grado %}disabled{% endif %}>
+                            <option value="">--- Seleccione ---</option>
+                            {% for e in estudiantes_del_grado %}<option value="{{ e.pk }}" {% if e.pk|stringformat:"s" == estudiante_seleccionado_id %}selected{% endif %}>{{ e.usuario.get_full_name|default:e.usuario.username }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="periodo" class="form-label fw-bold">3. Periodo:</label>
+                        <select name="periodo" id="periodo" class="form-select">
+                            <option value="">--- Seleccione ---</option>
+                            {% for p in periodos %}<option value="{{ p.id }}" {% if p.id|stringformat:"s" == periodo_seleccionado_id %}selected{% endif %}>{{ p.nombre }} ({{ p.año_escolar }})</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Generar</button>
+                    </div>
+                </div>
+            </form>
+
+            {% if estudiante_seleccionado and periodo_seleccionado %}
+                <h5 class="border-bottom pb-2 mb-3">
+                    Reporte para: <strong class="text-primary">{{ estudiante_seleccionado.usuario.get_full_name }}</strong> | Periodo: <strong class="text-primary">{{ periodo_seleccionado.nombre }}</strong>
+                </h5>
+
+                {# --- REPORTE CUANTITATIVO (CON GRÁFICA) --- #}
+                {% if contexto_reporte.tipo_reporte == 'CUANTITATIVO' %}
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <h6>Tabla de Calificaciones</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Materia</th>
+                                            <th class="text-center">Nota Final</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in contexto_reporte.cursos_con_detalle %}
+                                        <tr>
+                                            <td>{{ item.curso.materia.nombre_materia }}</td>
+                                            <td class="text-center">
+                                                {% if item.nota_final_curso is not None %}<span class="badge bg-success fs-6">{{ item.nota_final_curso|floatformat:2 }}</span>{% else %}<span class="badge bg-secondary">S.C.</span>{% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr><td colspan="2" class="text-center">No se encontraron cursos.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    {% if contexto_reporte.promedio_general_periodo is not None %}
+                                    <tfoot class="table-group-divider fw-bold">
+                                        <tr>
+                                            <td class="text-end">Promedio General del Periodo:</td>
+                                            <td class="text-center fs-5 text-primary">{{ contexto_reporte.promedio_general_periodo|floatformat:2 }}</td>
+                                        </tr>
+                                    </tfoot>
+                                    {% endif %}
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <h6>Gráfica de Rendimiento</h6>
+                            <canvas id="rendimientoChart"></canvas>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# --- REPORTE CUALITATIVO (PREESCOLAR) --- #}
+                {% if contexto_reporte.tipo_reporte == 'CUALITATIVO' %}
+                    <h6>Reporte Descriptivo de Logros</h6>
+                    {% for dimension in contexto_reporte.dimensiones_data %}
+                        {% if dimension.logros_preescolar.all %}
+                            <h6 class="mt-3 bg-light p-2 rounded">Dimensión: {{ dimension.nombre }}</h6>
+                            <ul class="list-group">
+                                {% for logro in dimension.logros_preescolar.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ logro.descripcion }}
+                                    {% if logro.evaluacion %}
+                                        <span class="badge bg-info rounded-pill">{{ logro.evaluacion.abreviatura }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary rounded-pill">S.E.</span>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% empty %}
+                        <div class="alert alert-info">No se encontraron dimensiones o logros para este periodo.</div>
+                    {% endfor %}
+                {% endif %}
+
+            {% elif grado_seleccionado_id %}
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle me-2"></i>Por favor, seleccione un estudiante y un periodo para generar el reporte.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if contexto_reporte.tipo_reporte == 'CUANTITATIVO' and contexto_reporte.chart_data %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('rendimientoChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ contexto_reporte.chart_labels|safe }},
+                datasets: [{
+                    label: 'Nota Final',
+                    data: {{ contexto_reporte.chart_data|safe }},
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5 // Asumiendo que la nota máxima es 5
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

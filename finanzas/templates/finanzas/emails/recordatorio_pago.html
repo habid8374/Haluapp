@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <p>Estimado(a) acudiente de <strong>{{ cuenta.estudiante.usuario.get_full_name }}</strong>,</p>
+
+    {% if tipo_recordatorio == 'proximo_vencimiento' %}
+        <p>Le recordamos que tiene un pago próximo a vencer en <strong>{{ institucion.nombre }}</strong>.</p>
+    {% else %}
+        <p>Le informamos que tiene un saldo vencido en su estado de cuenta con <strong>{{ institucion.nombre }}</strong>.</p>
+    {% endif %}
+
+    <h3>Detalles de la Cuenta:</h3>
+    <ul>
+        <li><strong>Concepto:</strong> {{ cuenta.concepto_pago.nombre_concepto }}</li>
+        <li><strong>Saldo Pendiente:</strong> ${{ cuenta.saldo_pendiente|floatformat:2 }}</li>
+        <li><strong>Fecha de Vencimiento:</strong> {{ cuenta.fecha_vencimiento_especifica|date:"d F, Y" }}</li>
+    </ul>
+
+    <p>Puede realizar su pago y consultar su estado de cuenta completo en nuestro portal:</p>
+    <p><a href="{{ portal_url }}">Ir al Portal de Pagos</a></p>
+
+    <p>Atentamente,<br>
+    Departamento de Finanzas<br>
+    <strong>{{ institucion.nombre }}</strong></p>
+</body>
+</html>

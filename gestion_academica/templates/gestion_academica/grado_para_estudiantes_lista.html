@@ -1,0 +1,25 @@
+{% extends "base_academico.html" %}
+{% block titulo %}Grados con Estudiantes{% endblock %}
+
+{% block contenido %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'gestion_academica:inicio_academico' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Inicio
+        </a>
+    </div>
+
+    <h2>Selecciona un Grado</h2>
+    <ul class="list-group">
+        {% for grado in grados %}
+            <li class="list-group-item">
+                <a href="{% url 'gestion_academica:lista_estudiantes_por_grado' grado.pk %}">
+                    {{ grado.nombre }}
+                </a>
+            </li>
+        {% empty %}
+            <li class="list-group-item">No hay grados disponibles.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

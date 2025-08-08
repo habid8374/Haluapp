@@ -1,0 +1,53 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0">Bienvenido/a al Portal Familiar, {{ familiar.usuario.get_full_name }}</h1>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        Desde este portal puedes hacer seguimiento al progreso académico de tus hijos y comunicarte con los docentes.
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <i class="bi bi-people-fill me-2"></i>Mis Estudiantes Asociados
+        </div>
+        <div class="list-group list-group-flush">
+            {% for estudiante in estudiantes_a_cargo %}
+                <div class="list-group-item">
+                    <div class="row align-items-center gy-3">
+                        <div class="col-md-4">
+                            <h5 class="mb-1">{{ estudiante.usuario.get_full_name }}</h5>
+                            <p class="mb-0 text-muted">Grado: {{ estudiante.grado_actual.nombre|default:"No asignado" }}</p>
+                        </div>
+                        <div class="col-md-8 text-md-end">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'gestion_academica:familiar_ver_calificaciones_estudiante' estudiante.pk %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-card-checklist"></i> Calificaciones
+                                </a>
+                                <a href="{% url 'gestion_academica:familiar_ver_boletin_estudiante' estudiante.pk %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-file-earmark-text"></i> Boletín
+                                </a>
+                                <a href="{% url 'gestion_academica:familiar_ver_deberes_estudiante' estudiante.pk %}" class="btn btn-outline-info">
+                                    <i class="bi bi-journal-check"></i> Deberes
+                                </a>
+                                <a href="{% url 'gestion_academica:familiar_seleccionar_docente' %}" class="btn btn-success">
+                                    <i class="bi bi-calendar-plus"></i> Agendar Reunión
+                                </a>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="list-group-item text-center p-4">
+                    <p class="text-muted mb-0">No tienes estudiantes asociados a tu cuenta.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

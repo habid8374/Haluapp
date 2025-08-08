@@ -1,0 +1,47 @@
+{# gestion_academica/templates/gestion_academica/director_curso_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Asignación" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Asignación" }}</h1>
+    <hr>
+
+    {% if director_curso %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar la asignación del director de curso:</p>
+            <p class="mb-1">
+                <strong>Docente:</strong> {{ director_curso.docente.usuario.get_full_name|default:director_curso.docente.usuario.username }}
+            </p>
+            <p class="mb-1">
+                <strong>Grado:</strong> {{ director_curso.grado.nombre }}
+            </p>
+            <p class="mb-0">
+                <strong>Periodo:</strong> {{ director_curso.periodo_academico.nombre }} ({{ director_curso.periodo_academico.año_escolar }})
+            </p>
+            <hr>
+            <p class="mb-0 text-danger">Esta acción es **irreversible**.</p>
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Asignación
+            </button>
+            <a href="{% url 'gestion_academica:lista_directores_curso' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró la asignación del director de curso a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_directores_curso' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ asunto }}</title>
+</head>
+<body>
+    <p>Estimado(a) {{ familiar.usuario.get_full_name }},</p>
+    <p>Le escribimos desde el <strong>{{ institucion.nombre }}</strong> para invitarle a una reunión con el fin de discutir el progreso académico de {{ estudiante.usuario.first_name }}.</p>
+    <p>Hemos notado algunos factores que requieren nuestra atención conjunta en la materia de <strong>{{ prediccion.materia.nombre_materia }}</strong>.</p>
+    <p>Por favor, póngase en contacto con nosotros para agendar una cita.</p>
+    <br>
+    <p>Atentamente,<br>Coordinación Académica.</p>
+</body>
+</html>

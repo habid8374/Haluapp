@@ -1,0 +1,109 @@
+{% extends "base_finanzas.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0 h2">{{ titulo_pagina }}</h1>
+        <a href="{% url 'finanzas:superadmin_tickets' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver al Listado
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Historial de Conversación -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Conversación</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Mensaje Original -->
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <p class="mb-1"><strong>{{ ticket.usuario_reporta.get_full_name }}:</strong></p>
+                        <p>{{ ticket.descripcion|linebreaksbr }}</p>
+                        <small class="text-muted">{{ ticket.fecha_creacion|date:"d M, Y, h:i A" }}</small>
+                    </div>
+                    <!-- Respuestas -->
+                    {% for respuesta in respuestas %}
+                        <div class="mb-3 p-3 {% if respuesta.autor.is_superuser %}bg-primary-light{% else %}bg-light{% endif %} rounded">
+                            <p class="mb-1"><strong>{{ respuesta.autor.get_full_name }}:</strong></p>
+                            <p>{{ respuesta.mensaje|linebreaksbr }}</p>
+                            {% if respuesta.adjunto %}
+                                <p><a href="{{ respuesta.adjunto.url }}" target="_blank"><i class="bi bi-paperclip"></i> Ver adjunto</a></p>
+                            {% endif %}
+                            <small class="text-muted">{{ respuesta.fecha_creacion|date:"d M, Y, h:i A" }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <!-- Formulario de Respuesta y Detalles -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Responder y Gestionar</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-primary">Enviar Respuesta</button>
+                        </div>
+                    </form>
+                    <hr>
+                    <h6>Detalles del Ticket</h6>
+                    <p><strong>Estado:</strong> {{ ticket.get_estado_display }}</p>
+                    <p><strong>Prioridad:</strong> {{ ticket.get_prioridad_display }}</p>
+                    <p><strong>Institución:</strong> {{ ticket.institucion.nombre }}</p>
+
+                    <!-- ▼▼▼ INICIO DE LA SECCIÓN CORREGIDA ▼▼▼ -->
+                    {% if ticket.estado != 'CERRADO' %}
+                        <hr>
+                        <h6>Acciones</h6>
+                        <!-- Este botón ahora abre el modal -->
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmCloseModal">
+                                <i class="bi bi-check-circle-fill me-2"></i>Cerrar Ticket
+                            </button>
+                        </div>
+                    {% endif %}
+                    <!-- ▲▲▲ FIN DE LA SECCIÓN CORREGIDA ▲▲▲ -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ▼▼▼ MODAL DE CONFIRMACIÓN AÑADIDO ▼▼▼ -->
+{% if ticket.estado != 'CERRADO' %}
+<div class="modal fade" id="confirmCloseModal" tabindex="-1" aria-labelledby="confirmCloseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmCloseModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Acción
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas cerrar este ticket?</p>
+                <p class="text-muted">Esta acción cambiará el estado a "Cerrado" y no se podrá deshacer fácilmente.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <!-- Este formulario oculto se envía al confirmar -->
+                <form action="{% url 'finanzas:cerrar_ticket' ticket.ticket_id %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Sí, estoy seguro</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- ▲▲▲ FIN DEL MODAL ▲▲▲ -->
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base_finanzas.html' %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'finanzas:crear_cuenta_contable' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle-fill me-2"></i>Añadir Cuenta
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre de la Cuenta</th>
+                        <th>Clase</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cuenta in cuentas %}
+                    <tr>
+                        <td><strong>{{ cuenta.codigo }}</strong></td>
+                        <td>{{ cuenta.nombre }}</td>
+                        <td>{{ cuenta.get_clase_display }}</td>
+                        <td>
+                            <a href="{% url 'finanzas:editar_cuenta_contable' cuenta.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                            <a href="{% url 'finanzas:eliminar_cuenta_contable' cuenta.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center p-4">No hay cuentas contables registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "base_admisiones.html" %}
+
+{% block extra_css %}
+<style>
+    .pipeline-board {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+        gap: 1.5rem; /* Espacio entre columnas */
+    }
+    .pipeline-column {
+        flex: 0 0 320px; /* Ancho fijo para las columnas, no se encogen */
+        background-color: #f4f5f7;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+    }
+    .pipeline-column-header {
+        padding: 10px 15px;
+        font-weight: bold;
+        border-bottom: 2px solid #e0e0e0;
+        background-color: #e9ecef;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    .pipeline-cards {
+        min-height: 200px; /* Para que se pueda soltar aunque la columna esté vacía */
+        padding: 10px;
+        flex-grow: 1; /* La lista de tarjetas crece para llenar el espacio */
+        transition: background-color 0.2s ease-in-out;
+    }
+    .aspirante-card {
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 1px 2px rgba(9,30,66,.15);
+        padding: 12px;
+        margin-bottom: 10px;
+        cursor: grab;
+        border-left: 4px solid #0d6efd; /* Un pequeño detalle de color */
+    }
+    .aspirante-card:hover {
+        background-color: #f8f9fa;
+        box-shadow: 0 2px 4px rgba(9,30,66,.20);
+    }
+    .sortable-ghost { /* Estilo para el fantasma mientras se arrastra */
+        opacity: 0.4;
+        background-color: #cce5ff;
+        border: 2px dashed #0d6efd;
+    }
+    .sortable-drag {
+        cursor: grabbing; /* Cambia el cursor cuando se está arrastrando */
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+    <h1 class="h2 mb-4"><i class="bi bi-kanban-fill me-2"></i>{{ titulo_pagina }}</h1>
+
+    <div class="pipeline-board">
+        {% for estado, data in pipeline.items %}
+        <div class="pipeline-column">
+            <div class="pipeline-column-header">
+                {{ data.label }} <span class="badge bg-primary rounded-pill">{{ data.aspirantes|length }}</span>
+            </div>
+            <!-- El data-estado es crucial para saber a qué columna se movió -->
+            <div class="pipeline-cards list-group" id="columna-{{ estado }}" data-estado="{{ estado }}">
+                {% for aspirante in data.aspirantes %}
+                <!-- El data-id es crucial para saber qué aspirante se movió -->
+                <div class="aspirante-card list-group-item" data-id="{{ aspirante.pk }}">
+                    <a href="{% url 'admisiones:detalle_aspirante' aspirante.pk %}" class="text-decoration-none text-dark">
+                        <strong>{{ aspirante.apellidos }}, {{ aspirante.nombres }}</strong>
+                    </a>
+                    <div class="text-muted small mt-1">
+                        <i class="bi bi-award-fill text-secondary"></i> Grado: {{ aspirante.grado_aspira.nombre|default:"N/A" }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock contenido %}
+
+{% block extra_js %}
+<!-- Incluimos SortableJS desde un CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Función estándar de Django para obtener el token CSRF de las cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // ¿El nombre de la cookie coincide con lo que buscamos?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Obtenemos todas las columnas del tablero
+    const columns = document.querySelectorAll('.pipeline-cards');
+
+    columns.forEach(column => {
+        new Sortable(column, {
+            group: 'pipeline', // Permite mover tarjetas entre columnas del mismo grupo
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            onEnd: function (evt) {
+                // evt.to: la columna de destino
+                // evt.item: el elemento HTML que se movió
+
+                const aspiranteId = evt.item.dataset.id;
+                const nuevoEstado = evt.to.dataset.estado;
+                
+                console.log(`Moviendo aspirante ID: ${aspiranteId} a estado: ${nuevoEstado}`);
+
+                // Hacemos la llamada a nuestra API para actualizar la BD
+                fetch("{% url 'admisiones:actualizar_estado_aspirante_api' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // ¡AQUÍ ESTÁ LA MODIFICACIÓN CLAVE!
+                        // Incluimos el token CSRF que Django necesita para peticiones POST seguras.
+                        'X-CSRFToken': csrftoken 
+                    },
+                    body: JSON.stringify({
+                        aspirante_id: aspiranteId,
+                        nuevo_estado: nuevoEstado
+                    })
+                })
+                .then(response => {
+                    // Verificamos si la respuesta del servidor fue exitosa (código 2xx)
+                    if (!response.ok) {
+                        // Si no lo fue, intentamos leer el mensaje de error del servidor y lo lanzamos como un error
+                        return response.json().then(err => { throw new Error(err.message || 'Error desconocido del servidor.') });
+                    }
+                    // Si fue exitosa, pasamos los datos JSON al siguiente .then()
+                    return response.json();
+                })
+                .then(data => {
+                    if(data.status === 'success') {
+                        console.log('¡Éxito! Estado actualizado en el servidor:', data.message);
+                        // Opcional: podrías mostrar una pequeña notificación de éxito aquí.
+                    } else {
+                        // Este caso es por si el servidor responde con 200 OK pero con un status de error en el JSON
+                        throw new Error(data.message);
+                    }
+                })
+                .catch(error => {
+                    // Este bloque .catch() captura errores de red (como el que tuviste)
+                    // o los errores que lanzamos manualmente en el .then() de arriba.
+                    console.error('Error al actualizar:', error);
+                    
+                    // ¡Importante! Si la actualización falla, devolvemos la tarjeta a su columna original
+                    // para que la interfaz se mantenga consistente con la base de datos.
+                    evt.from.appendChild(evt.item);
+                    
+                    alert('Error: ' + error.message);
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

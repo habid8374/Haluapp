@@ -1,0 +1,37 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="h2 mb-4">{{ titulo_pagina }}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="estudiante_id" class="form-label">¿La cita es para cuál de tus hijos?</label>
+            <select name="estudiante_id" id="estudiante_id" class="form-select" required>
+                {% for est in estudiantes_del_familiar %}
+                <option value="{{ est.pk }}">{{ est.usuario.get_full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="asunto" class="form-label">Asunto Principal de la Reunión</label>
+            <input type="text" name="asunto" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Selecciona un Horario Disponible:</label>
+            <div class="list-group">
+                {% for slot in slots_disponibles %}
+                <label class="list-group-item">
+                    <input type="radio" name="fecha_hora" value="{{ slot.isoformat }}" class="form-check-input me-2" required>
+                    {{ slot|date:"l, d F Y, h:i A" }}
+                </label>
+                {% empty %}
+                <p>Este docente no tiene horarios de atención configurados.</p>
+                {% endfor %}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Solicitar Cita</button>
+    </form>
+</div>
+{% endblock %}

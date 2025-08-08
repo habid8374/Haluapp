@@ -1,0 +1,15 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+  <h2 class="text-danger">{{ titulo_pagina }}</h2>
+  <p class="lead">{{ mensaje_confirmacion }}</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <a href="{{ url_cancelar }}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

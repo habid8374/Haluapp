@@ -1,0 +1,123 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tickets-tab" data-bs-toggle="tab" data-bs-target="#tickets" type="button" role="tab" aria-controls="tickets" aria-selected="true">
+                <i class="bi bi-ticket-detailed-fill me-2"></i>Mis Tickets de Soporte
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="faq-tab" data-bs-toggle="tab" data-bs-target="#faq" type="button" role="tab" aria-controls="faq" aria-selected="false">
+                <i class="bi bi-question-circle-fill me-2"></i>Preguntas Frecuentes
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        <!-- Pestaña de Tickets de Soporte -->
+        <div class="tab-pane fade show active" id="tickets" role="tabpanel" aria-labelledby="tickets-tab">
+            <div class="row mt-4">
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Abrir un Nuevo Ticket</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                {{ form|crispy }}
+                                <div class="d-grid mt-3">
+                                    <button type="submit" class="btn btn-success">Enviar Ticket</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Mi Historial de Tickets</h5>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            {% for ticket in tickets_del_usuario %}
+                                <a href="{% url 'gestion_academica:ticket_detail' ticket.ticket_id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">[{{ ticket.ticket_id }}] - {{ ticket.titulo }}</h6>
+                                        <small>{{ ticket.fecha_creacion|timesince }} atrás</small>
+                                    </div>
+                                    <p class="mb-1 text-muted">{{ ticket.descripcion|truncatewords:15 }}</p>
+                                    <small>
+                                        <span class="badge bg-info">{{ ticket.get_prioridad_display }}</span>
+                                        <span class="badge bg-success">{{ ticket.get_estado_display }}</span>
+                                    </small>
+                                </a>
+                            {% empty %}
+                                <div class="list-group-item text-center p-4">No has creado ningún ticket de soporte.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ▼▼▼ INICIO DE LA SECCIÓN RESTAURADA ▼▼▼ -->
+        <!-- Pestaña de Preguntas Frecuentes (tu código original) -->
+        <div class="tab-pane fade" id="faq" role="tabpanel" aria-labelledby="faq-tab">
+            <div class="mt-4">
+                <div class="accordion" id="accordionFAQ">
+                    <div class="accordion-item faq-item shadow-sm">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed faq-question" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                ¿Cómo puedo ver mis calificaciones?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionFAQ">
+                            <div class="accordion-body">
+                                <p>Si eres <strong>estudiante</strong>, puedes acceder a la sección "<a href="{% url 'gestion_academica:mis_cursos_calificaciones' %}">Mis Calificaciones</a>" desde el menú principal una vez que hayas iniciado sesión. Allí verás un resumen de tus cursos y podrás hacer clic en cada uno para ver el detalle de las actividades y tus notas.</p>
+                                <p>Si eres <strong>familiar</strong>, encontrarás esta opción dentro del "<a href="{% url 'gestion_academica:portal_familiar_inicio' %}">Portal Familiar</a>" para cada estudiante a tu cargo.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item faq-item shadow-sm">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed faq-question" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                ¿Cómo entrego un deber?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionFAQ">
+                            <div class="accordion-body">
+                                <p>Los estudiantes pueden ir a la sección "<a href="{% url 'gestion_academica:mis_deberes_lista' %}">Mis Deberes</a>" desde el menú. Allí verán los deberes asignados. Hagan clic en "Realizar Entrega" para el deber correspondiente, donde podrán adjuntar archivos y/o añadir comentarios.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item faq-item shadow-sm">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed faq-question" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Olvidé mi contraseña, ¿qué hago?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionFAQ">
+                            <div class="accordion-body">
+                                <p>En la página de inicio de sesión, encontrarás un enlace que dice "<a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>". Sigue las instrucciones para restablecerla.</p>
+                                <p>Si continúas teniendo problemas, por favor contacta a la administración de la institución.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {# Puedes añadir más preguntas frecuentes aquí #}
+                </div>
+            </div>
+        </div>
+        <!-- ▲▲▲ FIN DE LA SECCIÓN RESTAURADA ▲▲▲ -->
+    </div>
+</div>
+{% endblock %}

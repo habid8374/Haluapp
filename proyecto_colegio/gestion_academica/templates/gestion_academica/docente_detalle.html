@@ -1,0 +1,61 @@
+{% extends "gestion_academica/base.html" %}
+
+{% block titulo %}Detalle: {{ docente.usuario.get_full_name|default:docente.usuario.username }}{% endblock %}
+
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Detalle del Docente</h1>
+    <a href="{% url 'gestion_academica:lista_docentes' %}" class="btn btn-outline-secondary">Volver a la Lista</a>
+</div>
+<hr>
+
+{% if docente %}
+<div class="card shadow-sm">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">{{ docente.usuario.get_full_name|default:docente.usuario.username }}</h4>
+        {% if docente.codigo_docente %}
+            <small class="text-muted">Código: {{ docente.codigo_docente }}</small>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="card-title">Datos de Usuario</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Usuario (Login):</strong> {{ docente.usuario.username }}</li>
+                    <li><strong>Nombres:</strong> {{ docente.usuario.first_name|default:"No especificado" }}</li>
+                    <li><strong>Apellidos:</strong> {{ docente.usuario.last_name|default:"No especificado" }}</li>
+                    <li><strong>Email:</strong> {{ docente.usuario.email|default:"No especificado" }}</li>
+                    <li><strong>Rol:</strong> {{ docente.usuario.get_rol_display|default:"No especificado" }}</li>
+                    <li><strong>Activo:</strong> {% if docente.usuario.is_active %}Sí{% else %}No{% endif %}</li>
+                    <li><strong>Fecha de Ingreso:</strong> {{ docente.usuario.date_joined|date:"d/m/Y H:i" }}</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5 class="card-title">Datos Profesionales</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Código de Docente:</strong> {{ docente.codigo_docente|default:"No especificado" }}</li>
+                    <li><strong>Especialidad Principal:</strong> {{ docente.especialidad|default:"No especificada" }}</li>
+                    {# Aquí podrías añadir más información si la tienes en el modelo Docente #}
+                    {# Ejemplo: <li><strong>Teléfono de Contacto:</strong> {{ docente.telefono_contacto|default:"No especificado" }}</li> #}
+                    {# Ejemplo: <li><strong>Oficina:</strong> {{ docente.oficina|default:"No especificada" }}</li> #}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer text-end">
+        <a href="{% url 'gestion_academica:editar_docente' docente.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil-square"></i> Editar Docente
+        </a>
+        <a href="{% url 'gestion_academica:eliminar_docente' docente.pk %}" class="btn btn-danger ms-2">
+            <i class="bi bi-trash"></i> Eliminar Docente
+        </a>
+    </div>
+</div>
+{% else %}
+    <div class="alert alert-warning" role="alert">
+      No se encontró la información del docente.
+    </div>
+{% endif %}
+
+{% endblock %}

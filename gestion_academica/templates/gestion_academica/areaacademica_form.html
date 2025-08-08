@@ -1,0 +1,79 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+  <h2>{{ titulo_pagina }}</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      {{ form.nombre.label_tag }}
+      {{ form.nombre }}
+      {% if form.nombre.errors %}
+        <div class="text-danger">{{ form.nombre.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.institucion.label_tag }}
+      {{ form.institucion }}
+      {% if form.institucion.errors %}
+        <div class="text-danger">{{ form.institucion.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="row">
+      <div class="col-md-5">
+        <label>Materias Disponibles</label>
+        <select id="materias_disponibles" class="form-control" multiple size="10">
+          {% for materia in materias_disponibles %}
+            <option value="{{ materia.id }}">{{ materia.nombre_materia }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex flex-column justify-content-center text-center">
+        <button type="button" class="btn btn-primary mb-2" onclick="mover('materias_disponibles', 'materias_seleccionadas')">&gt;&gt;</button>
+        <button type="button" class="btn btn-danger" onclick="mover('materias_seleccionadas', 'materias_disponibles')">&lt;&lt;</button>
+      </div>
+
+      <div class="col-md-5">
+  <label>Materias Asociadas</label>
+  <select id="materias_seleccionadas" name="materias" class="form-control" multiple size="10">
+    {% if form.instance.pk %}
+      {% for materia in form.instance.materias.all %}
+        <option value="{{ materia.id }}" selected>{{ materia.nombre_materia }}</option>
+      {% endfor %}
+    {% endif %}
+  </select>
+  {% if form.materias.errors %}
+    <div class="text-danger">{{ form.materias.errors }}</div>
+  {% endif %}
+</div>
+
+    <div class="mt-4">
+      <button type="submit" class="btn btn-success">Guardar</button>
+      <a href="{% url 'gestion_academica:listar_areas_academicas' %}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  function mover(origenID, destinoID) {
+    let origen = document.getElementById(origenID);
+    let destino = document.getElementById(destinoID);
+
+    Array.from(origen.selectedOptions).forEach(option => {
+      destino.appendChild(option);
+    });
+  }
+
+  // Al enviar el formulario, selecciona todas las opciones del select derecho
+  document.querySelector('form').addEventListener('submit', function () {
+    const seleccionadas = document.getElementById('materias_seleccionadas');
+    Array.from(seleccionadas.options).forEach(option => option.selected = true);
+  });
+</script>
+{% endblock %}

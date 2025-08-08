@@ -1,0 +1,48 @@
+{% extends 'base_finanzas.html' %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h3 class="mb-0">{{ titulo_pagina }}</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Usa esta herramienta para aplicar un concepto de cobro a múltiples estudiantes a la vez.
+                    </p>
+                    <hr>
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- Usamos crispy para renderizar los campos -->
+                        {{ form.concepto_pago|as_crispy_field }}
+                        {{ form.fecha_vencimiento|as_crispy_field }}
+
+                        <div class="card my-4">
+                            <div class="card-header">
+                                <strong>3. ¿A quiénes se les aplicará el cobro?</strong>
+                            </div>
+                            <div class="card-body">
+                                {{ form.toda_la_institucion|as_crispy_field }}
+                                <hr>
+                                {{ form.grados|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-play-circle-fill"></i> Iniciar Proceso de Facturación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

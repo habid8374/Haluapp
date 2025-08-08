@@ -1,0 +1,97 @@
+{% extends "base_academico.html" %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-eye me-2"></i>{{ titulo_pagina }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+
+            <form method="get" class="mb-4 p-3 border rounded bg-light">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="grado" class="form-label fw-bold">1. Grado:</label>
+                        <select name="grado" id="grado" class="form-select" onchange="this.form.submit();">
+                            <option value="">--- Seleccione un Grado ---</option>
+                            {% for g in grados %}<option value="{{ g.id }}" {% if g.id|stringformat:"s" == grado_seleccionado_id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="estudiante" class="form-label fw-bold">2. Estudiante:</label>
+                        <select name="estudiante" id="estudiante" class="form-select" onchange="this.form.submit();" {% if not estudiantes_del_grado %}disabled{% endif %}>
+                            <option value="">--- Seleccione un Estudiante ---</option>
+                            {% for e in estudiantes_del_grado %}<option value="{{ e.pk }}" {% if e.pk|stringformat:"s" == estudiante_seleccionado_id %}selected{% endif %}>{{ e.usuario.get_full_name|default:e.usuario.username }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </form>
+
+            {% if estudiante_seleccionado %}
+                <h5 class="border-bottom pb-2 mb-3">
+                    Historial de: <strong class="text-primary">{{ estudiante_seleccionado.usuario.get_full_name }}</strong>
+                </h5>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h6>Historial de Anotaciones</h6>
+                        {% for anotacion in reporte_data.anotaciones %}
+                            <div class="card mb-3">
+                                <div class="card-header d-flex justify-content-between">
+                                    <strong>{{ anotacion.get_tipo_display }}</strong>
+                                    <small class="text-muted">{{ anotacion.fecha_hora|date:"d/m/Y, h:i A" }}</small>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">{{ anotacion.descripcion|linebreaksbr }}</p>
+                                </div>
+                                <div class="card-footer text-muted">
+                                    Registrado por: {{ anotacion.registrado_por.get_full_name|default:"Sistema" }}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="alert alert-success">Este estudiante no tiene anotaciones en el observador.</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-lg-4">
+                        <h6>Gráfico Resumen</h6>
+                        <canvas id="incidenciasChart"></canvas>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if reporte_data.chart_labels %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('incidenciasChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ reporte_data.chart_labels|safe }},
+                datasets: [{
+                    label: 'Total de Anotaciones',
+                    data: {{ reporte_data.chart_data|safe }},
+                    backgroundColor: [
+                        'rgba(25, 135, 84, 0.7)',
+                        'rgba(220, 53, 69, 0.7)',
+                        'rgba(13, 202, 240, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(108, 117, 125, 0.7)'
+                    ],
+                    hoverOffset: 4
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'top' } } }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

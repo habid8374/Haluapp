@@ -1,0 +1,45 @@
+{% extends "admin/app_index.html" %}
+{% load i18n %}
+
+{% block content %}
+    
+    {# Esta línea renderiza la lista de modelos de la app, como siempre #}
+    {{ block.super }}
+
+    {# Solo mostramos esta sección si estamos en la página de la app 'gestion_academica' #}
+    {% if app_label == 'gestion_academica' %}
+        <div class="module">
+            <table class="table table-striped">
+                <caption>
+                    <a class="section" style="text-decoration: none; color: inherit;">
+                        <i class="bi bi-graph-up-arrow me-1"></i> Reportes y Dashboards
+                    </a>
+                </caption>
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                            <a href="{% url 'gestion_academica:reporte_riesgo_global' %}">Reporte Global de Riesgo Académico</a>
+                        </th>
+                        <td>
+                            <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="addlink">
+                                Ver Reporte
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <a href="{% url 'gestion_academica:admin_asistencia_diaria' %}">Dashboard de Asistencia Diaria</a>
+                        </th>
+                        <td>
+                            <a href="{% url 'gestion_academica:admin_asistencia_diaria' %}" class="addlink">
+                                Ver Dashboard
+                            </a>
+                        </td>
+                    </tr>
+                    {# Aquí puedes añadir más enlaces a otros reportes en el futuro #}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+{% endblock %}

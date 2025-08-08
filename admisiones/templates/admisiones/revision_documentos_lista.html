@@ -1,0 +1,43 @@
+{% extends 'base_academico.html' %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h3 class="mb-4">{{ titulo_pagina }}</h3>
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Aspirante</th>
+                            <th>Grado</th>
+                            <th>Documentos Pendientes</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for asp in aspirantes %}
+                        <tr>
+                            <td>{{ asp.nombres }} {{ asp.apellidos }}</td>
+                            <td>{{ asp.grado_aspira.nombre }}</td>
+                            <td>
+                                <span class="badge bg-warning text-dark">{{ asp.documentos_pendientes }}</span>
+                            </td>
+                            <td>
+                                <a href="{% url 'admisiones:revision_documento_detalle' asp.id %}" class="btn btn-primary btn-sm">
+                                    Revisar Documentos
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No hay aspirantes con documentos pendientes de revisión.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock contenido %}

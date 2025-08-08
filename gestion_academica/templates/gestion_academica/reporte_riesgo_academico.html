@@ -1,0 +1,93 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0"><i class="bi bi-shield-exclamation text-primary me-2"></i> {{ titulo_pagina }}</h1>
+            {% if ultimo_analisis %}
+                <small class="text-muted">Último análisis: {{ ultimo_analisis.fecha_analisis|date:"d M, Y, h:i A" }}</small>
+            {% else %}
+                <small class="text-muted">Aún no se ha ejecutado ningún análisis.</small>
+            {% endif %}
+        </div>
+        
+        <form action="{% url 'gestion_academica:ejecutar_analisis_riesgo' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-arrow-clockwise"></i> Ejecutar Nuevo Análisis
+            </button>
+        </form>
+    </div>
+    {% if ultimo_analisis %}
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-list-check me-1"></i> Detalle de Predicciones de Riesgo
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>Materia</th>
+                            <th class="text-center">Nivel de Riesgo</th>
+                            <th>Factores Detectados</th>
+                            <th class="text-center">Acciones de Intervención</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prediccion in predicciones %}
+                        <tr>
+                            <td><strong>{{ prediccion.estudiante.usuario.get_full_name }}</strong></td>
+                            <td>
+                            {% if prediccion.materia %}
+                            {{ prediccion.materia.nombre_materia }}
+                            {% else %}
+                               <span class="text-muted fst-italic">General</span>
+                            {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge {% if prediccion.nivel_riesgo == 'ALTO' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                    {{ prediccion.get_nivel_riesgo_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <small>{{ prediccion.justificacion }}</small>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'gestion_academica:citar_acudiente' prediccion.pk %}" class="btn btn-outline-primary" title="Citar Acudiente">
+                                        <i class="bi bi-envelope-at-fill"></i> Citar
+                                    </a>
+                                    <a href="{% url 'gestion_academica:notificar_docente' prediccion.pk %}" class="btn btn-outline-secondary" title="Notificar al Docente">
+                                        <i class="bi bi-bell-fill"></i> Notificar
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center p-4">
+                                <h5 class="mb-1">¡Buenas noticias!</h5>
+                                <p class="text-muted mb-0">No se encontraron estudiantes en riesgo en este análisis.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    {% else %}
+        <div class="alert alert-info text-center shadow-sm">
+            <i class="bi bi-info-circle-fill fs-1"></i>
+            <h4 class="alert-heading mt-2">Aún no hay datos</h4>
+            <p>El análisis de riesgo académico nunca se ha ejecutado. Para generar el primer reporte, haz clic en el botón "Ejecutar Nuevo Análisis".</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

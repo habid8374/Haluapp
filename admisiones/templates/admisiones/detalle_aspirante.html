@@ -1,0 +1,124 @@
+<!-- Archivo: templates/admisiones/detalle_aspirante.html -->
+
+{% extends "base_admisiones.html" %}
+
+{% block titulo %}Detalle de Aspirante: {{ aspirante }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Detalle del Aspirante</h1>
+        <div>
+            {% if aspirante.estado != 'MATRICULADO' %}
+            <a href="{% url 'admisiones:editar_aspirante' aspirante.pk %}" class="btn btn-warning me-2"><i class="bi bi-pencil-fill"></i> Editar</a>
+            <a href="{% url 'admisiones:eliminar_aspirante' aspirante.pk %}" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Eliminar</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h4>{{ aspirante.nombres }} {{ aspirante.apellidos }}</h4>
+        </div>
+        <div class="card-body">
+            
+            <!-- Sección de Información Personal -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h5>Información Personal</h5>
+                    <p class="mb-1"><strong>Documento:</strong> {{ aspirante.numero_documento }}</p>
+                    <p class="mb-1"><strong>Fecha de Nacimiento:</strong> {{ aspirante.fecha_nacimiento|date:"d F, Y" }}</p>
+                    <p class="mb-1"><strong>Email de Contacto:</strong> {{ aspirante.email_contacto }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Información de Procedencia</h5>
+                    <p class="mb-1"><strong>Colegio de Procedencia:</strong> {{ aspirante.colegio_procedencia|default:"No especificado" }}</p>
+                    <p class="mb-1"><strong>Municipio/Ciudad:</strong> {{ aspirante.municipio_procedencia|default:"No especificado" }}</p>
+                    <p class="mb-1"><strong>Departamento:</strong> {{ aspirante.departamento_procedencia|default:"No especificado" }}</p>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Sección de Información de Admisión -->
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Información de Admisión</h5>
+                    <p class="mb-1"><strong>Grado al que Aspira:</strong> {{ aspirante.grado_aspira.nombre|default:"N/A" }}</p>
+                    <p class="mb-1"><strong>Fecha de Inscripción:</strong> {{ aspirante.fecha_inscripcion|date:"d F, Y H:i" }}</p>
+                    <p class="mb-1"><strong>Requiere Pago de Inscripción:</strong> {% if aspirante.requiere_pago_inscripcion %}Sí{% else %}No{% endif %}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Estado del Proceso</h5>
+                    <p class="mb-1"><strong>Estado Actual:</strong> 
+                        <span class="badge 
+                            {% if aspirante.estado == 'ADMITIDO' %}bg-info text-dark
+                            {% elif aspirante.estado == 'MATRICULADO' %}bg-success
+                            {% elif aspirante.estado == 'RECHAZADO' %}bg-danger
+                            {% else %}bg-secondary{% endif %} fs-6">
+                            {{ aspirante.get_estado_display }}
+                        </span>
+                    </p>
+                    {% if aspirante.estudiante_creado %}
+                        <p class="mb-1"><strong>Perfil de Estudiante:</strong> <a href="{% url 'gestion_academica:detalle_estudiante' aspirante.estudiante_creado.pk %}">Ver Ficha Académica</a></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ================================================================ -->
+            <!--  SECCIÓN DEL PORTAL CON LÓGICA DE DEPURACIÓN                     -->
+            <!-- ================================================================ -->
+            {% if aspirante.estado != 'MATRICULADO' %}
+            <hr>
+            <div class="mt-4 p-3 border rounded bg-light">
+                <h5 class="mb-3"><i class="bi bi-link-45deg me-2"></i>Portal del Postulante</h5>
+                <p>Este es el enlace único y seguro para que el padre de familia pueda subir documentos y seguir el proceso. **Cópielo y envíelo por correo electrónico o WhatsApp.**</p>
+                
+                <div class="input-group">
+                    <input type="text" class="form-control" value="{{ request.scheme }}://{{ request.get_host }}{{ aspirante.get_portal_url }}" id="portal-link-input" readonly>
+                    <button class="btn btn-outline-secondary" type="button" onclick="copiarAlPortapapeles('portal-link-input', this)" id="copy-button">
+                        <i class="bi bi-clipboard"></i> Copiar
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <!-- ESTE ES EL BLOQUE DE DEPURACIÓN QUE APARECERÁ SI EL ASPIRANTE ESTÁ MATRICULADO -->
+            <hr>
+            <div class="alert alert-info mt-4">
+                <h5 class="alert-heading"><i class="bi bi-info-circle-fill"></i> Información del Aspirante</h5>
+                <p class="mb-0">La sección del "Portal del Postulante" no se muestra porque el estado de este aspirante es <strong>"{{ aspirante.get_estado_display }}"</strong> (valor en base de datos: <code>{{ aspirante.estado }}</code>).</p>
+                <p class="mt-2">Esta es la lógica esperada, ya que un estudiante matriculado no necesita subir más documentos de admisión.</p>
+            </div>
+            {% endif %}
+            <!-- ================================================================ -->
+            <!--  FIN DE LA SECCIÓN DEL PORTAL                                    -->
+            <!-- ================================================================ -->
+        </div>
+        <div class="card-footer text-end">
+             <a href="{% url 'admisiones:lista_grados_aspirantes' %}" class="btn btn-secondary">Volver a la Lista</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Pequeña función de JavaScript para manejar la acción de copiar
+function copiarAlPortapapeles(inputId, buttonElement) {
+    const linkInput = document.getElementById(inputId);
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999); // Para compatibilidad con móviles
+
+    try {
+        document.execCommand('copy');
+        buttonElement.innerHTML = '<i class="bi bi-clipboard-check-fill"></i> Copiado';
+        setTimeout(() => {
+            buttonElement.innerHTML = '<i class="bi bi-clipboard"></i> Copiar';
+        }, 2000);
+    } catch (err) {
+        // Fallback por si execCommand no es soportado
+        alert('Error al copiar el enlace. Por favor, cópielo manualmente.');
+    }
+}
+</script>
+{% endblock %}

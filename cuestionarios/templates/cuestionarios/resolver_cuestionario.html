@@ -1,0 +1,250 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div id="cuestionario-app" 
+         data-intento-id="{{ intento.pk }}"
+         data-actividad-id="{{ cuestionario.actividad_calificable.pk }}"
+         data-tiempo-limite="{{ cuestionario.tiempo_limite }}"
+         data-submit-url="{% url 'cuestionarios:resolver_api' intento.pk %}"
+         data-api-url="{% url 'cuestionarios:api_cuestionario' cuestionario.actividad_calificable.pk %}"
+         data-csrf-token="{{ csrf_token }}">
+        
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando cuestionario...</span>
+            </div>
+            <p class="mt-2">Cargando cuestionario...</p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const app = document.getElementById('cuestionario-app');
+    const { 
+        intentoId, 
+        actividadId, 
+        tiempoLimite, 
+        submitUrl, 
+        apiUrl, 
+        csrfToken 
+    } = app.dataset;
+
+    let cuestionarioData = {};
+    let timerInterval;
+
+    // --- LÓGICA PARA RENDERIZAR CADA TIPO DE PREGUNTA ---
+    function renderizarPregunta(pregunta, index) {
+        let opcionesHtml = '';
+        const tipo = pregunta.tipo;
+
+        if (tipo === 'opcion_multiple' || tipo === 'verdadero_falso') {
+            opcionesHtml = pregunta.opciones.map(op => `
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="pregunta_${pregunta.id}" id="opcion_${op.id}" value="${op.id}">
+                    <label class="form-check-label" for="opcion_${op.id}">${op.texto}</label>
+                </div>
+            `).join('');
+        } 
+        else if (tipo === 'seleccion_multiple') {
+            opcionesHtml = pregunta.opciones.map(op => `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="pregunta_${pregunta.id}" id="opcion_${op.id}" value="${op.id}">
+                    <label class="form-check-label" for="opcion_${op.id}">${op.texto}</label>
+                </div>
+            `).join('');
+        }
+        else if (tipo === 'texto_libre') {
+            opcionesHtml = `
+                <div class="form-group">
+                    <textarea class="form-control" id="pregunta_${pregunta.id}" rows="4" placeholder="Escribe tu respuesta aquí..."></textarea>
+                </div>
+            `;
+        }
+        else if (tipo === 'emparejamiento') {
+            const conceptos = pregunta.opciones.map(op => op.texto);
+            // Creamos una copia y la desordenamos para los dropdowns
+            const definiciones = [...pregunta.opciones.map(op => op.emparejamiento)].sort(() => Math.random() - 0.5);
+
+            opcionesHtml = conceptos.map((concepto, i) => `
+                <div class="row mb-2 align-items-center emparejamiento-par">
+                    <div class="col-md-5">
+                        <span class="concepto-texto">${concepto}</span>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <i class="bi bi-arrow-right-short"></i>
+                    </div>
+                    <div class="col-md-5">
+                        <select class="form-select">
+                            <option value="">Selecciona una opción...</option>
+                            ${definiciones.map(def => `<option value="${def}">${def}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Se añade data-pregunta-tipo para facilitar la recolección de respuestas
+        return `
+            <div class="card mb-3" data-pregunta-id="${pregunta.id}" data-pregunta-tipo="${tipo}">
+                <div class="card-header d-flex justify-content-between">
+                    <strong>Pregunta ${index + 1}</strong> 
+                    <span class="badge bg-secondary">${pregunta.puntaje} pts</span>
+                </div>
+                <div class="card-body">
+                    <div class="enunciado mb-3">${pregunta.enunciado}</div>
+                    <div class="opciones-container">
+                        ${opcionesHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderizarCuestionario() {
+        const preguntasHtml = cuestionarioData.preguntas.map(renderizarPregunta).join('');
+        app.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>${cuestionarioData.titulo}</h3>
+                <div id="timer" class="badge bg-danger fs-5 p-2"></div>
+            </div>
+            <p>${cuestionarioData.descripcion || ''}</p>
+            <hr>
+            <div id="preguntas-list">
+                ${preguntasHtml}
+            </div>
+            <div class="d-grid gap-2 mt-4">
+                <button id="finalizar-btn" class="btn btn-success btn-lg">Finalizar Intento</button>
+            </div>
+        `;
+        
+        if (tiempoLimite > 0) {
+            iniciarTemporizador();
+        } else {
+            document.getElementById('timer').textContent = 'Sin límite';
+        }
+
+        document.getElementById('finalizar-btn').addEventListener('click', finalizarIntento);
+    }
+
+    function iniciarTemporizador() {
+        let tiempoRestante = tiempoLimite * 60;
+        const timerEl = document.getElementById('timer');
+        
+        timerInterval = setInterval(() => {
+            if (--tiempoRestante < 0) {
+                clearInterval(timerInterval);
+                finalizarIntento();
+                return;
+            }
+            const minutos = Math.floor(tiempoRestante / 60);
+            const segundos = tiempoRestante % 60;
+            timerEl.textContent = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    // --- LÓGICA MEJORADA PARA RECOLECTAR TODAS LAS RESPUESTAS ---
+    function finalizarIntento() {
+        clearInterval(timerInterval);
+        const btn = document.getElementById('finalizar-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Calificando...';
+
+        const respuestas = {};
+
+        document.querySelectorAll('#preguntas-list .card').forEach(preguntaCard => {
+            const preguntaId = preguntaCard.dataset.preguntaId;
+            const tipo = preguntaCard.dataset.preguntaTipo;
+
+            switch (tipo) {
+                case 'opcion_multiple':
+                case 'verdadero_falso': {
+                    const inputSeleccionado = preguntaCard.querySelector('input:checked');
+                    if (inputSeleccionado) {
+                        // El backend espera una lista de opciones seleccionadas
+                        respuestas[preguntaId] = { tipo, opciones_seleccionadas: [parseInt(inputSeleccionado.value)] };
+                    }
+                    break;
+                }
+                case 'seleccion_multiple': {
+                    const inputsSeleccionados = preguntaCard.querySelectorAll('input:checked');
+                    const idsSeleccionados = Array.from(inputsSeleccionados).map(input => parseInt(input.value));
+                    if (idsSeleccionados.length > 0) {
+                        respuestas[preguntaId] = { tipo, opciones_seleccionadas: idsSeleccionados };
+                    }
+                    break;
+                }
+                case 'texto_libre': {
+                    const textarea = preguntaCard.querySelector('textarea');
+                    if (textarea && textarea.value.trim() !== '') {
+                        respuestas[preguntaId] = { tipo, texto_respuesta: textarea.value.trim() };
+                    }
+                    break;
+                }
+                case 'emparejamiento': {
+                    const pares = [];
+                    preguntaCard.querySelectorAll('.emparejamiento-par').forEach(par => {
+                        const concepto = par.querySelector('.concepto-texto').textContent;
+                        const definicionSeleccionada = par.querySelector('select').value;
+                        if (definicionSeleccionada) {
+                            pares.push({ texto: concepto, emparejamiento: definicionSeleccionada });
+                        }
+                    });
+                    if (pares.length > 0) {
+                        respuestas[preguntaId] = { tipo, respuesta_emparejamiento: pares };
+                    }
+                    break;
+                }
+            }
+        });
+
+        // Enviar respuestas a la API
+        fetch(submitUrl, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRFToken': csrfToken 
+            },
+            body: JSON.stringify({ respuestas })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                app.innerHTML = `<div class="alert alert-danger"><h4>Error</h4><p>${data.error}</p></div>`;
+                return;
+            }
+            app.innerHTML = `
+                <div class="alert alert-success text-center">
+                    <h4>¡Cuestionario Finalizado!</h4>
+                    <p>${data.mensaje}</p>
+                    <p class="fs-4">Tu puntaje: <strong>${data.puntaje_obtenido} / ${data.puntaje_maximo}</strong></p>
+                    <a href="{% url 'gestion_academica:dashboard_estudiante' %}" class="btn btn-primary mt-3">Volver al Dashboard</a>
+                </div>
+            `;
+        })
+        .catch(error => {
+             app.innerHTML = `<div class="alert alert-danger"><h4>Error de Conexión</h4><p>No se pudo finalizar el intento. Por favor, revisa tu conexión a internet.</p></div>`;
+        });
+    }
+
+    // Cargar los datos del cuestionario al iniciar
+    fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) throw new Error('No se pudo cargar el cuestionario.');
+            return response.json();
+        })
+        .then(data => {
+            cuestionarioData = data;
+            renderizarCuestionario();
+        })
+        .catch(error => {
+            app.innerHTML = `<div class="alert alert-danger"><h4>Error</h4><p>${error.message}</p></div>`;
+        });
+});
+</script>
+{% endblock %}

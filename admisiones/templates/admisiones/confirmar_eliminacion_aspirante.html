@@ -1,0 +1,24 @@
+{% extends "base_academico.html" %}
+
+{% block contenido %}
+<div class="container mt-4" style="max-width: 600px;">
+    <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">{{ titulo_pagina }}</h4>
+        </div>
+        <div class="card-body p-4">
+            <p class="lead">¿Estás seguro de que deseas eliminar permanentemente al aspirante?</p>
+            <h4 class="my-3">"{{ aspirante.nombres }} {{ aspirante.apellidos }}"</h4>
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i> 
+                <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+            </div>
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                <a href="{% url 'admisiones:detalle_aspirante' pk=aspirante.pk %}" class="btn btn-secondary">No, cancelar y volver</a>
+                <button type="submit" class="btn btn-danger ms-2">Sí, estoy seguro, eliminar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

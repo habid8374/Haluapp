@@ -1,0 +1,10 @@
+Estimado(a) {{ familiar.usuario.get_full_name }},
+
+Le escribimos desde el {{ institucion.nombre }} para invitarle a una reunión con el fin de discutir el progreso académico de {{ estudiante.usuario.first_name }}.
+
+Hemos notado algunos factores que requieren nuestra atención conjunta en la materia de {{ prediccion.materia.nombre_materia }}.
+
+Por favor, póngase en contacto con nosotros para agendar una cita.
+
+Atentamente,
+Coordinación Académica.

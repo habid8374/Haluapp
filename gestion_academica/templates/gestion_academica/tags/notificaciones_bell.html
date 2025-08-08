@@ -1,0 +1,13 @@
+{# en gestion_academica/templates/gestion_academica/tags/notificaciones_bell.html #}
+
+<li class="nav-item">
+    <a class="nav-link position-relative" href="#"> {# <-- Más adelante, este enlace llevará a la página de notificaciones #}
+        <i class="bi bi-bell-fill fs-5"></i>
+        {% if unread_count > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ unread_count }}
+                <span class="visually-hidden">notificaciones sin leer</span>
+            </span>
+        {% endif %}
+    </a>
+</li>

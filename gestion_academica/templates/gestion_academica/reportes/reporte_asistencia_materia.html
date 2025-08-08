@@ -1,0 +1,147 @@
+{% extends "base_academico.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h2 mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard de Reportes
+        </a>
+    </div>
+
+    <!-- Filtros de Búsqueda (Tu Lógica Original con Mejor Estilo) -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="grado" class="form-label fw-bold">1. Grado:</label>
+                    <select name="grado" id="grado" class="form-select" onchange="this.form.submit()">
+                        <option value="">Selecciona un grado...</option>
+                        {% for g in grados %}
+                            <option value="{{ g.pk }}" {% if request.GET.grado|add:"0" == g.pk %}selected{% endif %}>{{ g.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="periodo" class="form-label fw-bold">2. Periodo:</label>
+                    <select name="periodo" id="periodo" class="form-select" onchange="this.form.submit()">
+                        <option value="">Selecciona un periodo...</option>
+                        {% for p in periodos %}
+                            <option value="{{ p.pk }}" {% if request.GET.periodo|add:"0" == p.pk %}selected{% endif %}>{{ p.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="materia" class="form-label fw-bold">3. Materia:</label>
+                    <select name="materia" id="materia" class="form-select" onchange="this.form.submit()">
+                        <option value="">Selecciona una materia...</option>
+                        {% for m in materias_del_grado %}
+                            <option value="{{ m.pk }}" {% if request.GET.materia|add:"0" == m.pk %}selected{% endif %}>{{ m.nombre_materia }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel-fill me-1"></i> Filtrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if curso_seleccionado %}
+    <!-- Resultados del Reporte -->
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Resumen Gráfico de Asistencia</h5>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="asistenciaChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Detalle por Estudiante para: <strong>{{ curso_seleccionado }}</strong></h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th class="text-center">Presente</th>
+                                <th class="text-center">Ausente</th>
+                                <th class="text-center">Tardanza</th>
+                                <th class="text-center">Justificado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for est in reporte_data.estudiantes_data %}
+                            <tr>
+                                <td>{{ est.usuario.get_full_name }}</td>
+                                <td class="text-center">{{ est.total_presente }}</td>
+                                <td class="text-center">{{ est.total_ausente }}</td>
+                                <td class="text-center">{{ est.total_tardanza }}</td>
+                                <td class="text-center">{{ est.total_justificado }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        Por favor, selecciona un grado, periodo y materia para generar el reporte.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    {% if reporte_data.chart_data %}
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('asistenciaChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ reporte_data.chart_labels|safe }},
+                datasets: [{
+                    label: 'Registros de Asistencia',
+                    data: {{ reporte_data.chart_data|safe }},
+                    backgroundColor: [
+                        'rgba(25, 135, 84, 0.7)',
+                        'rgba(220, 53, 69, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(13, 202, 240, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(25, 135, 84, 1)',
+                        'rgba(220, 53, 69, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(13, 202, 240, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    });
+    {% endif %}
+</script>
+{% endblock %}

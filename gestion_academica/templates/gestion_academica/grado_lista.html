@@ -1,0 +1,60 @@
+{# gestion_academica/templates/gestion_academica/grado_lista.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Lista de Grados" }}{% endblock titulo %} {# Usamos titulo_pagina #}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Lista de Grados" }}</h1> {# Usamos titulo_pagina #}
+        {% if perms.gestion_academica.add_grado %} {# Permiso para crear grado #}
+            <a href="{% url 'gestion_academica:crear_grado' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle-fill"></i> Crear Nuevo Grado
+            </a>
+        {% endif %}
+    </div>
+
+    {# Para mostrar mensajes de éxito/error (como el de grado eliminado) #}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if grados %}
+        <ul class="list-group shadow-sm rounded-3">
+            {% for grado in grados %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ grado.nombre }}</strong>
+                        {% if grado.nivel %}
+                            <small class="text-muted"> ({{ grado.nivel }})</small>
+                        {% endif %}
+                    </div>
+                    <div class="text-nowrap"> {# Evita que los botones se envuelvan #}
+                        {% if perms.gestion_academica.change_grado %} {# Permiso para editar #}
+                            <a href="{% url 'gestion_academica:editar_grado' grado.pk %}" class="btn btn-sm btn-warning me-1" title="Editar Grado">
+                                <i class="bi bi-pencil-fill"></i> Editar
+                            </a>
+                        {% endif %}
+                        {% if perms.gestion_academica.delete_grado %} {# Permiso para eliminar #}
+                            <a href="{% url 'gestion_academica:eliminar_grado' grado.pk %}" class="btn btn-sm btn-danger ms-1" title="Eliminar Grado">
+                                <i class="bi bi-trash-fill"></i> Eliminar
+                            </a>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-info mt-3 text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No hay grados registrados. ¡Puedes crear el primero usando el botón de arriba!
+        </div>
+    {% endif %}
+
+</div>
+{% endblock contenido %}

@@ -1,0 +1,25 @@
+{% extends "base_academico.html" %}
+{% block titulo %}Confirmar Eliminación{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">Confirmar Eliminación</h3>
+            </div>
+            <div class="card-body">
+                <p>¿Estás seguro de que deseas eliminar la categoría "<strong>{{ categoria.nombre }}</strong>"?</p>
+                <p class="text-danger"><strong>Advertencia:</strong> Esta acción no se puede deshacer. Las actividades que usen esta categoría quedarán sin asignación.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="text-end">
+                        <a href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}" class="btn btn-secondary">No, Cancelar</a>
+                        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

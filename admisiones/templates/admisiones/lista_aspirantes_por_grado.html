@@ -1,0 +1,49 @@
+{% extends 'base_academico.html' %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">{{ titulo_pagina }}</h3>
+        <a href="{% url 'admisiones:lista_grados_aspirantes' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a la lista de grados
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Documento</th>
+                            <th>Email de Contacto</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for aspirante in aspirantes %}
+                        <tr>
+                            <td>{{ aspirante.apellidos }}, {{ aspirante.nombres }}</td>
+                            <td>{{ aspirante.numero_documento|default:"N/A" }}</td>
+                            <td>{{ aspirante.email_contacto|default:"N/A" }}</td>
+                            <td><span class="badge bg-info">{{ aspirante.get_estado_display }}</span></td>
+                            <td>
+                                <a href="{% url 'admisiones:detalle_aspirante' aspirante.pk %}" class="btn btn-sm btn-primary">
+                                    Ver Perfil
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No hay aspirantes en este grado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock contenido %}

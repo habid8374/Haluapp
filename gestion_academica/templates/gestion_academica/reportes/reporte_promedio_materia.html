@@ -1,0 +1,112 @@
+{% extends "base_academico.html" %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>{{ titulo_pagina }}</h4>
+        </div>
+        <div class="card-body">
+            
+            <div class="mb-3">
+                <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+
+            <form method="get" class="mb-4 p-3 border rounded bg-light">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label for="materia" class="form-label fw-bold">1. Materia:</label>
+                        <select name="materia" id="materia" class="form-select">
+                            <option value="">--- Seleccione una Materia ---</option>
+                            {% for m in materias %}<option value="{{ m.id }}" {% if m.id == materia_seleccionada.id %}selected{% endif %}>{{ m.nombre_materia }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="periodo" class="form-label fw-bold">2. Periodo:</label>
+                        <select name="periodo" id="periodo" class="form-select">
+                            <option value="">--- Seleccione un Periodo ---</option>
+                            {% for p in periodos %}<option value="{{ p.id }}" {% if p.id == periodo_seleccionado.id %}selected{% endif %}>{{ p.nombre }} ({{ p.año_escolar }})</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Generar</button>
+                    </div>
+                </div>
+            </form>
+
+            {% if materia_seleccionada and periodo_seleccionado %}
+                <h5 class="border-bottom pb-2 mb-3">
+                    Mostrando rendimiento de <strong class="text-primary">{{ materia_seleccionada.nombre_materia }}</strong> | Periodo: <strong class="text-primary">{{ periodo_seleccionado.nombre }}</strong>
+                </h5>
+
+                <div class="row">
+                    <div class="col-lg-5">
+                        <h6>Tabla de Promedios por Grado</h6>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Grado</th>
+                                        <th class="text-center">Promedio General</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in reporte_data.datos_tabla %}
+                                    <tr>
+                                        <td>{{ item.grado.nombre }}</td>
+                                        <td class="text-center">
+                                            <span class="badge {% if item.promedio >= 3.0 %}bg-success{% else %}bg-danger{% endif %} fs-6">{{ item.promedio|floatformat:2 }}</span>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="2" class="text-center">No se encontraron datos para esta materia y periodo.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <h6>Gráfico Comparativo por Grado</h6>
+                        <canvas id="promedioMateriaChart"></canvas>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if reporte_data.chart_labels %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('promedioMateriaChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ reporte_data.chart_labels|safe }},
+                datasets: [{
+                    label: 'Promedio General',
+                    data: {{ reporte_data.chart_data|safe }},
+                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true, max: 5.0 }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

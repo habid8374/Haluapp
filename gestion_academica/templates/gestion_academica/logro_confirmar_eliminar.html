@@ -1,0 +1,17 @@
+{% extends 'base_academico.html' %}
+{% block contenido %}
+<div class="container mt-4">
+    <h3>Confirmar Eliminación</h3>
+    <div class="card">
+        <div class="card-body">
+            <p>¿Estás seguro de que deseas eliminar el siguiente logro?</p>
+            <blockquote class="blockquote">"{{ logro.descripcion }}"</blockquote>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                <a href="{% url 'gestion_academica:logro_lista' %}" class="btn btn-secondary">No, cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

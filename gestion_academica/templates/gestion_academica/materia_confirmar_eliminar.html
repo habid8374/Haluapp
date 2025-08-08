@@ -1,0 +1,60 @@
+{# gestion_academica/templates/gestion_academica/materia_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Materia" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Materia" }}</h1>
+    <hr>
+
+    {% if materia %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar la materia: <strong>{{ materia.nombre_materia }}</strong>?</p>
+            {% if materia.codigo_materia %}
+                <p class="mb-1">Código: {{ materia.codigo_materia }}</p>
+            {% endif %}
+            <hr>
+            <p class="mb-0">Esta acción es **irreversible** y eliminará permanentemente este registro.</p>
+            
+            {# Advertencia si la materia está en uso en Cursos #}
+            {% if materia.cursos.exists %}
+                <p class="mt-3 text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Esta materia está asignada a **{{ materia.cursos.count }} curso(s)**. Eliminarla podría dejar esos cursos sin una materia asociada, afectando la gestión académica.
+                </p>
+            {% endif %}
+            {# Advertencia si la materia está en uso en Planes Curriculares #}
+            {% if materia.planes_curriculares_materia.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Esta materia está asociada a **{{ materia.planes_curriculares_materia.count }} plan(es) curricular(es)**. Eliminarla podría afectar estos registros.
+                </p>
+            {% endif %}
+            {# Advertencia si la materia está en uso en Archivos de Plan Académico #}
+            {% if materia.archivos_material_apoyo_materia.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Esta materia está asociada a **{{ materia.archivos_material_apoyo_materia.count }} archivo(s) de material/plan académico**. Eliminarla podría afectar la referencia a estos archivos.
+                </p>
+            {% endif %}
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Materia
+            </button>
+            <a href="{% url 'gestion_academica:lista_materias' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró la materia a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_materias' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

@@ -1,0 +1,62 @@
+{% extends "gestion_academica/base.html" %}
+
+{% block titulo %}Detalle: {{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}{% endblock %}
+
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Detalle del Estudiante</h1>
+    <a href="{% url 'gestion_academica:lista_estudiantes' %}" class="btn btn-outline-secondary">Volver a la Lista</a>
+</div>
+<hr>
+
+{% if estudiante %}
+<div class="card shadow-sm">
+    <div class="card-header bg-light">
+        <h4 class="mb-0">{{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}</h4>
+        {% if estudiante.codigo_estudiante %}
+            <small class="text-muted">Código: {{ estudiante.codigo_estudiante }}</small>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="card-title">Datos de Usuario</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Usuario (Login):</strong> {{ estudiante.usuario.username }}</li>
+                    <li><strong>Nombres:</strong> {{ estudiante.usuario.first_name|default:"No especificado" }}</li>
+                    <li><strong>Apellidos:</strong> {{ estudiante.usuario.last_name|default:"No especificado" }}</li>
+                    <li><strong>Email:</strong> {{ estudiante.usuario.email|default:"No especificado" }}</li>
+                    <li><strong>Rol:</strong> {{ estudiante.usuario.get_rol_display|default:"No especificado" }}</li>
+                    <li><strong>Activo:</strong> {% if estudiante.usuario.is_active %}Sí{% else %}No{% endif %}</li>
+                    <li><strong>Fecha de Ingreso:</strong> {{ estudiante.usuario.date_joined|date:"d/m/Y H:i" }}</li> {# Esto está bien porque date_joined es DateTimeField #}
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5 class="card-title">Datos Académicos</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Documento de Identidad:</strong> {{ estudiante.documento_identidad|default:"No especificado" }}</li>
+                    {# LÍNEA CORREGIDA #}
+                    <li><strong>Fecha de Nacimiento:</strong> {{ estudiante.fecha_nacimiento|date:"d F Y"|default:"No especificado" }}</li>
+                    <li><strong>Dirección:</strong> {{ estudiante.direccion|default:"No especificado" }}</li>
+                    <li><strong>Grado Actual:</strong> {{ estudiante.grado_actual.nombre|default:"No asignado" }}</li>
+                    {# Aquí podrías añadir más información si la tienes, como foto, etc. #}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer text-end">
+        <a href="{% url 'gestion_academica:editar_estudiante' estudiante.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil-square"></i> Editar Estudiante
+        </a>
+        <a href="{% url 'gestion_academica:eliminar_estudiante' estudiante.pk %}" class="btn btn-danger ms-2">
+            <i class="bi bi-trash"></i> Eliminar Estudiante
+        </a>
+    </div>
+</div>
+{% else %}
+    <div class="alert alert-warning" role="alert">
+      No se encontró la información del estudiante.
+    </div>
+{% endif %}
+
+{% endblock %}

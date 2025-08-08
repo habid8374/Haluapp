@@ -1,0 +1,279 @@
+{% extends "base_academico.html" %} 
+{% load static %}
+
+{% block titulo %}
+    HALU - Bienvenido al Módulo Académico
+{% endblock titulo %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+    .welcome-section {
+        position: relative;
+        overflow: hidden;
+        padding: 3rem 1.5rem;
+        border-radius: 1rem;
+        background: transparent;
+        text-align: center;
+        color: white;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+    }
+
+    .welcome-video-background {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120%; /* o 100% si ya se ve completo */
+    height: auto;
+    min-height: 100%;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    opacity: 0.25;
+    z-index: 0;
+    border-radius: 1rem;
+}
+
+    .welcome-section .container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .animated-item {
+        opacity: 0;
+        transform: translateY(25px);
+        animation: fadeInSlideUp 0.8s ease-out forwards;
+    }
+
+    .welcome-logo { animation-delay: 0.1s; }
+    .welcome-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #0D6EFD; /* Azul tecnológico */
+    margin-bottom: 0.75rem;
+}
+    .welcome-lead {
+    font-size: 1.2rem;
+    color: #dbe7f9; /* Gris claro azulado */
+    margin-bottom: 1.5rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+    .welcome-user-info {
+    font-size: 1rem;
+    color: #c9d9ec; /* Otro gris clarito azulado */
+    margin-bottom: 2rem;
+}
+    .welcome-actions .btn-action-1 { animation-delay: 0.9s; }
+    .welcome-actions .btn-action-2 { animation-delay: 1.1s; }
+    .welcome-actions .btn-action-3 { animation-delay: 1.3s; }
+
+    .welcome-title,
+    .welcome-lead,
+    .welcome-user-info {
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    }
+
+    .welcome-logo img {
+        max-height: 100px;
+        margin-bottom: 1.5rem;
+        filter: drop-shadow(0 0 8px rgba(0,0,0,0.7));
+    }
+
+    .welcome-title {
+        font-size: 2.5rem;
+        font-weight: 300;
+        margin-bottom: 0.75rem;
+    }
+
+    .welcome-lead {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .welcome-user-info {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .welcome-actions .btn {
+        margin: 0.5rem 0.75rem;
+        padding: 0.65rem 1.25rem;
+        font-size: 0.95rem;
+        min-width: 200px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .welcome-actions .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+
+    .info-cards .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.8s ease-out, transform 0.8s ease-out;
+        opacity: 0;
+        transform: translateY(25px);
+    }
+    .info-cards .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.2)!important;
+    }
+    .info-cards .card-body i {
+        font-size: 3.5rem;
+        margin-bottom: 0.75rem;
+        display: block;
+        color: var(--windows-azul);
+    }
+    .info-cards .card-body .text-success { color: var(--windows-verde)!important; }
+    .info-cards .card-body .text-info { color: var(--windows-azul)!important; }
+
+    @keyframes fadeInSlideUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock extrastyles %}
+
+{% block contenido %}
+<section class="welcome-section">
+    <video autoplay muted loop class="welcome-video-background">
+        <source src="{% static 'videos/fondo_halu.mp4' %}" type="video/mp4">
+        Tu navegador no soporta video HTML5.
+    </video>
+    <div class="container">
+        <div class="welcome-logo animated-item">
+            <img src="{% static branding.LOGO_URL %}" alt="Logo {{ branding.NOMBRE }}" class="img-fluid">
+        </div>
+        <h1 class="welcome-title animated-item">
+            {{ mensaje|default:"¡Bienvenido!" }}
+        </h1>
+        <p class="welcome-lead animated-item" style="color: #dbe7f9;">
+    Estás en el Módulo Académico de 
+    <strong style="color: #0D6EFD;">{{ branding.NOMBRE }}</strong>.<br>
+    Ecosistema de Desarrollo Integral del Estudiante - EDIE.
+</p>
+
+{% if user.is_authenticated %}
+<p class="welcome-user-info animated-item" style="color: #dbe7f9;">
+    Has iniciado sesión como: 
+    <strong style="color: #0D6EFD;">{{ user.get_full_name|default:user.username }}</strong>
+    {% if user.rol and user.rol != 'Desconocido' %}
+        (Rol: <span style="color: #0D6EFD;">{{ user.rol }}</span>)
+    {% endif %}
+    {% if user.institucion_asociada %}
+        <br>Institución: <strong style="color: #0D6EFD;">{{ user.institucion_asociada.nombre }}</strong>
+    {% endif %}
+</p>
+        {% endif %}
+        <div class="welcome-actions">
+            {% if user.is_authenticated %}
+                {% if user.rol == 'estudiante' %}
+                    {% if perms.gestion_academica.ver_mis_calificaciones %}
+                        <a href="{% url 'gestion_academica:mis_cursos_calificaciones' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
+                            <i class="bi bi-card-checklist"></i> Ver Mis Calificaciones
+                        </a>
+                    {% endif %}
+                    {% if perms.gestion_academica.ver_mis_deberes %}
+                        <a href="{% url 'gestion_academica:mis_deberes_lista' %}" class="btn btn-info btn-lg animated-item btn-action-2">
+                            <i class="bi bi-journal-arrow-up"></i> Mis Deberes
+                        </a>
+                    {% endif %}
+                {% elif user.rol == 'docente' %}
+                    {% if perms.gestion_academica.acceso_libro_notas_docente %}
+                        <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
+                            <i class="bi bi-journal-richtext"></i> Ver Libro de Notas
+                        </a>
+                    {% endif %}
+                    {% if perms.gestion_academica.view_actividadcalificable %}
+                        <a href="{% url 'gestion_academica:lista_actividades_calificables' %}" class="btn btn-info btn-lg animated-item btn-action-2">
+                            <i class="bi bi-card-list"></i> Gestionar Actividades
+                        </a>
+                    {% endif %}
+                {% elif user.rol == 'familiar' %}
+                    {% if perms.gestion_academica.acceso_portal_familiar %}
+                        <a href="{% url 'gestion_academica:portal_familiar_inicio' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
+                            <i class="bi bi-people-fill"></i> Ir al Portal Familiar
+                        </a>
+                    {% endif %}
+                {% elif user.is_superuser or user.rol == 'administrativo' %}
+                    <a href="{% url 'admin:index' %}" class="btn btn-success btn-lg animated-item btn-action-1">
+                        <i class="bi bi-speedometer2"></i> Panel de Administración
+                    </a>
+                    <a href="{% url 'gestion_academica:lista_grados_para_estudiantes' %}" class="btn btn-primary btn-lg animated-item btn-action-2">
+                        <i class="bi bi-people-fill"></i> Gestión de Estudiantes
+                    </a>
+                    {% if user.is_superuser or user.rol == 'administrativo' %}
+                        <a href="{% url 'finanzas:dashboard_financiero' %}" class="btn btn-warning btn-lg animated-item btn-action-3">
+                            <i class="bi bi-currency-dollar"></i> Ir al Módulo Financiero
+                        </a>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
+                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<div class="container mt-5 mb-4 info-cards">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-sm h-100 animated-item">
+                <div class="card-body">
+                    <i class="bi bi-calendar-check-fill text-primary"></i>
+                    <h5 class="card-title mt-2">Calendario Académico</h5>
+                    <p class="card-text">Consulta fechas importantes, eventos y festivos programados.</p>
+                    <a href="{% url 'gestion_academica:calendario_academico' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-calendar3"></i> Ver Calendario
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-sm h-100 animated-item">
+                <div class="card-body">
+                    <i class="bi bi-newspaper text-success"></i>
+                    <h5 class="card-title mt-2">Noticias y Anuncios</h5>
+                    <p class="card-text">Mantente al día con las últimas novedades y comunicados de la institución.</p>
+                    <a href="{% url 'gestion_academica:lista_noticias' %}" class="btn btn-outline-success">
+                        <i class="bi bi-card-text"></i> Leer Noticias
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-sm h-100 animated-item">
+                <div class="card-body">
+                    <i class="bi bi-question-circle-fill text-info"></i>
+                    <h5 class="card-title mt-2">Ayuda y Soporte</h5>
+                    <p class="card-text">Encuentra respuestas a preguntas frecuentes o contacta con nosotros.</p>
+                    <a href="{% url 'gestion_academica:ayuda_soporte' %}" class="btn btn-outline-info">
+                        <i class="bi bi-info-lg"></i> Centro de Ayuda
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock contenido %}
+
+{% block extrajavascript %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const infoCards = document.querySelectorAll('.info-cards .card.animated-item');
+        let cardDelay = 1.5;
+        infoCards.forEach(card => {
+            card.style.animationDelay = cardDelay + 's';
+            cardDelay += 0.2;
+        });
+    });
+</script>
+{% endblock extrajavascript %}

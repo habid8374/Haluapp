@@ -1,0 +1,1 @@
+Invitación a Reunión Académica para {{ estudiante.usuario.get_full_name }}

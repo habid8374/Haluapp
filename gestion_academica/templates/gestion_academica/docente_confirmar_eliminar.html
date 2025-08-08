@@ -1,0 +1,64 @@
+{# gestion_academica/templates/gestion_academica/docente_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Docente" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Docente" }}</h1>
+    <hr>
+
+    {% if docente %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar al docente: <strong>{{ docente.usuario.get_full_name|default:docente.usuario.username }}</strong>?</p>
+            
+            {% if docente.codigo_docente %}
+                <p class="mb-1"><strong>Código de Docente:</strong> {{ docente.codigo_docente }}</p>
+            {% endif %}
+            {% if docente.especialidad %}
+                <p class="mb-0"><strong>Especialidad:</strong> {{ docente.especialidad }}</p>
+            {% endif %}
+            <hr>
+            <p class="mb-0">Esta acción **también eliminará su cuenta de usuario asociada** y es **irreversible**.</p>
+            
+            {# Advertencia si el docente tiene cursos asignados #}
+            {% if docente.cursos_impartidos.exists %}
+                <p class="mt-3 text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este docente tiene **{{ docente.cursos_impartidos.count }} curso(s) asignado(s)**. Eliminarlo podría dejar esos cursos sin docente asignado, afectando la gestión académica.
+                </p>
+            {% endif %}
+            {# Advertencia si el docente es director de curso #}
+            {% if docente.direcciones_grado.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este docente es director de **{{ docente.direcciones_grado.count }} grado(s)**. Eliminarlo podría dejar esos grados sin director asignado.
+                </p>
+            {% endif %}
+            {# Advertencia si el docente tiene calificaciones registradas #}
+            {% if docente.calificaciones_registradas.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este docente ha registrado **{{ docente.calificaciones_registradas.count }} calificaciones**. Eliminarlo no borrará las calificaciones, pero la referencia al docente que las registró podría perderse o mostrarse como "N/A".
+                </p>
+            {% endif %}
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Docente
+            </button>
+            <a href="{% url 'gestion_academica:lista_docentes' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró la información del docente a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_docentes' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

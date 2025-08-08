@@ -1,0 +1,82 @@
+{# gestion_academica/templates/gestion_academica/noticia_gestion_lista.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina|default:"Gestión de Noticias y Anuncios" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Gestión de Noticias y Anuncios" }}</h1>
+        {% if perms.gestion_academica.add_noticia %} {# Permiso para crear noticia #}
+            <a href="{% url 'gestion_academica:crear_noticia' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle-fill"></i> Crear Nueva Noticia/Anuncio
+            </a>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if noticias %}
+        <div class="table-responsive shadow-sm rounded-3">
+            <table class="table table-striped table-hover table-bordered mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Título</th>
+                        <th>Publicado por</th>
+                        <th>Fecha de Publicación</th>
+                        <th>Imagen Destacada</th>
+                        <th class="text-center">Acciones</th> {# Corregido a text-center #}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for noticia_item in noticias %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'gestion_academica:detalle_noticia' noticia_item.pk %}" title="Ver noticia completa">{{ noticia_item.titulo }}</a>
+                        </td>
+                        <td>{{ noticia_item.publicado_por.get_full_name|default:noticia_item.publicado_por.username }}</td> {# Muestra nombre completo #}
+                        <td>{{ noticia_item.fecha_publicacion|date:"d/m/Y H:i" }}</td>
+                        <td class="text-center"> {# Centrar el contenido de la celda de imagen #}
+                            {% if noticia_item.imagen_destacada %}
+                                <a href="{{ noticia_item.imagen_destacada.url }}" target="_blank" title="Ver imagen completa">
+                                    <img src="{{ noticia_item.imagen_destacada.url }}" alt="Miniatura" style="max-height: 40px; border-radius: .2rem; border: 1px solid #ddd;">
+                                </a>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center text-nowrap"> {# text-nowrap para evitar saltos de línea en los botones #}
+                            {# Botones de acción controlados por permisos y autoría #}
+                            {% if perms.gestion_academica.delete_noticia and user.is_superuser or user.rol == 'administrativo' or noticia_item.publicado_por == user %}
+                                <a href="{% url 'gestion_academica:editar_noticia' noticia_item.pk %}" class="btn btn-sm btn-warning me-1" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i> Editar
+                                </a>
+                            {% endif %}
+                            {% if perms.gestion_academica.delete_noticia and user.is_superuser or user.rol == 'administrativo' or noticia_item.publicado_por == user %}
+                                <a href="{% url 'gestion_academica:eliminar_noticia' noticia_item.pk %}" class="btn btn-sm btn-danger ms-1" title="Eliminar">
+                                    <i class="bi bi-trash-fill"></i> Eliminar
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {# Incluye tu partial de paginación si aplica aquí #}
+        {% include "gestion_academica/partials/paginacion.html" %} 
+    {% else %}
+        <div class="alert alert-info text-center mt-3" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No hay noticias o anuncios para gestionar. ¡Puedes crear el primero!
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}

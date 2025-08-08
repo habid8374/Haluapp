@@ -1,0 +1,56 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:crear_dimension' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle-fill me-2"></i>Crear Nueva Dimensión
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre de la Dimensión</th>
+                            <th>Descripción</th>
+                            <th class="text-center">Orden</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dimension in dimensiones %}
+                        <tr>
+                            <td class="fw-bold">{{ dimension.nombre }}</td>
+                            <td>{{ dimension.descripcion|default:"-"|truncatewords:15 }}</td>
+                            <td class="text-center">{{ dimension.orden }}</td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <a href="{% url 'gestion_academica:editar_dimension' pk=dimension.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil-fill"></i> Editar
+                                    </a>
+                                    <a href="{% url 'gestion_academica:eliminar_dimension' pk=dimension.pk %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash-fill"></i> Eliminar
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">
+                                No se han creado dimensiones de desarrollo todavía. ¡Crea la primera!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

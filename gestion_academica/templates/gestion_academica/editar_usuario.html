@@ -1,0 +1,69 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:lista_usuarios' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Listado
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Columna para editar detalles -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Detalles del Usuario</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ user_form|crispy }}
+
+                        <!-- ▼▼▼ INICIO DE LA SECCIÓN AÑADIDA ▼▼▼ -->
+                        {# Mostramos este bloque solo si el usuario es un estudiante y tiene perfil #}
+                        {% if user_to_edit.rol == 'estudiante' and estudiante_profile %}
+                            <hr>
+                            <div class="mb-3">
+                                <label class="form-label">Grado Actual</label>
+                                <input type="text" class="form-control" value="{{ estudiante_profile.grado_actual.nombre|default:'No asignado' }}" readonly>
+                                <small class="form-text text-muted">El grado se gestiona desde el perfil del estudiante en el Admin Avanzado.</small>
+                            </div>
+                        {% endif %}
+                        <!-- ▲▲▲ FIN DE LA SECCIÓN ▲▲▲ -->
+
+                        <div class="d-grid mt-3">
+                            <button type="submit" name="update_details" class="btn btn-primary">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna para cambiar contraseña -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Cambiar Contraseña</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning small">
+                        <strong>Nota de Seguridad:</strong> Las contraseñas se guardan de forma encriptada y no pueden ser visualizadas. Solo puedes asignar una nueva contraseña.
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ password_form|crispy }}
+                        <div class="d-grid mt-3">
+                            <button type="submit" name="change_password" class="btn btn-danger">Establecer Nueva Contraseña</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

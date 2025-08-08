@@ -1,0 +1,118 @@
+{% extends 'base_finanzas.html' %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filtrar por Rango de Fechas</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="fecha_inicio" class="form-label">Fecha de Inicio:</label>
+                    <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ fecha_inicio }}" class="form-control">
+                </div>
+                <div class="col-md-5">
+                    <label for="fecha_fin" class="form-label">Fecha de Fin:</label>
+                    <input type="date" name="fecha_fin" id="fecha_fin" value="{{ fecha_fin }}" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <h4 class="mb-3">Resumen del Período: <span class="text-muted">{{ fecha_inicio }} al {{ fecha_fin }}</span></h4>
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card text-center text-white bg-success shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ingresos</h5>
+                    <p class="card-text display-6">${{ total_ingresos|floatformat:2|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center text-white bg-danger shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Total Gastos</h5>
+                    <p class="card-text display-6">${{ total_gastos|floatformat:2|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow {% if utilidad_neta >= 0 %}bg-primary text-white{% else %}bg-warning text-dark{% endif %}">
+                <div class="card-body">
+                    <h5 class="card-title">Utilidad / Pérdida Neta</h5>
+                    <p class="card-text display-6">${{ utilidad_neta|floatformat:2|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>Historial de Ingresos vs. Gastos (Últimos 6 Meses)</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="estadoResultadosChart"></canvas>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'finanzas:dashboard_financiero' %}" class="btn btn-secondary">Volver al Dashboard</a>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('estadoResultadosChart').getContext('2d');
+        
+        const estadoResultadosChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Ingresos ($)',
+                        data: {{ chart_ingresos|safe }},
+                        backgroundColor: 'rgba(25, 135, 84, 0.6)',
+                        borderColor: 'rgba(25, 135, 84, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Gastos ($)',
+                        data: {{ chart_gastos|safe }},
+                        backgroundColor: 'rgba(220, 53, 69, 0.6)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString('es-CO');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

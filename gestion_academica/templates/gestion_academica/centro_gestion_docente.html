@@ -1,0 +1,118 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina|default:"Centro de Gestión" }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:dashboard_docente' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Panel Principal
+        </a>
+    </div>
+
+    <p class="lead text-muted">Desde aquí puedes administrar todos los recursos y configuraciones para tus cursos.</p>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-folder-plus fs-1 text-primary"></i>
+                    <h5 class="card-title mt-3">Archivos y Materiales</h5>
+                    <p class="card-text">Sube y administra guías, talleres y otros recursos para tus clases.</p>
+                    <a href="{% url 'gestion_academica:docente_lista_materiales' %}" class="btn btn-primary stretched-link">Gestionar Archivos</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-award fs-1 text-success"></i>
+                    <h5 class="card-title mt-3">Menciones y Reconocimientos</h5>
+                    <p class="card-text">Otorga menciones de honor, méritos o reconocimientos a tus estudiantes.</p>
+                    <a href="{% url 'gestion_academica:docente_lista_menciones' %}" class="btn btn-success stretched-link">Gestionar Menciones</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-card-checklist fs-1 text-info"></i>
+                    <h5 class="card-title mt-3">Descriptores de Logro</h5>
+                    <p class="card-text">Define los logros y descriptores que aparecerán en los boletines.</p>
+                    <a href="{% url 'gestion_academica:docente_lista_descriptores' %}" class="btn btn-info stretched-link">Gestionar Descriptores</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-card-list fs-1 text-secondary"></i>
+                    <h5 class="card-title mt-3">Definir Actividades</h5>
+                    <p class="card-text">Crea las columnas de tu libro de notas: exámenes, talleres, tareas, etc.</p>
+                    <a href="{% url 'gestion_academica:docente_lista_actividades' %}" class="btn btn-secondary stretched-link">Gestionar Actividades</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-pencil-square fs-1 text-warning"></i>
+                    <h5 class="card-title mt-3">Libro de Notas</h5>
+                    <p class="card-text">Registra las calificaciones de tus estudiantes en una planilla optimizada.</p>
+                    <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="btn btn-warning stretched-link">Calificar Cursos</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-eye fs-1 text-danger"></i>
+                    <h5 class="card-title mt-3">Observador del Estudiante</h5>
+                    <p class="card-text">Registra eventos y seguimientos en la hoja de vida de tus estudiantes.</p>
+                    <a href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}" class="btn btn-danger stretched-link">Acceder al Observador</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-tags-fill fs-1 text-primary-emphasis"></i>
+                    <h5 class="card-title mt-3">Gestionar Categorías</h5>
+                    <p class="card-text">Define los porcentajes de tus actividades (Ej: Tareas 20%, Exámenes 30%).</p>
+                    <a href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}" class="btn btn-primary mt-auto stretched-link">Gestionar Categorías</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center d-flex flex-column">
+                <i class="bi bi-graph-up-arrow fs-1 text-success-emphasis"></i>
+                <h5 class="card-title mt-3">Reporte de Nota Mínima</h5>
+                <p class="card-text">Calcula la nota que necesitan tus estudiantes para aprobar y anticipa riesgos.</p>
+                <a href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}" class="btn btn-success stretched-link">Generar Reporte</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center d-flex flex-column">
+                <i class="bi bi-clock-history fs-1 text-success"></i>
+                <h5 class="card-title mt-3">Mi Disponibilidad</h5>
+                <p class="card-text flex-grow-1">Define y gestiona tus horarios de atención para reuniones con acudientes.</p>
+                <a href="{% url 'gestion_academica:gestionar_disponibilidad' %}" class="btn btn-success stretched-link mt-auto">Gestionar Horarios</a>
+            </div>
+        </div>
+    </div>
+    </div>
+    
+    
+    </div>
+</div>
+{% endblock %}

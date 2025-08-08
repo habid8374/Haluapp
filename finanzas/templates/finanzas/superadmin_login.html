@@ -1,0 +1,24 @@
+{% extends "base_finanzas.html" %}
+{% load crispy_forms_tags %}
+
+{% block contenido %}
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header text-center bg-danger text-white">
+                    <h4 class="mb-0"><i class="bi bi-shield-lock-fill me-2"></i>Acceso Restringido</h4>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-center text-muted">Esta área requiere una clave maestra adicional para continuar.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-primary">Autenticar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

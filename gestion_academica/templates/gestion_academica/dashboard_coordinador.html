@@ -1,0 +1,209 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <h1 class="h2 mb-4">Bienvenido/a, Coordinador(a) {{ coordinador.get_full_name }}</h1>
+    <p class="lead text-muted">Desde aquí puedes acceder a los reportes y herramientas de gestión globales de la institución.</p>
+    <hr>
+    
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-shield-exclamation fs-1 text-danger"></i>
+                    <h5 class="card-title mt-3">Reporte de Riesgo Académico</h5>
+                    <p class="card-text flex-grow-1">Supervisa el rendimiento y los estudiantes en riesgo por curso.</p>
+                    <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="btn btn-danger stretched-link mt-auto">Ver Reporte</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center d-flex flex-column">
+                <i class="bi bi-shield-exclamation fs-1 text-danger"></i>
+                <h5 class="card-title mt-3">Reporte de Riesgo Inasistencias</h5>
+                <p class="card-text flex-grow-1">Detecta estudiantes en riesgo por notas bajas, inasistencias o falta de seguimiento académico.</p>
+                <a href="{% url 'gestion_academica:reporte_riesgo_academico' %}" class="btn btn-danger stretched-link mt-auto">Ver Reporte de Riesgo</a>
+            </div>
+        </div>
+    </div>
+        <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center d-flex flex-column">
+                <i class="bi bi-patch-check-fill fs-1 text-success"></i>
+                <h5 class="card-title mt-3">Proceso de Graduación</h5>
+                <p class="card-text flex-grow-1">Transfiere a los estudiantes del último grado al archivo de egresados y genera sus reportes finales.</p>
+                <a href="{% url 'gestion_academica:proceso_graduacion' %}" class="btn btn-success stretched-link mt-auto">Iniciar Proceso</a>
+            </div>
+        </div>
+    </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-calendar-check fs-1 text-info"></i>
+                    <h5 class="card-title mt-3">Dashboard de Asistencia</h5>
+                    <p class="card-text flex-grow-1">Monitorea la asistencia diaria de todos los estudiantes.</p>
+                    <a href="{% url 'gestion_academica:admin_asistencia_diaria' %}" class="btn btn-info stretched-link mt-auto">Ver Dashboard</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body text-center d-flex flex-column">
+            <i class="bi bi-bar-chart-fill fs-1 text-primary"></i>
+            <h5 class="card-title mt-3">Análisis IA de Elecciones</h5>
+            <p class="card-text flex-grow-1">
+                Consulta los análisis automáticos de las propuestas de los candidatos en los procesos electorales estudiantiles.
+            </p>
+            <a href="{% url 'gestion_academica:dashboard_eleccion_ia' 1 %}" class="btn btn-primary stretched-link mt-auto">
+                Ver Panel Comparativo
+            </a>
+        </div>
+    </div>
+</div>
+<div class="col-md-6 col-lg-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body text-center d-flex flex-column">
+            <i class="bi bi-clipboard-plus fs-1 text-success"></i>
+            <h5 class="card-title mt-3">Gestión de Elecciones</h5>
+            <p class="card-text flex-grow-1">Crea y administra procesos electorales estudiantiles directamente desde el panel.</p>
+            <a href="{% url 'gestion_academica:gestionar_elecciones' %}" class="btn btn-success stretched-link mt-auto">Ir a Elecciones</a>
+        </div>
+    </div>
+</div>
+
+        <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center d-flex flex-column">
+                <i class="bi bi-calendar2-week-fill fs-1 text-info"></i>
+                <h5 class="card-title mt-3">Supervisión de Citas</h5>
+                <p class="card-text flex-grow-1">Consulta el historial y los acuerdos de las reuniones entre docentes y familiares.</p>
+                <a href="{% url 'gestion_academica:supervisar_citas' %}" class="btn btn-info stretched-link mt-auto">Ver Historial</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body text-center d-flex flex-column">
+            <i class="bi bi-shield-check fs-1 text-success"></i>
+            <h5 class="card-title mt-3">Historial de Convivencia</h5>
+            <p class="card-text flex-grow-1">
+                Visualiza los reportes de situaciones clasificadas por la IA como TIPO I, II o III según la Ruta de Convivencia Escolar.
+            </p>
+            <a href="{% url 'gestion_academica:historial_convivencia' %}" class="btn btn-success stretched-link mt-auto">
+                Ver Reporte
+            </a>
+        </div>
+    </div>
+</div>
+    
+        <!-- Widget de Asistencia General -->
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'gestion_academica:reporte_asistencia_materia' %}" class="text-decoration-none">
+                <div class="card text-white bg-info h-100 shadow">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <i class="bi bi-calendar-check-fill fs-1"></i>
+                        <h5 class="card-title mt-3">Asistencia General (Hoy)</h5>
+                        <p class="fs-1 fw-bold mb-0">{{ porcentaje_asistencia_hoy }}%</p>
+                        <p class="card-text">Del total de estudiantes activos.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Widget de Alertas de Bienestar -->
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="text-decoration-none">
+                <div class="card text-white {% if alertas_bienestar_count > 0 %}bg-danger{% else %}bg-success{% endif %} h-100 shadow">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <i class="bi bi-heart-pulse-fill fs-1"></i>
+                        <h5 class="card-title mt-3">Alertas de Bienestar</h5>
+                        <p class="fs-1 fw-bold mb-0">{{ alertas_bienestar_count }}</p>
+                        <p class="card-text">Observaciones que requieren revisión.</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        
+     <!-- Sección de Reporte de Cursos (MODIFICADA) -->
+    <div class="card shadow-sm mt-5">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-collection-fill me-2"></i>Reporte de Cursos Activos por Grado</h5>
+        </div>
+        <div class="card-body">
+            <!-- Filtro por Grado (MODIFICADO) -->
+            <div class="row g-3 align-items-end mb-4">
+                <div class="col-md-6">
+                    <label for="grado-select" class="form-label fw-bold">Selecciona un Grado para ver su estructura:</label>
+                    <!-- Se eliminó el onchange y el form, y se añadió un ID -->
+                    <select id="grado-select" class="form-select">
+                        <option value="">--- Elige un grado ---</option>
+                        {% for grado in grados_institucion %}
+                            <option value="{{ grado.pk }}">{{ grado.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Contenedor para la Tabla de Resultados -->
+            <div id="reporte-cursos-container">
+                <div class="alert alert-info text-center">
+                    Por favor, selecciona un grado para ver los cursos.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const gradoSelect = document.getElementById('grado-select');
+    const container = document.getElementById('reporte-cursos-container');
+
+    gradoSelect.addEventListener('change', function() {
+        const gradoId = this.value;
+
+        if (!gradoId) {
+            container.innerHTML = '<div class="alert alert-info text-center">Por favor, selecciona un grado para ver los cursos.</div>';
+            return;
+        }
+
+        // 1. Muestra un indicador de carga
+        container.innerHTML = `
+            <div class="d-flex justify-content-center align-items-center p-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <strong class="ms-3">Cargando cursos...</strong>
+            </div>
+        `;
+
+        // 2. Construye la URL de la nueva vista parcial
+        const url = `/academico/api/cursos-por-grado/${gradoId}/`;
+
+        // 3. Llama a la vista en segundo plano
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor.');
+                }
+                return response.text(); // Obtenemos el HTML de la tabla
+            })
+            .then(html => {
+                // 4. Reemplaza el indicador de carga con la tabla
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error al cargar los cursos:', error);
+                container.innerHTML = '<div class="alert alert-danger text-center">Ocurrió un error al cargar los datos. Por favor, intenta de nuevo.</div>';
+            });
+    });
+});
+</script>
+{% endblock %}
+

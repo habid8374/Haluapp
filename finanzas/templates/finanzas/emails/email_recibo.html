@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recibo de Pago No. {{ pago.id }}</title>
+    <style>
+        /* (Tus estilos CSS se mantienen igual) */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333; }
+        .email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 2px solid #005a9e; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { color: #005a9e; margin: 10px 0 0 0; }
+        .logo { max-height: 70px; margin-bottom: 10px; }
+        .content { padding: 10px 0; }
+        .content-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .content-table th, .content-table td { padding: 12px; text-align: left; border-bottom: 1px solid #dddddd; }
+        .content-table th { background-color: #f8f9fa; font-weight: bold; }
+        .total-row td { font-weight: bold; font-size: 1.1em; }
+        .footer { text-align: center; font-size: 12px; color: #777; padding-top: 20px; border-top: 1px solid #eeeeee; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            {% with institucion=pago.cuenta.institucion %}
+                {% if institucion.logo %}
+                    <img src="{{ domain }}{{ institucion.logo.url }}" alt="Logo {{ institucion.nombre }}" class="logo">
+                {% endif %}
+                <h1>Recibo de Pago</h1>
+                <p>{{ institucion.nombre }}</p>
+            {% endwith %}
+        </div>
+        <div class="content">
+            <p>Hola <strong>{{ pago.estudiante.usuario.get_full_name }}</strong>,</p>
+            <p>Confirmamos que hemos recibido tu pago. A continuación, los detalles de la transacción:</p>
+            
+            <table class="content-table">
+                <tr>
+                    <th>Recibo No.</th>
+                    <td>#{{ pago.id|stringformat:"06d" }}</td>
+                </tr>
+                <tr>
+                    <th>Fecha del Pago</th>
+                    <td>{{ pago.fecha_pago|date:"d F, Y" }}</td>
+                </tr>
+                <tr>
+                    <th>Concepto Pagado</th>
+                    <td>{{ pago.cuenta.concepto_pago.nombre_concepto }}</td>
+                </tr>
+                <tr>
+                    <th>Monto Pagado</th>
+                    <td><strong>${{ pago.valor_pagado|floatformat:2 }} COP</strong></td>
+                </tr>
+                <tr>
+                    <th>Método de Pago</th>
+                    <td>{{ pago.get_metodo_pago_display }}</td>
+                </tr>
+                {% if pago.referencia_transaccion %}
+                <tr>
+                    <th>Referencia</th>
+                    <td>{{ pago.referencia_transaccion }}</td>
+                </tr>
+                {% endif %}
+            </table>
+
+            <table class="content-table" style="margin-top: 25px;">
+                <tr class="total-row">
+                    <td>Saldo restante para este concepto:</td>
+                    <td style="text-align: right; color: #dc3545;">${{ pago.cuenta.saldo_pendiente|floatformat:2 }}</td>
+                </tr>
+            </table>
+
+            <p style="text-align:center; margin-top: 30px;">¡Gracias por mantener tus cuentas al día!</p>
+        </div>
+        <div class="footer">
+            <p>Este es un correo electrónico generado automáticamente. Por favor, no respondas a este mensaje.</p>
+            <p>© {% now "Y" %} {{ pago.cuenta.institucion.nombre }}</p>
+        </div>
+    </div>
+</body>
+</html>

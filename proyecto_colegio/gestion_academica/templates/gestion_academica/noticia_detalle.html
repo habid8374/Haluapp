@@ -1,0 +1,75 @@
+{% extends "gestion_academica/base.html" %}
+{% load static %}
+
+{% block titulo %}{{ noticia.titulo|default:"Detalle de Noticia" }}{% endblock %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+    .noticia-detalle-img {
+        max-height: 400px;
+        width: 100%;
+        object-fit: cover;
+        border-radius: .25rem;
+        margin-bottom: 1.5rem;
+    }
+    .noticia-meta {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1rem;
+    }
+    .noticia-contenido {
+        line-height: 1.7;
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    {% if noticia %}
+        <article>
+            <header class="mb-4">
+                <h1 class="fw-bolder mb-1">{{ noticia.titulo }}</h1>
+                <div class="noticia-meta">
+                    Publicado el {{ noticia.fecha_publicacion|date:"d F, Y" }}
+                    {% if noticia.publicado_por %}
+                        por {{ noticia.publicado_por.get_full_name|default:noticia.publicado_por.username }}
+                    {% endif %}
+                </div>
+            </header>
+            
+            {% if noticia.imagen_destacada %}
+            <figure class="mb-4">
+                <img class="img-fluid rounded noticia-detalle-img" src="{{ noticia.imagen_destacada.url }}" alt="{{ noticia.titulo }}">
+            </figure>
+            {% endif %}
+            
+            <section class="mb-5 noticia-contenido">
+                {{ noticia.contenido|linebreaksbr }}
+            </section>
+        </article>
+        <hr>
+        <a href="{% url 'gestion_academica:lista_noticias' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left-circle"></i> Volver a Noticias y Anuncios
+        </a>
+        {# --- CORRECCIÓN EN LA CONDICIÓN IF --- #}
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.rol == 'administrativo' or user.rol == 'docente' %}
+                 <a href="{% url 'gestion_academica:editar_noticia' noticia.pk %}" class="btn btn-warning ms-2">
+                    <i class="bi bi-pencil-square"></i> Editar Noticia
+                </a>
+            {% endif %}
+        {% endif %}
+        {# --- FIN DE LA CORRECCIÓN --- #}
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+          No se encontró la noticia solicitada.
+        </div>
+        <a href="{% url 'gestion_academica:lista_noticias' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver a Noticias
+        </a>
+    {% endif %}
+</div>
+{% endblock %}

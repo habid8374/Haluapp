@@ -1,0 +1,339 @@
+{% extends "gestion_academica/base.html" %}
+{% load static %} {# Asegúrate de tener esto si usas {% static ... %} para el logo #}
+
+{% block titulo %}{{ titulo_pagina|default:"Boletín de Calificaciones" }}{% endblock %}
+
+{% block extrastyles %}
+<style>
+    body { 
+        /* Sobrescribir el padding-top del base.html para la impresión y mejor visualización del boletín */
+        padding-top: 1rem !important; 
+    } 
+    .boletin-container {
+        max-width: 800px; /* Ancho máximo del boletín */
+        margin: 2rem auto; /* Centrar y dar margen superior/inferior */
+        padding: 2.5rem;
+        border: 1px solid #dee2e6;
+        background-color: #fff;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+    }
+    .boletin-header-institucion {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    .boletin-header-institucion img.logo {
+        max-height: 90px; /* Ajusta según el tamaño de tu logo */
+        max-width: 200px;
+    }
+    .datos-institucion {
+        text-align: right;
+        font-size: 0.85rem;
+    }
+    .datos-institucion h3 {
+        margin-bottom: 0.25rem;
+        font-size: 1.4rem;
+        color: #333;
+    }
+    .boletin-header-estudiante {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px dashed #ccc;
+    }
+    .boletin-header-estudiante h2 {
+        margin-bottom: 0.5rem;
+        font-size: 1.6rem;
+        color: #0056b3;
+    }
+    .curso-section {
+        margin-bottom: 2rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.25rem;
+    }
+    .curso-header {
+        background-color: #f0f4f8; /* Un azul claro suave */
+        color: #2c3e50; /* Un color de texto oscuro pero no negro puro */
+        padding: 0.75rem 1.25rem;
+        border-bottom: 1px solid #d1d9e0;
+        font-weight: bold;
+    }
+    .curso-header h4 {
+        margin-bottom: 0.1rem;
+        font-size: 1.2rem;
+    }
+    .table-calificaciones {
+        margin-bottom: 0; /* Quitar margen inferior de la tabla dentro de la sección */
+    }
+    .table-calificaciones th {
+        background-color: #e9ecef; /* Fondo gris claro para encabezados de tabla */
+        font-weight: 600;
+    }
+    .table-calificaciones th, .table-calificaciones td {
+        font-size: 0.85rem;
+        vertical-align: middle;
+        padding: 0.5rem; /* Ajustar padding de celdas */
+    }
+    .nota-final-curso {
+        font-weight: bold;
+        font-size: 1rem;
+        color: #1a7431; /* Un verde más oscuro */
+    }
+    .promedio-general-section {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background-color: #e9f5ff; /* Un azul muy claro */
+        border: 1px solid #b8d6f0;
+        border-radius: .25rem;
+        text-align: center;
+    }
+    .promedio-general-section h3 {
+        margin-bottom: 0.5rem;
+        color: #004085; /* Azul oscuro */
+    }
+    .promedio-general {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #004085;
+    }
+    .observaciones-generales-section, .firmas-section {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px dashed #ccc;
+    }
+    .observaciones-generales-section textarea {
+        width: 100%;
+        min-height: 80px;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+        padding: .375rem .75rem;
+        font-size: 0.9rem;
+        background-color: #f8f9fa; /* Para que se distinga que es un área de texto */
+    }
+    .firmas-section .firma {
+        margin-top: 3rem; /* Espacio para la firma manuscrita */
+        border-top: 1px solid #000;
+        width: 60%;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+        padding-top: 0.5rem;
+        font-size: 0.9rem;
+    }
+    .print-button-container {
+        margin-top: 2rem;
+        margin-bottom: 2rem; /* Para que no quede pegado al footer en pantalla */
+    }
+
+    @media print {
+        body {
+            font-size: 10pt;
+            padding-top: 0 !important; /* Quitar padding para impresión */
+            background-color: #fff !important; /* Fondo blanco para impresión */
+        }
+        .navbar, .btn:not(.print-button-itself), footer, .no-print { /* Ocultar elementos no deseados */
+            display: none !important;
+        }
+        .boletin-container {
+            width: 100%;
+            margin: 0;
+            padding: 0.5cm; /* Márgenes de impresión */
+            border: none;
+            box-shadow: none;
+        }
+        .curso-section {
+            page-break-inside: avoid; /* Evitar que una sección de curso se corte entre páginas */
+            border: 1px solid #ccc; /* Borde sutil para impresión */
+            padding: 0.5rem;
+        }
+        .curso-header {
+            background-color: #eee !important; 
+            -webkit-print-color-adjust: exact; /* Para Chrome/Safari */
+            print-color-adjust: exact; /* Estándar */
+        }
+        .table-calificaciones th {
+            background-color: #f2f2f2 !important;
+            -webkit-print-color-adjust: exact; /* Para Chrome/Safari */
+            print-color-adjust: exact; /* Estándar */
+        }
+        .table-calificaciones td, .table-calificaciones th {
+            font-size: 9pt;
+            padding: 0.3rem;
+        }
+        .promedio-general-section {
+            background-color: #f0f0f0 !important;
+            border: 1px solid #ccc;
+            -webkit-print-color-adjust: exact; /* Para Chrome/Safari */
+            print-color-adjust: exact; /* Estándar */
+        }
+        a { /* Evitar que los enlaces se vean azules o subrayados en la impresión */
+            text-decoration: none !important;
+            color: inherit !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="boletin-container">
+    <header class="boletin-header-institucion">
+        <div class="logo-container">
+            {# Reemplaza con la URL de tu logo o usa la etiqueta static si está en tus archivos estáticos #}
+            {# Ejemplo con static: <img src="{% static 'img/logo_institucion.png' %}" alt="Logo Institución" class="logo"> #}
+            <img src="https://placehold.co/150x70/0056b3/FFF?text=Logo+Institución&font=roboto" alt="Logo Institución" class="logo">
+        </div>
+        <div class="datos-institucion">
+            <h3>Nombre de la Institución Educativa XYZ</h3>
+            <p class="mb-0">Dirección de la Institución, Ciudad, País</p>
+            <p class="mb-0">Teléfono: (123) 456-7890 | Email: info@institucionxyz.edu</p>
+            <p class="mb-0">Sitio Web: www.institucionxyz.edu</p>
+            {# Puedes añadir más datos como NIT, Resolución, etc. #}
+        </div>
+    </header>
+
+    <section class="boletin-header-estudiante">
+        <h2>Boletín de Calificaciones</h2>
+        {% if estudiante %}
+            <p class="mb-1"><strong>Estudiante:</strong> {{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}</p>
+        {% endif %}
+        {% if estudiante.documento_identidad %}
+            <p class="mb-1 text-muted"><strong>Documento:</strong> {{ estudiante.documento_identidad }}</p>
+        {% endif %}
+        {% if estudiante.grado_actual %}
+            <p class="mb-1 text-muted"><strong>Grado:</strong> {{ estudiante.grado_actual.nombre }}</p>
+        {% endif %}
+        {% if periodo_activo %}
+            <p class="mb-0 text-muted"><strong>Periodo Académico:</strong> {{ periodo_activo.nombre }} ({{ periodo_activo.año_escolar }})</p>
+        {% endif %}
+    </section>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show no-print" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if cursos_con_detalle %}
+        {% for item_curso in cursos_con_detalle %}
+        <section class="curso-section">
+            <div class="curso-header">
+                <h4 class="mb-0">{{ item_curso.curso.materia.nombre_materia }}</h4>
+                <small>
+                    Docente(s):
+                    {% for docente in item_curso.curso.docentes_asignados.all %}
+                        {{ docente.usuario.get_full_name|default:docente.usuario.username }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        <span class="fst-italic">No asignados</span>
+                    {% endfor %}
+                </small>
+            </div>
+            <div class="table-responsive mt-2">
+                <table class="table table-sm table-bordered table-calificaciones">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Actividad Calificable</th>
+                            <th class="text-center" style="width: 12%;">Porc. (%)</th>
+                            <th class="text-center" style="width: 12%;">Cal. Num.</th>
+                            <th class="text-center" style="width: 20%;">Cal. Cualit.</th>
+                            <th>Observaciones del Docente</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item_actividad in item_curso.actividades_con_calificacion %}
+                        <tr>
+                            <td>{{ item_actividad.actividad.titulo }}</td>
+                            <td class="text-center">{{ item_actividad.actividad.porcentaje_en_periodo|default:"--" }}</td>
+                            <td class="text-center">
+                                {% if item_actividad.calificacion and item_actividad.calificacion.valor_numerico is not None %}
+                                    {{ item_actividad.calificacion.valor_numerico|floatformat:2 }}
+                                {% else %}
+                                    <span class="text-muted">--</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if item_actividad.calificacion and item_actividad.calificacion.valor_cualitativo %}
+                                    {{ item_actividad.calificacion.valor_cualitativo }}
+                                {% else %}
+                                    <span class="text-muted">--</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item_actividad.calificacion and item_actividad.calificacion.observaciones %}
+                                    {{ item_actividad.calificacion.observaciones|linebreaksbr }}
+                                {% else %}
+                                    <span class="text-muted">--</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted fst-italic">No hay actividades para este curso.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if item_curso.actividades_con_calificacion %} {# Solo mostrar pie de tabla si hay actividades #}
+                    <tfoot>
+                        <tr class="table-group-divider"> {# Línea divisoria #}
+                            <td colspan="4" class="text-end nota-final-curso">Nota Final del Curso (Calculada):</td>
+                            <td class="text-center nota-final-curso">
+                                {{ item_curso.nota_final_curso|floatformat:2|default:"N/C" }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+        </section>
+        {% endfor %}
+
+        {% if promedio_general_periodo is not None %}
+        <section class="promedio-general-section">
+            <h3>Promedio General del Periodo (Calculado): <span class="promedio-general">{{ promedio_general_periodo|floatformat:2 }}</span></h3>
+        </section>
+        {% endif %}
+
+    {% elif periodo_activo and estudiante.grado_actual %}
+        <div class="alert alert-info mt-3" role="alert">
+            No se encontraron cursos o calificaciones para mostrar en tu boletín para el periodo activo.
+        </div>
+    {% elif not estudiante.grado_actual and not messages %} {# Solo mostrar si no hay otro mensaje más específico #}
+        <div class="alert alert-warning mt-3" role="alert">
+            Aún no estás asignado a un grado. Por favor, contacta a la administración.
+        </div>
+    {% elif not periodo_activo and not messages %}
+         <div class="alert alert-warning mt-3" role="alert">
+            Actualmente no hay un periodo académico activo configurado en el sistema.
+        </div>
+    {% endif %}
+
+    <section class="observaciones-generales-section">
+        <h5>Observaciones Generales del Periodo:</h5>
+        <textarea class="form-control" rows="4" readonly placeholder="Espacio para observaciones generales del director de curso o la institución..."></textarea>
+        {# Este campo podría llenarse desde un modelo o dejarse para ser llenado manualmente en la impresión #}
+    </section>
+
+    <section class="firmas-section row">
+        <div class="col-6">
+            <div class="firma">
+                Firma del Director(a) de Curso / Coordinador(a)
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="firma">
+                Firma del Padre/Madre o Acudiente
+            </div>
+        </div>
+    </section>
+
+    <div class="text-center mt-4 mb-5 print-button-container no-print">
+        <button onclick="window.print();" class="btn btn-secondary"><i class="bi bi-printer-fill"></i> Imprimir Boletín</button>
+    </div>
+
+</div> {# Fin de boletin-container #}
+{% endblock %}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Actualización en tu Proceso de Admisión</title>
+</head>
+<body style="font-family: sans-serif; margin: 20px; color: #333;">
+    <h1 style="color: #005a9e;">Actualización sobre tu Proceso de Admisión</h1>
+    
+    <p>Hola <strong>{{ aspirante.nombres }} {{ aspirante.apellidos }}</strong>,</p>
+
+    <p>Te informamos que ha habido una actualización en tu solicitud de admisión para el grado <strong>{{ aspirante.grado_aspira.nombre }}</strong>.</p>
+
+    <p style="font-size: 18px; margin: 25px 0; padding: 20px; background-color: #f0f4f8; border-left: 5px solid #0078D4;">
+        Nuevo Estado: <strong>{{ aspirante.get_estado_display }}</strong>
+    </p>
+
+    {# CASO 1: Aprobado para pagar matrícula (el más específico) #}
+    {% if aspirante.estado == 'APROBADO_MATRICULA' and enlace_pago_matricula %}
+        <p><strong>¡Felicitaciones!</strong> Para completar tu proceso y asegurar tu cupo, por favor realiza el pago de la matrícula a través del siguiente enlace:</p>
+        <p style="text-align: center; margin: 30px 0;">
+            <a href="{{ enlace_pago_matricula }}" style="background-color: #28a745; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-size: 16px;">
+                Pagar Matrícula Ahora
+            </a>
+        </p>
+
+    {# CASO 2: Admitido (con mensaje personalizado y enlace al portal) #}
+    {% elif aspirante.estado == 'ADMITIDO' %}
+        <p><strong>¡Felicidades!</strong> Has sido admitido en nuestra institución. Próximamente nos pondremos en contacto contigo para indicarte los siguientes pasos para formalizar la matrícula.</p>
+        <p>Puedes ver más detalles en tu portal:</p>
+        <p style="text-align: center; margin: 30px 0;">
+            <a href="{{ portal_pagado_url }}" style="background-color: #0d6efd; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-size: 16px;">
+                Ir a Mi Portal
+            </a>
+        </p>
+    
+    {# CASO 3: Rechazado (solo mensaje) #}
+    {% elif aspirante.estado == 'RECHAZADO' %}
+        <p>Agradecemos tu interés en nuestra institución. Después de una cuidadosa revisión, en esta ocasión no ha sido posible ofrecerte una plaza. Te deseamos mucho éxito en tu búsqueda.</p>
+    
+    {# CASO 4: En Proceso (mensaje y enlace al portal) #}
+    {% elif aspirante.estado == 'EN_PROCESO' %}
+        <p>Tu solicitud está siendo revisada por nuestro equipo de admisiones. Te notificaremos cualquier novedad.</p>
+        <p>Puedes seguir el estado de tu solicitud en tu portal:</p>
+        <p style="text-align: center; margin: 30px 0;">
+            <a href="{{ portal_url }}" style="background-color: #0d6efd; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-size: 16px;">
+                Acceder a mi Portal de Postulante
+            </a>
+        </p>
+    {% endif %}
+    <p>Atentamente,<br>
+    El equipo de Admisiones<br>
+    <strong>{{ institucion.nombre }}</strong>
+    </p>
+</body>
+</html>

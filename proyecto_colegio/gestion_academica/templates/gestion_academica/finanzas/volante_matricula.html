@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Volante de Matrícula</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 13px; }
+        .titulo { text-align: center; font-weight: bold; font-size: 18px; }
+        .contenido { margin-top: 20px; }
+        .linea { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="titulo">VOLANTE DE MATRÍCULA</div>
+    <div class="contenido">
+        <div class="linea"><strong>Estudiante:</strong> {{ cuenta.estudiante.nombre_completo }}</div>
+        <div class="linea"><strong>Documento:</strong> {{ cuenta.estudiante.numero_documento }}</div>
+        <div class="linea"><strong>Grado:</strong> {{ cuenta.estudiante.grado }}</div>
+        <div class="linea"><strong>Concepto:</strong> {{ cuenta.concepto_pago.nombre }}</div>
+        <div class="linea"><strong>Valor a Pagar:</strong> ${{ cuenta.monto_asignado }}</div>
+        <div class="linea"><strong>Fecha Vencimiento:</strong> {{ cuenta.fecha_vencimiento_especifica|date:"d/m/Y" }}</div>
+    </div>
+</body>
+</html>

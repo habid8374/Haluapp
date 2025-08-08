@@ -1,0 +1,72 @@
+{# gestion_academica/templates/gestion_academica/estudiante_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Estudiante" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Estudiante" }}</h1>
+    <hr>
+
+    {% if estudiante %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar al estudiante: <strong>{{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}</strong>?</p>
+            
+            {% if estudiante.codigo_estudiante %}
+                <p class="mb-1"><strong>Código de Estudiante:</strong> {{ estudiante.codigo_estudiante }}</p>
+            {% endif %}
+            {% if estudiante.grado_actual %}
+                <p class="mb-0"><strong>Grado Actual:</strong> {{ estudiante.grado_actual.nombre }}</p>
+            {% endif %}
+            <hr>
+            <p class="mb-0">Esta acción **también eliminará su cuenta de usuario asociada** y es **irreversible**.</p>
+            
+            {# Advertencias adicionales si el estudiante tiene dependencias #}
+            {% if estudiante.calificaciones.exists %}
+                <p class="mt-3 text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este estudiante tiene **calificaciones registradas**. Eliminarlo **borrará permanentemente** todas sus calificaciones.
+                </p>
+            {% endif %}
+            {% if estudiante.entregas_deberes.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este estudiante tiene **entregas de deberes** realizadas. Eliminarlo **borrará permanentemente** estas entregas y sus archivos asociados.
+                </p>
+            {% endif %}
+            {% if estudiante.cuentas_por_cobrar.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este estudiante tiene **cuentas por cobrar** registradas. Eliminarlo **borrará permanentemente** estas cuentas y sus pagos asociados.
+                </p>
+            {% endif %}
+            {% if estudiante.menciones_reconocimientos.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este estudiante tiene **menciones o reconocimientos** asociados. Eliminarlo también borrará estos registros.
+                </p>
+            {% endif %}
+            {% if estudiante.familiares.exists %}
+                <p class="text-warning">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **Advertencia:** Este estudiante está asociado a **familiares**. Eliminarlo podría afectar la visualización de sus datos en el portal familiar.
+                </p>
+            {% endif %}
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Estudiante
+            </button>
+            <a href="{% url 'gestion_academica:lista_estudiantes' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró la información del estudiante a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_estudiantes' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

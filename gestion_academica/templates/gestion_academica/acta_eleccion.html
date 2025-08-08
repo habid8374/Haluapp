@@ -1,0 +1,48 @@
+{% extends "base_academico.html" %}
+{% block titulo %}Acta Electoral – {{ eleccion.nombre }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4" id="acta-imprimir">
+    <div class="text-center mb-4">
+        <h3>ACTA ELECTORAL</h3>
+        <p><strong>{{ eleccion.nombre }}</strong> – Cargo: {{ eleccion.cargo }}</p>
+        <p>Fecha: {{ eleccion.fecha_inicio|date:"d/m/Y" }} a {{ eleccion.fecha_fin|date:"d/m/Y" }}</p>
+        <p>Total de votos emitidos: <strong>{{ total_votantes }}</strong></p>
+    </div>
+
+    <table class="table table-bordered table-sm">
+        <thead>
+            <tr>
+                <th>Candidato</th>
+                <th>Grado</th>
+                <th>Votos</th>
+                <th>Porcentaje</th>
+                <th>Análisis IA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in candidatos %}
+            <tr>
+                <td><strong>{{ c.nombre }}</strong></td>
+                <td>{{ c.grado }}</td>
+                <td>{{ c.total_votos }}</td>
+                <td>
+                    {% if total_votantes > 0 %}
+                        {{ c.total_votos|divisibleby:total_votantes|floatformat:1 }}%
+                    {% else %}0%
+                    {% endif %}
+                </td>
+                <td style="white-space: pre-wrap;">{{ c.analisis_ia|default:"(No disponible)" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="text-end mt-4">
+        <p>Firma Coordinador: ____________________________</p>
+    </div>
+
+    <div class="text-center mt-3">
+        <button class="btn btn-outline-dark" onclick="window.print()">🖨️ Imprimir</button>
+    </div>
+</div>
+{% endblock %}

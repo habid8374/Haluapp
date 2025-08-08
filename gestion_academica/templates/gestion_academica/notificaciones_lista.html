@@ -1,0 +1,45 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0"><i class="bi bi-bell-fill me-2"></i> {{ titulo_pagina }}</h1>
+        {# Este botón ahora te regresará a la página exacta desde la que hiciste clic #}
+        <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div class="list-group shadow-sm">
+        {% for notificacion in notificaciones %}
+            {# Se usa la URL del enlace que creamos en la vista #}
+            <a href="{{ notificacion.enlace|default:'#' }}" class="list-group-item list-group-item-action {% if not notificacion.fecha_leido %}list-group-item-info fw-bold{% endif %}">
+                <div class="d-flex w-100 justify-content-between">
+                    <p class="mb-1">
+                        {# La etiqueta "Nuevo" se muestra si no ha sido leída antes de entrar a esta página #}
+                        {% if not notificacion.fecha_leido %}
+                            <span class="badge bg-primary me-2">Nuevo</span>
+                        {% endif %}
+                        {{ notificacion.mensaje }}
+                    </p>
+                    <small class="text-muted">{{ notificacion.fecha_creacion|timesince }} atrás</small>
+                </div>
+                {# --- AQUÍ MOSTRAMOS EL CONSEJO DE LA IA --- #}
+                {% if notificacion.consejo_ia %}
+                <div class="mt-2 p-3 bg-light rounded">
+                    <p class="mb-0" style="white-space: pre-wrap;">{{ notificacion.consejo_ia }}</p>
+                </div>
+                {% endif %}
+
+                <small class="text-muted">Recibido el {{ notificacion.fecha_creacion|date:"d M, Y" }}</small>
+            </div>
+        {% empty %}
+            <div class="list-group-item text-center p-5">
+                <p class="h4 text-muted">No tienes notificaciones.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "gestion_academica/base.html" %}
+{% load crispy_forms_tags %} {# Opcional, si usas django-crispy-forms #}
+
+{% block titulo %}{{ titulo_formulario|default:"Formulario de Mención/Reconocimiento" }}{% endblock %}
+
+{% block contenido %}
+<h1>{{ titulo_formulario|default:"Formulario de Mención/Reconocimiento" }}</h1>
+<hr>
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+                <p class="mb-0">{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# Puedes usar el filtro |crispy si lo tienes configurado #}
+    {# {{ form|crispy }} #}
+
+    {# O renderizar manualmente para más control #}
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="{{ form.estudiante.id_for_label }}" class="form-label">{{ form.estudiante.label }} {% if form.estudiante.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ form.estudiante }}
+            {% for error in form.estudiante.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.estudiante.help_text %}<small class="form-text text-muted">{{ form.estudiante.help_text }}</small>{% endif %}
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="{{ form.tipo.id_for_label }}" class="form-label">{{ form.tipo.label }} {% if form.tipo.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ form.tipo }}
+            {% for error in form.tipo.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.tipo.help_text %}<small class="form-text text-muted">{{ form.tipo.help_text }}</small>{% endif %}
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="{{ form.descripcion.id_for_label }}" class="form-label">{{ form.descripcion.label }} {% if form.descripcion.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+        {{ form.descripcion }}
+        {% for error in form.descripcion.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+        {% if form.descripcion.help_text %}<small class="form-text text-muted">{{ form.descripcion.help_text }}</small>{% endif %}
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label for="{{ form.fecha_otorgamiento.id_for_label }}" class="form-label">{{ form.fecha_otorgamiento.label }} {% if form.fecha_otorgamiento.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ form.fecha_otorgamiento }}
+            {% for error in form.fecha_otorgamiento.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.fecha_otorgamiento.help_text %}<small class="form-text text-muted">{{ form.fecha_otorgamiento.help_text }}</small>{% endif %}
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="{{ form.curso.id_for_label }}" class="form-label">{{ form.curso.label }} {% if form.curso.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ form.curso }}
+            {% for error in form.curso.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.curso.help_text %}<small class="form-text text-muted">{{ form.curso.help_text }}</small>{% endif %}
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="{{ form.periodo.id_for_label }}" class="form-label">{{ form.periodo.label }} {% if form.periodo.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+            {{ form.periodo }}
+            {% for error in form.periodo.errors %}<div class="text-danger mt-1"><small>{{ error }}</small></div>{% endfor %}
+            {% if form.periodo.help_text %}<small class="form-text text-muted">{{ form.periodo.help_text }}</small>{% endif %}
+        </div>
+    </div>
+    
+    {# gestion_academica/templates/gestion_academica/mencion_formulario.html #}
+{# ... #}
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                        {{ field }} {# ESTO RENDERIZARÁ EL NUEVO CAMPO 'otorgado_por' #}
+                        {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
+                        {% for error_message in field.errors %}
+                            <div class="text-danger mt-1"><small>{{ error_message }}</small></div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+{# ... #}
+
+    <hr>
+    <button type="submit" class="btn btn-success">
+        <i class="bi bi-award"></i> Guardar Mención/Reconocimiento
+    </button>
+    <a href="{% url 'gestion_academica:lista_menciones' %}" class="btn btn-secondary">
+        <i class="bi bi-x-circle-fill"></i> Cancelar
+    </a>
+</form>
+{% endblock %}

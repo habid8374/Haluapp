@@ -1,0 +1,55 @@
+{# gestion_academica/templates/gestion_academica/deber_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# CORRECTED: Now extends base_academico.html! #}
+{% load static %} {# Added to use static resources #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Deber" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Deber" }}</h1>
+    <hr>
+
+    {% if deber %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar el deber / tarea:</p>
+            <p class="mb-1">
+                <strong>Título:</strong> {{ deber.titulo }}
+            </p>
+            <p class="mb-0">
+                <strong>Curso:</strong> {{ deber.curso.materia.nombre_materia }} del grado {{ deber.curso.grado.nombre }} (Periodo: {{ deber.curso.periodo_academico.nombre }})
+            </p>
+            <hr>
+            {% if deber.material_adjunto %}
+                <p class="text-muted">Este deber tiene un material adjunto: <a href="{{ deber.material_adjunto.url }}" target="_blank" class="fw-bold">{{ deber.material_adjunto.name|cut:"deberes_materiales/" }} <i class="bi bi-box-arrow-up-right"></i></a></p>
+            {% endif %}
+
+            {# WARNING if there are associated student submissions #}
+            {% if deber.entregas.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este deber ya tiene **{{ deber.entregas.count }} entrega(s)** de estudiantes. Eliminarlo también **borrará permanentemente** estas entregas y cualquier archivo adjunto por los estudiantes.
+                </p>
+            {% endif %}
+
+            <p class="mb-0 mt-3 text-danger">Esta acción es **irreversible**.</p>
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Deber
+            </button>
+            <a href="{% url 'gestion_academica:lista_deberes' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró el deber/tarea a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_deberes' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

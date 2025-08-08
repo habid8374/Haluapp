@@ -1,0 +1,110 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extra_css %}
+{# Estilos para que el calendario se vea bien y sea responsive #}
+<style>
+    #calendario-container {
+        padding: 1rem;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    #calendario {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    /* Mejora la legibilidad de los eventos */
+    .fc-event-main-frame {
+        font-size: 0.85em;
+    }
+    .fc-event-title {
+        font-weight: 600;
+    }
+    .fc-daygrid-event {
+        cursor: pointer;
+    }
+    .fc-list-event-title a {
+        text-decoration: none;
+        color: inherit;
+    }
+</style>
+{% endblock %}
+
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <h1 class="h2 mb-4"><i class="bi bi-calendar3 me-2"></i>{{ titulo_pagina }}</h1>
+    
+    <div id="calendario-container">
+        <div id='calendario'>
+            {# FullCalendar se renderizará aquí #}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+{# Incluimos la librería de FullCalendar desde su CDN #}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendario');
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        // --- 1. Configuración Visual y de Idioma ---
+        themeSystem: 'bootstrap5',
+        locale: 'es', // ¡Calendario en español!
+        buttonText: {
+            today: 'Hoy',
+            month: 'Mes',
+            week: 'Semana',
+            day: 'Día',
+            list: 'Agenda'
+        },
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        initialView: 'timeGridWeek', // Vista por defecto: la semana
+        height: 'auto', // Se ajusta al contenido para no dejar mucho espacio en blanco
+        navLinks: true, // Permite hacer clic en los días/semanas
+        weekends: true, // Muestra los fines de semana
+        nowIndicator: true, // Muestra una línea indicando la hora actual
+
+        // --- 2. Carga de Eventos desde nuestra API ---
+        // Le decimos a FullCalendar que obtenga los eventos de esta URL
+        events: "{% url 'gestion_academica:api_calendario_eventos' %}",
+
+        // --- 3. Interacción del Usuario ---
+        eventClick: function(info) {
+            // Prevenimos el comportamiento por defecto del navegador
+            info.jsEvent.preventDefault(); 
+            
+            // Si el evento tiene una URL (que le asignamos en la API), la abrimos
+            if (info.event.url) {
+                window.open(info.event.url, "_blank");
+            }
+        },
+
+        // Muestra un mensaje de carga mientras se obtienen los datos de la API
+        loading: function(isLoading) {
+            if (isLoading) {
+                // Podrías mostrar un spinner aquí si lo deseas
+                calendarEl.innerHTML = '<div class="d-flex justify-content-center p-5"><div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
+            } else {
+                // Se oculta automáticamente cuando los eventos cargan
+            }
+        }
+    });
+
+    // ¡Renderizamos el calendario!
+    calendar.render();
+});
+</script>
+{% endblock %}

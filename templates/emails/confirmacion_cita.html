@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmación de Cita de Admisión</title>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 20px; color: #333; line-height: 1.6;">
+    <div style="max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
+        <h1 style="color: #005a9e; font-size: 24px;">¡Tu Cita ha sido Confirmada!</h1>
+        
+        <p>Hola <strong>{{ aspirante.nombres }}</strong>,</p>
+
+        <p>Te confirmamos que tu cita para el proceso de admisión en <strong>{{ branding.NOMBRE }}</strong> ha sido agendada con éxito. A continuación, te presentamos los detalles:</p>
+
+        <div style="font-size: 16px; margin: 25px 0; padding: 20px; background-color: #f4f8fa; border-radius: 8px; border-left: 5px solid #0078D4;">
+            <p style="margin: 5px 0;"><strong>Tipo de Cita:</strong> {{ cita.horario.get_tipo_cita_display }}</p>
+            <p style="margin: 5px 0;"><strong>Fecha:</strong> {{ cita.horario.fecha_hora_inicio|date:"l, d \d\e F \d\e Y" }}</p>
+            <p style="margin: 5px 0;"><strong>Hora:</strong> {{ cita.horario.fecha_hora_inicio|time:"H:i" }}</p>
+            {% if cita.horario.entrevistador %}
+            <p style="margin: 5px 0;"><strong>Con:</strong> {{ cita.horario.entrevistador.get_full_name|default:"El equipo de admisiones" }}</p>
+            {% endif %}
+        </div>
+
+        <p>Por favor, sé puntual. Si necesitas reprogramar o cancelar tu cita, te pedimos que contactes directamente con nuestra oficina de admisiones con al menos 24 horas de antelación.</p>
+
+        <p>¡Te esperamos con mucho gusto!</p>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <p style="font-size: 12px; color: #777;">
+            Atentamente,<br>
+            El equipo de Admisiones<br>
+            <strong>{{ branding.NOMBRE }}</strong>
+        </p>
+    </div>
+</body>
+</html>

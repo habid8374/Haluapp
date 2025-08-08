@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificado de Notas</title>
+    <style>
+        @page {
+            size: letter portrait;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header-table {
+            width: 100%;
+        }
+
+        .logo-cell {
+            width: 25%;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .logo {
+            max-width: 100px;
+            height: auto;
+        }
+
+        .title-cell {
+            width: 75%;
+            text-align: center;
+            vertical-align: top;
+            padding-top: 0; /* Para acercar al logo */
+        }
+
+        .title-cell h1 {
+            margin: 0 0 2px 0; /* Margen inferior más pequeño */
+            font-size: 15pt;
+            font-weight: bold;
+        }
+
+        .title-cell p {
+            margin: 1px 0; /* Margen entre líneas de texto reducido */
+            font-size: 9pt;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 2cm;
+            width: 100%;
+            text-align: center;
+            font-size: 9pt;
+            line-height: 1.2;
+            color: #333;
+        }
+
+        .footer p {
+            margin: 1px 0;
+        }
+
+        .content {
+            padding: 0 0.5cm;
+        }
+
+        .main-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 13pt;
+            margin: 30px 0 10px;
+        }
+
+        .table-notas {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 10pt;
+        }
+
+        .table-notas th, .table-notas td {
+            border: 1px solid #333;
+            padding: 5px 6px;
+        }
+
+        .table-notas th {
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+
+        .signature-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .signature-image {
+            max-height: 40px;
+            margin: 0 auto -10px;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid black;
+            width: 250px;
+            margin: 5px auto 5px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+    <table class="header-table" style="width: 100%;">
+        <tr>
+            <td class="logo-cell" style="width: 20%; text-align: left; vertical-align: middle;">
+                {% if institucion.logo %}
+                    <img src="{{ institucion.logo.path }}" class="logo" style="max-width: 100px;">
+                {% endif %}
+            </td>
+            <td class="title-cell" style="width: 80%; text-align: center; vertical-align: middle;">
+                <h1 style="margin: 0 0 2px 0; font-size: 15pt; font-weight: bold;">{{ institucion.nombre|upper }}</h1>
+                <p style="margin: 1px 0; font-size: 9pt;">{{ institucion.texto_aprobacion }}</p>
+                <p style="margin: 1px 0; font-size: 9pt;">{{ institucion.texto_resolucion|linebreaksbr }}</p>
+                <p style="margin: 1px 0; font-size: 9pt;">N°{{ institucion.numero_resolucion }} del {{ institucion.fecha_resolucion }} DANE: {{ institucion.codigo_dane }} - NIT: {{ institucion.nit }}</p>
+                
+            </td>
+        </tr>
+    </table>
+</div>
+
+    <div class="content">
+        <p class="main-title">EL/LA SUSCRITO(A) RECTOR(A)</p>
+        <p class="main-title" style="margin-top: -15px;">CERTIFICA:</p>
+
+        <p>
+            Que el/la estudiante <strong>{{ estudiante.usuario.get_full_name|upper }}</strong>, identificado(a) con documento de identidad No. 
+            <strong>{{ estudiante.documento_identidad }}</strong>, cursó y aprobó los logros previstos correspondientes al grado 
+            <strong>{{ estudiante.grado_actual.nombre|upper }}</strong> en esta institución en el año <strong>{{ año_cursado }}</strong> y obtuvo los siguientes resultados:
+        </p>
+
+        <table class="table-notas">
+            <thead>
+                <tr>
+                    <th>ASIGNATURA</th>
+                    <th style="text-align: center;">PROMEDIO</th>
+                    <th>DESEMPEÑO</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for materia in materias %}
+                <tr>
+                    <td>{{ forloop.counter }}. {{ materia.nombre }}</td>
+                    <td style="text-align: center;">{{ materia.promedio }}</td>
+                    <td style="text-align: center; vertical-align: middle;">{{ materia.desempeno|capfirst }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p><strong>OBSERVACIONES:</strong> El estudiante fue promovido al grado siguiente, su comportamiento fue acorde con los lineamientos del colegio.</p>
+
+        <p>
+            Se expide la presente certificación a solicitud de la parte interesada a los {{ fecha_generacion|date:"d" }} días del mes de 
+            {{ fecha_generacion|date:"F" }} del año {{ fecha_generacion|date:"Y" }}.
+        </p>
+
+        <div class="signature-section">
+            {% if institucion.firma_rectora %}
+                <img src="{{ institucion.firma_rectora.path }}" class="signature-image" alt="Firma Rector(a)">
+            {% endif %}
+            <div class="signature-line"></div>
+            <strong>{{ institucion.nombre_rectora }}</strong><br>
+            Rector(a)
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>{{ institucion.direccion }} - TELÉFONO: {{ institucion.telefono }}</p>
+        <p>E-mail: {{ institucion.correo_electronico }}</p>
+        <p>{{ institucion.ciudad_departamento|upper }}</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+{# gestion_academica/templates/gestion_academica/curso_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Curso" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Curso" }}</h1>
+    <hr>
+
+    {% if curso %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+            <p>¿Estás seguro de que deseas eliminar el curso:</p>
+            <p class="mb-1">
+                <strong>Materia:</strong> {{ curso.materia.nombre_materia }}
+            </p>
+            <p class="mb-1">
+                <strong>Grado:</strong> {{ curso.grado.nombre }}
+            </p>
+            <p class="mb-0">
+                <strong>Periodo:</strong> {{ curso.periodo_academico.nombre }} ({{ curso.periodo_academico.año_escolar }})
+            </p>
+            <hr>
+            {% if curso.docentes_asignados.all %}
+                <p class="text-muted">Docentes asignados actualmente:
+                    {% for docente in curso.docentes_asignados.all %}
+                        {{ docente.usuario.get_full_name|default:docente.usuario.username }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+            {% endif %}
+
+            {# Advertencias adicionales si el curso tiene dependencias #}
+            {% if curso.actividades_calificables.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este curso tiene **actividades calificables asociadas**. Eliminarlo también **borrará permanentemente** estas actividades y sus calificaciones.
+                </p>
+            {% endif %}
+            {% if curso.deberes.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este curso tiene **deberes/tareas asociadas**. Eliminarlo también **borrará permanentemente** estos deberes y sus entregas.
+                </p>
+            {% endif %}
+            {% if curso.archivos_material_apoyo_curso.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este curso tiene **materiales o archivos de planes asociados**. Eliminarlo podría afectar el acceso a estos recursos.
+                </p>
+            {% endif %}
+
+            <p class="mb-0 mt-3 text-danger">Esta acción es **irreversible**.</p>
+        </div>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> Sí, Eliminar Curso
+            </button>
+            <a href="{% url 'gestion_academica:lista_cursos' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No se encontró el curso a eliminar.
+        </div>
+        <a href="{% url 'gestion_academica:lista_cursos' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+        </a>
+    {% endif %}
+</div>
+{% endblock contenido %}

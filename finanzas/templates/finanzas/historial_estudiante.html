@@ -1,0 +1,119 @@
+{% extends 'base_finanzas.html' %}
+
+{% block titulo %}Estado de Cuenta de {{ estudiante.usuario.get_full_name }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    
+    <div class="card shadow-sm mb-4">
+        </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Cuentas Asignadas</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if historial %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Concepto</th>
+                                <th class="text-end">Monto Asignado</th>
+                                <th class="text-end">Monto Pagado</th>
+                                <th class="text-end">Saldo Pendiente</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cuenta in historial %}
+                            <tr>
+                                <td>
+                                    {{ cuenta.concepto_pago.nombre_concepto }}
+                                    <br>
+                                    <small class="text-muted">Vence: {{ cuenta.fecha_vencimiento_especifica|date:"d M, Y" }}</small>
+                                </td>
+                                <td class="text-end">${{ cuenta.monto_asignado|floatformat:2 }}</td>
+                                <td class="text-end text-success">${{ cuenta.monto_pagado_actual|floatformat:2 }}</td>
+                                <td class="text-end"><strong>${{ cuenta.saldo_pendiente|floatformat:2 }}</strong></td>
+                                <td class="text-center">
+                                    <span class="badge {% if cuenta.estado == 'PAGADO' %}bg-success{% elif cuenta.estado == 'VENCIDO' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ cuenta.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'finanzas:registrar_pago' cuenta_id=cuenta.pk %}" class="btn btn-sm btn-primary" title="Registrar un nuevo pago para esta cuenta">
+                                        <i class="bi bi-plus-circle-fill"></i> Registrar Abono
+                                    </a>
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    <a href="{% url 'finanzas:generar_factura_venta' cuenta_id=cuenta.pk %}" class="btn btn-sm btn-outline-info" title="Generar Factura" target="_blank">
+                                        <i class="bi bi-printer-fill"></i>
+                                    </a>
+                                    <a href="{% url 'finanzas:registrar_pago' cuenta_id=cuenta.pk %}" class="btn btn-sm btn-success" title="Registrar Pago">
+                                        <i class="bi bi-cash-coin"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            
+                            {% if cuenta.pagos.all %}
+                            <tr class="table-light">
+                                <td colspan="6" class="p-0">
+                                    <div class="accordion accordion-flush" id="accordion-{{ cuenta.pk }}">
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header" id="heading-{{ cuenta.pk }}">
+                                                <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ cuenta.pk }}">
+                                                    <small>Ver {{ cuenta.pagos.count }} pago(s) registrado(s)</small>
+                                                </button>
+                                            </h2>
+                                            <div id="collapse-{{ cuenta.pk }}" class="accordion-collapse collapse" data-bs-parent="#accordion-{{ cuenta.pk }}">
+                                                <div class="accordion-body">
+                                                    <ul class="list-group">
+                                                        {% for pago in cuenta.pagos.all %}
+                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                Pago de <strong>${{ pago.valor_pagado|floatformat:2 }}</strong> 
+                                                                <small class="text-muted"> ({{ pago.fecha_pago|date:"d M, Y" }} - {{ pago.get_metodo_pago_display }})</small>
+                                                            </div>
+                                                            <div class="btn-group">
+                                                                <a href="{% url 'finanzas:editar_pago' pago_id=pago.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar este pago">
+                                                                    <i class="bi bi-pencil-fill"></i> Editar
+                                                                </a>
+                                                                <a href="{% url 'finanzas:eliminar_pago' pago_id=pago.pk %}" class="btn btn-sm btn-outline-danger" title="Eliminar este pago">
+                                                                    <i class="bi bi-trash-fill"></i> Eliminar
+                                                                </a>
+                                                            </div>
+                                                        </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center m-3">
+                    Este estudiante no tiene cuentas por cobrar registradas.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'finanzas:sincronizar_cuentas' estudiante_pk=estudiante.pk %}" class="btn btn-info">
+                <i class="bi bi-arrow-repeat"></i> Sincronizar Cuentas
+            </a>
+        <a href="{% url 'finanzas:reporte_general_cuentas' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Reporte General
+        </a>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}Resumen de Calificaciones - {{ periodo_activo.nombre }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h1 class="h2 mb-0">Resumen de Calificaciones</h1>
+            <p class="text-muted mb-0">Periodo: <strong>{{ periodo_activo.nombre }} ({{ periodo_activo.año_escolar }})</strong></p>
+        </div>
+        
+        <div class="d-flex align-items-center gap-2">
+            <div class="flex-shrink-0">
+                <select id="selectFormatoPapel" class="form-select">
+                    <option value="carta" selected>Tamaño Carta</option>
+                    <option value="oficio">Tamaño Oficio</option>
+                    <option value="a4">Tamaño A4</option>
+                </select>
+            </div>
+            <div class="flex-shrink-0">
+                <a id="botonImprimirBoletin" 
+                   href="{% url 'gestion_academica:boletin_imprimible' estudiante.pk periodo_activo.pk %}?formato=carta"
+                   data-base-url="{% url 'gestion_academica:boletin_imprimible' estudiante.pk periodo_activo.pk %}"
+                   class="btn btn-primary btn-lg" 
+                   target="_blank">
+                    <i class="bi bi-printer-fill me-2"></i> Ver Boletín Formal / Imprimir
+                </a>
+            </div>
+        </div>
+        </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Estudiante: {{ estudiante.usuario.get_full_name }}</h5>
+        </div>
+        <div class="card-body">
+            {% if cursos_con_detalle %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Materia / Curso</th>
+                            <th class="text-center">Nota Final Ponderada</th>
+                            <th class="text-center">Desempeño</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cursos_con_detalle %}
+                        <tr>
+                            <td><strong>{{ item.curso.materia.nombre_materia }}</strong></td>
+                            <td class="text-center fs-5">
+                                {% if item.nota_final_curso is not None %}
+                                    <span class="badge 
+                                        {% if item.nota_final_curso >= 4.6 %} bg-success
+                                        {% elif item.nota_final_curso >= 4.0 %} bg-info
+                                        {% elif item.nota_final_curso >= 3.0 %} bg-warning
+                                        {% else %} bg-danger {% endif %}">
+                                        {{ item.nota_final_curso|floatformat:2 }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">S.N.</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">{{ item.desempeno|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-group-divider">
+                        <tr class="fw-bold fs-5">
+                            <td>Promedio General del Periodo</td>
+                            <td class="text-center" colspan="2">
+                                {% if promedio_general_periodo is not None %}
+                                    {{ promedio_general_periodo|floatformat:2 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">No hay cursos o calificaciones para mostrar en este periodo.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectFormato = document.getElementById('selectFormatoPapel');
+        const botonImprimir = document.getElementById('botonImprimirBoletin');
+        
+        if (selectFormato && botonImprimir) {
+            function actualizarEnlace() {
+                const formatoElegido = selectFormato.value;
+                const baseUrl = botonImprimir.dataset.baseUrl;
+                const nuevaUrl = `${baseUrl}?formato=${formatoElegido}`;
+                botonImprimir.href = nuevaUrl;
+            }
+            selectFormato.addEventListener('change', actualizarEnlace);
+        }
+    });
+</script>
+{% endblock %}

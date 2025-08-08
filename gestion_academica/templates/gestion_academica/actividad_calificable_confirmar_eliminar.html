@@ -1,0 +1,37 @@
+{# gestion_academica/templates/gestion_academica/actividad_calificable_confirmar_eliminar.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Actividad" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Actividad" }}</h1>
+    
+    <div class="alert alert-warning shadow-sm" role="alert">
+        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
+        <p>¿Estás seguro de que deseas eliminar la actividad calificable:</p>
+        <p class="mb-1"><strong>Título:</strong> {{ actividad.titulo }}</p>
+        <p class="mb-0"><strong>Curso:</strong> {{ actividad.curso.materia.nombre_materia }} de {{ actividad.curso.grado.nombre }} (Periodo: {{ actividad.curso.periodo_academico.nombre }})</p>
+        <hr>
+        <p class="mb-0">Esta acción es **irreversible** y no se podrá recuperar la actividad una vez eliminada.</p>
+    </div>
+
+    {# Aquí podrías añadir una advertencia si la actividad tiene calificaciones registradas #}
+    {% if actividad.calificaciones_recibidas.exists %}
+        <div class="alert alert-danger mt-3 shadow-sm" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> **¡Importante!** Esta actividad ya tiene **{{ actividad.calificaciones_recibidas.count }} calificación(es)** registrada(s). Eliminarla también **borrará permanentemente** estas calificaciones.
+        </div>
+    {% endif %}
+
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger me-2">
+            <i class="bi bi-trash-fill"></i> Sí, Eliminar Actividad
+        </button>
+        <a href="{% url 'gestion_academica:lista_actividades_calificables' %}" class="btn btn-secondary">
+            <i class="bi bi-x-circle-fill"></i> No, Cancelar
+        </a>
+    </form>
+</div>
+{% endblock contenido %}

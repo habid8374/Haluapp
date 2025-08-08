@@ -1,0 +1,107 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+    <p class="text-muted">Aquí puedes ver un historial completo de todas las actividades entregadas por tus estudiantes y acceder a su revisión.</p>
+
+    <h3 class="h4 mt-4">Historial de Cuestionarios</h3>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>Cuestionario</th>
+                            <th>Fecha</th>
+                            <th>Puntaje</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for intento in intentos %}
+                        <tr>
+                            <td>{{ intento.estudiante }}</td>
+                            <td>{{ intento.cuestionario.titulo }}</td>
+                            <td>{{ intento.fecha_fin|date:"d M, Y" }}</td>
+                            <td><span class="badge bg-primary">{{ intento.puntaje_obtenido|floatformat:2 }}</span></td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'cuestionarios:revisar_intento' intento_pk=intento.pk %}" class="btn btn-secondary btn-sm" title="Ver y Gestionar">
+                                        <i class="bi bi-search"></i>
+                                    </a>
+                                    
+                                    <button type="button" class="btn btn-danger btn-sm delete-btn" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#confirmDeleteModal"
+                                            data-url="{% url 'cuestionarios:eliminar_intento' intento_pk=intento.pk %}"
+                                            data-item-info="{{ intento.estudiante }} en '{{ intento.cuestionario.titulo }}'">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                    </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted p-4">No hay cuestionarios finalizados en tus cursos.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar permanentemente el intento de:</p>
+                <p class="fw-bold text-center" id="modalItemInfo"></p>
+                <p class="text-danger">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+    if (confirmDeleteModal) {
+        confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
+            // Botón que activó el modal
+            const button = event.relatedTarget;
+            
+            // Extraer la información de los atributos data-* del botón
+            const url = button.getAttribute('data-url');
+            const itemInfo = button.getAttribute('data-item-info');
+
+            // Actualizar el contenido del modal
+            const modalBodyInfo = confirmDeleteModal.querySelector('#modalItemInfo');
+            const deleteForm = confirmDeleteModal.querySelector('#deleteForm');
+
+            modalBodyInfo.textContent = itemInfo;
+            deleteForm.action = url;
+        });
+    }
+});
+</script>
+{% endblock %}

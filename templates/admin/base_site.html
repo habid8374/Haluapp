@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block branding %}
+    <a href="{% url 'admin:index' %}" style="text-decoration: none; color: inherit;">
+        <h1 id="site-name" class="d-flex align-items-center">
+            {# Logo de HALU #}
+            <img src="{% static 'core/img/logo_mi_software.png' %}" alt="Logo HALU" style="max-height: 40px; margin-right: 10px;">
+            
+            {% if request.user.is_authenticated and request.user.institucion_asociada %}
+                {# Si el usuario tiene una institución, la mostramos #}
+                <span style="color: var(--header-link-color, #44b78b);">{{ request.user.institucion_asociada.nombre }}</span> - <span style="font-size: 0.8em; opacity: 0.8;">Admin</span>
+            {% else %}
+                {# ========================================================================= #}
+                {# INICIO: MODIFICACIÓN APLICADA                                             #}
+                {# ========================================================================= #}
+                
+                {# Si no tiene institución, mostramos el nombre del software desde el context_processor #}
+                <span style="color: var(--header-link-color, #44b78b);">{{ branding.NOMBRE|default:"Software" }}</span> - <span style="font-size: 0.8em; opacity: 0.8;">Admin</span>
+                
+                {# ========================================================================= #}
+                {# FIN: MODIFICACIÓN APLICADA                                                #}
+                {# ========================================================================= #}
+            {% endif %}
+        </h1>
+    </a>
+{% endblock %}

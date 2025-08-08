@@ -1,0 +1,75 @@
+{% extends "gestion_academica/base.html" %}
+
+{% block titulo %}{{ titulo_pagina|default:"Mis Deberes / Tareas" }}{% endblock %}
+
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>{{ titulo_pagina|default:"Mis Deberes / Tareas Asignadas" }}</h1>
+    {# Podrías añadir un filtro por curso o periodo si la lista es muy larga #}
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if periodo_activo %}
+    <p class="text-muted">Mostrando deberes para el periodo: <strong>{{ periodo_activo.nombre }} ({{ periodo_activo.año_escolar }})</strong>.</p>
+{% endif %}
+
+{% if deberes_con_estado_entrega %}
+    <div class="list-group shadow-sm">
+        {% for item in deberes_con_estado_entrega %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ item.deber.titulo }}</h5>
+                    <small class="text-muted">Fecha Límite: {{ item.deber.fecha_entrega|date:"d F, Y" }}</small>
+                </div>
+                <p class="mb-1"><strong>Curso:</strong> {{ item.deber.curso.materia.nombre_materia }} - {{ item.deber.curso.grado.nombre }}</p>
+                {% if item.deber.descripcion %}
+                    <small class="text-muted"><strong>Descripción:</strong> {{ item.deber.descripcion|truncatewords:30|linebreaksbr }}</small>
+                {% endif %}
+                
+                <div class="mt-2">
+                    {% if item.deber.material_adjunto %}
+                        <a href="{{ item.deber.material_adjunto.url }}" target="_blank" class="btn btn-sm btn-outline-info me-2">
+                            <i class="bi bi-paperclip"></i> Ver Material de Apoyo
+                        </a>
+                    {% endif %}
+
+                    {% if item.entregado %}
+                        <a href="{% url 'gestion_academica:realizar_entrega_deber' deber_pk=item.deber.pk %}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil-square"></i> Ver/Editar Entrega
+                        </a>
+                        <span class="badge bg-success ms-2">Entregado</span>
+                    {% else %}
+                        {% if item.deber.fecha_entrega < request.user.date_joined.date %} {# Simplificación, idealmente comparar con timezone.now().date() #}
+                            {# O una comparación más precisa en la vista y pasar una variable #}
+                            {# if item.deber_vencido %} #}
+                            <a href="{% url 'gestion_academica:realizar_entrega_deber' deber_pk=item.deber.pk %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-upload"></i> Realizar Entrega
+                            </a>
+                        {% else %}
+                             <button class="btn btn-sm btn-secondary" disabled>
+                                <i class="bi bi-clock-history"></i> Entrega Vencida
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info mt-3" role="alert">
+        No tienes deberes o tareas asignadas para el periodo activo en tus cursos actuales.
+    </div>
+{% endif %}
+
+{# Aquí podrías añadir paginación si la lista de deberes es muy larga y la implementas en la vista #}
+{# {% include "gestion_academica/partials/paginacion.html" %} #}
+
+{% endblock %}

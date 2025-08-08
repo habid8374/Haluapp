@@ -1,0 +1,91 @@
+{# gestion_academica/templates/gestion_academica/materia_lista.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Listado de Materias" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Listado de Materias" }}</h1>
+        {% if perms.gestion_academica.add_materia %} {# Permiso para crear materia #}
+            <a href="{% url 'gestion_academica:crear_materia' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle-fill"></i> Crear Nueva Materia
+            </a>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if materias %}
+        <div class="table-responsive shadow-sm rounded-3">
+            <table class="table table-striped table-hover table-bordered mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nombre de la Materia</th>
+                        <th>Código (Opcional)</th>
+                        <th>Descripción (Opcional)</th>
+                        <th class="text-center">Acciones</th> {# Corregido a text-center para uniformidad #}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for materia_obj in materias %}
+                    <tr>
+                        <td>{{ materia_obj.nombre_materia }}</td>
+                        <td>{{ materia_obj.codigo_materia|default:"N/A" }}</td>
+                        <td>{{ materia_obj.descripcion|truncatewords:15|default:"N/A" }}</td>
+                        <td class="text-center text-nowrap"> {# text-nowrap para evitar saltos de línea en los botones #}
+                            {% if perms.gestion_academica.change_materia %} {# Permiso para editar #}
+                                <a href="{% url 'gestion_academica:editar_materia' materia_obj.pk %}" class="btn btn-sm btn-warning me-1" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i> Editar
+                                </a>
+                            {% endif %}
+                            {% if perms.gestion_academica.delete_materia %} {# Permiso para eliminar #}
+                                <a href="{% url 'gestion_academica:eliminar_materia' materia_obj.pk %}" class="btn btn-sm btn-danger ms-1" title="Eliminar">
+                                    <i class="bi bi-trash-fill"></i> Eliminar
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {# Paginación #}
+        {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                    {% endif %}
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info text-center mt-3" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No hay materias registradas. ¡Puedes crear la primera!
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}

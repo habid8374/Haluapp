@@ -1,0 +1,115 @@
+{% extends "base_admisiones.html" %}
+
+{% block titulo %}Listado de Aspirantes{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+
+    <!-- La cabecera con el título y el menú de acciones se gestiona desde base_admisiones.html -->
+    
+    <div class="card shadow-sm mt-4">
+        <div class="card-header">
+            <i class="bi bi-list-ul me-2"></i>Listado Completo de Aspirantes
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Documento</th>
+                            <th>Grado al que Aspira</th>
+                            <th>Fecha de Inscripción</th>
+                            <th class="text-center">Req. Pago Inscripción</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center" style="width: 250px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for aspirante in aspirantes %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'admisiones:detalle_aspirante' aspirante.pk %}">
+                                    <strong>{{ aspirante.apellidos }}, {{ aspirante.nombres }}</strong>
+                                </a>
+                            </td>
+                            <td>
+                                {{ aspirante.tipo_documento|default_if_none:"" }} - {{ aspirante.numero_documento }}
+                            </td>
+                            <td>{{ aspirante.grado_aspira.nombre|default:"N/A" }}</td>
+                            <td>{{ aspirante.fecha_inscripcion|date:"d M, Y" }}</td>
+                            <td class="text-center">
+                                {% if aspirante.requiere_pago_inscripcion %}
+                                    <span class="badge bg-warning text-dark" title="Sí, requiere pago de inscripción"><i class="bi bi-currency-dollar"></i> SÍ</span>
+                                {% else %}
+                                    <span class="badge bg-light text-secondary" title="No requiere pago de inscripción">NO</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge 
+                                    {% if aspirante.estado == 'ADMITIDO' %}bg-info text-dark
+                                    {% elif aspirante.estado == 'MATRICULADO' %}bg-success
+                                    {% elif aspirante.estado == 'RECHAZADO' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ aspirante.get_estado_display }}
+                                </span>
+                            </td>
+                            <td class="text-center text-nowrap">
+                                {% if aspirante.estado != 'MATRICULADO' and perms.admisiones.change_aspirante_estado %}
+                                    <!-- Botones existentes para admitir, editar, eliminar -->
+                                    <form action="{% url 'admisiones:admitir_aspirante' aspirante.pk %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success" title="Admitir y Matricular Aspirante"><i class="bi bi-check2-circle"></i></button>
+                                    </form>
+                                    <a href="{% url 'admisiones:editar_aspirante' aspirante.pk %}" class="btn btn-sm btn-outline-warning" title="Editar Aspirante"><i class="bi bi-pencil-fill"></i></a>
+                                    
+                                    <a href="{{ aspirante.get_portal_url }}" target="_blank" class="btn btn-sm btn-outline-info" title="Abrir Portal del Postulante">
+                                        <i class="bi bi-folder-symlink"></i>
+                                    </a>
+
+                                    <a href="{% url 'admisiones:eliminar_aspirante' aspirante.pk %}" class="btn btn-sm btn-outline-danger" title="Eliminar Aspirante"><i class="bi bi-trash-fill"></i></a>
+                                
+                                {% elif aspirante.estado == 'MATRICULADO' %}
+                                    <!-- ================================================================ -->
+                                    <!--  INICIO DEL CÓDIGO MODIFICADO Y AÑADIDO                       -->
+                                    <!-- ================================================================ -->
+                                    
+                                    {# Botón para ver la ficha del estudiante (útil para administradores) #}
+                                    {% if aspirante.estudiante_creado %}
+                                        <a href="{% url 'gestion_academica:detalle_estudiante' aspirante.estudiante_creado.pk %}" class="btn btn-sm btn-outline-primary" title="Ver Ficha del Estudiante">
+                                            <i class="bi bi-person-check-fill"></i> Ver Ficha
+                                        </a>
+                                    {% endif %}
+
+                                    {# Botón para revertir la matriculación #}
+                                    {% if perms.admisiones.change_aspirante %} {# Usamos un permiso para proteger la acción #}
+                                    <a href="{% url 'admisiones:revertir_matriculacion' aspirante.id %}" class="btn btn-sm btn-warning" title="Revertir Matriculación y Eliminar Estudiante Asociado">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Revertir
+                                    </a>
+                                    {% endif %}
+
+                                    {# Mensaje si no hay estudiante creado (caso raro) #}
+                                    {% if not aspirante.estudiante_creado and not perms.admisiones.change_aspirante %}
+                                        <span class="text-muted fst-italic">Matriculado</span>
+                                    {% endif %}
+                                    
+                                    <!-- ================================================================ -->
+                                    <!--  FIN DEL CÓDIGO MODIFICADO Y AÑADIDO                         -->
+                                    <!-- ================================================================ -->
+                                {% else %}
+                                    <span class="text-muted fst-italic">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">No hay aspirantes registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock contenido %}

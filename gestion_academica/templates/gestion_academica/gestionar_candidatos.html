@@ -1,0 +1,59 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:gestionar_elecciones' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a Elecciones
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Añadir Nuevo Candidato</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-success">Añadir Candidato</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Candidatos Inscritos</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for candidato in candidatos %}
+                    <div class="list-group-item d-flex align-items-center">
+                        {% if candidato.foto %}
+                            <img src="{{ candidato.foto.url }}" class="rounded-circle me-3" alt="Foto" width="60" height="60" style="object-fit: cover;">
+                        {% else %}
+                            <i class="bi bi-person-circle fs-1 me-3 text-secondary"></i>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ candidato.estudiante.usuario.get_full_name }}</h6>
+                            <p class="mb-1 text-muted small">{{ candidato.propuesta|truncatewords:20 }}</p>
+                        </div>
+                        {# Aquí podrías añadir un botón para eliminar en el futuro #}
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center p-4">No hay candidatos inscritos para esta elección.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

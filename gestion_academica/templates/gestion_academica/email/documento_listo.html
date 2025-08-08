@@ -1,0 +1,14 @@
+<h3>¡Tu Documento está Listo!</h3>
+<p>Hola {{ egresado.estudiante.usuario.first_name }},</p>
+<p>
+    Te informamos que tu solicitud para el documento "<strong>{{ solicitud.tipo_documento_solicitado }}</strong>"
+    ha sido procesada y ya está disponible para descargar.
+</p>
+<p>
+    Puedes acceder a tu portal para descargarlo haciendo clic en el siguiente botón:
+</p>
+<a href="{{ portal_url }}" style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">
+    Ir al Portal del Egresado
+</a>
+<p>Gracias por mantenerte en contacto.</p>
+<p>Atentamente,<br>La administración.</p>

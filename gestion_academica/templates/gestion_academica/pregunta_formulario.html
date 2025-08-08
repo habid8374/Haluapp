@@ -1,0 +1,61 @@
+{% extends 'base_academico.html' %}
+{% load static %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'gestion_academica:docente_lista_actividades' %}">Mis Actividades</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'gestion_academica:gestionar_preguntas_actividad' actividad.pk %}">{{ actividad.titulo }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ titulo_formulario }}</li>
+        </ol>
+    </nav>
+
+    <h2>{{ titulo_formulario }}</h2>
+    <hr>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">Datos de la Pregunta</div>
+            <div class="card-body">
+                {{ form.as_p }}
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header">Opciones de Respuesta (si aplica)</div>
+            <div class="card-body">
+                {{ opciones_formset.management_form }}
+                {% for form_opcion in opciones_formset %}
+                    <div class="row align-items-center mb-3 border-bottom pb-2">
+                        <div class="col-md-8">
+                            {{ form_opcion.texto }}
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-check form-switch">
+                                {{ form_opcion.es_correcta }}
+                                <label class="form-check-label" for="{{ form_opcion.es_correcta.id_for_label }}">¿Es correcta?</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            {% if form_opcion.instance.pk %}
+                                <div class="form-check">
+                                    {{ form_opcion.DELETE }}
+                                    <label class="form-check-label text-danger" for="{{ form_opcion.DELETE.id_for_label }}">Eliminar</label>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success btn-lg">Guardar Pregunta</button>
+            <a href="{% url 'gestion_academica:gestionar_preguntas_actividad' actividad.pk %}" class="btn btn-secondary btn-lg">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock contenido %}

@@ -1,0 +1,58 @@
+{% extends "base_academico.html" %}
+{% block content %}
+
+<h2>{{ titulo_pagina }}</h2>
+
+{% if aula %}
+<div class="alert alert-info">
+    <strong>Aula física:</strong> {{ aula.nombre }}<br>
+    {% if aula.capacidad %}<strong>Capacidad:</strong> {{ aula.capacidad }}{% endif %}
+</div>
+{% endif %}
+
+<h4>Recursos disponibles</h4>
+
+{% if recursos %}
+<ul>
+    {% for archivo in recursos %}
+    <li><a href="{{ archivo.archivo.url }}" target="_blank">{{ archivo.nombre }}</a></li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No hay archivos de apoyo aún.</p>
+{% endif %}
+
+<h4>Tareas</h4>
+{% if deberes %}
+<ul>
+    {% for tarea in deberes %}
+    <li>{{ tarea.titulo }} - Fecha límite: {{ tarea.fecha_entrega }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No hay tareas asignadas.</p>
+{% endif %}
+
+<h4>Actividades calificables</h4>
+{% if actividades %}
+<ul>
+    {% for actividad in actividades %}
+    <li>{{ actividad.titulo }} ({{ actividad.fecha_publicacion }})</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No hay actividades registradas.</p>
+{% endif %}
+
+<h4>Videollamadas</h4>
+{% if enlaces_video %}
+<ul>
+    {% for enlace in enlaces_video %}
+    <li><a href="{{ enlace.url }}" target="_blank">{{ enlace.titulo }}</a></li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No hay enlaces de videollamada disponibles.</p>
+{% endif %}
+
+{% endblock %}

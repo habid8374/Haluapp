@@ -1,0 +1,534 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina|default:"Editor de Cuestionario" }}{% endblock %}
+
+{% block extrastyles %}
+<style>
+    /* Estilos para la superposición de carga de la IA */
+    #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1060;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div id="loading-overlay" class="d-none">
+        <div class="spinner-border mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h4>HALU está generando las preguntas...</h4>
+        <p>Esto puede tardar un momento.</p>
+    </div>
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-edit me-2"></i>
+                Editor de Cuestionario:
+                <small class="text-muted">{{ actividad.titulo }}</small>
+            </h1>
+        </div>
+    </div>
+    
+    <input type="hidden" id="actividad-id" value="{{ actividad.pk }}">
+    <input type="hidden" id="cuestionario-id" value="{{ cuestionario.pk }}"> <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">Configuración del Cuestionario</h2>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="toggle-activo">
+                    <label class="form-check-label" for="toggle-activo">Activo</label>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <form id="form-cuestionario">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="titulo" class="form-label">Título</label>
+                            <input type="text" class="form-control" id="titulo" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="tiempo-limite" class="form-label">Tiempo Límite (minutos)</label>
+                            <input type="number" class="form-control" id="tiempo-limite" min="0" step="5">
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <textarea class="form-control" id="descripcion" rows="2"></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="intentos-permitidos" class="form-label">Intentos Permitidos</label>
+                            <input type="number" class="form-control" id="intentos-permitidos" min="1" value="1">
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="form-check pt-3">
+                            <input class="form-check-input" type="checkbox" id="mostrar-respuestas">
+                            <label class="form-check-label" for="mostrar-respuestas">Mostrar respuestas correctas al finalizar</label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="editor-container">
+        <div class="card mb-4">
+            <div class="card-header"><h2 class="h5 mb-0">Preguntas</h2></div>
+            <div class="card-body">
+                <div id="editor-preguntas" class="list-group">
+                    </div>
+                <div class="text-center mt-3">
+                    <button class="btn btn-sm btn-outline-primary" id="btn-agregar-pregunta">
+                        <i class="fas fa-plus me-1"></i> Agregar Pregunta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="vista-previa-container" class="d-none">
+        </div>
+    
+    <div class="d-flex justify-content-between mb-5">
+        <a href="{% url 'cuestionarios:lista' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver a la Lista
+        </a>
+        <div>
+            <button type="button" class="btn btn-info me-2" data-bs-toggle="modal" data-bs-target="#iaGenerateModal">
+                <i class="bi bi-robot me-2"></i>Generar con IA
+            </button>
+            <button class="btn btn-outline-primary me-2" id="btn-vista-previa">
+                <i class="fas fa-eye me-1"></i> Vista Previa
+            </button>
+            <button class="btn btn-primary" id="btn-guardar">
+                <i class="fas fa-save me-1"></i> Guardar Cambios
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    </div>
+
+<div class="modal fade" id="iaGenerateModal" tabindex="-1" aria-labelledby="iaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="iaModalLabel"><i class="bi bi-robot me-2"></i>Generador de Preguntas con IA</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="ia-form">
+            <div class="mb-3">
+                <label for="ia-tema" class="form-label fw-bold">Tema Principal de la Evaluación</label>
+                <input type="text" class="form-control" id="ia-tema" placeholder="Ej: La Célula y sus partes" required>
+            </div>
+            <div class="mb-3">
+                <label for="ia-objetivos" class="form-label">Objetivos de Aprendizaje (Opcional)</label>
+                <textarea class="form-control" id="ia-objetivos" rows="2" placeholder="Ej: Identificar el núcleo, la membrana y el citoplasma."></textarea>
+            </div>
+            <hr>
+            <p class="fw-bold">¿Cuántas preguntas de cada tipo deseas?</p>
+            <div class="row text-center">
+                <div class="col">
+                    <label for="ia-num-multiple" class="form-label">Opción Única</label>
+                    <input type="number" class="form-control" id="ia-num-multiple" value="3" min="0" max="10">
+                </div>
+                <div class="col">
+                    <label for="ia-num-vf" class="form-label">V/F</label>
+                    <input type="number" class="form-control" id="ia-num-vf" value="2" min="0" max="10">
+                </div>
+                <div class="col">
+                    <label for="ia-num-abierta" class="form-label">Abierta</label>
+                    <input type="number" class="form-control" id="ia-num-abierta" value="1" min="0" max="10">
+                </div>
+            </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="generate-ia-btn" class="btn btn-primary">Generar Preguntas</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- ▼▼▼ INICIO DEL JAVASCRIPT DEFINITIVO ▼▼▼ -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // --- Constantes y Variables (Tu código original + las de la IA) ---
+    const actividadId = document.getElementById('actividad-id')?.value;
+    const cuestionarioId = document.getElementById('cuestionario-id')?.value; // Necesario para la URL de IA
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    if (!actividadId || !csrfToken) return;
+
+    const apiUrl = `/cuestionarios/api/${actividadId}/`;
+    let cuestionarioData = {};
+
+    const editorPreguntas = document.getElementById('editor-preguntas');
+    const btnAgregarPregunta = document.getElementById('btn-agregar-pregunta');
+    const btnGuardar = document.getElementById('btn-guardar');
+    const btnVistaPrevia = document.getElementById('btn-vista-previa');
+    const vistaPreviaContainer = document.getElementById('vista-previa-container');
+    const vistaPreviaBody = document.getElementById('vista-previa-body');
+
+    const notificationModalEl = document.getElementById('notificationModal');
+    const notificationModal = new bootstrap.Modal(notificationModalEl);
+    const modalHeader = document.getElementById('notificationModalHeader');
+    const modalTitle = document.getElementById('notificationModalLabel');
+    const modalBody = document.getElementById('notificationModalBody');
+
+    // --- INICIO: Constantes para el Generador IA ---
+    const generateIaBtn = document.getElementById('generate-ia-btn');
+    const iaModalElement = document.getElementById('iaGenerateModal');
+    const iaModal = new bootstrap.Modal(iaModalElement);
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const apiUrlGenerar = `/cuestionarios/api/generar-preguntas/${cuestionarioId}/`;
+    // --- FIN: Constantes para el Generador IA ---
+
+    // --- Funciones de tu Editor (sin cambios) ---
+    function showNotification(title, message, isSuccess) {
+        modalTitle.innerHTML = isSuccess 
+            ? `<i class="bi bi-check-circle-fill me-2"></i> ${title}` 
+            : `<i class="bi bi-exclamation-triangle-fill me-2"></i> ${title}`;
+        modalBody.innerHTML = message;
+        modalHeader.className = 'modal-header';
+        if (isSuccess) {
+            modalHeader.classList.add('bg-success', 'text-white');
+        } else {
+            modalHeader.classList.add('bg-danger', 'text-white');
+        }
+        notificationModal.show();
+    }
+
+    function renderizarOpcion(opcion, pregunta) {
+        const opcionId = opcion.id || `new_${Date.now()}_${Math.random()}`;
+        const esCorrectaChecked = opcion.es_correcta ? 'checked' : '';
+        const inputType = pregunta.tipo === 'seleccion_multiple' ? 'checkbox' : 'radio';
+        const inputName = pregunta.tipo === 'seleccion_multiple' ? `correcta_${opcionId}` : `correcta_${pregunta.id || 'new'}`;
+
+        if (pregunta.tipo === 'emparejamiento') {
+            return `
+                <div class="input-group mb-2 opcion-item" data-opcion-id="${opcionId}">
+                    <input type="text" class="form-control opcion-texto" value="${opcion.texto || ''}" placeholder="Elemento A">
+                    <span class="input-group-text"><i class="fas fa-arrows-alt-h"></i></span>
+                    <input type="text" class="form-control opcion-emparejamiento" value="${opcion.emparejamiento || ''}" placeholder="Elemento B (su pareja)">
+                    <button class="btn btn-outline-danger btn-sm btn-eliminar-opcion" type="button" title="Eliminar Par"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="input-group mb-2 opcion-item" data-opcion-id="${opcionId}">
+                <div class="input-group-text">
+                    <input class="form-check-input mt-0" type="${inputType}" name="${inputName}" ${esCorrectaChecked}>
+                </div>
+                <input type="text" class="form-control opcion-texto" value="${opcion.texto || ''}" placeholder="Texto de la opción">
+                <button class="btn btn-outline-danger btn-sm btn-eliminar-opcion" type="button" title="Eliminar Opción"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+    }
+
+    function renderizarPregunta(pregunta) {
+        const preguntaId = pregunta.id || `new_${Date.now()}_${Math.random()}`;
+        const opcionesHtml = (pregunta.opciones || []).map(op => renderizarOpcion(op, pregunta)).join('');
+        const showOptions = !['texto_libre'].includes(pregunta.tipo);
+        
+        // --- INICIO: LÓGICA AÑADIDA ---
+        const showRubrica = pregunta.tipo === 'texto_libre';
+        // --- FIN: LÓGICA AÑADIDA ---
+
+        const preguntaCard = document.createElement('div');
+        preguntaCard.className = 'list-group-item pregunta-card mb-3 p-3 border rounded';
+        preguntaCard.dataset.preguntaId = preguntaId;
+        preguntaCard.innerHTML = `
+             <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold">Pregunta</span>
+                <button class="btn btn-sm btn-outline-danger btn-eliminar-pregunta" type="button">Eliminar Pregunta</button>
+            </div>
+            <textarea class="form-control mb-2 enunciado" placeholder="Escribe el enunciado...">${pregunta.enunciado || ''}</textarea>
+            <div class="row align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label small">Tipo de Pregunta</label>
+                    <select class="form-select form-select-sm tipo-pregunta">
+                        <option value="opcion_multiple" ${pregunta.tipo === 'opcion_multiple' ? 'selected' : ''}>Opción Única</option>
+                        <option value="seleccion_multiple" ${pregunta.tipo === 'seleccion_multiple' ? 'selected' : ''}>Selección Múltiple</option>
+                        <option value="verdadero_falso" ${pregunta.tipo === 'verdadero_falso' ? 'selected' : ''}>Verdadero/Falso</option>
+                        <option value="texto_libre" ${pregunta.tipo === 'texto_libre' ? 'selected' : ''}>Texto Libre</option>
+                        <option value="emparejamiento" ${pregunta.tipo === 'emparejamiento' ? 'selected' : ''}>Emparejamiento</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small">Puntaje</label>
+                    <input type="number" class="form-control form-control-sm puntaje" value="${pregunta.puntaje || 1}" min="1">
+                </div>
+            </div>
+
+            <div class="rubrica-container mt-3 ${showRubrica ? '' : 'd-none'}">
+                <label class="form-label small fw-bold text-info">Rúbrica o Respuesta Correcta (para la IA)</label>
+                <textarea class="form-control respuesta-correcta-abierta" rows="2" placeholder="Describe la respuesta ideal aquí...">${pregunta.respuesta_correcta_abierta || ''}</textarea>
+            </div>
+            <div class="opciones-container mt-3 ${showOptions ? '' : 'd-none'}">${opcionesHtml}</div>
+            <button class="btn btn-sm btn-outline-success btn-agregar-opcion mt-2 ${showOptions ? '' : 'd-none'}" type="button"><i class="fas fa-plus"></i> Agregar Opción/Par</button>
+        `;
+        editorPreguntas.appendChild(preguntaCard);
+        renumerarPreguntas();
+    }
+
+    function renumerarPreguntas() {
+        document.querySelectorAll('.pregunta-card').forEach((card, index) => {
+            card.querySelector('.fw-bold').textContent = `Pregunta #${index + 1}`;
+        });
+    }
+
+    function renderizarCuestionario() {
+        const toggleActivo = document.getElementById('toggle-activo');
+        document.getElementById('titulo').value = cuestionarioData.titulo;
+        document.getElementById('descripcion').value = cuestionarioData.descripcion;
+        document.getElementById('tiempo-limite').value = cuestionarioData.tiempo_limite;
+        document.getElementById('intentos-permitidos').value = cuestionarioData.intentos_permitidos;
+        document.getElementById('mostrar-respuestas').checked = cuestionarioData.mostrar_respuestas;
+        if(toggleActivo) toggleActivo.checked = cuestionarioData.activo;
+
+        editorPreguntas.innerHTML = '';
+        cuestionarioData.preguntas.sort((a, b) => a.orden - b.orden).forEach(renderizarPregunta);
+    }
+    
+    function agregarPregunta() {
+        const nuevaPregunta = {
+            enunciado: '', tipo: 'opcion_multiple', puntaje: 1, orden: cuestionarioData.preguntas.length,
+            opciones: [{ texto: '', es_correcta: true, orden: 0 }, { texto: '', es_correcta: false, orden: 1 }]
+        };
+        cuestionarioData.preguntas.push(nuevaPregunta);
+        renderizarPregunta(nuevaPregunta);
+    }
+
+    function guardarCuestionario() {
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+
+        const dataToSave = {
+            titulo: document.getElementById('titulo').value,
+            descripcion: document.getElementById('descripcion').value,
+            tiempo_limite: parseInt(document.getElementById('tiempo-limite').value) || 0,
+            intentos_permitidos: parseInt(document.getElementById('intentos-permitidos').value) || 1,
+            mostrar_respuestas: document.getElementById('mostrar-respuestas').checked,
+            activo: document.getElementById('toggle-activo').checked,
+            preguntas: []
+        };
+
+        document.querySelectorAll('.pregunta-card').forEach((card, index) => {
+            const pregunta = {
+                id: card.dataset.preguntaId.startsWith('new_') ? null : parseInt(card.dataset.preguntaId),
+                enunciado: card.querySelector('.enunciado').value,
+                tipo: card.querySelector('.tipo-pregunta').value,
+                puntaje: parseInt(card.querySelector('.puntaje').value) || 1,
+                orden: index,
+                respuesta_correcta_abierta: card.querySelector('.respuesta-correcta-abierta').value,
+                opciones: []
+            };
+
+            if (pregunta.tipo !== 'texto_libre') {
+                card.querySelectorAll('.opcion-item').forEach((opcionEl, opIndex) => {
+                    const input = opcionEl.querySelector('input[type=radio], input[type=checkbox]');
+                    pregunta.opciones.push({
+                        id: opcionEl.dataset.opcionId.startsWith('new_') ? null : parseInt(opcionEl.dataset.opcionId),
+                        texto: opcionEl.querySelector('.opcion-texto').value,
+                        emparejamiento: opcionEl.querySelector('.opcion-emparejamiento')?.value || null,
+                        es_correcta: input ? input.checked : (pregunta.tipo === 'emparejamiento'),
+                        orden: opIndex
+                    });
+                });
+            }
+            dataToSave.preguntas.push(pregunta);
+        });
+
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify(dataToSave)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showNotification('Éxito', 'Cuestionario guardado correctamente.', true);
+                notificationModalEl.addEventListener('hidden.bs.modal', () => {
+                    window.location.reload();
+                }, { once: true });
+            } else {
+                showNotification('Error al Guardar', data.message, false);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error de Red', 'Ocurrió un error de red. Revisa la consola para más detalles.', false);
+        })
+        .finally(() => {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fas fa-save me-1"></i> Guardar Cambios';
+        });
+    }
+
+    function toggleVistaPrevia() {
+        vistaPreviaContainer.classList.toggle('d-none');
+        if (!vistaPreviaContainer.classList.contains('d-none')) {
+            vistaPreviaBody.innerHTML = '<h4>Generando vista previa...</h4>';
+            let previewHtml = '';
+            document.querySelectorAll('.pregunta-card').forEach((card, index) => {
+                const enunciado = card.querySelector('.enunciado').value;
+                const tipo = card.querySelector('.tipo-pregunta').value;
+                previewHtml += `<div class="mb-4"><p><strong>${index + 1}. ${enunciado}</strong></p>`;
+                if (tipo !== 'texto_libre') {
+                    card.querySelectorAll('.opcion-item').forEach(opcionEl => {
+                        const texto = opcionEl.querySelector('.opcion-texto').value;
+                        previewHtml += `<div class="form-check"><input class="form-check-input" type="radio" disabled><label class="form-check-label">${texto}</label></div>`;
+                    });
+                } else {
+                    previewHtml += `<textarea class="form-control" disabled placeholder="Espacio para la respuesta..."></textarea>`;
+                }
+                previewHtml += `</div>`;
+            });
+            vistaPreviaBody.innerHTML = previewHtml;
+        }
+    }
+
+    function cargarDatos() {
+        fetch(apiUrl).then(res => res.json()).then(data => {
+            cuestionarioData = data;
+            renderizarCuestionario();
+        }).catch(err => console.error('Error al cargar:', err));
+    }
+
+    if (generateIaBtn) {
+        generateIaBtn.addEventListener('click', function() {
+            const tema = document.getElementById('ia-tema').value;
+            if (!tema) {
+                showNotification('Campo Requerido', 'Por favor, introduce el tema principal de la evaluación.', false);
+                return;
+            }
+
+            const data = {
+                tema: tema,
+                objetivos: document.getElementById('ia-objetivos').value,
+                num_opcion_multiple: parseInt(document.getElementById('ia-num-multiple').value, 10) || 0,
+                num_verdadero_falso: parseInt(document.getElementById('ia-num-vf').value, 10) || 0,
+                num_texto_libre: parseInt(document.getElementById('ia-num-abierta').value, 10) || 0,
+            };
+
+            loadingOverlay.classList.remove('d-none');
+            iaModal.hide();
+
+            fetch(apiUrlGenerar, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                loadingOverlay.classList.add('d-none');
+                if (result.status === 'success') {
+                    showNotification('¡Éxito!', result.message, true);
+                    notificationModalEl.addEventListener('hidden.bs.modal', () => {
+                        window.location.reload();
+                    }, { once: true });
+                } else {
+                    showNotification('Error al Generar', result.message, false);
+                }
+            })
+            .catch(error => {
+                loadingOverlay.classList.add('d-none');
+                showNotification('Error de Red', 'Ocurrió un error de conexión al generar las preguntas.', false);
+                console.error('Error:', error);
+            });
+        });
+    }
+
+    // --- EVENT LISTENERS ---
+    btnAgregarPregunta.addEventListener('click', agregarPregunta);
+    btnGuardar.addEventListener('click', guardarCuestionario);
+    btnVistaPrevia.addEventListener('click', toggleVistaPrevia);
+    
+    editorPreguntas.addEventListener('click', function(e) {
+        const btnEliminarPregunta = e.target.closest('.btn-eliminar-pregunta');
+        const btnAgregarOpcion = e.target.closest('.btn-agregar-opcion');
+        const btnEliminarOpcion = e.target.closest('.btn-eliminar-opcion');
+
+        if (btnEliminarPregunta) {
+            btnEliminarPregunta.closest('.pregunta-card').remove();
+            renumerarPreguntas();
+        }
+        if (btnAgregarOpcion) {
+            const preguntaCard = btnAgregarOpcion.closest('.pregunta-card');
+            const tipoPregunta = preguntaCard.querySelector('.tipo-pregunta').value;
+            const nuevaOpcion = { texto: '', es_correcta: false, orden: preguntaCard.querySelectorAll('.opcion-item').length };
+            preguntaCard.querySelector('.opciones-container').insertAdjacentHTML('beforeend', renderizarOpcion(nuevaOpcion, {id: preguntaCard.dataset.preguntaId, tipo: tipoPregunta}));
+        }
+        if (btnEliminarOpcion) {
+            btnEliminarOpcion.closest('.opcion-item').remove();
+        }
+    });
+
+    editorPreguntas.addEventListener('change', function(e) {
+        if (e.target.classList.contains('tipo-pregunta')) {
+            const preguntaCard = e.target.closest('.pregunta-card');
+            const opcionesContainer = preguntaCard.querySelector('.opciones-container');
+            const btnAgregarOpcion = preguntaCard.querySelector('.btn-agregar-opcion');
+            const tipoSeleccionado = e.target.value;
+
+            // --- INICIO: LÓGICA AÑADIDA PARA MOSTRAR/OCULTAR RÚBRICA ---
+            const rubricaContainer = preguntaCard.querySelector('.rubrica-container');
+            const showRubrica = tipoSeleccionado === 'texto_libre';
+            rubricaContainer.classList.toggle('d-none', !showRubrica);
+
+            const showOptions = !['texto_libre'].includes(tipoSeleccionado);
+            opcionesContainer.classList.toggle('d-none', !showOptions);
+            btnAgregarOpcion.classList.toggle('d-none', !showOptions);
+            
+            let opciones = [];
+            if (tipoSeleccionado === 'verdadero_falso') {
+                opciones = [
+                    { texto: 'Verdadero', es_correcta: true, orden: 0 },
+                    { texto: 'Falso', es_correcta: false, orden: 1 }
+                ];
+            } else if (tipoSeleccionado === 'emparejamiento') {
+                opciones = [
+                    { texto: '', emparejamiento: '', orden: 0 },
+                    { texto: '', emparejamiento: '', orden: 1 }
+                ];
+            } else if (['opcion_multiple', 'seleccion_multiple'].includes(tipoSeleccionado)) {
+                 opciones = [
+                    { texto: '', es_correcta: true, orden: 0 },
+                    { texto: '', es_correcta: false, orden: 1 }
+                ];
+            }
+            opcionesContainer.innerHTML = opciones.map(op => renderizarOpcion(op, {id: preguntaCard.dataset.preguntaId, tipo: tipoSeleccionado})).join('');
+        }
+    });
+
+    cargarDatos();
+});
+</script>
+<!-- ▲▲▲ FIN DEL JAVASCRIPT ▲▲▲ -->
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_formulario }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class.="card shadow-sm">
+        <div class="card-body">
+            <h1 class="mb-4">{{ titulo_formulario }}</h1>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {{ form|crispy }}
+                
+                <hr>
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'gestion_academica:lista_deberes' %}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-success">Guardar Deber</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock contenido %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const institucionSelect = document.getElementById('id_institucion');
+    const cursoSelect = document.getElementById('id_curso');
+
+    if (institucionSelect && cursoSelect) {
+        institucionSelect.addEventListener('change', function() {
+            const institucionId = this.value;
+            cursoSelect.innerHTML = '<option value="">Cargando cursos...</option>';
+
+            if (!institucionId) {
+                cursoSelect.innerHTML = '<option value="">Selecciona una institución primero</option>';
+                return;
+            }
+
+            fetch(`/academico/api/cursos-por-institucion/${institucionId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    cursoSelect.innerHTML = '<option value="">--- Selecciona un curso ---</option>';
+                    data.forEach(function(curso) {
+                        const option = new Option(curso.text, curso.id);
+                        cursoSelect.add(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar los cursos:', error);
+                    cursoSelect.innerHTML = '<option value="">Error al cargar cursos</option>';
+                });
+        });
+
+        // Si al cargar la página ya hay una institución seleccionada, disparamos el evento
+        if (institucionSelect.value) {
+            institucionSelect.dispatchEvent(new Event('change'));
+        }
+    }
+});
+</script>
+{% endblock %}

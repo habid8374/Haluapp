@@ -1,0 +1,29 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm text-center">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">{{ cuestionario.titulo }}</h2>
+                </div>
+                <div class="card-body p-4">
+                    <h5 class="card-title">Instrucciones</h5>
+                    <p>{{ cuestionario.descripcion|default:"Lee cada pregunta cuidadosamente antes de responder." }}</p>
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item"><strong>Tiempo Límite:</strong> {{ cuestionario.tiempo_limite }} minutos</li>
+                        <li class="list-group-item"><strong>Intentos Permitidos:</strong> {{ cuestionario.intentos_permitidos }}</li>
+                    </ul>
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-play-circle-fill me-2"></i>Comenzar Intento
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

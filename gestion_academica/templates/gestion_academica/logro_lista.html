@@ -1,0 +1,45 @@
+{% extends 'base_academico.html' %}
+{% load crispy_forms_tags %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>{{ titulo_pagina }}</h3>
+        <a href="{% url 'gestion_academica:logro_crear' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Añadir Nuevo Logro
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Materia</th>
+                        <th>Periodo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for logro in logros %}
+                    <tr>
+                        <td>{{ logro.descripcion }}</td>
+                        <td>{{ logro.materia.nombre_materia }}</td>
+                        <td>{{ logro.periodo.nombre }}</td>
+                        <td>
+                            <a href="{% url 'gestion_academica:logro_editar' logro.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                            <a href="{% url 'gestion_academica:logro_eliminar' logro.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No has creado ningún logro todavía.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

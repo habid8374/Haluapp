@@ -1,0 +1,31 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0">{{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:dashboard_docente' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Panel
+        </a>
+    </div>
+    
+    <p class="lead">Desde aquí puedes configurar los componentes de evaluación para este curso de Preescolar.</p>
+    
+    <div class="list-group shadow-sm">
+        <a href="{% url 'gestion_academica:lista_dimensiones' %}" class="list-group-item list-group-item-action">
+            <i class="bi bi-diagram-3-fill me-2"></i> Gestionar Dimensiones de Desarrollo
+            <small class="d-block text-muted">Crea y organiza las categorías principales de evaluación (Cognitiva, Comunicativa, etc.).</small>
+        </a>
+        <a href="{% url 'gestion_academica:logro_lista' %}" class="list-group-item list-group-item-action">
+            <i class="bi bi-star-fill me-2"></i> Gestionar Logros por Dimensión
+            <small class="d-block text-muted">Crea los logros específicos para cada materia y asígnalos a una dimensión.</small>
+        </a>
+        <a href="{% url 'gestion_academica:evaluar_logros_curso' curso_pk=curso.pk %}" class="list-group-item list-group-item-action list-group-item-primary fw-bold">
+            <i class="bi bi-check2-square me-2"></i> Ir a Evaluar Logros de este Curso
+            <small class="d-block text-muted">Una vez configurado todo, accede a la planilla de evaluación.</small>
+        </a>
+    </div>
+</div>
+{% endblock %}

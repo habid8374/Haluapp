@@ -1,0 +1,38 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0"><i class="bi bi-card-checklist me-2"></i> {{ titulo_pagina }}</h1>
+        <a href="{% url 'gestion_academica:portal_familiar_inicio' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Portal
+        </a>
+    </div>
+
+    {% if periodo_activo %}
+        <p class="lead text-muted">Mostrando un resumen de las asignaturas para el periodo: <strong>{{ periodo_activo.nombre }}</strong>.</p>
+        
+        <div class="list-group shadow-sm">
+            {% for curso in cursos %}
+                <a href="{% url 'gestion_academica:familiar_ver_detalle_calificaciones_curso_estudiante' estudiante_pk=estudiante_seleccionado.pk curso_pk=curso.pk %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ curso.materia.nombre_materia }}</h5>
+                        {# Aquí podrías añadir una nota promedio si la calculas en la vista #}
+                    </div>
+                    <p class="mb-1">Haz clic para ver el detalle de las calificaciones y actividades de esta asignatura.</p>
+                </a>
+            {% empty %}
+                <div class="list-group-item text-center p-4">
+                    <p class="text-muted mb-0">No hay cursos asignados para este estudiante en el periodo activo.</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning text-center">
+            No hay un periodo académico activo configurado en la institución. No se pueden mostrar las calificaciones.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

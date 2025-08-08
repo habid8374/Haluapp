@@ -1,0 +1,68 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle-fill me-2"></i>Crear Nueva Planeación</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Define los parámetros básicos y la IA generará una planeación detallada para ti.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-arrow-right-circle-fill me-2"></i>Guardar y Continuar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-collection-fill me-2"></i>Mis Planeaciones Guardadas</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for planeacion in planeaciones %}
+                        <a href="{% url 'gestion_academica:planeacion_detalle' pk=planeacion.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ planeacion.titulo }}</h6>
+                                <small>{{ planeacion.fecha_creacion|date:"d M, Y" }}</small>
+                            </div>
+                            <p class="mb-1 text-muted">
+                                {{ planeacion.curso.materia.nombre_materia }} - {{ planeacion.curso.grado.nombre }}
+                            </p>
+                            <small>
+                                <span class="badge bg-info">{{ planeacion.get_metodologia_display }}</span>
+                                <span class="badge bg-secondary">{{ planeacion.duracion_clases }} clase(s)</span>
+                                <span class="badge 
+                                    {% if planeacion.estado_generacion == 'COMPLETADO' %}bg-success
+                                    {% elif planeacion.estado_generacion == 'FALLIDO' %}bg-danger
+                                    {% elif planeacion.estado_generacion == 'GENERANDO' %}bg-primary
+                                    {% else %}bg-light text-dark{% endif %}">
+                                    {{ planeacion.get_estado_generacion_display }}
+                                </span>
+                            </small>
+                        </a>
+                    {% empty %}
+                        <div class="list-group-item text-center p-4">
+                            <p class="mb-0">Aún no has creado ninguna planeación.</p>
+                            <small class="text-muted">Usa el formulario de la izquierda para empezar.</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

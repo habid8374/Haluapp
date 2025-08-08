@@ -1,0 +1,124 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina|default:"Lista de Estudiantes" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Lista de Estudiantes" }}</h1>
+        {% if perms.gestion_academica.add_estudiante %}
+            <a href="{% url 'gestion_academica:crear_estudiante' %}" class="btn btn-primary">
+                <i class="bi bi-person-plus-fill"></i> Registrar Nuevo Estudiante
+            </a>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if estudiantes %}
+        <div class="table-responsive shadow-sm rounded-3">
+            <table class="table table-striped table-hover table-bordered mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Usuario (Login)</th>
+                        <th>Grado Actual</th>
+                        <th>Sexo</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for estudiante_obj in estudiantes %}
+                    <tr>
+                        <td>{{ estudiante_obj.usuario.first_name|default:"N/A" }}</td>
+                        <td>{{ estudiante_obj.usuario.last_name|default:"N/A" }}</td>
+                        <td>{{ estudiante_obj.usuario.username }}</td>
+                        <td>{{ estudiante_obj.grado_actual.nombre|default:"No asignado" }}</td>
+                        <td>{{ estudiante_obj.get_sexo_display|default:"N/A" }}</td>
+                        <td class="text-center text-nowrap">
+                            {# ========================================================================= #}
+                            {# INICIO: SECCIÓN DE ACCIONES CON EL NUEVO BOTÓN INTEGRADO                 #}
+                            {# ========================================================================= #}
+                            
+                            {# Botón para Ver Detalles #}
+                            {% if perms.gestion_academica.view_estudiante %}
+                                <a href="{% url 'gestion_academica:detalle_estudiante' estudiante_obj.pk %}" class="btn btn-sm btn-info me-1" title="Ver Detalles">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+                            {% endif %}
+                            
+                            {# Botón para Editar #}
+                            {% if perms.gestion_academica.change_estudiante %}
+                                <a href="{% url 'gestion_academica:editar_estudiante' estudiante_obj.pk %}" class="btn btn-sm btn-warning me-1" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                            {% endif %}
+                            
+                            {# Botón para Generar Carnet #}
+                            {# Usamos el mismo permiso de 'view_estudiante' por ahora, o podrías crear uno nuevo #}
+                            {% if perms.gestion_academica.view_estudiante %}
+                                <a href="{% url 'gestion_academica:generar_carnet_estudiante' estudiante_obj.pk %}" class="btn btn-sm btn-outline-secondary me-1" title="Generar Carnet" target="_blank">
+                                    <i class="bi bi-person-badge"></i>
+                                </a>
+                            {% endif %}
+
+                            {# Botón para Eliminar #}
+                            {% if perms.gestion_academica.delete_estudiante %}
+                                <a href="{% url 'gestion_academica:eliminar_estudiante' estudiante_obj.pk %}" class="btn btn-sm btn-danger" title="Eliminar">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>
+                            {% endif %}
+                            
+                            {# ========================================================================= #}
+                            {# FIN: SECCIÓN DE ACCIONES                                                  #}
+                            {# ========================================================================= #}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {# Paginación #}
+        {% if is_paginated %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                {% endif %}
+                
+                {% for i in paginator.page_range %}
+                    {% if page_obj.number == i %}
+                        <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+    {% else %}
+        <div class="alert alert-info text-center mt-3" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No hay estudiantes registrados.
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}

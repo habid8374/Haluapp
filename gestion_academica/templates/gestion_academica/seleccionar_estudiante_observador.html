@@ -1,0 +1,16 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+    <div class="list-group shadow-sm">
+        {% for estudiante in estudiantes %}
+            <a href="{% url 'gestion_academica:historial_observador' estudiante_pk=estudiante.pk %}" class="list-group-item list-group-item-action">
+                <strong>{{ estudiante.usuario.get_full_name }}</strong> - Grado: {{ estudiante.grado_actual.nombre }}
+            </a>
+        {% empty %}
+            <div class="list-group-item">No tienes estudiantes asignados en el periodo activo.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

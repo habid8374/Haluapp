@@ -1,0 +1,84 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}{{ titulo_pagina|default:"Mis Calificaciones" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina }}</h1>
+        {% if es_vista_familiar %}
+            <a href="{% url 'gestion_academica:portal_familiar_inicio' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-circle-fill"></i> Volver al Portal
+            </a>
+        {% else %}
+             <a href="{% url 'gestion_academica:dashboard_estudiante' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver al Panel
+            </a>
+        {% endif %}
+    </div>
+    <p class="lead">Estudiante: <strong>{{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}</strong>.</p>
+    {% if periodo_activo %}
+        <p class="mb-0">Mostrando resumen para el periodo: <strong>{{ periodo_activo.nombre }} ({{ periodo_activo.año_escolar }})</strong>.</p>
+    {% else %}
+        <div class="alert alert-warning mt-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> No hay un periodo académico activo definido.
+        </div>
+    {% endif %}
+    <hr>
+
+    {% if cursos_con_notas %}
+        <div class="card text-center bg-light mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Promedio General del Periodo</h5>
+                <p class="display-4 fw-bold text-primary">{{ promedio_general_periodo|floatformat:2|default:"N/C" }}</p>
+                <small class="text-muted">Este es tu promedio ponderado considerando todas las asignaturas.</small>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Resumen por Asignatura</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Materia / Curso</th>
+                            <th class="text-center">Nota Final Ponderada</th>
+                            <th class="text-center">Desempeño</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cursos_con_notas %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'gestion_academica:detalle_mis_calificaciones_por_curso' curso_pk=item.curso.pk %}" class="text-decoration-none">
+                                    <strong>{{ item.curso.materia.nombre_materia }}</strong>
+                                </a>
+                            </td>
+                            <td class="text-center fs-5">
+                                <strong>{{ item.nota_final|floatformat:2|default:"-" }}</strong>
+                            </td>
+                            <td class="text-center">
+                                {% if item.desempeno %}
+                                    <span class="badge bg-primary fs-6">{{ item.desempeno }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    {% elif periodo_activo %}
+        <div class="alert alert-info mt-3 text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No tienes cursos asignados para el periodo activo.
+        </div>
+    {% endif %}
+
+    </div>
+{% endblock contenido %}

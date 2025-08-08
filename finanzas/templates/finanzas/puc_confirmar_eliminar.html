@@ -1,0 +1,19 @@
+{% extends 'base_finanzas.html' %}
+{% block titulo %}Confirmar Eliminación{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="h2 mb-4">Confirmar Eliminación</h1>
+    <div class="card shadow-sm border-danger">
+        <div class="card-body">
+            <p>¿Estás seguro de que deseas eliminar la cuenta contable <strong>"{{ object.nombre }}" ({{ object.codigo }})</strong>?</p>
+            <p class="text-danger">Esta acción no se puede deshacer.</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                <a href="{% url 'finanzas:lista_cuentas_contables' %}" class="btn btn-secondary">No, cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

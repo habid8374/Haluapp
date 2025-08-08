@@ -1,0 +1,83 @@
+{# gestion_academica/templates/gestion_academica/mencion_lista.html #}
+{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% load static %} {# Agregado para usar recursos estáticos #}
+
+{% block titulo %}{{ titulo_pagina|default:"Menciones y Reconocimientos" }}{% endblock titulo %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">{{ titulo_pagina|default:"Menciones y Reconocimientos" }}</h1>
+        {% if perms.gestion_academica.add_mencionreconocimiento %} {# Permiso para registrar mención #}
+            <a href="{% url 'gestion_academica:crear_mencion' %}" class="btn btn-primary">
+                <i class="bi bi-award-fill"></i> Registrar Nueva Mención/Reconocimiento
+            </a>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if menciones %}
+        <div class="table-responsive shadow-sm rounded-3">
+            <table class="table table-striped table-hover table-bordered mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Estudiante</th>
+                        <th>Tipo de Mención/Reconocimiento</th>
+                        <th>Fecha de Otorgamiento</th>
+                        <th>Otorgado por</th> 
+                        <th>Curso (Opc.)</th>
+                        <th>Periodo (Opc.)</th>
+                        <th>Descripción</th>
+                        <th class="text-center">Acciones</th> {# Corregido a text-center #}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mencion_obj in menciones %}
+                    <tr>
+                        <td>{{ mencion_obj.estudiante.usuario.get_full_name|default:mencion_obj.estudiante.usuario.username }}</td>
+                        <td>{{ mencion_obj.tipo }}</td>
+                        <td>{{ mencion_obj.fecha_otorgamiento|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if mencion_obj.otorgado_por %}
+                                {{ mencion_obj.otorgado_por.usuario.get_full_name|default:mencion_obj.otorgado_por.usuario.username }}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ mencion_obj.curso|default:"N/A" }}</td>
+                        <td>{{ mencion_obj.periodo|default:"N/A" }}</td>
+                        <td>{{ mencion_obj.descripcion|truncatewords:10|default:"N/A" }}</td> {# Truncar a menos palabras para que quepa #}
+                        <td class="text-center text-nowrap"> {# text-nowrap para evitar saltos de línea en los botones #}
+                            {% if perms.gestion_academica.change_mencionreconocimiento %} {# Permiso para editar #}
+                                <a href="{% url 'gestion_academica:editar_mencion' mencion_obj.pk %}" class="btn btn-sm btn-warning me-1" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i> Editar
+                                </a>
+                            {% endif %}
+                            {% if perms.gestion_academica.delete_mencionreconocimiento %} {# Permiso para eliminar #}
+                                <a href="{% url 'gestion_academica:eliminar_mencion' mencion_obj.pk %}" class="btn btn-sm btn-danger ms-1" title="Eliminar">
+                                    <i class="bi bi-trash-fill"></i> Eliminar
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {# Incluye tu partial de paginación si aplica aquí #}
+        {% include "gestion_academica/partials/paginacion.html" %} 
+    {% else %}
+        <div class="alert alert-info mt-3 text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> No hay menciones o reconocimientos registrados.
+        </div>
+    {% endif %}
+</div>
+{% endblock contenido %}

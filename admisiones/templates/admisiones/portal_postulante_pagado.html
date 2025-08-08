@@ -1,0 +1,114 @@
+{% extends "base_publica.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-5 mb-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white">
+            <h2>¡Felicidades, {{ aspirante.nombres }}!</h2>
+            <p class="mb-0">Tu pago ha sido confirmado. Ya puedes continuar con tu proceso de admisión.</p>
+        </div>
+        <div class="card-body p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <h4>Estado de tu Solicitud: 
+                <span class="badge bg-info text-dark fs-6">{{ aspirante.get_estado_display }}</span>
+            </h4>
+            <hr class="my-4">
+
+            <!-- ================================================================ -->
+            <!-- SECCIÓN DE CARGA DE DOCUMENTOS (LÓGICA COMPLETA)                 -->
+            <!-- ================================================================ -->
+            <h4>Paso 1: Cargar Documentos</h4>
+            <p class="text-muted">Por favor, sube los siguientes documentos para completar tu expediente.</p>
+            
+            <ul class="list-group list-group-flush">
+                {% for tarea in lista_tareas_documentos %}
+                <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center py-3">
+                    <div class="me-3">
+                        <strong>{{ tarea.requerido.nombre }}</strong>
+                        {% if tarea.requerido.es_obligatorio %}<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill ms-2">Obligatorio</span>{% endif %}
+                        {% if tarea.requerido.descripcion %}<small class="d-block text-muted">{{ tarea.requerido.descripcion }}</small>{% endif %}
+                        {% if tarea.entregado and tarea.entregado.estado == 'rechazado' %}
+                            <div class="alert alert-danger p-2 mt-2">
+                                <strong><i class="bi bi-exclamation-triangle-fill"></i> Motivo del Rechazo:</strong> {{ tarea.entregado.observaciones_revision }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex align-items-center mt-2 mt-md-0">
+                        {% if tarea.entregado %}
+                            {# Si ya se subió un documento... #}
+                            {% if tarea.entregado.estado == 'aprobado' %}
+                                <span class="badge bg-success me-2"><i class="bi bi-check-circle-fill"></i> Aprobado</span>
+                                <a href="{{ tarea.entregado.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">Ver Archivo</a>
+                            {% else %}
+                                <span class="badge bg-warning text-dark me-2"><i class="bi bi-clock-history"></i> {{ tarea.entregado.get_estado_display }}</span>
+                                <a href="{{ tarea.entregado.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">Ver Archivo</a>
+                            {% endif %}
+                        {% else %}
+                            {# Si no se ha subido nada todavía #}
+                            <span class="badge bg-danger me-2">Pendiente</span>
+                        {% endif %}
+                        
+                        {# El botón para subir/reemplazar SOLO aparece si el documento no está aprobado #}
+                        {% if not tarea.entregado or tarea.entregado.estado != 'aprobado' %}
+                        <form action="{% url 'admisiones:subir_documento' token=aspirante.access_token doc_req_id=tarea.requerido.id %}" method="post" enctype="multipart/form-data" class="d-inline ms-2">
+                            {% csrf_token %}
+                            <input type="file" name="archivo" class="d-none" id="file-{{ tarea.requerido.id }}" onchange="this.form.submit()" accept="image/*,.pdf" required>
+                            <label for="file-{{ tarea.requerido.id }}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-upload"></i> {% if tarea.entregado %}Reemplazar{% else %}Subir{% endif %}
+                            </label>
+                        </form>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul> <!-- FIN DEL BUCLE DE DOCUMENTOS -->
+            <!-- ================================================================ -->
+            <!-- FIN DE LA SECCIÓN DE DOCUMENTOS                                  -->
+            <!-- ================================================================ -->
+
+
+            <!-- ================================================================ -->
+            <!-- SECCIÓN DE AGENDAMIENTO DE CITAS (LÓGICA COMPLETA)               -->
+            <!-- ================================================================ -->
+            {% if aspirante.estado == 'ADMITIDO' %}
+            <hr class="my-4">
+            <div class="p-3 bg-light border rounded">
+                <h4>Paso 2: Agendar Entrevista</h4>
+
+                {% if aspirante.cita_agendada %}
+                    <div class="alert alert-success mt-3">
+                        <h5 class="alert-heading"><i class="bi bi-calendar-check-fill"></i> Cita Confirmada</h5>
+                        <p class="mb-2">Tu entrevista está agendada para el:</p>
+                        <p class="fs-5 fw-bold">{{ aspirante.cita_agendada.horario.fecha_hora_inicio|date:"l, d \d\e F \d\e Y \a \l\a\s H:i" }}</p>
+                        <hr>
+                        <p class="mb-0">Si no puedes asistir, puedes cancelar tu cita y elegir un nuevo horario.</p>
+                        <a href="{% url 'admisiones:cancelar_cita' token=aspirante.access_token %}" class="btn btn-sm btn-outline-danger mt-2" onclick="return confirm('¿Estás seguro de que quieres cancelar tu cita? Esta acción no se puede deshacer.');">
+                            <i class="bi bi-calendar-x"></i> Cancelar mi Cita
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="mt-2">Ya puedes agendar una entrevista con nuestro equipo de admisiones.</p>
+                    <a href="{% url 'admisiones:vista_agendamiento' token=aspirante.access_token %}" class="btn btn-success">
+                        <i class="bi bi-calendar-plus"></i> Ver Horarios Disponibles
+                    </a>
+                {% endif %}
+            </div>
+            {% endif %}
+            <!-- ================================================================ -->
+            <!-- FIN DE LA SECCIÓN DE AGENDAMIENTO                                -->
+            <!-- ================================================================ -->
+        </div>
+    </div>
+</div>
+{% endblock %}

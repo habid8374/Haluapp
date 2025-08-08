@@ -1,0 +1,75 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="h2 mb-4">{{ titulo_pagina }}</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <!-- Filtros por Rol -->
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link {% if not rol_actual %}active{% endif %}" href="{% url 'gestion_academica:lista_usuarios' %}">Todos</a>
+                    </li>
+                    {% for rol_val, rol_name in roles %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if rol_actual == rol_val %}active{% endif %}" href="?rol={{ rol_val }}">{{ rol_name }}s</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <!-- Buscador -->
+                <form method="get" class="d-flex">
+                    <input type="hidden" name="rol" value="{{ rol_actual }}">
+                    <input class="form-control me-2" type="search" name="q" placeholder="Buscar usuario..." value="{{ query_actual }}">
+                    <button class="btn btn-outline-primary" type="submit">Buscar</button>
+                </form>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Email</th>
+                            <th class="text-center">Rol</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr>
+                            <td><strong>{{ usuario.get_full_name }}</strong><br><small class="text-muted">@{{ usuario.username }}</small></td>
+                            <td>{{ usuario.email }}</td>
+                            <td class="text-center"><span class="badge bg-info">{{ usuario.get_rol_display }}</span></td>
+                            <td class="text-center">
+                                {% if usuario.is_active %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'gestion_academica:editar_usuario' usuario.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-pencil-fill"></i> Gestionar
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center p-4">
+                                <p class="mb-0">No se encontraron usuarios con los filtros aplicados.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

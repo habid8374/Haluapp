@@ -1,0 +1,13 @@
+{% extends "base_academico.html" %}
+{% block titulo %}Confirmar Eliminación{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <h1>Confirmar Eliminación</h1>
+    <p>¿Estás seguro de que deseas eliminar la actividad "<strong>{{ actividad.titulo }}</strong>"?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+        <a href="{% url 'gestion_academica:docente_lista_actividades' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

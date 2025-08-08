@@ -1,0 +1,42 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+
+    <form method="get" class="mb-4 card card-body shadow-sm">
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <label for="periodo" class="form-label">Filtrar por Periodo Académico:</label>
+                <select name="periodo" id="periodo" class="form-select" onchange="this.form.submit()">
+                    {% for periodo in periodos_disponibles %}
+                        <option value="{{ periodo.pk }}" {% if periodo.pk == periodo_seleccionado.pk %}selected{% endif %}>
+                            {{ periodo.nombre }} ({{ periodo.año_escolar }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </form>
+
+    {% if periodo_seleccionado %}
+        <p class="lead text-muted">Mostrando cursos para el periodo: <strong>{{ periodo_seleccionado.nombre }}</strong>.</p>
+        <div class="list-group shadow-sm">
+            {% for curso in cursos %}
+                {# --- INICIO DE LA LÓGICA CORREGIDA --- #}
+                {# El enlace ahora apunta a la nueva URL despachadora #}
+                <a href="{% url 'gestion_academica:redirigir_libro_notas' curso_pk=curso.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><strong>{{ curso.materia.nombre_materia }}</strong> - {{ curso.grado.nombre }}</span>
+                    <span class="badge bg-primary rounded-pill">Ir a Calificar <i class="bi bi-chevron-right"></i></span>
+                </a>
+                {# --- FIN DE LA LÓGICA CORREGIDA --- #}
+            {% empty %}
+                <div class="list-group-item">No tienes cursos asignados para el periodo seleccionado.</div>
+            {% endfor %}
+        </div>
+    {% else %}
+         <div class="alert alert-warning">No hay periodos académicos disponibles.</div>
+    {% endif %}
+</div>
+{% endblock %}

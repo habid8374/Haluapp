@@ -1,0 +1,168 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h3>Revisión del Cuestionario: {{ intento.cuestionario.titulo }}</h3>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Estudiante:</strong> {{ intento.estudiante }}</p>
+                    <p><strong>Fecha de Finalización:</strong> {{ intento.fecha_fin|date:"d M, Y - h:i A" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="fs-5"><strong>Puntaje Actual:</strong> 
+                        <span class="badge bg-primary rounded-pill">{{ intento.puntaje_obtenido|floatformat:2 }} / {{ intento.cuestionario.preguntas.all.count }}</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+
+    {% if not intento.intento_extra_habilitado %}
+    <div class="alert alert-secondary">
+        <h5 class="alert-heading">Acciones Administrativas</h5>
+        <p class="mb-2">Si el estudiante necesita otra oportunidad por un motivo justificado, puedes habilitar un intento adicional.</p>
+        <form action="{% url 'cuestionarios:habilitar_intento_extra' intento.pk %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-info">Habilitar 1 Intento Adicional</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle-fill"></i> Ya se ha habilitado un intento adicional para este estudiante.
+    </div>
+    {% endif %}
+
+    <hr class="my-4">
+
+    <form method="post">
+        {% csrf_token %}
+        {% for item in preguntas_con_respuestas %}
+            {% with pregunta=item.pregunta respuesta=item.respuesta_estudiante %}
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between">
+                        <strong>{{ forloop.counter }}. {{ pregunta.enunciado|safe }}</strong>
+                        <span>Puntaje: {{ respuesta.puntaje_obtenido|default:0|floatformat:2 }} / {{ pregunta.puntaje }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% if pregunta.tipo == 'texto_libre' %}
+                            <h5 class="card-title text-primary">Respuesta del Estudiante:</h5>
+                            <p class="border p-2 bg-light rounded" style="min-height: 80px;">{{ respuesta.texto_respuesta|default:"El estudiante no respondió."|linebreaksbr }}</p>
+                            
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="puntaje-manual-{{ pregunta.id }}"><b>Asignar Puntaje</b> (Máx: {{ pregunta.puntaje }})</label>
+                                        <input type="number" step="0.1" class="form-control" 
+                                               id="puntaje-manual-{{ pregunta.id }}"
+                                               name="puntaje_manual_{{ pregunta.id }}" 
+                                               value="{{ respuesta.puntaje_obtenido|stringformat:'.2f'|default:0 }}"
+                                               max="{{ pregunta.puntaje }}" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-8 pt-3">
+                                    {% if respuesta %}
+                                    <button type="button" class="btn btn-info btn-sm sugerir-nota-ia-btn" 
+                                            data-respuesta-pk="{{ respuesta.pk }}"
+                                            data-pregunta-pk="{{ pregunta.pk }}">
+                                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        <i class="bi bi-robot"></i> Sugerir Nota con IA
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div id="justificacion-ia-{{ pregunta.id }}" class="mt-2 text-muted fst-italic p-2 border-start border-4 border-info">
+                                </div>
+                            {% elif pregunta.tipo in 'opcion_multiple,seleccion_multiple,verdadero_falso' %}
+                            <h5 class="card-title text-primary">Opciones y Respuesta del Estudiante:</h5>
+                            <ul class="list-group">
+                                {% for opcion in pregunta.opciones.all %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center 
+                                        {% if opcion.es_correcta %} list-group-item-success {% elif opcion in respuesta.opciones_seleccionadas.all and not opcion.es_correcta %} list-group-item-danger {% endif %}">
+                                        
+                                        {{ opcion.texto }}
+                                        <span>
+                                            {% if opcion.es_correcta %}<span class="badge bg-success">Correcta</span>{% endif %}
+                                            {% if opcion in respuesta.opciones_seleccionadas.all %}<span class="badge bg-primary">Seleccionada</span>{% endif %}
+                                        </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% elif pregunta.tipo == 'emparejamiento' %}
+                            {% endif %}
+                    </div>
+                </div>
+            {% endwith %}
+        {% endfor %}
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+            <a href="{% url 'gestion_academica:historial_entregas' %}" class="btn btn-secondary btn-lg">Volver al Historial</a>
+            <button type="submit" class="btn btn-success btn-lg"><i class="bi bi-check2-circle"></i> Guardar Calificación Revisada</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Obtenemos el token CSRF del formulario principal
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    document.querySelectorAll('.sugerir-nota-ia-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const respuestaPk = this.dataset.respuestaPk;
+            if (!respuestaPk) return; // No hacer nada si no hay respuesta
+
+            const preguntaPk = this.dataset.preguntaPk;
+            const url = `/cuestionarios/api/sugerir-calificacion/${respuestaPk}/`;
+
+            const spinner = this.querySelector('.spinner-border');
+            const icon = this.querySelector('.bi-robot');
+            const puntajeInput = document.getElementById(`puntaje-manual-${preguntaPk}`);
+            const justificacionDiv = document.getElementById(`justificacion-ia-${preguntaPk}`);
+
+            // Mostrar estado de carga
+            spinner.classList.remove('d-none');
+            icon.classList.add('d-none');
+            this.disabled = true;
+            justificacionDiv.innerHTML = 'HALU está analizando la respuesta...';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                // No es necesario enviar body si la info está en la URL
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    // Actualizamos el campo de la nota y la justificación
+                    puntajeInput.value = result.data.nota_sugerida.toFixed(2);
+                    justificacionDiv.innerHTML = `<strong>Sugerencia de HALU:</strong> ${result.data.justificacion}`;
+                } else {
+                    justificacionDiv.innerHTML = `<strong class="text-danger">Error:</strong> ${result.message}`;
+                }
+            })
+            .catch(error => {
+                justificacionDiv.innerHTML = `<strong class="text-danger">Error de conexión.</strong>`;
+                console.error('Error:', error);
+            })
+            .finally(() => {
+                // Restaurar el estado normal del botón
+                spinner.classList.add('d-none');
+                icon.classList.remove('d-none');
+                this.disabled = false;
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

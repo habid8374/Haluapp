@@ -1,0 +1,22 @@
+<!-- templates/admisiones/agendar_cita.html -->
+{% extends "base_publica.html" %}
+{% block contenido %}
+<div class="container mt-5">
+    <h2>Selecciona un Horario para tu Cita</h2>
+    <p>Estos son los horarios disponibles. Por favor, elige el que mejor se ajuste a tu disponibilidad.</p>
+    <div class="list-group">
+        {% for horario in horarios_disponibles %}
+            <a href="{% url 'admisiones:confirmar_agendamiento' token=aspirante.access_token horario_id=horario.pk %}" class="list-group-item list-group-item-action">
+                <strong>{{ horario.get_tipo_cita_display }}</strong> con {{ horario.entrevistador.get_full_name|default:'Admisiones' }}
+                <br>
+                <i class="bi bi-calendar-event"></i> {{ horario.fecha_hora_inicio|date:"l, d \d\e F" }}
+                <br>
+                <i class="bi bi-clock"></i> De {{ horario.fecha_hora_inicio|time:"H:i" }} a {{ horario.fecha_hora_fin|time:"H:i" }}
+            </a>
+        {% empty %}
+            <p class="alert alert-warning">No hay horarios disponibles en este momento. Por favor, vuelve a intentarlo más tarde o contacta con la institución.</p>
+        {% endfor %}
+    </div>
+    <a href="{% url 'admisiones:portal_postulante' token=aspirante.access_token %}" class="btn btn-secondary mt-4">Volver al Portal</a>
+</div>
+{% endblock %}

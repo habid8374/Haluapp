@@ -1,0 +1,39 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body text-center">
+            <h1 class="card-title">{{ titulo_pagina }}</h1>
+            <p class="lead text-muted">¡No te preocupes! Repasar estos temas te ayudará a mejorar. ¡Tú puedes!</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        {% for recurso in recursos %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-file-earmark-text-fill text-primary"></i> {{ recurso.nombre_archivo_descriptivo }}</h5>
+                        <p class="card-text">{{ recurso.descripcion|default:"Material de apoyo para el curso." }}</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <a href="{{ recurso.archivo.url }}" class="btn btn-primary w-100" target="_blank">
+                            <i class="bi bi-download"></i> Descargar Material
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <p class="mb-0">No se encontró material de refuerzo específico para esta actividad.</p>
+                    <p class="mb-0">Te recomendamos revisar tus apuntes de clase y consultar con tu docente.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

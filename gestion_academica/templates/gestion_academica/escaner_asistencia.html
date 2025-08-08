@@ -1,0 +1,143 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    #qr-reader {
+        width: 100%;
+        max-width: 500px;
+        border: 2px solid #0d6efd;
+        border-radius: 8px;
+        margin: 0 auto;
+    }
+    #qr-reader-results {
+        margin-top: 20px;
+    }
+    .scan-log-item {
+        transition: background-color 0.5s ease;
+    }
+    .scan-log-item.success {
+        background-color: #d1e7dd; /* Verde Bootstrap */
+    }
+    .scan-log-item.error {
+        background-color: #f8d7da; /* Rojo Bootstrap */
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container text-center mt-4">
+    <h1 class="h2 mb-1">{{ titulo_pagina }}</h1>
+    <p class="text-muted">Fecha: {% now "d M, Y" %}</p>
+    
+    <div id="qr-reader" class="shadow-sm"></div>
+    
+    <div id="qr-reader-status" class="alert alert-info mt-3">Apunte la cámara al código QR del estudiante...</div>
+
+    <div class="mt-4">
+        <h4>Registro de Escaneos:</h4>
+        <ul id="qr-reader-results" class="list-group">
+            <!-- Los resultados se añadirán aquí dinámicamente -->
+        </ul>
+    </div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h2">{{ titulo_pagina }}</h1>
+        <p class="text-muted mb-0">Fecha: {{ fecha|date:"l, d F, Y" }}</p>
+    </div>
+    
+    <div class="btn-group">
+        <a href="{% url 'gestion_academica:exportar_asistencia_excel' curso_pk=curso.pk %}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-excel-fill"></i> Exportar a Excel
+        </a>
+        <a href="{% url 'gestion_academica:dashboard_docente' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Incluimos la librería html5-qrcode desde su CDN -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusElement = document.getElementById('qr-reader-status');
+        const resultsElement = document.getElementById('qr-reader-results');
+        let lastResultTime = 0;
+        const scanCooldown = 3000; // 3 segundos de enfriamiento para evitar doble escaneo
+
+        function onScanSuccess(decodedText, decodedResult) {
+            const now = Date.now();
+            if (now - lastResultTime < scanCooldown) {
+                // Aún en cooldown, ignorar este escaneo
+                return;
+            }
+            lastResultTime = now;
+
+            console.log(`QR detectado: ${decodedText}`);
+            statusElement.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando QR...`;
+            statusElement.className = 'alert alert-warning';
+
+            // Pausar el escáner mientras procesamos
+            html5QrcodeScanner.pause();
+
+            // Obtener el token CSRF para la petición POST
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // Enviar el dato a nuestra API
+            fetch("{% url 'gestion_academica:registrar_asistencia_api' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    qr_identifier: decodedText,
+                    curso_id: "{{ curso.pk }}"
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addLogEntry(data.message, data.status);
+                if (data.status === 'success') {
+                    statusElement.innerHTML = `<strong>Éxito:</strong> ${data.message}`;
+                    statusElement.className = 'alert alert-success';
+                } else {
+                    statusElement.innerHTML = `<strong>Error:</strong> ${data.message}`;
+                    statusElement.className = 'alert alert-danger';
+                }
+                // Reanudar el escáner después de un momento
+                setTimeout(() => {
+                    statusElement.innerHTML = 'Apunte la cámara al código QR del estudiante...';
+                    statusElement.className = 'alert alert-info';
+                    html5QrcodeScanner.resume();
+                }, scanCooldown);
+            })
+            .catch(error => {
+                console.error('Error en la petición fetch:', error);
+                statusElement.innerHTML = `<strong>Error de Red:</strong> No se pudo conectar con el servidor.`;
+                statusElement.className = 'alert alert-danger';
+                setTimeout(() => html5QrcodeScanner.resume(), scanCooldown);
+            });
+        }
+        
+        function addLogEntry(message, status) {
+            const li = document.createElement('li');
+            li.className = `list-group-item scan-log-item ${status}`;
+            li.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong>: ${message}`;
+            resultsElement.prepend(li); // Añadir al principio de la lista
+        }
+
+        const html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader", 
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            /* verbose= */ false);
+        
+        html5QrcodeScanner.render(onScanSuccess);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bienvenido al Proceso de Admisión</title>
+</head>
+<body style="font-family: sans-serif; margin: 20px; color: #333;">
+    <h1 style="color: #005a9e;">¡Gracias por tu interés en nuestra institución!</h1>
+    
+    <p>Hola <strong>{{ aspirante.nombres }} {{ aspirante.apellidos }}</strong>,</p>
+
+    <p>Hemos recibido tu solicitud de admisión para el grado <strong>{{ aspirante.grado_aspira.nombre }}</strong> y estamos muy emocionados de conocerte.</p>
+
+    <p>Para continuar con el proceso, hemos creado un portal personal para ti. Aquí podrás subir los documentos requeridos y seguir el estado de tu solicitud en tiempo real.</p>
+
+    <p style="text-align: center; margin: 30px 0;">
+        <a href="{{ portal_url }}" style="background-color: #0078D4; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-size: 16px;">
+            Acceder a mi Portal de Postulante
+        </a>
+    </p>
+
+    <p>Si el botón no funciona, también puedes copiar y pegar el siguiente enlace en tu navegador:</p>
+    <p><small>{{ portal_url }}</small></p>
+
+    <p>¡Te deseamos mucho éxito!</p>
+
+    <p>Atentamente,<br>
+    El equipo de Admisiones<br>
+    <strong>{{ branding.NOMBRE }}</strong>
+    </p>
+</body>
+</html>

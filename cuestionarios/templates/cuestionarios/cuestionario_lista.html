@@ -1,0 +1,45 @@
+{% extends "base_academico.html" %}
+{% block titulo %}Mis Cuestionarios{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Mis Cuestionarios</h1>
+        <a href="{% url 'gestion_academica:docente_crear_actividad' %}" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Crear Nueva Actividad/Cuestionario</a>
+    </div>
+    <p class="text-muted">Desde aquí puedes gestionar las preguntas de tus actividades evaluativas. Primero crea una actividad y luego edita su cuestionario.</p>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Título de la Actividad</th>
+                            <th>Curso</th>
+                            <th>Nº de Preguntas</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- ▼▼▼ CORRECCIÓN CLAVE AQUÍ ▼▼▼ -->
+                        {% for cuestionario in cuestionarios %}
+                        <tr>
+                            <td>{{ cuestionario.actividad_calificable.titulo }}</td>
+                            <td>{{ cuestionario.actividad_calificable.curso }}</td>
+                            <td>{{ cuestionario.preguntas.count }}</td>
+                            <td>
+                                <a href="{% url 'cuestionarios:editor_cuestionario' cuestionario.actividad_calificable.pk %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-edit me-1"></i> Editar Cuestionario
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center">No has creado actividades evaluativas para el periodo activo.</td></tr>
+                        {% endfor %}
+                        <!-- ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲ -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

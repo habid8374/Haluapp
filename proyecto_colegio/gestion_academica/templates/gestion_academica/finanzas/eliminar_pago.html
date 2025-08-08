@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-danger">Confirmar Eliminación de Pago</h2>
+
+    <div class="alert alert-warning">
+        <p><strong>¿Estás seguro que deseas eliminar este pago?</strong></p>
+        <ul>
+            <li><strong>Estudiante:</strong> {{ pago.estudiante }}</li>
+            <li><strong>Valor Pagado:</strong> ${{ pago.valor_pagado|floatformat:0 }}</li>
+            <li><strong>Fecha:</strong> {{ pago.fecha_pago|date:"d/m/Y" }}</li>
+            <li><strong>Observación:</strong> {{ pago.observacion }}</li>
+        </ul>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'gestion_academica:mis_cuentas' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base_academico.html' %}
+{% load static %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">{{ titulo_pagina }}</h4>
+        </div>
+        <div class="card-body">
+            <p>
+                Esta herramienta transferirá a los estudiantes del último grado configurado al archivo de egresados.
+                Este proceso es irreversible.
+            </p>
+            
+            <ul class="list-group mb-3">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Año académico a cerrar:
+                    <strong>{{ request.user.institucion_asociada.periodo_academico_actual.año }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Grado a graduar:
+                    <strong>{{ ultimo_grado.nombre }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Número de estudiantes a procesar:
+                    <span class="badge bg-primary rounded-pill">{{ conteo_estudiantes }}</span>
+                </li>
+            </ul>
+
+            {% if conteo_estudiantes > 0 %}
+            <form method="post" onsubmit="return confirm('¿Estás seguro de que deseas graduar a {{ conteo_estudiantes }} estudiantes? Esta acción no se puede deshacer.');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger w-100">
+                    <i class="fas fa-user-graduate"></i> Iniciar Proceso de Graduación
+                </button>
+            </form>
+            {% else %}
+            <div class="alert alert-warning" role="alert">
+                No hay estudiantes activos en el grado {{ ultimo_grado.nombre }} para graduar.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock contenido %}

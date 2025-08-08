@@ -1,0 +1,39 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-3">{{ titulo_pagina }}</h1>
+    <p class="text-muted">
+        Esta herramienta busca a todos los usuarios de un rol específico (ej: Estudiantes) y les asigna automáticamente el grupo de permisos correspondiente si aún no lo tienen.
+    </p>
+
+    <div class="row">
+        {% for grupo in grupos %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-people-fill me-2"></i>{{ grupo.name|capfirst }}</h5>
+                        <p class="card-text">Sincronizar todos los usuarios con este rol a su grupo de permisos.</p>
+                        
+                        <form method="post" action="{% url 'gestion_academica:sincronizar_permisos' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="grupo_id" value="{{ grupo.pk }}">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-arrow-repeat me-2"></i>Sincronizar {{ grupo.name }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    No se han creado grupos de permisos en el sistema. Ve al <a href="{% url 'admin:auth_group_changelist' %}" class="alert-link">Admin de Django</a> para crearlos.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
