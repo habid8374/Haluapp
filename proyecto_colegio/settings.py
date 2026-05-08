@@ -22,7 +22,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') + ['.ngrok-free.app', '127.0.0.1', 'localhost']
 
 # --- CONFIGURACIÓN PARA REVERSE PROXY (NGROK, HEROKU, ETC.) ---
 # Estas líneas le dicen a Django que confíe en las cabeceras del proxy
@@ -30,7 +30,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
-CSRF_TRUSTED_ORIGINS = ['http://72.60.27.222']
+CSRF_TRUSTED_ORIGINS = ['http://72.60.27.222', 'https://*.ngrok-free.app']
 
 # Application definition
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'finanzas.apps.FinanzasConfig',
     'gestion_academica.apps.GestionAcademicaConfig',
     'cuestionarios.apps.CuestionariosConfig',
+    'cursos.apps.CursosConfig',
     
     
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)
@@ -174,26 +175,14 @@ WSGI_APPLICATION = 'proyecto_colegio.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-            'OPTIONS': {'timeout': 20},
-        }
+# Usamos SQLite para desarrollo local
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {'timeout': 20},
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2', # ¡Ajustado!
-            'NAME': os.getenv('DB_NAME'),
-            'USER': os.getenv('DB_USER'),
-            'PASSWORD': os.getenv('DB_PASSWORD'),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', ''),
-        }
-    }
-
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -238,6 +227,9 @@ STATICFILES_DIRS = [
 # La RUTA ABSOLUTA donde collectstatic recolectará todos los archivos estáticos para producción.
 STATIC_ROOT = BASE_DIR / 'staticfiles_collected' # Usando pathlib.Path
 
+# --- CONFIGURACIÓN DE ARCHIVOS MEDIA (Local) ---
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -248,11 +240,6 @@ AUTH_USER_MODEL = 'gestion_academica.Usuario' # ¡CRUCIAL! Debe ser exacto
 LOGIN_URL = 'login' # Nombre de la URL de login (generalmente de django.contrib.auth.urls)
 LOGIN_REDIRECT_URL = 'gestion_academica:inicio_academico' # A dónde ir después de un login exitoso
 LOGOUT_REDIRECT_URL = 'login' # A dónde ir después de un logout exitoso (puede ser otra página)
-
-# --- CONFIGURACIÓN DE ARCHIVOS MEDIA (Subidos por usuarios) ---
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media' # Usando pathlib.Path
-
 
 # --- CONFIGURACIÓN DE DJANGO CRISPY FORMS ---
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -267,17 +254,17 @@ SOFTWARE_CONTACT_EMAIL = "haluplataformaescolar@gmail.com"
 
 # --- CONFIGURACIÓN DE ENVÍO DE CORREO ELECTRÓNICO ---
 
-# Para desarrollo: imprime los correos en la consola en lugar de enviarlos.
-#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Para desarrollo: imprime los correos en la consola.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Cuando vayas a producción, comentarás la línea de arriba y descomentarás
 # y rellenarás una configuración como esta (ejemplo para Gmail):
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'tu_correo@gmail.com'  # Tu dirección de correo
-EMAIL_HOST_PASSWORD = 'tu_contraseña_de_aplicacion' # ¡Usa una contraseña de aplicación, no tu contraseña real!
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'tu_correo@gmail.com'
+# EMAIL_HOST_PASSWORD = 'tu_contraseña_de_aplicacion'
 
 # Dirección de correo por defecto desde la que se enviarán los correos
 DEFAULT_FROM_EMAIL = 'Admisiones Colegio HALU <noreply@halu.com>'
@@ -407,13 +394,3 @@ CHANNEL_LAYERS = {
         },
     },
 }
-
-
-# Static files configuration for development on DEBUG=False
-if not DEBUG:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_collected')
-
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, "static"),
-        # Puedes agregar otras carpetas de estáticos aquí si las tienes
-    ]

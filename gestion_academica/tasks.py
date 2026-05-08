@@ -166,7 +166,8 @@ def generar_contenido_planeacion_task(self, planeacion_id):
             raise Exception("GOOGLE_API_KEY no configurada.")
 
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash') # Usando tu modelo preferido
+        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
+        model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
 
         prompt = f"""
         Actúa como un experto pedagogo. Crea una planeación de clases detallada basada en la siguiente información.
@@ -218,7 +219,12 @@ def generar_contenido_planeacion_task(self, planeacion_id):
             planeacion.recursos_necesarios = ai_data.get('recursos_necesarios')
             planeacion.criterios_evaluacion = ai_data.get('criterios_evaluacion')
             planeacion.estado_generacion = PlaneacionClase.EstadoGeneracion.COMPLETADO
-            planeacion.save()
+            planeacion.save(update_fields=[
+                'objetivos_aprendizaje',
+                'recursos_necesarios',
+                'criterios_evaluacion',
+                'estado_generacion'
+            ])
 
             planeacion.detalles_clase.all().delete()
             for detalle in ai_data.get('clases', []):
@@ -241,7 +247,7 @@ def generar_contenido_planeacion_task(self, planeacion_id):
         if planeacion:
             planeacion.estado_generacion = PlaneacionClase.EstadoGeneracion.FALLIDO
             planeacion.error_generacion = error_message
-            planeacion.save()
+            planeacion.save(update_fields=['estado_generacion', 'error_generacion'])
         return "Error final: Formato JSON inválido." # No reintentamos
     # --- FIN DE LA CORRECCIÓN CLAVE ---
 
@@ -250,7 +256,7 @@ def generar_contenido_planeacion_task(self, planeacion_id):
         if planeacion:
             planeacion.estado_generacion = PlaneacionClase.EstadoGeneracion.FALLIDO
             planeacion.error_generacion = f"Error: {type(e).__name__} - {e}"
-            planeacion.save()
+            planeacion.save(update_fields=['estado_generacion', 'error_generacion'])
 
         if "quota" in str(e).lower():
             return f"Error final: {e}"
@@ -271,7 +277,7 @@ def analizar_propuesta_candidato_task(self, candidato_id):
             raise Exception("GOOGLE_API_KEY no configurada.")
 
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-pro-latest')
+        model = genai.GenerativeModel('gemini-2.5-pro')
 
         prompt = f"""
         Actúa como un asesor político estudiantil y analista de discursos.
@@ -326,7 +332,8 @@ def analizar_comportamiento_task(user_id):
 
     try:
         genai.configure(api_key=settings.GOOGLE_API_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
+        model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
     except Exception as e:
         print(f"Error CRÍTICO al configurar la API de Google: {e}")
         # Notificamos al usuario del error de configuración
@@ -453,7 +460,7 @@ def generar_propuesta_horario_task(periodo_pk, institucion_id, grado_pk): # <-- 
         """
 
         genai.configure(api_key=settings.GOOGLE_API_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(prompt)
         
         json_text = response.text
@@ -487,8 +494,11 @@ def extract_text_from_file(file_field):
             # Usamos un buffer en memoria para que PyPDF2 pueda leer el archivo de Django
             pdf_buffer = io.BytesIO(file_field.read())
             reader = PyPDF2.PdfReader(pdf_buffer)
-            for page in reader.pages:
-                text += page.extract_text()
+            
+            # Limitamos la lectura a las primeras 10 páginas para evitar consumo excesivo de RAM
+            max_pages = min(len(reader.pages), 10)
+            for i in range(max_pages):
+                text += reader.pages[i].extract_text()
             return text
         elif file_name.endswith('.txt'):
             return file_field.read().decode('utf-8')
@@ -520,7 +530,7 @@ def analizar_plagio_tarea_task(entrega_id):
         texto_mas_similar = ""
 
         genai.configure(api_key=settings.GOOGLE_API_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
 
         for otra_entrega in otras_entregas:
             texto_comparar = extract_text_from_file(otra_entrega.archivo_adjunto_estudiante)

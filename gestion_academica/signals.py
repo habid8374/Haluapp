@@ -44,7 +44,7 @@ def sugerir_material_de_refuerzo(sender, instance, created, **kwargs):
     consejo_ia = "" # Valor por defecto en caso de que la IA falle
     try:
         genai.configure(api_key=settings.GOOGLE_API_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         prompt = (
             f"Actúa como un tutor amigable y positivo llamado HALU. Un estudiante de '{estudiante.grado_actual}' "
@@ -104,7 +104,7 @@ def analizar_observacion_convivencia(sender, instance, created, **kwargs):
         genai.configure(api_key=api_key)
         
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
-        model = genai.GenerativeModel('gemini-1.5-flash', generation_config=generation_config)
+        model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
         
         prompt = f"""
         Actúa como un experto en la Ley 1620 de Colombia. Analiza la siguiente anotación y responde ÚNICAMENTE con un objeto JSON válido que siga esta estructura:
@@ -151,7 +151,7 @@ def analizar_propuesta_candidato(sender, instance, created, **kwargs):
 
     try:
         genai.configure(api_key=settings.GOOGLE_API_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
 
         prompt = (
             f"Eres un asesor electoral. Analiza esta propuesta de candidatura:\n\n"

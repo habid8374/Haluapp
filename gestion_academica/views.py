@@ -2781,7 +2781,7 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
                 # INICIO DE LA CORRECCIÓN DEFINITIVA
                 # ===============================================================
                 # Usamos el nombre del modelo recomendado y actual: 'gemini-1.5-flash'
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                model = genai.GenerativeModel('gemini-2.5-flash')
                 # ===============================================================
                 # FIN DE LA CORRECCIÓN
                 # ===============================================================
@@ -9494,6 +9494,8 @@ def asistente_halu_api(request):
     try:
         data = json.loads(request.body)
         pregunta = data.get('pregunta', '').strip()
+        historial_previo = data.get('historial', []) # 2. HISTORIAL: Recibimos la memoria de la conversación enviada por el frontend
+        
         if not pregunta:
             return JsonResponse({'respuesta': 'Por favor, escribe una pregunta.'})
 
@@ -9507,55 +9509,139 @@ def asistente_halu_api(request):
         if not institucion:
             return JsonResponse({'respuesta': "Error: Tu usuario no está asociado a ninguna institución."}, status=403)
 
-        tools_disponibles = {
-            'obtener_promedio_materia_por_grado': obtener_promedio_materia_por_grado,
-            'obtener_conteo_estudiantes_por_grado': obtener_conteo_estudiantes_por_grado,
-            'get_absent_students_by_grade': get_absent_students_by_grade,
-            'obtener_resumen_financiero_estudiantes': obtener_resumen_financiero_estudiantes,
-            'get_top_student_in_school': get_top_student_in_school,
-            'get_observation_count_for_student': get_observation_count_for_student,
-        }
+        tools_disponibles = {}
+        instrucciones_sistema = ""
+        user = request.user
+
+        if user.is_superuser or (hasattr(user, 'rol') and user.rol in ['administrador', 'coordinador']):
+            tools_disponibles = {
+                'obtener_promedio_materia_por_grado': obtener_promedio_materia_por_grado,
+                'obtener_conteo_estudiantes_por_grado': obtener_conteo_estudiantes_por_grado,
+                'get_absent_students_by_grade': get_absent_students_by_grade,
+                'obtener_resumen_financiero_estudiantes': obtener_resumen_financiero_estudiantes,
+                'get_top_student_in_school': get_top_student_in_school,
+                'get_observation_count_for_student': get_observation_count_for_student,
+            }
+            instrucciones_sistema = f"""
+            Eres HALU, un asistente virtual experto en analítica escolar.
+            Estás trabajando para un directivo de la institución '{institucion.nombre}'.
+            El ID de esta institución es {institucion.id}, úsalo silenciosamente si una herramienta lo requiere.
+            Tienes acceso a datos globales de la institución. Responde de manera profesional, proactiva y amigable.
+            """
+        elif hasattr(user, 'rol') and user.rol == 'docente':
+            from .utils import obtener_resumen_cursos_docente, obtener_estudiantes_riesgo_docente
+            tools_disponibles = {
+                'obtener_resumen_cursos_docente': obtener_resumen_cursos_docente,
+                'obtener_estudiantes_riesgo_docente': obtener_estudiantes_riesgo_docente,
+            }
+            instrucciones_sistema = f"""
+            Eres HALU, un asistente virtual pedagógico.
+            Trabajas apoyando al docente {user.get_full_name()} de la institución '{institucion.nombre}'.
+            Ayúdale a organizar sus clases, analizar el rendimiento de sus estudiantes y redactar comunicaciones.
+            Responde de forma amable, profesional y motivadora.
+            """
+        elif hasattr(user, 'rol') and user.rol == 'estudiante':
+            from .utils import obtener_tareas_pendientes_estudiante, obtener_resumen_notas_estudiante
+            tools_disponibles = {
+                'obtener_tareas_pendientes_estudiante': obtener_tareas_pendientes_estudiante,
+                'obtener_resumen_notas_estudiante': obtener_resumen_notas_estudiante,
+            }
+            instrucciones_sistema = f"""
+            Eres HALU, un tutor virtual y compañero de estudio.
+            Hablas con el estudiante {user.get_full_name()} de la institución '{institucion.nombre}'.
+            Tu objetivo es motivarlo, recordarle sus tareas, explicarle conceptos y darle resúmenes de sus notas de forma amigable y alentadora.
+            No hagas su tarea, guíalo para que aprenda.
+            """
+        elif hasattr(user, 'rol') and user.rol == 'familiar':
+            from .utils import obtener_resumen_hijos_familiar
+            tools_disponibles = {
+                'obtener_resumen_hijos_familiar': obtener_resumen_hijos_familiar,
+            }
+            instrucciones_sistema = f"""
+            Eres HALU, un asistente de apoyo para padres de familia y acudientes.
+            Estás ayudando a {user.get_full_name()}, familiar de estudiantes en la institución '{institucion.nombre}'.
+            Da respuestas cordiales, claras y orientadas a involucrar al acudiente en la educación de sus hijos.
+            """
+        else:
+            instrucciones_sistema = f"Eres HALU, el asistente virtual amigable de la plataforma escolar en '{institucion.nombre}'."
         
-        model = genai.GenerativeModel(model_name='gemini-1.5-flash', tools=list(tools_disponibles.values()))
-        chat = model.start_chat()
+        # Quitamos system_instruction de los parámetros para evitar crash en versiones antiguas de la librería
+        model_kwargs = {'model_name': 'gemini-2.5-flash'}
+        if tools_disponibles:
+            model_kwargs['tools'] = list(tools_disponibles.values())
+            
+        model = genai.GenerativeModel(**model_kwargs)
         
-        prompt = f"""
-        Eres HALU, un asistente virtual para un software escolar.
-        Estás trabajando para un usuario de la institución '{institucion.nombre}'.
-        El ID de esta institución es {institucion.id}.
-        Usa este ID para cualquier herramienta que requiera un 'institucion_id'.
-        Responde la siguiente pregunta del usuario: "{pregunta}"
-        """
-        response = chat.send_message(prompt)
+        chat = model.start_chat(history=historial_previo)
         
-        while response.candidates[0].content.parts[0].function_call:
-            function_call = response.candidates[0].content.parts[0].function_call
+        # Inyectamos la instrucción al principio de forma manual si es el primer mensaje
+        mensaje_enviar = pregunta
+        if not historial_previo:
+            mensaje_enviar = f"{instrucciones_sistema}\n\nPregunta del usuario: {pregunta}"
+            
+        response = chat.send_message(mensaje_enviar)
+        
+        # Verificación segura de Tool Calls para evitar IndexError o AttributeError
+        part = response.candidates[0].content.parts[0] if response.candidates and response.candidates[0].content.parts else None
+        
+        while part and hasattr(part, 'function_call') and part.function_call:
+            function_call = part.function_call
             tool_name = function_call.name
-            tool_args = {key: value for key, value in function_call.args.items()}
+            
+            # Extracción segura de argumentos (el objeto de Google no siempre soporta .items())
+            tool_args = {}
+            if hasattr(function_call, 'args'):
+                for key in function_call.args:
+                    tool_args[key] = function_call.args[key]
             
             if tool_name in tools_disponibles:
                 tool_function = tools_disponibles[tool_name]
 
-                # ESTE BLOQUE ES LA SOLUCIÓN:
                 if 'institucion_id' in tool_function.__code__.co_varnames and 'institucion_id' not in tool_args:
                     tool_args['institucion_id'] = institucion.id
+                if 'docente_usuario_id' in tool_function.__code__.co_varnames and 'docente_usuario_id' not in tool_args:
+                    tool_args['docente_usuario_id'] = request.user.id
+                if 'estudiante_usuario_id' in tool_function.__code__.co_varnames and 'estudiante_usuario_id' not in tool_args:
+                    tool_args['estudiante_usuario_id'] = request.user.id
+                if 'familiar_usuario_id' in tool_function.__code__.co_varnames and 'familiar_usuario_id' not in tool_args:
+                    tool_args['familiar_usuario_id'] = request.user.id
 
-                tool_response = tool_function(**tool_args)
+                try:
+                    tool_response = tool_function(**tool_args)
+                except Exception as e:
+                    tool_response = f"Ocurrió un error al buscar los datos: {str(e)}"
                 
+                # Usamos glm.Part que es el estándar oficial más robusto para evitar errores 500
                 response = chat.send_message(
-                    glm.Part(function_response=glm.FunctionResponse(name=tool_name, response={'content': tool_response}))
+                    glm.Part(
+                        function_response=glm.FunctionResponse(
+                            name=tool_name,
+                            response={'resultado': str(tool_response)}
+                        )
+                    )
                 )
+                part = response.candidates[0].content.parts[0] if response.candidates and response.candidates[0].content.parts else None
             else:
                 break 
 
         if not response.text:
-            response = chat.send_message("Ok, ahora dame un resumen amigable con los resultados.")
+            response = chat.send_message("Ok, ahora dame un resumen amigable con los resultados obtenidos de la base de datos.")
 
-        return JsonResponse({'respuesta': response.text})
+        # Extraemos el historial seguro (solo texto) para la memoria del frontend
+        nuevo_historial = []
+        for message in chat.history:
+            textos = [p.text for p in message.parts if hasattr(p, 'text') and p.text]
+            if textos:
+                nuevo_historial.append({
+                    "role": message.role,
+                    "parts": [{"text": "\n".join(textos)}]
+                })
+
+        return JsonResponse({'respuesta': response.text, 'historial': nuevo_historial})
 
     except Exception as e:
         logger.error(f"Error inesperado en asistente_halu_api: {e}", exc_info=True)
-        return JsonResponse({'respuesta': f"Lo siento, ocurrió un error inesperado. Revisa los logs del servidor."}, status=500)
+        return JsonResponse({'respuesta': f"Ocurrió un error interno en la IA: {str(e)}. Por favor, avisa a soporte."}, status=500)
 
 @login_required
 def redirigir_a_libro_de_notas(request, curso_pk):
@@ -11408,12 +11494,15 @@ def get_planeacion_status_api(request, pk):
         planeacion = PlaneacionClase.objects.get(pk=pk)
         
         # Opcional: Si quieres mantener el chequeo de seguridad estricto
-        if not request.user.is_superuser and planeacion.docente != request.user.docente:
-             return JsonResponse({'status': 'FORBIDDEN'}, status=403)
+        if not request.user.is_superuser:
+            if not hasattr(request.user, 'docente') or planeacion.docente_id != request.user.docente.pk:
+                return JsonResponse({'status': 'FORBIDDEN'}, status=403)
 
-        return JsonResponse({'status': planeacion.estado_generacion})
+        return JsonResponse({'status': str(planeacion.estado_generacion)})
     except PlaneacionClase.DoesNotExist:
         return JsonResponse({'status': 'NOT_FOUND'}, status=404) 
+    except Exception as e:
+        return JsonResponse({'status': 'ERROR', 'message': str(e)}, status=500)
 
 @login_required
 def generar_planeacion_pdf(request, pk):
@@ -12078,7 +12167,7 @@ class GenerarResumenEstudianteIAView(APIView):
             genai.configure(api_key=settings.GOOGLE_API_KEY)
             
             # --- CORRECCIÓN: De GenerativaModel a GenerativeModel ---
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             # --- FIN DE LA CORRECCIÓN ---
             
             response = model.generate_content(prompt) # El prompt se construye con la lógica anterior

@@ -41,6 +41,7 @@ urlpatterns = [
     # ======================================================= #
 
     path('accounts/', include('allauth.urls')),
+    path('cursos/', include('cursos.urls')),
     
     
     # Inclusión de las URLs de tus aplicaciones

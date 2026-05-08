@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const chatBody = document.getElementById('halu-chat-body');
     const inputForm = document.getElementById('halu-input-form');
     const userInput = document.getElementById('halu-user-input');
+    
+    // NUEVO: Memoria del chat para enviar a la IA
+    let chatHistory = [];
 
     chatBubble.addEventListener('click', () => {
         chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
@@ -34,13 +37,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrftoken
             },
-            body: JSON.stringify({ pregunta: userMessageText })
+            body: JSON.stringify({ 
+                pregunta: userMessageText,
+                historial: chatHistory 
+            })
         })
-        .then(response => {
-            if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
-            return response.json();
+        .then(async response => {
+            const isJson = response.headers.get('content-type')?.includes('application/json');
+            const data = isJson ? await response.json() : null;
+            
+            if (!response.ok) {
+                // Si el servidor nos mandó un JSON con el error (ej: 403 permisos), lo procesamos
+                if (data && (data.respuesta || data.error)) {
+                    return data;
+                }
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
+            return data;
         })
         .then(data => {
+            if (data.historial) {
+                chatHistory = data.historial; // Actualizamos la memoria
+            }
             addMessage(data.respuesta || data.error || "Respuesta no válida.", 'halu');
         })
         .catch(error => {

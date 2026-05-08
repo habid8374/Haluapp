@@ -1908,12 +1908,53 @@ def generar_comprobante_egreso(request, gasto_id):
 @permission_required('finanzas.add_cuentacontable', raise_exception=True) # O un permiso de superadmin
 def ejecutar_seed_puc_view(request):
     """
-    Ejecuta el comando de gestión 'seed_puc' para poblar el Plan Único de Cuentas.
+    Carga un Plan Único de Cuentas (PUC) básico para la institución del usuario.
     """
     try:
-        # Esta es la línea que "presiona el botón" del comando por ti
-        call_command('seed_puc')
-        messages.success(request, "¡Éxito! El Plan Único de Cuentas (PUC) se ha cargado en la base de datos.")
+        # Intentamos obtener la institución del usuario
+        institucion = getattr(request.user, 'institucion_asociada', None)
+
+        # Si no hay institución asociada y es superusuario, buscamos la primera disponible (útil para pruebas/setup)
+        if not institucion and request.user.is_superuser:
+            institucion = InstitucionEducativa.objects.first()
+
+        if not institucion:
+            messages.error(request, "No se encontró una institución válida para cargar el PUC.")
+            return redirect('finanzas:dashboard_financiero')
+
+        # Definimos las cuentas base directamente aquí para evitar problemas con el comando seed_puc
+        cuentas_base = [
+            {'codigo': '1105', 'nombre': 'Caja', 'tipo': 'ACTIVO'},
+            {'codigo': '1110', 'nombre': 'Bancos', 'tipo': 'ACTIVO'},
+            {'codigo': '1305', 'nombre': 'Clientes', 'tipo': 'ACTIVO'},
+            {'codigo': '2205', 'nombre': 'Proveedores Nacionales', 'tipo': 'PASIVO'},
+            {'codigo': '2335', 'nombre': 'Costos y Gastos por Pagar', 'tipo': 'PASIVO'},
+            {'codigo': '3105', 'nombre': 'Capital Suscrito y Pagado', 'tipo': 'PATRIMONIO'},
+            {'codigo': '4140', 'nombre': 'Ingresos por Pensiones', 'tipo': 'INGRESO'},
+            {'codigo': '4145', 'nombre': 'Ingresos por Matrículas', 'tipo': 'INGRESO'},
+            {'codigo': '4295', 'nombre': 'Otros Ingresos', 'tipo': 'INGRESO'},
+            {'codigo': '5105', 'nombre': 'Gastos de Personal', 'tipo': 'GASTO'},
+            {'codigo': '5110', 'nombre': 'Honorarios', 'tipo': 'GASTO'},
+            {'codigo': '5120', 'nombre': 'Arrendamientos', 'tipo': 'GASTO'},
+            {'codigo': '5135', 'nombre': 'Servicios', 'tipo': 'GASTO'},
+            {'codigo': '5145', 'nombre': 'Mantenimiento y Reparaciones', 'tipo': 'GASTO'},
+            {'codigo': '5195', 'nombre': 'Diversos', 'tipo': 'GASTO'},
+        ]
+
+        creadas = 0
+        for cuenta in cuentas_base:
+            _, created = CuentaContable.objects.get_or_create(
+                codigo=cuenta['codigo'],
+                institucion=institucion,
+                defaults={
+                    'nombre': cuenta['nombre'],
+                    'tipo': cuenta['tipo']
+                }
+            )
+            if created:
+                creadas += 1
+
+        messages.success(request, f"¡Éxito! Se han verificado/creado {creadas} cuentas del PUC para {institucion.nombre}.")
     except Exception as e:
         messages.error(request, f"Ocurrió un error al intentar cargar el PUC: {e}")
 

@@ -519,7 +519,8 @@ class GenerarPreguntasIAView(APIView):
             print(f"[DEBUG] 2. Prompt enviado a la IA (primeros 100 caracteres): {prompt[:100]}...")
 
             genai.configure(api_key=settings.GOOGLE_API_KEY)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
+            model = genai.GenerativeModel('gemini-1.5-flash', generation_config=generation_config)
             response = model.generate_content(prompt)
             
             print(f"[DEBUG] 3. Respuesta RAW (texto crudo) recibida de la IA:")
@@ -612,7 +613,8 @@ class SugerirCalificacionIAView(APIView):
 
             # --- Llamada a la API de Google ---
             genai.configure(api_key=settings.GOOGLE_API_KEY)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
+            model = genai.GenerativeModel('gemini-1.5-flash', generation_config=generation_config)
             response = model.generate_content(prompt)
             
             json_text = response.text.strip().replace("```json", "").replace("```", "")

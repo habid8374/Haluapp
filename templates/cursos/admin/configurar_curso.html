@@ -1,0 +1,73 @@
+{% extends "base_academico.html" %}
+
+{% block contenido %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Configurando: {{ curso.nombre }}</h3>
+        <a href="{% url 'cursos:gestion_cursos_admin' %}" class="btn btn-outline-secondary">Volver</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Módulos del Curso</h5>
+            <a href="{% url 'cursos:agregar_modulo' curso.id %}" class="btn btn-sm btn-success">
+                <i class="bi bi-plus-lg"></i> Agregar Módulo
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="accordion" id="accordionModulos">
+                {% for modulo in curso.modulos.all %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading{{ modulo.id }}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ modulo.id }}">
+                            <strong>{{ modulo.orden }}. {{ modulo.titulo }}</strong>
+                        </button>
+                    </h2>
+                    <div id="collapse{{ modulo.id }}" class="accordion-collapse collapse" data-bs-parent="#accordionModulos">
+                        <div class="accordion-body">
+                            <div class="d-flex justify-content-end mb-2 gap-2">
+                                <a href="{% url 'cursos:agregar_material' modulo.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-file-earmark-plus"></i> + Material
+                                </a>
+                                {% if not modulo.evaluacion %}
+                                <a href="{% url 'cursos:agregar_evaluacion' modulo.id %}" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-question-circle"></i> + Evaluación
+                                </a>
+                                {% endif %}
+                            </div>
+
+                            <!-- Lista de Materiales -->
+                            <ul class="list-group mb-3">
+                                {% for material in modulo.materiales.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        {% if material.tipo == 'VIDEO' %}<i class="bi bi-youtube text-danger"></i>
+                                        {% elif material.tipo == 'PDF' %}<i class="bi bi-file-pdf text-danger"></i>
+                                        {% else %}<i class="bi bi-link"></i>{% endif %}
+                                        {{ material.titulo }}
+                                    </span>
+                                    <span class="badge bg-secondary">{{ material.get_tipo_display }}</span>
+                                </li>
+                                {% empty %}
+                                <li class="list-group-item text-muted small">Sin materiales aún.</li>
+                                {% endfor %}
+                            </ul>
+
+                            <!-- Evaluación -->
+                            {% if modulo.evaluacion %}
+                            <div class="alert alert-warning d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-pencil-square"></i> Evaluación: {{ modulo.evaluacion.titulo }}</span>
+                                <span class="badge bg-dark">Aprueba con {{ modulo.evaluacion.porcentaje_aprobacion }}%</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-4 text-center text-muted">No hay módulos creados. Comienza agregando uno.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

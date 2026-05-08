@@ -18,7 +18,7 @@ from .models import (
     EscalaValorativa, RegistroAsistenciaDocente, Docente, 
     PeriodoAcademico, Estudiante, Grado, Materia, Curso,
     AnotacionObservador, RegistroAsistencia, LeccionDiaria, BloqueHorario, 
-    PlaneacionClase
+    PlaneacionClase, Familiar, Deber, EntregaDeber
 )
 
 from finanzas.models import CuentaPorCobrarEstudiante
@@ -467,3 +467,107 @@ def crear_lecciones_diarias_desde_planeacion(planeacion_id):
     except Exception as e:
         logger.error(f"Error al crear lecciones desde la planeación {planeacion_id}: {e}", exc_info=True)
         return 0, f"Error inesperado: {e}"
+
+def obtener_resumen_cursos_docente(docente_usuario_id: int) -> str:
+    """Obtiene un resumen de los cursos asignados al docente."""
+    try:
+        docente = Docente.objects.get(usuario_id=docente_usuario_id)
+        periodo_activo = PeriodoAcademico.objects.filter(institucion=docente.institucion, activo=True).first()
+        if not periodo_activo:
+            return "No hay un periodo académico activo."
+            
+        cursos = Curso.objects.filter(docentes_asignados=docente, periodo_academico=periodo_activo).select_related('materia', 'grado')
+        if not cursos.exists():
+            return "Actualmente no tienes cursos asignados en el periodo activo."
+            
+        resultados = []
+        for curso in cursos:
+            num_estudiantes = Estudiante.objects.filter(grado_actual=curso.grado, activo=True).count()
+            resultados.append(f"- {curso.materia.nombre_materia} en {curso.grado.nombre} ({num_estudiantes} estudiantes)")
+        return "Tus cursos actuales son:\n" + "\n".join(resultados)
+    except Exception as e:
+        return f"Error al consultar tus cursos: {str(e)}"
+
+def obtener_estudiantes_riesgo_docente(docente_usuario_id: int) -> str:
+    """Obtiene un conteo de los estudiantes en riesgo en los cursos del docente."""
+    try:
+        docente = Docente.objects.get(usuario_id=docente_usuario_id)
+        periodo_activo = PeriodoAcademico.objects.filter(institucion=docente.institucion, activo=True).first()
+        if not periodo_activo:
+            return "No hay un periodo académico activo."
+        
+        cursos = Curso.objects.filter(docentes_asignados=docente, periodo_academico=periodo_activo)
+        total_riesgo = 0
+        for curso in cursos:
+            estudiantes = Estudiante.objects.filter(grado_actual=curso.grado, activo=True)
+            for estudiante in estudiantes:
+                riesgo = analizar_riesgo_academico_curso(curso, estudiante)
+                if riesgo['estado'] in ["En Riesgo", "Situación Crítica"]:
+                    total_riesgo += 1
+        
+        return f"Actualmente hay aproximadamente {total_riesgo} situaciones de riesgo académico en tus cursos. Te sugiero revisar el módulo de Reporte de Riesgo para más detalles."
+    except Exception as e:
+        return f"Error al consultar estudiantes en riesgo: {str(e)}"
+
+def obtener_tareas_pendientes_estudiante(estudiante_usuario_id: int) -> str:
+    """Obtiene las tareas pendientes y próximas a vencer del estudiante."""
+    try:
+        estudiante = Estudiante.objects.get(usuario_id=estudiante_usuario_id)
+        periodo_activo = PeriodoAcademico.objects.filter(institucion=estudiante.institucion, activo=True).first()
+        if not periodo_activo or not estudiante.grado_actual:
+            return "No tienes un grado o periodo activo asignado."
+            
+        hoy = timezone.now().date()
+        cursos = Curso.objects.filter(grado=estudiante.grado_actual, periodo_academico=periodo_activo)
+        deberes = Deber.objects.filter(curso__in=cursos, fecha_entrega__gte=hoy).order_by('fecha_entrega')
+        
+        entregados = EntregaDeber.objects.filter(estudiante=estudiante, deber__in=deberes).values_list('deber_id', flat=True)
+        
+        pendientes = []
+        for deber in deberes:
+            if deber.id not in entregados:
+                pendientes.append(f"- {deber.titulo} ({deber.curso.materia.nombre_materia}) - Vence: {deber.fecha_entrega.strftime('%Y-%m-%d')}")
+        
+        if not pendientes:
+            return "¡Felicidades! No tienes tareas pendientes próximas."
+        return "Tus tareas pendientes son:\n" + "\n".join(pendientes)
+    except Exception as e:
+        return f"Error al consultar tus tareas: {str(e)}"
+
+def obtener_resumen_notas_estudiante(estudiante_usuario_id: int) -> str:
+    """Obtiene un resumen de las notas actuales del estudiante."""
+    try:
+        estudiante = Estudiante.objects.get(usuario_id=estudiante_usuario_id)
+        periodo_activo = PeriodoAcademico.objects.filter(institucion=estudiante.institucion, activo=True).first()
+        if not periodo_activo or not estudiante.grado_actual:
+            return "No tienes un grado o periodo activo asignado."
+            
+        cursos = Curso.objects.filter(grado=estudiante.grado_actual, periodo_academico=periodo_activo)
+        resultados = []
+        for curso in cursos:
+            estado = calcular_estado_academico_curso(curso, estudiante)
+            nota = estado.get('nota_final_ponderada')
+            if nota is not None:
+                resultados.append(f"- {curso.materia.nombre_materia}: {nota:.2f}")
+        
+        if not resultados:
+            return "Aún no tienes calificaciones registradas en este periodo."
+        return "Tus calificaciones actuales son:\n" + "\n".join(resultados)
+    except Exception as e:
+        return f"Error al consultar tus notas: {str(e)}"
+
+def obtener_resumen_hijos_familiar(familiar_usuario_id: int) -> str:
+    """Obtiene un resumen de los hijos asociados al familiar."""
+    try:
+        familiar = Familiar.objects.get(usuario_id=familiar_usuario_id)
+        hijos = familiar.estudiantes_asociados.all()
+        if not hijos.exists():
+            return "No tienes estudiantes asociados a tu perfil."
+            
+        resultados = []
+        for hijo in hijos:
+            grado = hijo.grado_actual.nombre if hijo.grado_actual else "Sin grado"
+            resultados.append(f"- {hijo.usuario.get_full_name()} (Grado: {grado})")
+        return "Estudiantes a tu cargo:\n" + "\n".join(resultados)
+    except Exception as e:
+        return f"Error al consultar tus acudidos: {str(e)}"

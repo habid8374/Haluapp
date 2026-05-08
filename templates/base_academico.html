@@ -72,6 +72,9 @@
     <li class="nav-item item-color-4">
         <a class="nav-link" href="{% url 'gestion_academica:mi_boletin_periodo_actual' %}"><i class="bi bi-file-earmark-text-fill"></i> Mi Boletín</a>
     </li>
+    <li class="nav-item item-color-5">
+        <a class="nav-link" href="{% url 'cursos:catalogo' %}"><i class="bi bi-laptop"></i> Cursos Virtuales</a>
+    </li>
 {% endif %}
         
         {# ========================================================== #}
@@ -92,6 +95,30 @@
         </a>
     </li>
     {% endif %}
+
+    {# --- Módulo de Cursos Virtuales (AÑADIDO) --- #}
+    <hr class="menu-divider">
+    <h5 class="menu-section-title">E-Learning</h5>
+    <li class="nav-item item-color-5">
+        <a class="nav-link collapsed" href="#collapseCursos" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseCursos">
+            <i class="bi bi-laptop"></i> Cursos Virtuales <i class="bi bi-chevron-down float-end"></i>
+        </a>
+        <div class="collapse ps-3" id="collapseCursos">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'cursos:catalogo' %}">
+                        <i class="bi bi-collection-play"></i> Ir al Aula / Catálogo
+                    </a>
+                </li>
+                {% if perms.cursos.add_curso %}
+                <li class="nav-item"><a class="nav-link sub-item" href="{% url 'cursos:gestion_cursos_admin' %}"><i class="bi bi-gear-wide-connected"></i> Gestionar Cursos</a></li>
+                <li class="nav-item"><a class="nav-link sub-item" href="{% url 'cursos:matricular_manual' %}"><i class="bi bi-person-check-fill"></i> Matricular Estudiante</a></li>
+                <li class="nav-item"><a class="nav-link sub-item" href="{% url 'cursos:registrar_estudiante_curso' %}"><i class="bi bi-person-plus-fill"></i> Admisión Express</a></li>
+                <li class="nav-item"><a class="nav-link sub-item" href="{% url 'cursos:reporte_estadisticas' %}"><i class="bi bi-bar-chart-line"></i> Reporte de Ventas</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </li>
 
     {# Módulo de Gestión Académica #}
     {% if perms.gestion_academica.acceso_modulo_academico %}
@@ -477,4 +504,3 @@
     </script>
     {% endif %}
 {% endblock extra_js %}
-
