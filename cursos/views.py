@@ -8,6 +8,7 @@ from django.db.models import Count, Sum, F
 from xhtml2pdf import pisa
 from io import BytesIO
 from django.db import transaction
+from django.utils.crypto import get_random_string
 import random
 
 from .models import Curso, Modulo, InscripcionCurso, ProgresoModulo, Evaluacion, Opcion
@@ -413,10 +414,15 @@ def registrar_estudiante_curso(request):
             with transaction.atomic():
                 # 1. Crear Usuario (Login)
                 username = f"{first_name.split()[0].lower()}.{last_name.split()[0].lower()}.{random.randint(100,999)}"
+                # TODO: Reemplazar este mecanismo temporal por un flujo seguro de activacion/reset antes de produccion final.
+                temp_password = get_random_string(
+                    length=20,
+                    allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+',
+                )
                 user = Usuario.objects.create_user(
                     username=username,
                     email=email,
-                    password=documento, # Contraseña inicial = Documento
+                    password=temp_password, # Contraseña temporal aleatoria
                     first_name=first_name,
                     last_name=last_name,
                     rol='estudiante',
@@ -429,6 +435,11 @@ def registrar_estudiante_curso(request):
                     documento_identidad=documento,
                     institucion=institucion_actual, # Usamos la seleccionada
                     # No asignamos grado_actual porque es un estudiante de curso libre
+                )
+                messages.warning(
+                    request,
+                    f"Contrasena temporal para '{username}': {temp_password}. "
+                    "Compártela por un canal seguro y solicita cambio inmediato."
                 )
                 
                 # 3. Matricular en el Curso (Esto dispara el correo de bienvenida automáticamente)

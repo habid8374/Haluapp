@@ -18,6 +18,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from django.utils.crypto import get_random_string
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import never_cache
@@ -8762,8 +8763,18 @@ def importar_docentes_excel(request):
                     })
 
                     if creado:
-                        user.set_password("123456")  # Contraseña por defecto
+                        # TODO: Reemplazar este mecanismo temporal por un flujo seguro de activacion/reset antes de produccion final.
+                        temp_password = get_random_string(
+                            length=20,
+                            allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+',
+                        )
+                        user.set_password(temp_password)
                         user.save()
+                        messages.warning(
+                            request,
+                            f"Fila {i}: contrasena temporal para docente '{username}': {temp_password}. "
+                            "Compártela por un canal seguro y solicita cambio inmediato."
+                        )
 
                     Docente.objects.get_or_create(usuario=user, defaults={
                         "documento_identidad": doc_id,
