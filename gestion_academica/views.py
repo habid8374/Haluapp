@@ -3111,7 +3111,6 @@ def generar_carnet_estudiante(request, estudiante_pk):
 # FIN: VISTA NUEVA
 # =========================================================================
  
-@csrf_exempt
 @require_POST
 @login_required
 def registrar_asistencia_api(request):
@@ -8837,7 +8836,6 @@ def generar_carnet_docente(request, pk):
 
     return render(request, 'gestion_academica/carnet_docente.html', context)
 
-@csrf_exempt
 @require_POST
 @login_required
 def registrar_asistencia_docente_api(request):
@@ -9492,7 +9490,7 @@ class LogroDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
         return super().form_valid(form)
 
      
-@csrf_exempt
+@require_POST
 @login_required
 def asistente_halu_api(request):
     """

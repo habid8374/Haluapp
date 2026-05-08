@@ -542,7 +542,6 @@ def pipeline_admisiones(request):
     }
     return render(request, 'admisiones/pipeline_admisiones.html', context)
 
-@csrf_exempt # Usamos csrf_exempt porque la llamada vendrá de AJAX, pero en producción es mejor usar el token CSRF con JS.
 @require_POST
 @login_required
 @permission_required('admisiones.change_aspirante')
