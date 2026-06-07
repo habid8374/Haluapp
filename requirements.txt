@@ -61,7 +61,6 @@ et_xmlfile==2.0.0
 PyYAML==6.0.2
 qrcode==8.2
 num2words==0.5.14
-twilio==9.5.2
 asgiref==3.9.1
 google-generativeai==0.8.6
 xhtml2pdf==0.2.17
