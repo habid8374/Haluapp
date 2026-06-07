@@ -1,25 +1,25 @@
 # --- Framework Principal y Servidores ---
 Django==5.2.1
-gunicorn                  # CRÍTICO: Servidor WSGI para producción
-whitenoise==6.9.0         # Para servir archivos estáticos eficientemente
+gunicorn
+whitenoise==6.9.0
 
 # --- Base de Datos y Almacenamiento en la Nube ---
-psycopg[binary]==3.3.4    # Driver PostgreSQL recomendado para Django 5+ en Python 3.14
-django-storages 
-boto3                     # CRÍTICO: Librería de AWS utilizada por django-storages
-redis==5.3.1              # Para el broker de Celery y Channels
-tzdata==2025.2            # Zona horaria
+psycopg[binary]
+django-storages
+boto3
+redis==5.3.1
+tzdata==2025.2
 
-# --- Extensiones nativas (Windows + Python 3.14): pin explícito para evitar mezcla de wheels y resolver grpc/protobuf ---
-cffi==2.0.0
-cryptography==48.0.0
-grpcio==1.80.0
-grpcio-status==1.71.2    # NO subir a 1.80 sin revisar: arrastra protobuf>=6 y rompe google-ai-generativelanguage
+# --- Extensiones nativas ---
+cffi
+cryptography
+grpcio
+grpcio-status
 protobuf==5.29.6
-pydantic==2.13.4
-pydantic-core==2.46.4
-Pillow==12.2.0
-python-bidi==0.6.9
+pydantic
+pydantic-core
+Pillow
+python-bidi
 
 # --- REST Framework y Autenticación ---
 djangorestframework==3.16.0
@@ -31,7 +31,6 @@ oauthlib==3.3.1
 requests-oauthlib==2.0.0
 
 # --- Asincronía y Tareas en Segundo Plano ---
-# Channels (WebSockets)
 channels==4.3.0
 daphne==4.2.1
 channels_redis==4.3.0
@@ -55,7 +54,7 @@ python-dotenv==1.1.0
 python-decouple==3.8
 sqlparse==0.5.3
 tablib==3.8.0
-lxml==6.1.0               # 5.4.0 no publica wheel cp314-win; 6.1.0 sí (Python 3.14 en Windows sin compilar libxml2)
+lxml
 openpyxl==3.1.5
 xlsxwriter==3.2.9
 et_xmlfile==2.0.0
@@ -66,8 +65,8 @@ twilio==9.5.2
 asgiref==3.9.1
 google-generativeai==0.8.6
 xhtml2pdf==0.2.17
-numpy==2.4.4             # Pin explícito: debe coincidir con el wheel cp314 (evita mezcla cp312 por caché/instalación rota)
-pandas==3.0.2
+numpy
+pandas
 mercadopago==2.4.0
 python-docx==1.2.0
 PyPDF2==3.0.1
