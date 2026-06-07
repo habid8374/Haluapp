@@ -347,7 +347,14 @@ def dashboard_data(request):
     institucion_usuario = getattr(request.user, 'institucion_asociada', None)
 
     if not institucion_usuario:
-        return JsonResponse({'error': 'El usuario actual no está asociado a ninguna institución.'}, status=400)
+        return JsonResponse({
+            'sin_datos': True,
+            'porEstado': {'labels': [], 'data': []},
+            'porGrado': {'labels': [], 'data': []},
+            'porColegio': {'labels': [], 'data': []},
+            'porMunicipio': {'labels': [], 'data': []},
+            'porSexo': {'labels': [], 'data': []},
+        })
 
     # 1. Buscamos el periodo académico activo para definir el ciclo de admisión
     periodo_activo = PeriodoAcademico.objects.filter(
