@@ -324,7 +324,7 @@ def inicio_academico(request):
 # --- Vistas para Grados ---
 class GradoListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = Grado; template_name = 'gestion_academica/grado_lista.html'; context_object_name = 'grados'; permission_required = 'gestion_academica.view_grado'
-    def get_queryset(self): return get_filtered_queryset(self.model, self.request.user).order_by('nombre')
+    def get_queryset(self): return get_filtered_queryset(self.model, self.request.user).order_by('orden', 'nombre')
     def get_context_data(self, **kwargs): context = super().get_context_data(**kwargs); context['titulo_pagina'] = "Listado de Grados"; return context
 
 class GradoCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
