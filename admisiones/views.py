@@ -356,7 +356,14 @@ def dashboard_data(request):
     ).first()
 
     if not periodo_activo:
-        return JsonResponse({'error': 'No hay un periodo académico activo configurado en el sistema.'}, status=404)
+        return JsonResponse({
+            'sin_datos': True,
+            'porEstado': {'labels': [], 'data': []},
+            'porGrado': {'labels': [], 'data': []},
+            'porColegio': {'labels': [], 'data': []},
+            'porMunicipio': {'labels': [], 'data': []},
+            'porSexo': {'labels': [], 'data': []},
+        })
 
     # 2. El Queryset base ahora filtra por las fechas del periodo activo
     base_queryset = Aspirante.objects.filter(

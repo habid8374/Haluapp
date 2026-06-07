@@ -80,6 +80,9 @@
     </div>
   </div>
 
+  <!-- Gráficos -->
+  <div id="charts-container">
+
   <!-- Fila 1: Estado + Por Grado -->
   <div class="row g-4 mb-4">
     <div class="col-lg-5 col-md-12">
@@ -147,6 +150,8 @@
     </div>
   </div>
 
+  </div>{# /charts-container #}
+
 </div>
 {% endblock %}
 
@@ -154,26 +159,39 @@
 {{ block.super }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+const EMPTY_MSG = '<p class="text-center text-muted py-4 mb-0" style="font-size:.88rem;"><i class="bi bi-inbox me-1"></i>Sin datos para mostrar.</p>';
+
 document.addEventListener('DOMContentLoaded', function () {
     fetch("{% url 'admisiones:dashboard_data' %}")
         .then(response => {
-            if (!response.ok) { throw new Error('La respuesta de la API no fue exitosa.'); }
+            if (!response.ok) { throw new Error('network'); }
             return response.json();
         })
         .then(data => {
-            // Paleta unificada con el design system
+            const totalAspirantes = (data.porEstado.data || []).reduce((a, b) => a + b, 0);
+
+            if (data.sin_datos || totalAspirantes === 0) {
+                document.getElementById('charts-container').innerHTML =
+                    '<div class="text-center py-5 text-muted">' +
+                    '<i class="bi bi-bar-chart-line" style="font-size:3rem;opacity:.3;display:block;margin-bottom:1rem;"></i>' +
+                    '<p class="fw-600 mb-1" style="font-size:1rem;">Sin datos de admisión</p>' +
+                    '<p style="font-size:.85rem;">No hay aspirantes registrados en el período académico activo.</p>' +
+                    '</div>';
+                return;
+            }
+
             const palette = [
-                'rgba(29,78,216,.8)',   // azul
-                'rgba(124,58,237,.8)',  // violeta
-                'rgba(16,185,129,.8)',  // verde
-                'rgba(245,158,11,.8)',  // ámbar
-                'rgba(239,68,68,.8)',   // rojo
+                'rgba(29,78,216,.8)',
+                'rgba(124,58,237,.8)',
+                'rgba(16,185,129,.8)',
+                'rgba(245,158,11,.8)',
+                'rgba(239,68,68,.8)',
             ];
             const borderColor = '#fff';
 
             // --- GRÁFICO 1: ASPIRANTES POR ESTADO (pie) ---
             const canvasEstado = document.getElementById('chartPorEstado');
-            if (canvasEstado) {
+            if (canvasEstado && data.porEstado.labels.length > 0) {
                 new Chart(canvasEstado.getContext('2d'), {
                     type: 'pie',
                     data: {
@@ -182,16 +200,20 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } } } }
                 });
+            } else if (canvasEstado) {
+                canvasEstado.parentElement.innerHTML = EMPTY_MSG;
             }
 
             // --- GRÁFICO 2: ASPIRANTES POR GRADO (bar) ---
             const canvasGrado = document.getElementById('chartPorGrado');
-            if (canvasGrado) {
+            if (canvasGrado && data.porGrado.labels.length > 0) {
                 new Chart(canvasGrado.getContext('2d'), {
                     type: 'bar',
                     data: { labels: data.porGrado.labels, datasets: [{ label: 'Nº de Aspirantes', data: data.porGrado.data, backgroundColor: 'rgba(55,48,163,.75)', borderRadius: 6 }] },
                     options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
                 });
+            } else if (canvasGrado) {
+                canvasGrado.parentElement.innerHTML = EMPTY_MSG;
             }
 
             // --- GRÁFICO 3: TOP COLEGIOS (bar horizontal) ---
@@ -203,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: '#f1f5f9' } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
                 });
             } else if (canvasColegio) {
-                canvasColegio.parentElement.innerHTML = '<p class="text-center text-muted mt-4" style="font-size:.88rem;">No hay datos de colegios para mostrar.</p>';
+                canvasColegio.parentElement.innerHTML = EMPTY_MSG;
             }
 
             // --- GRÁFICO 4: TOP MUNICIPIOS (bar horizontal) ---
@@ -215,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: '#f1f5f9' } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
                 });
             } else if (canvasMunicipio) {
-                canvasMunicipio.parentElement.innerHTML = '<p class="text-center text-muted mt-4" style="font-size:.88rem;">No hay datos de municipios para mostrar.</p>';
+                canvasMunicipio.parentElement.innerHTML = EMPTY_MSG;
             }
 
             // --- GRÁFICO 5: DISTRIBUCIÓN POR SEXO (doughnut) ---
@@ -230,12 +252,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } } }, cutout: '60%' }
                 });
             } else if (canvasSexo) {
-                canvasSexo.parentElement.innerHTML = '<p class="text-center text-muted mt-4" style="font-size:.88rem;">No hay datos de sexo para mostrar.</p>';
+                canvasSexo.parentElement.innerHTML = EMPTY_MSG;
             }
         })
         .catch(error => {
             console.error("Error al cargar datos del dashboard:", error);
-            document.querySelector('.container-fluid').insertAdjacentHTML('afterbegin', '<div class="ps-error-state mb-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>No se pudieron cargar los datos del dashboard. Por favor, intenta de nuevo más tarde.</div>');
+            document.getElementById('charts-container').innerHTML =
+                '<div class="ps-error-state"><i class="bi bi-exclamation-triangle-fill me-2"></i>No se pudieron cargar los datos. Por favor, intenta de nuevo más tarde.</div>';
         });
 });
 </script>
