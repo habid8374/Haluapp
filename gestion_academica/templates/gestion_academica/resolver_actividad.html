@@ -4,11 +4,7 @@
 {% block titulo %}Resolviendo: {{ actividad.titulo }}{% endblock %}
 
 {% block contenido %}
-    {# 
-      Este es el div principal donde se montará nuestra aplicación de React.
-      Le pasamos toda la información que necesita (URLs, IDs, tiempo)
-      a través de los atributos data-*.
-    #}
+    {# Contenedor principal de la aplicación React — recibe datos vía atributos data-* #}
     <div id="react-app" 
          data-api-url="{% url 'gestion_academica:api_detalle_actividad' actividad.pk %}"
          data-submit-url="{% url 'gestion_academica:api_enviar_respuestas' actividad.pk %}"

@@ -1,0 +1,195 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}Nuevo Corte Preventivo{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .grado-checkbox { cursor:pointer; }
+  .grado-checkbox input:checked + label .grado-card {
+    border-color:#4f46e5;
+    background:linear-gradient(135deg,#f5f3ff,#ede9fe);
+  }
+  .grado-card {
+    border:2px solid #e5e7eb;
+    border-radius:10px;
+    padding:.5rem .75rem;
+    transition:.15s;
+    user-select:none;
+  }
+  .grado-card:hover { border-color:#a5b4fc; }
+  .paso { background:#f5f3ff; border-radius:50%; width:32px; height:32px; display:inline-flex;
+          align-items:center; justify-content:center; color:#4f46e5; font-weight:800; font-size:.95rem; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<!-- Hero Banner -->
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'gestion_academica:lista_cortes_preventivos' %}" class="btn btn-outline-light btn-sm">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+      <h2 class="mb-1 fw-800"><i class="bi bi-plus-circle-fill me-2"></i>Nuevo Corte Preventivo</h2>
+      <p class="mb-0 opacity-75">Configura los parámetros del corte. Puedes crearlo para un grado o para todos a la vez.</p>
+    </div>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm" style="border-radius:16px;">
+      <div class="card-body p-4">
+        <form method="post" id="form-crear-corte">
+          {% csrf_token %}
+
+          <!-- PASO 1: Información básica -->
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="paso">1</span>
+            <h6 class="mb-0 fw-700">Información del corte</h6>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-8">
+              <label class="form-label fw-600 small">
+                <i class="bi bi-tag-fill me-1 text-primary"></i>Nombre del corte <span class="text-danger">*</span>
+              </label>
+              <input type="text" name="nombre_corte" class="form-control"
+                     placeholder="Ej: Corte 1 — Primer Período 2025" required
+                     maxlength="150">
+              <div class="form-text">Un nombre descriptivo para identificar este informe.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-600 small">
+                <i class="bi bi-calendar-event me-1 text-primary"></i>Fecha de corte <span class="text-danger">*</span>
+              </label>
+              <input type="date" name="fecha_corte" class="form-control" value="{{ fecha_hoy }}" required>
+              <div class="form-text">Se evaluarán actividades hasta esta fecha.</div>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-600 small">
+                <i class="bi bi-book me-1 text-primary"></i>Período académico <span class="text-danger">*</span>
+              </label>
+              <select name="periodo_academico" class="form-select" required>
+                <option value="">— Selecciona un período —</option>
+                {% for p in periodos %}
+                  <option value="{{ p.pk }}">{{ p }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- PASO 2: Selección de grados -->
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="paso">2</span>
+            <h6 class="mb-0 fw-700">¿Para qué grados?</h6>
+          </div>
+
+          <!-- Opción: todos los grados -->
+          <div class="form-check mb-3 p-3 rounded-3"
+               style="background:#f0fdf4;border:1px solid #86efac;">
+            <input class="form-check-input" type="checkbox" name="todos_grados"
+                   value="1" id="todosGrados">
+            <label class="form-check-label fw-700 text-success" for="todosGrados">
+              <i class="bi bi-check-all me-1"></i>
+              Crear para TODOS los grados (recomendado para cortes institucionales)
+            </label>
+          </div>
+
+          <!-- Selección individual -->
+          <div id="seleccionGrados">
+            <p class="small text-muted mb-2">O selecciona uno o varios grados específicos:</p>
+            <div class="row g-2" id="gradosContainer">
+              {% for g in grados %}
+              <div class="col-6 col-md-4 col-lg-3">
+                <div class="grado-checkbox">
+                  <input type="checkbox" name="grados" value="{{ g.pk }}"
+                         id="grado_{{ g.pk }}" class="d-none check-grado">
+                  <label for="grado_{{ g.pk }}" class="w-100">
+                    <div class="grado-card text-center">
+                      <i class="bi bi-mortarboard text-primary d-block mb-1"></i>
+                      <span class="small fw-600">{{ g.nombre }}</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              {% empty %}
+              <div class="col-12">
+                <p class="text-muted small">No hay grados registrados en tu institución.</p>
+              </div>
+              {% endfor %}
+            </div>
+            <div id="avisoGrado" class="alert alert-warning d-none mt-2 py-2 small">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              Selecciona al menos un grado o activa la opción "Todos los grados".
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- Aviso preventivo -->
+          <div class="alert alert-info d-flex gap-3 align-items-start py-3" style="border-radius:12px;">
+            <i class="bi bi-info-circle-fill fs-5 flex-shrink-0"></i>
+            <div>
+              <strong>¿Qué pasa después de crear el corte?</strong>
+              <ol class="mb-0 mt-1 ps-3 small">
+                <li>El corte se crea en estado <strong>Borrador</strong>.</li>
+                <li>Haces clic en <strong>Calcular</strong> para que el sistema procese los datos.</li>
+                <li>Cuando esté listo, recibirás una notificación. Podrás revisar los resultados.</li>
+                <li>Cuando estés conforme, publícalo para que los docentes puedan verlo.</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="d-flex gap-3 mt-4">
+            <button type="submit" id="btnCrear"
+                    class="btn btn-primary d-flex align-items-center gap-2 px-4">
+              <i class="bi bi-plus-circle-fill"></i>
+              <span>Crear Corte Preventivo</span>
+            </button>
+            <a href="{% url 'gestion_academica:lista_cortes_preventivos' %}"
+               class="btn btn-outline-secondary">
+              Cancelar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+(function(){
+  const todosCheck  = document.getElementById('todosGrados');
+  const gradosDiv   = document.getElementById('seleccionGrados');
+  const aviso       = document.getElementById('avisoGrado');
+  const form        = document.getElementById('form-crear-corte');
+  const checkGrados = document.querySelectorAll('.check-grado');
+
+  // Cuando se marca "todos", deshabilitar selección individual
+  todosCheck.addEventListener('change', function(){
+    gradosDiv.style.opacity = this.checked ? '0.4' : '1';
+    gradosDiv.style.pointerEvents = this.checked ? 'none' : 'auto';
+    if (this.checked) checkGrados.forEach(c => c.checked = false);
+  });
+
+  // Validación al enviar
+  form.addEventListener('submit', function(e){
+    aviso.classList.add('d-none');
+    if (!todosCheck.checked) {
+      const haySeleccion = [...checkGrados].some(c => c.checked);
+      if (!haySeleccion) {
+        e.preventDefault();
+        aviso.classList.remove('d-none');
+        aviso.scrollIntoView({behavior:'smooth', block:'center'});
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

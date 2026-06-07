@@ -1,0 +1,179 @@
+{% extends "base_academico.html" %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+
+<div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:18px;padding:1.75rem 2rem;color:white;margin-bottom:1.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+    <div>
+        <h2 class="fw-800 mb-1" style="font-size:1.45rem;">
+            <i class="bi bi-wrench-adjustable-circle-fill me-2 text-warning"></i>{{ titulo_pagina }}
+        </h2>
+        <p class="mb-0" style="opacity:.75;font-size:.9rem;">
+            Diagnóstico operativo: Redis, Celery, Channels, plantillas, URLs, multi-tenant, conceptos y mora.
+        </p>
+    </div>
+    <a href="{% url 'platform_control:dashboard' %}" class="btn btn-outline-light" style="border-radius:9px;">
+        <i class="bi bi-arrow-left me-1"></i> Panel Principal
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Último diagnóstico -->
+    <div class="col-lg-7">
+        <div class="card h-100" style="border-radius:14px;border:2px solid #f59e0b;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <div class="card-header fw-700 border-0 pt-3" style="background:#fefce8;color:#92400e;">
+                <i class="bi bi-activity me-2"></i>Último diagnóstico
+            </div>
+            <div class="card-body">
+                {% if ultima_ejecucion %}
+                    {% if ultima_ejecucion.estado == 'OK' %}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge bg-success fs-6">OK</span>
+                            <span class="text-muted">Sin errores ni advertencias.</span>
+                        </div>
+                    {% elif ultima_ejecucion.estado == 'WARN' %}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge bg-warning text-dark fs-6">ADVERTENCIAS</span>
+                            <span class="text-muted">{{ ultima_ejecucion.warnings_count }} advertencia(s).</span>
+                        </div>
+                    {% elif ultima_ejecucion.estado == 'ERROR' %}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge bg-danger fs-6">ERRORES</span>
+                            <span class="text-muted">{{ ultima_ejecucion.errores_count }} error(es), {{ ultima_ejecucion.warnings_count }} advertencia(s).</span>
+                        </div>
+                    {% elif ultima_ejecucion.estado == 'FALLIDO' %}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge bg-dark fs-6">FALLIDO</span>
+                            <span class="text-muted">El diagnóstico no pudo completarse.</span>
+                        </div>
+                    {% elif ultima_ejecucion.en_curso %}
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge bg-info fs-6">EN CURSO</span>
+                            <span class="text-muted">Ejecutándose…</span>
+                        </div>
+                    {% endif %}
+                    <ul class="list-unstyled mb-3 small text-muted">
+                        <li><strong>Iniciado:</strong> {{ ultima_ejecucion.iniciado_at|date:"d M Y, H:i:s" }} ({{ ultima_ejecucion.iniciado_at|naturaltime }})</li>
+                        {% if ultima_ejecucion.terminado_at %}
+                        <li><strong>Terminado:</strong> {{ ultima_ejecucion.terminado_at|date:"d M Y, H:i:s" }} ({{ ultima_ejecucion.duracion_segundos }}s)</li>
+                        {% endif %}
+                        <li><strong>Iniciado por:</strong> {{ ultima_ejecucion.iniciado_por|default:"—" }}</li>
+                        {% if ultima_ejecucion.institucion_filtro %}
+                        <li><strong>Institución:</strong> {{ ultima_ejecucion.institucion_filtro }}</li>
+                        {% endif %}
+                    </ul>
+                    <a href="{% url 'platform_control:mantenimiento_detalle' pk=ultima_ejecucion.pk %}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-search me-1"></i>Ver detalle completo
+                    </a>
+                {% else %}
+                    <p class="text-muted mb-0">Nunca se ha ejecutado un diagnóstico. Lanza el primero con el botón.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Lanzar diagnóstico -->
+    <div class="col-lg-5">
+        <div class="card h-100" style="border-radius:14px;border:2px solid #2563eb;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <div class="card-header fw-700 border-0 pt-3" style="background:#eff6ff;color:#1e40af;">
+                <i class="bi bi-play-circle-fill me-2"></i>Ejecutar diagnóstico
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    Se ejecuta en segundo plano (Celery) y reporta cada paso en vivo. Tarda entre 15 y 60 segundos.
+                </p>
+                <form action="{% url 'platform_control:mantenimiento_ejecutar' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="institucion_id" class="form-label small fw-700">Restringir a institución (opcional)</label>
+                        <select name="institucion_id" id="institucion_id" class="form-select form-select-sm">
+                            <option value="">— Todas las instituciones —</option>
+                            {% for inst in instituciones %}
+                            <option value="{{ inst.pk }}">{{ inst.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-700" style="border-radius:9px;">
+                        <i class="bi bi-stars me-2"></i>Iniciar diagnóstico ahora
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Qué se verifica -->
+<div class="card mb-4" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+    <div class="card-header fw-700 border-0 pt-3">
+        <i class="bi bi-list-check me-2"></i>¿Qué se verifica en cada diagnóstico?
+    </div>
+    <div class="card-body">
+        <div class="row g-2 small">
+            <div class="col-md-6"><span class="badge bg-secondary me-2">1/8</span> <strong>Redis</strong> — broker de Celery y capa de Channels.</div>
+            <div class="col-md-6"><span class="badge bg-secondary me-2">2/8</span> <strong>Celery</strong> — workers activos y tareas registradas.</div>
+            <div class="col-md-6"><span class="badge bg-secondary me-2">3/8</span> <strong>Channels</strong> — capa WebSocket operativa.</div>
+            <div class="col-md-6"><span class="badge bg-secondary me-2">4/8</span> <strong>Plantillas</strong> — existencia de templates críticos.</div>
+            <div class="col-md-6"><span class="badge bg-secondary me-2">5/8</span> <strong>URLs</strong> — resolución de rutas nombradas críticas.</div>
+            <div class="col-md-6"><span class="badge bg-secondary me-2">6/8</span> <strong>Multi-tenant</strong> — SMTP y Mercado Pago por institución.</div>
+            <div class="col-md-6"><span class="badge bg-secondary me-2">7/8</span> <strong>Conceptos de Pago</strong> — inscripción, matrícula y pensiones.</div>
+            <div class="col-md-6"><span class="badge bg-secondary me-2">8/8</span> <strong>Mora</strong> — estudiantes bloqueados por mensualidades vencidas.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Histórico -->
+<div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+    <div class="card-header fw-700 border-0 pt-3">
+        <i class="bi bi-clock-history me-2"></i>Histórico (últimos 20)
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle" style="font-size:.88rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">#</th>
+                        <th>Fecha</th>
+                        <th>Iniciado por</th>
+                        <th>Institución</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end">Err / Warn</th>
+                        <th class="text-end">Duración</th>
+                        <th class="text-end pe-3"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for ej in historico %}
+                <tr>
+                    <td class="ps-3 fw-700">#{{ ej.pk }}</td>
+                    <td>{{ ej.iniciado_at|date:"d M Y, H:i" }}</td>
+                    <td>{{ ej.iniciado_por|default:"—" }}</td>
+                    <td>{{ ej.institucion_filtro|default:"(todas)" }}</td>
+                    <td class="text-center">
+                        {% if ej.estado == 'OK' %}<span class="badge bg-success">OK</span>
+                        {% elif ej.estado == 'WARN' %}<span class="badge bg-warning text-dark">WARN</span>
+                        {% elif ej.estado == 'ERROR' %}<span class="badge bg-danger">ERROR</span>
+                        {% elif ej.estado == 'FALLIDO' %}<span class="badge bg-dark">FALLIDO</span>
+                        {% elif ej.estado == 'EJECUTANDO' %}<span class="badge bg-info">EJECUTANDO</span>
+                        {% else %}<span class="badge bg-secondary">{{ ej.estado }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <span class="text-danger fw-600">{{ ej.errores_count }}</span> /
+                        <span class="text-warning fw-600">{{ ej.warnings_count }}</span>
+                    </td>
+                    <td class="text-end">{% if ej.duracion_segundos %}{{ ej.duracion_segundos }}s{% else %}—{% endif %}</td>
+                    <td class="text-end pe-3">
+                        <a href="{% url 'platform_control:mantenimiento_detalle' pk=ej.pk %}" class="btn btn-sm btn-outline-secondary">Ver</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">Sin ejecuciones registradas.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

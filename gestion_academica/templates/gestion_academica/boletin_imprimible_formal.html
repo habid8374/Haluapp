@@ -98,7 +98,7 @@
                     <tr>
                         <td class="center">{{ materia.ihs }}</td>
                         <td class="materia-desc">
-                            <strong>{{ materia.nombre|upper }}</strong>
+                            <strong>{{ materia.nombre|upper }}</strong>{% if es_bilingue and materia.nombre_L2 %} <span style="font-size:8pt;color:#555;font-style:italic;">/ {{ materia.nombre_L2|upper }}</span>{% endif %}
                             {% for desc in materia.descriptores %}
                                 <p>- {{ desc }}</p>
                             {% empty %}

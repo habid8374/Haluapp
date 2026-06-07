@@ -1,0 +1,28 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}Módulo No Disponible{% endblock %}
+
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #64748b 0%, #475569 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem;">
+  <h2><i class="bi bi-lock-fill"></i> Módulo de Finanzas</h2>
+  <p class="mb-0">Gestión de cobros y cartera estudiantil</p>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius:16px; max-width:560px; margin:0 auto;">
+  <div class="card-body text-center py-5 px-4">
+    <div style="width:72px;height:72px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+      <i class="bi bi-building-fill-slash" style="font-size:2rem;color:#64748b;"></i>
+    </div>
+    <h4 class="fw-bold mb-2">No disponible para instituciones públicas</h4>
+    <p class="text-muted mb-4" style="font-size:.92rem;">
+      El módulo de finanzas gestiona cobros de mensualidades y cartera estudiantil,
+      funcionalidades exclusivas de colegios privados.<br><br>
+      Las instituciones de carácter público son financiadas por el Estado y no requieren
+      este módulo.
+    </p>
+    <a href="{% url 'gestion_academica:dashboard' %}" class="btn btn-primary px-4">
+      <i class="bi bi-house-fill me-2"></i>Volver al inicio
+    </a>
+  </div>
+</div>
+{% endblock %}

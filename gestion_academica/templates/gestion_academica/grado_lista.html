@@ -1,60 +1,154 @@
-{# gestion_academica/templates/gestion_academica/grado_lista.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
-{% block titulo %}{{ titulo_pagina|default:"Lista de Grados" }}{% endblock titulo %} {# Usamos titulo_pagina #}
+{% extends "base_academico.html" %}
+{% load static %}
+{% block titulo %}{{ titulo_pagina|default:"Lista de Grados" }}{% endblock %}
 
 {% block contenido %}
+<style>
+  :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
+
+  .ps-hero {
+    background: linear-gradient(135deg, var(--ps-dark) 0%, var(--ps-mid) 55%, var(--ps-light) 100%);
+    padding: 2.2rem 2rem 2rem;
+    position: relative; overflow: hidden;
+    border-radius: .85rem; margin-bottom: 1.8rem;
+  }
+  .ps-hero::before {
+    content:''; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .ps-hero-title { font-size:1.65rem; font-weight:900; color:#fff; margin:0; position:relative; z-index:1; }
+  .ps-hero-sub   { font-size:.88rem; color:rgba(255,255,255,.75); margin-top:.35rem; position:relative; z-index:1; }
+  .ps-hero-badge {
+    background:rgba(255,255,255,.15); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.25); border-radius:30px;
+    padding:.35rem .9rem; font-size:.78rem; color:#fff; font-weight:600;
+    position:relative; z-index:1;
+  }
+  .ps-btn-add {
+    background: rgba(255,255,255,.18); backdrop-filter:blur(6px);
+    border:1.5px solid rgba(255,255,255,.4); border-radius:10px;
+    color:#fff; font-weight:700; font-size:.88rem;
+    padding:.55rem 1.1rem;
+    display:inline-flex; align-items:center; gap:.4rem;
+    text-decoration:none; transition: background .18s, transform .15s;
+    position:relative; z-index:1;
+  }
+  .ps-btn-add:hover { background:rgba(255,255,255,.28); color:#fff; transform:translateY(-1px); }
+
+  /* Grade row cards */
+  .ps-grade-list { display:flex; flex-direction:column; gap:.6rem; }
+  .ps-grade-item {
+    background:#fff; border-radius:.85rem;
+    box-shadow:0 1px 5px rgba(0,0,0,.06);
+    padding:1rem 1.3rem;
+    display:flex; align-items:center; gap:1rem;
+    border:1.5px solid #f1f5f9;
+    transition: border-color .18s, box-shadow .18s;
+    position:relative; overflow:hidden;
+  }
+  .ps-grade-item::before {
+    content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
+    background: linear-gradient(180deg, var(--ps-mid), var(--ps-light));
+    border-radius:4px 0 0 4px;
+  }
+  .ps-grade-item:hover { border-color:rgba(79,70,229,.2); box-shadow:0 3px 14px rgba(79,70,229,.1); }
+  .ps-grade-icon {
+    width:42px; height:42px; border-radius:11px; flex-shrink:0;
+    background: linear-gradient(135deg, var(--ps-mid), var(--ps-light));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.1rem;
+  }
+  .ps-grade-name { font-weight:700; color:var(--ps-dark); font-size:.97rem; }
+  .ps-grade-level { font-size:.78rem; color:#94a3b8; margin-top:2px; }
+  .ps-grade-actions { margin-left:auto; display:flex; gap:.4rem; align-items:center; flex-shrink:0; }
+
+  /* Action buttons */
+  .ps-ia { display:inline-flex; align-items:center; gap:.3rem; padding:.35rem .7rem; border-radius:8px; font-size:.8rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; transition:opacity .15s, transform .12s; }
+  .ps-ia:hover { opacity:.82; transform:translateY(-1px); }
+  .ps-ia-edit   { background:#fef3c7; color:#92400e; }
+  .ps-ia-delete { background:#fee2e2; color:#991b1b; }
+
+  /* Empty */
+  .ps-empty {
+    background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
+    padding:3rem 2rem; text-align:center; color:#94a3b8;
+  }
+  .ps-empty i { font-size:2.8rem; margin-bottom:.8rem; display:block; opacity:.4; }
+</style>
+
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">{{ titulo_pagina|default:"Lista de Grados" }}</h1> {# Usamos titulo_pagina #}
-        {% if perms.gestion_academica.add_grado %} {# Permiso para crear grado #}
-            <a href="{% url 'gestion_academica:crear_grado' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle-fill"></i> Crear Nuevo Grado
-            </a>
+
+  <!-- Hero -->
+  <div class="ps-hero">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h1 class="ps-hero-title">
+          <i class="bi bi-building-fill me-2" style="opacity:.85"></i>{{ titulo_pagina|default:"Lista de Grados" }}
+        </h1>
+        <p class="ps-hero-sub">Administra los grados y niveles de la institución</p>
+      </div>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        {% if grados %}
+          <span class="ps-hero-badge"><i class="bi bi-grid me-1"></i>{{ grados|length }} grado{{ grados|length|pluralize:"s" }}</span>
         {% endif %}
+        {% if perms.gestion_academica.add_grado %}
+          <a href="{% url 'gestion_academica:crear_grado' %}" class="ps-btn-add">
+            <i class="bi bi-plus-circle-fill"></i> Crear Grado
+          </a>
+        {% endif %}
+      </div>
     </div>
+  </div>
 
-    {# Para mostrar mensajes de éxito/error (como el de grado eliminado) #}
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
+  <!-- Messages -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
 
-    {% if grados %}
-        <ul class="list-group shadow-sm rounded-3">
-            {% for grado in grados %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>{{ grado.nombre }}</strong>
-                        {% if grado.nivel %}
-                            <small class="text-muted"> ({{ grado.nivel }})</small>
-                        {% endif %}
-                    </div>
-                    <div class="text-nowrap"> {# Evita que los botones se envuelvan #}
-                        {% if perms.gestion_academica.change_grado %} {# Permiso para editar #}
-                            <a href="{% url 'gestion_academica:editar_grado' grado.pk %}" class="btn btn-sm btn-warning me-1" title="Editar Grado">
-                                <i class="bi bi-pencil-fill"></i> Editar
-                            </a>
-                        {% endif %}
-                        {% if perms.gestion_academica.delete_grado %} {# Permiso para eliminar #}
-                            <a href="{% url 'gestion_academica:eliminar_grado' grado.pk %}" class="btn btn-sm btn-danger ms-1" title="Eliminar Grado">
-                                <i class="bi bi-trash-fill"></i> Eliminar
-                            </a>
-                        {% endif %}
-                    </div>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <div class="alert alert-info mt-3 text-center" role="alert">
-            <i class="bi bi-info-circle-fill me-2"></i> No hay grados registrados. ¡Puedes crear el primero usando el botón de arriba!
+  <!-- Grades list -->
+  {% if grados %}
+    <div class="ps-grade-list">
+      {% for grado in grados %}
+        <div class="ps-grade-item">
+          <div class="ps-grade-icon">
+            <i class="bi bi-mortarboard-fill"></i>
+          </div>
+          <div>
+            <div class="ps-grade-name">{{ grado.nombre }}</div>
+            {% if grado.nivel %}
+              <div class="ps-grade-level">{{ grado.nivel }}</div>
+            {% endif %}
+          </div>
+          <div class="ps-grade-actions">
+            {% if perms.gestion_academica.change_grado %}
+              <a href="{% url 'gestion_academica:editar_grado' grado.pk %}" class="ps-ia ps-ia-edit" title="Editar Grado">
+                <i class="bi bi-pencil-fill"></i> Editar
+              </a>
+            {% endif %}
+            {% if perms.gestion_academica.delete_grado %}
+              <a href="{% url 'gestion_academica:eliminar_grado' grado.pk %}" class="ps-ia ps-ia-delete" title="Eliminar Grado">
+                <i class="bi bi-trash-fill"></i> Eliminar
+              </a>
+            {% endif %}
+          </div>
         </div>
-    {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="ps-empty">
+      <i class="bi bi-inbox"></i>
+      <p class="mb-1 fw-bold" style="color:#475569;">No hay grados registrados.</p>
+      {% if perms.gestion_academica.add_grado %}
+        <p class="mb-0" style="font-size:.88rem;">Usa el botón "Crear Grado" para agregar el primero.</p>
+      {% endif %}
+    </div>
+  {% endif %}
 
 </div>
-{% endblock contenido %}
+{% endblock %}

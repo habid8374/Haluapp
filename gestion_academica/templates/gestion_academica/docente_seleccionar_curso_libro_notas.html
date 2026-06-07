@@ -1,66 +1,151 @@
 {% extends "base_academico.html" %}
 {% load static %}
 
-{% block titulo %}{{ titulo_pagina|default:"Seleccionar Curso" }}{% endblock titulo %}
-    
+{% block titulo %}Seleccionar Curso — Libro de Notas{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+.csl-hero {
+  background: linear-gradient(135deg, #07285f 0%, #0a3d8c 42%, #0b5ed7 100%);
+  border-radius: 1.1rem; padding: 1.6rem 2rem; color: #fff;
+  margin-bottom: 1.3rem; position: relative; overflow: hidden;
+}
+.csl-hero::before {
+  content: ''; position: absolute; width: 240px; height: 240px;
+  border-radius: 50%; background: rgba(255,255,255,.05);
+  top: -90px; right: -50px; pointer-events: none;
+}
+.csl-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
+  border-radius: 2rem; padding: .2rem .72rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .3px;
+  text-transform: uppercase; margin-bottom: .55rem;
+}
+.csl-title { font-size: 1.4rem; font-weight: 800; margin-bottom: .2rem; }
+.csl-sub   { font-size: .86rem; opacity: .82; }
+
+.csl-period-chip {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 2rem; padding: .22rem .8rem;
+  font-size: .78rem; font-weight: 600; color: #fff; margin-top: .5rem;
+}
+
+/* Course cards */
+.csl-grid { display: flex; flex-direction: column; gap: .75rem; }
+.csl-card {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: 1rem;
+  padding: 1.1rem 1.3rem; display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+  transition: box-shadow .2s, border-color .2s;
+}
+.csl-card:hover { box-shadow: 0 6px 20px rgba(11,94,215,.13); border-color: #93c5fd; }
+.csl-icon {
+  width: 46px; height: 46px; border-radius: .75rem; flex-shrink: 0;
+  background: #eaf2ff; color: #1d4ed8;
+  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+.csl-info { flex: 1; min-width: 0; }
+.csl-materia { font-size: 1rem; font-weight: 800; color: #0f3f90; margin-bottom: .15rem; }
+.csl-grado   { font-size: .82rem; color: #64748b; }
+.csl-actions { display: flex; gap: .5rem; flex-wrap: wrap; flex-shrink: 0; }
+
+.btn-ln-notas {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .45rem 1rem; border-radius: .55rem; font-size: .82rem; font-weight: 600;
+  background: linear-gradient(135deg,#1d4ed8,#3b82f6); color: #fff;
+  border: none; text-decoration: none; transition: filter .15s; white-space: nowrap;
+}
+.btn-ln-notas:hover { filter: brightness(1.1); color: #fff; }
+
+.btn-ln-anual {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .45rem 1rem; border-radius: .55rem; font-size: .82rem; font-weight: 600;
+  background: #f0fdf4; color: #15803d; border: 1.5px solid #86efac;
+  text-decoration: none; transition: all .15s; white-space: nowrap;
+}
+.btn-ln-anual:hover { background: #dcfce7; color: #15803d; border-color: #4ade80; }
+
+@media (max-width: 540px) {
+  .csl-card { gap: .75rem; }
+  .csl-actions { width: 100%; }
+  .btn-ln-notas, .btn-ln-anual { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
+
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">{{ titulo_pagina|default:"Mis Cursos" }}</h1>
-    </div>
-    <hr>
+<div class="container-fluid mt-3">
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-
+  <!-- Hero -->
+  <div class="csl-hero">
+    <div class="csl-badge"><i class="bi bi-book-fill me-1"></i>Libro de Notas</div>
+    <div class="csl-title">Selecciona un Curso</div>
+    <div class="csl-sub">Accede al libro de notas o a la vista anual de cada uno de tus cursos</div>
     {% if periodo_activo %}
-        <p class="lead text-muted">Mostrando cursos asignados para el periodo activo: <strong>{{ periodo_activo.nombre }} ({{ periodo_activo.año_escolar }})</strong>.</p>
-    {% else %}
-        <div class="alert alert-warning text-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> No hay un periodo académico activo definido en el sistema. No se pueden mostrar cursos asignados.
-        </div>
+    <div>
+      <span class="csl-period-chip">
+        <i class="bi bi-calendar-check-fill"></i>
+        {{ periodo_activo.nombre }} · {{ periodo_activo.año_escolar }}
+      </span>
+    </div>
     {% endif %}
+  </div>
 
-    {% if cursos_asignados %}
-        <p class="mt-4">Selecciona una acción para el curso deseado:</p>
-        <div class="list-group shadow-sm rounded-3">
-            {% for curso_obj in cursos_asignados %}
-            {# ========================================================================= #}
-            {# INICIO: MODIFICACIÓN DEL ÍTEM DE LA LISTA                                 #}
-            {# ========================================================================= #}
-            <div class="list-group-item">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <h5 class="mb-1 text-primary">{{ curso_obj.materia.nombre_materia }}</h5>
-                        <p class="mb-0 text-muted">Grado: <strong>{{ curso_obj.grado.nombre }}</strong></p>
-                    </div>
-                    <div class="col-md-6 text-md-end mt-2 mt-md-0">
-                        {# --- Botón para el Libro de Notas --- #}
-                        <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=curso_obj.pk %}" class="btn btn-outline-primary">
-                            <i class="bi bi-journal-richtext"></i> Libro de Notas
-                        </a>
-                        {# --- Botón NUEVO para el Escáner de Asistencia --- #}
-                        <a href="{% url 'gestion_academica:escaner_asistencia' curso_id=curso_obj.pk %}" class="btn btn-success ms-2">
-                            <i class="bi bi-qr-code-scan"></i> Pasar Lista (QR)
-                        </a>
-                    </div>
-                </div>
-            </div>
-            {# ========================================================================= #}
-            {# FIN: MODIFICACIÓN DEL ÍTEM DE LA LISTA                                    #}
-            {# ========================================================================= #}
-            {% endfor %}
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+      <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if not periodo_activo %}
+  <div class="alert alert-warning d-flex align-items-center gap-2 mb-3" role="alert">
+    <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+    <span>No hay un período académico activo definido. Contacta al coordinador.</span>
+  </div>
+  {% endif %}
+
+  {% if cursos_asignados %}
+  <div class="csl-grid">
+    {% for curso_obj in cursos_asignados %}
+    <div class="csl-card">
+      <div class="csl-icon"><i class="bi bi-journal-richtext"></i></div>
+      <div class="csl-info">
+        <div class="csl-materia">{{ curso_obj.materia.nombre_materia }}</div>
+        <div class="csl-grado">
+          <i class="bi bi-mortarboard-fill me-1" style="color:#1d4ed8;"></i>{{ curso_obj.grado.nombre }}
         </div>
-    {% elif periodo_activo %} {# Si hay periodo activo pero no cursos asignados #}
-        <div class="alert alert-info mt-3 text-center" role="alert">
-            <i class="bi bi-info-circle-fill me-2"></i> No tienes cursos asignados para el periodo activo.
-        </div>
-    {% endif %}
+      </div>
+      <div class="csl-actions">
+        <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=curso_obj.pk %}"
+           class="btn-ln-notas">
+          <i class="bi bi-pencil-square"></i> Libro de Notas
+        </a>
+        <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=curso_obj.pk %}?tab=anual"
+           class="btn-ln-anual">
+          <i class="bi bi-bar-chart-steps"></i> Vista Anual
+        </a>
+        <a href="{% url 'gestion_academica:escaner_asistencia' curso_id=curso_obj.pk %}"
+           class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+          <i class="bi bi-qr-code-scan"></i> Lista QR
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% elif periodo_activo %}
+  <div class="text-center py-5" style="color:#9ca3af;">
+    <i class="bi bi-journal-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+    <p class="mb-0 fw-600">No tienes cursos asignados para el período activo.</p>
+    <p class="small">Contacta al coordinador si crees que esto es un error.</p>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock contenido %}

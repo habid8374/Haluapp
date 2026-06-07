@@ -12,19 +12,23 @@ from .models import (
     CategoriaGasto, # Si InstitucionEducativa se gestiona desde finanzas/models.py
 )
 # Estudiante y PeriodoAcademico se importan desde gestion_academica.models
-from gestion_academica.models import Estudiante, PeriodoAcademico, Grado
+from gestion_academica.models import Estudiante, PeriodoAcademico, Grado, NivelEscolaridad
 
 from .models import CategoriaGasto, Proveedor, Gasto, Descuento, CuentaContable
 
 
-# --- Formularios de Finanzas ---
+def _conceptos_pago_orden_por_nivel(qs):
+    """Orden homogéneo con el listado de finanzas: primero nivel (orden), luego nombre."""
+    from django.db.models import F, OrderBy
 
-class MasterPasswordForm(forms.Form):
-        master_password = forms.CharField(
-            label="Clave Maestra de Super-Administrador",
-            widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Introduce la clave secreta'}),
-            strip=False
-        )
+    return qs.select_related('nivel_escolaridad').order_by(
+        OrderBy(F('nivel_escolaridad__orden'), descending=False, nulls_last=True),
+        'nivel_escolaridad__nombre',
+        'nombre_concepto',
+    )
+
+
+# --- Formularios de Finanzas ---
 
 class ConfiguracionPagoForm(forms.ModelForm):
     """
@@ -85,52 +89,128 @@ class TipoConceptoPagoForm(forms.ModelForm):
 
 
 class ConceptoPagoForm(forms.ModelForm):
+    """Misma información que el admin de Django: se persiste en los mismos campos del modelo."""
+
     class Meta:
         model = ConceptoPago
-        # El campo 'monto_estandar' se renombró a 'valor' en finanzas/models.py, ajusta aquí:
         fields = [
+            'institucion',
+            'nivel_escolaridad',
             'tipo_concepto',
-            'nombre_concepto', 
-            'descripcion_detallada',         
-            'valor', # Usar 'valor'
+            'nombre_concepto',
+            'descripcion_detallada',
+            'valor',
             'periodo_academico_aplicable',
             'fecha_vencimiento_general',
+            'cuenta_contable',
+            'permite_mora',
+            'porcentaje_mora_mensual',
+            'es_pago_inscripcion',
+            'es_pago_matricula',
+            'es_pago_pension',
+            'es_solicitable_por_egresado',
             'automatico',
-            'institucion'
         ]
         widgets = {
+            'institucion': forms.Select(attrs={'class': 'form-select'}),
+            'nivel_escolaridad': forms.Select(attrs={'class': 'form-select'}),
             'tipo_concepto': forms.Select(attrs={'class': 'form-select'}),
-            'nombre_concepto': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Mensualidad Abril 2025'}),
-            'descripcion_detallada': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Detalles adicionales sobre este cobro...'}),
-            'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Ej: 150000.00'}), # Usar 'valor'
+            'nombre_concepto': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Pensión marzo 2026'}),
+            'descripcion_detallada': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'periodo_academico_aplicable': forms.Select(attrs={'class': 'form-select'}),
             'fecha_vencimiento_general': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'cuenta_contable': forms.Select(attrs={'class': 'form-select'}),
+            'permite_mora': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'porcentaje_mora_mensual': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'es_pago_inscripcion': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'es_pago_matricula': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'es_pago_pension': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'es_solicitable_por_egresado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'automatico': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'tipo_concepto': 'Tipo de Concepto',
-            'nombre_concepto': 'Nombre Específico del Concepto',
-            'descripcion_detallada': 'Descripción Detallada (Opcional)',
-            'valor': 'Monto Estándar', # Etiqueta para 'valor'
-            'periodo_academico_aplicable': 'Periodo Académico Aplicable (Opcional)',
-            'fecha_vencimiento_general': 'Fecha de Vencimiento General (Opcional)',
-            'automatico': '¿Generar automáticamente al registrar estudiante?',
             'institucion': 'Institución',
+            'nivel_escolaridad': 'Nivel de escolaridad',
+            'tipo_concepto': 'Tipo de concepto',
+            'nombre_concepto': 'Nombre del concepto',
+            'descripcion_detallada': 'Descripción (opcional)',
+            'valor': 'Valor estándar',
+            'periodo_academico_aplicable': 'Periodo académico (opcional)',
+            'fecha_vencimiento_general': 'Fecha de vencimiento general (opcional)',
+            'cuenta_contable': 'Cuenta contable PUC (ingreso)',
+            'permite_mora': 'Permite generar mora',
+            'porcentaje_mora_mensual': 'Porcentaje de mora mensual (%)',
+            'es_pago_inscripcion': 'Es el concepto de inscripción (admisiones)',
+            'es_pago_matricula': 'Es el concepto de matrícula',
+            'es_pago_pension': 'Es pensión / mensualidad',
+            'es_solicitable_por_egresado': 'Solicitable desde portal de egresados',
+            'automatico': 'Generar automáticamente al registrar estudiante',
         }
 
     def __init__(self, *args, **kwargs):
+        self._request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        self.fields['tipo_concepto'].queryset = TipoConceptoPago.objects.all().order_by('nombre')
-        if 'periodo_academico_aplicable' in self.fields:
+
+        inst = None
+        if self.instance.pk and self.instance.institucion_id:
+            inst = self.instance.institucion
+        elif self._request and not self._request.user.is_superuser:
+            inst = getattr(self._request.user, 'institucion_asociada', None)
+
+        if inst:
+            self.fields['tipo_concepto'].queryset = (
+                TipoConceptoPago.objects.filter(institucion=inst).order_by('nombre')
+            )
+            self.fields['nivel_escolaridad'].queryset = (
+                NivelEscolaridad.objects.filter(institucion=inst).order_by('orden', 'nombre')
+            )
+            self.fields['periodo_academico_aplicable'].queryset = (
+                PeriodoAcademico.objects.filter(institucion=inst).order_by('-año_escolar', '-fecha_inicio')
+            )
+            self.fields['cuenta_contable'].queryset = (
+                CuentaContable.objects.filter(institucion=inst, tipo='INGRESO').order_by('codigo')
+            )
+            self.fields['institucion'].queryset = InstitucionEducativa.objects.filter(pk=inst.pk)
+            self.fields['institucion'].initial = inst
+            self.fields['institucion'].widget = forms.HiddenInput()
+        else:
+            self.fields['tipo_concepto'].queryset = TipoConceptoPago.objects.all().order_by('institucion__nombre', 'nombre')
+            self.fields['nivel_escolaridad'].queryset = NivelEscolaridad.objects.all().order_by('institucion__nombre', 'orden', 'nombre')
             self.fields['periodo_academico_aplicable'].queryset = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
-        self.fields['institucion'].queryset = InstitucionEducativa.objects.all().order_by('nombre')
+            self.fields['cuenta_contable'].queryset = CuentaContable.objects.filter(tipo='INGRESO').order_by('institucion__nombre', 'codigo')
+            self.fields['institucion'].queryset = InstitucionEducativa.objects.all().order_by('nombre')
+
+    def clean(self):
+        cleaned = super().clean()
+        inst = cleaned.get('institucion')
+        nivel = cleaned.get('nivel_escolaridad')
+        tipo = cleaned.get('tipo_concepto')
+        if inst and nivel and nivel.institucion_id != inst.pk:
+            raise forms.ValidationError({
+                'nivel_escolaridad': 'El nivel debe pertenecer a la misma institución seleccionada.',
+            })
+        if inst and tipo and tipo.institucion_id != inst.pk:
+            raise forms.ValidationError({
+                'tipo_concepto': 'El tipo de concepto debe pertenecer a la misma institución.',
+            })
+        cc = cleaned.get('cuenta_contable')
+        if inst and cc and cc.institucion_id != inst.pk:
+            raise forms.ValidationError({
+                'cuenta_contable': 'La cuenta PUC debe ser de la misma institución.',
+            })
+        pa = cleaned.get('periodo_academico_aplicable')
+        if inst and pa and pa.institucion_id != inst.pk:
+            raise forms.ValidationError({
+                'periodo_academico_aplicable': 'El periodo académico debe ser de la misma institución.',
+            })
+        return cleaned
 
 
 class CuentaPorCobrarEstudianteForm(forms.ModelForm):
     # Asegúrate de que el queryset de concepto_pago se filtre por institución si es necesario
     concepto_pago = forms.ModelChoiceField(
-        queryset=ConceptoPago.objects.all().order_by('nombre_concepto'),
+        queryset=_conceptos_pago_orden_por_nivel(ConceptoPago.objects.all()),
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_concepto_pago_selector'}),
         label="Concepto de Pago"
     )
@@ -181,10 +261,14 @@ class CuentaPorCobrarEstudianteForm(forms.ModelForm):
         
         # Filtra los conceptos de pago por institución si la instancia ya tiene una institución
         if self.instance and self.instance.institucion:
-            self.fields['concepto_pago'].queryset = ConceptoPago.objects.filter(institucion=self.instance.institucion).order_by('nombre_concepto')
+            self.fields['concepto_pago'].queryset = _conceptos_pago_orden_por_nivel(
+                ConceptoPago.objects.filter(institucion=self.instance.institucion)
+            )
         # O si el formulario se inicializa con una institución a través del request
         elif 'request' in kwargs and hasattr(kwargs['request'].user, 'institucion_asociada') and kwargs['request'].user.institucion_asociada:
-            self.fields['concepto_pago'].queryset = ConceptoPago.objects.filter(institucion=kwargs['request'].user.institucion_asociada).order_by('nombre_concepto')
+            self.fields['concepto_pago'].queryset = _conceptos_pago_orden_por_nivel(
+                ConceptoPago.objects.filter(institucion=kwargs['request'].user.institucion_asociada)
+            )
 
 
     def clean(self):
@@ -211,16 +295,21 @@ class CuentaPorCobrarEstudianteForm(forms.ModelForm):
 
 
 class PagoForm(forms.ModelForm):
+    # Campo extra (no modelo) para notificar corrección al editar
+    notificar_cambios = forms.BooleanField(
+        required=False,
+        label="Notificar cambios por correo al acudiente/estudiante",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+
     class Meta:
         model = PagoRegistrado
-        # En lugar de 'exclude', definimos explícitamente los campos que el usuario debe ver.
-        # 'institucion', 'cuenta', 'estudiante' y 'registrado_por' se asignan en la vista.
         fields = [
-            'fecha_pago', 
-            'valor_pagado', 
-            'metodo_pago', 
-            'referencia_transaccion', 
-            'observacion'
+            'fecha_pago',
+            'valor_pagado',
+            'metodo_pago',
+            'referencia_transaccion',
+            'observacion',
         ]
         widgets = {
             'fecha_pago': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -231,9 +320,14 @@ class PagoForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        # Recibimos la 'cuenta' desde la vista para validaciones y valores iniciales
         self.cuenta = kwargs.pop('cuenta', None)
         super().__init__(*args, **kwargs)
+        # Al crear un pago nuevo: sugerir saldo pendiente y ocultar checkbox de notificación
+        if not (self.instance and self.instance.pk):
+            self.fields.pop('notificar_cambios')
+            if self.cuenta:
+                self.fields['valor_pagado'].initial = self.cuenta.saldo_pendiente
+                self.fields['valor_pagado'].help_text = f"Saldo pendiente sugerido: ${self.cuenta.saldo_pendiente:.2f}"
 
         # Si estamos creando un pago nuevo y tenemos la cuenta, sugerimos el saldo pendiente
         if self.cuenta and not self.instance.pk:
@@ -291,6 +385,16 @@ class ProveedorForm(forms.ModelForm):
         model = Proveedor
         fields = ['nombre', 'nit_o_cedula', 'telefono', 'email']
 
+    def clean_nombre(self):
+        return (self.cleaned_data.get('nombre') or '').strip()
+
+    def clean_nit_o_cedula(self):
+        return (self.cleaned_data.get('nit_o_cedula') or '').strip()
+
+    def clean_email(self):
+        email = (self.cleaned_data.get('email') or '').strip().lower()
+        return email
+
 class GastoForm(forms.ModelForm):
     class Meta:
         model = Gasto
@@ -321,37 +425,45 @@ class DescuentoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if user and not user.is_superuser:
             # Filtra los conceptos para que solo se muestren los de la institución
-            self.fields['conceptos_aplicables'].queryset = ConceptoPago.objects.filter(
-                institucion=user.institucion_asociada
+            self.fields['conceptos_aplicables'].queryset = _conceptos_pago_orden_por_nivel(
+                ConceptoPago.objects.filter(institucion=user.institucion_asociada)
+            )
+        else:
+            self.fields['conceptos_aplicables'].queryset = _conceptos_pago_orden_por_nivel(
+                ConceptoPago.objects.all()
             )              
 
 class FacturacionMasivaForm(forms.Form):
-    # Campo para seleccionar el concepto que se va a cobrar
     concepto_pago = forms.ModelChoiceField(
-        queryset=ConceptoPago.objects.none(), # Se llenará dinámicamente
+        queryset=ConceptoPago.objects.none(),
         label="1. Selecciona el Concepto a Cobrar",
         widget=forms.Select(attrs={'class': 'form-select form-select-lg mb-3'})
     )
-    
-    # Campo para la fecha de vencimiento
+
     fecha_vencimiento = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control form-control-lg mb-3'}),
         label="2. Selecciona la Fecha de Vencimiento"
     )
 
-    # Checkbox para aplicar a todos
     toda_la_institucion = forms.BooleanField(
         required=False,
         label="Aplicar a TODOS los estudiantes de la institución",
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
 
-    # Campo para seleccionar uno o varios grados
     grados = forms.ModelMultipleChoiceField(
-        queryset=Grado.objects.none(), # Se llenará dinámicamente
+        queryset=Grado.objects.none(),
         widget=forms.CheckboxSelectMultiple,
         label="O, aplica solo a los siguientes grados:",
         required=False
+    )
+
+    notificar_correo = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Notificar a acudientes y estudiantes por correo electrónico",
+        help_text="Se enviará un aviso de cobro con el detalle del cobro y el enlace de pago (Mercado Pago) a cada acudiente o estudiante registrado.",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
 
     def __init__(self, *args, **kwargs):
@@ -363,7 +475,9 @@ class FacturacionMasivaForm(forms.Form):
         if user and hasattr(user, 'institucion_asociada'):
             institucion = user.institucion_asociada
             if institucion:
-                self.fields['concepto_pago'].queryset = ConceptoPago.objects.filter(institucion=institucion).order_by('nombre_concepto')
+                self.fields['concepto_pago'].queryset = _conceptos_pago_orden_por_nivel(
+                    ConceptoPago.objects.filter(institucion=institucion)
+                )
                 self.fields['grados'].queryset = Grado.objects.filter(institucion=institucion).order_by('nombre')
 
     def clean(self):
@@ -400,6 +514,119 @@ class ExportacionContableForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         label="Tipo de Transacciones a Exportar"
     )
+    FORMATO_CHOICES = (
+        ('XLSX', 'Excel (.xlsx) — hojas Resumen y Movimientos'),
+        ('CSV', 'CSV UTF-8 (separador ;) — resumen y movimientos en un archivo'),
+        (
+            'PDF',
+            'PDF — carátula de exportación (resumen para archivo físico / contador; sin detalle de movimientos)',
+        ),
+    )
+    formato = forms.ChoiceField(
+        choices=FORMATO_CHOICES,
+        initial='XLSX',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Formato de archivo",
+    )
+    periodo_academico = forms.ModelChoiceField(
+        queryset=PeriodoAcademico.objects.none(),
+        required=False,
+        label="Periodo académico (solo ingresos)",
+        help_text="Opcional. Filtra los ingresos a los pagos cuya fecha esté dentro del rango del periodo seleccionado. Los gastos no se filtran por periodo.",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    def _validar_anio_fecha(self, campo):
+        from datetime import date as date_type
+        fecha = self.cleaned_data.get(campo)
+        if not fecha:
+            return fecha
+        # Chrome/Edge en español envía año de 2 dígitos como 0026 cuando el usuario escribe 26.
+        # Lo corregimos transparentemente: 0–99 → 2000–2099.
+        if fecha.year < 100:
+            fecha = date_type(fecha.year + 2000, fecha.month, fecha.day)
+        if not (2000 <= fecha.year <= 2100):
+            raise forms.ValidationError(
+                f"El año {fecha.year} no es válido. Ingrese una fecha entre 2000 y 2100."
+            )
+        return fecha
+
+    def clean_fecha_inicio(self):
+        return self._validar_anio_fecha("fecha_inicio")
+
+    def clean_fecha_fin(self):
+        return self._validar_anio_fecha("fecha_fin")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get("fecha_inicio")
+        fecha_fin = cleaned_data.get("fecha_fin")
+        if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
+            raise forms.ValidationError("La fecha de inicio no puede ser posterior a la fecha de fin.")
+        return cleaned_data
+
+    def __init__(self, *args, inst=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if inst:
+            qs = PeriodoAcademico.objects.filter(institucion=inst).order_by(
+                "-año_escolar", "-fecha_inicio"
+            )
+            self.fields["periodo_academico"].queryset = qs
+            # Etiqueta con fechas para que el usuario vea qué rango abarca cada periodo
+            self.fields["periodo_academico"].label_from_instance = (
+                lambda per: f"{per.nombre} ({per.año_escolar})  [{per.fecha_inicio.strftime('%d/%m')} – {per.fecha_fin.strftime('%d/%m/%Y')}]"
+            )
+
+
+class LibroDiarioContableForm(forms.Form):
+    """Filtros para consultar el libro diario en pantalla (mismos criterios que exportación)."""
+
+    TIPO_TRANSACCION_CHOICES = (
+        ("TODOS", "Ingresos y Gastos"),
+        ("INGRESOS", "Solo Ingresos"),
+        ("GASTOS", "Solo Gastos"),
+    )
+
+    fecha_inicio = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+        label="Fecha de inicio",
+    )
+    fecha_fin = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+        label="Fecha de fin",
+    )
+    tipo_transaccion = forms.ChoiceField(
+        choices=TIPO_TRANSACCION_CHOICES,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Tipo de movimientos",
+    )
+    periodo_academico = forms.ModelChoiceField(
+        queryset=PeriodoAcademico.objects.none(),
+        required=False,
+        label="Periodo académico (solo ingresos)",
+        help_text="Opcional. Filtra ingresos por el periodo aplicable del concepto de cobro.",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get("fecha_inicio")
+        fecha_fin = cleaned_data.get("fecha_fin")
+        if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
+            raise forms.ValidationError("La fecha de inicio no puede ser posterior a la fecha de fin.")
+        return cleaned_data
+
+    def __init__(self, *args, inst=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if inst:
+            qs = PeriodoAcademico.objects.filter(institucion=inst).order_by(
+                "-año_escolar", "-fecha_inicio"
+            )
+            self.fields["periodo_academico"].queryset = qs
+            self.fields["periodo_academico"].label_from_instance = (
+                lambda per: f"{per.nombre} ({per.año_escolar})  [{per.fecha_inicio.strftime('%d/%m')} – {per.fecha_fin.strftime('%d/%m/%Y')}]"
+            )
+
 
 class CuentaContableForm(forms.ModelForm):
     """
@@ -407,21 +634,17 @@ class CuentaContableForm(forms.ModelForm):
     """
     class Meta:
         model = CuentaContable
-        # ✅ Se usan solo los campos que existen en tu modelo
-        fields = [
-            'codigo', 
-            'nombre'
-        ]
+        fields = ['codigo', 'nombre', 'tipo']
         widgets = {
-            'nombre': forms.Textarea(attrs={'rows': 2}),
+            'nombre': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'codigo': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def __init__(self, *args, **kwargs):
-        # Esta lógica es importante para la multi-institución, pero se simplifica
         institucion = kwargs.pop('institucion', None)
         super().__init__(*args, **kwargs)
-
-        # Hacemos que el campo de código sea de solo lectura al editar
+        # El código es de solo lectura al editar (no al crear)
         if self.instance and self.instance.pk:
             self.fields['codigo'].widget.attrs['readonly'] = True
     

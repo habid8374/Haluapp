@@ -1,0 +1,394 @@
+{% extends "base_academico.html" %}
+{% load static %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}
+{{ block.super }}
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<link rel="stylesheet" href="{% static 'recursos_educativos/cuerpo-humano/css/studio.css' %}">
+<style>
+  /* ── Neutralizar main.container ───────────────────────────── */
+  body.layout-academico main.container {
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin-bottom: 0 !important;
+    max-width: 100% !important;
+  }
+  body.layout-academico main.container > .mt-4 { margin-top: 0 !important; }
+
+  /* Ocultar topbar propio del app */
+  .studio-topbar { display: none !important; }
+
+  /* ── Barra de contexto HALU ───────────────────────────────── */
+  .r3d-context-bar {
+    background:#fff; border-bottom:1px solid #f1f5f9;
+    padding:.5rem 1rem;
+    display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;
+    font-size:.82rem; position:relative; z-index:10;
+  }
+  .r3d-context-bar a { color:#4f46e5; text-decoration:none; font-weight:600; }
+  .r3d-sep { color:#e2e8f0; }
+  .r3d-progress-pill {
+    margin-left:auto; display:inline-flex; align-items:center; gap:.5rem;
+    background:#f0f0ff; border:1px solid #c7d2fe; border-radius:20px;
+    padding:.3rem .85rem; font-size:.8rem; font-weight:700; color:#3730a3;
+  }
+  {% if recurso.tiene_galeria %}
+  .r3d-galeria-btn {
+    background:#f0f0ff; border:1.5px solid #c7d2fe; border-radius:8px;
+    color:#3730a3; font-size:.8rem; font-weight:700;
+    padding:.3rem .75rem; text-decoration:none;
+    display:inline-flex; align-items:center; gap:.35rem;
+  }
+  {% endif %}
+
+  /* ── Desktop: altura fija ─────────────────────────────────── */
+  @media (min-width: 961px) {
+    .studio-app       { height: calc(100vh - 3.4rem - 2.6rem) !important; }
+    .studio-workspace { height: calc(100vh - 3.4rem - 2.6rem - 44px) !important; }
+  }
+
+  /* ── Móvil: layout scrollable ─────────────────────────────── */
+  @media (max-width: 960px) {
+    .studio-app {
+      height: auto !important;
+      min-height: calc(100vh - 3.4rem) !important;
+    }
+    .studio-workspace {
+      height: auto !important;
+      grid-template-columns: 1fr !important;
+      grid-template-rows: auto minmax(55vh, 65vh) auto !important;
+      padding: 8px !important;
+      gap: 8px !important;
+    }
+    /* Tool rail horizontal compacto */
+    .tool-rail {
+      flex-direction: row !important;
+      justify-content: space-around !important;
+      padding: 6px !important;
+      gap: 4px !important;
+    }
+    .tool-rail button {
+      flex: 1 !important;
+      min-height: 52px !important;
+      font-size: .72rem !important;
+    }
+    /* Canvas ocupa más pantalla */
+    .scene-shell { min-height: 55vh !important; }
+    /* Panel de piezas en grid de 4 columnas para compactar */
+    .piece-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    .piece-panel { padding: 10px !important; }
+    .piece-panel__header h2 { font-size: .95rem !important; }
+    /* Lesson panel compacto */
+    .lesson-panel { font-size: .8rem !important; }
+    .lesson-panel__eyebrow { font-size: .7rem !important; }
+    /* Context bar compacta */
+    .r3d-context-bar { padding: .4rem .75rem; font-size: .78rem; gap: .5rem; }
+    .r3d-sep { display: none; }
+    /* Ocultar texto de breadcrumb, dejar solo título y pill */
+    .r3d-breadcrumb-text { display: none; }
+    .r3d-progress-pill { margin-left: auto; }
+  }
+
+  /* ── Fix drag en móvil: evitar que el browser intercepte el touch ── */
+  #assembly-canvas {
+    touch-action: none !important;   /* Three.js maneja todos los touch */
+  }
+  .piece-card, .piece-grid button {
+    touch-action: none !important;   /* El drag desde las cards también */
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ── Lesson panel móvil: colapsable y compacto ─────────────── */
+  @media (max-width: 960px) {
+    .scene-actions {
+      flex-direction: column !important;
+      gap: 0 !important;
+    }
+    .lesson-panel {
+      border-radius: 8px 8px 0 0;
+      overflow: hidden;
+    }
+    /* Cabecera del lesson panel — tap para expandir/colapsar */
+    .lesson-panel__main {
+      cursor: pointer;
+      padding: 8px 12px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: .5rem !important;
+    }
+    .lesson-panel__main h3 {
+      font-size: .9rem !important;
+      margin: 0 !important;
+      flex: 1;
+    }
+    .lesson-panel__main p {
+      display: none;   /* ocultar descripción larga por defecto */
+    }
+    .lesson-panel__eyebrow { display: none !important; }
+    /* Meta y fact colapsados por defecto en móvil */
+    .lesson-panel__meta,
+    .lesson-panel__fact {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .3s ease;
+      padding: 0 12px !important;
+    }
+    /* Cuando expandido */
+    .lesson-panel.is-expanded .lesson-panel__meta,
+    .lesson-panel.is-expanded .lesson-panel__fact {
+      max-height: 200px;
+      padding: 4px 12px !important;
+    }
+    .lesson-panel.is-expanded .lesson-panel__main p {
+      display: block;
+      font-size: .78rem !important;
+    }
+    /* Ícono toggle */
+    .lesson-panel__main::after {
+      content: '▾';
+      color: #94a3b8;
+      font-size: .8rem;
+      transition: transform .2s;
+    }
+    .lesson-panel.is-expanded .lesson-panel__main::after {
+      transform: rotate(180deg);
+    }
+    /* Botones deshacer/reiniciar más grandes para touch */
+    .scene-actions__buttons {
+      padding: 8px !important;
+      gap: 8px !important;
+    }
+    .scene-actions__buttons button {
+      min-height: 44px !important;
+      font-size: .82rem !important;
+    }
+  }
+
+  /* ── Loading overlay ──────────────────────────────────────── */
+  #studio-loading-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 60%, #4f46e5 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1.2rem;
+    transition: opacity .5s ease;
+  }
+  #studio-loading-overlay.hidden {
+    opacity: 0; pointer-events: none;
+  }
+  .studio-loader-ring {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 5px solid rgba(255,255,255,.2);
+    border-top-color: #fff;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .studio-loader-text {
+    color: rgba(255,255,255,.85); font-size: .9rem; font-weight: 600;
+    letter-spacing: .02em;
+  }
+  .studio-loader-sub {
+    color: rgba(255,255,255,.5); font-size: .75rem; margin-top: -.6rem;
+  }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- Loading overlay — se oculta cuando Three.js empieza a renderizar -->
+<div id="studio-loading-overlay">
+  <div class="studio-loader-ring"></div>
+  <div class="studio-loader-text">Cargando Studio 3D…</div>
+  <div class="studio-loader-sub">Preparando los modelos del cuerpo humano</div>
+</div>
+
+<!-- Variables antes de todo -->
+<script>
+  window.ASSETS_BASE      = "{% static 'recursos_educativos/cuerpo-humano/app-assets/' %}";
+  window.API_PROGRESO_URL = "{% url 'recursos_educativos:api_progreso' recurso.pk %}";
+  window.CSRF_TOKEN       = "{{ csrf_token }}";
+  window.PIEZAS_INICIALES = {{ entrega.piezas_colocadas }};
+
+  /* Reducir pixel ratio en móvil → mejora rendimiento notablemente */
+  if (window.innerWidth < 961) {
+    Object.defineProperty(window, 'devicePixelRatio', {
+      get: function() { return 1; }, configurable: true
+    });
+  }
+</script>
+
+<!-- Barra de contexto -->
+<div class="r3d-context-bar">
+  <a href="{% url 'gestion_academica:dashboard_estudiante' %}">
+    <i class="bi bi-house-fill"></i>
+    <span class="r3d-breadcrumb-text"> Inicio</span>
+  </a>
+  <span class="r3d-sep">›</span>
+  <span style="color:#1e1b4b;font-weight:700;" class="r3d-breadcrumb-text">{{ actividad.titulo }}</span>
+  <span style="color:#5b21b6;font-weight:600;">
+    <i class="bi bi-boxes me-1"></i>Studio 3D
+  </span>
+  {% if recurso.tiene_galeria %}
+    <a href="{% url 'recursos_educativos:galeria' recurso.pk %}" class="r3d-galeria-btn">
+      <i class="bi bi-images"></i> Galería
+    </a>
+  {% endif %}
+  <div class="r3d-progress-pill" id="halu-progress-pill">
+    <i class="bi bi-boxes"></i>
+    <span id="halu-piezas-label">{{ entrega.piezas_colocadas }}/13 piezas</span>
+  </div>
+</div>
+
+<div class="studio-app">
+  <main class="studio-workspace">
+
+    <aside class="tool-rail" aria-label="Herramientas">
+      <button class="is-active" id="btn-place" title="Colocar piezas">
+        <i data-lucide="box"></i><span>Colocar</span>
+      </button>
+      <button id="btn-focus" title="Centrar vista">
+        <i data-lucide="scan"></i><span>Centrar</span>
+      </button>
+      <button id="btn-hints" class="is-active" title="Mostrar pistas">
+        <i data-lucide="sparkles"></i><span>Pistas</span>
+      </button>
+      <button id="btn-zoom-in" title="Acercar">
+        <i data-lucide="zoom-in"></i><span>Zoom +</span>
+      </button>
+      <button id="btn-zoom-out" title="Alejar">
+        <i data-lucide="zoom-out"></i><span>Zoom -</span>
+      </button>
+    </aside>
+
+    <section class="scene-shell">
+      <div class="scene-canvas-wrap">
+        <canvas id="assembly-canvas" aria-label="Escena 3D para armar el cuerpo humano"></canvas>
+      </div>
+      <footer class="scene-actions">
+        <section class="lesson-panel" aria-live="polite">
+          <div class="lesson-panel__main">
+            <span class="lesson-panel__eyebrow">Aprende mientras armas</span>
+            <h3 id="lesson-title">Cerebro</h3>
+            <p id="lesson-summary"></p>
+          </div>
+          <dl class="lesson-panel__meta">
+            <div><dt>Función</dt><dd id="lesson-function"></dd></div>
+            <div><dt>Ubicación</dt><dd id="lesson-location"></dd></div>
+          </dl>
+          <div class="lesson-panel__fact">
+            <i data-lucide="lightbulb"></i>
+            <span id="lesson-fact"></span>
+          </div>
+        </section>
+        <div class="scene-actions__buttons">
+          <button id="btn-undo" title="Deshacer última pieza">
+            <i data-lucide="undo-2"></i><span>Deshacer</span>
+          </button>
+          <button id="btn-reset" title="Reiniciar armado">
+            <i data-lucide="rotate-ccw"></i><span>Reiniciar</span>
+          </button>
+        </div>
+      </footer>
+    </section>
+
+    <aside class="piece-panel">
+      <div class="piece-panel__header">
+        <div>
+          <h2>Piezas</h2>
+          <span id="piece-counter" class="piece-counter">0 / 13 colocadas</span>
+        </div>
+        <button id="btn-shuffle" title="Elegir pieza pendiente al azar">
+          <i data-lucide="shuffle"></i>
+        </button>
+      </div>
+      <div class="completion-banner" id="completion-banner">
+        <strong>Cuerpo armado</strong>
+        <span>Completaste las 13 piezas.</span>
+      </div>
+      <div class="piece-grid" id="piece-grid"></div>
+      <div class="scene-toggles" role="group">
+        <label class="scene-toggle">
+          <span><i data-lucide="layers"></i> Sombras</span>
+          <input type="checkbox" id="toggle-shadows">
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+        <label class="scene-toggle">
+          <span><i data-lucide="grid-3x3"></i> Cuadrícula</span>
+          <input type="checkbox" id="toggle-grid" checked>
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+        <label class="scene-toggle">
+          <span><i data-lucide="tag"></i> Etiquetas</span>
+          <input type="checkbox" id="toggle-labels">
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+      </div>
+    </aside>
+
+  </main>
+</div>
+
+<div class="toast" id="studio-toast">Listo</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script type="module" src="{% static 'recursos_educativos/cuerpo-humano/js/studio.js' %}"></script>
+
+<script>
+  /* Lesson panel colapsable en móvil */
+  (function () {
+    if (window.innerWidth >= 961) return;
+    var panel = document.querySelector('.lesson-panel');
+    var main  = document.querySelector('.lesson-panel__main');
+    if (!panel || !main) return;
+    main.addEventListener('click', function () {
+      panel.classList.toggle('is-expanded');
+    });
+  })();
+
+  /* Ocultar overlay cuando el canvas empiece a renderizar */
+  (function () {
+    const overlay = document.getElementById('studio-loading-overlay');
+    const canvas  = document.getElementById('assembly-canvas');
+    let hidden = false;
+
+    function hideOverlay() {
+      if (hidden) return;
+      hidden = true;
+      overlay.classList.add('hidden');
+      setTimeout(function() { overlay.style.display = 'none'; }, 600);
+    }
+
+    /* Fallback: ocultar a los 6 segundos máximo */
+    setTimeout(hideOverlay, 6000);
+
+    /* Detectar primer frame renderizado vía MutationObserver en el canvas */
+    const ro = new ResizeObserver(function(entries) {
+      for (const e of entries) {
+        if (e.contentRect.width > 10 && e.contentRect.height > 10) {
+          setTimeout(hideOverlay, 400);
+          ro.disconnect();
+        }
+      }
+    });
+    ro.observe(canvas);
+
+    /* Resize triggers */
+    window.addEventListener('load', function () {
+      setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 150);
+      setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 800);
+    });
+  })();
+</script>
+
+{% endblock %}

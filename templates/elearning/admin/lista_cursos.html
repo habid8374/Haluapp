@@ -1,0 +1,136 @@
+{% extends "base_academico.html" %}
+
+
+
+{% block contenido %}
+
+<div class="container mt-4">
+
+    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between gap-3 mb-4">
+
+        <h2 class="h4 mb-0">Ofertas e-learning (ventas complementarias)</h2>
+
+        <div class="d-grid gap-2 d-sm-flex flex-sm-wrap">
+
+            <a href="{% url 'finanzas:dashboard_financiero' %}" class="btn btn-secondary btn-sm text-wrap">
+
+                <i class="bi bi-currency-dollar"></i> Finanzas e institución
+
+            </a>
+
+            <a href="{% url 'elearning:registrar_estudiante_curso' %}" class="btn btn-success btn-sm text-wrap">
+
+                <i class="bi bi-person-plus-fill"></i> Nuevo estudiante
+
+            </a>
+
+            <a href="{% url 'elearning:matricular_manual' %}" class="btn btn-outline-info btn-sm text-wrap">
+
+                <i class="bi bi-person-check"></i> Matricular existente
+
+            </a>
+
+            <a href="{% url 'elearning:crear_curso' %}" class="btn btn-primary btn-sm text-wrap">
+
+                <i class="bi bi-plus-circle"></i> Nuevo curso
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="row g-3">
+
+        {% for curso in cursos %}
+
+        <div class="col-12 col-sm-6 col-xl-4">
+
+            <div class="card h-100 shadow-sm">
+
+                {% if curso.imagen_portada %}
+
+                    <img src="{{ curso.imagen_portada.url }}" class="card-img-top" alt="{{ curso.nombre }}" style="height: 150px; object-fit: cover;">
+
+                {% else %}
+
+                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 150px;">
+
+                        <i class="bi bi-book display-4"></i>
+
+                    </div>
+
+                {% endif %}
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+
+                        <h3 class="h6 card-title mb-0">{{ curso.nombre }}</h3>
+
+                        <a href="{% url 'elearning:editar_curso' curso.id %}" class="text-secondary flex-shrink-0" title="Editar información básica">
+
+                            <i class="bi bi-pencil-square"></i>
+
+                        </a>
+
+                    </div>
+
+                    <p class="card-text text-muted small mt-2 mb-0">{{ curso.descripcion|truncatechars:100 }}</p>
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+
+                        <span class="badge {% if curso.publicado %}bg-success{% else %}bg-warning{% endif %}">
+
+                            {% if curso.publicado %}Publicado{% else %}Borrador{% endif %}
+
+                        </span>
+
+                        <small class="text-muted">{{ curso.modulos.count }} módulos</small>
+
+                    </div>
+
+                </div>
+
+                <div class="card-footer bg-white border-top-0 pt-0">
+
+                    <div class="d-grid gap-2">
+
+                        <a href="{% url 'elearning:configurar_curso' curso.id %}" class="btn btn-outline-primary btn-sm">
+
+                            <i class="bi bi-gear"></i> Configurar contenido
+
+                        </a>
+
+                        <a href="{% url 'elearning:lista_estudiantes_curso' curso.id %}" class="btn btn-outline-info btn-sm">
+
+                            <i class="bi bi-people"></i> Ver estudiantes
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="col-12 text-center py-5">
+
+            <p class="text-muted">No hay cursos creados aún.</p>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}
+

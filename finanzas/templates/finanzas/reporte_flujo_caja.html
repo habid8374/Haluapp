@@ -10,20 +10,33 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-5">
-                    <label for="fecha_inicio" class="form-label">Fecha de Inicio:</label>
+                <div class="col-md-4 col-lg-3">
+                    <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
                     <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ fecha_inicio }}" class="form-control">
                 </div>
-                <div class="col-md-5">
-                    <label for="fecha_fin" class="form-label">Fecha de Fin:</label>
+                <div class="col-md-4 col-lg-3">
+                    <label for="fecha_fin" class="form-label">Fecha de fin</label>
                     <input type="date" name="fecha_fin" id="fecha_fin" value="{{ fecha_fin }}" class="form-control">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-4 col-lg-4">
+                    <label for="id_periodo_acad" class="form-label">Periodo académico (solo ingresos)</label>
+                    <select name="periodo" id="id_periodo_acad" class="form-select">
+                        <option value="">Todos</option>
+                        {% for p in periodos_filtro %}
+                            <option value="{{ p.pk }}" {% if selected_periodo == p.pk|stringformat:"s" %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Los egresos del flujo siguen usando solo el rango de fechas.</div>
+                </div>
+                <div class="col-md-12 col-lg-2">
                     <button type="submit" class="btn btn-primary w-100">Consultar</button>
                 </div>
             </form>
         </div>
     </div>
+    {% if periodo_filtrado %}
+    <p class="text-muted small mb-3">Los ingresos del flujo (incluido saldo inicial y serie diaria) consideran solo pagos cuyo concepto pertenece al periodo <strong>{{ periodo_filtrado }}</strong>. Los gastos siguen el rango de fechas sin filtro por periodo.</p>
+    {% endif %}
 
     <div class="row g-4 mb-5">
         <div class="col-md-6 col-lg-3">

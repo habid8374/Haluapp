@@ -1,7 +1,7 @@
 {% extends "base_academico.html" %}
 {% load static %}
 
-{% block content %}
+{% block contenido %}
 <div class="container mt-4">
     <h2 class="mb-4">Mis Asistencias</h2>
 
@@ -9,7 +9,10 @@
         <table class="table table-hover table-bordered">
             <thead class="thead-dark">
                 <tr>
-                    <th>Fecha</th>
+                    <th>Día</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Horas</th>
                     <th>Estado</th>
                     <th>Registrado por</th>
                     <th>Institución</th>
@@ -18,9 +21,12 @@
             <tbody>
                 {% for asistencia in asistencias %}
                     <tr>
-                        <td>{{ asistencia.fecha|date:"Y-m-d H:i" }}</td>
-                        <td>{{ asistencia.estado }}</td>
-                        <td>{{ asistencia.registrado_por }}</td>
+                        <td>{{ asistencia.dia|date:"Y-m-d" }}</td>
+                        <td>{% if asistencia.hora_entrada %}{{ asistencia.hora_entrada|date:"H:i" }}{% else %}—{% endif %}</td>
+                        <td>{% if asistencia.hora_salida %}{{ asistencia.hora_salida|date:"H:i" }}{% else %}—{% endif %}</td>
+                        <td>{% if asistencia.horas_en_institucion %}{{ asistencia.horas_en_institucion }}{% else %}—{% endif %}</td>
+                        <td>{{ asistencia.get_estado_display }}</td>
+                        <td>{{ asistencia.registrado_por.get_full_name|default:"—" }}</td>
                         <td>{{ asistencia.institucion.nombre }}</td>
                     </tr>
                 {% endfor %}

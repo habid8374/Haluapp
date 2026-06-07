@@ -1,30 +1,87 @@
 {% extends "base_academico.html" %}
 {% block titulo %}Mis Menciones Otorgadas{% endblock %}
+
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">Mis Menciones Otorgadas</h1>
-        <a href="{% url 'gestion_academica:docente_crear_mencion' %}" class="btn btn-primary"><i class="bi bi-award-fill me-2"></i>Otorgar Nueva Mención</a>
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#7c2d12 0%,#ea580c 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
+  <div style="position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.06);top:-80px;right:-40px;pointer-events:none;"></div>
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
+        <i class="bi bi-award-fill me-1"></i>Reconocimientos
+      </div>
+      <h2 class="mb-1 fw-800" style="font-size:1.4rem;">Mis Menciones Otorgadas</h2>
+      <p class="mb-0" style="opacity:.82;font-size:.88rem;">Reconocimientos y distinciones entregados a tus estudiantes</p>
     </div>
-    <div class="card shadow-sm"><div class="card-body">
-        <table class="table table-hover">
-            <thead><tr><th>Estudiante</th><th>Tipo de Mención</th><th>Fecha</th><th>Acciones</th></tr></thead>
-            <tbody>
-                {% for mencion in menciones %}
-                <tr>
-                    <td>{{ mencion.estudiante.usuario.get_full_name }}</td>
-                    <td>{{ mencion.tipo }}</td>
-                    <td>{{ mencion.fecha_otorgamiento|date:"d M, Y" }}</td>
-                    <td>
-                        <a href="{% url 'gestion_academica:docente_editar_mencion' pk=mencion.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil-fill"></i></a>
-                        <a href="{% url 'gestion_academica:docente_eliminar_mencion' pk=mencion.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash-fill"></i></a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="4" class="text-center">Aún no has otorgado ninguna mención.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div></div>
+    <a href="{% url 'gestion_academica:docente_crear_mencion' %}" class="btn btn-light btn-sm fw-600">
+      <i class="bi bi-award-fill me-1"></i>Otorgar Mención
+    </a>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0" style="border-radius:14px;">
+  <div class="card-body p-0">
+    {% if menciones %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead style="background:#fff7f0;">
+          <tr>
+            <th class="ps-4 py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">Estudiante</th>
+            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">Tipo de Mención</th>
+            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">Fecha</th>
+            <th class="py-3 text-center pe-4" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for mencion in menciones %}
+          <tr>
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:34px;height:34px;border-radius:50%;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="bi bi-person-fill" style="color:#ea580c;font-size:.9rem;"></i>
+                </div>
+                <span class="fw-600" style="color:#111;">{{ mencion.estudiante.usuario.get_full_name }}</span>
+              </div>
+            </td>
+            <td class="py-3">
+              <span class="badge" style="background:#fff7ed;color:#c2410c;font-weight:600;font-size:.75rem;padding:.35rem .7rem;">
+                <i class="bi bi-star-fill me-1"></i>{{ mencion.tipo }}
+              </span>
+            </td>
+            <td class="py-3" style="color:#6b7280;font-size:.85rem;">
+              <i class="bi bi-calendar3 me-1"></i>{{ mencion.fecha_otorgamiento|date:"d M, Y" }}
+            </td>
+            <td class="py-3 pe-4 text-center">
+              <div class="btn-group btn-group-sm" role="group">
+                <a href="{% url 'gestion_academica:docente_editar_mencion' pk=mencion.pk %}" class="btn btn-warning" title="Editar mención">
+                  <i class="bi bi-pencil-fill"></i>
+                </a>
+                <a href="{% url 'gestion_academica:docente_eliminar_mencion' pk=mencion.pk %}" class="btn btn-danger" title="Eliminar mención">
+                  <i class="bi bi-trash-fill"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center py-5" style="color:#9ca3af;">
+              <i class="bi bi-award" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+              Aún no has otorgado ninguna mención.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5" style="color:#9ca3af;">
+      <i class="bi bi-award" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+      <p class="mb-3">Aún no has otorgado ninguna mención.</p>
+      <a href="{% url 'gestion_academica:docente_crear_mencion' %}" class="btn btn-warning btn-sm">
+        <i class="bi bi-award-fill me-1"></i>Otorgar primera mención
+      </a>
+    </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

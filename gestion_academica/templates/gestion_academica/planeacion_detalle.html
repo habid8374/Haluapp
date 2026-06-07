@@ -62,20 +62,40 @@
 
     {% elif planeacion.estado_generacion == 'GENERANDO' %}
         <!-- ESTADO 2: CONTENIDO EN PROCESO DE GENERACIÓN -->
-        <div class="card shadow-sm text-center p-5">
+        <div id="ia-generando-card"
+             class="card shadow border-primary border-2 text-center p-4"
+             data-planeacion-id="{{ planeacion.pk }}"
+             data-status-url="{% url 'gestion_academica:api_get_planeacion_status' pk=planeacion.pk %}">
             <div class="card-body">
-                <div class="spinner-border text-primary mb-3" role="status"></div>
-                <h4 class="card-title mt-3">La IA está generando tu planeación...</h4>
-                <p>Este proceso puede tardar. La página se actualizará automáticamente cuando el contenido esté listo.</p>
+                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                <h4 class="card-title mt-2 mb-1">La IA está generando tu planeación…</h4>
+                <p id="ia-mensaje-rotativo" class="text-primary fw-semibold mt-2 mb-1">Conectando con la IA…</p>
+                <p class="text-muted small mb-3">
+                    Tiempo transcurrido: <strong id="ia-timer">0</strong>s
+                    &middot; Tiempo estimado: 15–60s
+                </p>
+
+                <div class="progress mb-3" style="height: 8px;">
+                    <div id="ia-progress-bar"
+                         class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                         role="progressbar"
+                         style="width: 5%;"></div>
+                </div>
+
                 <hr>
-                <p class="text-muted small">Si el proceso parece atascado, puedes detenerlo.</p>
+                <p class="text-muted small">Si el proceso parece atascado (más de 3 minutos), puedes detenerlo.</p>
                 <form action="{% url 'gestion_academica:cancelar_generacion_planeacion' pk=planeacion.pk %}" method="post">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
                         <i class="bi bi-stop-circle-fill me-2"></i>Detener Generación
                     </button>
                 </form>
             </div>
+        </div>
+
+        <!-- Contenedor para toasts (éxito/error) -->
+        <div aria-live="polite" aria-atomic="true" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+            <div id="ia-toast-container"></div>
         </div>
 
     {% elif planeacion.estado_generacion == 'FALLIDO' %}
@@ -142,61 +162,193 @@
 {% endif %}
 {% endblock %}
 
-{% block body_end %}
+{% block extra_js %}
     {{ block.super }}
-    
-    <!-- ▼▼▼ SCRIPT DE BOOTSTRAP AÑADIDO ▼▼▼ -->
-    <!-- Este script es necesario para que los componentes interactivos como los modales funcionen. -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- ▲▲▲ FIN DEL SCRIPT ▲▲▲ -->
 
-    {# Script de auto-recarga (sin cambios) #}
+    {% comment %}
+    Polling del estado de generación + UX progresiva (mensajes rotativos, timer, toasts).
+    NOTA: este script DEBE estar dentro del bloque extra_js porque base_academico.html
+    no define un bloque body_end. Si se mueve, deja de ejecutarse.
+    {% endcomment %}
     {% if planeacion.estado_generacion == 'GENERANDO' %}
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const planeacionId = {{ planeacion.pk }};
-        const statusUrl = `/academico/api/planeacion/${planeacionId}/status/`;
+    (function() {
+        function init() {
+            const $card = document.getElementById('ia-generando-card');
+            if (!$card) {
+                console.warn('[planeacion-ia] No se encontró #ia-generando-card; abortando script.');
+                return;
+            }
+            const statusUrl = $card.dataset.statusUrl;
+            const planeacionId = $card.dataset.planeacionId;
+            if (!statusUrl) {
+                console.error('[planeacion-ia] data-status-url vacío. No se puede pollear.');
+                return;
+            }
+            console.log('[planeacion-ia] Iniciando polling para planeación', planeacionId, '→', statusUrl);
 
-        console.log("Iniciando verificación de estado para planeación ID:", planeacionId);
+            const POLL_INTERVAL_MS = 3000;
+            const MAX_PROGRESS = 95;
+            const HARD_TIMEOUT_SECS = 240;
 
-        const checkStatus = () => {
-            fetch(statusUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('La respuesta de la red no fue OK');
+            const mensajesRotativos = [
+                "Conectando con la IA…",
+                "Estructurando los objetivos de aprendizaje…",
+                "Diseñando las actividades de inicio…",
+                "Generando las actividades de desarrollo…",
+                "Definiendo criterios de evaluación…",
+                "Validando estructura pedagógica…",
+                "Casi listo, organizando las clases…",
+            ];
+            let mensajeIdx = 0;
+
+            const $mensaje = document.getElementById('ia-mensaje-rotativo');
+            const $timer = document.getElementById('ia-timer');
+            const $progressBar = document.getElementById('ia-progress-bar');
+            const $toasts = document.getElementById('ia-toast-container');
+
+            const startedAt = Date.now();
+            let polling = true;
+            let lastShownStatus = 'GENERANDO';
+            let timeoutAvisado = false;
+
+            // ---- Toasts (con fallback nativo si Bootstrap no está disponible) ----
+            function mostrarToast(tipo, titulo, mensaje) {
+                const usarBootstrap = (typeof window.bootstrap !== 'undefined') && window.bootstrap.Toast;
+                if (!$toasts || !usarBootstrap) {
+                    // Fallback: notificación nativa del navegador (mejor que nada).
+                    console.log(`[planeacion-ia][${tipo}] ${titulo}: ${mensaje}`);
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        try { new Notification(titulo, { body: mensaje }); } catch (e) {}
                     }
-                    return response.json();
+                    return;
+                }
+                const bg = tipo === 'success' ? 'bg-success' : (tipo === 'danger' ? 'bg-danger' : 'bg-warning text-dark');
+                const id = 'toast-' + Date.now();
+                const html = `
+                    <div id="${id}" class="toast align-items-center text-white ${bg} border-0 mb-2"
+                         role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <strong>${titulo}</strong><br>${mensaje}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                    data-bs-dismiss="toast" aria-label="Cerrar"></button>
+                        </div>
+                    </div>`;
+                $toasts.insertAdjacentHTML('beforeend', html);
+                const el = document.getElementById(id);
+                try {
+                    const t = new window.bootstrap.Toast(el, { delay: 8000 });
+                    t.show();
+                } catch (e) {
+                    console.warn('[planeacion-ia] No se pudo mostrar toast Bootstrap:', e);
+                }
+            }
+
+            // ---- Timer + barra de progreso (cada 1s) ----
+            function tick() {
+                const elapsedSec = Math.floor((Date.now() - startedAt) / 1000);
+                if ($timer) $timer.textContent = elapsedSec;
+                if ($progressBar) {
+                    const approxPct = Math.min(MAX_PROGRESS, 5 + Math.floor(elapsedSec * 1.5));
+                    $progressBar.style.width = approxPct + '%';
+                }
+                if (elapsedSec > HARD_TIMEOUT_SECS && !timeoutAvisado) {
+                    timeoutAvisado = true;
+                    mostrarToast(
+                        'warning',
+                        'La IA está tardando demasiado',
+                        'Han pasado más de 4 minutos. Si sigue atascado, usa el botón "Detener Generación".'
+                    );
+                }
+            }
+            setInterval(tick, 1000);
+            tick(); // primer tick inmediato
+
+            // ---- Mensajes rotativos (cada 4.5s) ----
+            function rotarMensaje() {
+                if (!$mensaje) return;
+                mensajeIdx = (mensajeIdx + 1) % mensajesRotativos.length;
+                $mensaje.textContent = mensajesRotativos[mensajeIdx];
+            }
+            setInterval(rotarMensaje, 4500);
+
+            // ---- Polling cada 3s ----
+            function checkStatus() {
+                if (!polling) return;
+                fetch(statusUrl, {
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store',
                 })
-                .then(data => {
-                    // --- ZONA DE DEPURACIÓN ---
-                    // Imprimimos en la consola del navegador lo que recibimos.
-                    console.log("Respuesta recibida del API:", data);
-                    const estadoActual = data.status.trim().toUpperCase(); // Limpiamos y convertimos a mayúsculas
-                    console.log("Estado procesado para comparación:", estadoActual);
-                    // ---------------------------
+                    .then(r => {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.json();
+                    })
+                    .then(data => {
+                        const estado = (data.status || '').trim().toUpperCase();
+                        console.log('[planeacion-ia] estado actual =', estado, data);
+                        if (estado === lastShownStatus) return;
+                        lastShownStatus = estado;
 
-                    // --- LÓGICA DE RECARGA MEJORADA ---
-                    // Comparamos el estado procesado. Ahora es inmune a mayúsculas/minúsculas y espacios.
-                    if (estadoActual !== 'GENERANDO') {
-                        console.log("¡El estado ha cambiado! Recargando la página...");
-                        window.location.reload();
-                    } else {
-                        console.log("El estado sigue siendo 'GENERANDO'. Esperando 10 segundos más.");
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al verificar el estado:', error);
-                    // Opcional: Detener las verificaciones si hay un error para no sobrecargar.
-                    // clearInterval(intervalId);
-                });
-        };
+                        if (estado === 'COMPLETADO') {
+                            polling = false;
+                            if ($progressBar) {
+                                $progressBar.style.width = '100%';
+                                $progressBar.classList.remove('progress-bar-animated', 'bg-primary');
+                                $progressBar.classList.add('bg-success');
+                            }
+                            if ($mensaje) {
+                                $mensaje.textContent = '¡Planeación lista! Recargando…';
+                                $mensaje.classList.remove('text-primary');
+                                $mensaje.classList.add('text-success');
+                            }
+                            mostrarToast(
+                                'success',
+                                '¡Planeación generada con éxito!',
+                                data.mensaje || 'La IA terminó. La página se recargará en un momento.'
+                            );
+                            setTimeout(() => window.location.reload(), 1800);
+                        } else if (estado === 'FALLIDO') {
+                            polling = false;
+                            if ($progressBar) {
+                                $progressBar.classList.remove('progress-bar-animated', 'bg-primary');
+                                $progressBar.classList.add('bg-danger');
+                            }
+                            if ($mensaje) {
+                                $mensaje.textContent = 'La generación falló.';
+                                $mensaje.classList.remove('text-primary');
+                                $mensaje.classList.add('text-danger');
+                            }
+                            mostrarToast(
+                                'danger',
+                                'Error en la generación',
+                                data.mensaje || (data.error_generacion || 'Error desconocido. Recargando…')
+                            );
+                            setTimeout(() => window.location.reload(), 3500);
+                        } else if (estado === 'PENDIENTE') {
+                            // El task aún no fue tomado por Celery, seguimos esperando.
+                            if ($mensaje && mensajeIdx === 0) {
+                                $mensaje.textContent = 'Encolando la tarea…';
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        console.error('[planeacion-ia] Polling falló:', err);
+                    });
+            }
 
-        // Preguntamos al servidor cada 10 segundos.
-        const intervalId = setInterval(checkStatus, 10000);
+            setInterval(checkStatus, POLL_INTERVAL_MS);
+            checkStatus(); // primera consulta inmediata
+        }
 
-        // Hacemos una primera verificación inmediata para una respuesta más rápida.
-        checkStatus();
-    });
-</script>
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            // El DOM ya está listo (script al final del body via extra_js).
+            init();
+        }
+    })();
+    </script>
     {% endif %}
 {% endblock %}

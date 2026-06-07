@@ -12,5 +12,8 @@ ENV PORT 8080
 
 EXPOSE 8080
 
+# Crear script de arranque
+RUN printf '#!/bin/sh\npython manage.py migrate --no-input\nexec daphne -b 0.0.0.0 -p ${PORT} proyecto_colegio.asgi:application\n' > /start.sh && chmod +x /start.sh
+
 # Usar shell form para que se expanda la variable $PORT
-CMD daphne -b 0.0.0.0 -p ${PORT} proyecto_colegio.asgi:application
+CMD ["/start.sh"]

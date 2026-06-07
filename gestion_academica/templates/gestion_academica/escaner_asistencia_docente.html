@@ -3,7 +3,7 @@
 
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
-{% block extra_css %}
+{% block extrastyles %}
 <style>
     #qr-reader {
         width: 100%;
@@ -22,6 +22,11 @@
 <div class="container text-center mt-4">
     <h1 class="h2 mb-1">{{ titulo_pagina }}</h1>
     <p class="text-muted">Fecha: {% now "d M, Y" %}</p>
+    <p class="small text-start mx-auto" style="max-width: 520px;">
+        <strong>Primer escaneo del día:</strong> marca la <strong>entrada</strong>.
+        <strong>Segundo escaneo:</strong> marca la <strong>salida</strong> y cierra la jornada.
+        Puede volver a escanear para corregir la hora de salida.
+    </p>
     
     <div id="qr-reader" class="shadow-sm"></div>
     <div id="qr-status" class="alert alert-info mt-3">Apunta la cámara al código QR del docente...</div>

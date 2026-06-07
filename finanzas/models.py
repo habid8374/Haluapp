@@ -3,20 +3,21 @@ from django.db import models
 from gestion_academica.models import NivelEscolaridad
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from django.db.models.signals import post_save, post_delete 
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.db.models import Sum
 from django.utils import timezone
 import datetime
-from datetime import date 
-import calendar 
-from decimal import Decimal 
+from datetime import date
+import calendar
+from decimal import Decimal
 from .managers import CuentaPorCobrarEstudianteManager
 from django.db import transaction
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from datetime import timedelta
 from django.apps import apps
+from utils.encrypted_fields import EncryptedCharField
 
 
 
@@ -52,16 +53,60 @@ class InstitucionEducativa(models.Model):
     eslogan = models.CharField(max_length=255, blank=True, null=True, verbose_name="Eslogan (Opcional)")
     cuenta_bancaria = models.CharField(max_length=255, blank=True, null=True, verbose_name="Información Cuenta Bancaria", help_text="Ej: Ahorros Bancolombia 123-456789-00")
     pagos_digitales = models.CharField(max_length=255, blank=True, null=True, verbose_name="Información Nequi/Daviplata", help_text="Ej: Nequi 300-123-4567")
+    TIPO_INSTITUCION_CHOICES = [
+        ('privado', 'Privado'),
+        ('publico', 'Público'),
+    ]
+    tipo_institucion = models.CharField(
+        max_length=10,
+        choices=TIPO_INSTITUCION_CHOICES,
+        default='privado',
+        verbose_name="Tipo de Institución",
+        help_text="Privado: cobra mensualidades. Público: financiado por el Estado, sin cobros a estudiantes.",
+    )
+    IDIOMA_CHOICES = [
+        ('en', 'Inglés'),
+        ('fr', 'Francés'),
+        ('pt', 'Portugués'),
+        ('de', 'Alemán'),
+        ('zh', 'Mandarín'),
+    ]
+    es_bilingue = models.BooleanField(
+        default=False,
+        verbose_name="Institución Bilingüe / Multiidioma",
+        help_text="Activa campos de segundo idioma en materias y mallas curriculares.",
+    )
+    idioma_secundario = models.CharField(
+        max_length=5,
+        choices=IDIOMA_CHOICES,
+        blank=True,
+        default='en',
+        verbose_name="Idioma Secundario de Instrucción",
+        help_text="Idioma en que se dictan las materias bilingües (por defecto inglés).",
+    )
     nota_minima_aprobacion = models.DecimalField(max_digits=3, decimal_places=2, default=Decimal('3.0'), verbose_name="Nota Mínima para Aprobar", help_text="La nota que un estudiante debe alcanzar o superar para aprobar (ej: 3.0, 3.5).")
     escala_valorativa_texto = models.CharField(max_length=255, blank=True, default="Sup = Superior, Alt = Alto, Bas = Básico, Baj = Bajo", verbose_name="Texto de la Escala Valorativa")
     google_calendar_embed_code = models.TextField(blank=True, null=True, verbose_name="Código para insertar Google Calendar")
     mp_public_key_test = models.CharField(max_length=255, blank=True, null=True, verbose_name="Public Key de Prueba (Mercado Pago)")
-    mp_access_token_test = models.CharField(max_length=255, blank=True, null=True, verbose_name="Access Token de Prueba (Mercado Pago)")
+    mp_access_token_test = EncryptedCharField(blank=True, null=True, verbose_name="Access Token de Prueba (Mercado Pago)")
     mp_public_key_prod = models.CharField(max_length=255, blank=True, null=True, verbose_name="Public Key de Producción (Mercado Pago)")
-    mp_access_token_prod = models.CharField(max_length=255, blank=True, null=True, verbose_name="Access Token de Producción (Mercado Pago)")
+    mp_access_token_prod = EncryptedCharField(blank=True, null=True, verbose_name="Access Token de Producción (Mercado Pago)")
     mp_modo_produccion = models.BooleanField(default=False, verbose_name="¿Activar modo producción para Mercado Pago?", help_text="Si está desmarcado, se usarán las credenciales de prueba.")
+    mp_webhook_secret = models.CharField(
+        max_length=255,
+        blank=False,
+        default="",
+        verbose_name="Secret de firma Webhooks (Mercado Pago)",
+        help_text="Secret generado en Mercado Pago > Tu integración > Webhooks (obligatorio para validar notificaciones).",
+    )
+    google_api_key = EncryptedCharField(
+        blank=False,
+        default="",
+        verbose_name="Google API Key (Gemini)",
+        help_text="Clave de la API de Google AI / Gemini para esta institución (obligatoria para funciones de IA).",
+    )
     email_host_user = models.EmailField(max_length=255, blank=True, null=True, verbose_name="Correo para Envío de Notificaciones (SMTP User)", help_text="Ej: notificaciones@micolegio.com")
-    email_host_password = models.CharField(max_length=255, blank=True, null=True, verbose_name="Contraseña de Aplicación (SMTP Password)", help_text="¡IMPORTANTE! Usa una contraseña de aplicación generada, no tu contraseña principal.")
+    email_host_password = EncryptedCharField(blank=True, null=True, verbose_name="Contraseña de Aplicación (SMTP Password)", help_text="¡IMPORTANTE! Usa una contraseña de aplicación generada, no tu contraseña principal.")
     email_host = models.CharField(max_length=255, blank=True, null=True, verbose_name="Servidor SMTP", default="smtp.gmail.com")
     email_port = models.PositiveIntegerField(blank=True, null=True, verbose_name="Puerto SMTP", default=587)
     email_use_tls = models.BooleanField(default=True, verbose_name="¿Usar TLS?")
@@ -69,6 +114,26 @@ class InstitucionEducativa(models.Model):
         default=True,
         verbose_name="Institución Activa",
         help_text="Desmarca esta casilla para bloquear el acceso de todos los usuarios de esta institución (excepto super-admins)."
+    )
+
+    # ---- Política de bloqueo del portal del estudiante por mora (Fase C) ----
+    bloquear_portal_por_mora = models.BooleanField(
+        default=True,
+        verbose_name="¿Bloquear portal del estudiante si tiene mensualidades vencidas?",
+        help_text=(
+            "Si está activo, los estudiantes con cuentas vencidas no podrán "
+            "acceder a deberes, actividades, calificaciones, lecciones, ni "
+            "boletín. Solo verán su estado de cartera con CTA para pagar."
+        ),
+    )
+    dias_gracia_mora = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Días de gracia para mora",
+        help_text=(
+            "Días de margen tras el vencimiento antes de bloquear el portal. "
+            "Ej: 3 → no se bloquea hasta 3 días después del vencimiento. "
+            "Solo aplica si 'bloquear_portal_por_mora' está activo."
+        ),
     )
     tarifa_mensual_plataforma = models.DecimalField(
         max_digits=10, decimal_places=2, default=0,
@@ -92,10 +157,26 @@ class InstitucionEducativa(models.Model):
     def __str__(self):
         return self.nombre
 
+    def clean(self):
+        super().clean()
+        errs = {}
+        if not (self.google_api_key or "").strip():
+            errs["google_api_key"] = "La API key de Google AI / Gemini es obligatoria para esta institución."
+        if not (self.mp_webhook_secret or "").strip():
+            errs["mp_webhook_secret"] = "El secret de firma de webhooks de Mercado Pago es obligatorio."
+        if errs:
+            raise ValidationError(errs)
+
     class Meta:
         verbose_name = "Institución Educativa"
         verbose_name_plural = "Instituciones Educativas"
-        permissions = [("can_manage_institutions", "Puede gestionar instituciones educativas")]
+        permissions = [
+            ("can_manage_institutions", "Puede gestionar instituciones educativas"),
+            (
+                "acceso_modulo_finanzas",
+                "Puede acceder al módulo de finanzas (panel, reportes y exportaciones)",
+            ),
+        ]
 
 class CuentaContable(models.Model):
     class TipoCuenta(models.TextChoices):
@@ -189,6 +270,16 @@ class ConceptoPago(models.Model):
         help_text="Marcar solo para el único concepto que se usará para cobrar la matrícula oficial."
     )
 
+    es_pago_pension = models.BooleanField(
+        default=False,
+        verbose_name="¿Es un concepto de pago de Pensión / Mensualidad?",
+        help_text=(
+            "Marca todas las mensualidades del año lectivo (Feb–Nov). "
+            "Las cuentas por cobrar mensuales se crean automáticamente "
+            "tomando los conceptos con este flag y filtrados por Nivel."
+        ),
+    )
+
     es_solicitable_por_egresado = models.BooleanField(
         default=False,
         verbose_name="¿Es solicitable desde el Portal de Egresados?",
@@ -266,7 +357,11 @@ class CuentaPorCobrarEstudiante(models.Model):
     @property
     def monto_pagado_actual(self):
         if self.pk:
-            return self.pagos.aggregate(total_pagado=Sum('valor_pagado'))['total_pagado'] or Decimal('0.00')
+            # Excluimos pagos ANULADOS (p. ej. revertidos por una Nota Crédito):
+            # no cuentan en el saldo, pero quedan en el historial.
+            return self.pagos.filter(anulado=False).aggregate(
+                total_pagado=Sum('valor_pagado')
+            )['total_pagado'] or Decimal('0.00')
         return Decimal('0.00')
 
     @property
@@ -363,17 +458,26 @@ class PagoRegistrado(models.Model):
         null=True, blank=True, editable=False,
         verbose_name="Número de Recibo"
     )
-
-    
+    # Anulación contable (p. ej. al emitir una Nota Crédito de anulación).
+    # No se borra el pago: se marca anulado y deja de contar en el saldo.
+    anulado = models.BooleanField(default=False, verbose_name="Anulado")
+    anulado_en = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de anulación")
+    anulado_motivo = models.CharField(max_length=255, blank=True, verbose_name="Motivo de anulación")
 
     def save(self, *args, **kwargs):
         if not self.institucion_id and self.cuenta:
             self.institucion = self.cuenta.institucion
 
         if not self.pk:  # Solo al crear
-            self.numero_documento = ConsecutivoDocumento.obtener_siguiente(
-                self.institucion.pk, 'recibo_pago'
-            )
+            # El número de recibo (consecutivo) se genera ÚNICAMENTE para pagos
+            # en EFECTIVO: son los que se registran manualmente y necesitan un
+            # número de recibo formal para imprimir. Los demás métodos
+            # (transferencia, tarjeta, PSE, Mercado Pago) ya traen su propia
+            # referencia de transacción y NO consumen el consecutivo de efectivo.
+            if self.metodo_pago == 'EFECTIVO':
+                self.numero_documento = ConsecutivoDocumento.obtener_siguiente(
+                    self.institucion.pk, 'recibo_efectivo'
+                )
 
         super().save(*args, **kwargs)
 
@@ -556,4 +660,279 @@ class ItemCuenta(models.Model):
 
     class Meta:
         verbose_name = "Ítem de Cuenta"
-        verbose_name_plural = "Ítems de Cuenta"            
+        verbose_name_plural = "Ítems de Cuenta"
+
+
+class AuditoriaExportacionContable(models.Model):
+    """
+    Registro de cada exportación contable generada (trazabilidad para auditoría interna).
+    """
+
+    institucion = models.ForeignKey(
+        InstitucionEducativa,
+        on_delete=models.CASCADE,
+        related_name="auditorias_exportacion_contable",
+    )
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="exportaciones_contables_generadas",
+    )
+    creado = models.DateTimeField(auto_now_add=True)
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    tipo_transaccion = models.CharField(max_length=24)
+    formato = models.CharField(max_length=8)
+    periodo_academico = models.ForeignKey(
+        "gestion_academica.PeriodoAcademico",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    registros = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-creado"]
+        verbose_name = "Auditoría de exportación contable"
+        verbose_name_plural = "Auditorías de exportación contable"
+
+    def __str__(self):
+        return f"{self.institucion} {self.fecha_inicio}–{self.fecha_fin} ({self.creado:%Y-%m-%d %H:%M})"
+
+
+# ============================================================================
+# AUDITORÍA Y SEGURIDAD DE INTEGRACIÓN MERCADO PAGO (Fase 3)
+# ============================================================================
+# Plataforma multi-tenant: cada InstitucionEducativa tiene credenciales propias
+# de Mercado Pago (test/prod + webhook secret). Estos modelos permiten:
+#   1. Garantizar idempotencia ante reintentos de notificaciones (MP suele
+#      reenviar el mismo evento varias veces).
+#   2. Auditar cada llamada al SDK (latencia, errores, intentos, tenant).
+#   3. Investigar disputas: para cada `data_id` del webhook tenemos el evento
+#      original, la firma, el resultado HTTP devuelto y el pago resultante.
+
+class WebhookEventoMercadoPago(models.Model):
+    """Cada notificación POST entrante de Mercado Pago queda registrada.
+
+    Aislamiento SaaS: ``unique_together(institucion, data_id, payload_hash)``
+    garantiza que el mismo evento no se procese dos veces dentro de una
+    institución, pero el mismo data_id en otra institución (caso real cuando
+    dos tenants comparten infraestructura de pruebas) sí se permite.
+    """
+
+    institucion = models.ForeignKey(
+        InstitucionEducativa,
+        on_delete=models.CASCADE,
+        related_name="webhooks_mercadopago",
+        verbose_name="Institución",
+    )
+    data_id = models.CharField(
+        max_length=64,
+        verbose_name="data.id de Mercado Pago",
+        help_text="ID del recurso (payment/merchant_order) notificado.",
+    )
+    tipo = models.CharField(
+        max_length=32, blank=True,
+        verbose_name="type",
+        help_text="Campo `type` del payload (payment, merchant_order, etc.).",
+    )
+    payload_hash = models.CharField(
+        max_length=64,
+        verbose_name="SHA-256 del payload",
+        help_text="Hash del body bruto: detecta reenvíos exactos del proveedor.",
+    )
+    x_request_id = models.CharField(max_length=128, blank=True)
+    x_signature = models.CharField(max_length=255, blank=True)
+    firma_valida = models.BooleanField(default=False)
+
+    payload_resumen = models.JSONField(
+        default=dict, blank=True,
+        verbose_name="Resumen del payload",
+        help_text="Subset auditable del payload (sin datos sensibles).",
+    )
+    estado_http_devuelto = models.PositiveSmallIntegerField(default=0)
+    procesado_ok = models.BooleanField(default=False)
+    error_mensaje = models.TextField(blank=True)
+
+    pago_registrado = models.ForeignKey(
+        "PagoRegistrado",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="webhook_eventos",
+    )
+    cuenta = models.ForeignKey(
+        "CuentaPorCobrarEstudiante",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="webhook_eventos",
+    )
+
+    fecha_recepcion = models.DateTimeField(auto_now_add=True)
+    fecha_procesamiento = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Evento webhook Mercado Pago"
+        verbose_name_plural = "Eventos webhook Mercado Pago"
+        ordering = ["-fecha_recepcion"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["institucion", "data_id", "payload_hash"],
+                name="webhook_mp_unico_por_inst_dataid_hash",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["institucion", "-fecha_recepcion"]),
+            models.Index(fields=["data_id"]),
+            models.Index(fields=["procesado_ok"]),
+        ]
+
+    def __str__(self):
+        return (
+            f"WebhookMP inst={self.institucion_id} data_id={self.data_id} "
+            f"http={self.estado_http_devuelto}"
+        )
+
+
+class LlamadaMercadoPago(models.Model):
+    """Auditoría de cada llamada outbound al SDK de Mercado Pago.
+
+    Permite responder preguntas como:
+      - ¿Cuántos timeouts tuvimos esta semana en `payment.get`?
+      - ¿Cuál fue la latencia p95 al crear preferencias para la institución X?
+      - ¿Qué error devolvió MP cuando un usuario reportó "no pude pagar"?
+    """
+
+    class Accion(models.TextChoices):
+        PREFERENCE_CREATE = "preference.create", "Crear preferencia"
+        PAYMENT_GET = "payment.get", "Consultar pago"
+        PAYMENT_SEARCH = "payment.search", "Buscar pagos"
+        OTRO = "otro", "Otro"
+
+    institucion = models.ForeignKey(
+        InstitucionEducativa,
+        on_delete=models.CASCADE,
+        related_name="llamadas_mercadopago",
+    )
+    accion = models.CharField(
+        max_length=32, choices=Accion.choices,
+        verbose_name="Acción",
+    )
+    external_reference = models.CharField(max_length=128, blank=True)
+    monto = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        null=True, blank=True,
+    )
+    cuenta = models.ForeignKey(
+        "CuentaPorCobrarEstudiante",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="llamadas_mercadopago",
+    )
+    intento = models.PositiveSmallIntegerField(default=1)
+    latencia_ms = models.PositiveIntegerField(default=0)
+    estado_http = models.PositiveSmallIntegerField(default=0)
+    exito = models.BooleanField(default=False)
+    error_mensaje = models.TextField(blank=True)
+
+    request_resumen = models.JSONField(default=dict, blank=True)
+    response_resumen = models.JSONField(default=dict, blank=True)
+
+    modo_produccion = models.BooleanField(default=False)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Llamada Mercado Pago"
+        verbose_name_plural = "Llamadas Mercado Pago"
+        ordering = ["-fecha"]
+        indexes = [
+            models.Index(fields=["institucion", "-fecha"]),
+            models.Index(fields=["accion", "exito"]),
+            models.Index(fields=["external_reference"]),
+        ]
+
+    def __str__(self):
+        return (
+            f"MP {self.accion} inst={self.institucion_id} "
+            f"http={self.estado_http} exito={self.exito} ({self.latencia_ms}ms)"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Health-check del super-admin (dashboard de mantenimiento)
+# ---------------------------------------------------------------------------
+
+class EjecucionHealthCheck(models.Model):
+    """Registro auditado de cada ejecución del health-check desde el dashboard.
+
+    El comando CLI (`manage.py verificar_admisiones_health`) NO crea registros
+    aquí; solo lo hacen las ejecuciones que el super-admin dispara desde el
+    dashboard de mantenimiento (vía Celery + WebSocket).
+    """
+
+    class Estado(models.TextChoices):
+        PENDIENTE = "PENDIENTE", "Pendiente"
+        EJECUTANDO = "EJECUTANDO", "Ejecutando"
+        OK = "OK", "OK"
+        WARN = "WARN", "Con advertencias"
+        ERROR = "ERROR", "Con errores"
+        FALLIDO = "FALLIDO", "Fallido (excepción interna)"
+
+    iniciado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="ejecuciones_healthcheck",
+        verbose_name="Iniciado por",
+    )
+    institucion_filtro = models.ForeignKey(
+        "InstitucionEducativa",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="ejecuciones_healthcheck",
+        verbose_name="Filtro de institución",
+        help_text="Si se especifica, el check se restringe a esta institución.",
+    )
+    iniciado_at = models.DateTimeField(auto_now_add=True, verbose_name="Iniciado en")
+    terminado_at = models.DateTimeField(null=True, blank=True, verbose_name="Terminado en")
+    estado = models.CharField(
+        max_length=20, choices=Estado.choices, default=Estado.PENDIENTE,
+    )
+    task_id = models.CharField(
+        max_length=255, blank=True, default="",
+        help_text="ID de la tarea Celery asociada.",
+    )
+    errores_count = models.PositiveIntegerField(default=0)
+    warnings_count = models.PositiveIntegerField(default=0)
+    pasos_completados = models.PositiveSmallIntegerField(default=0)
+    eventos = models.JSONField(
+        default=list, blank=True,
+        help_text="Lista de eventos generados por el health-check (cada uno con nivel/mensaje/paso).",
+    )
+    error_excepcion = models.TextField(
+        blank=True,
+        help_text="Si la tarea falló por excepción interna, traceback resumido.",
+    )
+
+    class Meta:
+        verbose_name = "Ejecución de Health-Check"
+        verbose_name_plural = "Ejecuciones de Health-Check"
+        ordering = ["-iniciado_at"]
+        indexes = [
+            models.Index(fields=["-iniciado_at"]),
+            models.Index(fields=["estado"]),
+        ]
+
+    def __str__(self):
+        return f"HealthCheck #{self.pk} {self.estado} ({self.iniciado_at:%Y-%m-%d %H:%M})"
+
+    @property
+    def duracion_segundos(self):
+        if not self.terminado_at:
+            return None
+        return int((self.terminado_at - self.iniciado_at).total_seconds())
+
+    @property
+    def en_curso(self):
+        return self.estado in (self.Estado.PENDIENTE, self.Estado.EJECUTANDO)

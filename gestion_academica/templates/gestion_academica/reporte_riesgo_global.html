@@ -1,93 +1,302 @@
 {% extends "base_academico.html" %}
+
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
-{% block contenido %}
-<div class="container-fluid mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-shield-exclamation me-2"></i>{{ titulo_pagina }}</h5>
-            <a href="{% url 'gestion_academica:dashboard_coordinador' %}" class="btn btn-outline-secondary btn-sm ms-auto">
-                <i class="bi bi-arrow-left-circle me-1"></i> Volver al Dashboard
-            </a>
-        </div>
-        <div class="card-body">
-            
-            <form method="get" class="row g-3 align-items-center mb-4 p-3 bg-light border rounded">
-                <div class="col-md-5">
-                    <label for="periodo" class="form-label">Periodo Académico</label>
-                    <select name="periodo" id="periodo" class="form-select">
-                        <option value="">Todos los Periodos</option>
-                        {% for p in periodos %}
-                            <option value="{{ p.pk }}" {% if p.pk|stringformat:"s" == periodo_seleccionado_id %}selected{% endif %}>{{ p.nombre }} ({{ p.año_escolar }})</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-5">
-                    <label for="grado" class="form-label">Grado</label>
-                    <select name="grado" id="grado" class="form-select">
-                        <option value="">Todos los Grados</option>
-                        {% for g in grados %}
-                            <option value="{{ g.pk }}" {% if g.pk|stringformat:"s" == grado_seleccionado_id %}selected{% endif %}>{{ g.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel-fill"></i> Filtrar</button>
-                </div>
-            </form>
+{% block extrastyles %}{{ block.super }}
+<style>
+/* ══════════════════════════════════════════════════════
+   HALU PULSE — SENTINEL · Reporte de Riesgo Global
+   Tema: rojo/ámbar
+══════════════════════════════════════════════════════ */
+:root {
+  --sent-dark:   #7f1d1d;
+  --sent-mid:    #991b1b;
+  --sent-light:  #dc2626;
+}
 
-            <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Estudiante</th>
-                            <th>Materia</th>
-                            <th class="text-center">Nivel de Riesgo</th>
-                            <th>Factores Clave</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for prediccion in predicciones %}
-                        <tr>
-                            <td><strong>{{ prediccion.estudiante.usuario.get_full_name }}</strong></td>
-                            <td>
-    {% if prediccion.materia %}
-        {{ prediccion.materia.nombre_materia }}
-    {% else %}
-        <span class="text-muted fst-italic">General</span>
-    {% endif %}
-</td>
-                            <td class="text-center">
-                                <span class="badge {% if prediccion.nivel_riesgo == 'ALTO' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
-                                    {{ prediccion.get_nivel_riesgo_display }}
-                                </span>
-                            </td>
-                            <td>
-                                {% for key, value in prediccion.factores_influyentes.items %}
-                                    <small><strong>{{ key|capfirst }}:</strong> {{ value|floatformat:2 }}</small><br>
-                                {% endfor %}
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{% url 'gestion_academica:citar_acudiente' prediccion.pk %}" class="btn btn-outline-primary" title="Citar Acudiente">
-                                        <i class="bi bi-envelope-at-fill"></i> Citar
-                                    </a>
-                                    <a href="{% url 'gestion_academica:notificar_docente' prediccion.pk %}" class="btn btn-outline-secondary" title="Notificar al Docente">
-                                        <i class="bi bi-bell-fill"></i> Notificar
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">No se encontraron predicciones con los criterios de búsqueda.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+/* ── Hero ─────────────────────────────────────────── */
+.sent-hero {
+  background: linear-gradient(135deg, var(--sent-dark) 0%, var(--sent-mid) 55%, #b91c1c 100%);
+  border-radius: 1rem;
+  padding: 1.5rem 1.8rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.sent-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.sent-hero-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 2rem; padding: .25rem .75rem; font-size: .78rem; font-weight: 600;
+}
+.sent-hero-title { font-size: 1.38rem; font-weight: 800; letter-spacing: -.5px; margin-bottom: .2rem; }
+.sent-hero-sub   { font-size: .82rem; opacity: .78; }
+.sent-hero-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .45rem 1rem; border-radius: .6rem; font-size: .82rem; font-weight: 600;
+  text-decoration: none; border: none; cursor: pointer;
+}
+.sent-hero-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
+.sent-hero-btn-outline:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+/* ── Panel ────────────────────────────────────────── */
+.sent-panel {
+  background: #fff;
+  border-radius: .85rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,.07);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.sent-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .5rem; flex-wrap: wrap;
+  padding: .9rem 1.2rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.sent-panel-title {
+  font-size: .95rem; font-weight: 700; color: #1e293b;
+  display: flex; align-items: center; gap: .5rem; margin: 0;
+}
+.sent-panel-title .ico {
+  width: 30px; height: 30px; border-radius: .45rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; flex-shrink: 0;
+}
+.ico-red  { background: #fee2e2; color: #dc2626; }
+.ico-blue { background: #dbeafe; color: #1d4ed8; }
+
+/* ── Filtros ──────────────────────────────────────── */
+.sent-filters {
+  padding: 1rem 1.2rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex; gap: .75rem; flex-wrap: wrap; align-items: flex-end;
+}
+.sent-filters label { font-size: .75rem; font-weight: 600; color: #64748b; margin-bottom: .25rem; }
+.sent-filters .form-select { font-size: .83rem; min-width: 160px; border-radius: .5rem; }
+.sent-filter-btn {
+  background: var(--sent-light); color: #fff; border: none;
+  border-radius: .5rem; padding: .45rem 1rem; font-size: .82rem; font-weight: 600;
+  display: inline-flex; align-items: center; gap: .35rem; cursor: pointer;
+  align-self: flex-end;
+}
+.sent-filter-btn:hover { background: var(--sent-mid); }
+
+/* ── Tabla ─────────────────────────────────────────── */
+.sent-table thead th {
+  background: #f8fafc; font-size: .74rem; text-transform: uppercase;
+  letter-spacing: .5px; font-weight: 700; color: #64748b;
+  border-bottom: 2px solid #e2e8f0; white-space: nowrap; padding: .7rem 1rem;
+}
+.sent-table tbody td { vertical-align: middle; font-size: .83rem; padding: .75rem 1rem; }
+.sent-table tbody tr:hover { background: #fef9f9; }
+
+/* ── Badges riesgo ────────────────────────────────── */
+.risk-alto  { background: #fee2e2; color: #dc2626; border-radius: 2rem; padding: .2rem .7rem; font-size: .74rem; font-weight: 700; display: inline-block; }
+.risk-medio { background: #fef3c7; color: #92400e; border-radius: 2rem; padding: .2rem .7rem; font-size: .74rem; font-weight: 700; display: inline-block; }
+
+/* ── Factores chip ───────────────────────────────── */
+.factor-chip { display: inline-block; background: #f1f5f9; color: #475569; border-radius: .4rem; padding: .15rem .5rem; font-size: .72rem; margin: .1rem .1rem 0 0; }
+
+/* ── Acciones ────────────────────────────────────── */
+.act-btn {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .3rem .65rem; border-radius: .45rem; font-size: .74rem; font-weight: 600;
+  text-decoration: none; border: none; cursor: pointer; white-space: nowrap;
+}
+.act-btn-citar  { background: #e0e7ff; color: #3730a3; }
+.act-btn-citar:hover { background: #c7d2fe; }
+.act-btn-notif  { background: #f1f5f9; color: #475569; }
+.act-btn-notif:hover { background: #e2e8f0; }
+
+/* Tarjeta móvil */
+.sent-card {
+  border-radius: .7rem;
+  border: 1px solid #e2e8f0;
+  margin-bottom: .75rem;
+  overflow: hidden;
+}
+.sent-card-header { padding: .75rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.sent-card-header.alto   { background: #fff5f5; border-bottom: 2px solid #dc2626; }
+.sent-card-header.medio  { background: #fffbeb; border-bottom: 2px solid #f59e0b; }
+.sent-card-body { padding: .75rem 1rem; background: #fff; }
+.sent-card-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; font-weight: 600; margin-bottom: .2rem; }
+
+/* Vacío */
+.sent-empty { text-align: center; padding: 2.5rem 1rem; color: #94a3b8; }
+.sent-empty i { font-size: 2.2rem; display: block; margin-bottom: .6rem; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1200px;">
+
+  <!-- ══ HERO ════════════════════════════════════════════════════════ -->
+  <div class="sent-hero">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
+      <div>
+        <div class="sent-hero-badge mb-2">
+          <i class="bi bi-shield-exclamation"></i> HALU Sentinel · Global
         </div>
+        <div class="sent-hero-title">
+          <i class="bi bi-shield-exclamation me-2"></i>{{ titulo_pagina }}
+        </div>
+        <div class="sent-hero-sub">Predicciones de riesgo académico filtradas por periodo y grado</div>
+      </div>
+      <a href="{% url 'gestion_academica:dashboard_coordinador' %}" class="sent-hero-btn sent-hero-btn-outline">
+        <i class="bi bi-arrow-left"></i> Dashboard
+      </a>
     </div>
+  </div>
+
+  <!-- ══ PANEL PRINCIPAL ══════════════════════════════════════════════ -->
+  <div class="sent-panel">
+    <div class="sent-panel-header">
+      <h2 class="sent-panel-title">
+        <span class="ico ico-red"><i class="bi bi-funnel-fill"></i></span>
+        Filtros de búsqueda
+      </h2>
+    </div>
+
+    <!-- Filtros -->
+    <form method="get">
+      <div class="sent-filters">
+        <div>
+          <label for="periodo">Periodo Académico</label>
+          <select name="periodo" id="periodo" class="form-select form-select-sm">
+            <option value="">Todos los periodos</option>
+            {% for p in periodos %}
+              <option value="{{ p.pk }}" {% if p.pk|stringformat:"s" == periodo_seleccionado_id %}selected{% endif %}>
+                {{ p.nombre }} ({{ p.año_escolar }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="grado">Grado</label>
+          <select name="grado" id="grado" class="form-select form-select-sm">
+            <option value="">Todos los grados</option>
+            {% for g in grados %}
+              <option value="{{ g.pk }}" {% if g.pk|stringformat:"s" == grado_seleccionado_id %}selected{% endif %}>
+                {{ g.nombre }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="sent-filter-btn">
+          <i class="bi bi-funnel-fill"></i> Filtrar
+        </button>
+      </div>
+    </form>
+
+    <!-- Tabla — desktop -->
+    <div class="d-none d-md-block">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 sent-table">
+          <thead>
+            <tr>
+              <th>Estudiante</th>
+              <th>Materia</th>
+              <th class="text-center">Nivel de Riesgo</th>
+              <th>Factores Clave</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pred in predicciones %}
+            <tr>
+              <td class="fw-semibold">{{ pred.estudiante.usuario.get_full_name }}</td>
+              <td>
+                {% if pred.materia %}{{ pred.materia.nombre_materia }}
+                {% else %}<span class="text-muted fst-italic">General</span>{% endif %}
+              </td>
+              <td class="text-center">
+                {% if pred.nivel_riesgo == 'ALTO' %}
+                  <span class="risk-alto">{{ pred.get_nivel_riesgo_display }}</span>
+                {% else %}
+                  <span class="risk-medio">{{ pred.get_nivel_riesgo_display }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% for key, value in pred.factores_influyentes.items %}
+                  <span class="factor-chip"><strong>{{ key|capfirst }}</strong>: {{ value|floatformat:2 }}</span>
+                {% endfor %}
+              </td>
+              <td class="text-center">
+                <div class="d-flex gap-1 justify-content-center">
+                  <a href="{% url 'gestion_academica:citar_acudiente' pred.pk %}" class="act-btn act-btn-citar">
+                    <i class="bi bi-envelope-at-fill"></i> Citar
+                  </a>
+                  <a href="{% url 'gestion_academica:notificar_docente' pred.pk %}" class="act-btn act-btn-notif">
+                    <i class="bi bi-bell-fill"></i> Notificar
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5">
+                <div class="sent-empty">
+                  <i class="bi bi-search"></i>
+                  <p class="mb-0">No se encontraron predicciones con los criterios seleccionados.</p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tarjetas — móvil -->
+    <div class="d-md-none p-2 pt-3">
+      {% for pred in predicciones %}
+      <div class="sent-card">
+        <div class="sent-card-header {% if pred.nivel_riesgo == 'ALTO' %}alto{% else %}medio{% endif %}">
+          <div>
+            <div style="font-size:.86rem;font-weight:700;color:#1e293b;">{{ pred.estudiante.usuario.get_full_name }}</div>
+            <div style="font-size:.74rem;color:#64748b;">
+              {% if pred.materia %}{{ pred.materia.nombre_materia }}{% else %}General{% endif %}
+            </div>
+          </div>
+          {% if pred.nivel_riesgo == 'ALTO' %}
+            <span class="risk-alto">{{ pred.get_nivel_riesgo_display }}</span>
+          {% else %}
+            <span class="risk-medio">{{ pred.get_nivel_riesgo_display }}</span>
+          {% endif %}
+        </div>
+        <div class="sent-card-body">
+          <div class="sent-card-label">Factores clave</div>
+          <div class="mb-2">
+            {% for key, value in pred.factores_influyentes.items %}
+              <span class="factor-chip"><strong>{{ key|capfirst }}</strong>: {{ value|floatformat:2 }}</span>
+            {% endfor %}
+          </div>
+          <div class="d-flex gap-2">
+            <a href="{% url 'gestion_academica:citar_acudiente' pred.pk %}" class="act-btn act-btn-citar flex-fill justify-content-center">
+              <i class="bi bi-envelope-at-fill"></i> Citar acudiente
+            </a>
+            <a href="{% url 'gestion_academica:notificar_docente' pred.pk %}" class="act-btn act-btn-notif flex-fill justify-content-center">
+              <i class="bi bi-bell-fill"></i> Notificar
+            </a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="sent-empty">
+        <i class="bi bi-search"></i>
+        <p class="mb-0 small">Sin resultados para los filtros aplicados.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div><!-- /panel -->
+
 </div>
 {% endblock %}

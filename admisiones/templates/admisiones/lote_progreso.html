@@ -1,0 +1,437 @@
+{% extends "base_admisiones.html" %}
+
+{% block titulo %}Lote de importación #{{ lote.id }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">
+                <i class="bi bi-clock-history me-2"></i>Lote #{{ lote.id }}
+                {% if lote.dry_run %}<span class="badge bg-secondary align-middle">Simulación</span>{% endif %}
+            </h1>
+            <div class="small text-muted">
+                Archivo: <code>{{ lote.nombre_original }}</code> · Creado por
+                {{ lote.creado_por|default:"—" }} · {{ lote.fecha_creacion|date:"d/m/Y H:i" }}
+            </div>
+        </div>
+        <a href="{% url 'admisiones:importar_aspirantes' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Volver a Importar
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">
+                    Estado:
+                    <span id="lote-estado-badge" class="badge bg-light text-dark">{{ lote.estado }}</span>
+                </h5>
+                <div class="text-end">
+                    <strong id="lote-procesadas">{{ lote.filas_procesadas }}</strong>
+                    /
+                    <span id="lote-total">{{ lote.total_filas }}</span> filas
+                </div>
+            </div>
+
+            <div class="progress mb-3" style="height: 1.5rem;">
+                <div id="lote-barra"
+                     class="progress-bar progress-bar-striped progress-bar-animated"
+                     role="progressbar"
+                     style="width: {{ lote.progreso_porcentaje }}%;"
+                     aria-valuenow="{{ lote.progreso_porcentaje }}"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                    <span id="lote-porcentaje">{{ lote.progreso_porcentaje }}%</span>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <div class="border rounded p-3 h-100">
+                        <div class="text-muted small">Aspirantes creados</div>
+                        <div class="h3 mb-0 text-success" id="lote-exitosas">{{ lote.filas_exitosas }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded p-3 h-100">
+                        <div class="text-muted small">Filas con errores</div>
+                        <div class="h3 mb-0 text-danger" id="lote-fallidas">{{ lote.filas_fallidas }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded p-3 h-100" title="Aspirantes creados pero sin cuenta de inscripción (configuración pendiente).">
+                        <div class="text-muted small">Con advertencia</div>
+                        <div class="h3 mb-0 text-warning" id="lote-advertencias">{{ lote.filas_con_advertencia }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded p-3 h-100">
+                        <div class="text-muted small">Total en archivo</div>
+                        <div class="h3 mb-0" id="lote-total-card">{{ lote.total_filas }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="lote-error-general" class="alert alert-danger d-none"></div>
+
+            <div id="lote-cancelando" class="alert alert-warning d-none">
+                <i class="bi bi-hourglass-split"></i>
+                Cancelación solicitada. Esperando a que la tarea termine la fila actual…
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap mb-3">
+                <!-- Los form se mantienen con sus IDs para que el JS pueda mostrar/ocultarlos -->
+                <form id="form-cancelar"
+                      method="post"
+                      action="{% url 'admisiones:lote_importacion_cancelar' lote.id %}"
+                      class="d-inline {% if not lote.puede_cancelarse %}d-none{% endif %}">
+                    {% csrf_token %}
+                    <button type="button"
+                            class="btn btn-outline-warning"
+                            data-bs-toggle="modal" data-bs-target="#modalCancelarLote">
+                        <i class="bi bi-x-circle"></i> Cancelar lote
+                    </button>
+                </form>
+
+                <form id="form-reintentar"
+                      method="post"
+                      action="{% url 'admisiones:lote_importacion_reintentar' lote.id %}"
+                      class="d-inline {% if not lote.puede_reintentarse %}d-none{% endif %}">
+                    {% csrf_token %}
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            data-bs-toggle="modal" data-bs-target="#modalReintentarLote">
+                        <i class="bi bi-arrow-clockwise"></i> Reintentar
+                    </button>
+                </form>
+
+                {% if lote.estado == 'COMPLETADO' %}
+                <button type="button"
+                        class="btn btn-outline-success"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalReenviarCorreos">
+                    <i class="bi bi-envelope-arrow-up"></i> Reenviar correos
+                </button>
+                {% endif %}
+
+                <a id="btn-descargar-errores"
+                   href="{{ url_errores_xlsx }}"
+                   class="btn btn-outline-danger {% if not lote.esta_finalizado or lote.errores|length == 0 %}d-none{% endif %}">
+                    <i class="bi bi-download"></i> Descargar errores en Excel
+                </a>
+
+                <a href="{% url 'admisiones:lista_grados_aspirantes' %}" class="btn btn-primary">
+                    <i class="bi bi-people-fill"></i> Ver aspirantes
+                </a>
+            </div>
+
+            {% if lote.resumen_correos %}
+            {% with rc=lote.resumen_correos %}
+            <div class="card mb-3 border-0 {% if rc.errores_count and rc.errores_count > 0 %}bg-warning-subtle{% elif rc.motivo %}bg-secondary-subtle{% else %}bg-success-subtle{% endif %}">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-envelope-check-fill"></i>
+                        <strong>Último envío de correos</strong>
+                        <span class="text-muted small ms-auto">{{ rc.fecha }}</span>
+                    </div>
+                    {% if rc.motivo == 'smtp_no_configurado' %}
+                    <p class="mb-0 small text-danger">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        SMTP no configurado. Configura las credenciales de correo de la institución antes de reenviar.
+                    </p>
+                    {% elif rc.motivo == 'sin_aspirantes' %}
+                    <p class="mb-0 small text-muted">No hay aspirantes vinculados a este lote.</p>
+                    {% else %}
+                    <div class="d-flex gap-4 flex-wrap">
+                        <span class="text-success fw-semibold">
+                            <i class="bi bi-check-circle-fill me-1"></i>{{ rc.ok }} enviados
+                        </span>
+                        <span class="{% if rc.errores_count > 0 %}text-danger fw-semibold{% else %}text-muted{% endif %}">
+                            <i class="bi bi-x-circle-fill me-1"></i>{{ rc.errores_count }} con error
+                        </span>
+                        <span class="{% if rc.omitidos > 0 %}text-warning fw-semibold{% else %}text-muted{% endif %}">
+                            <i class="bi bi-dash-circle-fill me-1"></i>{{ rc.omitidos }} omitidos (email inválido)
+                        </span>
+                        <span class="text-muted">de {{ rc.total }} aspirantes</span>
+                    </div>
+                    {% if rc.detalle_errores %}
+                    <details class="mt-2">
+                        <summary class="small text-danger" style="cursor:pointer;">
+                            <i class="bi bi-list-ul me-1"></i>Ver detalle de fallos ({{ rc.detalle_errores|length }})
+                        </summary>
+                        <div class="table-responsive mt-2" style="max-height: 200px;">
+                            <table class="table table-sm table-striped align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Aspirante</th>
+                                        <th>Documento</th>
+                                        <th>Email</th>
+                                        <th>Detalle</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for d in rc.detalle_errores %}
+                                    <tr>
+                                        <td>
+                                            {% if d.tipo == 'omitido' %}
+                                            <span class="badge bg-warning text-dark">Omitido</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">Error</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ d.nombres }}</td>
+                                        <td><code>{{ d.documento }}</code></td>
+                                        <td><code>{{ d.email }}</code></td>
+                                        <td class="text-muted small">{{ d.error }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endwith %}
+            {% endif %}
+
+            <h6 class="mt-4">Errores y advertencias por fila <small id="lote-errores-resumen" class="text-muted"></small></h6>
+            <div class="table-responsive" style="max-height: 360px;">
+                <table class="table table-sm table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 90px;">Tipo</th>
+                            <th style="width: 80px;">Fila</th>
+                            <th style="width: 160px;">Documento</th>
+                            <th>Mensaje</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lote-errores-tbody">
+                        {% for err in lote.errores|slice:":20" %}
+                        <tr>
+                            <td>
+                                {% if err.tipo == 'warning' %}
+                                    <span class="badge bg-warning text-dark">Advertencia</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Error</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ err.fila }}</td>
+                            <td>{{ err.documento }}</td>
+                            <td>{{ err.mensaje|default:err.error }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr id="lote-errores-vacio"><td colspan="4" class="text-center text-muted">Sin incidencias reportadas aún.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const URL_ESTADO = "{{ url_estado_json|escapejs }}";
+    let pollTimer = null;
+    const POLL_MS = 2000;
+
+    const $estado = document.getElementById('lote-estado-badge');
+    const $barra = document.getElementById('lote-barra');
+    const $procesadas = document.getElementById('lote-procesadas');
+    const $total = document.getElementById('lote-total');
+    const $totalCard = document.getElementById('lote-total-card');
+    const $porcentaje = document.getElementById('lote-porcentaje');
+    const $exitosas = document.getElementById('lote-exitosas');
+    const $fallidas = document.getElementById('lote-fallidas');
+    const $advertencias = document.getElementById('lote-advertencias');
+    const $errTbody = document.getElementById('lote-errores-tbody');
+    const $errResumen = document.getElementById('lote-errores-resumen');
+    const $errGeneral = document.getElementById('lote-error-general');
+    const $cancelando = document.getElementById('lote-cancelando');
+    const $formCancelar = document.getElementById('form-cancelar');
+    const $formReintentar = document.getElementById('form-reintentar');
+    const $btnDescargar = document.getElementById('btn-descargar-errores');
+
+    function setVisible(el, visible) {
+        if (!el) return;
+        el.classList.toggle('d-none', !visible);
+    }
+
+    function badgeClass(estado) {
+        switch (estado) {
+            case 'COMPLETADO': return 'badge bg-success';
+            case 'FALLIDO': return 'badge bg-danger';
+            case 'EN_PROCESO': return 'badge bg-warning text-dark';
+            case 'CANCELADO': return 'badge bg-dark';
+            default: return 'badge bg-light text-dark';
+        }
+    }
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function render(data) {
+        $estado.className = badgeClass(data.estado);
+        $estado.textContent = data.estado;
+
+        $procesadas.textContent = data.filas_procesadas;
+        $total.textContent = data.total_filas;
+        $totalCard.textContent = data.total_filas;
+        $exitosas.textContent = data.filas_exitosas;
+        $fallidas.textContent = data.filas_fallidas;
+        if ($advertencias) {
+            $advertencias.textContent = data.filas_con_advertencia || 0;
+        }
+
+        const pct = data.progreso_porcentaje || 0;
+        $barra.style.width = pct + '%';
+        $barra.setAttribute('aria-valuenow', pct);
+        $porcentaje.textContent = pct + '%';
+
+        if (data.mensaje_error_general) {
+            $errGeneral.classList.remove('d-none');
+            $errGeneral.textContent = data.mensaje_error_general;
+        } else {
+            $errGeneral.classList.add('d-none');
+            $errGeneral.textContent = '';
+        }
+
+        const errores = data.errores_preview || [];
+        if (errores.length === 0) {
+            $errTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Sin incidencias reportadas aún.</td></tr>';
+        } else {
+            $errTbody.innerHTML = errores.map(function (e) {
+                const tipo = e.tipo === 'warning'
+                    ? '<span class="badge bg-warning text-dark">Advertencia</span>'
+                    : '<span class="badge bg-danger">Error</span>';
+                const mensaje = e.mensaje || e.error || '';
+                return '<tr><td>' + tipo + '</td>' +
+                       '<td>' + escapeHtml(e.fila) + '</td>' +
+                       '<td>' + escapeHtml(e.documento) + '</td>' +
+                       '<td>' + escapeHtml(mensaje) + '</td></tr>';
+            }).join('');
+        }
+        const totIncidencias = (data.errores_total || 0) + (data.advertencias_total || 0);
+        $errResumen.textContent = '(' + totIncidencias + ' incidencias: '
+            + (data.errores_total || 0) + ' errores + '
+            + (data.advertencias_total || 0) + ' advertencias, mostrando ' + errores.length + ')';
+
+        setVisible($cancelando, !!data.cancelacion_solicitada && !data.finalizado);
+        setVisible($formCancelar, !!data.puede_cancelarse);
+        setVisible($formReintentar, !!data.puede_reintentarse);
+        setVisible($btnDescargar, !!data.finalizado && (data.errores_total || 0) > 0);
+
+        if (data.finalizado) {
+            $barra.classList.remove('progress-bar-animated');
+            if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        }
+    }
+
+    async function tick() {
+        try {
+            const res = await fetch(URL_ESTADO, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!res.ok) return;
+            const data = await res.json();
+            render(data);
+        } catch (e) {
+            /* errores de red transitorios: simplemente reintentamos */
+        }
+    }
+
+    pollTimer = setInterval(tick, POLL_MS);
+    tick();
+})();
+</script>
+
+<!-- Modal — Confirmar cancelación de lote -->
+<div class="modal fade" id="modalCancelarLote" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fffbeb;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#d97706;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Cancelar este lote?</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;">
+          Se detendrá el procesamiento. Las filas ya creadas <strong>se conservarán</strong>.
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">No, continuar</button>
+        <button type="submit" form="form-cancelar" class="btn btn-warning btn-sm">
+          <i class="bi bi-x-circle me-1"></i>Sí, cancelar lote
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal — Confirmar reintentar lote -->
+<div class="modal fade" id="modalReintentarLote" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-arrow-clockwise" style="color:#2563eb;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Reintentar este lote?</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;">
+          Se creará un <strong>nuevo lote</strong> usando el mismo archivo. El lote actual quedará como referencia.
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" form="form-reintentar" class="btn btn-primary btn-sm">
+          <i class="bi bi-arrow-clockwise me-1"></i>Sí, reintentar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal reenviar correos -->
+<div class="modal fade" id="modalReenviarCorreos" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-envelope-arrow-up-fill" style="color:#16a34a;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Reenviar correos de bienvenida?</h5>
+        <p class="text-muted mb-0" style="font-size:.85rem;">
+          Se enviará el correo de bienvenida a los <strong>{{ lote.total_procesados }}</strong>
+          aspirantes de este lote usando las credenciales SMTP de la institución.
+        </p>
+        <p class="text-warning mt-2 mb-0" style="font-size:.78rem;">
+          <i class="bi bi-info-circle me-1"></i>Los destinatarios recibirán el correo nuevamente aunque ya lo hayan recibido antes.
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" action="{% url 'admisiones:lote_reenviar_correos' lote.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success btn-sm">
+            <i class="bi bi-envelope-arrow-up me-1"></i>Sí, reenviar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}Acceso al Panel de Control{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+    body { background: #0f172a; }
+    .login-card { max-width: 440px; margin: 8vh auto; }
+    .shield-icon {
+        width: 64px; height: 64px; border-radius: 50%;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.25rem;
+        border: 2px solid #475569;
+    }
+    .field-group { margin-bottom: 1rem; }
+    .field-group label { font-size: .82rem; font-weight: 600; color: #475569; margin-bottom: .3rem; display: block; }
+    .field-group .form-control { border-radius: 10px; border: 1.5px solid #e2e8f0; font-size: .95rem; padding: .65rem 1rem; }
+    .field-group .form-control:focus { border-color: #334155; box-shadow: 0 0 0 3px rgba(51,65,85,.12); }
+    .divider { border-top: 1px dashed #e2e8f0; margin: 1.1rem 0; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="login-card">
+    <div class="card border-0 shadow-lg" style="border-radius:18px;overflow:hidden;">
+
+        <div style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);padding:2.5rem 2rem 1.5rem;text-align:center;color:white;">
+            <div class="shield-icon">
+                <i class="bi bi-shield-lock-fill" style="font-size:1.8rem;color:#94a3b8;"></i>
+            </div>
+            <h4 class="fw-800 mb-1">Panel de Control</h4>
+            <p style="font-size:.82rem;opacity:.55;margin:0;">Acceso restringido · triple verificación</p>
+        </div>
+
+        <div class="card-body p-4">
+
+            {% if messages %}
+            {% for msg in messages %}
+            <div class="alert alert-danger py-2 px-3 mb-3" style="font-size:.88rem;border-radius:8px;">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ msg }}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="post" autocomplete="off">
+                {% csrf_token %}
+
+                <!-- Usuario -->
+                <div class="field-group">
+                    <label for="id_username"><i class="bi bi-person me-1"></i>Usuario</label>
+                    <input type="text" name="username" id="id_username"
+                           class="form-control"
+                           placeholder="Usuario administrador"
+                           autocomplete="username"
+                           autofocus
+                           value="{{ form.username.value|default:'' }}">
+                </div>
+
+                <!-- Contraseña -->
+                <div class="field-group">
+                    <label for="id_password"><i class="bi bi-lock me-1"></i>Contraseña</label>
+                    <input type="password" name="password" id="id_password"
+                           class="form-control"
+                           placeholder="Contraseña"
+                           autocomplete="current-password">
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Clave maestra -->
+                <div class="field-group">
+                    <label for="id_master_password"><i class="bi bi-key-fill me-1"></i>Clave Maestra</label>
+                    <input type="password" name="master_password" id="id_master_password"
+                           class="form-control"
+                           placeholder="Clave maestra de la plataforma"
+                           autocomplete="off">
+                    <small class="text-muted" style="font-size:.75rem;">Credencial exclusiva del propietario de la plataforma.</small>
+                </div>
+
+                <div class="d-grid mt-3">
+                    <button type="submit" class="btn btn-dark btn-lg fw-700" style="border-radius:10px;">
+                        <i class="bi bi-unlock-fill me-2"></i>Acceder al Panel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,51 +1,155 @@
-{# gestion_academica/templates/gestion_academica/materia_formulario.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-{% load crispy_forms_tags %} {# Opcional, si usas django-crispy-forms #}
+{% extends "base_academico.html" %}
+{% load static %}
 
-{% block titulo %}{{ titulo_formulario|default:"Formulario de Materia" }}{% endblock titulo %}
+{% block titulo %}{{ titulo_formulario|default:"Formulario de Materia" }}{% endblock %}
 
 {% block contenido %}
-<div class="container mt-4">
-    <h1 class="mb-4">{{ titulo_formulario|default:"Formulario de Materia" }}</h1>
-    <hr>
-    <form method="post" novalidate class="shadow-sm p-4 bg-white rounded-3">
-        {% csrf_token %}
 
-        {% if form.non_field_errors %}
-            <div class="alert alert-danger" role="alert">
-                <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> Errores del Formulario:</h4>
-                <ul class="mb-0 ps-3">
-                {% for error in form.non_field_errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
-
-        {# Renderizado manual de cada campo con mejoras de Bootstrap #}
-        {% for field in form %}
-            <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}</label>
-                {{ field }} {# Esta línea renderiza el widget del campo (input, textarea, etc.) #}
-                {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
-                {% for error_message in field.errors %}
-                    <div class="text-danger mt-1"><small>{{ error_message }}</small></div>
-                {% endfor %}
-            </div>
-        {% endfor %}
-
-        <hr>
-        <div class="d-flex justify-content-end">
-            <button type="submit" class="btn btn-success me-2">
-                <i class="bi bi-check-circle-fill"></i> Guardar Cambios
-            </button>
-            <a href="{% url 'gestion_academica:lista_materias' %}" class="btn btn-secondary">
-                <i class="bi bi-x-circle-fill"></i> Cancelar
-            </a>
-        </div>
-    </form>
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+  <h2 class="mb-1"><i class="bi bi-book-fill me-2"></i>{{ titulo_formulario|default:"Materia" }}</h2>
+  <p class="mb-0" style="opacity:.85;font-size:.92rem;">Completa los datos de la materia. Los campos marcados con <span style="color:#fde68a;">*</span> son obligatorios.</p>
 </div>
-{% endblock contenido %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+          </div>
+          {% endif %}
+
+          {# ── Datos principales ── #}
+          <h6 class="fw-bold mb-3" style="color:#4f46e5;font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;">
+            <i class="bi bi-info-circle-fill me-1"></i>Datos de la Materia
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold" style="font-size:.83rem;">Nombre de la Materia <span class="text-danger">*</span></label>
+              {{ form.nombre_materia }}
+              {% for e in form.nombre_materia.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold" style="font-size:.83rem;">Código</label>
+              {{ form.codigo_materia }}
+              {% for e in form.codigo_materia.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="font-size:.83rem;">Descripción</label>
+              {{ form.descripcion }}
+              {% for e in form.descripcion.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
+            </div>
+            {% if request.user.is_superuser %}
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="font-size:.83rem;">Institución <span class="text-danger">*</span></label>
+              {{ form.institucion }}
+              {% for e in form.institucion.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
+            </div>
+            {% else %}
+              {{ form.institucion.as_hidden }}
+            {% endif %}
+          </div>
+
+          {# ── Bloque bilingüe (solo visible si es_bilingue=True) ── #}
+          {% if es_bilingue %}
+          <hr class="my-3">
+          <div style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-radius:12px;padding:1.25rem;border:1px solid #bae6fd;margin-bottom:1rem;">
+            <h6 class="fw-bold mb-3" style="color:#0369a1;font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;">
+              <i class="bi bi-translate me-1"></i>Configuración Bilingüe — {{ idioma_secundario }}
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-7">
+                <label class="form-label fw-semibold" style="font-size:.83rem;">Nombre en {{ idioma_secundario }}</label>
+                <div class="input-group">
+                  {{ form.nombre_idioma_secundario }}
+                  <button type="button" id="btn-sugerir-ia"
+                          class="btn btn-sm"
+                          style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;border:none;border-radius:0 6px 6px 0;font-size:.8rem;white-space:nowrap;"
+                          title="Gemini sugerirá el nombre basado en el nombre en español">
+                    <span id="btn-ia-texto"><i class="bi bi-stars me-1"></i>Sugerir con IA</span>
+                    <span id="btn-ia-loading" style="display:none;"><span class="spinner-border spinner-border-sm me-1"></span>Consultando…</span>
+                  </button>
+                </div>
+                <div class="form-text">Ej: Mathematics, Natural Sciences, Social Studies…</div>
+                {% for e in form.nombre_idioma_secundario.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
+              </div>
+              <div class="col-md-5">
+                <label class="form-label fw-semibold" style="font-size:.83rem;">Idioma de Instrucción</label>
+                {{ form.idioma_instruccion }}
+                <div class="form-text">Idioma en que se dicta esta materia.</div>
+                {% for e in form.idioma_instruccion.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          {# ── Acciones ── #}
+          <div class="d-flex justify-content-end gap-2 mt-2">
+            <a href="{% url 'gestion_academica:lista_materias' %}" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-x-circle me-1"></i>Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary btn-sm px-4">
+              <i class="bi bi-floppy-fill me-1"></i>Guardar
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+{% if es_bilingue %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const btnSugerir     = document.getElementById('btn-sugerir-ia');
+  const btnTexto       = document.getElementById('btn-ia-texto');
+  const btnLoading     = document.getElementById('btn-ia-loading');
+  const inputNombreEs  = document.querySelector('[name="nombre_materia"]');
+  const inputNombreL2  = document.querySelector('[name="nombre_idioma_secundario"]');
+
+  if (!btnSugerir) return;
+
+  btnSugerir.addEventListener('click', function () {
+    const nombreEs = inputNombreEs ? inputNombreEs.value.trim() : '';
+    if (!nombreEs) {
+      alert('Escribe primero el nombre de la materia en español.');
+      return;
+    }
+    btnTexto.style.display   = 'none';
+    btnLoading.style.display = 'inline';
+    btnSugerir.disabled      = true;
+
+    fetch('{% url "gestion_academica:api_sugerir_nombre_idioma" %}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+      body: JSON.stringify({ nombre_es: nombreEs, idioma: '{{ idioma_secundario }}' }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.nombre_sugerido) {
+        inputNombreL2.value = data.nombre_sugerido;
+        inputNombreL2.style.background = '#f0fdf4';
+        setTimeout(() => { inputNombreL2.style.background = ''; }, 1500);
+      } else {
+        alert('Error: ' + (data.error || 'Respuesta inesperada.'));
+      }
+    })
+    .catch(() => alert('Error de red. Intenta de nuevo.'))
+    .finally(() => {
+      btnTexto.style.display   = 'inline';
+      btnLoading.style.display = 'none';
+      btnSugerir.disabled      = false;
+    });
+  });
+});
+</script>
+{% endif %}
+{% endblock %}

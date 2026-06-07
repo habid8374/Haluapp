@@ -1,0 +1,233 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}Configuración — Corte Preventivo{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .config-section { border-left:4px solid #7c3aed; padding-left:1rem; margin-bottom:1.5rem; }
+  .toggle-card { border-radius:12px; border:1px solid #e5e7eb; padding:.9rem 1.1rem;
+                 display:flex; align-items:center; justify-content:space-between; gap:1rem;
+                 transition:.15s; }
+  .toggle-card:hover { border-color:#a5b4fc; background:#fafafa; }
+  .toggle-card .label-group { flex:1; }
+  .toggle-card .form-check-label { font-weight:600; font-size:.92rem; cursor:pointer; }
+  .toggle-card .form-check-label small { display:block; font-weight:400; color:#6b7280; font-size:.78rem; }
+  .form-check-input:checked { background-color:#4f46e5; border-color:#4f46e5; }
+  .threshold-chip { display:inline-flex; align-items:center; gap:.4rem; border-radius:20px;
+                    padding:.2rem .7rem; font-size:.78rem; font-weight:700; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<!-- Hero Banner -->
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'gestion_academica:lista_cortes_preventivos' %}"
+       class="btn btn-outline-light btn-sm">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+      <h2 class="mb-1 fw-800"><i class="bi bi-gear-fill me-2"></i>Configuración del Módulo</h2>
+      <p class="mb-0 opacity-75">Ajusta los umbrales de riesgo y las opciones de presentación de los informes.</p>
+    </div>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- ── UMBRALES DE RIESGO ─────────────────────────────────────── -->
+      <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
+        <div class="card-body p-4">
+          <div class="config-section">
+            <h5 class="fw-800 mb-0"><i class="bi bi-speedometer2 me-2 text-primary"></i>Umbrales de Riesgo Académico</h5>
+            <p class="text-muted small mb-0 mt-1">
+              Define en qué nota se activa cada nivel de alerta. Un estudiante es de
+              "Riesgo Alto" si su promedio es <em>menor</em> al umbral bajo.
+            </p>
+          </div>
+
+          <!-- Visualización de escala -->
+          <div class="d-flex align-items-center gap-1 mb-4 flex-wrap">
+            <span class="threshold-chip" style="background:#fee2e2;color:#991b1b;">
+              <i class="bi bi-exclamation-triangle-fill"></i>ALTO &lt; {{ cfg.umbral_riesgo_bajo }}
+            </span>
+            <i class="bi bi-arrow-right text-muted"></i>
+            <span class="threshold-chip" style="background:#fef9c3;color:#92400e;">
+              <i class="bi bi-exclamation-circle-fill"></i>MEDIO {{ cfg.umbral_riesgo_bajo }}–{{ cfg.umbral_riesgo_medio }}
+            </span>
+            <i class="bi bi-arrow-right text-muted"></i>
+            <span class="threshold-chip" style="background:#dbeafe;color:#1e40af;">
+              <i class="bi bi-info-circle-fill"></i>BAJO {{ cfg.umbral_riesgo_medio }}–3.9
+            </span>
+            <i class="bi bi-arrow-right text-muted"></i>
+            <span class="threshold-chip" style="background:#dcfce7;color:#166534;">
+              <i class="bi bi-check-circle-fill"></i>OK ≥ 4.0
+            </span>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-600 small">
+                <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>
+                Umbral Riesgo Alto (nota menor a...)
+              </label>
+              <input type="text" inputmode="decimal" name="umbral_riesgo_bajo" class="form-control"
+                     value="{{ cfg.umbral_riesgo_bajo }}"
+                     placeholder="Ej: 2.9" pattern="[0-9]+([.,][0-9]+)?" required>
+              <div class="form-text">Si el promedio es menor a este valor → Riesgo Alto.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-600 small">
+                <i class="bi bi-exclamation-circle-fill text-warning me-1"></i>
+                Umbral Riesgo Medio (nota menor a...)
+              </label>
+              <input type="text" inputmode="decimal" name="umbral_riesgo_medio" class="form-control"
+                     value="{{ cfg.umbral_riesgo_medio }}"
+                     placeholder="Ej: 3.4" pattern="[0-9]+([.,][0-9]+)?" required>
+              <div class="form-text">Si el promedio es menor a este valor (y mayor al anterior) → Riesgo Medio.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-600 small">
+                <i class="bi bi-calendar-x text-danger me-1"></i>
+                % de Inasistencia que genera alerta
+              </label>
+              <div class="input-group">
+                <input type="number" name="porcentaje_inasistencia_alerta" class="form-control"
+                       value="{{ cfg.porcentaje_inasistencia_alerta }}"
+                       min="1" max="100" required>
+                <span class="input-group-text">%</span>
+              </div>
+              <div class="form-text">Si el estudiante lleva este % de inasistencias, sube automáticamente su nivel de riesgo.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── OPCIONES DE INFORME ──────────────────────────────────── -->
+      <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
+        <div class="card-body p-4">
+          <div class="config-section">
+            <h5 class="fw-800 mb-0"><i class="bi bi-file-earmark-text me-2 text-primary"></i>Contenido del Informe PDF</h5>
+            <p class="text-muted small mb-0 mt-1">
+              Elige qué información debe incluirse al exportar los informes.
+            </p>
+          </div>
+
+          <div class="row g-2">
+
+            <div class="col-md-6">
+              <div class="toggle-card">
+                <div class="label-group">
+                  <label class="form-check-label" for="mostrar_promedio_parcial">
+                    Mostrar promedio parcial
+                    <small>Incluye el promedio calculado hasta la fecha del corte.</small>
+                  </label>
+                </div>
+                <div class="form-check form-switch ms-2 mb-0">
+                  <input class="form-check-input" type="checkbox" role="switch"
+                         name="mostrar_promedio_parcial" id="mostrar_promedio_parcial"
+                         {% if cfg.mostrar_promedio_parcial %}checked{% endif %}
+                         style="width:2.5rem;height:1.3rem;">
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="toggle-card">
+                <div class="label-group">
+                  <label class="form-check-label" for="mostrar_asistencia">
+                    Incluir asistencia
+                    <small>Muestra el porcentaje de asistencia acumulado.</small>
+                  </label>
+                </div>
+                <div class="form-check form-switch ms-2 mb-0">
+                  <input class="form-check-input" type="checkbox" role="switch"
+                         name="mostrar_asistencia" id="mostrar_asistencia"
+                         {% if cfg.mostrar_asistencia %}checked{% endif %}
+                         style="width:2.5rem;height:1.3rem;">
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="toggle-card">
+                <div class="label-group">
+                  <label class="form-check-label" for="mostrar_observaciones_docente">
+                    Observaciones de docentes
+                    <small>Incluye los comentarios escritos por cada docente.</small>
+                  </label>
+                </div>
+                <div class="form-check form-switch ms-2 mb-0">
+                  <input class="form-check-input" type="checkbox" role="switch"
+                         name="mostrar_observaciones_docente" id="mostrar_observaciones_docente"
+                         {% if cfg.mostrar_observaciones_docente %}checked{% endif %}
+                         style="width:2.5rem;height:1.3rem;">
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="toggle-card">
+                <div class="label-group">
+                  <label class="form-check-label" for="firma_rector_en_reporte">
+                    Firma del rector
+                    <small>Añade un espacio de firma al pie del PDF individual.</small>
+                  </label>
+                </div>
+                <div class="form-check form-switch ms-2 mb-0">
+                  <input class="form-check-input" type="checkbox" role="switch"
+                         name="firma_rector_en_reporte" id="firma_rector_en_reporte"
+                         {% if cfg.firma_rector_en_reporte %}checked{% endif %}
+                         style="width:2.5rem;height:1.3rem;">
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="toggle-card">
+                <div class="label-group">
+                  <label class="form-check-label" for="permitir_descarga_familiar">
+                    Portal familiar puede descargar
+                    <small>Las familias pueden bajar su informe desde el portal.</small>
+                  </label>
+                </div>
+                <div class="form-check form-switch ms-2 mb-0">
+                  <input class="form-check-input" type="checkbox" role="switch"
+                         name="permitir_descarga_familiar" id="permitir_descarga_familiar"
+                         {% if cfg.permitir_descarga_familiar %}checked{% endif %}
+                         style="width:2.5rem;height:1.3rem;">
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PIE DE PÁGINA PDF ────────────────────────────────────── -->
+      <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
+        <div class="card-body p-4">
+          <div class="config-section">
+            <h5 class="fw-800 mb-0"><i class="bi bi-chat-text me-2 text-primary"></i>Texto del Pie de Página</h5>
+            <p class="text-muted small mb-0 mt-1">Este texto aparece al final de cada informe PDF exportado.</p>
+          </div>
+          <textarea name="texto_pie_pagina" class="form-control" rows="3"
+                    placeholder="Ej: Este informe es de carácter preventivo y no constituye el boletín oficial de calificaciones.">{{ cfg.texto_pie_pagina }}</textarea>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="d-flex gap-3">
+        <button type="submit" class="btn btn-primary d-flex align-items-center gap-2 px-4">
+          <i class="bi bi-save-fill"></i>Guardar configuración
+        </button>
+        <a href="{% url 'gestion_academica:lista_cortes_preventivos' %}"
+           class="btn btn-outline-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

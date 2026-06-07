@@ -73,10 +73,30 @@
                                                         {% for pago in cuenta.pagos.all %}
                                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                                             <div>
-                                                                Pago de <strong>${{ pago.valor_pagado|floatformat:2 }}</strong> 
+                                                                Pago de <strong>${{ pago.valor_pagado|floatformat:2 }}</strong>
                                                                 <small class="text-muted"> ({{ pago.fecha_pago|date:"d M, Y" }} - {{ pago.get_metodo_pago_display }})</small>
+                                                                {% if pago.fe_validada %}
+                                                                <div class="mt-1">
+                                                                    <span class="badge bg-success" title="Factura electrónica validada por la DIAN">
+                                                                        <i class="bi bi-patch-check-fill"></i> FE {{ pago.fe_validada.numero }}
+                                                                    </span>
+                                                                    {% if pago.fe_validada.url_pdf %}<a href="{{ pago.fe_validada.url_pdf }}" target="_blank" class="small ms-1">PDF</a>{% endif %}
+                                                                    {% if pago.fe_validada.qr %}<a href="{{ pago.fe_validada.qr }}" target="_blank" class="small ms-1">Ver en DIAN</a>{% endif %}
+                                                                </div>
+                                                                {% endif %}
                                                             </div>
                                                             <div class="btn-group">
+                                                                <a href="{% url 'finanzas:generar_recibo_pago' pago_id=pago.pk %}" target="_blank" class="btn btn-sm btn-outline-primary" title="Ver / imprimir recibo">
+                                                                    <i class="bi bi-receipt"></i> Recibo
+                                                                </a>
+                                                                {% if factura_electronica_activa and not pago.fe_validada %}
+                                                                <form method="post" action="{% url 'facturacion_electronica:emitir_factura' pago_id=pago.pk %}" style="display:inline;">
+                                                                    {% csrf_token %}
+                                                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Emitir factura electrónica (DIAN)">
+                                                                        <i class="bi bi-file-earmark-check"></i> Factura electrónica
+                                                                    </button>
+                                                                </form>
+                                                                {% endif %}
                                                                 <a href="{% url 'finanzas:editar_pago' pago_id=pago.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar este pago">
                                                                     <i class="bi bi-pencil-fill"></i> Editar
                                                                 </a>

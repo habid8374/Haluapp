@@ -12,57 +12,108 @@
         </a>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+    <div class="row g-4">
+        <div class="col-lg-7">
             <div class="card shadow-sm">
                 <div class="card-header">
-                    Subir Archivo Excel (.xlsx)
+                    Subir archivo Excel (.xlsx)
                 </div>
                 <div class="card-body p-4">
                     <div class="alert alert-info" role="alert">
-                        <h4 class="alert-heading">¡Instrucciones Importantes!</h4>
-                        <p>Para asegurar una importación exitosa, por favor, sigue estos pasos:</p>
-                        <hr>
-                        <ol class="mb-0">
+                        <h5 class="alert-heading mb-2">Instrucciones rápidas</h5>
+                        <ol class="mb-2">
                             <li>
-                                <strong>Descarga nuestra plantilla oficial.</strong> Esto garantiza que las columnas tengan el formato y los nombres correctos.
-                                <br>
-                                <a href="{% url 'admisiones:descargar_plantilla_importacion' %}" class="btn btn-sm btn-success mt-2">
-                                    <i class="bi bi-file-earmark-excel-fill"></i> Descargar Plantilla de Importación
+                                <a href="{% url 'admisiones:descargar_plantilla_importacion' %}" class="btn btn-sm btn-success">
+                                    <i class="bi bi-file-earmark-excel-fill"></i> Descargar plantilla
                                 </a>
                             </li>
-                            <li class="mt-3">
-                                Llena la plantilla con los datos de los aspirantes.
-                                <ul class="mt-2">
-                                    <li>La columna <strong>'grado_aspira_id'</strong> debe contener el ID numérico del grado (disponible en la hoja "Ayuda" de la plantilla).</li>
-                                    <li class="mt-2">
-                                        ⭐ <strong>Nuevo campo obligatorio:</strong>
-                                        <br>
-                                        Agrega la columna <code><strong>paga_inscripcion (SI/NO)</strong></code> en tu archivo.
-                                        <ul class="mt-2">
-                                            <li>Escribe <code>SI</code>, <code>SÍ</code>, <code>TRUE</code> o <code>1</code> para que el sistema genere la cuenta por pagar.</li>
-                                            <li>Escribe <code>NO</code>, <code>FALSE</code> o <code>0</code> para evitar generar el cobro.</li>
-                                            <li>Si el campo está vacío o contiene un valor no válido, el registro será rechazado.</li>
-                                        </ul>
-                                    </li>
-                                </ul>
+                            <li class="mt-2">
+                                Llena la plantilla. Columnas obligatorias:
+                                <code>nombres</code>, <code>apellidos</code>, <code>numero_documento</code>,
+                                <code>fecha_nacimiento</code>, <code>email_contacto</code>,
+                                <code>grado_aspira</code> (el nombre exacto del grado, no el ID).
                             </li>
                             <li class="mt-2">
-                                Guarda el archivo y súbelo usando el formulario de abajo.
+                                Otras columnas: <code>telefono_contacto</code>,
+                                <code>sexo</code> (M / F / O), <code>colegio_procedencia</code>,
+                                <code>municipio_ciudad</code>, <code>departamento</code>,
+                                <code>paga_inscripcion</code> (SI / NO).
+                            </li>
+                            <li class="mt-2">
+                                Usa el <strong>modo simulación</strong> en tu primera carga: valida el archivo
+                                fila por fila sin crear ningún registro.
                             </li>
                         </ol>
+                        <p class="mb-0 small text-muted">
+                            La importación se ejecuta en segundo plano. Verás el progreso en vivo en la siguiente pantalla.
+                        </p>
                     </div>
 
-                    <form method="post" enctype="multipart/form-data" class="mt-4">
+                    <form method="post" enctype="multipart/form-data" class="mt-3">
                         {% csrf_token %}
-                        {{ form|crispy }}
+                        {{ form.archivo_excel|as_crispy_field }}
+                        <div class="form-check mt-3">
+                            {{ form.dry_run }}
+                            <label class="form-check-label" for="{{ form.dry_run.id_for_label }}">
+                                {{ form.dry_run.label }}
+                            </label>
+                            <div class="form-text">{{ form.dry_run.help_text }}</div>
+                        </div>
                         <hr>
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-upload"></i> Subir y Procesar Archivo
+                                <i class="bi bi-upload"></i> Subir y procesar
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    Lotes recientes
+                </div>
+                <div class="card-body p-0">
+                    {% if lotes_recientes %}
+                    <ul class="list-group list-group-flush">
+                        {% for lote in lotes_recientes %}
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="me-2 flex-grow-1">
+                                <a href="{% url 'admisiones:lote_importacion_detalle' lote.id %}" class="fw-semibold text-decoration-none">
+                                    Lote #{{ lote.id }}
+                                </a>
+                                {% if lote.dry_run %}<span class="badge bg-secondary ms-1">SIM</span>{% endif %}
+                                <div class="small text-muted">
+                                    {{ lote.nombre_original|default:"(sin nombre)" }}<br>
+                                    {{ lote.fecha_creacion|date:"d/m/Y H:i" }} · {{ lote.creado_por|default:"—" }}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                {% if lote.estado == 'COMPLETADO' %}
+                                    <span class="badge bg-success">OK</span>
+                                {% elif lote.estado == 'FALLIDO' %}
+                                    <span class="badge bg-danger">Falló</span>
+                                {% elif lote.estado == 'EN_PROCESO' %}
+                                    <span class="badge bg-warning text-dark">En proceso</span>
+                                {% elif lote.estado == 'CANCELADO' %}
+                                    <span class="badge bg-dark">Cancelado</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark">Pendiente</span>
+                                {% endif %}
+                                <div class="small text-muted mt-1">
+                                    {{ lote.filas_exitosas }} / {{ lote.total_filas }}
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="p-3 text-muted small">
+                        Aún no hay importaciones recientes para esta institución.
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

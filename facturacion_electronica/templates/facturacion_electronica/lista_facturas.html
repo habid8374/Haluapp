@@ -1,0 +1,434 @@
+{% extends "base_finanzas.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .fe-hero { background: linear-gradient(135deg, #0d3b66 0%, #1d4ed8 100%); border-radius: 16px; padding: 1.5rem 1.75rem; color: #fff; margin-bottom: 1.25rem; }
+  .fe-kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: .85rem 1rem; }
+  .fe-kpi .v { font-size: 1.35rem; font-weight: 800; color: #0d3b66; line-height: 1.2; display: block; }
+  .fe-kpi .l { font-size: .72rem; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; display: block; margin-top: 2px; }
+  .fe-filtros { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem; }
+  .fe-table th { font-size: .74rem; text-transform: uppercase; letter-spacing: .03em; color: #475569; background: #f8fafc; }
+  .fe-table td { font-size: .86rem; vertical-align: middle; color: #1e293b; }
+  .fe-table a { color: #1d4ed8; }
+  .acc-header-btn { background: #f1f5f9 !important; color: #0f172a !important; font-weight: 600; font-size: .9rem; }
+  .acc-header-btn:not(.collapsed) { background: #e0e7ff !important; color: #1d4ed8 !important; }
+  .acc-header-btn::after { filter: none; }
+  .mes-badge { font-size: .75rem; font-weight: 700; padding: .25em .6em; border-radius: 20px; background: #e2e8f0; color: #475569; margin-left: .5rem; }
+  .acc-header-btn:not(.collapsed) .mes-badge { background: #c7d2fe; color: #3730a3; }
+  /* offcanvas form */
+  .offcanvas-header-fe { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #fff; }
+  .off-section { font-size: .8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .4rem; margin-top: 1rem; }
+  .grados-box { max-height: 170px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: .5rem .75rem; background: #f8fafc; }
+  .grados-box .form-check { margin-bottom: .2rem; }
+  .grados-box .form-check-label { font-size: .85rem; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+
+  <!-- HERO -->
+  <div class="fe-hero d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-1" style="font-size:1.4rem;"><i class="bi bi-receipt-cutoff me-2"></i>Facturación Electrónica</h2>
+      <p class="mb-0" style="opacity:.85; font-size:.9rem;">Documentos validados ante la DIAN vía Factus · ordenados por mes</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if form_masiva %}
+      <button class="btn btn-success fw-bold" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMasiva">
+        <i class="bi bi-lightning-fill me-1"></i> Facturación Masiva
+      </button>
+      {% endif %}
+      <a href="{% url 'facturacion_electronica:configuracion' %}" class="btn btn-light fw-bold" style="color:#0d3b66;">
+        <i class="bi bi-gear-fill me-1"></i> Configuración
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+      {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if not modulo_activo %}
+  <div class="alert alert-warning"><i class="bi bi-lock-fill me-1"></i> Módulo <strong>inactivo</strong> — servicio adicional. Contacta al administrador de la plataforma.</div>
+  {% endif %}
+
+  <!-- KPIs -->
+  <div class="row g-2 mb-3">
+    <div class="col-6 col-md-2">
+      <div class="fe-kpi">
+        <span class="v">{{ stats.facturas }}</span>
+        <span class="l">Facturas</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="fe-kpi">
+        <span class="v" style="color:#0891b2;">{{ stats.notas_credito }}</span>
+        <span class="l">Notas Crédito</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="fe-kpi">
+        <span class="v" style="color:#1e293b;">{{ stats.notas_debito }}</span>
+        <span class="l">Notas Débito</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="fe-kpi">
+        <span class="v" style="color:#dc2626;">{{ stats.errores }}</span>
+        <span class="l">Errores</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="fe-kpi">
+        <span class="v" style="color:#16a34a;">${{ monto_facturado|floatformat:0 }}</span>
+        <span class="l">Facturado</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="fe-kpi">
+        <span class="v">{{ consumo }}</span>
+        <span class="l">Consumo (docs)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <form method="get" class="fe-filtros mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small mb-1">Buscar (número, CUFE, estudiante, documento)</label>
+        <input type="text" name="q" value="{{ filtros.q }}" class="form-control form-control-sm" placeholder="Ej: SETP990... o nombre">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Tipo</label>
+        <select name="tipo" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          <option value="FACTURA" {% if filtros.tipo == 'FACTURA' %}selected{% endif %}>Factura</option>
+          <option value="NOTA_CREDITO" {% if filtros.tipo == 'NOTA_CREDITO' %}selected{% endif %}>Nota Crédito</option>
+          <option value="NOTA_DEBITO" {% if filtros.tipo == 'NOTA_DEBITO' %}selected{% endif %}>Nota Débito</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Estado</label>
+        <select name="estado" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          <option value="VALIDADA" {% if filtros.estado == 'VALIDADA' %}selected{% endif %}>Validada</option>
+          <option value="ERROR" {% if filtros.estado == 'ERROR' %}selected{% endif %}>Error</option>
+          <option value="PENDIENTE" {% if filtros.estado == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Desde</label>
+        <input type="date" name="desde" value="{{ filtros.desde }}" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Hasta</label>
+        <input type="date" name="hasta" value="{{ filtros.hasta }}" class="form-control form-control-sm">
+      </div>
+    </div>
+    <div class="mt-2 d-flex gap-2">
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>Filtrar</button>
+      <a href="{% url 'facturacion_electronica:lista_facturas' %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+    </div>
+  </form>
+
+  <!-- ACORDEÓN POR MES -->
+  {% regroup facturas by fecha_creacion|date:"Y-m" as grupos_mes %}
+
+  {% if grupos_mes %}
+  <div class="accordion" id="accordionFE">
+    {% for grupo in grupos_mes %}
+    <div class="accordion-item border mb-2" style="border-radius:10px; overflow:hidden;">
+      <h2 class="accordion-header" id="hd-{{ forloop.counter }}">
+        <button class="accordion-button acc-header-btn {% if not forloop.first %}collapsed{% endif %}"
+                type="button" data-bs-toggle="collapse"
+                data-bs-target="#cl-{{ forloop.counter }}"
+                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+          <i class="bi bi-calendar3 me-2" style="opacity:.7;"></i>
+          {{ grupo.list.0.fecha_creacion|date:"F Y"|capfirst }}
+          <span class="mes-badge">{{ grupo.list|length }} doc{% if grupo.list|length != 1 %}s{% endif %}</span>
+        </button>
+      </h2>
+      <div id="cl-{{ forloop.counter }}"
+           class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+           data-bs-parent="#accordionFE">
+        <div class="accordion-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover fe-table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th class="ps-3" style="width:90px;">Tipo</th>
+                  <th style="width:160px;">N° DIAN</th>
+                  <th>Estudiante</th>
+                  <th style="width:110px;">Origen</th>
+                  <th style="width:100px;">Estado</th>
+                  <th style="width:120px;">Fecha</th>
+                  <th class="text-center pe-3" style="width:140px;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for f in grupo.list %}
+                <tr>
+                  <td class="ps-3">
+                    {% if f.tipo == 'FACTURA' %}
+                      <span class="badge bg-primary">Factura</span>
+                    {% elif f.tipo == 'NOTA_CREDITO' %}
+                      <span class="badge bg-info text-dark">N. Crédito</span>
+                    {% else %}
+                      <span class="badge bg-dark">N. Débito</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{% url 'facturacion_electronica:detalle_factura' f.pk %}" class="fw-bold text-decoration-none">
+                      {{ f.numero|default:f.reference_code }}
+                    </a>
+                  </td>
+                  <td>{% if f.estudiante %}{{ f.estudiante.usuario.get_full_name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                  <td>{% if f.documento_origen %}{{ f.documento_origen.numero }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                  <td>
+                    {% if f.estado == 'VALIDADA' %}
+                      <span class="badge bg-success">Validada</span>
+                    {% elif f.estado == 'ERROR' %}
+                      <span class="badge bg-warning text-dark">Error</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ f.get_estado_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td style="color:#475569; font-size:.8rem;">{{ f.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                  <td class="text-center pe-3">
+                    <div class="btn-group btn-group-sm">
+                      <a href="{% url 'facturacion_electronica:detalle_factura' f.pk %}" class="btn btn-outline-primary" title="Ver detalle"><i class="bi bi-eye"></i></a>
+                      {% if f.url_pdf %}<a href="{{ f.url_pdf }}" target="_blank" class="btn btn-outline-danger" title="PDF DIAN"><i class="bi bi-file-earmark-pdf"></i></a>{% endif %}
+                      {% if f.qr %}<a href="{{ f.qr }}" target="_blank" class="btn btn-outline-secondary" title="Ver en DIAN"><i class="bi bi-qr-code"></i></a>{% endif %}
+                      {% if f.estado == 'VALIDADA' and f.tipo == 'FACTURA' and modulo_activo %}
+                        <button type="button" class="btn btn-outline-info" title="Nota Crédito"
+                                data-bs-toggle="modal" data-bs-target="#modalNota"
+                                data-tipo="credito" data-factura="{{ f.pk }}" data-numero="{{ f.numero }}">
+                          <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-dark" title="Nota Débito"
+                                data-bs-toggle="modal" data-bs-target="#modalNota"
+                                data-tipo="debito" data-factura="{{ f.pk }}" data-numero="{{ f.numero }}">
+                          <i class="bi bi-plus-circle"></i>
+                        </button>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- PAGINACIÓN -->
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-3">
+    <ul class="pagination pagination-sm justify-content-center">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ filtros.q }}&tipo={{ filtros.tipo }}&estado={{ filtros.estado }}&desde={{ filtros.desde }}&hasta={{ filtros.hasta }}">«</a>
+      </li>
+      {% endif %}
+      <li class="page-item disabled">
+        <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+      </li>
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ filtros.q }}&tipo={{ filtros.tipo }}&estado={{ filtros.estado }}&desde={{ filtros.desde }}&hasta={{ filtros.hasta }}">»</a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="text-center text-muted py-5">
+    <i class="bi bi-inbox" style="font-size:2.5rem; display:block; margin-bottom:.5rem;"></i>
+    No hay documentos con los filtros seleccionados.
+  </div>
+  {% endif %}
+
+</div>{# /container-fluid #}
+
+
+{# ══════════════════════════════════════════════════════════ #}
+{# OFFCANVAS — FACTURACIÓN MASIVA                            #}
+{# ══════════════════════════════════════════════════════════ #}
+{% if form_masiva %}
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasMasiva" style="width:460px; max-width:95vw;">
+  <div class="offcanvas-header offcanvas-header-fe">
+    <h5 class="offcanvas-title fw-bold">
+      <i class="bi bi-lightning-fill me-2"></i>Facturación Masiva
+    </h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <p class="text-muted mb-3" style="font-size:.85rem;">
+      Genera los cobros para múltiples estudiantes y emite la factura electrónica DIAN a crédito por cada uno.
+      El dinero no se marca como cobrado hasta que el padre pague.
+    </p>
+
+    <form method="post" action="{% url 'finanzas:facturacion_masiva' %}">
+      {% csrf_token %}
+
+      <!-- Concepto -->
+      <p class="off-section"><i class="bi bi-tag me-1"></i> Concepto de cobro</p>
+      {{ form_masiva.concepto_pago }}
+      {% if form_masiva.concepto_pago.errors %}
+        <div class="text-danger small mt-1">{{ form_masiva.concepto_pago.errors }}</div>
+      {% endif %}
+
+      <!-- Fecha vencimiento -->
+      <p class="off-section"><i class="bi bi-calendar-event me-1"></i> Fecha de vencimiento</p>
+      {{ form_masiva.fecha_vencimiento }}
+      {% if form_masiva.fecha_vencimiento.errors %}
+        <div class="text-danger small mt-1">{{ form_masiva.fecha_vencimiento.errors }}</div>
+      {% endif %}
+
+      <!-- Destinatarios -->
+      <p class="off-section"><i class="bi bi-people me-1"></i> Destinatarios</p>
+      <div class="form-check mb-2">
+        {{ form_masiva.toda_la_institucion }}
+        <label class="form-check-label fw-semibold" for="{{ form_masiva.toda_la_institucion.id_for_label }}">
+          Todos los estudiantes de la institución
+        </label>
+      </div>
+      <div id="gradosWrap" class="grados-box">
+        <small class="text-muted d-block mb-1">O selecciona grados específicos:</small>
+        {{ form_masiva.grados }}
+      </div>
+      {% if form_masiva.errors.grados or form_masiva.non_field_errors %}
+        <div class="text-danger small mt-1">{{ form_masiva.non_field_errors }}</div>
+      {% endif %}
+
+      <!-- Opciones adicionales -->
+      <p class="off-section"><i class="bi bi-toggles me-1"></i> Opciones</p>
+      <div class="form-check mb-2">
+        {{ form_masiva.notificar_correo }}
+        <label class="form-check-label" for="{{ form_masiva.notificar_correo.id_for_label }}">
+          Notificar a acudientes por correo
+          {% if not smtp_ok %}
+            <span class="badge bg-warning text-dark ms-1" style="font-size:.7rem;">SMTP sin configurar</span>
+          {% endif %}
+        </label>
+      </div>
+      {% if modulo_activo %}
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="emitir_factura_electronica" id="fe_emitir_check" checked>
+        <label class="form-check-label" for="fe_emitir_check">
+          Emitir Factura Electrónica DIAN por cada cobro
+          <span class="badge bg-success ms-1" style="font-size:.7rem;">módulo activo</span>
+        </label>
+      </div>
+      {% endif %}
+
+      <!-- Submit -->
+      <div class="d-grid mt-3">
+        <button type="submit" class="btn btn-primary btn-lg fw-bold">
+          <i class="bi bi-lightning-fill me-1"></i> Iniciar Facturación Masiva
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+
+{# ══════════════════════════════════════════════════════════ #}
+{# MODAL — NOTA CRÉDITO / DÉBITO                             #}
+{# ══════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalNota" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" id="form-nota">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="modalNotaTitulo">Emitir Nota</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-2">Documento sobre la factura <strong id="modalNotaFactura"></strong>.</p>
+          <label class="form-label" style="font-size:.88rem;">Motivo / concepto de corrección (DIAN):</label>
+          <select name="correction_code" id="modalNotaCodigo" class="form-select"></select>
+          <div id="modalNotaMontoWrap" class="mt-3 d-none">
+            <label class="form-label" style="font-size:.88rem;">Monto del cargo adicional (COP):</label>
+            <input type="number" min="1" step="0.01" name="monto" id="modalNotaMonto" class="form-control" placeholder="Ej: 15000">
+            <small class="text-muted">Valor que se sumará a la cuenta del estudiante.</small>
+          </div>
+          <div class="alert alert-warning mt-3 mb-0" style="font-size:.82rem;">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Documento legal ante la DIAN. La <strong>nota crédito</strong> anula el cobro;
+            la <strong>nota débito</strong> suma un cargo. No se puede deshacer.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="modalNotaSubmit">Emitir</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ── Offcanvas: toggle grados según "toda la institución" ── */
+  var todoCheck = document.getElementById('id_toda_la_institucion');
+  var gradosWrap = document.getElementById('gradosWrap');
+  if (todoCheck && gradosWrap) {
+    function toggleGrados() {
+      var dis = todoCheck.checked;
+      gradosWrap.querySelectorAll('input[type="checkbox"]').forEach(function (cb) { cb.disabled = dis; });
+      gradosWrap.style.opacity = dis ? '0.45' : '1';
+    }
+    todoCheck.addEventListener('change', toggleGrados);
+    toggleGrados();
+  }
+
+  /* ── Modal Nota Crédito / Débito ── */
+  var CODES = {
+    credito: [["1","Devolución parcial"],["2","Anulación de la factura"],["3","Rebaja o descuento"],["4","Ajuste de precio"],["5","Otros"]],
+    debito:  [["1","Intereses"],["2","Gastos por cobrar"],["3","Cambio del valor"],["4","Otros"]],
+  };
+  var URLS = {
+    credito: "{% url 'facturacion_electronica:emitir_nota_credito' 0 %}",
+    debito:  "{% url 'facturacion_electronica:emitir_nota_debito' 0 %}",
+  };
+  var modal = document.getElementById('modalNota');
+  if (modal) {
+    modal.addEventListener('show.bs.modal', function (ev) {
+      var btn = ev.relatedTarget;
+      var tipo = btn.getAttribute('data-tipo');
+      var facturaId = btn.getAttribute('data-factura');
+      var numero = btn.getAttribute('data-numero');
+      document.getElementById('modalNotaTitulo').textContent = tipo === 'credito' ? 'Emitir Nota Crédito' : 'Emitir Nota Débito';
+      document.getElementById('modalNotaFactura').textContent = numero || ('#' + facturaId);
+      var sel = document.getElementById('modalNotaCodigo');
+      sel.innerHTML = '';
+      CODES[tipo].forEach(function (c) {
+        var o = document.createElement('option');
+        o.value = c[0]; o.textContent = c[0] + ' · ' + c[1]; sel.appendChild(o);
+      });
+      document.getElementById('form-nota').action = URLS[tipo].replace('/0/', '/' + facturaId + '/');
+      document.getElementById('modalNotaSubmit').className = tipo === 'credito' ? 'btn btn-info' : 'btn btn-dark';
+      var w = document.getElementById('modalNotaMontoWrap');
+      var mi = document.getElementById('modalNotaMonto');
+      if (tipo === 'debito') { w.classList.remove('d-none'); mi.required = true; }
+      else { w.classList.add('d-none'); mi.required = false; mi.value = ''; }
+    });
+  }
+})();
+</script>
+{% endblock %}

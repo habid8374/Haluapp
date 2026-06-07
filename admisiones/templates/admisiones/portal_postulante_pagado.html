@@ -93,9 +93,10 @@
                         <p class="fs-5 fw-bold">{{ aspirante.cita_agendada.horario.fecha_hora_inicio|date:"l, d \d\e F \d\e Y \a \l\a\s H:i" }}</p>
                         <hr>
                         <p class="mb-0">Si no puedes asistir, puedes cancelar tu cita y elegir un nuevo horario.</p>
-                        <a href="{% url 'admisiones:cancelar_cita' token=aspirante.access_token %}" class="btn btn-sm btn-outline-danger mt-2" onclick="return confirm('¿Estás seguro de que quieres cancelar tu cita? Esta acción no se puede deshacer.');">
+                        <button type="button" class="btn btn-sm btn-outline-danger mt-2"
+                                data-bs-toggle="modal" data-bs-target="#modalCancelarCita">
                             <i class="bi bi-calendar-x"></i> Cancelar mi Cita
-                        </a>
+                        </button>
                     </div>
                 {% else %}
                     <p class="mt-2">Ya puedes agendar una entrevista con nuestro equipo de admisiones.</p>
@@ -110,5 +111,37 @@
             <!-- ================================================================ -->
         </div>
     </div>
+</div>
+
+<!-- Modal — Confirmar cancelación de cita -->
+<div class="modal fade" id="modalCancelarCita" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-calendar-x-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Cancelar tu cita?</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;">
+          Tu cita quedará cancelada y podrás elegir un nuevo horario disponible.
+        </p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;">
+          <i class="bi bi-info-circle me-1"></i>Esta acción no se puede deshacer.
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Volver</button>
+        <form method="post" action="{% url 'admisiones:cancelar_cita' token=aspirante.access_token %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="bi bi-calendar-x me-1"></i>Sí, cancelar mi cita
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

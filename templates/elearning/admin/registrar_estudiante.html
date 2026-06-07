@@ -1,0 +1,86 @@
+{% extends "base_academico.html" %}
+
+{% block contenido %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-person-plus-fill"></i> Admisión Express - Cursos Virtuales</h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    {% if es_superuser %}
+                    <div class="mb-4 p-3 bg-light border rounded">
+                        <label class="form-label fw-bold"><i class="bi bi-building"></i> Seleccionar Institución:</label>
+                        <form method="get" action="">
+                            <select name="institucion_id" class="form-select" onchange="this.form.submit()">
+                                {% for inst in instituciones %}
+                                    <option value="{{ inst.id }}" {% if inst.id == institucion_actual.id %}selected{% endif %}>
+                                        {{ inst.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+                    {% else %}
+                        <div class="alert alert-info"><i class="bi bi-building"></i> Institución: <strong>{{ institucion_actual.nombre }}</strong></div>
+                    {% endif %}
+
+                    <p class="text-muted mb-4">
+                        Utilice este formulario para registrar nuevos estudiantes externos que solo tomarán cursos virtuales. 
+                        Se creará su usuario y se les enviará el acceso por correo automáticamente.
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Campo oculto para asegurar que se cree en la institución seleccionada -->
+                        <input type="hidden" name="institucion_id" value="{{ institucion_actual.id }}">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nombres</label>
+                                <input type="text" name="first_name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Apellidos</label>
+                                <input type="text" name="last_name" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Documento de Identidad</label>
+                            <input type="text" name="documento" class="form-control" required>
+                            <div class="form-text">Se generará una contraseña temporal aleatoria para el estudiante al registrarlo.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control" required>
+                            <div class="form-text">El enlace de acceso al curso se enviará aquí.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Seleccionar Curso a Matricular</label>
+                            <select name="curso_id" class="form-select" required>
+                                <option value="">-- Seleccione un curso --</option>
+                                {% for curso in cursos %}
+                                    <option value="{{ curso.id }}">{{ curso.nombre }} ({{ curso.duracion_horas }}h)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> Registrar y Dar Acceso
+                            </button>
+                            <a href="{% url 'elearning:gestion_cursos_admin' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

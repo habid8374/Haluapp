@@ -1,0 +1,130 @@
+{% extends "base_academico.html" %}
+{% load static %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<style>
+  :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
+
+  .ps-hero {
+    background: linear-gradient(135deg, var(--ps-dark) 0%, var(--ps-mid) 55%, var(--ps-light) 100%);
+    padding: 2.2rem 2rem 2rem; position: relative; overflow: hidden;
+    border-radius: .85rem; margin-bottom: 1.8rem;
+  }
+  .ps-hero::before {
+    content:''; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .ps-hero-title { font-size:1.55rem; font-weight:900; color:#fff; margin:0; position:relative; z-index:1; }
+  .ps-hero-sub   { font-size:.88rem; color:rgba(255,255,255,.75); margin-top:.3rem; position:relative; z-index:1; }
+
+  /* Form card */
+  .ps-form-card { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); padding:2rem 2.2rem; }
+
+  .ps-label { font-size:.82rem; font-weight:700; color:var(--ps-dark); margin-bottom:.4rem; display:block; }
+  .ps-label span { color:#ef4444; margin-left:2px; }
+  .ps-input {
+    border:1.5px solid #e2e8f0; border-radius:9px; padding:.65rem .95rem;
+    font-size:.9rem; width:100%; transition:border-color .18s; outline:none; background:#f8faff;
+  }
+  .ps-input:focus { border-color:var(--ps-light); background:#fff; box-shadow:0 0 0 3px rgba(79,70,229,.08); }
+  select.ps-input { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234f46e5' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right .8rem center; padding-right:2.2rem; }
+  textarea.ps-input { resize:vertical; min-height:90px; }
+
+  /* Submit */
+  .ps-btn-submit {
+    background: linear-gradient(135deg, var(--ps-dark), var(--ps-light));
+    color:#fff; border:none; border-radius:10px; padding:.75rem 2rem;
+    font-weight:800; font-size:.95rem; cursor:pointer;
+    display:inline-flex; align-items:center; gap:.5rem;
+    transition: box-shadow .2s, transform .15s;
+  }
+  .ps-btn-submit:hover { box-shadow:0 4px 18px rgba(79,70,229,.4); transform:translateY(-1px); }
+
+</style>
+
+<div class="container mt-4" style="max-width:760px;">
+
+  <div class="ps-hero">
+    <div class="d-flex align-items-center gap-3">
+      <a href="{% url 'recursos_educativos:lista' %}" style="color:rgba(255,255,255,.7);text-decoration:none;position:relative;z-index:1;">
+        <i class="bi bi-arrow-left-circle-fill" style="font-size:1.4rem;"></i>
+      </a>
+      <div>
+        <h1 class="ps-hero-title"><i class="bi bi-plus-circle-fill me-2" style="opacity:.85"></i>Nueva Actividad 3D</h1>
+        <p class="ps-hero-sub">Asigna el visor del Cuerpo Humano a uno de tus cursos</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="ps-form-card">
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Curso -->
+      <div class="mb-4">
+        <label class="ps-label" for="curso">Curso <span>*</span></label>
+        <select name="curso" id="curso" class="ps-input" required>
+          <option value="">— Selecciona un curso —</option>
+          {% for c in cursos %}
+            <option value="{{ c.pk }}" {% if post_data.curso == c.pk|stringformat:"s" %}selected{% endif %}>
+              {{ c.materia.nombre_materia }} · {{ c.grado.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+        {% if not cursos %}
+          <p class="mt-1" style="font-size:.8rem;color:#ef4444;">No tienes cursos asignados en esta institución.</p>
+        {% endif %}
+      </div>
+
+      <!-- Título -->
+      <div class="mb-4">
+        <label class="ps-label" for="titulo">Título de la actividad <span>*</span></label>
+        <input type="text" name="titulo" id="titulo" class="ps-input"
+               placeholder="ej: Explora los órganos del cuerpo humano"
+               value="{{ post_data.titulo|default:'' }}" required maxlength="200">
+      </div>
+
+      <!-- Descripción -->
+      <div class="mb-4">
+        <label class="ps-label" for="descripcion">Descripción / Instrucciones</label>
+        <textarea name="descripcion" id="descripcion" class="ps-input"
+                  placeholder="Instrucciones para los estudiantes...">{{ post_data.descripcion|default:'' }}</textarea>
+      </div>
+
+      <!-- Modo (fijo: Galería) -->
+      <input type="hidden" name="modo" value="galeria">
+
+      <!-- Nota máxima + Fecha límite -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+          <label class="ps-label" for="valor_maximo">Nota máxima <span>*</span></label>
+          <input type="number" name="valor_maximo" id="valor_maximo" class="ps-input"
+                 step="0.01" min="0.01" max="100"
+                 value="{{ post_data.valor_maximo|default:'5.00' }}" required>
+          <small style="font-size:.75rem;color:#94a3b8;">
+            Nota máxima que puede obtener el estudiante al completar la actividad.
+          </small>
+        </div>
+        <div class="col-sm-6">
+          <label class="ps-label" for="fecha_entrega_limite">Fecha límite de entrega</label>
+          <input type="date" name="fecha_entrega_limite" id="fecha_entrega_limite" class="ps-input"
+                 value="{{ post_data.fecha_entrega_limite|default:'' }}">
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-3 pt-2">
+        <button type="submit" class="ps-btn-submit" {% if not cursos %}disabled{% endif %}>
+          <i class="bi bi-check-circle-fill"></i> Crear actividad y notificar estudiantes
+        </button>
+        <a href="{% url 'recursos_educativos:lista' %}" style="font-size:.88rem;color:#64748b;text-decoration:none;">
+          Cancelar
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

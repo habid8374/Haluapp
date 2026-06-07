@@ -1,5 +1,8 @@
 venv_escuela/
+.venv/
 .env
 __pycache__/
 *.pyc
 *.sqlite3
+*.log
+.git/

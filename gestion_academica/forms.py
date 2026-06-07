@@ -57,6 +57,9 @@ class CustomUserCreationForm(UserCreationForm):
                 self.fields['institucion_asociada'].initial = request.user.institucion_asociada
                 self.fields['institucion_asociada'].widget.attrs['disabled'] = True
 
+    def clean_email(self):
+        return (self.cleaned_data.get('email') or '').strip().lower()
+
 
 class CustomUserUpdateForm(forms.ModelForm):
     """
@@ -82,6 +85,9 @@ class CustomUserUpdateForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion_asociada'].initial = request.user.institucion_asociada
                 self.fields['institucion_asociada'].widget.attrs['disabled'] = True
+
+    def clean_email(self):
+        return (self.cleaned_data.get('email') or '').strip().lower()
 
 # --- Formularios de Registro Inicial ---
 class RegistroInicialForm(forms.ModelForm):
@@ -112,6 +118,12 @@ class RegistroInicialForm(forms.ModelForm):
             'eslogan': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
+    def clean_email(self):
+        return (self.cleaned_data.get('email') or '').strip().lower()
+
+    def clean_nit(self):
+        return (self.cleaned_data.get('nit') or '').strip()
+
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
@@ -119,10 +131,10 @@ class RegistroInicialForm(forms.ModelForm):
 
         if password and password_confirm and password != password_confirm:
             self.add_error('password_confirm', "Las contraseñas no coinciden.")
-        
+
         nombre_institucion = cleaned_data.get('nombre')
         if not self.instance.pk and nombre_institucion and InstitucionEducativa.objects.filter(nombre=nombre_institucion).exists():
-            raise forms.ValidationError({'nombre': "Ya existe una institución con este nombre."}) 
+            raise forms.ValidationError({'nombre': "Ya existe una institución con este nombre."})
 
         return cleaned_data
     
@@ -195,36 +207,44 @@ class EstudianteForm(forms.ModelForm):
         model = Estudiante
         # Añadimos los nuevos campos a la lista de fields
         fields = [
-            'documento_identidad', 'codigo_estudiante', 'fecha_nacimiento', 
-            'direccion', 'grado_actual', 'institucion', 'valor_matricula', 
+            'documento_identidad', 'tipo_documento', 'codigo_estudiante',
+            'fecha_nacimiento', 'lugar_nacimiento',
+            'direccion', 'grado_actual', 'institucion', 'valor_matricula',
             'valor_mensualidad',
-            # --- CAMPOS NUEVOS ---
-            'sexo', 'colegio_procedencia', 'municipio_ciudad', 'departamento',
-            'descuentos'
+            'sexo', 'grupo_sanguineo', 'eps', 'discapacidad',
+            'colegio_procedencia', 'municipio_ciudad', 'departamento',
+            'descuentos',
         ]
         widgets = {
             'documento_identidad': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_documento': forms.Select(attrs={'class': 'form-select'}),
             'codigo_estudiante': forms.TextInput(attrs={'class': 'form-control'}),
             'fecha_nacimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'direccion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'lugar_nacimiento': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ciudad y departamento'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control'}),
             'grado_actual': forms.Select(attrs={'class': 'form-select'}),
             'institucion': forms.Select(attrs={'class': 'form-select'}),
             'valor_matricula': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'valor_mensualidad': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            # --- WIDGETS PARA LOS NUEVOS CAMPOS ---
             'sexo': forms.Select(attrs={'class': 'form-select'}),
+            'grupo_sanguineo': forms.Select(attrs={'class': 'form-select'}),
+            'eps': forms.TextInput(attrs={'class': 'form-control'}),
+            'discapacidad': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dejar en blanco si no aplica'}),
             'colegio_procedencia': forms.TextInput(attrs={'class': 'form-control'}),
             'municipio_ciudad': forms.TextInput(attrs={'class': 'form-control'}),
             'departamento': forms.TextInput(attrs={'class': 'form-control'}),
             'descuentos': forms.SelectMultiple(attrs={'class': 'form-select', 'size': '5'}),
         }
         labels = {
-            # ... tus labels existentes ...
-            # --- LABELS PARA LOS NUEVOS CAMPOS ---
             'sexo': 'Sexo',
+            'tipo_documento': 'Tipo de Documento',
+            'lugar_nacimiento': 'Lugar de Nacimiento',
+            'grupo_sanguineo': 'Grupo Sanguíneo',
+            'eps': 'EPS / Entidad de Salud',
+            'discapacidad': 'Discapacidad (si aplica)',
             'colegio_procedencia': 'Colegio de Procedencia',
-            'municipio_ciudad': 'Municipio/Ciudad de Procedencia',
-            'departamento': 'Departamento de Procedencia',
+            'municipio_ciudad': 'Municipio/Ciudad',
+            'departamento': 'Departamento',
         }
 
     def __init__(self, *args, **kwargs):
@@ -238,20 +258,36 @@ class EstudianteForm(forms.ModelForm):
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].widget.attrs['disabled'] = True
 
+    def clean_documento_identidad(self):
+        return (self.cleaned_data.get('documento_identidad') or '').strip()
+
+    def clean_codigo_estudiante(self):
+        return (self.cleaned_data.get('codigo_estudiante') or '').strip()
+
 
 class DocenteForm(forms.ModelForm):
     class Meta:
         model = Docente
-        fields = ['codigo_docente', 'especialidad', 'institucion']
+        fields = [
+            'codigo_docente',
+            'especialidad',
+            'institucion',
+            'modalidad_liquidacion',
+            'valor_hora_docencia',
+        ]
         widgets = {
             'codigo_docente': forms.TextInput(attrs={'class': 'form-control'}),
             'especialidad': forms.TextInput(attrs={'class': 'form-control'}),
             'institucion': forms.Select(attrs={'class': 'form-select'}),
+            'modalidad_liquidacion': forms.Select(attrs={'class': 'form-select'}),
+            'valor_hora_docencia': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
         labels = {
             'codigo_docente': 'Código de Docente',
             'especialidad': 'Especialidad Principal',
             'institucion': 'Institución',
+            'modalidad_liquidacion': 'Modalidad de liquidación',
+            'valor_hora_docencia': 'Valor hora de referencia (opcional)',
         }
 
     def __init__(self, *args, **kwargs):
@@ -267,18 +303,25 @@ class DocenteForm(forms.ModelForm):
 class MateriaForm(forms.ModelForm):
     class Meta:
         model = Materia
-        fields = ['nombre_materia', 'codigo_materia', 'descripcion', 'institucion']
+        fields = [
+            'nombre_materia', 'codigo_materia', 'descripcion', 'institucion',
+            'nombre_idioma_secundario', 'idioma_instruccion',
+        ]
         widgets = {
-            'nombre_materia': forms.TextInput(attrs={'class': 'form-control'}),
-            'codigo_materia': forms.TextInput(attrs={'class': 'form-control'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'institucion': forms.Select(attrs={'class': 'form-select'}),
+            'nombre_materia':           forms.TextInput(attrs={'class': 'form-control'}),
+            'codigo_materia':           forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion':              forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'institucion':              forms.Select(attrs={'class': 'form-select'}),
+            'nombre_idioma_secundario': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Mathematics, Natural Sciences…'}),
+            'idioma_instruccion':       forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'nombre_materia': 'Nombre de la Materia',
-            'codigo_materia': 'Código de Materia',
-            'descripcion': 'Descripción',
-            'institucion': 'Institución',
+            'nombre_materia':           'Nombre de la Materia',
+            'codigo_materia':           'Código de Materia',
+            'descripcion':              'Descripción',
+            'institucion':              'Institución',
+            'nombre_idioma_secundario': 'Nombre en Idioma Secundario',
+            'idioma_instruccion':       'Idioma de Instrucción',
         }
 
     def __init__(self, *args, **kwargs):
@@ -963,11 +1006,28 @@ class FamiliarForm(forms.ModelForm):
     class Meta:
         model = Familiar
         # El campo 'usuario' se asignará desde la vista.
-        fields = ['parentesco', 'telefono', 'estudiantes_asociados']
+        fields = [
+            'parentesco', 'telefono',
+            'documento_identidad', 'tipo_documento',
+            'ocupacion', 'lugar_trabajo', 'direccion',
+            'estudiantes_asociados',
+        ]
         widgets = {
             'parentesco': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Padre, Madre, Acudiente'}),
             'telefono': forms.TextInput(attrs={'class': 'form-control'}),
+            'documento_identidad': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_documento': forms.Select(attrs={'class': 'form-select'}),
+            'ocupacion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Docente, Comerciante…'}),
+            'lugar_trabajo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Empresa u organización'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dirección de residencia'}),
             'estudiantes_asociados': forms.SelectMultiple(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'documento_identidad': 'Número de Documento',
+            'tipo_documento': 'Tipo de Documento',
+            'ocupacion': 'Ocupación',
+            'lugar_trabajo': 'Lugar de Trabajo / Empresa',
+            'direccion': 'Dirección de Residencia',
         }
 
     def __init__(self, *args, **kwargs):
@@ -1102,7 +1162,7 @@ class ActividadConfigForm(forms.ModelForm):
             'fecha_publicacion': forms.DateInput(attrs={'type': 'date'}),
             'fecha_entrega_limite': forms.DateInput(attrs={'type': 'date'}),
             'duracion_minutos': forms.NumberInput(attrs={'placeholder': 'Ej: 30'}),
-            'numero_intentos_permitidos': forms.NumberInput(attrs={'placeholder': 'Ej: 1'}),
+            'numero_intentos_permitidos': forms.NumberInput(attrs={'placeholder': 'Ej: 5', 'min': 1, 'max': 20}),
         }
         
         # Etiquetas personalizadas para mayor claridad
@@ -1116,7 +1176,7 @@ class ActividadConfigForm(forms.ModelForm):
         # Textos de ayuda para guiar al docente
         help_texts = {
             'duracion_minutos': 'Dejar en blanco si no hay límite de tiempo.',
-            'numero_intentos_permitidos': 'Cuántas veces puede el estudiante realizar esta actividad.',
+            'numero_intentos_permitidos': 'Por defecto se sugieren 5 intentos (etapa escolar); máximo 20.',
         }
 
 class AulaForm(forms.ModelForm):

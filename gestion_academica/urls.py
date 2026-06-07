@@ -50,6 +50,7 @@ urlpatterns = [
     path('docentes/<int:pk>/editar/', views.editar_docente, name='editar_docente'),
     path('docentes/<int:pk>/eliminar/', views.DocenteDeleteView.as_view(), name='eliminar_docente'),
     path('docente/gestion/', views.CentroGestionDocenteView.as_view(), name='centro_gestion_docente'),
+    path('docente/reportes/hub/', views.docente_hub_reportes, name='docente_hub_reportes'),
     path('docentes/importar-excel/', views.importar_docentes_excel, name='importar_docentes_excel'),
     path('docentes/descargar-plantilla/', views.descargar_plantilla_docentes, name='descargar_plantilla_docentes'),
     path('docentes/<int:pk>/carnet/', views.generar_carnet_docente, name='generar_carnet_docente'),
@@ -164,6 +165,8 @@ urlpatterns = [
     # --- Docentes - Libro de Notas ---
     path('libro-notas/seleccionar-curso/', views.docente_seleccionar_curso_libro_notas, name='docente_seleccionar_curso_libro_notas'),
     path('libro-notas/curso/<int:curso_pk>/', views.docente_libro_de_notas_por_curso, name='docente_libro_de_notas_por_curso'),
+    # --- Coordinador - Libro de Notas (supervisión) ---
+    path('coordinador/libro-notas/seleccionar-curso/', views.coordinador_seleccionar_curso_libro_notas, name='coordinador_seleccionar_curso_libro_notas'),
     path('lecciones/seleccionar-curso/', views.seleccionar_curso_para_leccion, name='seleccionar_curso_para_leccion'),
     path('lecciones/registrar/<int:curso_pk>/', views.registrar_leccion_diaria, name='registrar_leccion'),
     path('dashboard/', views.dashboard_docente, name='dashboard_docente'), 
@@ -234,7 +237,6 @@ urlpatterns = [
     path('mi-perfil/', views.ver_mi_perfil, name='ver_mi_perfil'),
     path('dashboard/estudiante/', views.dashboard_estudiante, name='dashboard_estudiante'),
     path('api/calendario/eventos/', views.CalendarioEventosAPIView.as_view(), name='api_calendario_eventos'),
-    path('calendario/', views.calendario_academico_view, name='calendario_academico'),
     path('boletin/imprimir/<int:estudiante_pk>/<int:periodo_pk>/', views.boletin_imprimible, name='boletin_imprimible'),  
     path('lecciones/seleccionar-curso/', views.seleccionar_curso_para_leccion, name='seleccionar_curso_para_leccion'),
     path('lecciones/registrar/<int:curso_pk>/', views.registrar_leccion_diaria, name='registrar_leccion'), 
@@ -257,14 +259,14 @@ urlpatterns = [
     path('reportes/riesgo-academico/', views.dashboard_riesgo_academico, name='dashboard_riesgo_academico'),
     path('dashboard/coordinador/', views.dashboard_coordinador_view, name='dashboard_coordinador'),
     path('reportes/riesgo-global/', views.reporte_riesgo_global_view, name='reporte_riesgo_global'),
-    path('reportes/riesgo-global/exportar/', views.exportar_reporte_riesgo_global_view, name='exportar_reporte_riesgo_global'),
     path('reportes/riesgo/detalle/<int:estudiante_pk>/', views.detalle_riesgo_estudiante_view, name='detalle_riesgo_estudiante'),
     path('riesgo/citar-acudiente/<int:prediccion_pk>/', views.citar_acudiente_view, name='citar_acudiente'),
     path('riesgo/notificar-docente/<int:prediccion_pk>/', views.notificar_docente_view, name='notificar_docente'),
     path('riesgo/ejecutar-analisis/', views.ejecutar_analisis_riesgo_view, name='ejecutar_analisis_riesgo'),
     path('notificaciones/', views.lista_notificaciones_view, name='lista_notificaciones'),
     path('familiares/crear/', views.crear_familiar, name='crear_familiar'),
-    path('notificaciones/', views.lista_notificaciones_view, name='lista_notificaciones'),
+    path('familiares/cargar/', views.cargar_familiares, name='cargar_familiares'),
+    path('familiares/plantilla/', views.descargar_plantilla_familiares, name='descargar_plantilla_familiares'),
     path('bienestar/alertas-sentimiento/', views.dashboard_bienestar_view, name='dashboard_bienestar'),
     path('bienestar/alerta/<int:pk>/', views.detalle_alerta_bienestar_view, name='detalle_alerta_bienestar'),
     path('docente/disponibilidad/', views.gestionar_disponibilidad_view, name='gestionar_disponibilidad'),
@@ -282,6 +284,11 @@ urlpatterns = [
     path('promocion-anual/', views.promocion_anual_view, name='promocion_anual'),
     path('configuracion/promocion-grados/', views.gestionar_promocion_grados_view, name='gestionar_promocion_grados'),
     path('convivencia/historial/', views.historial_convivencia_view, name='historial_convivencia'),
+
+    # --- Halu Sentinel: Ruta de Convivencia (Res. 1620) ---
+    path('sentinel/casos/<int:pk>/', views.detalle_caso_convivencia, name='detalle_caso_convivencia'),
+    path('sentinel/casos/abrir/<int:anotacion_pk>/', views.abrir_caso_manual, name='abrir_caso_manual'),
+    path('sentinel/casos/<int:pk>/acta/', views.acta_caso_pdf, name='acta_caso_pdf'),
     path('elecciones/<int:eleccion_id>/analisis/', views.dashboard_eleccion_ia, name='dashboard_eleccion_ia'),
     path('elecciones/<int:eleccion_id>/acta/', views.acta_eleccion_view, name='acta_eleccion'),
     path('coordinacion/elecciones/', views.gestionar_elecciones_view, name='gestionar_elecciones'),
@@ -332,10 +339,6 @@ urlpatterns = [
     path('api/v1/coordinacion/asistencia-diaria/', views.api_admin_asistencia_diaria, name='api_admin_asistencia_diaria'),
     path('api/v1/coordinacion/alertas-bienestar/', views.api_dashboard_bienestar, name='api_dashboard_bienestar'),
     path('api/v1/coordinacion/supervisar-citas/', views.api_supervisar_citas, name='api_supervisar_citas'),
-     # 2. Endpoints para las acciones del Panel de Coordinación
-    path('api/v1/coordinacion/asistencia-diaria/', views.api_admin_asistencia_diaria, name='api_admin_asistencia_diaria'),
-    path('api/v1/coordinacion/alertas-bienestar/', views.api_dashboard_bienestar, name='api_dashboard_bienestar'),
-    path('api/v1/coordinacion/citas/', views.api_supervisar_citas, name='api_supervisar_citas'),
     # 2. Endpoints para las acciones específicas por estudiante
     path('api/v1/familiar/estudiante/<int:estudiante_pk>/calificaciones/', views.api_familiar_calificaciones_view, name='api_familiar_calificaciones'),
     path('api/v1/familiar/estudiante/<int:estudiante_pk>/boletin/', views.api_familiar_boletin_view, name='api_familiar_boletin'),
@@ -343,6 +346,9 @@ urlpatterns = [
     # 3. Endpoints para acciones generales del familiar
     path('api/v1/familiar/seleccionar-docente-cita/', views.api_familiar_seleccionar_docente, name='api_familiar_seleccionar_docente'), 
     path('api/v1/noticias/<int:noticia_pk>/', views.detalle_noticia_api_view, name='api_detalle_noticia'),
+    path('api/v1/ia/sugerir-nombre-idioma/', views.api_sugerir_nombre_idioma, name='api_sugerir_nombre_idioma'),
+    path('api/v1/ia/sugerir-nombres-idioma-masivo/', views.api_sugerir_nombres_idioma_masivo, name='api_sugerir_nombres_idioma_masivo'),
+    path('api/v1/ia/guardar-nombres-idioma-masivo/', views.api_guardar_nombres_idioma_masivo, name='api_guardar_nombres_idioma_masivo'),
     path('curso/<int:curso_pk>/calificar/', views.redirigir_a_libro_de_notas, name='redirigir_libro_notas'),
 
     path('dimensiones/', views.DimensionListView.as_view(), name='lista_dimensiones'),
@@ -391,14 +397,15 @@ urlpatterns = [
     path('api/planeacion/<int:pk>/status/', views.get_planeacion_status_api, name='api_get_planeacion_status'),
     path('docente/planeador/<int:pk>/pdf/', views.generar_planeacion_pdf, name='generar_planeacion_pdf'),
     path('docente/planeador/<int:pk>/anadir-lecciones/', views.anadir_planeacion_a_lecciones, name='anadir_planeacion_a_lecciones'),
+    path('google-calendar/callback/', views.google_calendar_callback, name='google_calendar_callback'),
     path('horarios/gestion/', views.gestion_horarios_view, name='gestion_horarios'),
     path('docente/lecciones/seleccionar-curso/', views.seleccionar_curso_para_lecciones, name='seleccionar_curso_para_lecciones'),
     path('docente/curso/<int:curso_pk>/lecciones/', views.lista_lecciones_diarias, name='lista_lecciones_diarias'),
     path('leccion/ia/<int:leccion_pk>/', views.detalle_leccion, name='detalle_leccion_ia'),
     path('coordinacion/elecciones/<int:eleccion_id>/candidatos/', views.gestionar_candidatos_view, name='gestionar_candidatos'),
+    path('elecciones/candidato/<int:candidato_id>/', views.detalle_candidato_view, name='detalle_candidato'),
     path('elecciones/<int:eleccion_id>/analizar-propuestas/', views.analizar_propuestas_ia_view, name='analizar_propuestas_ia'),
     path('elecciones/<int:eleccion_id>/votar/', views.votar_view, name='votar_eleccion'),
-    path('usuarios/lista/', views.lista_usuarios_view, name='lista_usuarios'),
     path('usuarios/lista/', views.lista_usuarios_view, name='lista_usuarios'),
     path('usuarios/<int:user_pk>/editar/', views.editar_usuario_view, name='editar_usuario'),
     path('docente/curso/<int:curso_pk>/pasar-lista/', views.pasar_lista_view, name='pasar_lista'),
@@ -415,6 +422,51 @@ urlpatterns = [
     path('api/cursos-por-institucion/<int:institucion_id>/', views.cursos_por_institucion_api, name='api_cursos_por_institucion'),
     path('api/generar-correo-acudiente/<int:estudiante_pk>/<int:periodo_pk>/', views.GenerarCorreoAcudienteIAView.as_view(), name='generar_correo_ia'),
     path('dashboard/guardar-layout/', guardar_layout_dashboard, name='guardar_layout_dashboard'),
+
+    # ── Malla Curricular (Coordinador / Jefe de Área) ──────────────────────
+    path('mallas/', views.malla_curricular_list, name='malla_curricular_list'),
+    path('mallas/<int:pk>/', views.malla_curricular_detalle, name='malla_curricular_detalle'),
+    path('mallas/<int:pk>/eliminar/', views.malla_curricular_delete, name='malla_curricular_delete'),
+    path('mallas/<int:pk>/imprimir/', views.malla_curricular_imprimir, name='malla_curricular_imprimir'),
+    # ── Malla Curricular (Vista Docente, sólo lectura) ────────────────────────
+    path('docente/mallas/', views.malla_docente_consulta, name='malla_docente_consulta'),
+    path('docente/mallas/<int:pk>/', views.malla_docente_detalle, name='malla_docente_detalle'),
+    path('docente/mallas/<int:pk>/imprimir/', views.malla_curricular_imprimir, name='malla_docente_imprimir'),
+    path('mallas/<int:pk>/item/add/', views.item_malla_add, name='item_malla_add'),
+    path('mallas/item/<int:item_pk>/editar/', views.item_malla_edit, name='item_malla_edit'),
+    path('mallas/item/<int:item_pk>/eliminar/', views.item_malla_delete, name='item_malla_delete'),
+
+    # ── Plan Semanal (Docente) ─────────────────────────────────────────────
+    path('docente/planes-semanales/', views.mis_planes_semanales, name='mis_planes_semanales'),
+    path('docente/planes-semanales/nuevo/', views.plan_semanal_crear, name='plan_semanal_crear'),
+    path('docente/planes-semanales/<int:pk>/', views.plan_semanal_detalle, name='plan_semanal_detalle'),
+    path('docente/planes-semanales/<int:pk>/item/add/', views.item_plan_add, name='item_plan_add'),
+    path('docente/planes-semanales/<int:pk>/enviar/', views.plan_semanal_enviar, name='plan_semanal_enviar'),
+    path('docente/planes-semanales/item/<int:item_pk>/eliminar/', views.item_plan_delete, name='item_plan_delete'),
+    path('docente/planes-semanales/item/<int:item_pk>/editar/', views.item_plan_edit, name='item_plan_edit'),
+    path('docente/planes-semanales/item/<int:item_pk>/crear-deber/', views.item_plan_crear_deber, name='item_plan_crear_deber'),
+    path('docente/planes-semanales/item/<int:item_pk>/crear-actividad/', views.item_plan_crear_actividad, name='item_plan_crear_actividad'),
+
+    # ── Supervisión Coordinador ────────────────────────────────────────────
+    path('coordinador/planes-semanales/', views.supervisar_planes_semanales, name='supervisar_planes_semanales'),
+    path('coordinador/planes-semanales/<int:pk>/revisar/', views.revisar_plan_semanal, name='revisar_plan_semanal'),
+
+    # ── Corte Preventivo ───────────────────────────────────────────────────
+    path('cortes-preventivos/', views.lista_cortes_preventivos, name='lista_cortes_preventivos'),
+    path('cortes-preventivos/crear/', views.crear_corte_preventivo, name='crear_corte_preventivo'),
+    path('cortes-preventivos/<int:pk>/', views.detalle_corte_preventivo, name='detalle_corte_preventivo'),
+    path('cortes-preventivos/<int:pk>/calcular/', views.calcular_corte, name='calcular_corte'),
+    path('cortes-preventivos/<int:pk>/publicar/', views.publicar_corte, name='publicar_corte'),
+    path('cortes-preventivos/<int:pk>/archivar/', views.archivar_corte, name='archivar_corte'),
+    path('cortes-preventivos/<int:pk>/eliminar/', views.eliminar_corte, name='eliminar_corte'),
+    path('cortes-preventivos/<int:pk>/observacion/', views.guardar_observacion_corte, name='guardar_observacion_corte'),
+    path('cortes-preventivos/<int:pk>/resultado/<int:resultado_pk>/observacion/', views.guardar_observacion_estudiante, name='guardar_observacion_estudiante'),
+    path('cortes-preventivos/<int:pk>/detalle/<int:detalle_pk>/observacion/', views.guardar_observacion_materia, name='guardar_observacion_materia'),
+    path('cortes-preventivos/<int:pk>/notificar/', views.notificar_familias_corte, name='notificar_familias_corte'),
+    path('cortes-preventivos/<int:pk>/pdf/grado/', views.exportar_pdf_grado, name='exportar_pdf_grado'),
+    path('cortes-preventivos/<int:pk>/resultado/<int:resultado_pk>/pdf/', views.exportar_pdf_estudiante, name='exportar_pdf_estudiante'),
+    path('cortes-preventivos/<int:pk>/excel/', views.exportar_excel_corte, name='exportar_excel_corte'),
+    path('cortes-preventivos/configuracion/', views.configuracion_corte_preventivo, name='configuracion_corte_preventivo'),
 
 ]
     

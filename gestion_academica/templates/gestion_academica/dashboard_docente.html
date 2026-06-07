@@ -1,407 +1,938 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% load horario_filters %}
+{% load tz %}
 
 {% block titulo %}{{ titulo_pagina|default:"Panel de Docente" }}{% endblock %}
 
 {% block extrastyles %}
-    {{ block.super }}
+{{ block.super }}
+<style>
+/* ═══════════════════════════════════════════════════
+   HALU PULSE — Dashboard Docente v2 (sin GridStack)
+═══════════════════════════════════════════════════ */
 
-    <link href="https://cdn.jsdelivr.net/npm/gridstack@10.1.2/dist/gridstack.min.css" rel="stylesheet"/>
+/* ── Hero ── */
+.doc-hero {
+  position: relative;
+  background: linear-gradient(135deg, #07285f 0%, #0a3d8c 40%, #0b5ed7 100%);
+  border-radius: 1.1rem;
+  padding: 2rem 2rem 2.4rem;
+  color: #fff;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.doc-hero::before {
+  content: ''; position: absolute;
+  width: 320px; height: 320px; border-radius: 50%;
+  background: rgba(255,255,255,.055);
+  top: -100px; right: -80px; pointer-events: none;
+}
+.doc-hero::after {
+  content: ''; position: absolute;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: rgba(255,255,255,.04);
+  bottom: -70px; left: 28%; pointer-events: none;
+}
+.doc-hero .hero-badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
+  border-radius: 2rem; padding: .25rem .8rem;
+  font-size: .73rem; font-weight: 700; letter-spacing: .3px;
+  margin-bottom: .8rem; text-transform: uppercase;
+}
+.doc-hero .hero-greeting {
+  font-size: 1.8rem; font-weight: 800;
+  line-height: 1.2; margin-bottom: .3rem;
+  font-family: 'Manrope', sans-serif;
+}
+.doc-hero .hero-sub { font-size: .9rem; opacity: .82; margin-bottom: 1.4rem; }
+.doc-hero .hero-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.doc-ha-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28);
+  color: #fff; border-radius: .55rem;
+  padding: .45rem .95rem; font-size: .82rem; font-weight: 600;
+  text-decoration: none; transition: all .2s; cursor: pointer;
+}
+.doc-ha-btn:hover { background: rgba(255,255,255,.26); color: #fff; transform: translateY(-1px); }
+.doc-ha-btn.ha-white { background: #fff; color: #0b5ed7; border-color: transparent; }
+.doc-ha-btn.ha-white:hover { background: #e8f0fe; color: #0b5ed7; }
+.doc-ha-btn.ha-green { background: rgba(34,197,94,.22); border-color: rgba(34,197,94,.4); }
+.doc-ha-btn.ha-green:hover { background: rgba(34,197,94,.36); }
 
-    <style>
-        .grid-stack {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 10px;
-        }
-        .grid-stack-item-content {
-            background-color: transparent;
-            border: none;
-            overflow: hidden;
-            padding: 0;
-        }
-        .grid-stack-item-content .card {
-            margin: 0 !important;
-        }
+/* ── KPI Strip ── */
+.doc-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: .85rem;
+  margin-bottom: 1.5rem;
+}
+.doc-kpi-card {
+  background: #fff;
+  border-radius: .9rem;
+  border: 1px solid #dbe5f4;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+  padding: 1.1rem 1.1rem .9rem;
+  position: relative; overflow: hidden;
+  text-decoration: none; display: block;
+  transition: transform .2s, box-shadow .2s;
+  cursor: pointer;
+}
+.doc-kpi-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px; border-radius: .9rem .9rem 0 0;
+}
+.doc-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(11,94,215,.14);
+  text-decoration: none;
+}
+.doc-kpi-card .dkc-icon {
+  width: 38px; height: 38px; border-radius: .6rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; margin-bottom: .65rem; flex-shrink: 0;
+}
+.doc-kpi-card .dkc-num {
+  font-size: 2rem; font-weight: 900;
+  font-family: 'Manrope', sans-serif; line-height: 1;
+  margin-bottom: .2rem;
+}
+.doc-kpi-card .dkc-label {
+  font-size: .71rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .3px; color: #64748b;
+}
+.doc-kpi-card .dkc-link {
+  font-size: .72rem; font-weight: 600; margin-top: .55rem;
+  display: flex; align-items: center; gap: .25rem; opacity: .7;
+}
+/* Colores */
+.dkc-amber::before  { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+.dkc-amber .dkc-icon  { background: #fefce8; color: #d97706; }
+.dkc-amber .dkc-num   { color: #d97706; }
+.dkc-amber .dkc-link  { color: #d97706; }
 
-        /* ▼▼▼ CORRECCIÓN PARA EL SCROLL ▼▼▼ */
-        .grid-stack-item .card-body {
-            display: flex;
-            flex-direction: column; /* Apila los elementos verticalmente */
-        }
-        .grid-stack-item .card-body > p {
-            margin-top: auto; /* Empuja el número grande o el texto hacia abajo */
-            line-height: 1.1; /* Reduce el espacio extra del texto grande */
-        }
-        /* ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲ */
-    </style>
+.dkc-blue::before   { background: linear-gradient(90deg,#1d4ed8,#3b82f6); }
+.dkc-blue .dkc-icon   { background: #eaf2ff; color: #1d4ed8; }
+.dkc-blue .dkc-num    { color: #1d4ed8; }
+.dkc-blue .dkc-link   { color: #1d4ed8; }
+
+.dkc-red::before    { background: linear-gradient(90deg,#dc2626,#f87171); }
+.dkc-red .dkc-icon    { background: #fef2f2; color: #dc2626; }
+.dkc-red .dkc-num     { color: #dc2626; }
+.dkc-red .dkc-link    { color: #dc2626; }
+
+.dkc-cyan::before   { background: linear-gradient(90deg,#0284c7,#38bdf8); }
+.dkc-cyan .dkc-icon   { background: #f0f9ff; color: #0284c7; }
+.dkc-cyan .dkc-num    { color: #0284c7; }
+.dkc-cyan .dkc-link   { color: #0284c7; }
+
+.dkc-green::before  { background: linear-gradient(90deg,#15803d,#22c55e); }
+.dkc-green .dkc-icon  { background: #f0fdf4; color: #15803d; }
+.dkc-green .dkc-num   { color: #15803d; }
+.dkc-green .dkc-link  { color: #15803d; }
+
+.dkc-slate::before  { background: linear-gradient(90deg,#475569,#94a3b8); }
+.dkc-slate .dkc-icon  { background: #f1f5f9; color: #475569; }
+.dkc-slate .dkc-num   { color: #475569; font-size: 1.1rem; padding-top:.4rem; }
+.dkc-slate .dkc-label { color: #475569; }
+.dkc-slate .dkc-link  { color: #475569; }
+
+/* ── Panel doble: Cuestionarios + Acciones Rápidas ── */
+.doc-panel-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 767px) {
+  .doc-panel-duo { grid-template-columns: 1fr; }
+}
+
+/* Cuestionarios card */
+.doc-cuestion-card {
+  background: #fff; border-radius: .9rem;
+  border: 1px solid #dbe5f4;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.doc-cuestion-card .dcc-header {
+  background: linear-gradient(120deg, #f7faff, #eaf2ff);
+  border-bottom: 1px solid #dbe5f4;
+  padding: .8rem 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.doc-cuestion-card .dcc-header h6 {
+  font-weight: 800; color: #0f3f90; margin: 0; font-size: .9rem;
+}
+.doc-cuestion-card .dcc-body { flex: 1; overflow-y: auto; }
+.dcc-item {
+  display: flex; align-items: center; gap: .65rem;
+  padding: .65rem 1rem; border-bottom: 1px solid #f1f5f9;
+  transition: background .15s; text-decoration: none; color: inherit;
+}
+.dcc-item:hover { background: #f7faff; }
+.dcc-item:last-child { border-bottom: none; }
+.dcc-item .dci-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #3b82f6; flex-shrink: 0;
+}
+.dcc-item .dci-title { font-weight: 600; font-size: .86rem; color: #0f3f90; }
+.dcc-item .dci-meta { font-size: .73rem; color: #94a3b8; }
+
+/* Acciones rápidas */
+.doc-qa-card {
+  background: #fff; border-radius: .9rem;
+  border: 1px solid #dbe5f4;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+  overflow: hidden;
+}
+.doc-qa-card .dqc-header {
+  background: linear-gradient(120deg, #f7faff, #eaf2ff);
+  border-bottom: 1px solid #dbe5f4;
+  padding: .8rem 1rem;
+}
+.doc-qa-card .dqc-header h6 {
+  font-weight: 800; color: #0f3f90; margin: 0; font-size: .9rem;
+}
+.doc-qa-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: .5rem; padding: .85rem;
+}
+.doc-qa-btn {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem;
+  background: #f7faff; border: 1px solid #e2eaf8;
+  border-radius: .7rem; padding: .75rem .5rem;
+  text-decoration: none; transition: all .18s;
+  text-align: center;
+}
+.doc-qa-btn:hover { transform: translateY(-2px); text-decoration: none; }
+.doc-qa-btn .dqb-icon {
+  width: 36px; height: 36px; border-radius: .5rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; margin-bottom: .1rem;
+}
+.doc-qa-btn .dqb-label { font-size: .72rem; font-weight: 700; color: #334155; line-height: 1.2; }
+.dqb-amber  .dqb-icon { background: #fefce8; color: #d97706; }
+.dqb-amber:hover  { background: #fef9c3; border-color: #fde68a; }
+.dqb-blue   .dqb-icon { background: #eaf2ff; color: #1d4ed8; }
+.dqb-blue:hover   { background: #dbeafe; border-color: #93c5fd; }
+.dqb-green  .dqb-icon { background: #f0fdf4; color: #15803d; }
+.dqb-green:hover  { background: #dcfce7; border-color: #86efac; }
+.dqb-purple .dqb-icon { background: #faf5ff; color: #7c3aed; }
+.dqb-purple:hover { background: #ede9fe; border-color: #c4b5fd; }
+.dqb-red    .dqb-icon { background: #fef2f2; color: #dc2626; }
+.dqb-red:hover    { background: #fee2e2; border-color: #fca5a5; }
+.dqb-teal   .dqb-icon { background: #f0fdfa; color: #0d9488; }
+.dqb-teal:hover   { background: #ccfbf1; border-color: #99f6e4; }
+.dqb-indigo .dqb-icon { background: #eef2ff; color: #4f46e5; }
+.dqb-indigo:hover { background: #e0e7ff; border-color: #a5b4fc; }
+
+/* ── Section headers ── */
+.pulse-sec-hdr {
+  display: flex; align-items: center; gap: .6rem;
+  margin: 1.8rem 0 .9rem;
+  padding-bottom: .55rem;
+  border-bottom: 2px solid #eaf2ff;
+}
+.pulse-sec-hdr .psh-icon {
+  width: 34px; height: 34px; border-radius: .5rem;
+  background: #eaf2ff; color: #1d4ed8;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.pulse-sec-hdr h2 { font-size: 1.05rem; font-weight: 800; color: #0f3f90; margin: 0; }
+
+/* ── Citas hoy ── */
+.pulse-cita-hoy {
+  background: #fff; border-radius: .85rem;
+  border: 1px solid #dbe5f4; border-left: 4px solid #22c55e;
+  padding: 1rem 1.1rem; transition: transform .18s;
+  display: flex; flex-direction: column; height: 100%;
+}
+.pulse-cita-hoy:hover { transform: translateY(-2px); }
+.pulse-cita-hoy .pch-time { font-size: 1.1rem; font-weight: 800; color: #15803d; font-family: 'Manrope', sans-serif; }
+.pulse-cita-hoy .pch-names { font-size: .83rem; color: #64748b; margin: .3rem 0; }
+.pulse-cita-hoy .pch-asunto { font-size: .82rem; flex-grow: 1; margin-bottom: .75rem; }
+
+/* ── Clases de hoy ── */
+.pulse-clase-card {
+  background: #fff; border-radius: .85rem; border: 1px solid #dbe5f4;
+  padding: 1.1rem; height: 100%; display: flex; flex-direction: column;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+  transition: transform .18s, box-shadow .18s;
+}
+.pulse-clase-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(11,94,215,.12); }
+.pulse-clase-card .pcla-materia { font-size: 1rem; font-weight: 800; color: #0f3f90; margin-bottom: .15rem; font-family: 'Manrope', sans-serif; }
+.pulse-clase-card .pcla-grado   { font-size: .82rem; color: #64748b; margin-bottom: .75rem; }
+.pulse-clase-card .pcla-horario { font-size: .78rem; color: #1d4ed8; font-weight: 600; margin-bottom: .2rem; }
+
+/* ── Horario PULSE ── */
+.pulse-horario-wrap {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: .9rem;
+  overflow: hidden; margin-bottom: 1.5rem;
+}
+.pulse-horario-wrap .nav-tabs { border-bottom: 2px solid #eaf2ff; padding: .5rem .75rem 0; }
+.pulse-horario-wrap .nav-tabs .nav-link {
+  border: none; border-bottom: 2px solid transparent; margin-bottom: -2px;
+  color: #64748b; font-weight: 600; font-size: .84rem; padding: .45rem .85rem;
+}
+.pulse-horario-wrap .nav-tabs .nav-link.active { color: #0b5ed7; border-bottom-color: #0b5ed7; background: transparent; }
+.pulse-sched-item {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .65rem .85rem; border-radius: .65rem; margin-bottom: .4rem;
+  background: #f7faff; border: 1px solid #dbe5f4;
+}
+.pulse-sched-time {
+  background: linear-gradient(135deg, #0b5ed7, #3b82f6);
+  color: #fff; border-radius: .4rem; padding: .3rem .55rem;
+  font-size: .68rem; font-weight: 700; text-align: center;
+  min-width: 56px; flex-shrink: 0; line-height: 1.5;
+}
+.pulse-sched-name { font-weight: 700; font-size: .88rem; color: #0f3f90; }
+.pulse-sched-meta { font-size: .74rem; color: #64748b; margin-top: .1rem; }
+
+/* ── Agenda citas ── */
+.pulse-agenda-row {
+  display: flex; align-items: flex-start; gap: .8rem;
+  padding: .9rem 1rem; border-radius: .75rem; margin-bottom: .5rem;
+  background: #fff; border: 1px solid #dbe5f4; border-left: 4px solid;
+}
+.pulse-agenda-row.pendiente  { border-left-color: #f59e0b; }
+.pulse-agenda-row.confirmada { border-left-color: #22c55e; }
+.par-date { font-weight: 800; font-size: .82rem; min-width: 46px; text-align: center; flex-shrink: 0; font-family: 'Manrope', sans-serif; }
+.par-date .par-time { font-size: .7rem; font-weight: 500; color: #64748b; margin-top: .1rem; }
+.agenda-subsection-title {
+  font-size: .78rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .4px; padding: .3rem .5rem; border-radius: .4rem;
+  margin-bottom: .5rem; display: inline-flex; align-items: center; gap: .3rem;
+}
+.agenda-subsection-title.pendiente  { color: #b45309; background: #fefce8; }
+.agenda-subsection-title.confirmada { color: #15803d; background: #f0fdf4; }
+
+/* ── Mis cursos (card grid) ── */
+.pulse-curso-card {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: 1rem;
+  overflow: hidden; height: 100%; display: flex; flex-direction: column;
+  box-shadow: 0 2px 10px rgba(11,94,215,.07);
+  transition: transform .2s, box-shadow .2s;
+}
+.pulse-curso-card:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(11,94,215,.13); }
+.pcc-head {
+  background: linear-gradient(120deg, #0a3d8c 0%, #1a56db 100%);
+  padding: .9rem 1.1rem; color: #fff;
+}
+.pcc-materia {
+  font-weight: 800; font-size: .97rem;
+  font-family: 'Manrope', sans-serif; margin-bottom: .2rem; line-height: 1.3;
+}
+.pcc-meta { font-size: .75rem; opacity: .82; }
+.pcc-body { padding: .75rem; flex: 1; }
+.pcc-actions {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: .35rem;
+}
+.pca-btn {
+  display: flex; align-items: center; gap: .35rem;
+  padding: .48rem .6rem; border-radius: .5rem;
+  font-size: .76rem; font-weight: 600; text-decoration: none;
+  border: 1px solid transparent; transition: all .18s;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer;
+}
+.pca-btn:hover { text-decoration: none; transform: translateY(-1px); }
+.pca-primary  { background:#eaf2ff; color:#1d4ed8; border-color:#bfdbfe; }
+.pca-primary:hover  { background:#dbeafe; color:#1d4ed8; }
+.pca-success  { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
+.pca-success:hover  { background:#dcfce7; color:#15803d; }
+.pca-warning  { background:#fefce8; color:#92400e; border-color:#fde68a; }
+.pca-warning:hover  { background:#fef9c3; color:#92400e; }
+.pca-danger   { background:#fef2f2; color:#dc2626; border-color:#fecaca; }
+.pca-danger:hover   { background:#fee2e2; color:#dc2626; }
+.pca-info     { background:#f0f9ff; color:#0284c7; border-color:#bae6fd; }
+.pca-info:hover     { background:#e0f2fe; color:#0284c7; }
+.pca-slate    { background:#f8fafc; color:#475569; border-color:#e2e8f0; }
+.pca-slate:hover    { background:#f1f5f9; color:#475569; }
+.pca-teal     { background:#f0fdfa; color:#0d9488; border-color:#99f6e4; }
+.pca-teal:hover     { background:#ccfbf1; color:#0d9488; }
+.pca-indigo   { background:#eef2ff; color:#4f46e5; border-color:#a5b4fc; }
+.pca-indigo:hover   { background:#e0e7ff; color:#4f46e5; }
+@media (max-width: 400px) {
+  .pcc-actions { grid-template-columns: 1fr; }
+}
+
+/* ── Empty state ── */
+.pulse-empty {
+  text-align: center; padding: 2.5rem 1rem;
+  background: #f7faff; border: 1px solid #dbe5f4; border-radius: .85rem; color: #94a3b8;
+}
+.pulse-empty i { font-size: 2.2rem; margin-bottom: .75rem; display: block; }
+
+@media (max-width: 768px) {
+  .doc-hero { padding: 1.4rem 1.2rem 1.9rem; }
+  .doc-hero .hero-greeting { font-size: 1.35rem; }
+  .doc-kpi-strip { grid-template-columns: repeat(3, 1fr); }
+
+  /* KPI cards compactos en móvil */
+  .doc-kpi-card { padding: .75rem .8rem .65rem; }
+  .doc-kpi-card .dkc-num  { font-size: 1.55rem; }
+  .doc-kpi-card .dkc-icon { width: 32px; height: 32px; font-size: .9rem; }
+  .doc-kpi-card .dkc-label { font-size: .65rem; }
+  .doc-kpi-card .dkc-link  { font-size: .65rem; }
+
+  /* Alerta planes devueltos compacta */
+  .doc-panel-duo { gap: .65rem; }
+}
+@media (max-width: 480px) {
+  .doc-kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  .doc-kpi-card .dkc-num  { font-size: 1.4rem; }
+}
+</style>
 {% endblock extrastyles %}
 
 {% block contenido %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-        <h1 class="h2 mb-0">Bienvenido/a, Prof. {{ docente.usuario.get_full_name|default:docente.usuario.username }}</h1>
-        
-        <div>
-            <button id="guardarDisenoBtn" class="btn btn-primary">
-                <i class="bi bi-save-fill me-2"></i>Guardar Diseño
-            </button>
-            <a href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}" class="btn btn-outline-success">
-                <i class="bi bi-people-fill me-1"></i> Asistir en Otro Curso
-            </a>
-        </div>
-    </div>
-    
-    <div class="grid-stack">
+<div class="container-fluid mt-3">
 
-    <div class="grid-stack-item" gs-x="0" gs-y="0" gs-w="3" gs-h="1" gs-id="tareas-pendientes">
-        <div class="grid-stack-item-content">
-            <div class="card text-dark bg-warning h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-pencil-square me-2"></i>Tareas por Calificar
-                        <a href="{% url 'gestion_academica:tareas_por_calificar' %}" class="stretched-link"></a>
-                    </h5>
-                    <p class="fs-1 fw-bold mb-0">{{ entregas_pendientes_calificar }}</p>
-                </div>
-            </div>
-        </div>
+  {# ══════════════════ HERO ══════════════════ #}
+  <div class="doc-hero">
+    <div class="hero-badge"><i class="bi bi-person-video3"></i> Docente · Panel de Control</div>
+    <div class="hero-greeting">
+      {% now "H" as hora_int %}
+      {% if hora_int < "12" %}Buenos días{% elif hora_int < "19" %}Buenas tardes{% else %}Buenas noches{% endif %},
+      Prof. {{ docente.usuario.first_name|default:docente.usuario.get_full_name }} 👨‍🏫
     </div>
+    <div class="hero-sub" id="doc-live-date">Cargando fecha…</div>
+    <div class="hero-actions">
+      <a href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}" class="doc-ha-btn ha-white">
+        <i class="bi bi-people-fill"></i> Pasar Asistencia
+      </a>
+      <a href="{% url 'gestion_academica:centro_gestion_docente' %}" class="doc-ha-btn ha-green">
+        <i class="bi bi-tools"></i> Centro de Gestión
+      </a>
+      <a href="{% url 'gestion_academica:docente_mis_citas' %}" class="doc-ha-btn">
+        <i class="bi bi-calendar2-heart-fill"></i> Mis Citas
+      </a>
+      <a href="{% url 'gestion_academica:planeador_clases' %}" class="doc-ha-btn">
+        <i class="bi bi-robot"></i> Planeador IA
+      </a>
+    </div>
+  </div>
 
-    <div class="grid-stack-item" gs-x="3" gs-y="0" gs-w="3" gs-h="1" gs-id="cursos-asignados">
-        <div class="grid-stack-item-content">
-            <div class="card text-white bg-primary h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-journal-bookmark-fill me-2"></i>Cursos Asignados
-                        <a href="#cursos-asignados-lista" class="stretched-link"></a>
-                    </h5>
-                    <p class="fs-1 fw-bold mb-0">{{ cursos_asignados|length }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="grid-stack-item" gs-x="6" gs-y="0" gs-w="3" gs-h="1" gs-id="historial-entregas">
-        <div class="grid-stack-item-content">
-            <div class="card text-white bg-secondary h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-archive-fill me-2"></i>Historial Entregas
-                        <a href="{% url 'gestion_academica:historial_entregas' %}" class="stretched-link"></a>
-                    </h5>
-                    <p class="card-text">Revisa trabajos y evaluaciones.</p>
-                </div>
-           </div>
-        </div>
-    </div>
+  {# ══════════ ALERTA: PLANES DEVUELTOS CON OBSERVACIONES ══════════ #}
+  {% if planes_con_observaciones %}
+  <div style="margin-bottom:1rem;">
+    {% for plan in planes_con_observaciones %}
+    <a href="{% url 'gestion_academica:plan_semanal_detalle' plan.pk %}"
+       style="display:flex;align-items:center;gap:.85rem;padding:1rem 1.3rem;background:linear-gradient(135deg,#92400e,#b45309,#d97706);border-radius:.9rem;text-decoration:none;color:#fff;margin-bottom:.5rem;box-shadow:0 4px 14px rgba(180,83,9,.3);">
+      <div style="width:46px;height:46px;background:rgba(255,255,255,.2);border-radius:.7rem;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.7rem;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:.06em;">Plan devuelto — acción requerida</div>
+        <div style="font-size:.98rem;font-weight:800;margin:.1rem 0;">{{ plan.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and plan.curso.materia.nombre_idioma_secundario %} / {{ plan.curso.materia.nombre_idioma_secundario }}{% endif %} · {{ plan.curso.grado.nombre }}</div>
+        {% if plan.observaciones_coordinador %}
+        <div style="font-size:.77rem;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">"{{ plan.observaciones_coordinador|truncatechars:90 }}"</div>
+        {% endif %}
+      </div>
+      <div style="background:#fff;color:#92400e;font-weight:800;font-size:.8rem;padding:.4rem .85rem;border-radius:.55rem;flex-shrink:0;white-space:nowrap;">
+        <i class="bi bi-pencil-fill me-1"></i>Corregir y reenviar
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
 
-    <div class="grid-stack-item" gs-x="9" gs-y="0" gs-w="3" gs-h="1" gs-id="notificaciones">
-        <div class="grid-stack-item-content">
-            <div class="card text-white bg-info h-100 shadow">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-bell-fill me-2"></i>Notificaciones
-                        <a href="{% url 'gestion_academica:lista_notificaciones' %}" class="stretched-link"></a>
-                    </h5>
-                    <p class="fs-1 fw-bold mb-0">{{ notificaciones_sin_leer|length }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+  {# ══════════════════ KPI STRIP ══════════════════ #}
+  <div class="doc-kpi-strip">
 
-    <div class="grid-stack-item" gs-x="0" gs-y="1" gs-w="3" gs-h="1" gs-id="alerta-grupo">
-        <div class="grid-stack-item-content">
-            <div class="card text-white bg-danger h-100 shadow">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Alerta de Grupo
-                        <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="stretched-link"></a>
-                    </h5>
-                    <p class="fs-1 fw-bold mb-0">{{ cantidad_estudiantes_riesgo }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <a href="{% url 'gestion_academica:tareas_por_calificar' %}" class="doc-kpi-card dkc-amber">
+      <div class="dkc-icon"><i class="bi bi-pencil-square"></i></div>
+      <div class="dkc-num">{{ entregas_pendientes_calificar }}</div>
+      <div class="dkc-label">Tareas por calificar</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Calificar ahora</div>
+    </a>
 
-    <div class="grid-stack-item" gs-x="3" gs-y="1" gs-w="3" gs-h="1" gs-id="citas-proximas">
-        <div class="grid-stack-item-content">
-            <div class="card text-white bg-success h-100 shadow">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-calendar2-check-fill me-2"></i>Citas Próximas
-                        <a href="{% url 'gestion_academica:docente_mis_citas' %}" class="stretched-link"></a>
-                    </h5>
-                    <p class="fs-1 fw-bold mb-0">{{ citas_proxima_semana }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="grid-stack-item" gs-x="6" gs-y="1" gs-w="6" gs-h="2" gs-id="cuestionarios-recientes">
-        <div class="grid-stack-item-content">
-            <div class="card shadow-sm h-100 d-flex flex-column">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Mis Cuestionarios Recientes</h5>
-                    <a href="{% url 'cuestionarios:lista' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
-                </div>
-                <div class="list-group list-group-flush" style="overflow-y: auto;">
-                    {% for cuestionario in ultimos_cuestionarios %}
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <strong>{{ cuestionario.titulo }}</strong>
-                        <small class="d-block text-muted">{{ cuestionario.actividad_calificable.curso.materia.nombre_materia }} | {{ cuestionario.preguntas.count }} preguntas</small>
-                    </a>
-                    {% empty %}
-                    <div class="list-group-item d-flex align-items-center justify-content-center h-100">
-                        <p class="text-muted text-center mb-0">Aún no has creado ningún cuestionario.</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
+    <a href="#cursos-asignados-lista" class="doc-kpi-card dkc-blue">
+      <div class="dkc-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
+      <div class="dkc-num">{{ cursos_asignados|length }}</div>
+      <div class="dkc-label">Cursos asignados</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver cursos</div>
+    </a>
 
-</div>
-     <hr class="my-4">
-    
-     <h2 class="h3 mb-3"><i class="bi bi-check2-square me-2"></i>Mis Clases de Hoy ({{ "now"|date:"l, d \d\e F" }})</h2>
-    <div class="row">
-        {% for curso in cursos_de_hoy %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card shadow-sm">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">{{ curso.materia.nombre_materia }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">{{ curso.grado.nombre }}</h6>
-                        <ul class="list-unstyled text-start mt-3">
-                            {% for bloque in curso.horarios.all %}
-                                {% if bloque.dia_semana == dia_semana_hoy %}
-                                    <li><i class="bi bi-clock-fill text-primary"></i> {{ bloque.hora_inicio|time:"g:i A" }} - {{ bloque.hora_fin|time:"g:i A" }}</li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
-                        <div class="mt-auto text-center">
-                            <a href="{% url 'gestion_academica:pasar_lista' curso.pk %}" class="btn btn-primary"><i class="bi bi-person-check-fill me-2"></i>Pasar Lista</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="doc-kpi-card dkc-red">
+      <div class="dkc-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="dkc-num">{{ cantidad_estudiantes_riesgo }}</div>
+      <div class="dkc-label">Alerta de grupo</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver reporte</div>
+    </a>
+
+    <a href="{% url 'gestion_academica:lista_notificaciones' %}" class="doc-kpi-card dkc-cyan">
+      <div class="dkc-icon"><i class="bi bi-bell-fill"></i></div>
+      <div class="dkc-num">{{ notificaciones_sin_leer|length }}</div>
+      <div class="dkc-label">Notificaciones</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver todas</div>
+    </a>
+
+    <a href="{% url 'gestion_academica:docente_mis_citas' %}" class="doc-kpi-card dkc-green">
+      <div class="dkc-icon"><i class="bi bi-calendar2-check-fill"></i></div>
+      <div class="dkc-num">{{ citas_proxima_semana }}</div>
+      <div class="dkc-label">Citas próximas</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver agenda</div>
+    </a>
+
+    <a href="{% url 'gestion_academica:historial_entregas' %}" class="doc-kpi-card dkc-slate">
+      <div class="dkc-icon"><i class="bi bi-archive-fill"></i></div>
+      <div class="dkc-num" style="font-size:.85rem;padding-top:.5rem;line-height:1.4;">Historial de entregas</div>
+      <div class="dkc-label">Trabajos recibidos</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Revisar</div>
+    </a>
+
+  </div>
+
+  {# ══════════════════ PANEL DUO: Cuestionarios + Acciones Rápidas ══════════════════ #}
+  <div class="doc-panel-duo">
+
+    {# Cuestionarios recientes #}
+    <div class="doc-cuestion-card">
+      <div class="dcc-header">
+        <h6><i class="bi bi-pencil-square me-2"></i>Mis Cuestionarios Recientes</h6>
+        <a href="{% url 'cuestionarios:lista' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+      </div>
+      <div class="dcc-body">
+        {% for cuestionario in ultimos_cuestionarios %}
+        <a href="{% url 'cuestionarios:editor_cuestionario' actividad_pk=cuestionario.actividad_calificable.pk %}" class="dcc-item">
+          <div class="dci-dot"></div>
+          <div>
+            <div class="dci-title">{{ cuestionario.titulo }}</div>
+            <div class="dci-meta">{{ cuestionario.actividad_calificable.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and cuestionario.actividad_calificable.curso.materia.nombre_idioma_secundario %} / {{ cuestionario.actividad_calificable.curso.materia.nombre_idioma_secundario }}{% endif %} · {{ cuestionario.preguntas.count }} preguntas</div>
+          </div>
+        </a>
         {% empty %}
-            <div class="col-12">
-                <div class="alert alert-info text-center">No tienes clases programadas para el día de hoy.</div>
-            </div>
+        <div class="text-center text-muted fst-italic p-4" style="font-size:.85rem;">
+          <i class="bi bi-pencil-square d-block mb-2" style="font-size:1.6rem;opacity:.4;"></i>
+          Aún no has creado ningún cuestionario.
+        </div>
         {% endfor %}
+      </div>
     </div>
 
-
-   <h2 class="h3 mt-5 mb-3"><i class="bi bi-calendar-week me-2"></i>Mi Horario Semanal</h2>
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-light">
-        <ul class="nav nav-tabs card-header-tabs" id="horarioTab" role="tablist">
-            {% for dia_num, dia_nombre in dias_semana %}
-                {% if dia_num < 5 %} {# Mostramos solo de Lunes a Viernes #}
-                    <li class="nav-item" role="presentation">
-                        <button 
-                            class="nav-link {% if dia_num == dia_semana_hoy %}active{% endif %}" 
-                            id="dia-{{ dia_num }}-tab" 
-                            data-bs-toggle="tab" 
-                            data-bs-target="#dia-{{ dia_num }}" 
-                            type="button" 
-                            role="tab" 
-                            aria-controls="dia-{{ dia_num }}" 
-                            aria-selected="{% if dia_num == dia_semana_hoy %}true{% else %}false{% endif %}">
-                            {{ dia_nombre }}
-                        </button>
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
+    {# Acciones rápidas #}
+    <div class="doc-qa-card">
+      <div class="dqc-header">
+        <h6><i class="bi bi-lightning-charge-fill me-2"></i>Acciones Rápidas</h6>
+      </div>
+      <div class="doc-qa-grid">
+        <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="doc-qa-btn dqb-blue">
+          <div class="dqb-icon"><i class="bi bi-pencil-square"></i></div>
+          <div class="dqb-label">Libro de Notas</div>
+        </a>
+        <a href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}" class="doc-qa-btn dqb-green">
+          <div class="dqb-icon"><i class="bi bi-people-fill"></i></div>
+          <div class="dqb-label">Pasar Asistencia</div>
+        </a>
+        <a href="{% url 'gestion_academica:lista_deberes' %}" class="doc-qa-btn dqb-amber">
+          <div class="dqb-icon"><i class="bi bi-journal-check"></i></div>
+          <div class="dqb-label">Gestionar Deberes</div>
+        </a>
+        <a href="{% url 'gestion_academica:gestionar_disponibilidad' %}" class="doc-qa-btn dqb-teal">
+          <div class="dqb-icon"><i class="bi bi-clock-history"></i></div>
+          <div class="dqb-label">Mi Disponibilidad</div>
+        </a>
+        <a href="{% url 'gestion_academica:planeador_clases' %}" class="doc-qa-btn dqb-purple">
+          <div class="dqb-icon"><i class="bi bi-robot"></i></div>
+          <div class="dqb-label">Planeador IA</div>
+        </a>
+        <a href="{% url 'gestion_academica:docente_lista_menciones' %}" class="doc-qa-btn dqb-red">
+          <div class="dqb-icon"><i class="bi bi-award-fill"></i></div>
+          <div class="dqb-label">Menciones</div>
+        </a>
+        <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}?tab=anual" class="doc-qa-btn dqb-indigo">
+          <div class="dqb-icon"><i class="bi bi-bar-chart-steps"></i></div>
+          <div class="dqb-label">Vista Anual</div>
+        </a>
+      </div>
     </div>
-    <div class="card-body">
-        <div class="tab-content" id="horarioTabContent">
-            {% for dia_num, dia_nombre in dias_semana %}
-                {% if dia_num < 5 %}
-                    <div 
-                        class="tab-pane fade {% if dia_num == dia_semana_hoy %}show active{% endif %}" 
-                        id="dia-{{ dia_num }}" 
-                        role="tabpanel" 
-                        aria-labelledby="dia-{{ dia_num }}-tab">
-                        
-                        <ul class="list-group list-group-flush">
-                            {% with bloques_del_dia=horario_agrupado|get_item:dia_num %}
-                                {% for bloque in bloques_del_dia %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="fw-bold">{{ bloque.curso.materia.nombre_materia }}</div>
-                                            <small class="text-muted">{{ bloque.curso.grado.nombre }} | Aula: {{ bloque.aula.nombre|default:"N/A" }}</small>
-                                        </div>
-                                        <span class="badge bg-primary rounded-pill">{{ bloque.hora_inicio|time:"g:i A" }} - {{ bloque.hora_fin|time:"g:i A" }}</span>
-                                    </li>
-                                {% empty %}
-                                    <li class="list-group-item text-center text-muted fst-italic p-3">
-                                        No tienes clases programadas para este día.
-                                    </li>
-                                {% endfor %}
-                            {% endwith %}
-                        </ul>
 
-                    </div>
-                {% endif %}
-            {% endfor %}
+  </div>
+
+  {# ══════════════════ CITAS CON FAMILIAS HOY ══════════════════ #}
+  {% if citas_reunion_hoy %}
+  <div class="pulse-sec-hdr">
+    <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar-heart"></i></div>
+    <h2>Citas con Familias — Hoy</h2>
+  </div>
+  <div class="row g-3 mb-2">
+    {% for cita in citas_reunion_hoy %}
+    <div class="col-md-6 col-lg-4">
+      <div class="pulse-cita-hoy">
+        <div class="pch-time"><i class="bi bi-clock-fill me-1"></i>{{ cita.fecha_hora_inicio|localtime|time:"g:i A" }}</div>
+        <div class="pch-names">
+          <i class="bi bi-person-fill me-1"></i>{{ cita.estudiante.usuario.get_full_name|default:cita.estudiante.usuario.username }}<br>
+          <i class="bi bi-people-fill me-1"></i>{{ cita.familiar.usuario.get_full_name|default:cita.familiar.usuario.username }}
         </div>
+        <div class="pch-asunto">{{ cita.asunto|truncatechars:120 }}</div>
+        <a href="{% url 'gestion_academica:gestionar_cita' cita.pk %}" class="btn btn-sm btn-outline-success align-self-start">
+          <i class="bi bi-arrow-right-circle me-1"></i>Gestionar cita
+        </a>
+      </div>
     </div>
-</div>
-    <!-- ▲▲▲ FIN DE LA SECCIÓN DE HORARIO ▲▲▲ -->
-                
+    {% endfor %}
+  </div>
+  {% endif %}
 
-    <!-- Sección 2: Lista de Cursos y Acciones Rápidas -->
-    <h2 class="h3 mt-5 mb-3"><i class="bi bi-list-task me-2"></i>Mis Cursos y Acciones</h2>
-    <div class="card shadow-sm">
-        <div class="list-group list-group-flush">
-            {% for curso in cursos_asignados %}
-                <div class="list-group-item">
-                    <div class="row align-items-center gy-2">
-                        <div class="col-md-4">
-                            <h5 class="mb-1">{{ curso.materia.nombre_materia }}</h5>
-                            <p class="mb-0 text-muted">
-                           {{ curso.grado.nombre }}<br>
-                         <i class="bi bi-door-closed-fill"></i> Aula: {{ curso.aula.nombre|default:"Sin aula asignada" }}
-                           </p>
-                        </div>
-                        <div class="col-md-8 text-md-end">
-                            <div class="btn-group flex-wrap" role="group" aria-label="Acciones para el curso">
-                                
-                                <!-- INICIO DE LA LÓGICA INTELIGENTE -->
-                            {% if curso.grado.tipo_evaluacion == 'CUALITATIVO' %}
-                                <!-- Botones para Preescolar -->
-                                <a href="{% url 'gestion_academica:gestionar_curso_cualitativo' curso_pk=curso.pk %}" class="btn btn-success" title="Gestionar Logros y Dimensiones">
-                                    <i class="bi bi-sliders me-1"></i> Gestionar Curso
-                                </a>
-                                <a href="{% url 'gestion_academica:evaluar_logros_curso' curso_pk=curso.pk %}" class="btn btn-info" title="Evaluar Logros de Preescolar">
-                                    <i class="bi bi-check2-square me-1"></i> Evaluar Logros
-                                </a>
-                                <a href="{% url 'gestion_academica:lista_escala_cualitativa' %}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-star-fill me-1"></i> Gestionar Escala
-                                </a>
-                            {% else %}
-                                <!-- Botones para otros grados -->
-                                <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=curso.pk %}" class="btn btn-primary" title="Ir al Libro de Notas">
-                                    <i class="bi bi-pencil-square me-1"></i> Libro de Notas
-                                </a>
-                            {% endif %}
-                                <a href="{% url 'gestion_academica:escaner_asistencia' curso_pk=curso.pk %}" class="btn btn-outline-danger" title="Pasar Lista">
-                                    <i class="bi bi-qr-code-scan me-1"></i> Pasar Lista
-                                </a>
-                                <a href="{% url 'gestion_academica:registrar_leccion' curso_pk=curso.pk %}" class="btn btn-outline-info" title="Registrar Lección Diaria">
-                                    <i class="bi bi-journal-plus me-1"></i> Registrar Lección
-                                </a>
-                                
-                                
-                                <!-- ================================================================ -->
-                                <!--   INICIO: CORRECCIÓN DEL ENLACE DE OBSERVACIONES                 -->
-                                <!-- ================================================================ -->
-                                <a href="{% url 'gestion_academica:gestionar_observaciones' grado_pk=curso.grado.pk periodo_pk=curso.periodo_academico.pk %}" class="btn btn-outline-warning" title="Añadir Observaciones para Boletín">
-                                    <i class="bi bi-chat-left-text-fill me-1"></i> Observaciones
-                                </a>
-                                {% if es_director_de_grupo %}
-                                <a href="{% url 'gestion_academica:panel_director_grupo' %}" class="btn btn-warning">
-                                    <i class="bi bi-person-video3 me-2"></i> Ver Panel de Mi Grupo
-                                </a>
-                                {% endif %}
-                                
-                                
-                                <a href="{% url 'gestion_academica:centro_gestion_docente' %}" class="btn btn-success">
-                                    <i class="bi bi-tools me-2"></i> Ir a mi Centro de Gestión
-                                    
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  {# ══════════════════ CLASES DE HOY ══════════════════ #}
+  <div class="pulse-sec-hdr">
+    <div class="psh-icon" style="background:#fefce8;color:#d97706;"><i class="bi bi-check2-square"></i></div>
+    <h2>Mis Clases de Hoy</h2>
+  </div>
+  <div class="row g-3 mb-2">
+    {% for curso in cursos_de_hoy %}
+    <div class="col-md-6 col-lg-4">
+      <div class="pulse-clase-card">
+        <div class="pcla-materia">{{ curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and curso.materia.nombre_idioma_secundario %}<br><span style="font-size:.75em;opacity:.8;font-style:italic;">{{ curso.materia.nombre_idioma_secundario }}</span>{% endif %}</div>
+        <div class="pcla-grado">{{ curso.grado.nombre }}</div>
+        {% for bloque in curso.horarios.all %}
+          {% if bloque.dia_semana == dia_semana_hoy %}
+          <div class="pcla-horario"><i class="bi bi-clock me-1"></i>{{ bloque.hora_inicio|time:"g:i A" }} – {{ bloque.hora_fin|time:"g:i A" }}</div>
+          {% endif %}
+        {% endfor %}
+        <div class="mt-auto pt-3 text-center">
+          <a href="{% url 'gestion_academica:pasar_lista' curso.pk %}" class="btn btn-primary btn-sm w-100">
+            <i class="bi bi-person-check-fill me-1"></i>Pasar Lista
+          </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="pulse-empty"><i class="bi bi-calendar-x"></i>No tienes clases programadas para el día de hoy.</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ══════════════════ HORARIO SEMANAL ══════════════════ #}
+  <div class="pulse-sec-hdr">
+    <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar-week"></i></div>
+    <h2>Mi Horario Semanal</h2>
+  </div>
+  <div class="pulse-horario-wrap mb-2">
+    <div>
+      <ul class="nav nav-tabs" id="horarioTab" role="tablist">
+        {% for dia_num, dia_nombre in dias_semana %}
+          {% if dia_num < 5 %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link {% if dia_num == dia_semana_hoy %}active{% endif %}"
+                    id="dia-{{ dia_num }}-tab" data-bs-toggle="tab"
+                    data-bs-target="#dia-{{ dia_num }}" type="button" role="tab"
+                    aria-controls="dia-{{ dia_num }}"
+                    aria-selected="{% if dia_num == dia_semana_hoy %}true{% else %}false{% endif %}">
+              {{ dia_nombre }}
+            </button>
+          </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="tab-content p-3" id="horarioTabContent">
+      {% for dia_num, dia_nombre in dias_semana %}
+        {% if dia_num < 5 %}
+        <div class="tab-pane fade {% if dia_num == dia_semana_hoy %}show active{% endif %}"
+             id="dia-{{ dia_num }}" role="tabpanel" aria-labelledby="dia-{{ dia_num }}-tab">
+          {% with bloques_del_dia=horario_agrupado|get_item:dia_num %}
+            {% for bloque in bloques_del_dia %}
+            <div class="pulse-sched-item">
+              <div class="pulse-sched-time">
+                {{ bloque.hora_inicio|time:"g:i A" }}<br>{{ bloque.hora_fin|time:"g:i A" }}
+              </div>
+              <div>
+                <div class="pulse-sched-name">{{ bloque.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and bloque.curso.materia.nombre_idioma_secundario %} / {{ bloque.curso.materia.nombre_idioma_secundario }}{% endif %}</div>
+                <div class="pulse-sched-meta">{{ bloque.curso.grado.nombre }} &nbsp;·&nbsp; <i class="bi bi-door-closed me-1"></i>{{ bloque.aula.nombre|default:"Sin aula" }}</div>
+              </div>
+            </div>
             {% empty %}
-                <div class="list-group-item text-center p-4">No tienes cursos asignados para el periodo académico activo.</div>
+            <div class="text-center text-muted fst-italic p-4">No tienes clases programadas para este día.</div>
             {% endfor %}
+          {% endwith %}
         </div>
+        {% endif %}
+      {% endfor %}
     </div>
+  </div>
+
+  {# ══════════════════ AGENDA DE REUNIONES ══════════════════ #}
+  <div class="pulse-sec-hdr">
+    <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar2-heart-fill"></i></div>
+    <h2>Agenda de Reuniones con Familias</h2>
+    <div class="ms-auto d-flex gap-2">
+      <a href="{% url 'gestion_academica:docente_mis_citas' %}" class="btn btn-sm btn-outline-success">
+        <i class="bi bi-list-ul me-1"></i>Ver todas
+      </a>
+      <a href="{% url 'gestion_academica:gestionar_disponibilidad' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-clock-history me-1"></i>Disponibilidad
+      </a>
+    </div>
+  </div>
+
+  {% if citas_proximas_lista %}
+    <div class="mb-2">
+      <span class="agenda-subsection-title pendiente"><i class="bi bi-hourglass-split"></i> Pendientes de confirmación</span>
+      {% for cita in citas_proximas_lista %}
+        {% if cita.estado == 'PENDIENTE' %}
+        <div class="pulse-agenda-row pendiente">
+          <div class="par-date text-warning">
+            {{ cita.fecha_hora_inicio|localtime|date:"d M" }}
+            <div class="par-time">{{ cita.fecha_hora_inicio|localtime|time:"g:i A" }}</div>
+          </div>
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-semibold text-truncate"><i class="bi bi-person-fill me-1 text-muted"></i>{{ cita.estudiante.usuario.get_full_name|default:cita.estudiante.usuario.username }}</div>
+            <small class="text-muted d-block text-truncate">Familiar: {{ cita.familiar.usuario.get_full_name|default:cita.familiar.usuario.username }}</small>
+            <small class="d-block text-truncate">{{ cita.asunto|truncatechars:100 }}</small>
+          </div>
+          <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
+            <span class="badge bg-warning text-dark">Pendiente</span>
+            <a href="{% url 'gestion_academica:gestionar_cita' cita.pk %}" class="btn btn-sm btn-warning mt-1">
+              <i class="bi bi-check2-circle me-1"></i>Confirmar
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      <span class="agenda-subsection-title confirmada"><i class="bi bi-calendar-check-fill"></i> Confirmadas</span>
+      {% for cita in citas_proximas_lista %}
+        {% if cita.estado == 'CONFIRMADA' %}
+        <div class="pulse-agenda-row confirmada">
+          <div class="par-date text-success">
+            {{ cita.fecha_hora_inicio|localtime|date:"d M" }}
+            <div class="par-time">{{ cita.fecha_hora_inicio|localtime|time:"g:i A" }}</div>
+          </div>
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-semibold text-truncate"><i class="bi bi-person-fill me-1 text-muted"></i>{{ cita.estudiante.usuario.get_full_name|default:cita.estudiante.usuario.username }}</div>
+            <small class="text-muted d-block text-truncate">Familiar: {{ cita.familiar.usuario.get_full_name|default:cita.familiar.usuario.username }}</small>
+            <small class="d-block text-truncate">{{ cita.asunto|truncatechars:100 }}</small>
+            {% if cita.enlace_virtual %}
+            <a href="{{ cita.enlace_virtual }}" target="_blank" rel="noopener" class="small text-primary">
+              <i class="bi bi-camera-video-fill me-1"></i>Enlace virtual
+            </a>
+            {% endif %}
+          </div>
+          <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
+            <span class="badge bg-success">Confirmada</span>
+            <a href="{% url 'gestion_academica:gestionar_cita' cita.pk %}" class="btn btn-sm btn-outline-success mt-1">
+              <i class="bi bi-pencil-square me-1"></i>Gestionar
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="pulse-empty mb-3">
+      <i class="bi bi-calendar2-x"></i>
+      <p class="mb-1 fw-semibold text-muted">No tienes reuniones programadas en los próximos 28 días</p>
+      <p class="small text-muted mb-2">Configura tu disponibilidad para que las familias puedan agendarte.</p>
+      <a href="{% url 'gestion_academica:gestionar_disponibilidad' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-clock-history me-1"></i>Gestionar disponibilidad
+      </a>
+    </div>
+  {% endif %}
+
+  {# ══════════════════ MIS CURSOS Y ACCIONES ══════════════════ #}
+  <div class="pulse-sec-hdr" id="cursos-asignados-lista">
+    <div class="psh-icon"><i class="bi bi-list-task"></i></div>
+    <h2>Mis Cursos y Acciones</h2>
+    <a href="{% url 'gestion_academica:docente_hub_reportes' %}" class="ms-auto btn btn-sm btn-outline-primary">
+      <i class="bi bi-bar-chart-line me-1"></i>Reportes
+    </a>
+  </div>
+  <div class="row g-3 mb-4">
+    {% for curso in cursos_asignados %}
+    <div class="col-sm-6 col-xl-4">
+      <div class="pulse-curso-card">
+        {# Cabecera de la card #}
+        <div class="pcc-head">
+          <div class="pcc-materia">{{ curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and curso.materia.nombre_idioma_secundario %}<br><span style="font-size:.75em;opacity:.8;font-style:italic;">{{ curso.materia.nombre_idioma_secundario }}</span>{% endif %}</div>
+          <div class="pcc-meta">
+            <i class="bi bi-mortarboard-fill me-1"></i>{{ curso.grado.nombre }}
+            &nbsp;·&nbsp;<i class="bi bi-door-closed-fill me-1"></i>{{ curso.aula.nombre|default:"Sin aula" }}
+          </div>
+        </div>
+        {# Botones de acción — grid 2 columnas #}
+        <div class="pcc-body">
+          <div class="pcc-actions">
+            {% if curso.grado.tipo_evaluacion == 'CUALITATIVO' %}
+            <a href="{% url 'gestion_academica:gestionar_curso_cualitativo' curso_pk=curso.pk %}" class="pca-btn pca-success">
+              <i class="bi bi-sliders"></i> Gestionar Curso
+            </a>
+            <a href="{% url 'gestion_academica:evaluar_logros_curso' curso_pk=curso.pk %}" class="pca-btn pca-info">
+              <i class="bi bi-check2-square"></i> Evaluar Logros
+            </a>
+            <a href="{% url 'gestion_academica:lista_escala_cualitativa' %}" class="pca-btn pca-slate">
+              <i class="bi bi-star-fill"></i> Escala
+            </a>
+            {% else %}
+            <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=curso.pk %}" class="pca-btn pca-primary">
+              <i class="bi bi-pencil-square"></i> Libro de Notas
+            </a>
+            <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=curso.pk %}?tab=anual" class="pca-btn pca-indigo">
+              <i class="bi bi-bar-chart-steps"></i> Vista Anual
+            </a>
+            {% endif %}
+            <a href="{% url 'gestion_academica:escaner_asistencia' curso_pk=curso.pk %}" class="pca-btn pca-danger">
+              <i class="bi bi-qr-code-scan"></i> Pasar Lista
+            </a>
+            <a href="{% url 'gestion_academica:registrar_leccion' curso_pk=curso.pk %}" class="pca-btn pca-info">
+              <i class="bi bi-journal-plus"></i> Lección
+            </a>
+            <a href="{% url 'gestion_academica:gestionar_observaciones' grado_pk=curso.grado.pk periodo_pk=curso.periodo_academico.pk %}" class="pca-btn pca-warning">
+              <i class="bi bi-chat-left-text-fill"></i> Observaciones
+            </a>
+            {% if es_director_de_grupo %}
+            <a href="{% url 'gestion_academica:panel_director_grupo' %}" class="pca-btn pca-teal">
+              <i class="bi bi-person-video3"></i> Panel Director
+            </a>
+            {% endif %}
+            <a href="{% url 'gestion_academica:centro_gestion_docente' %}" class="pca-btn pca-slate">
+              <i class="bi bi-tools"></i> Centro Gestión
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="pulse-empty">
+        <i class="bi bi-journal-x"></i>
+        <p class="mb-0">No tienes cursos asignados para el periodo académico activo.</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ══════════════════ MALLA CURRICULAR ══════════════════ #}
+  {% if mallas_docente %}
+  <div class="pulse-sec-hdr" id="malla-curricular-docente">
+    <div class="psh-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+    <h2>Malla Curricular {{ año_malla }}</h2>
+  </div>
+
+  <style>
+    .mc-acc-item { border: 1.5px solid #e0e7ff; border-radius: 12px; margin-bottom: .75rem; overflow: hidden; }
+    .mc-acc-btn { width: 100%; background: linear-gradient(90deg,#eef2ff,#f5f3ff); border: none; padding: .85rem 1.2rem; display: flex; align-items: center; gap: .75rem; cursor: pointer; text-align: left; }
+    .mc-acc-btn:hover { background: linear-gradient(90deg,#e0e7ff,#ede9fe); }
+    .mc-acc-btn .mc-grado-chip { background:#4f46e5; color:#fff; border-radius:6px; font-size:.72rem; font-weight:800; padding:2px 10px; flex-shrink:0; }
+    .mc-acc-btn .mc-materia { font-weight:800; color:#1e1b4b; font-size:.95rem; }
+    .mc-acc-btn .mc-items-chip { margin-left:auto; background:#ede9fe; color:#5b21b6; border-radius:20px; font-size:.72rem; font-weight:700; padding:2px 10px; flex-shrink:0; }
+    .mc-acc-btn .mc-chevron { color:#818cf8; transition:transform .25s; flex-shrink:0; }
+    .mc-acc-btn[aria-expanded="true"] .mc-chevron { transform:rotate(180deg); }
+    .mc-acc-body { background:#fff; padding:0 1rem 1rem; }
+    .mc-btn-print { display:inline-flex; align-items:center; gap:5px; background:#fff; border:1.5px solid #4f46e5; color:#4f46e5; border-radius:8px; padding:.35rem .9rem; font-size:.8rem; font-weight:700; text-decoration:none; margin:.75rem 0 .5rem; transition:all .18s; }
+    .mc-btn-print:hover { background:#4f46e5; color:#fff; }
+    .mc-per-hdr { background:#1e1b4b; color:#fff; border-radius:6px; padding:.4rem .9rem; font-weight:800; font-size:.85rem; margin:.75rem 0 0; }
+    .mc-tbl { width:100%; border-collapse:collapse; font-size:.78rem; }
+    .mc-tbl thead th { background:#3730a3; color:#fff; padding:6px 8px; font-weight:700; font-size:.73rem; text-align:left; border:1px solid #3730a3; }
+    .mc-tbl tbody td { padding:6px 8px; border:1px solid #e2e8f0; vertical-align:top; line-height:1.45; }
+    .mc-tbl tbody tr:nth-child(even) td { background:#fafafe; }
+    .mc-nivel { display:inline-block; border-radius:3px; padding:1px 5px; font-size:.65rem; font-weight:800; margin-right:2px; }
+    .mc-nv-bajo { background:#fee2e2; color:#7f1d1d; } .mc-nv-basico { background:#fef3c7; color:#78350f; }
+    .mc-nv-alto { background:#dbeafe; color:#1e3a8a; } .mc-nv-superior { background:#dcfce7; color:#14532d; }
+    .mc-lbl-ebc { font-size:.67rem; font-weight:700; color:#4f46e5; } .mc-lbl-dba { font-size:.67rem; font-weight:700; color:#7c3aed; }
+    .mc-tc { text-align:center; font-weight:800; color:#1e1b4b; }
+    .mc-vacio { border:1px dashed #c7d2fe; border-radius:6px; padding:.6rem; text-align:center; color:#94a3b8; font-size:.78rem; margin-top:.5rem; }
+  </style>
+
+  <div class="mb-4">
+    {% for entry in mallas_docente %}
+    {% with malla=entry.malla pp=entry.por_periodo total_items=entry.malla.items.count %}
+    <div class="mc-acc-item">
+      <button class="mc-acc-btn" type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#mc-collapse-{{ malla.pk }}"
+              aria-expanded="false"
+              aria-controls="mc-collapse-{{ malla.pk }}">
+        <span class="mc-grado-chip">{{ malla.grado.nombre }}</span>
+        <span class="mc-materia">{{ malla.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and malla.materia.nombre_idioma_secundario %} / {{ malla.materia.nombre_idioma_secundario }}{% endif %}</span>
+        <span class="mc-items-chip">{{ total_items }} contenido{% if total_items != 1 %}s{% endif %}</span>
+        <i class="bi bi-chevron-down mc-chevron"></i>
+      </button>
+      <div class="collapse" id="mc-collapse-{{ malla.pk }}">
+        <div class="mc-acc-body">
+          {% if malla.descripcion_general %}
+          <p class="text-muted mt-2 mb-1" style="font-size:.82rem; border-left:3px solid #4f46e5; padding-left:.6rem;">{{ malla.descripcion_general }}</p>
+          {% endif %}
+          <a href="{% url 'gestion_academica:malla_docente_imprimir' malla.pk %}" target="_blank" class="mc-btn-print">
+            <i class="bi bi-printer-fill"></i> Imprimir malla
+          </a>
+          {% for periodo_num, items in pp.items %}
+          <div class="mc-per-hdr">{{ periodo_num }}° Período Académico</div>
+          {% if items %}
+          <div class="table-responsive">
+            <table class="mc-tbl">
+              <thead><tr>
+                <th style="width:13%;">Eje Temático</th><th style="width:13%;">Logro</th>
+                <th style="width:9%;">Competencias</th><th style="width:11%;">EBC / DBA</th>
+                <th style="width:22%;">Indicadores de Desempeño</th><th style="width:10%;">Metodología</th>
+                <th style="width:9%;">Recursos</th><th style="width:9%;">Evaluación</th><th style="width:4%;">Sem.</th>
+              </tr></thead>
+              <tbody>
+                {% for item in items %}
+                <tr>
+                  <td><strong>{{ item.eje_tematico }}</strong></td>
+                  <td>{{ item.logro|default:"—" }}</td>
+                  <td>{{ item.competencias|default:"—" }}</td>
+                  <td>
+                    {% if item.ebc %}<div><span class="mc-lbl-ebc">EBC:</span> {{ item.ebc }}</div>{% endif %}
+                    {% if item.dba %}<div class="mt-1"><span class="mc-lbl-dba">DBA:</span> {{ item.dba }}</div>{% endif %}
+                    {% if not item.ebc and not item.dba %}—{% endif %}
+                  </td>
+                  <td>
+                    {% if item.indicador_bajo %}<div><span class="mc-nivel mc-nv-bajo">Bajo</span> {{ item.indicador_bajo }}</div>{% endif %}
+                    {% if item.indicador_basico %}<div><span class="mc-nivel mc-nv-basico">Básico</span> {{ item.indicador_basico }}</div>{% endif %}
+                    {% if item.indicador_alto %}<div><span class="mc-nivel mc-nv-alto">Alto</span> {{ item.indicador_alto }}</div>{% endif %}
+                    {% if item.indicador_superior %}<div><span class="mc-nivel mc-nv-superior">Superior</span> {{ item.indicador_superior }}</div>{% endif %}
+                    {% if not item.indicador_bajo and not item.indicador_basico and not item.indicador_alto and not item.indicador_superior %}—{% endif %}
+                  </td>
+                  <td>{{ item.metodologia|default:"—" }}</td>
+                  <td>{{ item.recursos|default:"—" }}</td>
+                  <td>{{ item.evaluacion|default:"—" }}</td>
+                  <td class="mc-tc">{{ item.tiempo_semanas }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="mc-vacio"><i class="bi bi-inbox me-1"></i>Sin contenido en el {{ periodo_num }}° Período.</div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
-    {{ block.super }}
-
-    <script src="https://cdn.jsdelivr.net/npm/gridstack@10.1.2/dist/gridstack-all.min.js"></script>
-
-    <script>
-    // Función CSRF (se queda igual)
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const grid = GridStack.init({
-            column: 12,
-            cellHeight: '130px', 
-            float: true, 
-        });
-
-        // --- LÓGICA DE CARGA (se queda igual) ---
-        try {
-            const layoutGuardado = JSON.parse('{{ dashboard_layout_json|escapejs }}');
-            if (layoutGuardado && Array.isArray(layoutGuardado) && layoutGuardado.length > 0) {
-                grid.load(layoutGuardado.filter(item => item.id));
-            }
-        } catch (e) {
-            console.error("No se pudo cargar el diseño guardado.");
-        }
-
-        // --- NUEVA LÓGICA DE GUARDADO MANUAL ---
-        const guardarBtn = document.getElementById('guardarDisenoBtn');
-
-        if (guardarBtn) {
-            guardarBtn.addEventListener('click', function() {
-                // Serializamos todos los widgets presentes en el grid
-                const serializedData = grid.save(); 
-
-                const datosLimpios = serializedData.filter(item => item.id);
-
-                console.log("Guardando por botón:", datosLimpios); // Para depurar
-
-                // Mostramos un feedback visual al usuario
-                guardarBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Guardado';
-                guardarBtn.classList.remove('btn-primary');
-                guardarBtn.classList.add('btn-success');
-                setTimeout(() => {
-                    guardarBtn.innerHTML = '<i class="bi bi-save-fill me-2"></i>Guardar Diseño';
-                    guardarBtn.classList.remove('btn-success');
-                    guardarBtn.classList.add('btn-primary');
-                }, 2000);
-
-                // Enviamos los datos al servidor
-                fetch("{% url 'gestion_academica:guardar_layout_dashboard' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
-                    },
-                    body: JSON.stringify(datosLimpios)
-                })
-                .then(response => response.json())
-                .then(data => console.log('Respuesta del servidor:', data.message))
-                .catch(error => console.error('Error al guardar:', error));
-            });
-        }
-    });
-    </script>
+{{ block.super }}
+<script>
+(function () {
+  function updateDate() {
+    var el = document.getElementById('doc-live-date');
+    if (!el) return;
+    var now = new Date();
+    var opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    el.textContent = now.toLocaleDateString('es-ES', opts);
+  }
+  updateDate();
+  setInterval(updateDate, 60000);
+})();
+</script>
 {% endblock %}

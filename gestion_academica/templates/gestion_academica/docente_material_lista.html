@@ -1,33 +1,94 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
+
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">{{ titulo_pagina }}</h1>
-        <a href="{% url 'gestion_academica:docente_crear_material' %}" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Subir Nuevo Material</a>
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#065f46 0%,#059669 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
+  <div style="position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.06);top:-80px;right:-40px;pointer-events:none;"></div>
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
+        <i class="bi bi-folder2-open me-1"></i>Recursos Didácticos
+      </div>
+      <h2 class="mb-1 fw-800" style="font-size:1.4rem;">{{ titulo_pagina }}</h2>
+      <p class="mb-0" style="opacity:.82;font-size:.88rem;">Archivos y materiales de apoyo para tus estudiantes</p>
     </div>
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <table class="table table-hover">
-                <thead><tr><th>Archivo</th><th>Tipo</th><th>Curso Asociado</th><th>Fecha</th><th>Acciones</th></tr></thead>
-                <tbody>
-                    {% for archivo in archivos %}
-                    <tr>
-                        <td><a href="{{ archivo.archivo.url }}" target="_blank">{{ archivo.nombre_archivo_descriptivo }}</a></td>
-                        <td>{{ archivo.tipo_documento|default:"N/A" }}</td>
-                        <td>{{ archivo.curso_asociado|default:"General" }}</td>
-                        <td>{{ archivo.fecha_subida|date:"d M, Y" }}</td>
-                        <td>
-                            <a href="{% url 'gestion_academica:docente_editar_material' pk=archivo.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil-fill"></i></a>
-                            <a href="{% url 'gestion_academica:docente_eliminar_material' pk=archivo.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash-fill"></i></a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="5" class="text-center">Aún no has subido ningún material.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <a href="{% url 'gestion_academica:docente_crear_material' %}" class="btn btn-light btn-sm fw-600">
+      <i class="bi bi-cloud-upload-fill me-1"></i>Subir Material
+    </a>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0" style="border-radius:14px;">
+  <div class="card-body p-0">
+    {% if archivos %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead style="background:#f0fdf4;">
+          <tr>
+            <th class="ps-4 py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">Archivo</th>
+            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">Tipo</th>
+            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">Curso</th>
+            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">Fecha</th>
+            <th class="py-3 text-center pe-4" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for archivo in archivos %}
+          <tr>
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:34px;height:34px;border-radius:8px;background:#ecfdf5;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="bi bi-file-earmark-fill" style="color:#059669;font-size:.95rem;"></i>
+                </div>
+                <a href="{{ archivo.archivo.url }}" target="_blank" class="fw-600 text-decoration-none" style="color:#111;">
+                  {{ archivo.nombre_archivo_descriptivo }}
+                </a>
+              </div>
+            </td>
+            <td class="py-3">
+              <span class="badge" style="background:#ecfdf5;color:#065f46;font-weight:600;font-size:.75rem;">
+                {{ archivo.tipo_documento|default:"N/A" }}
+              </span>
+            </td>
+            <td class="py-3" style="color:#6b7280;font-size:.85rem;">{{ archivo.curso_asociado|default:"General" }}</td>
+            <td class="py-3" style="color:#6b7280;font-size:.85rem;">
+              <i class="bi bi-calendar3 me-1"></i>{{ archivo.fecha_subida|date:"d M, Y" }}
+            </td>
+            <td class="py-3 pe-4 text-center">
+              <div class="btn-group btn-group-sm" role="group">
+                <a href="{{ archivo.archivo.url }}" target="_blank" class="btn btn-outline-secondary" title="Descargar archivo">
+                  <i class="bi bi-download"></i>
+                </a>
+                <a href="{% url 'gestion_academica:docente_editar_material' pk=archivo.pk %}" class="btn btn-warning" title="Editar material">
+                  <i class="bi bi-pencil-fill"></i>
+                </a>
+                <a href="{% url 'gestion_academica:docente_eliminar_material' pk=archivo.pk %}" class="btn btn-danger" title="Eliminar material">
+                  <i class="bi bi-trash-fill"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-5" style="color:#9ca3af;">
+              <i class="bi bi-folder2" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+              Aún no has subido ningún material.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+    {% else %}
+    <div class="text-center py-5" style="color:#9ca3af;">
+      <i class="bi bi-folder2" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+      <p class="mb-3">Aún no has subido ningún material de apoyo.</p>
+      <a href="{% url 'gestion_academica:docente_crear_material' %}" class="btn btn-success btn-sm">
+        <i class="bi bi-cloud-upload-fill me-1"></i>Subir primer material
+      </a>
+    </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+:root { --ps-mid:#3730a3; --ps-light:#4f46e5; }
+.conv-wrap { max-width:600px; margin:2rem auto; }
+.conv-card { background:#fff; border-radius:.9rem; box-shadow:0 2px 12px rgba(0,0,0,.08); overflow:hidden; }
+.conv-header { background:linear-gradient(135deg,var(--ps-mid),var(--ps-light)); padding:1.2rem 1.5rem; color:#fff; }
+.conv-header-title { font-size:1.1rem; font-weight:800; }
+.conv-header-sub   { font-size:.8rem; opacity:.8; margin-top:.15rem; }
+.conv-body { padding:1.4rem 1.5rem; }
+.conv-item-ref { background:#f0f0ff; border:1px solid #c7d2fe; border-radius:.65rem; padding:.7rem .9rem; margin-bottom:1.25rem; font-size:.82rem; }
+.conv-item-ref-label { font-size:.72rem; font-weight:700; color:#4f46e5; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.2rem; }
+.conv-item-ref-val   { font-weight:700; color:#1e293b; }
+.conv-submit { background:linear-gradient(135deg,var(--ps-mid),var(--ps-light)); color:#fff; border:none; border-radius:.65rem; padding:.7rem; font-size:.9rem; font-weight:700; width:100%; display:flex; align-items:center; justify-content:center; gap:.5rem; cursor:pointer; margin-top:.5rem; }
+.conv-submit:hover { opacity:.9; }
+.conv-back { display:inline-flex; align-items:center; gap:.4rem; color:#64748b; font-size:.8rem; text-decoration:none; margin-bottom:1.25rem; }
+.conv-back:hover { color:#1e293b; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid px-2 px-md-3 pb-5">
+  <div class="conv-wrap">
+    <a href="{% url 'gestion_academica:plan_semanal_detalle' item.plan_id %}" class="conv-back"><i class="bi bi-arrow-left"></i> Volver al plan</a>
+    <div class="conv-card">
+      <div class="conv-header">
+        <div class="conv-header-title"><i class="bi bi-journal-check me-2"></i>Convertir en Deber</div>
+        <div class="conv-header-sub">Este ítem del plan quedará vinculado al deber que crees aquí.</div>
+      </div>
+      <div class="conv-body">
+        <div class="conv-item-ref">
+          <div class="conv-item-ref-label">Ítem del plan</div>
+          <div class="conv-item-ref-val">{{ item.titulo }}</div>
+          <div style="font-size:.76rem;color:#64748b;margin-top:.1rem;">{{ item.fecha|date:"l d \d\e F" }} · {{ item.plan.curso.materia.nombre_materia }}</div>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Título del Deber *</label>
+            <input type="text" name="titulo" class="form-control" value="{{ item.titulo }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Instrucciones / Descripción</label>
+            <textarea name="descripcion" class="form-control" rows="4" placeholder="¿Qué debe hacer el estudiante?">{{ item.descripcion|default:'' }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Fecha de Entrega *</label>
+            <input type="date" name="fecha_entrega" class="form-control" value="{{ item.fecha|date:'Y-m-d' }}" required>
+          </div>
+          <button type="submit" class="conv-submit"><i class="bi bi-journal-check"></i> Crear Deber y Vincular al Plan</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

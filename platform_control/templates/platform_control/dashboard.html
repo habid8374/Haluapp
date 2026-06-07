@@ -1,0 +1,252 @@
+{% extends "base_academico.html" %}
+{% load humanize %}
+
+{% block titulo %}Panel de Control — Plataforma{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+    .kpi-card { border-radius: 14px; border: none; color: white; padding: 1.4rem 1.6rem; }
+    .kpi-card .kpi-label { font-size: .8rem; opacity: .82; text-transform: uppercase; letter-spacing: .6px; }
+    .kpi-card .kpi-value { font-size: 2.2rem; font-weight: 800; line-height: 1.1; margin-top: .25rem; }
+    .halu-card { border-radius: 14px; border: none; box-shadow: 0 2px 12px rgba(0,0,0,.07); }
+    .inst-table th { font-size: .8rem; text-transform: uppercase; letter-spacing: .5px; color: #64748b; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- Hero -->
+<div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); border-radius:18px; padding:1.75rem 2rem; color:white; margin-bottom:1.75rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div>
+        <div style="display:inline-flex; align-items:center; gap:.6rem; background:rgba(255,255,255,.08); border-radius:20px; padding:.3rem .9rem; font-size:.78rem; margin-bottom:.6rem;">
+            <i class="bi bi-shield-lock-fill" style="color:#94a3b8;"></i> Acceso Super-Admin
+        </div>
+        <h2 class="fw-800 mb-1" style="font-size:1.55rem;">{{ titulo_pagina }}</h2>
+        <p class="mb-0" style="opacity:.75; font-size:.9rem;">Métricas globales de toda la plataforma.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'platform_control:mantenimiento' %}" class="btn btn-warning fw-600" style="border-radius:9px;">
+            <i class="bi bi-wrench-adjustable-circle-fill me-1"></i> Mantenimiento
+        </a>
+        <a href="{% url 'platform_control:lock' %}" class="btn btn-outline-light fw-600" style="border-radius:9px;">
+            <i class="bi bi-lock-fill me-1"></i> Bloquear
+        </a>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card" style="background: linear-gradient(135deg,#1e293b,#334155);">
+            <div class="kpi-label"><i class="bi bi-building me-1"></i>Instituciones</div>
+            <div class="kpi-value">{{ total_instituciones }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card" style="background: linear-gradient(135deg,#0c4a6e,#0284c7);">
+            <div class="kpi-label"><i class="bi bi-people-fill me-1"></i>Estudiantes</div>
+            <div class="kpi-value">{{ total_estudiantes|intcomma }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card" style="background: linear-gradient(135deg,#14532d,#16a34a);">
+            <div class="kpi-label"><i class="bi bi-graph-up-arrow me-1"></i>Ingresos Totales</div>
+            <div class="kpi-value">${{ total_ingresos|floatformat:0|intcomma }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a href="{% url 'platform_control:tickets' %}" class="text-decoration-none">
+            <div class="kpi-card" style="background: linear-gradient(135deg,#713f12,#d97706);">
+                <div class="kpi-label"><i class="bi bi-headset me-1"></i>Tickets abiertos</div>
+                <div class="kpi-value">{{ tickets_abiertos_count }}</div>
+            </div>
+        </a>
+    </div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="kpi-card" style="background: linear-gradient(135deg,#7f1d1d,#dc2626);">
+            <div class="kpi-label"><i class="bi bi-arrow-down-circle me-1"></i>Gastos Totales</div>
+            <div class="kpi-value">${{ total_gastos|floatformat:0|intcomma }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico + Tabla ingresos -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="card halu-card h-100">
+            <div class="card-header fw-700 border-0 pt-3">
+                <i class="bi bi-bar-chart-fill me-2 text-success"></i>Ingresos por Institución
+            </div>
+            <div class="card-body">
+                <canvas id="ingresosChart" style="max-height:260px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card halu-card h-100">
+            <div class="card-header fw-700 border-0 pt-3">
+                <i class="bi bi-table me-2 text-primary"></i>Tabla de Ingresos
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle inst-table">
+                        <thead><tr><th class="ps-3">Institución</th><th class="text-end pe-3">Ingresos</th></tr></thead>
+                        <tbody>
+                        {% for inst in ingresos_por_institucion %}
+                        <tr>
+                            <td class="ps-3" style="font-size:.9rem;">{{ inst.nombre }}</td>
+                            <td class="text-end pe-3 fw-600" style="font-size:.9rem;">${{ inst.total_ingresos|floatformat:0|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla configuración MP -->
+<div class="card halu-card mb-4">
+    <div class="card-header fw-700 border-0 pt-3">
+        <i class="bi bi-gear-fill me-2 text-indigo"></i>Configuración de Mercado Pago por Institución
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle inst-table">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Institución</th>
+                        <th class="text-center">Estudiantes</th>
+                        <th class="text-center">Modo</th>
+                        <th class="text-center">Claves Test</th>
+                        <th class="text-center">Claves Prod</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for inst in instituciones %}
+                <tr>
+                    <td class="ps-3 fw-600">{{ inst.nombre }}</td>
+                    <td class="text-center">{{ inst.num_estudiantes }}</td>
+                    <td class="text-center">
+                        {% if inst.mp_modo_produccion %}
+                            <span class="badge bg-success">Producción</span>
+                        {% else %}
+                            <span class="badge bg-info">Prueba</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge {% if inst.test_keys_ok == 'OK' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ inst.test_keys_ok }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge {% if inst.prod_keys_ok == 'OK' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ inst.prod_keys_ok }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'admin:finanzas_institucioneducativa_change' inst.pk %}" class="btn btn-sm btn-outline-primary" target="_blank">
+                            <i class="bi bi-pencil-fill"></i> Editar
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4">Sin instituciones.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla gestión (activar/desactivar) -->
+<div class="card halu-card">
+    <div class="card-header fw-700 border-0 pt-3">
+        <i class="bi bi-toggles me-2 text-warning"></i>Activación de Instituciones
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle inst-table">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Institución</th>
+                        <th class="text-center">Tarifa Mensual</th>
+                        <th class="text-center">Comisión %</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Editar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for inst in instituciones %}
+                <tr>
+                    <td class="ps-3 fw-600">{{ inst.nombre }}</td>
+                    <td class="text-center">${{ inst.tarifa_mensual_plataforma|floatformat:0|intcomma }}</td>
+                    <td class="text-center">{{ inst.comision_por_transaccion_porcentaje|floatformat:2 }}%</td>
+                    <td class="text-center">
+                        <form action="{% url 'platform_control:toggle_institucion' pk=inst.pk %}" method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <div class="form-check form-switch d-inline-block m-0">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       id="sw-{{ inst.pk }}"
+                                       {% if inst.activa %}checked{% endif %}
+                                       onchange="this.form.submit()">
+                                <label class="form-check-label" for="sw-{{ inst.pk }}">
+                                    {% if inst.activa %}Activa{% else %}Bloqueada{% endif %}
+                                </label>
+                            </div>
+                        </form>
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'admin:finanzas_institucioneducativa_change' inst.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-4">Sin instituciones.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('ingresosChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'Ingresos ($)',
+                data: {{ chart_data|safe }},
+                backgroundColor: 'rgba(22,163,74,.75)',
+                borderColor: 'rgba(22,163,74,1)',
+                borderWidth: 1,
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: { callback: v => '$' + v.toLocaleString('es-CO') }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

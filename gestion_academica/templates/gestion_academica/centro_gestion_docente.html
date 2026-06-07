@@ -1,118 +1,353 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina|default:"Centro de Gestión" }}{% endblock %}
 
+{% block extrastyles %}
+{{ block.super }}
+<style>
+/* ═══════════════════════════════════════════════════════
+   HALU PULSE — Centro de Gestión Docente v2
+═══════════════════════════════════════════════════════ */
+
+/* ── Hero ── */
+.cg-hero {
+  background: linear-gradient(135deg, #07285f 0%, #0a3d8c 42%, #0b5ed7 100%);
+  border-radius: 1.1rem; padding: 1.8rem 2rem; color: #fff;
+  margin-bottom: 1.5rem; position: relative; overflow: hidden;
+}
+.cg-hero::before {
+  content: ''; position: absolute;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: rgba(255,255,255,.05);
+  top: -100px; right: -60px; pointer-events: none;
+}
+.cg-hero::after {
+  content: ''; position: absolute;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(255,255,255,.04);
+  bottom: -70px; left: 30%; pointer-events: none;
+}
+.cg-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
+  border-radius: 2rem; padding: .22rem .78rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .3px;
+  text-transform: uppercase; margin-bottom: .7rem;
+}
+.cg-title { font-size: 1.55rem; font-weight: 800; font-family: 'Manrope', sans-serif; margin-bottom: .25rem; }
+.cg-sub   { font-size: .87rem; opacity: .82; max-width: 560px; }
+.cg-back {
+  position: absolute; top: 1.2rem; right: 1.4rem;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28);
+  color: #fff; border-radius: .55rem; padding: .42rem .95rem;
+  font-size: .82rem; font-weight: 600; text-decoration: none; transition: all .2s;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.cg-back:hover { background: rgba(255,255,255,.28); color: #fff; }
+
+/* ── Section header ── */
+.cg-sec {
+  display: flex; align-items: center; gap: .65rem;
+  margin: 1.7rem 0 .95rem; padding-bottom: .55rem;
+  border-bottom: 2px solid #eaf2ff;
+}
+.cg-sec .cgs-icon {
+  width: 34px; height: 34px; border-radius: .5rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.cg-sec h2 { font-size: 1.02rem; font-weight: 800; color: #0f3f90; margin: 0; }
+
+/* ── Tool card ── */
+.cg-card {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: .95rem;
+  overflow: hidden; height: 100%; display: flex; flex-direction: column;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+  transition: transform .2s, box-shadow .2s;
+}
+.cg-card:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(11,94,215,.13); }
+
+.cg-card-top {
+  padding: 1.25rem 1.25rem .8rem; flex: 1;
+}
+.cgc-icon {
+  width: 50px; height: 50px; border-radius: .75rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.35rem; margin-bottom: .9rem;
+}
+.cgc-title { font-size: .97rem; font-weight: 800; color: #0f3f90; margin-bottom: .3rem; font-family: 'Manrope', sans-serif; }
+.cgc-desc  { font-size: .8rem; color: #64748b; line-height: 1.6; }
+
+.cg-card-foot {
+  padding: .75rem 1.25rem; border-top: 1px solid #f1f5f9;
+  background: #fafcff;
+}
+.cgc-link {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-size: .8rem; font-weight: 700; text-decoration: none;
+  transition: gap .2s;
+}
+.cgc-link:hover { gap: .6rem; }
+.cgc-link .bi-arrow-right-short { font-size: 1.1rem; }
+
+/* Color variants */
+.cgc-blue   .cgc-icon { background:#eaf2ff; color:#1d4ed8; }
+.cgc-blue   .cgc-link { color:#1d4ed8; }
+.cgc-green  .cgc-icon { background:#f0fdf4; color:#15803d; }
+.cgc-green  .cgc-link { color:#15803d; }
+.cgc-amber  .cgc-icon { background:#fefce8; color:#d97706; }
+.cgc-amber  .cgc-link { color:#d97706; }
+.cgc-red    .cgc-icon { background:#fef2f2; color:#dc2626; }
+.cgc-red    .cgc-link { color:#dc2626; }
+.cgc-purple .cgc-icon { background:#faf5ff; color:#7c3aed; }
+.cgc-purple .cgc-link { color:#7c3aed; }
+.cgc-teal   .cgc-icon { background:#f0fdfa; color:#0d9488; }
+.cgc-teal   .cgc-link { color:#0d9488; }
+.cgc-slate  .cgc-icon { background:#f8fafc; color:#475569; }
+.cgc-slate  .cgc-link { color:#475569; }
+.cgc-indigo .cgc-icon { background:#eef2ff; color:#4f46e5; }
+.cgc-indigo .cgc-link { color:#4f46e5; }
+.cgc-cyan   .cgc-icon { background:#ecfeff; color:#0891b2; }
+.cgc-cyan   .cgc-link { color:#0891b2; }
+
+/* Disabled card */
+.cg-card.cg-disabled { opacity: .65; pointer-events: none; }
+
+@media (max-width: 768px) {
+  .cg-hero  { padding: 1.3rem 1.2rem; }
+  .cg-title { font-size: 1.2rem; }
+  .cg-back  { position: static; display: inline-flex; margin-top: .9rem; }
+}
+</style>
+{% endblock extrastyles %}
+
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0">{{ titulo_pagina }}</h1>
-        <a href="{% url 'gestion_academica:dashboard_docente' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Volver al Panel Principal
-        </a>
+<div class="container-fluid mt-3">
+
+  {# ══════════ HERO ══════════ #}
+  <div class="cg-hero">
+    <div class="cg-badge"><i class="bi bi-tools"></i> Centro de Gestión Docente</div>
+    <div class="cg-title">Herramientas del Docente</div>
+    <div class="cg-sub">Administra evaluaciones, materiales, convivencia y reportes desde un solo lugar.</div>
+    <a href="{% url 'gestion_academica:dashboard_docente' %}" class="cg-back">
+      <i class="bi bi-arrow-left"></i> Panel Principal
+    </a>
+  </div>
+
+  {# ══════════ EVALUACIÓN ACADÉMICA ══════════ #}
+  <div class="cg-sec">
+    <div class="cgs-icon" style="background:#eaf2ff;color:#1d4ed8;"><i class="bi bi-pencil-square"></i></div>
+    <h2>Evaluación Académica</h2>
+  </div>
+  <div class="row g-3 mb-2">
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-blue">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-book-half"></i></div>
+          <div class="cgc-title">Libro de Notas</div>
+          <div class="cgc-desc">Registra y actualiza las calificaciones de tus estudiantes en la planilla digital optimizada.</div>
+        </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="cgc-link">
+            Ir al Libro de Notas <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
     </div>
 
-    <p class="lead text-muted">Desde aquí puedes administrar todos los recursos y configuraciones para tus cursos.</p>
-
-    <div class="row g-4">
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-folder-plus fs-1 text-primary"></i>
-                    <h5 class="card-title mt-3">Archivos y Materiales</h5>
-                    <p class="card-text">Sube y administra guías, talleres y otros recursos para tus clases.</p>
-                    <a href="{% url 'gestion_academica:docente_lista_materiales' %}" class="btn btn-primary stretched-link">Gestionar Archivos</a>
-                </div>
-            </div>
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-purple">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-tags-fill"></i></div>
+          <div class="cgc-title">Categorías de Actividad</div>
+          <div class="cgc-desc">Consulta los tipos de evaluación disponibles: Tareas, Exámenes, Talleres, Participación, etc. La ponderación es definida por la coordinación.</div>
         </div>
-
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-award fs-1 text-success"></i>
-                    <h5 class="card-title mt-3">Menciones y Reconocimientos</h5>
-                    <p class="card-text">Otorga menciones de honor, méritos o reconocimientos a tus estudiantes.</p>
-                    <a href="{% url 'gestion_academica:docente_lista_menciones' %}" class="btn btn-success stretched-link">Gestionar Menciones</a>
-                </div>
-            </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}" class="cgc-link">
+            Ver Categorías <i class="bi bi-arrow-right-short"></i>
+          </a>
         </div>
-
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-card-checklist fs-1 text-info"></i>
-                    <h5 class="card-title mt-3">Descriptores de Logro</h5>
-                    <p class="card-text">Define los logros y descriptores que aparecerán en los boletines.</p>
-                    <a href="{% url 'gestion_academica:docente_lista_descriptores' %}" class="btn btn-info stretched-link">Gestionar Descriptores</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-card-list fs-1 text-secondary"></i>
-                    <h5 class="card-title mt-3">Definir Actividades</h5>
-                    <p class="card-text">Crea las columnas de tu libro de notas: exámenes, talleres, tareas, etc.</p>
-                    <a href="{% url 'gestion_academica:docente_lista_actividades' %}" class="btn btn-secondary stretched-link">Gestionar Actividades</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-pencil-square fs-1 text-warning"></i>
-                    <h5 class="card-title mt-3">Libro de Notas</h5>
-                    <p class="card-text">Registra las calificaciones de tus estudiantes en una planilla optimizada.</p>
-                    <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="btn btn-warning stretched-link">Calificar Cursos</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="bi bi-eye fs-1 text-danger"></i>
-                    <h5 class="card-title mt-3">Observador del Estudiante</h5>
-                    <p class="card-text">Registra eventos y seguimientos en la hoja de vida de tus estudiantes.</p>
-                    <a href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}" class="btn btn-danger stretched-link">Acceder al Observador</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center d-flex flex-column">
-                    <i class="bi bi-tags-fill fs-1 text-primary-emphasis"></i>
-                    <h5 class="card-title mt-3">Gestionar Categorías</h5>
-                    <p class="card-text">Define los porcentajes de tus actividades (Ej: Tareas 20%, Exámenes 30%).</p>
-                    <a href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}" class="btn btn-primary mt-auto stretched-link">Gestionar Categorías</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center d-flex flex-column">
-                <i class="bi bi-graph-up-arrow fs-1 text-success-emphasis"></i>
-                <h5 class="card-title mt-3">Reporte de Nota Mínima</h5>
-                <p class="card-text">Calcula la nota que necesitan tus estudiantes para aprobar y anticipa riesgos.</p>
-                <a href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}" class="btn btn-success stretched-link">Generar Reporte</a>
-            </div>
-        </div>
+      </div>
     </div>
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center d-flex flex-column">
-                <i class="bi bi-clock-history fs-1 text-success"></i>
-                <h5 class="card-title mt-3">Mi Disponibilidad</h5>
-                <p class="card-text flex-grow-1">Define y gestiona tus horarios de atención para reuniones con acudientes.</p>
-                <a href="{% url 'gestion_academica:gestionar_disponibilidad' %}" class="btn btn-success stretched-link mt-auto">Gestionar Horarios</a>
-            </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-indigo">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-card-checklist"></i></div>
+          <div class="cgc-title">Descriptores de Logro</div>
+          <div class="cgc-desc">Define los logros y descriptores que aparecerán en los boletines académicos de tus estudiantes.</div>
         </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:docente_lista_descriptores' %}" class="cgc-link">
+            Gestionar Descriptores <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
     </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card" style="border-top:3px solid #7c3aed;background:#faf5ff;">
+        <div class="cg-card-top">
+          <div class="cgc-icon" style="background:#ede9fe;color:#7c3aed;"><i class="bi bi-patch-question-fill"></i></div>
+          <div class="cgc-title" style="color:#5b21b6;">Evaluaciones con IA</div>
+          <div class="cgc-desc">Crea cuestionarios y evaluaciones de opción múltiple, V/F y preguntas abiertas usando inteligencia artificial.</div>
+        </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'cuestionarios:lista' %}" class="cgc-link" style="color:#7c3aed;">
+            Ir a Evaluaciones <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
     </div>
-    
-    
+
+  </div>
+
+  {# ══════════ GESTIÓN DE CLASE ══════════ #}
+  <div class="cg-sec">
+    <div class="cgs-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-person-workspace"></i></div>
+    <h2>Gestión de Clase</h2>
+  </div>
+  <div class="row g-3 mb-2">
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-teal">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-folder-fill"></i></div>
+          <div class="cgc-title">Archivos y Materiales</div>
+          <div class="cgc-desc">Sube y organiza guías, talleres, lecturas y demás recursos pedagógicos para tus cursos.</div>
+        </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:docente_lista_materiales' %}" class="cgc-link">
+            Gestionar Archivos <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
     </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-amber">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-award-fill"></i></div>
+          <div class="cgc-title">Menciones y Reconocimientos</div>
+          <div class="cgc-desc">Otorga felicitaciones, menciones de honor y reconocimientos a tus estudiantes destacados.</div>
+        </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:docente_lista_menciones' %}" class="cgc-link">
+            Gestionar Menciones <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-slate">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-clock-history"></i></div>
+          <div class="cgc-title">Mi Disponibilidad</div>
+          <div class="cgc-desc">Configura tus horarios de atención para que las familias puedan agendar reuniones contigo.</div>
+        </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:gestionar_disponibilidad' %}" class="cgc-link">
+            Gestionar Horarios <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ══════════ CONVIVENCIA ESCOLAR ══════════ #}
+  <div class="cg-sec">
+    <div class="cgs-icon" style="background:#fef2f2;color:#dc2626;"><i class="bi bi-shield-check"></i></div>
+    <h2>Convivencia Escolar</h2>
+  </div>
+  <div class="row g-3 mb-2">
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-red">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-journal-text"></i></div>
+          <div class="cgc-title">Observador del Estudiante</div>
+          <div class="cgc-desc">Registra anotaciones académicas y de convivencia en la hoja de vida de cada estudiante. Cumple con la Ley 1620/2013.</div>
+        </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}" class="cgc-link">
+            Acceder al Observador <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-cyan">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-chat-left-dots-fill"></i></div>
+          <div class="cgc-title">Observaciones del Boletín</div>
+          <div class="cgc-desc">Gestiona las observaciones descriptivas que aparecen en el boletín de cada estudiante por periodo.</div>
+        </div>
+        <div class="cg-card-foot">
+          <span class="cgc-link text-muted" style="font-weight:500;cursor:default;">
+            <i class="bi bi-info-circle me-1"></i> Accede desde Mis Cursos → Observaciones
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ══════════ REPORTES Y ANÁLISIS ══════════ #}
+  <div class="cg-sec">
+    <div class="cgs-icon" style="background:#fefce8;color:#d97706;"><i class="bi bi-graph-up-arrow"></i></div>
+    <h2>Reportes y Análisis</h2>
+  </div>
+  <div class="row g-3 mb-5">
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-amber">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-graph-up-arrow"></i></div>
+          <div class="cgc-title">Reporte de Nota Mínima</div>
+          <div class="cgc-desc">Calcula la nota que necesita cada estudiante para aprobar y anticipa posibles reprobaciones a tiempo.</div>
+        </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}" class="cgc-link">
+            Generar Reporte <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-red">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+          <div class="cgc-title">Alertas de Riesgo Académico</div>
+          <div class="cgc-desc">Identifica estudiantes en riesgo de perder tus materias para intervenir oportunamente.</div>
+        </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:reporte_riesgo_academico' %}" class="cgc-link">
+            Ver Alertas <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-blue">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+          <div class="cgc-title">Centro de Reportes</div>
+          <div class="cgc-desc">Accede a todos los informes disponibles: asistencia, rendimiento por grado, convivencia y más.</div>
+        </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:docente_hub_reportes' %}" class="cgc-link">
+            Ver Todos los Reportes <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 {% endblock %}

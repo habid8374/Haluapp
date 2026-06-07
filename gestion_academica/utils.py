@@ -24,6 +24,68 @@ from .models import (
 from finanzas.models import CuentaPorCobrarEstudiante
 
 
+def estudiante_en_curso_actividad(estudiante, actividad):
+    """
+    True si el estudiante pertenece al curso implícito (mismo grado + periodo activo)
+    y a la institución de la actividad. Usado por gestion_academica y cuestionarios.
+    Requiere que ``actividad.curso`` esté resuelto (p. ej. select_related('curso')).
+    """
+    if actividad.institucion_id != estudiante.institucion_id:
+        return False
+    if not getattr(estudiante, 'grado_actual_id', None):
+        return False
+    if estudiante.grado_actual_id != actividad.curso.grado_id:
+        return False
+    periodo_activo = PeriodoAcademico.objects.filter(
+        activo=True, institucion=estudiante.institucion
+    ).first()
+    if not periodo_activo:
+        return False
+    return actividad.curso.periodo_academico_id == periodo_activo.pk
+
+
+def actividades_calificables_accesibles_para_usuario(user):
+    """
+    Actividades visibles según rol (API detalle actividad interactiva, coherencia multi-tenant).
+    """
+    if user.is_superuser:
+        return ActividadCalificable.objects.all()
+    if hasattr(user, 'estudiante'):
+        e = user.estudiante
+        periodo = PeriodoAcademico.objects.filter(
+            activo=True, institucion=e.institucion
+        ).first()
+        if not periodo or not getattr(e, 'grado_actual_id', None):
+            return ActividadCalificable.objects.none()
+        return ActividadCalificable.objects.filter(
+            institucion=e.institucion,
+            curso__grado_id=e.grado_actual_id,
+            curso__periodo_academico=periodo,
+        )
+    if hasattr(user, 'docente'):
+        d = user.docente
+        periodo = PeriodoAcademico.objects.filter(
+            activo=True, institucion=d.institucion
+        ).first()
+        if not periodo:
+            return ActividadCalificable.objects.none()
+        return ActividadCalificable.objects.filter(
+            institucion=d.institucion,
+            curso__docentes_asignados=d,
+            curso__periodo_academico=periodo,
+        )
+    if getattr(user, 'institucion_asociada', None):
+        return ActividadCalificable.objects.filter(institucion=user.institucion_asociada)
+    return ActividadCalificable.objects.none()
+
+
+def docente_asignado_a_actividad(user, actividad):
+    """True si el usuario es docente asignado al curso de la actividad."""
+    if not hasattr(user, 'docente'):
+        return False
+    return actividad.curso.docentes_asignados.filter(pk=user.docente.pk).exists()
+
+
 logger = logging.getLogger(__name__)
 
 def calcular_estado_academico_curso(curso, estudiante):
@@ -102,6 +164,29 @@ def analizar_riesgo_academico_curso(curso, estudiante):
     return resultado
 
 
+# Estados que el dashboard docente y la API cuentan como "riesgo académico activo".
+ESTADOS_RIESGO_ACADEMICO_CURSO = frozenset({"En Riesgo", "Situación Crítica"})
+
+
+def contar_pares_estudiante_curso_en_riesgo_academico(estudiantes_qs, cursos_qs):
+    """
+    Cuenta pares (estudiante, curso) donde ``analizar_riesgo_academico_curso`` indica
+    riesgo inmediato. Misma regla en vista web y API del docente.
+
+    Materializa ``cursos_qs`` una vez y usa ``iterator`` en estudiantes para limitar memoria.
+    """
+    cursos = list(cursos_qs)
+    if not cursos:
+        return 0
+    total = 0
+    for estudiante in estudiantes_qs.iterator(chunk_size=200):
+        for curso in cursos:
+            estado = analizar_riesgo_academico_curso(curso, estudiante)["estado"]
+            if estado in ESTADOS_RIESGO_ACADEMICO_CURSO:
+                total += 1
+    return total
+
+
 def obtener_desempeno(nota, institucion):
     """
     Busca en la base de datos la abreviatura del desempeño que corresponde
@@ -132,17 +217,19 @@ def registrar_inasistencias_docentes(institucion, fecha=None):
         fecha = timezone.localdate()
 
     docentes = Docente.objects.filter(institucion=institucion)
-    registrados = RegistroAsistenciaDocente.objects.filter(institucion=institucion, fecha__date=fecha).values_list('docente_id', flat=True)
+    registrados = RegistroAsistenciaDocente.objects.filter(
+        institucion=institucion, dia=fecha
+    ).values_list("docente_id", flat=True)
 
     inasistentes = docentes.exclude(pk__in=registrados)
 
     for docente in inasistentes:
         RegistroAsistenciaDocente.objects.create(
             docente=docente,
-            estado='AUSENTE',
-            fecha=timezone.now(),
+            estado=RegistroAsistenciaDocente.Estado.AUSENTE,
+            dia=fecha,
             institucion=institucion,
-            registrado_por=None  # No hay quien lo haya marcado
+            registrado_por=None,
         ) 
 
 def generar_boletin_pdf_en_memoria(estudiante, año_academico):

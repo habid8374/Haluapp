@@ -2,50 +2,274 @@
 
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
+{% block extrastyles %}{{ block.super }}
+<style>
+/* ══════════════════════════════════════════════════════
+   HALU PULSE — SUPERVISIÓN DE REUNIONES
+   Tema: teal/cyan
+══════════════════════════════════════════════════════ */
+:root {
+  --cita-dark:   #134e4a;
+  --cita-mid:    #0f766e;
+  --cita-light:  #0d9488;
+  --cita-accent: #5eead4;
+}
+
+/* ── Hero ─────────────────────────────────────────── */
+.cita-hero {
+  background: linear-gradient(135deg, var(--cita-dark) 0%, var(--cita-mid) 55%, #0f766e 100%);
+  border-radius: 1rem;
+  padding: 1.6rem 1.8rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.cita-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.cita-hero-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 2rem; padding: .25rem .75rem; font-size: .78rem; font-weight: 600;
+}
+.cita-hero-title { font-size: 1.38rem; font-weight: 800; letter-spacing: -.5px; margin-bottom: .2rem; }
+.cita-hero-sub   { font-size: .82rem; opacity: .78; }
+.cita-hero-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .45rem 1rem; border-radius: .6rem; font-size: .82rem; font-weight: 600;
+  text-decoration: none; border: none; cursor: pointer;
+}
+.cita-hero-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
+.cita-hero-btn-outline:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+/* ── Panel ────────────────────────────────────────── */
+.cita-panel {
+  background: #fff;
+  border-radius: .85rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,.07);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.cita-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .5rem; flex-wrap: wrap;
+  padding: .9rem 1.2rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.cita-panel-title {
+  font-size: .95rem; font-weight: 700; color: #1e293b;
+  display: flex; align-items: center; gap: .5rem; margin: 0;
+}
+.cita-panel-title .ico {
+  width: 30px; height: 30px; border-radius: .45rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; flex-shrink: 0;
+  background: #ccfbf1; color: #0f766e;
+}
+
+/* ── Tabla ─────────────────────────────────────────── */
+.cita-table thead th {
+  background: #f8fafc; font-size: .74rem; text-transform: uppercase;
+  letter-spacing: .5px; font-weight: 700; color: #64748b;
+  border-bottom: 2px solid #e2e8f0; white-space: nowrap; padding: .7rem 1rem;
+}
+.cita-table tbody td { vertical-align: middle; font-size: .83rem; padding: .75rem 1rem; }
+.cita-table tbody tr:hover { background: #f0fdfa; }
+
+/* ── Estado badges ────────────────────────────────── */
+.estado-badge {
+  display: inline-flex; align-items: center; gap: .3rem;
+  border-radius: 2rem; padding: .2rem .65rem; font-size: .73rem; font-weight: 700;
+}
+.estado-realizada    { background: #dcfce7; color: #15803d; }
+.estado-confirmada   { background: #dbeafe; color: #1d4ed8; }
+.estado-pendiente    { background: #fef3c7; color: #92400e; }
+.estado-cancelada    { background: #fee2e2; color: #dc2626; }
+.estado-default      { background: #f1f5f9; color: #475569; }
+
+/* ── Botón detalle ────────────────────────────────── */
+.det-btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .32rem .75rem; border-radius: .5rem; font-size: .76rem; font-weight: 600;
+  text-decoration: none; background: #ccfbf1; color: #0f766e; border: none;
+  transition: background .12s;
+}
+.det-btn:hover { background: #99f6e4; color: #0f766e; }
+
+/* ── Tarjeta móvil ────────────────────────────────── */
+.cita-card {
+  border-radius: .7rem;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid var(--cita-mid);
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  margin-bottom: .75rem;
+}
+.cita-card-inner { padding: .9rem 1rem; }
+.cita-card-date  { font-size: .78rem; font-weight: 700; color: var(--cita-mid); margin-bottom: .35rem; }
+.cita-card-label { font-size: .7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: .4px; margin-bottom: .1rem; }
+.cita-card-val   { font-size: .82rem; color: #1e293b; margin-bottom: .35rem; }
+
+/* Vacío */
+.cita-empty { text-align: center; padding: 2.5rem 1rem; color: #94a3b8; }
+.cita-empty i { font-size: 2.2rem; display: block; margin-bottom: .6rem; }
+</style>
+{% endblock %}
+
 {% block contenido %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2 mb-0"><i class="bi bi-binoculars-fill me-2"></i> {{ titulo_pagina }}</h1>
-        <a href="{% url 'gestion_academica:dashboard_coordinador' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Volver al Panel
-        </a>
+<div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1200px;">
+
+  <!-- ══ HERO ════════════════════════════════════════════════════════ -->
+  <div class="cita-hero">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
+      <div>
+        <div class="cita-hero-badge mb-2">
+          <i class="bi bi-binoculars-fill"></i> Supervisión · Coordinador
+        </div>
+        <div class="cita-hero-title">
+          <i class="bi bi-calendar2-check-fill me-2"></i>{{ titulo_pagina }}
+        </div>
+        <div class="cita-hero-sub">Historial completo de reuniones entre docentes y familias</div>
+      </div>
+      <a href="{% url 'gestion_academica:dashboard_coordinador' %}" class="cita-hero-btn cita-hero-btn-outline">
+        <i class="bi bi-arrow-left"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- ══ PANEL REUNIONES ══════════════════════════════════════════════ -->
+  <div class="cita-panel">
+    <div class="cita-panel-header">
+      <h2 class="cita-panel-title">
+        <span class="ico"><i class="bi bi-calendar2-check-fill"></i></span>
+        Reuniones Agendadas
+      </h2>
+      {% if citas %}
+      <span class="badge rounded-pill" style="background:#ccfbf1;color:#0f766e;font-size:.72rem;">
+        {{ citas|length }} reunión{{ citas|length|pluralize:"es" }}
+      </span>
+      {% endif %}
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header">
-            Historial completo de reuniones
-        </div>
+    {% if citas %}
+
+      <!-- Tabla — desktop -->
+      <div class="d-none d-md-block">
         <div class="table-responsive">
-    <table class="table table-hover table-striped mb-0">
-        <thead class="table-light">
-            <tr>
+          <table class="table table-hover mb-0 cita-table">
+            <thead>
+              <tr>
                 <th>Fecha y Hora</th>
                 <th>Docente</th>
-                <th>Familiar y Estudiante</th>
-                <th>Estado</th>
-                <th>Acuerdos y Compromisos</th>
-                <th class="text-center">Acciones</th> </tr>
-        </thead>
-        <tbody>
-            {% for cita in citas %}
-            <tr>
-                <td><strong>{{ cita.fecha_hora_inicio|date:"d M, Y" }}</strong></td>
-                <td>{{ cita.docente.usuario.get_full_name }}</td>
-                <td>{{ cita.familiar.usuario.get_full_name }}<br><small class="text-muted">Acudiente de: {{ cita.estudiante.usuario.get_full_name }}</small></td>
-                <td><span class="badge bg-success">{{ cita.get_estado_display }}</span></td>
-                <td><small>{{ cita.acuerdos_compromisos|truncatewords:10 }}</small></td>
-                <td class="text-center">
-                    <a href="{% url 'gestion_academica:detalle_cita_supervision' cita.pk %}" class="btn btn-sm btn-outline-primary">
-                        Ver Detalle
-                    </a>
+                <th>Familiar</th>
+                <th>Estudiante</th>
+                <th class="text-center">Estado</th>
+                <th>Acuerdos</th>
+                <th class="text-center">Detalle</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cita in citas %}
+              <tr>
+                <td>
+                  <div class="fw-semibold" style="font-size:.83rem;">{{ cita.fecha_hora_inicio|date:"d M, Y" }}</div>
+                  <div class="text-muted" style="font-size:.76rem;">{{ cita.fecha_hora_inicio|date:"h:i A" }}</div>
                 </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6" class="text-center p-4">No hay citas registradas.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                <td class="small">{{ cita.docente.usuario.get_full_name }}</td>
+                <td class="small">{{ cita.familiar.usuario.get_full_name }}</td>
+                <td class="small">{{ cita.estudiante.usuario.get_full_name }}</td>
+                <td class="text-center">
+                  {% with estado=cita.get_estado_display %}
+                  {% if 'realizada' in estado|lower or 'completada' in estado|lower %}
+                    <span class="estado-badge estado-realizada"><i class="bi bi-check-circle-fill" style="font-size:.65rem;"></i> {{ estado }}</span>
+                  {% elif 'confirma' in estado|lower %}
+                    <span class="estado-badge estado-confirmada">{{ estado }}</span>
+                  {% elif 'pendiente' in estado|lower %}
+                    <span class="estado-badge estado-pendiente">{{ estado }}</span>
+                  {% elif 'cancel' in estado|lower %}
+                    <span class="estado-badge estado-cancelada">{{ estado }}</span>
+                  {% else %}
+                    <span class="estado-badge estado-default">{{ estado }}</span>
+                  {% endif %}
+                  {% endwith %}
+                </td>
+                <td><small class="text-muted">{{ cita.acuerdos_compromisos|truncatewords:10|default:"—" }}</small></td>
+                <td class="text-center">
+                  <a href="{% url 'gestion_academica:detalle_cita_supervision' cita.pk %}" class="det-btn">
+                    <i class="bi bi-eye-fill"></i> Ver
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-    </div>
+      </div>
+
+      <!-- Tarjetas — móvil -->
+      <div class="d-md-none p-2 pt-3">
+        {% for cita in citas %}
+        <div class="cita-card">
+          <div class="cita-card-inner">
+
+            <!-- Fecha + estado + botón -->
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <div class="cita-card-date">
+                  <i class="bi bi-calendar-event me-1"></i>{{ cita.fecha_hora_inicio|date:"d M, Y · h:i A" }}
+                </div>
+                {% with estado=cita.get_estado_display %}
+                {% if 'realizada' in estado|lower or 'completada' in estado|lower %}
+                  <span class="estado-badge estado-realizada"><i class="bi bi-check-circle-fill" style="font-size:.6rem;"></i> {{ estado }}</span>
+                {% elif 'confirma' in estado|lower %}
+                  <span class="estado-badge estado-confirmada">{{ estado }}</span>
+                {% elif 'pendiente' in estado|lower %}
+                  <span class="estado-badge estado-pendiente">{{ estado }}</span>
+                {% elif 'cancel' in estado|lower %}
+                  <span class="estado-badge estado-cancelada">{{ estado }}</span>
+                {% else %}
+                  <span class="estado-badge estado-default">{{ estado }}</span>
+                {% endif %}
+                {% endwith %}
+              </div>
+              <a href="{% url 'gestion_academica:detalle_cita_supervision' cita.pk %}" class="det-btn ms-2 flex-shrink-0">
+                <i class="bi bi-eye-fill"></i> Ver
+              </a>
+            </div>
+
+            <!-- Docente -->
+            <div class="cita-card-label"><i class="bi bi-person-badge me-1"></i>Docente</div>
+            <div class="cita-card-val">{{ cita.docente.usuario.get_full_name }}</div>
+
+            <!-- Familiar + estudiante -->
+            <div class="cita-card-label"><i class="bi bi-people-fill me-1"></i>Familiar / Estudiante</div>
+            <div class="cita-card-val">
+              {{ cita.familiar.usuario.get_full_name }}
+              <span class="text-muted"> — {{ cita.estudiante.usuario.get_full_name }}</span>
+            </div>
+
+            <!-- Acuerdos -->
+            {% if cita.acuerdos_compromisos %}
+            <div class="cita-card-label"><i class="bi bi-journal-check me-1"></i>Acuerdos</div>
+            <div class="cita-card-val" style="color:#475569;">{{ cita.acuerdos_compromisos|truncatewords:12 }}</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <div class="cita-empty">
+        <i class="bi bi-calendar2-x"></i>
+        <p class="fw-semibold mb-1">Sin reuniones registradas</p>
+        <p class="small mb-0">Las citas agendadas entre docentes y familias aparecerán aquí.</p>
+      </div>
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}

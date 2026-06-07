@@ -1,0 +1,638 @@
+{% extends "base_academico.html" %}
+{% load gestion_academica_filters %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+/* ══════════════════════════════════════════
+   PANTALLA
+══════════════════════════════════════════ */
+:root { --mc-dark:#1e1b4b; --mc-mid:#3730a3; --mc-light:#4f46e5; }
+
+.mc-hero { background:linear-gradient(135deg,var(--mc-dark) 0%,var(--mc-mid) 55%,#4338ca 100%); border-radius:1rem; padding:1.5rem 1.8rem; color:#fff; position:relative; overflow:hidden; margin-bottom:1.5rem; }
+.mc-hero::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+.mc-hero-badge { display:inline-flex; align-items:center; gap:.35rem; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); border-radius:2rem; padding:.25rem .75rem; font-size:.78rem; font-weight:600; }
+.mc-hero-title { font-size:1.35rem; font-weight:800; letter-spacing:-.5px; margin-bottom:.2rem; }
+.mc-hero-sub   { font-size:.83rem; opacity:.78; }
+.mc-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.42rem .95rem; border-radius:.6rem; font-size:.81rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; }
+.mc-btn-outline { background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.3); }
+.mc-btn-outline:hover { background:rgba(255,255,255,.22); color:#fff; }
+.mc-btn-print { background:#fff; color:var(--mc-mid); border:none; font-weight:700; }
+.mc-btn-print:hover { background:#eef2ff; color:var(--mc-dark); }
+
+.mc-period-tabs { display:flex; gap:.4rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+.mc-period-tab { padding:.45rem 1.1rem; border-radius:.6rem; font-size:.82rem; font-weight:700; cursor:pointer; border:none; background:#e0e7ff; color:#3730a3; transition:background .15s; }
+.mc-period-tab.active { background:linear-gradient(135deg,var(--mc-mid),var(--mc-light)); color:#fff; }
+.mc-period-tab:hover:not(.active) { background:#c7d2fe; }
+
+.mc-period-panel { display:none; }
+.mc-period-panel.active { display:block; }
+
+.mc-panel { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; margin-bottom:1.25rem; }
+.mc-panel-header { display:flex; align-items:center; justify-content:space-between; gap:.5rem; flex-wrap:wrap; padding:.85rem 1.2rem; border-bottom:1px solid #f1f5f9; }
+.mc-panel-title { font-size:.95rem; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:.5rem; margin:0; }
+.mc-panel-title .ico { width:30px; height:30px; border-radius:.45rem; display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; background:#e0e7ff; color:#4f46e5; }
+
+.mc-table-wrap { overflow-x:auto; }
+.mc-table { width:100%; border-collapse:collapse; font-size:.78rem; }
+.mc-table th { background:linear-gradient(135deg,var(--mc-mid),var(--mc-light)); color:#fff; padding:.55rem .75rem; font-weight:700; font-size:.73rem; text-align:left; white-space:nowrap; }
+.mc-table td { padding:.6rem .75rem; border-bottom:1px solid #f1f5f9; vertical-align:top; color:#1e293b; }
+.mc-table tr:last-child td { border-bottom:none; }
+.mc-table tr:hover td { background:#fafafe; }
+
+.nivel-bajo     { display:inline-block; background:#fee2e2; color:#b91c1c; border-radius:.35rem; padding:.12rem .5rem; font-size:.7rem; font-weight:700; margin-bottom:.25rem; }
+.nivel-basico   { display:inline-block; background:#fef3c7; color:#92400e; border-radius:.35rem; padding:.12rem .5rem; font-size:.7rem; font-weight:700; margin-bottom:.25rem; }
+.nivel-alto     { display:inline-block; background:#dbeafe; color:#1d4ed8; border-radius:.35rem; padding:.12rem .5rem; font-size:.7rem; font-weight:700; margin-bottom:.25rem; }
+.nivel-superior { display:inline-block; background:#dcfce7; color:#15803d; border-radius:.35rem; padding:.12rem .5rem; font-size:.7rem; font-weight:700; margin-bottom:.25rem; }
+
+.mc-empty { text-align:center; padding:2rem; color:#94a3b8; }
+.mc-empty i { font-size:1.8rem; display:block; margin-bottom:.4rem; }
+
+.mc-add-card { background:#f8faff; border:1px dashed #c7d2fe; border-radius:.75rem; padding:1.1rem 1.2rem; margin-bottom:1.25rem; }
+.mc-add-title { font-size:.85rem; font-weight:700; color:#3730a3; margin-bottom:.9rem; display:flex; align-items:center; gap:.4rem; }
+.mc-add-btn { background:linear-gradient(135deg,var(--mc-mid),var(--mc-light)); color:#fff; border:none; border-radius:.55rem; padding:.55rem .9rem; font-size:.82rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; margin-top:.5rem; }
+.mc-add-btn:hover { opacity:.88; }
+
+.mc-act { display:inline-flex; align-items:center; gap:.3rem; padding:.22rem .55rem; border-radius:.35rem; font-size:.71rem; font-weight:600; text-decoration:none; cursor:pointer; border:none; transition:background .12s; }
+.mc-act-edit { background:#e0e7ff; color:#3730a3; }
+.mc-act-edit:hover { background:#c7d2fe; }
+.mc-act-del  { background:#fee2e2; color:#b91c1c; }
+.mc-act-del:hover { background:#fecaca; }
+
+.mc-info-strip { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+.mc-info-chip  { display:inline-flex; align-items:center; gap:.4rem; background:#fff; border:1px solid #e2e8f0; border-radius:.6rem; padding:.4rem .85rem; font-size:.78rem; color:#475569; font-weight:500; }
+.mc-info-chip strong { color:#1e293b; }
+
+/* Sólo visible en pantalla */
+.screen-only { display:block; }
+/* Sólo visible al imprimir */
+.print-only  { display:none; }
+
+/* ══════════════════════════════════════════
+   IMPRESIÓN  @media print
+══════════════════════════════════════════ */
+@media print {
+  /* Ocultar TODO lo que no es el documento */
+  .screen-only,
+  .mc-hero,
+  .mc-info-strip,
+  .mc-period-tabs,
+  .mc-add-card,
+  .mc-panel-header .badge,
+  .mc-act-edit,
+  .mc-act-del,
+  .modal,
+  nav, header, aside, footer,
+  #sidebar, .sidebar, .navbar,
+  [class*="sidebar"], [class*="navbar"],
+  [class*="topbar"], [id*="sidebar"],
+  .no-print { display:none !important; }
+
+  /* Mostrar elementos de impresión */
+  .print-only { display:block !important; }
+
+  /* Todos los períodos visibles */
+  .mc-period-panel { display:block !important; }
+
+  /* Página en horizontal para que quepa la tabla */
+  @page {
+    size: A4 landscape;
+    margin: 1.5cm 1.2cm 2cm 1.2cm;
+  }
+
+  body { font-size: 10pt; color: #000; background: #fff !important; }
+
+  /* Quitar bordes redondeados, sombras y fondos de pantalla */
+  .mc-panel {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    margin-bottom: 1.2cm !important;
+    page-break-inside: avoid;
+  }
+  .mc-panel-header {
+    background: #eef2ff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .mc-panel-title { font-size: 11pt !important; color: #1e1b4b !important; }
+  .mc-panel-title .ico { display:none; }
+
+  /* Tabla de impresión */
+  .mc-table-wrap { overflow: visible !important; }
+  .mc-table { font-size: 8pt !important; border-collapse: collapse !important; width: 100% !important; }
+  .mc-table th {
+    background: #1e1b4b !important;
+    color: #fff !important;
+    padding: 5pt 6pt !important;
+    font-size: 7.5pt !important;
+    border: 1px solid #1e1b4b !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .mc-table td {
+    padding: 5pt 6pt !important;
+    border: 1px solid #ccc !important;
+    vertical-align: top !important;
+    word-break: break-word;
+  }
+  .mc-table tr:hover td { background: transparent !important; }
+
+  /* Chips de nivel sin color de fondo */
+  .nivel-bajo     { background: #fee2e2 !important; color: #7f1d1d !important; font-size:7pt !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .nivel-basico   { background: #fef3c7 !important; color: #78350f !important; font-size:7pt !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .nivel-alto     { background: #dbeafe !important; color: #1e3a8a !important; font-size:7pt !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .nivel-superior { background: #dcfce7 !important; color: #14532d !important; font-size:7pt !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+  /* Ocultar la columna Acciones al imprimir */
+  .mc-table th:last-child,
+  .mc-table td:last-child { display: none !important; }
+
+  /* Período — salto de página antes de cada uno */
+  .mc-period-panel { page-break-before: auto; }
+  .mc-period-panel + .mc-period-panel { page-break-before: always; }
+
+  /* Encabezado del documento */
+  .print-doc-header {
+    border-bottom: 3px solid #1e1b4b;
+    padding-bottom: .5cm;
+    margin-bottom: .6cm;
+    display: flex !important;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1cm;
+  }
+  .print-doc-header .pdh-inst {
+    font-size: 13pt; font-weight: 900; color: #1e1b4b;
+    line-height: 1.2; margin-bottom: 2pt;
+  }
+  .print-doc-header .pdh-sub {
+    font-size: 9pt; color: #475569;
+  }
+  .print-doc-header .pdh-title {
+    text-align: right;
+  }
+  .print-doc-header .pdh-title h1 {
+    font-size: 14pt; font-weight: 900; color: #1e1b4b; margin: 0 0 2pt 0;
+  }
+  .print-doc-header .pdh-title p {
+    font-size: 9pt; color: #475569; margin: 0;
+  }
+
+  /* Meta strip del documento */
+  .print-meta-strip {
+    display: flex !important;
+    gap: .5cm;
+    background: #f0f4ff !important;
+    border: 1px solid #c7d2fe !important;
+    border-radius: 4pt !important;
+    padding: .3cm .5cm;
+    margin-bottom: .6cm;
+    font-size: 9pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-meta-item { flex: 1; }
+  .print-meta-item span { font-size: 7.5pt; color: #475569; display: block; text-transform: uppercase; letter-spacing: .3pt; }
+  .print-meta-item strong { font-size: 10pt; color: #1e1b4b; }
+
+  /* Propósito general */
+  .print-proposito {
+    background: #eef2ff !important;
+    border-left: 4pt solid #4f46e5 !important;
+    padding: .3cm .5cm;
+    font-size: 9pt; color: #1e293b;
+    margin-bottom: .6cm;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Bloque de firmas */
+  .print-firmas {
+    display: flex !important;
+    gap: 1.5cm;
+    margin-top: 1.5cm;
+    page-break-inside: avoid;
+  }
+  .print-firma-box { flex: 1; text-align: center; }
+  .print-firma-line {
+    border-top: 1.5pt solid #000;
+    margin-bottom: 4pt;
+    margin-top: 1.2cm;
+  }
+  .print-firma-box p { font-size: 8.5pt; margin: 0; color: #1e293b; }
+  .print-firma-box .firma-cargo { font-size: 7.5pt; color: #475569; margin-top: 1pt; }
+
+  /* Pie del documento */
+  .print-footer {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1pt solid #ccc;
+    margin-top: .5cm;
+    padding-top: .2cm;
+    font-size: 7.5pt;
+    color: #94a3b8;
+  }
+}
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1200px;">
+
+  {# ═══ ENCABEZADO DE DOCUMENTO — solo visible al imprimir ═══ #}
+  <div class="print-only">
+    <div class="print-doc-header">
+      <div>
+        <div class="pdh-inst">{{ malla.institucion }}</div>
+        <div class="pdh-sub">Sistema de Gestión Escolar HALU · Gestión Académica</div>
+      </div>
+      <div class="pdh-title">
+        <h1>MALLA CURRICULAR</h1>
+        <p>Documento oficial — Año lectivo {{ malla.año_lectivo }}</p>
+      </div>
+    </div>
+
+    <div class="print-meta-strip">
+      <div class="print-meta-item">
+        <span>Área / Asignatura</span>
+        <strong>{{ malla.materia.nombre_materia }}</strong>
+      </div>
+      <div class="print-meta-item">
+        <span>Grado</span>
+        <strong>{{ malla.grado.nombre }}</strong>
+      </div>
+      <div class="print-meta-item">
+        <span>Año Lectivo</span>
+        <strong>{{ malla.año_lectivo }}</strong>
+      </div>
+      {% if malla.materia.intensidad_horaria_semanal %}
+      <div class="print-meta-item">
+        <span>Intensidad Horaria</span>
+        <strong>{{ malla.materia.intensidad_horaria_semanal }} horas / semana</strong>
+      </div>
+      {% endif %}
+      <div class="print-meta-item">
+        <span>Última actualización</span>
+        <strong>{{ malla.fecha_actualizacion|date:"d \d\e F \d\e Y" }}</strong>
+      </div>
+    </div>
+
+    {% if malla.descripcion_general %}
+    <div class="print-proposito">
+      <strong>Propósito general:</strong> {{ malla.descripcion_general }}
+    </div>
+    {% endif %}
+  </div>
+
+  {# ═══ HERO — solo en pantalla ═══ #}
+  <div class="mc-hero screen-only">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
+      <div>
+        <div class="mc-hero-badge mb-2"><i class="bi bi-journal-bookmark-fill"></i> Malla Curricular</div>
+        <div class="mc-hero-title"><i class="bi bi-book-half me-2"></i>{{ malla.materia.nombre_materia }}</div>
+        <div class="mc-hero-sub">{{ malla.grado.nombre }} · Año lectivo {{ malla.año_lectivo }}</div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap align-items-center">
+        <a href="{% url 'gestion_academica:malla_curricular_list' %}" class="mc-btn mc-btn-outline">
+          <i class="bi bi-arrow-left"></i> Todas las Mallas
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {# Chips de info — solo pantalla #}
+  <div class="mc-info-strip screen-only">
+    <div class="mc-info-chip"><i class="bi bi-book-half" style="color:#4f46e5;"></i> <strong>Área:</strong> {{ malla.materia.nombre_materia }}</div>
+    <div class="mc-info-chip"><i class="bi bi-mortarboard-fill" style="color:#7c3aed;"></i> <strong>Grado:</strong> {{ malla.grado.nombre }}</div>
+    <div class="mc-info-chip"><i class="bi bi-calendar3" style="color:#0369a1;"></i> <strong>Año:</strong> {{ malla.año_lectivo }}</div>
+    <div class="mc-info-chip"><i class="bi bi-person-fill" style="color:#15803d;"></i> <strong>Actualizado:</strong> {{ malla.fecha_actualizacion|date:"d/m/Y" }}</div>
+    {% if malla.materia.intensidad_horaria_semanal %}
+    <div class="mc-info-chip"><i class="bi bi-clock-fill" style="color:#b45309;"></i> <strong>Intensidad:</strong> {{ malla.materia.intensidad_horaria_semanal }} h/sem</div>
+    {% endif %}
+  </div>
+
+  {% if malla.descripcion_general %}
+  <div class="screen-only" style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:.75rem;padding:.85rem 1.1rem;margin-bottom:1.25rem;font-size:.83rem;color:#3730a3;">
+    <i class="bi bi-info-circle-fill me-2"></i><strong>Propósito general:</strong> {{ malla.descripcion_general }}
+  </div>
+  {% endif %}
+
+  {# Pestañas — solo pantalla #}
+  <div class="mc-period-tabs screen-only">
+    {% for p in periodos %}
+    <button class="mc-period-tab {% if forloop.first %}active{% endif %}"
+            onclick="showPeriodo({{ p }}, this)">
+      <i class="bi bi-collection-fill me-1"></i>{{ p }}° Período
+      <span style="opacity:.7;font-weight:500;font-size:.7rem;"> · {{ por_periodo|get_item:p|length }} ítem{{ por_periodo|get_item:p|length|pluralize:"s" }}</span>
+    </button>
+    {% endfor %}
+  </div>
+
+  {# ═══ PANELES DE PERÍODO ═══ #}
+  {% for p in periodos %}
+  <div class="mc-period-panel {% if forloop.first %}active{% endif %}" id="periodo-panel-{{ p }}">
+
+    {% if por_periodo|get_item:p %}
+    <div class="mc-panel">
+      <div class="mc-panel-header">
+        <h2 class="mc-panel-title">
+          <span class="ico screen-only"><i class="bi bi-table"></i></span>
+          {{ p }}° Período Académico
+        </h2>
+        <span class="badge rounded-pill screen-only" style="background:#e0e7ff;color:#3730a3;font-size:.72rem;">
+          {{ por_periodo|get_item:p|length }} eje{{ por_periodo|get_item:p|length|pluralize:"s" }} temático{{ por_periodo|get_item:p|length|pluralize:"s" }}
+        </span>
+      </div>
+      <div class="mc-table-wrap">
+        <table class="mc-table">
+          <thead>
+            <tr>
+              <th style="min-width:140px;">Eje Temático</th>
+              <th style="min-width:130px;">Logro del Período</th>
+              <th style="min-width:110px;">Competencias</th>
+              <th style="min-width:100px;">EBC / DBA</th>
+              <th style="min-width:220px;">Indicadores de Desempeño</th>
+              <th style="min-width:100px;">Metodología</th>
+              <th style="min-width:90px;">Recursos</th>
+              <th style="min-width:90px;">Evaluación</th>
+              <th style="min-width:60px; text-align:center;">Sem.</th>
+              <th class="screen-only" style="min-width:80px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in por_periodo|get_item:p %}
+            <tr>
+              <td>
+                <strong>{{ item.eje_tematico }}</strong>
+                {% if es_bilingue and item.eje_tematico_L2 %}
+                <div style="margin-top:.3rem;font-size:.78rem;color:#0369a1;font-style:italic;">
+                  <i class="bi bi-translate" style="font-size:.7rem;"></i> {{ item.eje_tematico_L2 }}
+                </div>
+                {% endif %}
+              </td>
+              <td>
+                {{ item.logro|default:"—" }}
+                {% if es_bilingue and item.logro_L2 %}
+                <div style="margin-top:.3rem;font-size:.78rem;color:#0369a1;font-style:italic;">
+                  <i class="bi bi-translate" style="font-size:.7rem;"></i> {{ item.logro_L2 }}
+                </div>
+                {% endif %}
+              </td>
+              <td>
+                {{ item.competencias|default:"—" }}
+                {% if es_bilingue and item.competencias_L2 %}
+                <div style="margin-top:.3rem;font-size:.78rem;color:#0369a1;font-style:italic;">
+                  <i class="bi bi-translate" style="font-size:.7rem;"></i> {{ item.competencias_L2 }}
+                </div>
+                {% endif %}
+              </td>
+              <td>
+                {% if item.ebc %}<div><span style="font-size:.68rem;font-weight:700;color:#4f46e5;">EBC:</span> {{ item.ebc }}</div>{% endif %}
+                {% if item.dba %}<div style="margin-top:.2rem;"><span style="font-size:.68rem;font-weight:700;color:#7c3aed;">DBA:</span> {{ item.dba }}</div>{% endif %}
+                {% if not item.ebc and not item.dba %}—{% endif %}
+              </td>
+              <td>
+                {% if item.indicador_bajo %}<div><span class="nivel-bajo">Bajo</span> {{ item.indicador_bajo }}</div>{% endif %}
+                {% if item.indicador_basico %}<div><span class="nivel-basico">Básico</span> {{ item.indicador_basico }}</div>{% endif %}
+                {% if item.indicador_alto %}<div><span class="nivel-alto">Alto</span> {{ item.indicador_alto }}</div>{% endif %}
+                {% if item.indicador_superior %}<div><span class="nivel-superior">Superior</span> {{ item.indicador_superior }}</div>{% endif %}
+                {% if not item.indicador_bajo and not item.indicador_basico and not item.indicador_alto and not item.indicador_superior %}—{% endif %}
+                {% if es_bilingue and item.indicador_bajo_L2 or item.indicador_basico_L2 or item.indicador_alto_L2 or item.indicador_superior_L2 %}
+                <div style="margin-top:.4rem;padding-top:.4rem;border-top:1px dashed #bae6fd;">
+                  {% if item.indicador_bajo_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-bajo">Low</span> {{ item.indicador_bajo_L2 }}</div>{% endif %}
+                  {% if item.indicador_basico_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-basico">Basic</span> {{ item.indicador_basico_L2 }}</div>{% endif %}
+                  {% if item.indicador_alto_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-alto">High</span> {{ item.indicador_alto_L2 }}</div>{% endif %}
+                  {% if item.indicador_superior_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-superior">Superior</span> {{ item.indicador_superior_L2 }}</div>{% endif %}
+                </div>
+                {% endif %}
+              </td>
+              <td>{{ item.metodologia|default:"—" }}</td>
+              <td>{{ item.recursos|default:"—" }}</td>
+              <td>{{ item.evaluacion|default:"—" }}</td>
+              <td style="text-align:center;font-weight:700;color:#4f46e5;">{{ item.tiempo_semanas }}</td>
+              <td class="screen-only">
+                <div class="d-flex flex-column gap-1">
+                  <a href="{% url 'gestion_academica:item_malla_edit' item.pk %}" class="mc-act mc-act-edit">
+                    <i class="bi bi-pencil-fill"></i> Editar
+                  </a>
+                  <button type="button" class="mc-act mc-act-del"
+                          data-bs-toggle="modal" data-bs-target="#modalEliminarItem"
+                          data-action="{% url 'gestion_academica:item_malla_delete' item.pk %}"
+                          data-nombre="{{ item.eje_tematico|truncatechars:50 }}">
+                    <i class="bi bi-trash-fill"></i> Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="mc-panel screen-only">
+      <div class="mc-empty">
+        <i class="bi bi-table"></i>
+        <p class="fw-semibold mb-1">Sin contenido para el {{ p }}° Período</p>
+        <p class="small mb-0">Usa el formulario de abajo para agregar el primer eje temático.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Formulario agregar — solo pantalla #}
+    <div class="mc-add-card screen-only">
+      <div class="mc-add-title"><i class="bi bi-plus-circle-fill"></i> Agregar Eje Temático al {{ p }}° Período</div>
+      <form method="post" action="{% url 'gestion_academica:item_malla_add' malla.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="periodo" value="{{ p }}">
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">Eje Temático / Contenido *</label>
+            <input type="text" name="eje_tematico" class="form-control form-control-sm" placeholder="Ej: Números racionales y operaciones" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">Logro del Período *</label>
+            <textarea name="logro" class="form-control form-control-sm" rows="2" placeholder="¿Qué debe lograr el estudiante al finalizar el período?" required></textarea>
+          </div>
+          {% if es_bilingue %}
+          <div class="col-12">
+            <div style="background:linear-gradient(90deg,#0ea5e9 0%,#6366f1 100%);border-radius:8px;padding:.4rem .8rem;color:white;font-size:.75rem;font-weight:600;">
+              <i class="bi bi-translate me-1"></i>Campos en {{ idioma_secundario }} — Solo para colegios bilingües
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">Eje Temático ({{ idioma_secundario }})</label>
+            <input type="text" name="eje_tematico_L2" class="form-control form-control-sm" placeholder="Ej: Rational numbers and operations">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">Logro del Período ({{ idioma_secundario }})</label>
+            <textarea name="logro_L2" class="form-control form-control-sm" rows="2" placeholder="What should the student achieve by the end of the period?"></textarea>
+          </div>
+          {% endif %}
+          <div class="col-md-6">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">Competencias</label>
+            <input type="text" name="competencias" class="form-control form-control-sm" placeholder="Ej: Razonamiento, Comunicación, Resolución de problemas">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">EBC (Estándar Básico)</label>
+            <textarea name="ebc" class="form-control form-control-sm" rows="2" placeholder="Estándar básico de competencia…"></textarea>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">DBA (Derecho Básico)</label>
+            <textarea name="dba" class="form-control form-control-sm" rows="2" placeholder="Derecho básico de aprendizaje…"></textarea>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-bajo">Bajo</span> Indicador</label>
+            <textarea name="indicador_bajo" class="form-control form-control-sm" rows="2" placeholder="Indicador nivel bajo (1.0–2.9)…"></textarea>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-basico">Básico</span> Indicador</label>
+            <textarea name="indicador_basico" class="form-control form-control-sm" rows="2" placeholder="Indicador nivel básico (3.0–3.9)…"></textarea>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-alto">Alto</span> Indicador</label>
+            <textarea name="indicador_alto" class="form-control form-control-sm" rows="2" placeholder="Indicador nivel alto (4.0–4.5)…"></textarea>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-superior">Superior</span> Indicador</label>
+            <textarea name="indicador_superior" class="form-control form-control-sm" rows="2" placeholder="Indicador nivel superior (4.6–5.0)…"></textarea>
+          </div>
+          {% if es_bilingue %}
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-bajo">Bajo</span> ({{ idioma_secundario }})</label>
+            <textarea name="indicador_bajo_L2" class="form-control form-control-sm" rows="2" placeholder="Low performance indicator…"></textarea>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-basico">Básico</span> ({{ idioma_secundario }})</label>
+            <textarea name="indicador_basico_L2" class="form-control form-control-sm" rows="2" placeholder="Basic performance indicator…"></textarea>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-alto">Alto</span> ({{ idioma_secundario }})</label>
+            <textarea name="indicador_alto_L2" class="form-control form-control-sm" rows="2" placeholder="High performance indicator…"></textarea>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-superior">Superior</span> ({{ idioma_secundario }})</label>
+            <textarea name="indicador_superior_L2" class="form-control form-control-sm" rows="2" placeholder="Superior performance indicator…"></textarea>
+          </div>
+          {% endif %}
+          <div class="col-md-4">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">Metodología / Estrategias</label>
+            <input type="text" name="metodologia" class="form-control form-control-sm" placeholder="ABP, clase magistral, gamificación…">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">Recursos</label>
+            <input type="text" name="recursos" class="form-control form-control-sm" placeholder="Libro, tablet, material concreto…">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">Evaluación</label>
+            <input type="text" name="evaluacion" class="form-control form-control-sm" placeholder="Talleres, pruebas, proyectos…">
+          </div>
+          <div class="col-md-1">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">Sem.</label>
+            <input type="number" name="tiempo_semanas" class="form-control form-control-sm" value="10" min="1" max="20">
+          </div>
+        </div>
+        <button type="submit" class="mc-add-btn"><i class="bi bi-plus-lg"></i> Agregar a la Malla</button>
+      </form>
+    </div>
+
+  </div>
+  {% endfor %}
+
+  {# ═══ BLOQUE DE FIRMAS — solo impresión ═══ #}
+  <div class="print-only">
+    <div class="print-firmas">
+      <div class="print-firma-box">
+        <div class="print-firma-line"></div>
+        <p><strong>Elaboró</strong></p>
+        <p class="firma-cargo">Coordinador(a) Académico(a)</p>
+      </div>
+      <div class="print-firma-box">
+        <div class="print-firma-line"></div>
+        <p><strong>Revisó</strong></p>
+        <p class="firma-cargo">Jefe de Área</p>
+      </div>
+      <div class="print-firma-box">
+        <div class="print-firma-line"></div>
+        <p><strong>Aprobó</strong></p>
+        <p class="firma-cargo">Rector(a)</p>
+      </div>
+      <div class="print-firma-box">
+        <div class="print-firma-line"></div>
+        <p><strong>Docente Titular</strong></p>
+        <p class="firma-cargo">{{ malla.materia.nombre_materia }}</p>
+      </div>
+    </div>
+
+    <div class="print-footer">
+      <span>{{ malla.institucion }} · Malla Curricular {{ malla.año_lectivo }}</span>
+      <span>Generado por HALU — Sistema de Gestión Escolar</span>
+      <span>Actualizado: {{ malla.fecha_actualizacion|date:"d/m/Y" }}</span>
+    </div>
+  </div>
+
+</div>
+
+{# ── Modal eliminación ── #}
+<div class="modal fade" id="modalEliminarItem" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+    <div class="modal-content" style="border-radius:1rem;border:none;box-shadow:0 20px 60px rgba(0,0,0,.18);">
+      <div class="modal-header border-0 pb-0 pt-3 px-4">
+        <div style="width:52px;height:52px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="bi bi-trash-fill" style="color:#dc2626;font-size:1.3rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 pt-2 pb-2">
+        <h5 class="fw-800 mb-1" style="font-size:1rem;color:#0f172a;">¿Eliminar este ítem de la malla?</h5>
+        <p id="modal-item-nombre" class="mb-2" style="font-size:.83rem;color:#475569;font-weight:600;"></p>
+        <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:.6rem;padding:.6rem .85rem;font-size:.78rem;color:#b91c1c;">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          Esta acción <strong>no se puede deshacer</strong>.
+        </div>
+      </div>
+      <div class="modal-footer border-0 px-4 pb-4 pt-2 gap-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancelar
+        </button>
+        <form id="form-eliminar-item" method="post" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm px-3">
+            <i class="bi bi-trash-fill me-1"></i> Sí, eliminar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+function showPeriodo(num, btn) {
+  document.querySelectorAll('.mc-period-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mc-period-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('periodo-panel-' + num).classList.add('active');
+  btn.classList.add('active');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  /* Auto-imprimir si viene ?print=1 desde la lista */
+  {% if auto_print %}
+  setTimeout(function () { window.print(); }, 600);
+  {% endif %}
+  var modal = document.getElementById('modalEliminarItem');
+  modal.addEventListener('show.bs.modal', function (event) {
+    var btn    = event.relatedTarget;
+    var action = btn.getAttribute('data-action');
+    var nombre = btn.getAttribute('data-nombre') || '';
+    document.getElementById('form-eliminar-item').action = action;
+    document.getElementById('modal-item-nombre').textContent = nombre;
+  });
+});
+</script>
+{% endblock %}

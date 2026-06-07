@@ -1,0 +1,159 @@
+{% extends "base_academico.html" %}
+{% load static %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<style>
+  :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
+
+  .ps-hero {
+    background: linear-gradient(135deg, var(--ps-dark) 0%, var(--ps-mid) 55%, var(--ps-light) 100%);
+    padding: 2.2rem 2rem 2rem; position: relative; overflow: hidden;
+    border-radius: .85rem; margin-bottom: 1.8rem;
+  }
+  .ps-hero::before {
+    content:''; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .ps-hero-title { font-size:1.65rem; font-weight:900; color:#fff; margin:0; position:relative; z-index:1; }
+  .ps-hero-sub   { font-size:.88rem; color:rgba(255,255,255,.75); margin-top:.35rem; position:relative; z-index:1; }
+  .ps-hero-badge {
+    background:rgba(255,255,255,.15); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.25); border-radius:30px;
+    padding:.35rem .9rem; font-size:.78rem; color:#fff; font-weight:600;
+    position:relative; z-index:1;
+  }
+  .ps-btn-add {
+    background: rgba(255,255,255,.18); backdrop-filter:blur(6px);
+    border:1.5px solid rgba(255,255,255,.4); border-radius:10px;
+    color:#fff; font-weight:700; font-size:.88rem; padding:.55rem 1.1rem;
+    display:inline-flex; align-items:center; gap:.4rem;
+    text-decoration:none; transition: background .18s, transform .15s; position:relative; z-index:1;
+  }
+  .ps-btn-add:hover { background:rgba(255,255,255,.28); color:#fff; transform:translateY(-1px); }
+
+  /* Cards */
+  .r3d-card {
+    background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
+    padding:1.3rem 1.5rem; border:1.5px solid #f1f5f9;
+    transition: border-color .18s, box-shadow .18s; position:relative; overflow:hidden;
+  }
+  .r3d-card::before {
+    content:''; position:absolute; left:0; top:0; bottom:0; width:5px;
+    background: linear-gradient(180deg, var(--ps-mid), var(--ps-light));
+    border-radius:5px 0 0 5px;
+  }
+  .r3d-card:hover { border-color:rgba(79,70,229,.2); box-shadow:0 4px 18px rgba(79,70,229,.1); }
+
+  .r3d-modo-badge {
+    display:inline-flex; align-items:center; gap:.3rem;
+    padding:.25rem .7rem; border-radius:20px; font-size:.75rem; font-weight:700;
+  }
+  .r3d-modo-galeria { background:#dbeafe; color:#1d4ed8; }
+  .r3d-modo-studio  { background:#ede9fe; color:#5b21b6; }
+  .r3d-modo-ambos   { background:#dcfce7; color:#15803d; }
+
+  .r3d-stat { text-align:center; }
+  .r3d-stat-num  { font-size:1.4rem; font-weight:900; color:var(--ps-dark); line-height:1; }
+  .r3d-stat-label { font-size:.72rem; color:#94a3b8; margin-top:2px; }
+
+  .ps-ia { display:inline-flex; align-items:center; gap:.3rem; padding:.35rem .75rem;
+    border-radius:8px; font-size:.8rem; font-weight:600; text-decoration:none;
+    border:none; cursor:pointer; transition:opacity .15s, transform .12s; }
+  .ps-ia:hover { opacity:.82; transform:translateY(-1px); }
+  .ps-ia-view   { background:#dbeafe; color:#1d4ed8; }
+  .ps-ia-delete { background:#fee2e2; color:#991b1b; }
+
+  .ps-empty {
+    background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
+    padding:3.5rem 2rem; text-align:center; color:#94a3b8;
+  }
+  .ps-empty i { font-size:3rem; margin-bottom:.8rem; display:block; opacity:.35; }
+</style>
+
+<div class="container-fluid mt-4">
+
+  <div class="ps-hero">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h1 class="ps-hero-title"><i class="bi bi-body-text me-2" style="opacity:.85"></i>Recursos Educativos 3D</h1>
+        <p class="ps-hero-sub">Actividades del Cuerpo Humano 3D asignadas a tus cursos</p>
+      </div>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="ps-hero-badge"><i class="bi bi-mortarboard me-1"></i>{{ recursos|length }} actividad{{ recursos|length|pluralize:"es" }}</span>
+        <a href="{% url 'recursos_educativos:crear' %}" class="ps-btn-add">
+          <i class="bi bi-plus-circle-fill"></i> Nueva Actividad 3D
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% if recursos %}
+    <div class="row g-3">
+      {% for recurso in recursos %}
+        <div class="col-12">
+          <div class="r3d-card">
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+
+              <div style="flex:1; min-width:0;">
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                  <span class="r3d-modo-badge r3d-modo-{{ recurso.modo }}">
+                    {% if recurso.modo == 'galeria' %}<i class="bi bi-images"></i> Solo Galería
+                    {% elif recurso.modo == 'studio' %}<i class="bi bi-boxes"></i> Solo Studio
+                    {% else %}<i class="bi bi-collection"></i> Galería + Studio{% endif %}
+                  </span>
+                  <span style="font-size:.78rem; color:#94a3b8;">
+                    {{ recurso.actividad.curso.materia.nombre_materia }} · {{ recurso.actividad.curso.grado.nombre }}
+                  </span>
+                </div>
+                <h5 style="font-weight:800; color:#1e1b4b; margin:0 0 .3rem;">{{ recurso.actividad.titulo }}</h5>
+                {% if recurso.actividad.descripcion %}
+                  <p style="font-size:.85rem; color:#64748b; margin:0 0 .5rem;">{{ recurso.actividad.descripcion|truncatechars:120 }}</p>
+                {% endif %}
+                <div class="d-flex gap-3 flex-wrap" style="font-size:.78rem; color:#94a3b8;">
+                  <span><i class="bi bi-calendar3 me-1"></i>Publicado: {{ recurso.actividad.fecha_publicacion|date:"d/m/Y" }}</span>
+                  {% if recurso.actividad.fecha_entrega_limite %}
+                    <span><i class="bi bi-clock me-1"></i>Límite: {{ recurso.actividad.fecha_entrega_limite|date:"d/m/Y" }}</span>
+                  {% endif %}
+                  <span><i class="bi bi-trophy me-1"></i>Nota máx: {{ recurso.valor_maximo }}</span>
+                </div>
+              </div>
+
+              <div class="d-flex align-items-center gap-4">
+                <div class="r3d-stat">
+                  <div class="r3d-stat-num">{{ recurso.total_entregas }}</div>
+                  <div class="r3d-stat-label">Accesos</div>
+                </div>
+                <div class="r3d-stat">
+                  <div class="r3d-stat-num" style="color:#15803d;">{{ recurso.entregas_completas }}</div>
+                  <div class="r3d-stat-label">Completaron</div>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <a href="{% url 'recursos_educativos:galeria' recurso.pk %}" class="ps-ia" style="background:#f0f0ff;color:#3730a3;border:1.5px solid #c7d2fe;" title="Abrir galería para proyectar en clase">
+                    <i class="bi bi-projector-fill"></i> Proyectar
+                  </a>
+                  <a href="{% url 'recursos_educativos:entregas' recurso.pk %}" class="ps-ia ps-ia-view">
+                    <i class="bi bi-people-fill"></i> Ver entregas
+                  </a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="ps-empty">
+      <i class="bi bi-body-text"></i>
+      <p class="mb-1 fw-bold" style="color:#475569;">Aún no has creado actividades 3D.</p>
+      <p class="mb-3" style="font-size:.88rem;">Asigna el Cuerpo Humano 3D como actividad calificable a uno de tus cursos.</p>
+      <a href="{% url 'recursos_educativos:crear' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle-fill me-1"></i> Crear primera actividad
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

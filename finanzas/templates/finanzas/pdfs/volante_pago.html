@@ -1,0 +1,154 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Orden de Pago</title>
+<style>
+  @page { size: letter; margin: 1.2cm 1.1cm 1.4cm 1.1cm; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 9pt; color: #111; margin: 0; }
+  .legal { font-size: 7pt; color: #444; text-align: justify; line-height: 1.35;
+           margin-top: 7pt; border: 1pt solid #aaa; padding: 5pt 7pt; }
+  .copy  { font-size: 7pt; color: #777; text-align: center; margin-top: 4pt; }
+</style>
+</head>
+<body>
+
+<!-- ════ ENCABEZADO (tabla con anchos inline) ════ -->
+<table style="width:100%; border:1.5pt solid #000; border-collapse:collapse;">
+  <tr>
+    <td style="width:70pt; border:1pt solid #000; padding:5pt 6pt; text-align:center; vertical-align:middle;">
+      {% if institucion.logo %}
+      <img src="{{ institucion.logo.url }}" style="width:56pt;" alt="">
+      {% endif %}
+    </td>
+    <td style="border:1pt solid #000; padding:5pt 8pt; vertical-align:top;">
+      <div style="font-size:12pt; font-weight:bold; margin-bottom:2pt;">{{ institucion.nombre }}</div>
+      <div style="font-size:7.5pt; color:#333; line-height:1.5;">
+        {% if institucion.nit %}Nit. {{ institucion.nit }}{% if institucion.codigo_dane %} &nbsp;·&nbsp; DANE: {{ institucion.codigo_dane }}{% endif %}<br>{% endif %}
+        {% if institucion.texto_resolucion %}{{ institucion.texto_resolucion }}<br>{% endif %}
+        {% if institucion.direccion %}{{ institucion.direccion }}{% if institucion.ciudad_departamento %} · {{ institucion.ciudad_departamento }}{% endif %}<br>{% endif %}
+        {% if institucion.telefono %}Tel: {{ institucion.telefono }}{% endif %}{% if institucion.correo_electronico %} · {{ institucion.correo_electronico }}{% endif %}
+      </div>
+    </td>
+    <td style="width:130pt; border:1pt solid #000; padding:5pt 8pt; text-align:center; vertical-align:middle;">
+      <div style="font-size:10pt; font-weight:bold; text-transform:uppercase; margin-bottom:4pt;">Orden de Pago</div>
+      <div style="font-size:8pt; line-height:1.6;">
+        {{ cuenta.concepto_pago.nombre_concepto }}<br>
+        Emisión: {% now "d/m/Y" %}
+      </div>
+    </td>
+  </tr>
+</table>
+
+<!-- ════ DATOS DEL ALUMNO ════ -->
+<table style="width:100%; border:1.5pt solid #000; border-top:none; border-collapse:collapse;">
+  <tr>
+    <td style="border:1pt solid #000; padding:4pt 8pt; vertical-align:middle;">
+      <span style="font-size:8pt; color:#444;">Nombre del alumno(a):</span>
+      <strong style="font-size:9pt;">&nbsp;{{ estudiante.usuario.get_full_name }}</strong>
+    </td>
+    <td style="width:130pt; border:1pt solid #000; padding:4pt 8pt; vertical-align:middle;">
+      <span style="font-size:8pt; color:#444;">Valor pagado:</span><br>
+      <span style="border-bottom:1pt solid #777; display:block; height:12pt;"></span>
+    </td>
+  </tr>
+  <tr>
+    <td style="border:1pt solid #000; padding:4pt 8pt; vertical-align:middle;">
+      <span style="font-size:8pt; color:#444;">Código / Doc.:</span>
+      <strong style="font-size:9pt;">&nbsp;{{ estudiante.documento_identidad|default:"—" }}</strong>
+      &nbsp;·&nbsp;
+      <span style="font-size:8pt; color:#444;">Curso:</span>
+      <strong style="font-size:9pt;">&nbsp;{{ estudiante.grado_actual|default:"—" }}</strong>
+    </td>
+    <td style="width:130pt; border:1pt solid #000; padding:4pt 8pt; vertical-align:middle;">
+      <span style="font-size:8pt; color:#444;">Fecha de pago:</span><br>
+      <span style="border-bottom:1pt solid #777; display:block; height:12pt;"></span>
+    </td>
+  </tr>
+</table>
+
+<!-- ════ TABLA DE CONCEPTOS (anchos inline en cada celda) ════ -->
+<table style="width:100%; border:1.5pt solid #000; border-top:none; border-collapse:collapse;">
+  <tr>
+    <th style="width:20pt; border:1pt solid #000; padding:4pt 5pt; background:#e9eef5; font-size:8pt; text-align:center;">#</th>
+    <th style="border:1pt solid #000; padding:4pt 8pt; background:#e9eef5; font-size:8pt; text-align:left;">Concepto</th>
+    <th style="width:55pt; border:1pt solid #000; padding:4pt 5pt; background:#e9eef5; font-size:8pt; text-align:right;">Interés</th>
+    <th style="width:90pt; border:1pt solid #000; padding:4pt 5pt; background:#e9eef5; font-size:8pt; text-align:right;">Valor</th>
+  </tr>
+  {% for c in cuentas %}
+  <tr>
+    <td style="width:20pt; border:1pt solid #000; padding:4pt 5pt; text-align:center; font-size:8.5pt;">{{ forloop.counter }}</td>
+    <td style="border:1pt solid #000; padding:4pt 8pt; font-size:8.5pt;">{{ c.concepto_pago.nombre_concepto }}</td>
+    <td style="width:55pt; border:1pt solid #000; padding:4pt 5pt; text-align:right; font-size:8.5pt;">$0</td>
+    <td style="width:90pt; border:1pt solid #000; padding:4pt 5pt; text-align:right; font-weight:bold; font-size:8.5pt;">${{ c.saldo_pendiente|floatformat:0 }}</td>
+  </tr>
+  {% endfor %}
+  {% if cuentas|length < 4 %}
+    {% for i in "xxx" %}
+    <tr>
+      <td style="width:20pt; border:1pt solid #000; padding:0; height:14pt;"></td>
+      <td style="border:1pt solid #000; padding:0; height:14pt;"></td>
+      <td style="width:55pt; border:1pt solid #000; padding:0; height:14pt;"></td>
+      <td style="width:90pt; border:1pt solid #000; padding:0; height:14pt;"></td>
+    </tr>
+    {% endfor %}
+  {% endif %}
+  <tr style="background:#f5f5f5;">
+    <td colspan="2" style="border:1pt solid #000; padding:4pt 8pt; text-align:right; font-size:8.5pt; font-weight:bold;">
+      Total a cancelar hasta {{ cuenta.fecha_vencimiento_especifica|date:"d/m/Y" }}:
+    </td>
+    <td style="width:55pt; border:1pt solid #000; padding:4pt 5pt; text-align:right; font-weight:bold; font-size:8.5pt;">$0</td>
+    <td style="width:90pt; border:1pt solid #000; padding:4pt 5pt; text-align:right; font-weight:bold; font-size:9.5pt;">${{ total_a_pagar|floatformat:0 }}</td>
+  </tr>
+  {% if total_en_letras %}
+  <tr>
+    <td colspan="4" style="border:1pt solid #000; padding:4pt 8pt; font-size:8pt; font-style:italic;">
+      <strong>Son:</strong> {{ total_en_letras }}
+    </td>
+  </tr>
+  {% endif %}
+</table>
+
+<!-- ════ PAGO EN LÍNEA ════ -->
+<table style="width:100%; border:1.5pt solid #174ea6; border-collapse:collapse; margin-top:9pt;">
+  <tr>
+    {% if qr_pago %}
+    <td style="width:80pt; border:none; padding:8pt 10pt; text-align:center; vertical-align:middle;">
+      <img src="{{ qr_pago }}" style="width:68pt; height:68pt;" alt="QR"><br>
+      <span style="font-size:6.5pt; color:#555;">Escanear para pagar</span>
+    </td>
+    {% endif %}
+    <td style="border:none; padding:8pt 10pt; vertical-align:middle;">
+      <div style="font-size:10pt; font-weight:bold; color:#174ea6; margin-bottom:4pt;">Pague en línea de forma rápida y segura</div>
+      <div style="font-size:7.5pt; color:#555; line-height:1.5;">
+        Tarjeta de crédito · débito · PSE · Efecty · Baloto · Nequi y más, a través de Mercado Pago.<br>
+        {% if qr_pago %}Escanee el código QR o ingrese{% else %}Ingrese{% endif %} al portal:
+        <strong>{{ portal_url }}</strong>
+      </div>
+    </td>
+    <td style="width:110pt; border:none; padding:8pt 10pt; text-align:center; vertical-align:middle;">
+      <a href="{{ portal_url }}" style="display:block; background:#009ee3; color:#fff; font-weight:bold; font-size:10pt; padding:8pt 10pt; border-radius:4pt; text-decoration:none; text-align:center;">
+        PAGAR EN<br>LÍNEA »
+      </a>
+    </td>
+  </tr>
+</table>
+
+{% if institucion.cuenta_bancaria or institucion.pagos_digitales %}
+<div class="legal">
+  <strong>Otros medios de pago:</strong>
+  {% if institucion.cuenta_bancaria %} Transferencia/Consignación: {{ institucion.cuenta_bancaria }}.{% endif %}
+  {% if institucion.pagos_digitales %} Nequi/Daviplata: {{ institucion.pagos_digitales }}.{% endif %}
+</div>
+{% endif %}
+
+<div class="legal">
+  Este documento es una orden de pago generada electrónicamente. Cancele antes de la fecha límite
+  para evitar recargos por mora. Si ya realizó el pago, ignore este aviso.
+  Consultas: {% if institucion.telefono %}{{ institucion.telefono }}{% endif %}{% if institucion.correo_electronico %} · {{ institucion.correo_electronico }}{% endif %}.
+</div>
+<p class="copy">{{ institucion.nombre }} — Generado el {% now "d/m/Y H:i" %}</p>
+
+</body>
+</html>

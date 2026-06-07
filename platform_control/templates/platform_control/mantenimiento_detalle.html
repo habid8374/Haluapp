@@ -1,0 +1,234 @@
+{% extends "base_academico.html" %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+    .hc-log {
+        background: #0c1116;
+        color: #d6dde6;
+        font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+        font-size: 0.85rem;
+        max-height: 520px;
+        overflow-y: auto;
+        padding: 1rem;
+        border-radius: .5rem;
+        line-height: 1.55;
+    }
+    .hc-log .hc-line { white-space: pre-wrap; }
+    .hc-log .hc-line.ok   { color: #57e389; }
+    .hc-log .hc-line.warn { color: #f6c177; }
+    .hc-log .hc-line.err  { color: #ff6b6b; font-weight: 600; }
+    .hc-log .hc-line.info { color: #88c0d0; }
+    .hc-log .hc-line.info.header { color: #ffd166; font-weight: 700; margin-top: .75rem; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:18px;padding:1.75rem 2rem;color:white;margin-bottom:1.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+    <div>
+        <h2 class="fw-800 mb-1" style="font-size:1.45rem;">
+            <i class="bi bi-bug-fill me-2 text-warning"></i>{{ titulo_pagina }}
+        </h2>
+        <p class="mb-0" style="opacity:.75;font-size:.9rem;">
+            Iniciado el <strong>{{ ejecucion.iniciado_at|date:"d M Y, H:i:s" }}</strong>
+            por <strong>{{ ejecucion.iniciado_por|default:"—" }}</strong>
+            {% if ejecucion.institucion_filtro %} · Institución: <strong>{{ ejecucion.institucion_filtro }}</strong>{% endif %}
+        </p>
+    </div>
+    <a href="{% url 'platform_control:mantenimiento' %}" class="btn btn-outline-light" style="border-radius:9px;">
+        <i class="bi bi-arrow-left me-1"></i> Volver al Dashboard
+    </a>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card text-center h-100" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <div class="card-body py-3">
+                <div class="text-muted small mb-2">Estado</div>
+                <div id="hc-estado">
+                    {% if ejecucion.estado == 'OK' %}<span class="badge bg-success fs-6">OK</span>
+                    {% elif ejecucion.estado == 'WARN' %}<span class="badge bg-warning text-dark fs-6">ADVERTENCIAS</span>
+                    {% elif ejecucion.estado == 'ERROR' %}<span class="badge bg-danger fs-6">ERRORES</span>
+                    {% elif ejecucion.estado == 'FALLIDO' %}<span class="badge bg-dark fs-6">FALLIDO</span>
+                    {% elif ejecucion.en_curso %}<span class="badge bg-info fs-6">EJECUTANDO</span>
+                    {% else %}<span class="badge bg-secondary fs-6">{{ ejecucion.estado }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center h-100" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <div class="card-body py-3">
+                <div class="text-muted small mb-2">Errores</div>
+                <div id="hc-errores" class="display-6 text-danger fw-800 mb-0">{{ ejecucion.errores_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center h-100" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <div class="card-body py-3">
+                <div class="text-muted small mb-2">Advertencias</div>
+                <div id="hc-warns" class="display-6 text-warning fw-800 mb-0">{{ ejecucion.warnings_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center h-100" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <div class="card-body py-3">
+                <div class="text-muted small mb-2">Pasos</div>
+                <div class="h4 mb-0">
+                    <span id="hc-pasos-actual">{{ ejecucion.pasos_completados }}</span>
+                    / <span>{{ PASOS_TOTALES }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress bar (solo cuando está en curso) -->
+{% if ejecucion.en_curso %}
+<div class="progress mb-4" style="height:10px;border-radius:9px;">
+    <div id="hc-progress-bar"
+         class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+         role="progressbar"
+         style="width: {% widthratio ejecucion.pasos_completados PASOS_TOTALES 100 %}%;"></div>
+</div>
+{% endif %}
+
+<!-- Log en vivo -->
+<div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+    <div class="card-header fw-700 border-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-terminal me-2"></i>Log del diagnóstico</span>
+        <small class="text-muted fw-400" id="hc-status-text">
+            {% if ejecucion.en_curso %}Conectando al WebSocket…{% else %}Diagnóstico finalizado.{% endif %}
+        </small>
+    </div>
+    <div class="card-body p-2">
+        <div id="hc-log" class="hc-log">
+{% for evento in ejecucion.eventos %}
+{% if evento.nivel == 'INFO' and evento.paso %}<div class="hc-line info header">[{{ evento.paso }}] {{ evento.titulo }}</div>{% else %}<div class="hc-line {{ evento.nivel|lower }}">{% if evento.nivel == 'OK' %}  [OK]   {% elif evento.nivel == 'WARN' %}  [WARN] {% elif evento.nivel == 'ERR' %}  [ERR]  {% else %}        {% endif %}{{ evento.mensaje }}</div>{% endif %}
+{% endfor %}
+        </div>
+    </div>
+</div>
+
+{% if ejecucion.error_excepcion %}
+<div class="alert alert-danger mt-3 mb-0" style="border-radius:12px;">
+    <strong><i class="bi bi-exclamation-triangle-fill me-1"></i>Excepción interna:</strong>
+    <pre class="mb-0 mt-2" style="font-size:.82rem;">{{ ejecucion.error_excepcion }}</pre>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+{% if ejecucion.en_curso %}
+<script>
+(function() {
+    const ejecucionId = {{ ejecucion.pk }};
+    const PASOS_TOTALES = {{ PASOS_TOTALES }};
+    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const wsUrl = `${proto}://${window.location.host}/ws/healthcheck/${ejecucionId}/`;
+    const $log = document.getElementById('hc-log');
+    const $estado = document.getElementById('hc-estado');
+    const $errores = document.getElementById('hc-errores');
+    const $warns = document.getElementById('hc-warns');
+    const $pasosActual = document.getElementById('hc-pasos-actual');
+    const $progressBar = document.getElementById('hc-progress-bar');
+    const $statusText = document.getElementById('hc-status-text');
+
+    let errores = parseInt($errores.textContent || '0', 10);
+    let warns = parseInt($warns.textContent || '0', 10);
+
+    function append(evento) {
+        const nivel = (evento.nivel || '').toLowerCase();
+        const div = document.createElement('div');
+        if (evento.nivel === 'INFO' && evento.paso) {
+            div.className = 'hc-line info header';
+            div.textContent = `[${evento.paso}] ${evento.titulo}`;
+        } else {
+            div.className = `hc-line ${nivel}`;
+            let prefijo = '        ';
+            if (evento.nivel === 'OK')   prefijo = '  [OK]   ';
+            else if (evento.nivel === 'WARN') prefijo = '  [WARN] ';
+            else if (evento.nivel === 'ERR')  prefijo = '  [ERR]  ';
+            div.textContent = prefijo + evento.mensaje;
+        }
+        $log.appendChild(div);
+        $log.scrollTop = $log.scrollHeight;
+    }
+
+    function updateProgress(pasosCompletados) {
+        $pasosActual.textContent = pasosCompletados;
+        if ($progressBar) {
+            const pct = Math.min(100, (pasosCompletados / PASOS_TOTALES) * 100);
+            $progressBar.style.width = pct + '%';
+        }
+    }
+
+    function aplicarEstadoFinal(payload) {
+        let badge;
+        if (payload.estado === 'OK')        badge = '<span class="badge bg-success fs-6">OK</span>';
+        else if (payload.estado === 'WARN')  badge = '<span class="badge bg-warning text-dark fs-6">ADVERTENCIAS</span>';
+        else if (payload.estado === 'ERROR') badge = '<span class="badge bg-danger fs-6">ERRORES</span>';
+        else if (payload.estado === 'FALLIDO') badge = '<span class="badge bg-dark fs-6">FALLIDO</span>';
+        else badge = `<span class="badge bg-secondary fs-6">${payload.estado}</span>`;
+        $estado.innerHTML = badge;
+
+        if ($progressBar) {
+            $progressBar.classList.remove('progress-bar-animated', 'bg-primary');
+            $progressBar.classList.add(
+                payload.estado === 'OK'   ? 'bg-success' :
+                payload.estado === 'WARN' ? 'bg-warning'  : 'bg-danger'
+            );
+            $progressBar.style.width = '100%';
+        }
+        $statusText.textContent = 'Diagnóstico finalizado. Recarga para refrescar.';
+    }
+
+    let ws;
+    try {
+        ws = new WebSocket(wsUrl);
+    } catch (e) {
+        console.error('No se pudo abrir WS:', e);
+        $statusText.textContent = 'WebSocket no disponible. Recarga para ver el resultado final.';
+        return;
+    }
+
+    ws.onopen = () => { $statusText.textContent = 'Conectado. Recibiendo eventos en vivo…'; };
+
+    ws.onmessage = (evt) => {
+        let payload;
+        try { payload = JSON.parse(evt.data); }
+        catch (e) { console.warn('WS msg inválido:', evt.data); return; }
+
+        if (payload.tipo === 'evento' && payload.evento) {
+            append(payload.evento);
+            if (payload.evento.nivel === 'ERR')  $errores.textContent = ++errores;
+            if (payload.evento.nivel === 'WARN') $warns.textContent = ++warns;
+            if (typeof payload.pasos_completados === 'number') updateProgress(payload.pasos_completados);
+        } else if (payload.tipo === 'finalizado') {
+            aplicarEstadoFinal(payload);
+            $errores.textContent = payload.errores;
+            $warns.textContent   = payload.warnings;
+            updateProgress(payload.pasos_completados);
+        } else if (payload.tipo === 'fallido') {
+            aplicarEstadoFinal({ estado: 'FALLIDO' });
+            $statusText.textContent = 'El diagnóstico falló: ' + (payload.error || 'error desconocido');
+        }
+    };
+
+    ws.onclose = () => { $statusText.textContent = 'WebSocket cerrado.'; };
+    ws.onerror = (e) => {
+        console.error('WS error:', e);
+        $statusText.textContent = 'Error de WebSocket. Recarga la página.';
+    };
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+:root { --ps-mid:#3730a3; --ps-light:#4f46e5; }
+.conv-wrap { max-width:600px; margin:2rem auto; }
+.conv-card { background:#fff; border-radius:.9rem; box-shadow:0 2px 12px rgba(0,0,0,.08); overflow:hidden; }
+.conv-header { background:linear-gradient(135deg,#1d4ed8,#3b82f6); padding:1.2rem 1.5rem; color:#fff; }
+.conv-header-title { font-size:1.1rem; font-weight:800; }
+.conv-header-sub   { font-size:.8rem; opacity:.8; margin-top:.15rem; }
+.conv-body { padding:1.4rem 1.5rem; }
+.conv-item-ref { background:#eff6ff; border:1px solid #bfdbfe; border-radius:.65rem; padding:.7rem .9rem; margin-bottom:1.25rem; font-size:.82rem; }
+.conv-item-ref-label { font-size:.72rem; font-weight:700; color:#1d4ed8; text-transform:uppercase; letter-spacing:.04em; margin-bottom:.2rem; }
+.conv-item-ref-val   { font-weight:700; color:#1e293b; }
+.conv-submit { background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; border:none; border-radius:.65rem; padding:.7rem; font-size:.9rem; font-weight:700; width:100%; display:flex; align-items:center; justify-content:center; gap:.5rem; cursor:pointer; margin-top:.5rem; }
+.conv-submit:hover { opacity:.9; }
+.conv-back { display:inline-flex; align-items:center; gap:.4rem; color:#64748b; font-size:.8rem; text-decoration:none; margin-bottom:1.25rem; }
+.conv-back:hover { color:#1e293b; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid px-2 px-md-3 pb-5">
+  <div class="conv-wrap">
+    <a href="{% url 'gestion_academica:plan_semanal_detalle' item.plan_id %}" class="conv-back"><i class="bi bi-arrow-left"></i> Volver al plan</a>
+    <div class="conv-card">
+      <div class="conv-header">
+        <div class="conv-header-title"><i class="bi bi-clipboard-check me-2"></i>Convertir en Actividad Evaluativa</div>
+        <div class="conv-header-sub">Crea una actividad calificable directamente desde este ítem del plan.</div>
+      </div>
+      <div class="conv-body">
+        <div class="conv-item-ref">
+          <div class="conv-item-ref-label">Ítem del plan</div>
+          <div class="conv-item-ref-val">{{ item.titulo }}</div>
+          <div style="font-size:.76rem;color:#64748b;margin-top:.1rem;">{{ item.fecha|date:"l d \d\e F" }} · {{ item.plan.curso.materia.nombre_materia }}</div>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Título de la Actividad *</label>
+            <input type="text" name="titulo" class="form-control" value="{{ item.titulo }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Tipo / Categoría *</label>
+            <select name="tipo_actividad" class="form-select" required>
+              <option value="">— Selecciona el tipo —</option>
+              {% for t in tipos %}
+              <option value="{{ t.pk }}">{{ t.nombre }}{% if t.porcentaje %} ({{ t.porcentaje }}%){% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Descripción / Instrucciones</label>
+            <textarea name="descripcion" class="form-control" rows="3" placeholder="¿En qué consiste la actividad?">{{ item.descripcion|default:'' }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Fecha Límite de Entrega <span class="text-muted">(opcional)</span></label>
+            <input type="date" name="fecha_entrega_limite" class="form-control" value="{{ item.fecha|date:'Y-m-d' }}">
+          </div>
+          <button type="submit" class="conv-submit"><i class="bi bi-clipboard-check"></i> Crear Actividad y Vincular al Plan</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

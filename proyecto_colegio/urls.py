@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path, include, reverse_lazy
+from django.urls import path, include, reverse_lazy, re_path
 from django.views.generic.base import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
@@ -41,19 +41,27 @@ urlpatterns = [
     # ======================================================= #
 
     path('accounts/', include('allauth.urls')),
-    path('cursos/', include('cursos.urls')),
+    path('elearning/', include('elearning.urls')),
+    re_path(
+        r"^cursos(?:/.*)?$",
+        RedirectView.as_view(url="/elearning/catalogo/", permanent=False),
+    ),
     
     
     # Inclusión de las URLs de tus aplicaciones
     path('admisiones/', include('admisiones.urls', namespace='admisiones')),
-    path('academico/', include('gestion_academica.urls', namespace='gestion_academica')), 
+    path('academico/', include('gestion_academica.urls', namespace='gestion_academica')),
+    path('academico/recursos/', include('recursos_educativos.urls', namespace='recursos_educativos')),
     path('finanzas/', include('finanzas.urls', namespace='finanzas')),
+    path('finanzas/facturacion-electronica/', include('facturacion_electronica.urls', namespace='facturacion_electronica')),
+    path('halu-control/', include('platform_control.urls', namespace='platform_control')),
 
     # Redirección de la raíz del sitio al dashboard académico
     path('', RedirectView.as_view(pattern_name='gestion_academica:inicio_academico', permanent=False)),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('cuestionarios/', include('cuestionarios.urls', namespace='cuestionarios')),
+    path('mensajeria/', include('mensajeria.urls', namespace='mensajeria')),
 ]
 
 # --- 2. CONFIGURACIÓN PARA ARCHIVOS EN DESARROLLO ---

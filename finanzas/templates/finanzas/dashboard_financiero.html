@@ -5,43 +5,106 @@
 
 {% block contenido %}
 <div class="container-fluid mt-4">
-    <h1 class="mb-2">Dashboard Financiero</h1>
-    <p class="lead text-secondary">Resumen de la actividad financiera de la institución.</p>
-
-     <div class="card shadow-sm border-warning mb-4">
-        <div class="card-header bg-warning-subtle">
-            <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Configuración Inicial</h5>
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <h1 class="mb-1">Dashboard Financiero</h1>
+            <p class="lead text-secondary mb-0">Resumen de la actividad financiera de la institución.</p>
         </div>
-        <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-                <p class="card-text mb-1">
-                    Carga la estructura del Plan Único de Cuentas (PUC) en la base de datos.
-                </p>
-                <small class="text-muted">
-                    <strong>Atención:</strong> Esta acción solo debe ejecutarse una vez en la vida del sistema.
-                </small>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="text-muted small me-1">Periodo:</span>
+            <div class="btn-group" role="group" aria-label="Selector de periodo">
+                <a href="?periodo=mes_actual" class="btn btn-sm {% if periodo_seleccionado == 'mes_actual' %}btn-primary{% else %}btn-outline-primary{% endif %}">Mes actual</a>
+                <a href="?periodo=mes_anterior" class="btn btn-sm {% if periodo_seleccionado == 'mes_anterior' %}btn-primary{% else %}btn-outline-primary{% endif %}">Mes anterior</a>
+                <a href="?periodo=anio" class="btn btn-sm {% if periodo_seleccionado == 'anio' %}btn-primary{% else %}btn-outline-primary{% endif %}">Año en curso</a>
             </div>
-            
-            <form action="{% url 'finanzas:ejecutar_seed_puc' %}" method="post" onsubmit="return confirm('¿Estás seguro de que deseas cargar el Plan de Cuentas? Esta acción es para la configuración inicial y no debe repetirse.');">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-warning">
-                    <i class="bi bi-upload me-2"></i>Cargar Plan de Cuentas (PUC)
-                </button>
-            </form>
         </div>
     </div>
+    {% if etiqueta_periodo %}
+    <p class="text-muted small mb-4">{{ etiqueta_periodo }} · del {{ fecha_periodo_inicio|date:"d/m/Y" }} al {{ fecha_periodo_fin|date:"d/m/Y" }}</p>
+    {% endif %}
 
-    {% if kpis %}
-    <div class="row g-4 mb-5">
+    {% if puede_cargar_puc %}
+    <div class="card shadow-sm border-warning mb-4">
+        <div class="card-header bg-warning-subtle">
+            <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Configuración inicial del PUC</h5>
+        </div>
+        <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <p class="card-text mb-1">
+                    Carga la estructura base del Plan Único de Cuentas (PUC) para su institución.
+                </p>
+                <small class="text-muted">
+                    Solo usuarios autorizados. Ejecútelo cuando la institución aún no tenga cuentas contables; evite duplicar cargas innecesarias.
+                </small>
+            </div>
+            <form id="formSeedPuc" action="{% url 'finanzas:ejecutar_seed_puc' %}" method="post" class="d-none">
+                {% csrf_token %}
+            </form>
+            <button type="button" class="btn btn-warning flex-shrink-0" data-bs-toggle="modal" data-bs-target="#modalConfirmarSeedPuc">
+                <i class="bi bi-upload me-2"></i>Cargar Plan de Cuentas (PUC)
+            </button>
+        </div>
+    </div>
+    <div class="modal fade" id="modalConfirmarSeedPuc" tabindex="-1" aria-labelledby="modalConfirmarSeedPucLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalConfirmarSeedPucLabel">Confirmar carga del PUC</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">¿Desea cargar el plan de cuentas base para su institución?</p>
+                    <p class="text-muted small mb-0">Ejecútelo cuando la institución aún no tenga cuentas contables o bajo indicación del equipo. Evite repetir la carga sin necesidad.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" form="formSeedPuc" class="btn btn-warning">
+                        <i class="bi bi-upload me-1"></i>Sí, cargar PUC
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if alertas_puc.conceptos_sin_puc or alertas_puc.categorias_sin_puc %}
+    <div class="card shadow-sm border-warning mb-4">
+        <div class="card-header bg-warning-subtle">
+            <h5 class="mb-0"><i class="bi bi-journal-x me-2"></i>Conceptos o categorías sin cuenta PUC</h5>
+        </div>
+        <div class="card-body">
+            <p class="mb-2">Para exportaciones y reportes contables coherentes, vincule cada concepto de cobro y cada categoría de gasto a una cuenta del plan único de cuentas.</p>
+            <ul class="mb-3">
+                {% if alertas_puc.conceptos_sin_puc %}
+                <li><strong>{{ alertas_puc.conceptos_sin_puc }}</strong> concepto(s) de pago sin cuenta contable asignada.</li>
+                {% endif %}
+                {% if alertas_puc.categorias_sin_puc %}
+                <li><strong>{{ alertas_puc.categorias_sin_puc }}</strong> categoría(s) de gasto sin cuenta contable asignada.</li>
+                {% endif %}
+            </ul>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'finanzas:lista_conceptos_pago' %}" class="btn btn-sm btn-outline-primary">Ir a conceptos de pago</a>
+                <a href="{% url 'finanzas:lista_categorias_gasto' %}" class="btn btn-sm btn-outline-primary">Ir a categorías de gasto</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not kpis %}
+    <div class="alert alert-info" role="alert">
+        No hay datos financieros para mostrar: su usuario no está asociado a una institución, o no tiene permisos de visualización en este módulo.
+    </div>
+    {% else %}
+    <div class="row g-3 mb-2">
         <div class="col-lg-3 col-md-6">
             <div class="card bg-success text-white shadow h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-subtitle">Ingresos (Este Mes)</h6>
-                            <h4 class="card-title">${{ kpis.ingresos_mes|floatformat:2|intcomma }}</h4>
+                            <h6 class="card-subtitle">Ingresos cobrados</h6>
+                            <h4 class="card-title">${{ kpis.ingresos_periodo|floatformat:2|intcomma }}</h4>
                         </div>
-                        <i class="bi bi-arrow-down-circle-fill display-4 opacity-50"></i>
+                        <i class="bi bi-cash-coin display-4 opacity-50" title="Ingresos cobrados"></i>
                     </div>
                 </div>
             </div>
@@ -51,10 +114,10 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-subtitle">Gastos (Este Mes)</h6>
-                            <h4 class="card-title">${{ kpis.gastos_mes|floatformat:2|intcomma }}</h4>
+                            <h6 class="card-subtitle">Gastos / egresos</h6>
+                            <h4 class="card-title">${{ kpis.gastos_periodo|floatformat:2|intcomma }}</h4>
                         </div>
-                        <i class="bi bi-arrow-up-circle-fill display-4 opacity-50"></i>
+                        <i class="bi bi-arrow-up-circle display-4 opacity-50"></i>
                     </div>
                 </div>
             </div>
@@ -64,8 +127,8 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-subtitle">Utilidad (Este Mes)</h6>
-                            <h4 class="card-title">${{ kpis.utilidad_mes|floatformat:2|intcomma }}</h4>
+                            <h6 class="card-subtitle">Resultado del periodo</h6>
+                            <h4 class="card-title">${{ kpis.utilidad_periodo|floatformat:2|intcomma }}</h4>
                         </div>
                         <i class="bi bi-graph-up-arrow display-4 opacity-50"></i>
                     </div>
@@ -73,149 +136,194 @@
             </div>
         </div>
         <div class="col-lg-3 col-md-6">
-            <div class="card bg-warning text-dark shadow h-100">
+            <div class="card bg-secondary text-white shadow h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-subtitle">Cartera Vencida Total</h6>
-                            <h4 class="card-title">${{ kpis.cartera_vencida|floatformat:2|intcomma }}</h4>
+                            <h6 class="card-subtitle">Cartera pendiente total</h6>
+                            <h4 class="card-title">${{ kpis.cartera_pendiente_total|floatformat:2|intcomma }}</h4>
+                            <small class="d-block opacity-75">Mora (fecha vencida): ${{ kpis.cartera_mora_valor|floatformat:2|intcomma }} · {{ kpis.cuentas_mora_count }} {% if kpis.cuentas_mora_count == 1 %}cuenta{% else %}cuentas{% endif %}</small>
                         </div>
-                        <i class="bi bi-exclamation-triangle-fill display-4 opacity-50"></i>
+                        <i class="bi bi-wallet2 display-4 opacity-50"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-info h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-info"><i class="bi bi-credit-card-2-front me-1"></i> Ingresos vía Mercado Pago (periodo)</h6>
+                    <p class="h4 mb-0">${{ kpis.ingresos_mercadopago|floatformat:2|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-secondary h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-secondary"><i class="bi bi-cash-stack me-1"></i> Otros medios de pago (periodo)</h6>
+                    <p class="h4 mb-0">${{ kpis.ingresos_otros_medios|floatformat:2|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if proximos_vencimientos %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-calendar-event me-2"></i>Próximos vencimientos (saldo pendiente)</span>
+            <a href="{% url 'finanzas:seleccionar_estudiante_para_historial' %}" class="btn btn-sm btn-outline-primary">Ir a cartera</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 small">
+                <thead class="table-light">
+                    <tr>
+                        <th>Vence</th>
+                        <th>Estudiante / titular</th>
+                        <th>Concepto</th>
+                        <th class="text-end">Saldo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in proximos_vencimientos %}
+                    <tr>
+                        <td>{{ c.fecha_vencimiento_especifica|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if c.estudiante %}
+                                {{ c.estudiante.usuario.get_full_name|default:c.estudiante.usuario.username }}
+                            {% elif c.aspirante %}
+                                Aspirante: {{ c.aspirante }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>{{ c.concepto_pago.nombre_concepto }}</td>
+                        <td class="text-end">${{ c.saldo|floatformat:2|intcomma }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
     {% endif %}
 
-    <hr>
-    <h3 class="mb-4">Herramientas de Gestión</h3>
-    
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+    <h3 class="h5 text-uppercase text-muted mb-3">Accesos rápidos</h3>
+
+    <h4 class="h6 border-bottom pb-2 mb-3"><i class="bi bi-cash-coin me-2"></i>Ingresos y cartera</h4>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4">
         <div class="col">
             <div class="card h-100 shadow-sm">
                 <div class="card-body text-center d-flex flex-column">
-                    <i class="bi bi-collection-fill text-primary display-4 mb-3"></i>
-                    <h5 class="card-title">Reportes Financieros</h5>
-                    <p class="card-text text-secondary">Analiza ingresos, gastos, cartera y flujo de caja.</p>
-                    <div class="mt-auto">
-                        <a href="{% url 'finanzas:reporte_general_cuentas' %}" class="btn btn-outline-primary btn-sm mb-2 w-100">Reporte de Ingresos</a>
-                        <a href="{% url 'finanzas:reporte_cartera_por_edades' %}" class="btn btn-outline-primary btn-sm mb-2 w-100">Cartera por Edades</a>
-                        <a href="{% url 'finanzas:reporte_flujo_caja' %}" class="btn btn-outline-primary btn-sm w-100">Flujo de Caja</a>
+                    <i class="bi bi-receipt-cutoff text-primary display-6 mb-2"></i>
+                    <h5 class="card-title">Cartera por estudiante</h5>
+                    <p class="card-text text-secondary small flex-grow-1">Listado de estudiantes, historial y registro de pagos.</p>
+                    <a href="{% url 'finanzas:listado_estudiantes_finanzas' %}" class="btn btn-primary mt-auto">Abrir listado</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-person-lines-fill text-primary display-6 mb-2"></i>
+                    <h5 class="card-title">Buscar estudiante</h5>
+                    <p class="card-text text-secondary small flex-grow-1">Acceso directo al historial de cuentas.</p>
+                    <a href="{% url 'finanzas:seleccionar_estudiante_para_historial' %}" class="btn btn-outline-primary mt-auto">Seleccionar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-lightning-charge-fill text-info display-6 mb-2"></i>
+                    <h5 class="card-title">Facturación masiva</h5>
+                    <p class="card-text text-secondary small flex-grow-1">Generar cobros por grado o grupo.</p>
+                    <a href="{% url 'finanzas:facturacion_masiva' %}" class="btn btn-info mt-auto">Crear cobro masivo</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="h6 border-bottom pb-2 mb-3"><i class="bi bi-box-arrow-up-right me-2"></i>Gastos</h4>
+    <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-box-arrow-up-right text-danger display-6 mb-2"></i>
+                    <h5 class="card-title">Gastos y egresos</h5>
+                    <p class="card-text text-secondary small flex-grow-1">Registro de egresos y comprobantes.</p>
+                    <a href="{% url 'finanzas:lista_gastos' %}" class="btn btn-danger mt-auto">Administrar gastos</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="h6 border-bottom pb-2 mb-3"><i class="bi bi-graph-up me-2"></i>Reportes y exportación</h4>
+    <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+        <div class="col">
+            <div class="card h-100 shadow-sm border-primary">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-collection-play text-primary display-6 mb-2"></i>
+                    <h5 class="card-title">Centro de reportes y exportación</h5>
+                    <p class="card-text text-secondary small flex-grow-1">Reportes de cartera, estado de resultados, flujo de caja y exportación contable (Excel, CSV y PDF de carátula) para revisor o contador.</p>
+                    <a href="{% url 'finanzas:reportes_exportaciones' %}" class="btn btn-primary mt-auto">Abrir centro</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-file-earmark-excel-fill text-warning display-6 mb-2"></i>
+                    <h5 class="card-title">Excel cartera</h5>
+                    <p class="card-text text-secondary small flex-grow-1">Exportar cuentas por cobrar (compatible con filtros del reporte general).</p>
+                    <a href="{% url 'finanzas:exportar_excel_historial_cuentas' %}" class="btn btn-warning mt-auto">Descargar Excel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="h6 border-bottom pb-2 mb-3"><i class="bi bi-gear-fill me-2"></i>Configuración</h4>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4">
+        {% if puede_config_pagos %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-primary">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-credit-card-2-back text-primary display-6 mb-2"></i>
+                    <h5 class="card-title">Pasarelas de pago</h5>
+                    <p class="card-text text-secondary small flex-grow-1">Mercado Pago y credenciales de la institución.</p>
+                    <a href="{% url 'finanzas:configurar_pagos' %}" class="btn btn-outline-primary mt-auto">Configurar</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-journal-text text-success display-6 mb-2"></i>
+                    <h5 class="card-title">Plan de cuentas (PUC)</h5>
+                    <p class="card-text text-secondary small flex-grow-1">Catálogo contable por institución.</p>
+                    <a href="{% url 'finanzas:lista_cuentas_contables' %}" class="btn btn-outline-success btn-sm mt-auto">Abrir PUC</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center d-flex flex-column">
+                    <i class="bi bi-sliders text-success display-6 mb-2"></i>
+                    <h5 class="card-title">Conceptos y categorías</h5>
+                    <div class="d-grid gap-1 mt-auto">
+                        <a href="{% url 'finanzas:lista_tipos_concepto_pago' %}" class="btn btn-outline-success btn-sm">Tipos de concepto</a>
+                        <a href="{% url 'finanzas:lista_conceptos_pago' %}" class="btn btn-outline-success btn-sm">Conceptos de ingreso</a>
+                        <a href="{% url 'finanzas:lista_tipos_gasto' %}" class="btn btn-outline-success btn-sm">Tipos de gasto</a>
+                        <a href="{% url 'finanzas:lista_categorias_gasto' %}" class="btn btn-outline-success btn-sm">Categorías de gasto</a>
+                        <a href="{% url 'finanzas:lista_descuentos' %}" class="btn btn-outline-success btn-sm">Descuentos y becas</a>
+                        <a href="{% url 'finanzas:lista_proveedores' %}" class="btn btn-outline-success btn-sm">Proveedores</a>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center d-flex flex-column">
-                    <i class="bi bi-box-arrow-up-right text-danger display-4 mb-3"></i>
-                    <h5 class="card-title">Gestión de Gastos</h5>
-                    <p class="card-text text-secondary">Registra y administra todos los egresos.</p>
-                    <a href="{% url 'finanzas:lista_gastos' %}" class="btn btn-danger mt-auto">
-                        <i class="bi bi-list-task"></i> Administrar Gastos
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center d-flex flex-column">
-                    <i class="bi bi-gear-fill text-success display-4 mb-3"></i>
-                    <h5 class="card-title">Configuración</h5>
-                    <p class="card-text text-secondary">Define los parámetros del módulo.</p>
-                    <div class="mt-auto">
-                        <a href="{% url 'finanzas:lista_cuentas_contables' %}" class="btn btn-outline-success btn-sm mb-2 w-100">
-                            <i class="bi bi-journal-text"></i> Plan de Cuentas (PUC)
-                        </a>
-                        <a href="{% url 'finanzas:lista_tipos_concepto_pago' %}" class="btn btn-outline-success btn-sm mb-2 w-100">Tipos de Concepto de Ingreso</a>
-                         <a href="{% url 'finanzas:lista_conceptos_pago' %}" class="btn btn-outline-success btn-sm mb-2 w-100">Conceptos de Ingreso</a>
-                         <a href="{% url 'finanzas:lista_tipos_gasto' %}" class="btn btn-outline-success btn-sm mb-2 w-100">Tipos de Gasto</a>
-                        <a href="{% url 'finanzas:lista_categorias_gasto' %}" class="btn btn-outline-success btn-sm mb-2 w-100">Categorías de Gasto</a>
-                        <a href="{% url 'finanzas:lista_descuentos' %}" class="btn btn-outline-success btn-sm mb-2 w-100">Descuentos y Becas</a>
-                        <a href="{% url 'finanzas:lista_proveedores' %}" class="btn btn-outline-success btn-sm w-100">Proveedores</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center d-flex flex-column">
-                    <i class="bi bi-lightning-charge-fill text-info display-4 mb-3"></i>
-                    <h5 class="card-title">Facturación Masiva</h5>
-                    <p class="card-text text-secondary">Aplica un cobro a todos los estudiantes de uno o más grados a la vez.</p>
-                    <a href="{% url 'finanzas:facturacion_masiva' %}" class="btn btn-info mt-auto">
-                        <i class="bi bi-plus-slash-minus"></i> Crear Cobro Masivo
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center d-flex flex-column">
-                    <i class="bi bi-receipt-cutoff text-primary display-4 mb-3"></i>
-                    <h5 class="card-title">Facturación y Cartera</h5>
-                    <p class="card-text text-secondary">Consulta el historial de un estudiante para registrar pagos o generar facturas.</p>
-                    <a href="{% url 'finanzas:seleccionar_estudiante_para_historial' %}" class="btn btn-primary mt-auto">
-                        <i class="bi bi-person-lines-fill"></i> Ir a Cartera
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Widget para Gastos / Egresos -->
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center d-flex flex-column">
-                    <i class="bi bi-box-arrow-up-right text-danger display-4 mb-3"></i>
-                    <h5 class="card-title">Gastos y Egresos</h5>
-                    <p class="card-text text-secondary">Registra nuevos gastos o genera comprobantes de egreso.</p>
-                    <a href="{% url 'finanzas:lista_gastos' %}" class="btn btn-danger mt-auto">
-                        <i class="bi bi-card-list"></i> Ir a Gastos
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center d-flex flex-column">
-                    <i class="bi bi-file-earmark-excel-fill text-warning display-4 mb-3"></i>
-                    <h5 class="card-title">Exportar Datos</h5>
-                    <p class="card-text text-secondary">Descarga datos en formato Excel.</p>
-                    <a href="{% url 'finanzas:exportar_excel_historial_cuentas' %}" class="btn btn-warning mt-auto">
-                        <i class="bi bi-download"></i> Exportar
-                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Scripts -->
-<script>
-function irFacturaIndividual(event) {
-    event.preventDefault();
-    const cuentaId = document.getElementById('facturaCuentaId').value;
-    if (!cuentaId) {
-        alert('Debes ingresar el ID de la cuenta.');
-        return false;
-    }
-    window.open(`/finanzas/pdf/factura-venta/${cuentaId}/`, '_blank');
-}
-
-function irComprobanteEgreso(event) {
-    event.preventDefault();
-    const gastoId = document.getElementById('gastoId').value;
-    if (!gastoId) {
-        alert('Debes ingresar el ID del gasto.');
-        return false;
-    }
-    window.open(`/finanzas/pdf/comprobante-egreso/${gastoId}/`, '_blank');
-}
-</script>
 {% endblock %}

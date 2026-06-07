@@ -32,7 +32,7 @@
     </form>
 
     <a href="{% url 'gestion_academica:exportar_asistencia_docentes_excel' %}?docente={{ request.GET.docente }}&fecha_inicio={{ request.GET.fecha_inicio }}&fecha_fin={{ request.GET.fecha_fin }}" class="btn btn-outline-success mb-3">
-        <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+        <i class="bi bi-file-earmark-excel"></i> Exportar Excel (detalle + resumen nómina)
     </a>
 
     <div class="table-responsive">
@@ -40,7 +40,10 @@
             <thead class="table-dark">
                 <tr>
                     <th>Docente</th>
-                    <th>Fecha</th>
+                    <th>Día</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Horas</th>
                     <th>Estado</th>
                     <th>Registrado por</th>
                 </tr>
@@ -49,12 +52,15 @@
                 {% for asistencia in asistencias %}
                     <tr>
                         <td>{{ asistencia.docente.usuario.get_full_name }}</td>
-                        <td>{{ asistencia.fecha|date:"Y-m-d H:i" }}</td>
-                        <td>{{ asistencia.estado }}</td>
-                        <td>{{ asistencia.registrado_por.get_full_name|default:"-" }}</td>
+                        <td>{{ asistencia.dia|date:"Y-m-d" }}</td>
+                        <td>{% if asistencia.hora_entrada %}{{ asistencia.hora_entrada|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+                        <td>{% if asistencia.hora_salida %}{{ asistencia.hora_salida|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+                        <td>{% if asistencia.horas_en_institucion %}{{ asistencia.horas_en_institucion }}{% else %}—{% endif %}</td>
+                        <td>{{ asistencia.get_estado_display }}</td>
+                        <td>{{ asistencia.registrado_por.get_full_name|default:"—" }}</td>
                     </tr>
                 {% empty %}
-                    <tr><td colspan="4" class="text-center">No hay registros.</td></tr>
+                    <tr><td colspan="7" class="text-center">No hay registros.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

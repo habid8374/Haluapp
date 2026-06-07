@@ -1,105 +1,87 @@
-# gestion_academica/management/commands/crear_conceptos_iniciales.py
-# (Asegúrate de que este archivo esté en la ruta correcta:
-#  tu_proyecto/gestion_academica/management/commands/crear_conceptos_iniciales.py)
+"""Sincroniza los ConceptoPago estándar (Inscripción / Matrícula / Pensiones)
+para todos los NivelEscolaridad existentes.
+
+Antes este comando creaba conceptos por institución (sin nivel) con valor 0
+y sin los flags ``es_pago_*``. Ahora delega en
+``finanzas.services.sincronizar_conceptos_de_nivel`` que es la MISMA función
+que usa la signal post_save de ``NivelEscolaridad``.
+
+Uso típico:
+
+    python manage.py crear_conceptos
+    python manage.py crear_conceptos --institucion 1
+    python manage.py crear_conceptos --año 2026
+
+El comando es idempotente: puede correrse cuantas veces se quiera.
+"""
+from __future__ import annotations
 
 from django.core.management.base import BaseCommand
-from django.utils import timezone # Para usar timezone.localdate()
-from datetime import date
-import calendar
-from decimal import Decimal
 
-# ¡CORRECCIÓN CLAVE: Importar desde finanzas.models!
-from finanzas.models import InstitucionEducativa, ConceptoPago, TipoConceptoPago 
+from finanzas.models import InstitucionEducativa
+from finanzas.services import sincronizar_conceptos_de_nivel
+from gestion_academica.models import NivelEscolaridad
 
-# También necesitas PeriodoAcademico si lo usas, pero lo importamos de gestion_academica
-from gestion_academica.models import PeriodoAcademico
-
-# Lista de nombres de meses en español (asegúrate de que esta misma lista esté en finanzas/models.py si la usas allí)
-NOMBRES_MESES_ESPANOL = {
-    1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio',
-    7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
-}
 
 class Command(BaseCommand):
-    help = 'Crea los conceptos de matrícula y mensualidades si no existen para cada institución.'
+    help = (
+        "Sincroniza los ConceptoPago estándar (Inscripción/Matrícula/Pensiones) "
+        "para todos los NivelEscolaridad. Idempotente."
+    )
 
-    def handle(self, *args, **kwargs):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--institucion", type=int, default=None,
+            help="ID de una institución específica (por defecto procesa todas).",
+        )
+        parser.add_argument(
+            "--año", type=int, default=None,
+            help="Año lectivo (por defecto el del PeriodoAcademico activo o el actual).",
+        )
+
+    def handle(self, *args, **options):
         instituciones = InstitucionEducativa.objects.all()
+        if options.get("institucion"):
+            instituciones = instituciones.filter(pk=options["institucion"])
 
         if not instituciones.exists():
-            self.stdout.write(self.style.WARNING('⚠️ No hay instituciones educativas registradas. No se pueden crear conceptos de pago.'))
-            self.stdout.write(self.style.WARNING('Crea al menos una InstitucionEducativa primero.'))
+            self.stdout.write(self.style.WARNING(
+                "No hay instituciones para procesar."
+            ))
             return
 
-        for institucion in instituciones:
-            self.stdout.write(self.style.HTTP_INFO(f'✨ Procesando conceptos para la institución: {institucion.nombre}'))
-            
-            # Obtener el AÑO ACTUAL (se recomienda usar timezone.localdate())
-            año_actual_cmd = timezone.localdate().year
+        año = options.get("año")
+        total_creados = total_actualizados = total_sin_cambios = 0
 
-            # Obtener el Periodo Académico activo para esta institución
-            # Esto asume que tienes un campo 'institucion' en PeriodoAcademico
-            periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=institucion).first()
-            if not periodo_activo:
-                self.stdout.write(self.style.WARNING(f'   ⚠️ No hay un Periodo Académico activo para {institucion.nombre}. Los conceptos se crearán sin periodo asociado.'))
+        for inst in instituciones:
+            self.stdout.write(self.style.MIGRATE_HEADING(
+                f"\n>> {inst} (id={inst.pk})"
+            ))
+            niveles = NivelEscolaridad.objects.filter(institucion=inst).order_by("orden", "nombre")
+            if not niveles.exists():
+                self.stdout.write(self.style.WARNING(
+                    "   Sin Niveles de Escolaridad. Crea al menos uno desde "
+                    "Gestion Academica -> Niveles."
+                ))
+                continue
 
-            # --- Lógica para Matrícula ---
-            tipo_matricula, created_tipo_matricula = TipoConceptoPago.objects.get_or_create(
-                nombre="Matrícula",
-                institucion=institucion, # Asigna la institución
-                defaults={'descripcion': 'Pago de matrícula inicial de un periodo académico'}
-            )
-            if created_tipo_matricula:
-                self.stdout.write(self.style.SUCCESS(f'   Tipo de Concepto "Matrícula" creado para {institucion.nombre}.'))
+            for nivel in niveles:
+                try:
+                    resultado = sincronizar_conceptos_de_nivel(nivel, año=año)
+                    total_creados += resultado.creados
+                    total_actualizados += resultado.actualizados
+                    total_sin_cambios += resultado.sin_cambios
+                    self.stdout.write(self.style.SUCCESS(
+                        f"   [OK] {resultado.resumen()}"
+                    ))
+                except Exception as exc:  # noqa: BLE001
+                    self.stdout.write(self.style.ERROR(
+                        f"   [ERR] Nivel '{nivel}': {exc}"
+                    ))
 
-            concepto_matricula, created_concepto_matricula = ConceptoPago.objects.get_or_create(
-                nombre_concepto=f"Matrícula {año_actual_cmd}",
-                institucion=institucion, # Asigna la institución
-                tipo_concepto=tipo_matricula,
-                defaults={
-                    'valor': Decimal('0.00'), # Valor inicial en 0.00, se debe editar manualmente después
-                    'fecha_vencimiento_general': date(año_actual_cmd, 3, 31), # Ejemplo: 31 de marzo del año actual
-                    'periodo_academico_aplicable': periodo_activo,
-                    'automatico': True,
-                }
-            )
-            if created_concepto_matricula:
-                self.stdout.write(self.style.SUCCESS(f'   Concepto "Matrícula {año_actual_cmd}" creado para {institucion.nombre}.'))
-            else:
-                self.stdout.write(self.style.HTTP_NOT_MODIFIED(f'   Concepto "Matrícula {año_actual_cmd}" ya existe para {institucion.nombre}.'))
-
-            # --- Lógica para Mensualidades (Febrero a Noviembre) ---
-            tipo_mensualidad, created_tipo_mensualidad = TipoConceptoPago.objects.get_or_create(
-                nombre="Mensualidad",
-                institucion=institucion, # Asigna la institución
-                defaults={'descripcion': 'Pago de mensualidad académica recurrente'}
-            )
-            if created_tipo_mensualidad:
-                self.stdout.write(self.style.SUCCESS(f'   Tipo de Concepto "Mensualidad" creado para {institucion.nombre}.'))
-
-            for mes_num in range(2, 12): # Febrero (2) a Noviembre (11)
-                nombre_mes_espanol = NOMBRES_MESES_ESPANOL.get(mes_num, str(mes_num))
-                
-                # Calcular la fecha de vencimiento: último día del mes en curso
-                ultimo_dia_mes_actual = calendar.monthrange(año_actual_cmd, mes_num)[1]
-                fecha_vencimiento_concepto = date(año_actual_cmd, mes_num, ultimo_dia_mes_actual)
-
-                nombre_concepto_mensualidad = f"Mensualidad {nombre_mes_espanol} {año_actual_cmd}"
-                
-                concepto_mensualidad, created_concepto_mensualidad = ConceptoPago.objects.get_or_create(
-                    nombre_concepto=nombre_concepto_mensualidad,
-                    institucion=institucion, # Asigna la institución
-                    tipo_concepto=tipo_mensualidad,
-                    defaults={
-                        'valor': Decimal('0.00'), # Valor inicial en 0.00, se debe editar manualmente después
-                        'fecha_vencimiento_general': fecha_vencimiento_concepto,
-                        'periodo_academico_aplicable': periodo_activo,
-                        'automatico': True,
-                    }
-                )
-                if created_concepto_mensualidad:
-                    self.stdout.write(self.style.SUCCESS(f'   Concepto "{nombre_concepto_mensualidad}" creado para {institucion.nombre}.'))
-                else:
-                    self.stdout.write(self.style.HTTP_NOT_MODIFIED(f'   Concepto "{nombre_concepto_mensualidad}" ya existe para {institucion.nombre}.'))
-
-        self.stdout.write(self.style.SUCCESS('\n✅ Proceso de creación/verificación de conceptos finalizado para todas las instituciones.'))
+        self.stdout.write("\n" + "=" * 60)
+        self.stdout.write(self.style.SUCCESS(
+            f"Resumen total: {total_creados} creados, "
+            f"{total_actualizados} actualizados, "
+            f"{total_sin_cambios} sin cambios."
+        ))

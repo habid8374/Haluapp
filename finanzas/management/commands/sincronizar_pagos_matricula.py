@@ -53,8 +53,14 @@ class Command(BaseCommand):
                 # 3. Si el aspirante todavía está como 'APROBADO_MATRICULA', lo matriculamos.
                 if aspirante.estado == 'APROBADO_MATRICULA':
                     self.stdout.write(self.style.NOTICE(f"  > Procesando matrícula para '{aspirante}'..."))
-                    aspirante.matricular() # Llamamos a la función que hace todo el trabajo
-                    self.stdout.write(self.style.SUCCESS(f"  > Sincronizado: El aspirante '{aspirante}' ha sido actualizado a 'Matriculado'."))
+                    _, resultado = aspirante.matricular()
+                    self.stdout.write(self.style.SUCCESS(
+                        f"  > Sincronizado: '{aspirante}' -> Matriculado. {resultado.resumen()}"
+                    ))
+                    if resultado.es_warning:
+                        self.stdout.write(self.style.WARNING(
+                            f"  !! Advertencia de cuentas: {resultado.mensaje}"
+                        ))
                     actualizados += 1
                 else:
                     ya_estaban_ok += 1

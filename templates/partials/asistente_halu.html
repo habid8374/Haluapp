@@ -1,62 +1,375 @@
-{# Este archivo contiene solo el HTML y CSS de HALU #}
-{% if user.is_authenticated and user.is_staff %}
-    <style>
-        /* ✅ SE CAMBIÓ 'right' POR 'left' EN AMBAS REGLAS */
-        #halu-chat-bubble { 
-            position: fixed; 
-            bottom: 25px; 
-            left: 25px; /* <-- CORREGIDO */
-            width: 60px; 
-            height: 60px; 
-            background-color: #0d6efd; 
-            color: white; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 28px; 
-            cursor: pointer; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
-            z-index: 1050; 
-        }
-        #halu-chat-window { 
-            position: fixed; 
-            bottom: 100px; 
-            left: 25px; /* <-- CORREGIDO */
-            width: 350px; 
-            max-height: 80vh; 
-            background: white; 
-            border-radius: 15px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
-            display: none; 
-            flex-direction: column; 
-            z-index: 1049; 
-        }
-        /* El resto de los estilos se mantienen igual */
-        #halu-chat-header { background-color: #0d6efd; color: white; padding: 15px; border-top-left-radius: 15px; border-top-right-radius: 15px; font-weight: bold; }
-        #halu-chat-body { flex-grow: 1; padding: 15px; overflow-y: auto; }
-        .halu-message { background: #f1f1f1; padding: 10px; border-radius: 10px; margin-bottom: 10px; max-width: 80%; word-wrap: break-word; }
-        .user-message { background: #e1edff; margin-left: auto; }
-        #halu-chat-footer { padding: 10px; border-top: 1px solid #ddd; }
+{% load static %}
+{% if user.is_authenticated %}
+<style>
+  /* ═══════════════════════════════════════
+     HALU — Asistente IA (bottom-right)
+  ═══════════════════════════════════════ */
+  #halu-chat-bubble {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 58px;
+    height: 58px;
+    background: linear-gradient(135deg, #0b5ed7, #3b82f6);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(11,94,215,.4);
+    z-index: 1060;
+    transition: transform .2s, box-shadow .2s;
+    border: 2px solid rgba(255,255,255,.25);
+  }
+  #halu-chat-bubble:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 10px 28px rgba(11,94,215,.5);
+  }
+  #halu-chat-bubble .halu-bubble-badge {
+    position: absolute;
+    top: -3px; right: -3px;
+    width: 14px; height: 14px;
+    background: #22c55e;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    animation: halu-pulse 2s infinite;
+  }
+  @keyframes halu-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(34,197,94,.5); }
+    70%  { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+  }
 
-        
-    </style>
+  #halu-chat-window {
+    position: fixed;
+    bottom: 95px;
+    right: 25px;
+    width: 370px;
+    max-height: 78vh;
+    background: #fff;
+    border-radius: 1.1rem;
+    box-shadow: 0 10px 40px rgba(10,30,80,.2);
+    display: none;
+    flex-direction: column;
+    z-index: 1059;
+    border: 1px solid #dbe5f4;
+    overflow: hidden;
+    animation: halu-slidein .22s ease;
+  }
+  @keyframes halu-slidein {
+    from { opacity: 0; transform: translateY(16px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
 
-    <div id="halu-chat-bubble" data-api-url="{% url 'gestion_academica:asistente_halu_api' %}">
-        <i class="bi bi-robot"></i>
+  #halu-chat-header {
+    background: linear-gradient(120deg, #0a3d8c, #0b5ed7);
+    color: white;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    flex-shrink: 0;
+  }
+  #halu-chat-header .halu-header-left {
+    display: flex; align-items: center; gap: .6rem;
+  }
+  #halu-chat-header .halu-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+  }
+  #halu-chat-header .halu-name { font-weight: 700; font-size: .95rem; }
+  #halu-chat-header .halu-status {
+    font-size: .72rem; opacity: .8;
+    display: flex; align-items: center; gap: .3rem;
+  }
+  #halu-chat-header .halu-status::before {
+    content: ''; width: 7px; height: 7px;
+    border-radius: 50%; background: #4ade80;
+    flex-shrink: 0;
+  }
+  #halu-chat-close {
+    background: rgba(255,255,255,.15); border: none; color: #fff;
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1rem; flex-shrink: 0;
+    transition: background .15s;
+  }
+  #halu-chat-close:hover { background: rgba(255,255,255,.3); }
+
+  #halu-chat-body {
+    flex: 1; overflow-y: auto; padding: 14px 14px 8px;
+    background: #f7faff;
+    display: flex; flex-direction: column; gap: 8px;
+    max-height: calc(78vh - 140px);
+  }
+  #halu-chat-body::-webkit-scrollbar { width: 4px; }
+  #halu-chat-body::-webkit-scrollbar-thumb { background: #c5d8f5; border-radius: 4px; }
+
+  .halu-msg-row {
+    display: flex; gap: .5rem; align-items: flex-end;
+    animation: halu-msgfade .18s ease;
+  }
+  @keyframes halu-msgfade {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .halu-msg-row.user { justify-content: flex-end; }
+  .halu-msg-bubble {
+    max-width: 82%;
+    padding: 9px 13px;
+    border-radius: 1rem;
+    font-size: .85rem;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+  .halu-msg-row.halu .halu-msg-bubble {
+    background: #fff;
+    border: 1px solid #dbe5f4;
+    border-bottom-left-radius: .25rem;
+    color: #1f2937;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .halu-msg-row.user .halu-msg-bubble {
+    background: linear-gradient(135deg, #0b5ed7, #3b82f6);
+    color: #fff;
+    border-bottom-right-radius: .25rem;
+  }
+  .halu-bot-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, #0b5ed7, #3b82f6);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .8rem; flex-shrink: 0;
+  }
+
+  /* Typing indicator */
+  .halu-typing {
+    display: flex; gap: 4px; align-items: center;
+    padding: 10px 14px;
+    background: #fff; border: 1px solid #dbe5f4;
+    border-radius: 1rem; border-bottom-left-radius: .25rem;
+    width: fit-content;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .halu-typing span {
+    width: 7px; height: 7px; background: #94a3b8;
+    border-radius: 50%;
+    animation: halu-bounce .9s infinite;
+  }
+  .halu-typing span:nth-child(2) { animation-delay: .15s; }
+  .halu-typing span:nth-child(3) { animation-delay: .3s; }
+  @keyframes halu-bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); background: #3b82f6; }
+  }
+
+  #halu-chat-footer {
+    padding: 10px 12px;
+    border-top: 1px solid #e5eaf3;
+    background: #fff;
+    flex-shrink: 0;
+  }
+  #halu-chat-footer .input-group {
+    border-radius: .75rem; overflow: hidden;
+    box-shadow: 0 0 0 2px #dbe5f4;
+    transition: box-shadow .15s;
+  }
+  #halu-chat-footer .input-group:focus-within {
+    box-shadow: 0 0 0 2px #0b5ed7;
+  }
+  #halu-user-input {
+    border: none; outline: none;
+    padding: 9px 12px; font-size: .85rem;
+    background: #f8fbff;
+  }
+  #halu-user-input:focus { box-shadow: none; background: #fff; }
+  #halu-send-btn {
+    border: none; background: linear-gradient(135deg, #0b5ed7, #3b82f6);
+    color: #fff; padding: 0 14px; font-size: .9rem;
+    cursor: pointer; transition: opacity .15s;
+    display: flex; align-items: center;
+  }
+  #halu-send-btn:hover { opacity: .88; }
+  #halu-send-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .halu-footer-hint {
+    text-align: center; font-size: .68rem; color: #94a3b8;
+    margin-top: 5px;
+  }
+
+  @media (max-width: 480px) {
+    #halu-chat-window { width: calc(100vw - 20px); right: 10px; bottom: 90px; }
+    #halu-chat-bubble { right: 15px; bottom: 15px; }
+  }
+</style>
+
+{# ── Burbuja ── #}
+<div id="halu-chat-bubble"
+     data-api-url="{% url 'gestion_academica:asistente_halu_api' %}"
+     title="Asistente HALU">
+  <i class="bi bi-robot"></i>
+  <span class="halu-bubble-badge"></span>
+</div>
+
+{# ── Ventana de chat ── #}
+<div id="halu-chat-window">
+  <div id="halu-chat-header">
+    <div class="halu-header-left">
+      <div class="halu-avatar"><i class="bi bi-robot"></i></div>
+      <div>
+        <div class="halu-name">Asistente HALU</div>
+        <div class="halu-status">En línea</div>
+      </div>
     </div>
-    <div id="halu-chat-window">
-        <div id="halu-chat-header">Asistente HALU</div>
-        <div id="halu-chat-body">
-            <div class="halu-message">¡Hola! Soy HALU. ¿En qué puedo ayudarte?</div>
-        </div>
-        <div id="halu-chat-footer">
-            <form id="halu-input-form">
-                <div class="input-group">
-                    <input type="text" id="halu-user-input" class="form-control" placeholder="Escribe tu pregunta..." autocomplete="off">
-                    <button class="btn btn-primary" type="submit">Enviar</button>
-                </div>
-            </form>
-        </div>
+    <button id="halu-chat-close" title="Cerrar">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div id="halu-chat-body">
+    <div class="halu-msg-row halu">
+      <div class="halu-bot-icon"><i class="bi bi-robot"></i></div>
+      <div class="halu-msg-bubble">
+        ¡Hola, <strong>{{ user.first_name|default:user.username }}</strong>!
+        Soy <strong>HALU</strong>, tu asistente IA. 🎓<br><br>
+        Puedo consultar datos reales del sistema: calificaciones, asistencia, estudiantes en riesgo, finanzas y más.<br><br>
+        ¿En qué te ayudo hoy?
+      </div>
     </div>
+  </div>
+
+  <div id="halu-chat-footer">
+    <form id="halu-input-form">
+      <div class="input-group">
+        <input type="text" id="halu-user-input"
+               class="form-control"
+               placeholder="Escribe tu pregunta…"
+               autocomplete="off"
+               maxlength="500">
+        <button type="submit" id="halu-send-btn">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+    </form>
+    <div class="halu-footer-hint">Gemini · Datos en tiempo real del sistema</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function getCookie(name) {
+    let v = null;
+    if (document.cookie) {
+      document.cookie.split(';').forEach(c => {
+        c = c.trim();
+        if (c.startsWith(name + '=')) v = decodeURIComponent(c.slice(name.length + 1));
+      });
+    }
+    return v;
+  }
+
+  var bubble   = document.getElementById('halu-chat-bubble');
+  var win      = document.getElementById('halu-chat-window');
+  var body     = document.getElementById('halu-chat-body');
+  var form     = document.getElementById('halu-input-form');
+  var input    = document.getElementById('halu-user-input');
+  var sendBtn  = document.getElementById('halu-send-btn');
+  var closeBtn = document.getElementById('halu-chat-close');
+  var apiUrl   = bubble ? bubble.dataset.apiUrl : null;
+  var csrf     = getCookie('csrftoken');
+  var history  = [];  // memoria de conversación
+
+  if (!bubble || !apiUrl) return;
+
+  // Toggle
+  bubble.addEventListener('click', function () {
+    var visible = win.style.display === 'flex';
+    win.style.display = visible ? 'none' : 'flex';
+    if (!visible) { input.focus(); scrollBottom(); }
+  });
+  closeBtn.addEventListener('click', function () { win.style.display = 'none'; });
+
+  // Enviar mensaje
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = input.value.trim();
+    if (!msg || sendBtn.disabled) return;
+
+    addMsg(msg, 'user');
+    input.value = '';
+    sendBtn.disabled = true;
+
+    var typingRow = addTyping();
+
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({ pregunta: msg, historial: history })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      typingRow.remove();
+      if (d.historial) history = d.historial;
+      addMsg(d.respuesta || d.error || 'Sin respuesta.', 'halu');
+    })
+    .catch(function () {
+      typingRow.remove();
+      addMsg('❌ Error de conexión. Revisa tu red o vuelve a intentar.', 'halu');
+    })
+    .finally(function () { sendBtn.disabled = false; input.focus(); });
+  });
+
+  function addMsg(text, who) {
+    var row = document.createElement('div');
+    row.className = 'halu-msg-row ' + who;
+
+    if (who === 'halu') {
+      var icon = document.createElement('div');
+      icon.className = 'halu-bot-icon';
+      icon.innerHTML = '<i class="bi bi-robot"></i>';
+      row.appendChild(icon);
+    }
+
+    var bubble = document.createElement('div');
+    bubble.className = 'halu-msg-bubble';
+    // Renderizar markdown básico: **negrita**, saltos de línea
+    bubble.innerHTML = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+    row.appendChild(bubble);
+    body.appendChild(row);
+    scrollBottom();
+    return row;
+  }
+
+  function addTyping() {
+    var row = document.createElement('div');
+    row.className = 'halu-msg-row halu';
+    var icon = document.createElement('div');
+    icon.className = 'halu-bot-icon';
+    icon.innerHTML = '<i class="bi bi-robot"></i>';
+    var t = document.createElement('div');
+    t.className = 'halu-typing';
+    t.innerHTML = '<span></span><span></span><span></span>';
+    row.appendChild(icon);
+    row.appendChild(t);
+    body.appendChild(row);
+    scrollBottom();
+    return row;
+  }
+
+  function scrollBottom() {
+    setTimeout(function () { body.scrollTop = body.scrollHeight; }, 50);
+  }
+
+  // Enter para enviar, Escape para cerrar
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') win.style.display = 'none';
+  });
+})();
+</script>
 {% endif %}

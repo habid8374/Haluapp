@@ -38,8 +38,11 @@
                     <div class="col-md-6 col-lg-4 mb-3">
                         <h5 class="card-title text-primary mb-3"><i class="bi bi-mortarboard-fill me-2"></i> Datos Académicos</h5>
                         <ul class="list-unstyled">
+                            <li><strong>Tipo de Documento:</strong> {{ estudiante.get_tipo_documento_display|default:"-" }}</li>
                             <li><strong>Documento:</strong> {{ estudiante.documento_identidad|default:"-" }}</li>
+                            <li><strong>Código de Estudiante:</strong> {{ estudiante.codigo_estudiante|default:"-" }}</li>
                             <li><strong>Grado Actual:</strong> {{ estudiante.grado_actual.nombre|default:"No asignado" }}</li>
+                            <li><strong>Lugar de Nacimiento:</strong> {{ estudiante.lugar_nacimiento|default:"-" }}</li>
                             <li><strong>Colegio de Procedencia:</strong> {{ estudiante.colegio_procedencia|default:"-" }}</li>
                             <li><strong>Institución:</strong> {{ estudiante.institucion.nombre|default:"-" }}</li>
                         </ul>
@@ -49,9 +52,19 @@
                         <ul class="list-unstyled">
                             <li><strong>Fecha de Nacimiento:</strong> {{ estudiante.fecha_nacimiento|date:"d F, Y"|default:"-" }}</li>
                             <li><strong>Sexo:</strong> {{ estudiante.get_sexo_display|default:"-" }}</li>
+                            <li><strong>Grupo Sanguíneo:</strong> {{ estudiante.get_grupo_sanguineo_display|default:"-" }}</li>
+                            <li><strong>EPS / Entidad de Salud:</strong> {{ estudiante.eps|default:"-" }}</li>
+                            <li><strong>Discapacidad:</strong> {{ estudiante.discapacidad|default:"-" }}</li>
                             <li><strong>Dirección:</strong> {{ estudiante.direccion|default:"-" }}</li>
                             <li><strong>Municipio/Ciudad:</strong> {{ estudiante.municipio_ciudad|capfirst|default:"-" }}</li>
                             <li><strong>Departamento:</strong> {{ estudiante.departamento|capfirst|default:"-" }}</li>
+                            <li><strong>Descuentos / Becas:</strong>
+                                {% with descuentos=estudiante.descuentos.all %}
+                                    {% if descuentos %}
+                                        {% for d in descuentos %}{{ d.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                                    {% else %}-{% endif %}
+                                {% endwith %}
+                            </li>
                         </ul>
                     </div>
                 </div>

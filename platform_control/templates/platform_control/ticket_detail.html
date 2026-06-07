@@ -1,0 +1,134 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+
+<div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:18px;padding:1.75rem 2rem;color:white;margin-bottom:1.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+    <div>
+        <h2 class="fw-800 mb-1" style="font-size:1.45rem;"><i class="bi bi-ticket-detailed-fill me-2"></i>{{ titulo_pagina }}</h2>
+        <p class="mb-0" style="opacity:.75;font-size:.9rem;">{{ ticket.titulo }}</p>
+    </div>
+    <a href="{% url 'platform_control:tickets' %}" class="btn btn-outline-light" style="border-radius:9px;">
+        <i class="bi bi-arrow-left me-1"></i> Volver a Tickets
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Conversación -->
+    <div class="col-lg-8">
+        <div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <div class="card-header fw-700 border-0 pt-3 pb-2">
+                <i class="bi bi-chat-dots-fill me-2 text-primary"></i>Conversación
+            </div>
+            <div class="card-body">
+                <!-- Mensaje original -->
+                <div class="mb-3 p-3 rounded" style="background:#f1f5f9;border-left:4px solid #94a3b8;">
+                    <p class="mb-1 fw-700">{{ ticket.usuario_reporta.get_full_name }}
+                        <span class="badge bg-secondary ms-1" style="font-size:.72rem;">Reportó</span>
+                    </p>
+                    <p class="mb-1" style="font-size:.93rem;">{{ ticket.descripcion|linebreaksbr }}</p>
+                    <small class="text-muted">{{ ticket.fecha_creacion|date:"d M Y, H:i" }}</small>
+                </div>
+                <!-- Respuestas -->
+                {% for respuesta in respuestas %}
+                <div class="mb-3 p-3 rounded"
+                     style="background:{% if respuesta.autor.is_superuser %}#eff6ff{% else %}#f8fafc{% endif %};
+                            border-left:4px solid {% if respuesta.autor.is_superuser %}#2563eb{% else %}#cbd5e1{% endif %};">
+                    <p class="mb-1 fw-700">{{ respuesta.autor.get_full_name }}
+                        {% if respuesta.autor.is_superuser %}
+                        <span class="badge bg-primary ms-1" style="font-size:.72rem;">Soporte</span>
+                        {% endif %}
+                    </p>
+                    <p class="mb-1" style="font-size:.93rem;">{{ respuesta.mensaje|linebreaksbr }}</p>
+                    {% if respuesta.adjunto %}
+                    <p class="mb-1"><a href="{{ respuesta.adjunto.url }}" target="_blank">
+                        <i class="bi bi-paperclip me-1"></i>Ver adjunto
+                    </a></p>
+                    {% endif %}
+                    <small class="text-muted">{{ respuesta.fecha_creacion|date:"d M Y, H:i" }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel lateral -->
+    <div class="col-lg-4">
+        <!-- Detalles -->
+        <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <div class="card-header fw-700 border-0 pt-3 pb-2">
+                <i class="bi bi-info-circle-fill me-2 text-secondary"></i>Detalles
+            </div>
+            <div class="card-body" style="font-size:.9rem;">
+                <p class="mb-2"><strong>Estado:</strong> {{ ticket.get_estado_display }}</p>
+                <p class="mb-2"><strong>Prioridad:</strong> {{ ticket.get_prioridad_display }}</p>
+                <p class="mb-2"><strong>Institución:</strong> {{ ticket.institucion.nombre }}</p>
+                <p class="mb-0"><strong>Creado:</strong> {{ ticket.fecha_creacion|date:"d M Y" }}</p>
+            </div>
+        </div>
+
+        <!-- Responder -->
+        {% if ticket.estado != 'CERRADO' %}
+        <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <div class="card-header fw-700 border-0 pt-3 pb-2">
+                <i class="bi bi-reply-fill me-2 text-primary"></i>Responder
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid mt-2">
+                        <button type="submit" class="btn btn-primary fw-700" style="border-radius:9px;">
+                            <i class="bi bi-send-fill me-1"></i>Enviar Respuesta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Cerrar ticket -->
+        <div class="d-grid">
+            <button type="button" class="btn btn-outline-danger fw-600" style="border-radius:9px;"
+                    data-bs-toggle="modal" data-bs-target="#modalCerrar">
+                <i class="bi bi-x-circle-fill me-1"></i>Cerrar Ticket
+            </button>
+        </div>
+        {% else %}
+        <div class="alert alert-secondary" style="border-radius:10px;font-size:.88rem;">
+            <i class="bi bi-lock-fill me-1"></i>Este ticket está cerrado.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal confirmar cierre -->
+{% if ticket.estado != 'CERRADO' %}
+<div class="modal fade" id="modalCerrar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:14px;border:none;">
+            <div class="modal-header border-0 pb-0">
+                <div style="width:46px;height:46px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <h5 class="fw-800 mb-1">¿Cerrar este ticket?</h5>
+                <p class="text-muted mb-0" style="font-size:.85rem;">El ticket pasará a estado <strong>Cerrado</strong>.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <form action="{% url 'platform_control:cerrar_ticket' ticket.ticket_id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm fw-700">
+                        <i class="bi bi-x-circle-fill me-1"></i>Sí, cerrar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

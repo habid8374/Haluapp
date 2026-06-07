@@ -1,10 +1,19 @@
 # proyecto_colegio/routing.py
 
 from django.urls import re_path
-# Importamos el consumidor directamente desde la app donde vive (admisiones)
-from admisiones import consumers 
+
+from admisiones import consumers as admisiones_consumers
+from finanzas import consumers as finanzas_consumers
+from mensajeria import consumers as mensajeria_consumers
 
 websocket_urlpatterns = [
-    # Esta es la única ruta que nuestro servidor de WebSockets conocerá
-    re_path(r'ws/notifications/$', consumers.NotificationConsumer.as_asgi()),
+    re_path(r'ws/notifications/$', admisiones_consumers.NotificationConsumer.as_asgi()),
+    re_path(
+        r'ws/healthcheck/(?P<ejecucion_id>\d+)/$',
+        finanzas_consumers.HealthCheckConsumer.as_asgi(),
+    ),
+    re_path(
+        r'ws/mensajeria/(?P<conversacion_id>\d+)/$',
+        mensajeria_consumers.MensajeriaConsumer.as_asgi(),
+    ),
 ]

@@ -1,71 +1,194 @@
 {% extends "base_academico.html" %}
-{% load horario_filters %} {# Asegúrate de tener este templatetag cargado #}
-
+{% load horario_filters %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
 {% block contenido %}
-<div class="container-fluid mt-4">
-    <h1 class="h2 mb-3">{{ titulo_pagina }}</h1>
-    
-    <form method="get" class="card shadow-sm mb-4">
-        <div class="card-body">
-            <div class="row align-items-end">
-                <div class="col-md-4">
-                    <label for="grado_id" class="form-label">Selecciona un Grado</label>
-                    <select name="grado_id" id="grado_id" class="form-select" onchange="this.form.submit()">
-                        <option value="">--- Ver horario de un grado ---</option>
-                        {% for grado in grados %}
-                            <option value="{{ grado.pk }}" {% if grado_seleccionado.pk == grado.pk %}selected{% endif %}>{{ grado.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </div>
-    </form>
+<style>
+  :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
 
-    {% if grado_seleccionado %}
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h5 class="mb-0">Horario de {{ grado_seleccionado.nombre }}</h5>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped text-center">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Hora</th>
-                            <th>Lunes</th>
-                            <th>Martes</th>
-                            <th>Miércoles</th>
-                            <th>Jueves</th>
-                            <th>Viernes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for hora in horas_del_dia %}
-                            <tr>
-                                <td class="fw-bold">{{ hora|time:"g:i A" }}</td>
-                                {% for dia in dias_semana %}
-                                    <td>
-                                        {% with bloque=horario_grid|get_item:hora|get_item:dia %}
-                                            {% if bloque %}
-                                                <strong>{{ bloque.curso.materia.nombre_materia }}</strong><br>
-                                                <small class="text-muted">{{ bloque.aula.nombre|default:"N/A" }}</small>
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        {% endwith %}
-                                    </td>
-                                {% endfor %}
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center p-4">No hay un horario definido para este grado.</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    {% endif %}
+  .ps-hero {
+    background: linear-gradient(135deg, var(--ps-dark) 0%, var(--ps-mid) 55%, var(--ps-light) 100%);
+    padding: 2.2rem 2rem 2rem;
+    position: relative; overflow: hidden;
+    border-radius: .85rem; margin-bottom: 1.8rem;
+  }
+  .ps-hero::before {
+    content:''; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .ps-hero-title { font-size:1.65rem; font-weight:900; color:#fff; margin:0; position:relative; z-index:1; }
+  .ps-hero-sub   { font-size:.88rem; color:rgba(255,255,255,.75); margin-top:.35rem; position:relative; z-index:1; }
+  .ps-hero-badge {
+    background:rgba(255,255,255,.15); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.25); border-radius:30px;
+    padding:.35rem .9rem; font-size:.78rem; color:#fff; font-weight:600;
+    position:relative; z-index:1;
+  }
+
+  /* Filter card */
+  .ps-filter-card {
+    background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
+    padding:1.4rem 1.6rem; margin-bottom:1.5rem;
+  }
+  .ps-filter-label { font-size:.82rem; font-weight:700; color:var(--ps-dark); margin-bottom:.4rem; display:block; }
+  .ps-filter-select {
+    border:1.5px solid #e2e8f0; border-radius:9px; padding:.6rem .9rem;
+    font-size:.9rem; width:100%; transition:border-color .18s;
+    outline:none; background:#f8faff; appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234f46e5' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right .75rem center;
+    padding-right:2.2rem;
+  }
+  .ps-filter-select:focus { border-color:var(--ps-light); background-color:#fff; }
+
+  /* Schedule card */
+  .ps-sched-card { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; }
+  .ps-sched-header {
+    background: linear-gradient(90deg, var(--ps-dark), var(--ps-mid));
+    padding:.9rem 1.4rem;
+    display:flex; align-items:center; gap:.7rem;
+  }
+  .ps-sched-header-title { color:#fff; font-weight:800; font-size:1rem; }
+  .ps-sched-header i { color:rgba(255,255,255,.7); }
+
+  /* Schedule table */
+  .ps-sched-table { width:100%; border-collapse:collapse; }
+  .ps-sched-table thead tr { background:linear-gradient(90deg, #1e1b4b 0%, #3730a3 100%); }
+  .ps-sched-table thead th {
+    color:rgba(255,255,255,.9); font-size:.75rem; font-weight:700;
+    letter-spacing:.6px; text-transform:uppercase;
+    padding:.8rem 1rem; border:none; text-align:center;
+  }
+  .ps-sched-table thead th:first-child { text-align:left; }
+  .ps-sched-table tbody tr { border-bottom:1px solid #f1f5f9; transition:background .12s; }
+  .ps-sched-table tbody tr:last-child { border-bottom:none; }
+  .ps-sched-table tbody tr:hover { background:#f8faff; }
+  .ps-sched-table tbody td {
+    padding:.75rem 1rem; font-size:.88rem; vertical-align:middle;
+    text-align:center; border-right:1px solid #f1f5f9;
+    color:#374151;
+  }
+  .ps-sched-table tbody td:first-child {
+    text-align:left; font-weight:700; color:var(--ps-dark);
+    background:#fafbff; border-right:2px solid #e0e7ff;
+    font-size:.82rem; white-space:nowrap;
+  }
+  .ps-sched-table tbody td:last-child { border-right:none; }
+
+  /* Cell content */
+  .ps-cell-subject { font-weight:700; color:var(--ps-dark); font-size:.85rem; line-height:1.3; }
+  .ps-cell-aula    { font-size:.75rem; color:#94a3b8; margin-top:2px; }
+  .ps-cell-empty   { color:#cbd5e1; font-size:1.1rem; }
+
+  /* Day chips in header */
+  .ps-day-chip {
+    display:inline-block; padding:.15rem .6rem;
+    background:rgba(255,255,255,.15); border-radius:20px;
+    font-size:.7rem; font-weight:700; letter-spacing:.4px;
+  }
+
+  /* Empty state */
+  .ps-no-select {
+    background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
+    padding:3rem 2rem; text-align:center; color:#94a3b8;
+  }
+  .ps-no-select i { font-size:3rem; margin-bottom:.8rem; display:block; opacity:.35; }
+
+  .ps-empty-row td { padding:2.5rem 1rem; text-align:center; color:#94a3b8; font-size:.9rem; }
+</style>
+
+<div class="container-fluid mt-4">
+
+  <!-- Hero -->
+  <div class="ps-hero">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h1 class="ps-hero-title">
+          <i class="bi bi-clock-history me-2" style="opacity:.85"></i>{{ titulo_pagina }}
+        </h1>
+        <p class="ps-hero-sub">Consulta el horario semanal de cada grado</p>
+      </div>
+      {% if grado_seleccionado %}
+        <span class="ps-hero-badge">
+          <i class="bi bi-mortarboard me-1"></i>{{ grado_seleccionado.nombre }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Selector de grado -->
+  <div class="ps-filter-card">
+    <form method="get">
+      <label for="grado_id" class="ps-filter-label">
+        <i class="bi bi-grid-3x3-gap me-1"></i>Selecciona un Grado
+      </label>
+      <select name="grado_id" id="grado_id" class="ps-filter-select" onchange="this.form.submit()">
+        <option value="">— Ver horario de un grado —</option>
+        {% for grado in grados %}
+          <option value="{{ grado.pk }}" {% if grado_seleccionado.pk == grado.pk %}selected{% endif %}>
+            {{ grado.nombre }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <!-- Horario -->
+  {% if grado_seleccionado %}
+    <div class="ps-sched-card">
+      <div class="ps-sched-header">
+        <i class="bi bi-table"></i>
+        <span class="ps-sched-header-title">Horario — {{ grado_seleccionado.nombre }}</span>
+      </div>
+      <div class="table-responsive">
+        <table class="ps-sched-table">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th><span class="ps-day-chip">LUN</span></th>
+              <th><span class="ps-day-chip">MAR</span></th>
+              <th><span class="ps-day-chip">MIÉ</span></th>
+              <th><span class="ps-day-chip">JUE</span></th>
+              <th><span class="ps-day-chip">VIE</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for hora in horas_del_dia %}
+              <tr>
+                <td>{{ hora|time:"g:i A" }}</td>
+                {% for dia in dias_semana %}
+                  <td>
+                    {% with bloque=horario_grid|get_item:hora|get_item:dia %}
+                      {% if bloque %}
+                        <div class="ps-cell-subject">{{ bloque.curso.materia.nombre_materia }}</div>
+                        <div class="ps-cell-aula">{{ bloque.aula.nombre|default:"Sin aula" }}</div>
+                      {% else %}
+                        <span class="ps-cell-empty">·</span>
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% empty %}
+              <tr class="ps-empty-row">
+                <td colspan="6">
+                  <i class="bi bi-calendar-x" style="font-size:1.8rem;display:block;margin-bottom:.5rem;opacity:.4;"></i>
+                  No hay un horario definido para este grado.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="ps-no-select">
+      <i class="bi bi-arrow-up-circle"></i>
+      <p class="mb-1 fw-bold" style="color:#475569;">Selecciona un grado</p>
+      <p class="mb-0" style="font-size:.88rem;">Elige un grado en el selector de arriba para visualizar su horario semanal.</p>
+    </div>
+  {% endif %}
+
 </div>
 {% endblock %}

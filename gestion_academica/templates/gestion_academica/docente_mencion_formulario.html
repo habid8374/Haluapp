@@ -1,14 +1,34 @@
 {% extends "base_academico.html" %}
 {% load crispy_forms_tags %}
 {% block titulo %}Formulario de Mención{% endblock %}
+
 {% block contenido %}
-<div class="container mt-4">
-    <h1>Formulario de Mención</h1>
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#7c2d12 0%,#ea580c 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
+  <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);top:-70px;right:-30px;pointer-events:none;"></div>
+  <div>
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
+      <i class="bi bi-award-fill me-1"></i>Reconocimientos
+    </div>
+    <h2 class="mb-1 fw-800" style="font-size:1.35rem;">Otorgar Mención</h2>
+    <p class="mb-0" style="opacity:.82;font-size:.85rem;">Reconoce el esfuerzo y los logros de tus estudiantes</p>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0" style="border-radius:14px;">
+  <div class="card-body p-4">
     <form method="post">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <button type="submit" class="btn btn-success">Guardar Mención</button>
-        <a href="{% url 'gestion_academica:docente_lista_menciones' %}" class="btn btn-secondary">Cancelar</a>
+      {% csrf_token %}
+      {{ form|crispy }}
+      <div class="d-flex gap-2 justify-content-end mt-3">
+        <a href="{% url 'gestion_academica:docente_lista_menciones' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-x-circle me-1"></i>Cancelar
+        </a>
+        <button type="submit" class="btn btn-warning">
+          <i class="bi bi-award-fill me-1"></i>Guardar Mención
+        </button>
+      </div>
     </form>
+  </div>
 </div>
 {% endblock %}

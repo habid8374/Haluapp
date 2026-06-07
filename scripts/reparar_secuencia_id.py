@@ -1,119 +1,182 @@
 #!/usr/bin/env python
 """
-Script para reparar la secuencia de autoincremento en SQLite
+Repara la secuencia del PK de finanzas_cuentaporcobrarestudiante.
+
+- SQLite: tabla sqlite_sequence y PRAGMA table_info.
+- PostgreSQL: pg_sequences / setval sobre la secuencia del campo id.
 """
 import os
 import sys
 import django
 
-# Agregar el proyecto al path
-sys.path.insert(0, os.path.abspath('..'))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'proyecto_colegio.settings')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "proyecto_colegio.settings")
 django.setup()
 
-from django.db import connection
-from finanzas.models import CuentaPorCobrarEstudiante
 import logging
+from django.db import connection
+from django.db.models import Max
+
+from finanzas.models import CuentaPorCobrarEstudiante
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+TABLE = "finanzas_cuentaporcobrarestudiante"
+
+
 def diagnosticar_secuencia():
-    """Diagnostica el problema con la secuencia de autoincremento"""
+    """Compara el último id de la tabla con el valor de la secuencia (o sqlite_sequence)."""
     print("=== DIAGNÓSTICO DE SECUENCIA DE AUTOINCREMENTO ===")
-    
-    # Obtener el último ID existente
-    ultimo_id = CuentaPorCobrarEstudiante.objects.aggregate(
-        max_id=models.Max('id')
-    )['max_id'] or 0
-    
+
+    ultimo_id = CuentaPorCobrarEstudiante.objects.aggregate(max_id=Max("id"))["max_id"] or 0
     print(f"Último ID en la tabla: {ultimo_id}")
-    
-    # Verificar la secuencia de SQLite
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT seq FROM sqlite_sequence 
-            WHERE name = 'finanzas_cuentaporcobrarestudiante'
-        """)
-        resultado = cursor.fetchone()
-        
-        if resultado:
-            secuencia_actual = resultado[0]
-            print(f"Secuencia actual en SQLite: {secuencia_actual}")
-            
-            if secuencia_actual < ultimo_id:
-                print("⚠️  La secuencia está desactualizada")
-                return secuencia_actual, ultimo_id
+
+    sec_actual = 0
+    vendor = connection.vendor
+
+    if vendor == "sqlite":
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT seq FROM sqlite_sequence
+                WHERE name = %s
+                """,
+                [TABLE],
+            )
+            resultado = cursor.fetchone()
+            if resultado:
+                sec_actual = resultado[0]
+                print(f"Secuencia actual en SQLite: {sec_actual}")
             else:
-                print("✅ La secuencia está actualizada")
-                return secuencia_actual, ultimo_id
-        else:
-            print("⚠️  No existe secuencia para esta tabla")
-            return 0, ultimo_id
+                print("⚠️  No existe fila en sqlite_sequence para esta tabla")
+                sec_actual = 0
+
+    elif vendor == "postgresql":
+        seq_name = f"{TABLE}_id_seq"
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT COALESCE(s.last_value, 0)
+                FROM pg_sequences s
+                WHERE s.schemaname = 'public' AND s.sequencename = %s
+                """,
+                [seq_name],
+            )
+            row = cursor.fetchone()
+            if row:
+                sec_actual = int(row[0])
+                print(f"Último valor en secuencia PostgreSQL ({seq_name}): {sec_actual}")
+            else:
+                print(f"⚠️  No se encontró la secuencia {seq_name} en pg_sequences")
+                sec_actual = 0
+    else:
+        print(f"Motor no soportado por este script: {vendor}")
+        return 0, ultimo_id
+
+    if sec_actual < ultimo_id:
+        print("⚠️  La secuencia está desactualizada respecto al MAX(id)")
+    else:
+        print("✅ La secuencia parece coherente con los datos")
+
+    return sec_actual, ultimo_id
+
 
 def reparar_secuencia():
-    """Repara la secuencia de autoincremento"""
+    """Alinea la secuencia para que el próximo INSERT no choque con PK existente."""
     print("\n=== REPARANDO SECUENCIA ===")
-    
-    # Obtener el último ID
-    ultimo_id = CuentaPorCobrarEstudiante.objects.aggregate(
-        max_id=models.Max('id')
-    )['max_id'] or 0
-    
-    nuevo_valor = ultimo_id + 1
-    
-    with connection.cursor() as cursor:
-        # Actualizar o crear la secuencia
-        cursor.execute("""
-            INSERT OR REPLACE INTO sqlite_sequence (name, seq) 
-            VALUES ('finanzas_cuentaporcobrarestudiante', ?)
-        """, [nuevo_valor])
-        
-        print(f"✅ Secuencia actualizada a: {nuevo_valor}")
+
+    ultimo_id = CuentaPorCobrarEstudiante.objects.aggregate(max_id=Max("id"))["max_id"] or 0
+    vendor = connection.vendor
+
+    if vendor == "sqlite":
+        nuevo_valor = ultimo_id + 1
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO sqlite_sequence (name, seq)
+                VALUES (%s, %s)
+                """,
+                [TABLE, nuevo_valor],
+            )
+        print(f"✅ sqlite_sequence actualizada a: {nuevo_valor}")
+
+    elif vendor == "postgresql":
+        with connection.cursor() as cursor:
+            if ultimo_id > 0:
+                cursor.execute(
+                    "SELECT setval(pg_get_serial_sequence(%s, 'id'), %s, true)",
+                    [TABLE, ultimo_id],
+                )
+                print(f"✅ setval alineado con MAX(id)={ultimo_id} (próximo id será {ultimo_id + 1})")
+            else:
+                cursor.execute(
+                    "SELECT setval(pg_get_serial_sequence(%s, 'id'), 1, false)",
+                    [TABLE],
+                )
+                print("✅ Tabla vacía: secuencia reiniciada para empezar en id=1")
+
+    else:
+        raise RuntimeError(f"Motor no soportado: {vendor}")
+
 
 def verificar_tabla():
-    """Verifica la estructura de la tabla"""
-    print("\n=== VERIFICANDO ESTRUCTURA DE TABLA ===")
-    
+    """Muestra columnas según el motor."""
+    print("\n=== ESTRUCTURA DE LA TABLA ===")
+    vendor = connection.vendor
+
     with connection.cursor() as cursor:
-        cursor.execute("""
-            PRAGMA table_info(finanzas_cuentaporcobrarestudiante)
-        """)
-        columnas = cursor.fetchall()
-        
-        print("Estructura de columnas:")
-        for col in columnas:
-            print(f"  - {col[1]}: {col[2]} (PK: {col[5]})")
+        if vendor == "sqlite":
+            # PRAGMA no admite binding del nombre de tabla en todas las versiones de SQLite.
+            cursor.execute(f"PRAGMA table_info({TABLE})")
+            columnas = cursor.fetchall()
+            for col in columnas:
+                print(f"  - {col[1]}: {col[2]} (PK: {col[5]})")
+
+        elif vendor == "postgresql":
+            cursor.execute(
+                """
+                SELECT column_name, data_type, is_nullable
+                FROM information_schema.columns
+                WHERE table_schema = 'public' AND table_name = %s
+                ORDER BY ordinal_position
+                """,
+                [TABLE],
+            )
+            for name, dtype, nullable in cursor.fetchall():
+                print(f"  - {name}: {dtype} (nullable: {nullable})")
+        else:
+            print(f"  (omitido: motor {vendor})")
+
 
 def contar_registros():
-    """Cuenta los registros actuales"""
     total = CuentaPorCobrarEstudiante.objects.count()
     print(f"\n📊 Total de registros: {total}")
     return total
 
+
 if __name__ == "__main__":
     try:
-        from django.db import models
-        
-        # Importar después de setup
-        from finanzas.models import CuentaPorCobrarEstudiante
-        
-        # Verificar estructura
         verificar_tabla()
-        
-        # Contar registros
-        total = contar_registros()
-        
-        # Diagnosticar secuencia
+        contar_registros()
         sec_actual, ultimo_id = diagnosticar_secuencia()
-        
-        # Si hay problema, reparar
-        if sec_actual < ultimo_id or sec_actual == 0:
-            reparar_secuencia()
+
+        if connection.vendor == "sqlite":
+            if sec_actual < ultimo_id or sec_actual == 0:
+                reparar_secuencia()
+            else:
+                print("✅ No se requiere reparación")
+        elif connection.vendor == "postgresql":
+            # Reparar si la secuencia va atrasada o no hay fila en pg_sequences (sec_actual queda 0 con datos).
+            if sec_actual < ultimo_id or (ultimo_id > 0 and sec_actual == 0):
+                reparar_secuencia()
+            else:
+                print("✅ No se requiere reparación (secuencia >= MAX(id))")
         else:
-            print("✅ No se requiere reparación")
-            
+            print(f"No se ejecuta reparación automática para {connection.vendor}")
+
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
+
         traceback.print_exc()

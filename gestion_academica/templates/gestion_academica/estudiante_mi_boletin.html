@@ -49,7 +49,7 @@
                     <tbody>
                         {% for item in cursos_con_detalle %}
                         <tr>
-                            <td><strong>{{ item.curso.materia.nombre_materia }}</strong></td>
+                            <td><strong>{{ item.curso.materia.nombre_materia }}</strong>{% if request.user.institucion_asociada.es_bilingue and item.curso.materia.nombre_idioma_secundario %}<br><small style="color:#0369a1;font-style:italic;font-weight:400;">{{ item.curso.materia.nombre_idioma_secundario }}</small>{% endif %}</td>
                             <td class="text-center fs-5">
                                 {% if item.nota_final_curso is not None %}
                                     <span class="badge 

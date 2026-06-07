@@ -2,52 +2,281 @@
 
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
+{% block extrastyles %}
+{{ block.super }}
+<style>
+/* ═══════════════════════════════════════════════════
+   HALU PULSE — Portal Familiar
+═══════════════════════════════════════════════════ */
+
+/* ── Hero ── */
+.fam-hero {
+  position: relative;
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 35%, #0b5ed7 100%);
+  border-radius: 1.1rem;
+  padding: 2rem 2rem 2.4rem;
+  color: #fff;
+  overflow: hidden;
+  margin-bottom: 1.75rem;
+}
+.fam-hero::before {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: rgba(255,255,255,.055);
+  top: -90px; right: -70px; pointer-events: none;
+}
+.fam-hero::after {
+  content: '';
+  position: absolute;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(255,255,255,.04);
+  bottom: -60px; left: 32%; pointer-events: none;
+}
+.fam-hero .hero-badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 2rem;
+  padding: .25rem .8rem;
+  font-size: .73rem; font-weight: 700; letter-spacing: .3px;
+  margin-bottom: .8rem; text-transform: uppercase;
+}
+.fam-hero .hero-greeting {
+  font-size: 1.8rem; font-weight: 800;
+  font-family: 'Manrope', sans-serif;
+  line-height: 1.2; margin-bottom: .3rem;
+}
+.fam-hero .hero-sub { font-size: .9rem; opacity: .82; margin-bottom: 0; }
+.fam-hero .hero-desc {
+  font-size: .85rem; opacity: .75; margin-top: .4rem;
+}
+
+/* ── Info Banner ── */
+.fam-info-banner {
+  display: flex; align-items: center; gap: .85rem;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #93c5fd; border-radius: .85rem;
+  padding: .9rem 1.2rem; margin-bottom: 1.5rem;
+  font-size: .88rem; color: #1e40af;
+}
+.fam-info-banner i { font-size: 1.2rem; flex-shrink: 0; }
+
+/* ── Estudiante Card ── */
+.fam-student-card {
+  background: #fff;
+  border-radius: 1rem;
+  border: 1px solid #dbe5f4;
+  box-shadow: 0 4px 16px rgba(11,94,215,.08);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  transition: transform .2s, box-shadow .2s;
+}
+.fam-student-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(11,94,215,.14); }
+
+/* Card header strip */
+.fam-card-header {
+  background: linear-gradient(120deg, #0a3d8c, #0b5ed7);
+  padding: 1.1rem 1.4rem;
+  display: flex; align-items: center; gap: 1rem;
+}
+.fam-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  border: 2px solid rgba(255,255,255,.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; font-weight: 800; color: #fff;
+  font-family: 'Manrope', sans-serif;
+  flex-shrink: 0; text-transform: uppercase;
+}
+.fam-student-name {
+  font-size: 1.05rem; font-weight: 800; color: #fff;
+  font-family: 'Manrope', sans-serif; margin-bottom: .1rem;
+}
+.fam-student-grade {
+  font-size: .8rem; color: rgba(255,255,255,.78);
+  display: flex; align-items: center; gap: .35rem;
+}
+
+/* Card body */
+.fam-card-body { padding: 1.1rem 1.4rem; }
+
+/* Mini KPIs inside card */
+.fam-mini-kpis {
+  display: flex; flex-wrap: wrap; gap: .65rem; margin-bottom: 1rem;
+}
+.fam-mini-kpi {
+  display: flex; align-items: center; gap: .45rem;
+  background: #f7faff; border: 1px solid #dbe5f4;
+  border-radius: .6rem; padding: .45rem .8rem;
+  font-size: .8rem; font-weight: 600; color: #334155;
+  transition: background .15s;
+}
+.fam-mini-kpi i { font-size: .95rem; flex-shrink: 0; }
+.fam-mini-kpi.mq-warning { background: #fefce8; border-color: #fde68a; color: #92400e; }
+.fam-mini-kpi.mq-warning i { color: #d97706; }
+.fam-mini-kpi.mq-neutral i { color: #3b82f6; }
+
+/* Action buttons */
+.fam-actions {
+  display: flex; flex-wrap: wrap; gap: .5rem;
+}
+.fam-action-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  border-radius: .55rem; padding: .42rem .85rem;
+  font-size: .81rem; font-weight: 600;
+  text-decoration: none; transition: all .18s; border: 1px solid;
+}
+.fam-action-btn:hover { transform: translateY(-1px); }
+.fab-blue    { background: #eaf2ff; color: #1d4ed8; border-color: #bfdbfe; }
+.fab-blue:hover { background: #dbeafe; color: #1d4ed8; }
+.fab-slate   { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+.fab-slate:hover { background: #e2e8f0; color: #334155; }
+.fab-teal    { background: #f0fdfa; color: #0d9488; border-color: #99f6e4; }
+.fab-teal:hover { background: #ccfbf1; color: #0d9488; }
+.fab-yellow  { background: #fefce8; color: #92400e; border-color: #fde68a; }
+.fab-yellow:hover { background: #fef9c3; color: #78350f; }
+.fab-green   { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+.fab-green:hover { background: #dcfce7; color: #14532d; }
+.fab-purple  { background: #faf5ff; color: #7c3aed; border-color: #ddd6fe; }
+.fab-purple:hover { background: #ede9fe; color: #6d28d9; }
+
+/* ── Empty state ── */
+.fam-empty {
+  text-align: center; padding: 3.5rem 1rem;
+  background: #f7faff; border: 1px solid #dbe5f4; border-radius: 1rem;
+  color: #94a3b8;
+}
+.fam-empty i { font-size: 3rem; margin-bottom: 1rem; display: block; }
+.fam-empty .fem-title { font-size: 1.1rem; font-weight: 700; color: #64748b; margin-bottom: .35rem; font-family: 'Manrope', sans-serif; }
+.fam-empty .fem-sub { font-size: .85rem; }
+
+@media (max-width: 768px) {
+  .fam-hero { padding: 1.4rem 1.2rem 1.9rem; }
+  .fam-hero .hero-greeting { font-size: 1.35rem; }
+  .fam-card-header { flex-wrap: wrap; }
+}
+</style>
+{% endblock extrastyles %}
+
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2 mb-0">Bienvenido/a al Portal Familiar, {{ familiar.usuario.get_full_name }}</h1>
-    </div>
+<div class="container-fluid mt-3">
 
-    <div class="alert alert-info" role="alert">
-        Desde este portal puedes hacer seguimiento al progreso académico de tus hijos y comunicarte con los docentes.
+  {# ══════════════════ HERO ══════════════════ #}
+  <div class="fam-hero">
+    <div class="hero-badge"><i class="bi bi-house-heart-fill"></i> Portal Familiar</div>
+    <div class="hero-greeting">
+      ¡Bienvenido/a, {{ familiar.usuario.first_name|default:familiar.usuario.get_full_name }}! 👪
     </div>
+    <div class="hero-sub" id="fam-live-date">Cargando fecha…</div>
+    <div class="hero-desc">Tu espacio para hacer seguimiento académico y comunicarte con el colegio.</div>
+  </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header">
-            <i class="bi bi-people-fill me-2"></i>Mis Estudiantes Asociados
+  {# ══════════════════ BANNER INFO ══════════════════ #}
+  <div class="fam-info-banner">
+    <i class="bi bi-info-circle-fill"></i>
+    <span>Desde aquí puedes ver las calificaciones, boletines, deberes, pagos y agendar reuniones con los docentes de tus hijos.</span>
+  </div>
+
+  {# ══════════════════ ESTUDIANTES ══════════════════ #}
+  {% for item in estudiantes_con_resumen %}
+    {% with est=item.estudiante r=item.resumen %}
+
+    {# Calcular iniciales para el avatar #}
+    {% with nombre=est.usuario.first_name|default:est.usuario.username apellido=est.usuario.last_name %}
+    <div class="fam-student-card">
+
+      {# ── Cabecera azul ── #}
+      <div class="fam-card-header">
+        <div class="fam-avatar">
+          {{ nombre|slice:":1" }}{{ apellido|slice:":1" }}
         </div>
-        <div class="list-group list-group-flush">
-            {% for estudiante in estudiantes_a_cargo %}
-                <div class="list-group-item">
-                    <div class="row align-items-center gy-3">
-                        <div class="col-md-4">
-                            <h5 class="mb-1">{{ estudiante.usuario.get_full_name }}</h5>
-                            <p class="mb-0 text-muted">Grado: {{ estudiante.grado_actual.nombre|default:"No asignado" }}</p>
-                        </div>
-                        <div class="col-md-8 text-md-end">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <a href="{% url 'gestion_academica:familiar_ver_calificaciones_estudiante' estudiante.pk %}" class="btn btn-outline-primary">
-                                    <i class="bi bi-card-checklist"></i> Calificaciones
-                                </a>
-                                <a href="{% url 'gestion_academica:familiar_ver_boletin_estudiante' estudiante.pk %}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-file-earmark-text"></i> Boletín
-                                </a>
-                                <a href="{% url 'gestion_academica:familiar_ver_deberes_estudiante' estudiante.pk %}" class="btn btn-outline-info">
-                                    <i class="bi bi-journal-check"></i> Deberes
-                                </a>
-                                <a href="{% url 'gestion_academica:familiar_seleccionar_docente' %}" class="btn btn-success">
-                                    <i class="bi bi-calendar-plus"></i> Agendar Reunión
-                                </a>
-                                </div>
-                        </div>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="list-group-item text-center p-4">
-                    <p class="text-muted mb-0">No tienes estudiantes asociados a tu cuenta.</p>
-                </div>
-            {% endfor %}
+        <div class="flex-grow-1">
+          <div class="fam-student-name">{{ est.usuario.get_full_name }}</div>
+          <div class="fam-student-grade">
+            <i class="bi bi-building"></i>
+            {{ est.grado_actual.nombre|default:"Sin grado asignado" }}
+          </div>
         </div>
+      </div>
+
+      {# ── Cuerpo ── #}
+      <div class="fam-card-body">
+
+        {# Mini KPIs #}
+        <div class="fam-mini-kpis">
+          {% if r.hay_periodo_y_grado %}
+          <div class="fam-mini-kpi mq-neutral">
+            <i class="bi bi-calendar-check text-primary"></i>
+            <span>{{ r.proximos_compromisos }} compromiso{% if r.proximos_compromisos != 1 %}s{% endif %} en 14 días</span>
+          </div>
+          {% endif %}
+          {% if r.alerta_finanzas %}
+          <div class="fam-mini-kpi mq-warning">
+            <i class="bi bi-cash-coin"></i>
+            <span>Revisar estado de cuenta</span>
+          </div>
+          {% else %}
+          <div class="fam-mini-kpi">
+            <i class="bi bi-check-circle-fill" style="color:#22c55e;"></i>
+            <span style="color:#15803d;">Pagos al día</span>
+          </div>
+          {% endif %}
+        </div>
+
+        {# Acciones #}
+        <div class="fam-actions">
+          <a href="{% url 'gestion_academica:familiar_ver_calificaciones_estudiante' est.pk %}" class="fam-action-btn fab-blue">
+            <i class="bi bi-card-checklist"></i> Calificaciones
+          </a>
+          <a href="{% url 'gestion_academica:familiar_ver_boletin_estudiante' est.pk %}" class="fam-action-btn fab-slate">
+            <i class="bi bi-file-earmark-text"></i> Boletín
+          </a>
+          <a href="{% url 'gestion_academica:familiar_ver_deberes_estudiante' est.pk %}" class="fam-action-btn fab-teal">
+            <i class="bi bi-journal-check"></i> Deberes
+          </a>
+          <a href="{% url 'finanzas:familiar_estado_cuenta_estudiante' est.pk %}" class="fam-action-btn fab-yellow">
+            <i class="bi bi-cash-coin"></i> Pagos en línea
+          </a>
+          <a href="{% url 'gestion_academica:familiar_seleccionar_docente' %}" class="fam-action-btn fab-green">
+            <i class="bi bi-calendar-plus"></i> Agendar Reunión
+          </a>
+          <a href="{% url 'mensajeria:nuevo' %}?estudiante={{ est.pk }}" class="fam-action-btn fab-purple">
+            <i class="bi bi-chat-dots-fill"></i> Enviar Mensaje
+          </a>
+        </div>
+
+      </div>
     </div>
+    {% endwith %}
+
+    {% endwith %}
+  {% empty %}
+    <div class="fam-empty">
+      <i class="bi bi-people"></i>
+      <div class="fem-title">No tienes estudiantes asociados</div>
+      <div class="fem-sub">Comunícate con la secretaría del colegio para vincular tus hijos a tu cuenta.</div>
+    </div>
+  {% endfor %}
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  function updateDate() {
+    var el = document.getElementById('fam-live-date');
+    if (!el) return;
+    var now = new Date();
+    var h = now.getHours();
+    var saludo = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+    var opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    el.textContent = saludo + ' · ' + now.toLocaleDateString('es-ES', opts);
+  }
+  updateDate();
+  setInterval(updateDate, 60000);
+})();
+</script>
 {% endblock %}

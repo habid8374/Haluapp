@@ -10,11 +10,13 @@ from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from django.urls import reverse_lazy
 from django.utils import timezone
-import traceback
 import json
+import logging
 from django.views.generic import DetailView
 import google.generativeai as genai
-from django.conf import settings
+from google.api_core import exceptions as google_exceptions
+
+from finanzas.institucion_credentials import google_api_key as institucion_google_api_key
 
 from .models import (
     Cuestionario, PreguntaCuestionario, OpcionPregunta, 
@@ -22,6 +24,11 @@ from .models import (
 )
 # Importamos SOLO lo que necesitamos de la otra app.
 from gestion_academica.models import Calificacion, ActividadCalificable
+from gestion_academica.utils import estudiante_en_curso_actividad, docente_asignado_a_actividad
+from gestion_academica.decorators import redirect_si_moroso_estudiante, estudiante_esta_al_dia
+
+logger = logging.getLogger(__name__)
+
 
 class CuestionarioListView(LoginRequiredMixin, ListView):
     model = Cuestionario
@@ -30,29 +37,37 @@ class CuestionarioListView(LoginRequiredMixin, ListView):
     paginate_by = 15
 
     def get_queryset(self):
-        return Cuestionario.objects.filter(
-            institucion=self.request.user.institucion_asociada
-        ).select_related(
+        user = self.request.user
+        qs = Cuestionario.objects.select_related(
             'actividad_calificable',
-            'creado_por'
+            'creado_por',
         ).prefetch_related('preguntas')
+        if user.is_superuser:
+            return qs
+        inst = getattr(user, 'institucion_asociada', None)
+        if not inst:
+            return Cuestionario.objects.none()
+        return qs.filter(institucion=inst)
 
 
 class EditorCuestionarioView(LoginRequiredMixin, View):
     template_name = 'cuestionarios/editor.html'
     
     def get(self, request, actividad_pk):
-        actividad = get_object_or_404(
-            ActividadCalificable,
-            pk=actividad_pk,
-            curso__docentes_asignados=request.user.docente
-        )
+        if request.user.is_superuser:
+            actividad = get_object_or_404(ActividadCalificable, pk=actividad_pk)
+        else:
+            actividad = get_object_or_404(
+                ActividadCalificable,
+                pk=actividad_pk,
+                curso__docentes_asignados=request.user.docente,
+            )
         
         cuestionario, created = Cuestionario.objects.get_or_create(
             actividad_calificable=actividad,
             defaults={
                 'creado_por': request.user,
-                'institucion': request.user.institucion_asociada,
+                'institucion': getattr(request.user, 'institucion_asociada', None) or actividad.institucion,
                 'titulo': actividad.titulo
             }
         )
@@ -67,17 +82,31 @@ class EditorCuestionarioView(LoginRequiredMixin, View):
 class CuestionarioAPIView(LoginRequiredMixin, View):
 
     def get(self, request, actividad_pk):
-        # --- INICIO DE LA CORRECCIÓN ---
-        # Se elimina `creado_por=request.user`.
-        # Un estudiante necesita cargar las preguntas, pero no es el creador.
-        # El permiso para ver el cuestionario ya se validó en la vista anterior 
-        # que le permitió al estudiante iniciar un intento.
+        actividad = get_object_or_404(
+            ActividadCalificable.objects.select_related('curso', 'institucion'),
+            pk=actividad_pk,
+        )
+        if request.user.is_superuser:
+            pass
+        elif hasattr(request.user, 'docente') and docente_asignado_a_actividad(request.user, actividad):
+            pass
+        elif hasattr(request.user, 'estudiante') and estudiante_en_curso_actividad(
+            request.user.estudiante, actividad
+        ):
+            pass
+        elif (
+            request.user.is_staff
+            and getattr(request.user, 'institucion_asociada_id', None) == actividad.institucion_id
+        ):
+            pass
+        else:
+            return JsonResponse({'error': 'No autorizado.'}, status=403)
+
         cuestionario = get_object_or_404(
             Cuestionario,
             actividad_calificable_id=actividad_pk,
-            institucion=request.user.institucion_asociada 
+            institucion_id=actividad.institucion_id,
         )
-        # --- FIN DE LA CORRECCIÓN ---
 
         preguntas = []
         for p in cuestionario.preguntas.order_by('orden'):
@@ -123,11 +152,14 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
     def post(self, request, actividad_pk):
         try:
             data = json.loads(request.body)
-            actividad = get_object_or_404(
-                ActividadCalificable,
-                pk=actividad_pk,
-                curso__docentes_asignados=request.user.docente
-            )
+            if request.user.is_superuser:
+                actividad = get_object_or_404(ActividadCalificable, pk=actividad_pk)
+            else:
+                actividad = get_object_or_404(
+                    ActividadCalificable,
+                    pk=actividad_pk,
+                    curso__docentes_asignados=request.user.docente,
+                )
             
             # 1. Actualizamos o creamos el Cuestionario principal
             cuestionario, created = Cuestionario.objects.update_or_create(
@@ -140,7 +172,7 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                     'activo': data.get('activo', True),
                     'mostrar_respuestas': data.get('mostrar_respuestas', False),
                     'creado_por': request.user,
-                    'institucion': request.user.institucion_asociada
+                    'institucion': getattr(request.user, 'institucion_asociada', None) or actividad.institucion,
                 }
             )
             
@@ -185,14 +217,18 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
 class ToggleCuestionarioActivoView(LoginRequiredMixin, View):
     
     def post(self, request, cuestionario_id):
-        cuestionario = get_object_or_404(
-            Cuestionario,
-            pk=cuestionario_id,
-            creado_por=request.user,
-            # -- CORRECCIÓN --
-            # Se añade el filtro de institución para mayor seguridad.
-            institucion=request.user.institucion_asociada
-        )
+        if request.user.is_superuser:
+            cuestionario = get_object_or_404(Cuestionario, pk=cuestionario_id)
+        else:
+            inst = getattr(request.user, 'institucion_asociada', None)
+            if not inst:
+                return JsonResponse({'error': 'No autorizado.'}, status=403)
+            cuestionario = get_object_or_404(
+                Cuestionario,
+                pk=cuestionario_id,
+                creado_por=request.user,
+                institucion=inst,
+            )
         
         
         cuestionario.activo = not cuestionario.activo
@@ -212,14 +248,23 @@ class IniciarCuestionarioView(LoginRequiredMixin, View):
     validando el límite de intentos permitidos y los intentos extra habilitados.
     """
     def get(self, request, actividad_pk):
-        # NOTA: Tu método 'get' ya era correcto y se mantiene igual.
+        redir = redirect_si_moroso_estudiante(request)
+        if redir:
+            return redir
+        if not hasattr(request.user, 'estudiante'):
+            messages.error(request, "Solo los estudiantes pueden iniciar esta evaluación.")
+            return redirect('gestion_academica:inicio_academico')
+
         actividad = get_object_or_404(
-            ActividadCalificable, 
+            ActividadCalificable.objects.select_related('curso', 'institucion'),
             pk=actividad_pk,
-            institucion=request.user.institucion_asociada
         )
+        if not estudiante_en_curso_actividad(request.user.estudiante, actividad):
+            messages.error(request, "No tienes acceso a esta actividad.")
+            return redirect('gestion_academica:dashboard_estudiante')
+
         cuestionario = get_object_or_404(Cuestionario, actividad_calificable=actividad)
-        
+
         context = {
             'actividad': actividad,
             'cuestionario': cuestionario,
@@ -232,13 +277,27 @@ class IniciarCuestionarioView(LoginRequiredMixin, View):
         Crea un nuevo intento SOLO SI el estudiante no ha superado el límite de intentos
         o si se le ha habilitado un intento extra.
         """
-        cuestionario = get_object_or_404(
-            Cuestionario, 
-            actividad_calificable_id=actividad_pk,
-            institucion=request.user.institucion_asociada
-        )
+        redir = redirect_si_moroso_estudiante(request)
+        if redir:
+            return redir
+        if not hasattr(request.user, 'estudiante'):
+            messages.error(request, "Solo los estudiantes pueden iniciar esta evaluación.")
+            return redirect('gestion_academica:inicio_academico')
+
         estudiante = request.user.estudiante
-        
+        actividad = get_object_or_404(
+            ActividadCalificable.objects.select_related('curso', 'institucion'),
+            pk=actividad_pk,
+        )
+        if not estudiante_en_curso_actividad(estudiante, actividad):
+            messages.error(request, "No tienes acceso a esta actividad.")
+            return redirect('gestion_academica:dashboard_estudiante')
+
+        cuestionario = get_object_or_404(
+            Cuestionario,
+            actividad_calificable_id=actividad_pk,
+            institucion_id=actividad.institucion_id,
+        )
         # --- INICIO DE LA MODIFICACIÓN ---
         # 1. Obtenemos todos los intentos previos del estudiante para este cuestionario.
         intentos_previos = IntentoCuestionario.objects.filter(
@@ -281,12 +340,25 @@ class ResolverCuestionarioView(LoginRequiredMixin, View):
     La interfaz principal donde el estudiante resuelve el cuestionario.
     """
     def get(self, request, intento_pk):
+        redir = redirect_si_moroso_estudiante(request)
+        if redir:
+            return redir
+        if not hasattr(request.user, 'estudiante'):
+            messages.error(request, "Solo los estudiantes pueden resolver cuestionarios aquí.")
+            return redirect('gestion_academica:inicio_academico')
         intento = get_object_or_404(
-            IntentoCuestionario, 
-            pk=intento_pk, 
+            IntentoCuestionario.objects.select_related(
+                'cuestionario__actividad_calificable__curso',
+                'cuestionario__actividad_calificable__institucion',
+            ),
+            pk=intento_pk,
             estudiante=request.user.estudiante,
-            estado='EN_PROGRESO'
+            estado='EN_PROGRESO',
         )
+        actividad = intento.cuestionario.actividad_calificable
+        if not estudiante_en_curso_actividad(request.user.estudiante, actividad):
+            messages.error(request, "No tienes acceso a este intento.")
+            return redirect('gestion_academica:dashboard_estudiante')
         context = {
             'intento': intento,
             'cuestionario': intento.cuestionario,
@@ -300,7 +372,23 @@ class ResolverCuestionarioAPIView(APIView):
 
     @transaction.atomic
     def post(self, request, intento_pk):
+        if not hasattr(request.user, 'estudiante'):
+            return Response({'error': 'Solo estudiantes pueden enviar respuestas.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if getattr(request.user, 'rol', None) == 'estudiante':
+            al_dia, _ = estudiante_esta_al_dia(request)
+            if not al_dia:
+                return Response(
+                    {'error': 'El portal está bloqueado por mensualidades vencidas.'},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
         intento = get_object_or_404(IntentoCuestionario, pk=intento_pk, estudiante=request.user.estudiante)
+        actividad = ActividadCalificable.objects.select_related('curso').get(
+            pk=intento.cuestionario.actividad_calificable_id
+        )
+        if not estudiante_en_curso_actividad(request.user.estudiante, actividad):
+            return Response({'error': 'No autorizado.'}, status=status.HTTP_403_FORBIDDEN)
 
         if intento.estado == 'FINALIZADO':
             return Response({'error': 'Este intento ya ha sido finalizado.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -499,11 +587,32 @@ class GenerarPreguntasIAView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, cuestionario_pk):
-        print("\n--- INICIO DEBUG: GenerarPreguntasIAView ---")
+        logger.debug("GenerarPreguntasIAView inicio cuestionario_pk=%s", cuestionario_pk)
         try:
-            cuestionario = get_object_or_404(Cuestionario, pk=cuestionario_pk, creado_por=request.user)
+            if request.user.is_superuser:
+                cuestionario = get_object_or_404(
+                    Cuestionario.objects.select_related('actividad_calificable__curso', 'institucion'),
+                    pk=cuestionario_pk,
+                )
+            else:
+                cuestionario = get_object_or_404(
+                    Cuestionario.objects.select_related('actividad_calificable__curso'),
+                    pk=cuestionario_pk,
+                    creado_por=request.user,
+                )
+                if not docente_asignado_a_actividad(request.user, cuestionario.actividad_calificable):
+                    return JsonResponse(
+                        {'status': 'error', 'message': 'No autorizado para modificar este cuestionario.'},
+                        status=403,
+                    )
+            api_key = institucion_google_api_key(cuestionario.institucion)
+            if not api_key:
+                return JsonResponse(
+                    {'status': 'error', 'message': 'La institución no tiene configurada la API key de Google (Gemini).'},
+                    status=500,
+                )
             data = request.data
-            print(f"[DEBUG] 1. Datos recibidos del frontend: {data}")
+            logger.debug("GenerarPreguntasIA datos keys=%s", list(data.keys()) if hasattr(data, "keys") else type(data))
 
             prompt = f"""
             Actúa como un experto pedagogo. Crea una evaluación sobre el tema: '{data.get("tema")}' para estudiantes de secundaria.
@@ -516,38 +625,28 @@ class GenerarPreguntasIAView(APIView):
             Para 'opcion_multiple' y 'verdadero_falso', la lista "opciones" debe contener objetos con las claves "texto" y "es_correcta" (un booleano).
             No incluyas saltos de línea ni texto explicativo antes o después del JSON.
             """
-            print(f"[DEBUG] 2. Prompt enviado a la IA (primeros 100 caracteres): {prompt[:100]}...")
+            logger.debug("GenerarPreguntasIA prompt (primeros 120 chars): %s...", prompt[:120])
 
-            genai.configure(api_key=settings.GOOGLE_API_KEY)
+            genai.configure(api_key=api_key)
             generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
-            model = genai.GenerativeModel('gemini-1.5-flash', generation_config=generation_config)
+            model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
             response = model.generate_content(prompt)
-            
-            print(f"[DEBUG] 3. Respuesta RAW (texto crudo) recibida de la IA:")
-            print("--------------------------------------------------")
-            print(response.text)
-            print("--------------------------------------------------")
+
+            logger.debug("GenerarPreguntasIA respuesta IA longitud=%s", len(response.text or ""))
 
             json_text = response.text.strip().replace("```json", "").replace("```", "")
             respuesta_parseada = json.loads(json_text)
 
-            # --- INICIO DE LA CORRECCIÓN CLAVE ---
-            # Verificamos si la respuesta es un diccionario que contiene la lista (la "caja").
             if isinstance(respuesta_parseada, dict) and 'evaluacion' in respuesta_parseada:
                 lista_de_preguntas = respuesta_parseada['evaluacion']
-                print(f"[DEBUG] CORRECCIÓN: Se extrajo la lista de la clave 'evaluacion'.")
+                logger.debug("GenerarPreguntasIA: lista bajo clave 'evaluacion'")
             else:
-                # Si ya es una lista, la usamos directamente.
                 lista_de_preguntas = respuesta_parseada
-            # --- FIN DE LA CORRECCIÓN CLAVE ---
 
-            print(f"[DEBUG] 4. JSON procesado. Se encontraron {len(lista_de_preguntas)} preguntas.")
+            logger.info("GenerarPreguntasIA: %s preguntas a persistir", len(lista_de_preguntas))
 
             with transaction.atomic():
-                print("[DEBUG] 5. Iniciando guardado en la base de datos...")
                 orden_actual = cuestionario.preguntas.count()
-                
-                # Usamos la variable corregida 'lista_de_preguntas' para el bucle
                 for preg_data in lista_de_preguntas:
                     pregunta = PreguntaCuestionario.objects.create(
                         cuestionario=cuestionario,
@@ -556,7 +655,6 @@ class GenerarPreguntasIAView(APIView):
                         orden=orden_actual
                     )
                     orden_actual += 1
-                    
                     if 'opciones' in preg_data:
                         for i, op_data in enumerate(preg_data.get('opciones', [])):
                             OpcionPregunta.objects.create(
@@ -565,18 +663,21 @@ class GenerarPreguntasIAView(APIView):
                                 es_correcta=op_data.get('es_correcta', False),
                                 orden=i
                             )
-            print("[DEBUG] 6. Guardado en la base de datos completado.")
-            
+            logger.info("GenerarPreguntasIA: guardado OK cuestionario_pk=%s", cuestionario_pk)
             return JsonResponse({'status': 'success', 'message': f'¡Se han añadido {len(lista_de_preguntas)} preguntas nuevas al cuestionario!'})
 
+        except google_exceptions.ResourceExhausted as e:
+            logger.warning("GenerarPreguntasIA cuota agotada: %s", e)
+            return JsonResponse({
+                'status': 'error',
+                'message': 'La cuota de la API de IA está agotada por ahora. Espera unos minutos e inténtalo de nuevo, o verifica el plan de facturación de la API key en Google AI Studio.'
+            }, status=429)
         except json.JSONDecodeError as e:
-            print(f"\n[DEBUG] ¡ERROR FATAL! Fallo al parsear el JSON. El texto recibido de la IA no es un JSON válido.")
-            print(f"[DEBUG] Error específico: {e}")
-            return JsonResponse({'status': 'error', 'message': 'La IA devolvió una respuesta en un formato inválido. Revisa la consola del servidor.'}, status=400)
+            logger.warning("GenerarPreguntasIA JSON inválido: %s", e, exc_info=True)
+            return JsonResponse({'status': 'error', 'message': 'La IA devolvió una respuesta en formato inválido. Intenta de nuevo.'}, status=400)
         except Exception as e:
-            print(f"\n[DEBUG] ¡ERROR INESPERADO! La vista falló por otra razón.")
-            traceback.print_exc()
-            return JsonResponse({'status': 'error', 'message': f'Error del servidor: {e}'}, status=500)        
+            logger.exception("GenerarPreguntasIA error: %s", e)
+            return JsonResponse({'status': 'error', 'message': f'Error inesperado al generar preguntas: {e}'}, status=500)
 
 class SugerirCalificacionIAView(APIView):
     permission_classes = [IsAuthenticated]
@@ -585,7 +686,10 @@ class SugerirCalificacionIAView(APIView):
         try:
             # Seguridad: Verificamos que el docente tenga permiso sobre este intento
             respuesta = get_object_or_404(
-                RespuestaEstudiante.objects.select_related('pregunta'),
+                RespuestaEstudiante.objects.select_related(
+                    'pregunta',
+                    'intento__cuestionario__actividad_calificable__curso__institucion',
+                ),
                 pk=respuesta_pk,
                 intento__cuestionario__actividad_calificable__curso__docentes_asignados=request.user.docente
             )
@@ -593,6 +697,14 @@ class SugerirCalificacionIAView(APIView):
             pregunta = respuesta.pregunta
             if pregunta.tipo != 'texto_libre':
                 return JsonResponse({'status': 'error', 'message': 'Esta función solo está disponible para preguntas de texto libre.'}, status=400)
+
+            institucion = respuesta.intento.cuestionario.actividad_calificable.curso.institucion
+            api_key = institucion_google_api_key(institucion)
+            if not api_key:
+                return JsonResponse(
+                    {'status': 'error', 'message': 'La institución no tiene configurada la API key de Google (Gemini).'},
+                    status=500,
+                )
 
             # --- Construcción del Prompt ---
             prompt = f"""
@@ -612,15 +724,23 @@ class SugerirCalificacionIAView(APIView):
             """
 
             # --- Llamada a la API de Google ---
-            genai.configure(api_key=settings.GOOGLE_API_KEY)
+            genai.configure(api_key=api_key)
             generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
-            model = genai.GenerativeModel('gemini-1.5-flash', generation_config=generation_config)
+            model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
             response = model.generate_content(prompt)
-            
+
             json_text = response.text.strip().replace("```json", "").replace("```", "")
             sugerencia = json.loads(json_text)
-
             return JsonResponse({'status': 'success', 'data': sugerencia})
 
+        except google_exceptions.ResourceExhausted:
+            logger.warning("SugerirCalificacionIA cuota agotada")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'La cuota de la API de IA está agotada. Espera unos minutos e inténtalo de nuevo.'
+            }, status=429)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'La IA devolvió una respuesta en formato inválido.'}, status=400)
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)            
+            logger.exception("SugerirCalificacionIA error: %s", e)
+            return JsonResponse({'status': 'error', 'message': f'Error inesperado: {e}'}, status=500)

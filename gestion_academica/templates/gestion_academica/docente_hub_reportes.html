@@ -1,0 +1,390 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina|default:"Centro de Reportes" }}{% endblock %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+/* ═══════════════════════════════════════════════════════
+   HALU PULSE — Hub de Reportes Docente
+═══════════════════════════════════════════════════════ */
+
+/* ── Hero ── */
+.rh-hero {
+  background: linear-gradient(135deg, #14532d 0%, #15803d 45%, #22c55e 100%);
+  border-radius: 1.1rem; padding: 1.8rem 2rem; color: #fff;
+  margin-bottom: 1.5rem; position: relative; overflow: hidden;
+}
+.rh-hero::before {
+  content: ''; position: absolute;
+  width: 280px; height: 280px; border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  top: -90px; right: -50px; pointer-events: none;
+}
+.rh-hero::after {
+  content: ''; position: absolute;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: rgba(255,255,255,.04);
+  bottom: -60px; left: 25%; pointer-events: none;
+}
+.rh-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3);
+  border-radius: 2rem; padding: .22rem .78rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .3px;
+  text-transform: uppercase; margin-bottom: .7rem;
+}
+.rh-title { font-size: 1.55rem; font-weight: 800; font-family: 'Manrope', sans-serif; margin-bottom: .25rem; }
+.rh-sub   { font-size: .87rem; opacity: .82; max-width: 520px; }
+.rh-back {
+  position: absolute; top: 1.2rem; right: 1.4rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+  color: #fff; border-radius: .55rem; padding: .42rem .95rem;
+  font-size: .82rem; font-weight: 600; text-decoration: none;
+  transition: all .2s; display: inline-flex; align-items: center; gap: .35rem;
+}
+.rh-back:hover { background: rgba(255,255,255,.28); color: #fff; }
+
+/* ── Director banner ── */
+.rh-director-banner {
+  background: linear-gradient(120deg, #fef9c3, #fefce8);
+  border: 1px solid #fde68a; border-radius: .85rem;
+  padding: .85rem 1.2rem; margin-bottom: 1.2rem;
+  display: flex; align-items: center; gap: .75rem;
+  font-size: .85rem; color: #92400e;
+}
+.rh-director-banner i { font-size: 1.2rem; color: #d97706; flex-shrink: 0; }
+.rh-director-banner strong { font-weight: 700; }
+
+/* ── Section header ── */
+.rh-sec {
+  display: flex; align-items: center; gap: .65rem;
+  margin: 1.6rem 0 .95rem; padding-bottom: .5rem;
+  border-bottom: 2px solid #eaf2ff;
+}
+.rh-sec .rhs-icon {
+  width: 34px; height: 34px; border-radius: .5rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.rh-sec h2 { font-size: 1.02rem; font-weight: 800; color: #0f3f90; margin: 0; }
+
+/* ── Report card ── */
+.rh-card {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: .95rem;
+  overflow: hidden; height: 100%; display: flex; flex-direction: column;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+  transition: transform .2s, box-shadow .2s;
+}
+.rh-card:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(11,94,215,.13); }
+.rh-card-top { padding: 1.2rem 1.25rem .75rem; flex: 1; }
+.rhc-icon {
+  width: 48px; height: 48px; border-radius: .7rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; margin-bottom: .85rem;
+}
+.rhc-title { font-size: .96rem; font-weight: 800; color: #0f3f90; margin-bottom: .28rem; font-family: 'Manrope', sans-serif; }
+.rhc-desc  { font-size: .8rem; color: #64748b; line-height: 1.6; }
+.rh-card-foot {
+  padding: .7rem 1.25rem; border-top: 1px solid #f1f5f9;
+  background: #fafcff;
+}
+.rhc-link {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-size: .8rem; font-weight: 700; text-decoration: none;
+  transition: gap .2s;
+}
+.rhc-link:hover { gap: .6rem; }
+.rhc-link .bi-arrow-right-short { font-size: 1.1rem; }
+
+/* Tags */
+.rhc-tag {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .18rem .55rem; border-radius: 2rem;
+  font-size: .68rem; font-weight: 700;
+  margin-bottom: .5rem;
+}
+
+/* Color variants */
+.rhc-blue   .rhc-icon { background:#eaf2ff; color:#1d4ed8; }
+.rhc-blue   .rhc-link { color:#1d4ed8; }
+.rhc-blue   .rhc-tag  { background:#eaf2ff; color:#1d4ed8; }
+.rhc-green  .rhc-icon { background:#f0fdf4; color:#15803d; }
+.rhc-green  .rhc-link { color:#15803d; }
+.rhc-green  .rhc-tag  { background:#f0fdf4; color:#15803d; }
+.rhc-amber  .rhc-icon { background:#fefce8; color:#d97706; }
+.rhc-amber  .rhc-link { color:#d97706; }
+.rhc-amber  .rhc-tag  { background:#fefce8; color:#b45309; }
+.rhc-red    .rhc-icon { background:#fef2f2; color:#dc2626; }
+.rhc-red    .rhc-link { color:#dc2626; }
+.rhc-red    .rhc-tag  { background:#fef2f2; color:#dc2626; }
+.rhc-purple .rhc-icon { background:#faf5ff; color:#7c3aed; }
+.rhc-purple .rhc-link { color:#7c3aed; }
+.rhc-teal   .rhc-icon { background:#f0fdfa; color:#0d9488; }
+.rhc-teal   .rhc-link { color:#0d9488; }
+.rhc-slate  .rhc-icon { background:#f8fafc; color:#475569; }
+.rhc-slate  .rhc-link { color:#475569; }
+
+/* ── Director section highlight ── */
+.rh-director-section .rh-sec { border-bottom-color: #fde68a; }
+.rh-director-section .rhs-icon { background: #fefce8; color: #d97706; }
+.rh-director-section h2 { color: #92400e; }
+
+@media (max-width: 768px) {
+  .rh-hero  { padding: 1.3rem 1.2rem; }
+  .rh-title { font-size: 1.2rem; }
+  .rh-back  { position: static; display: inline-flex; margin-top: .9rem; }
+}
+</style>
+{% endblock extrastyles %}
+
+{% block contenido %}
+<div class="container-fluid mt-3">
+
+  {# ══════════ HERO ══════════ #}
+  <div class="rh-hero">
+    <div class="rh-badge"><i class="bi bi-bar-chart-line-fill"></i> Centro de Reportes</div>
+    <div class="rh-title">Informes y Análisis Docente</div>
+    <div class="rh-sub">Toma decisiones basadas en datos: rendimiento, asistencia, convivencia y más.</div>
+    <a href="{% url 'gestion_academica:centro_gestion_docente' %}" class="rh-back">
+      <i class="bi bi-arrow-left"></i> Centro de Gestión
+    </a>
+  </div>
+
+  {# Banner de director de grupo #}
+  {% if es_director_de_grupo %}
+  <div class="rh-director-banner">
+    <i class="bi bi-person-badge-fill"></i>
+    <div>
+      <strong>Eres Director de Grupo{% if direccion_grupo %} — {{ direccion_grupo.grado.nombre }}{% endif %}.</strong>
+      Tienes acceso a reportes adicionales de seguimiento integral del grupo.
+    </div>
+  </div>
+  {% endif %}
+
+  {# ══════════ REPORTES POR MATERIA ══════════ #}
+  <div class="rh-sec">
+    <div class="rhs-icon" style="background:#eaf2ff;color:#1d4ed8;"><i class="bi bi-pencil-square"></i></div>
+    <h2>Reportes por Materia</h2>
+  </div>
+  <div class="row g-3 mb-2">
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="rh-card rhc-amber">
+        <div class="rh-card-top">
+          <span class="rhc-tag"><i class="bi bi-calculator-fill"></i> Notas</span>
+          <div class="rhc-icon"><i class="bi bi-graph-up-arrow"></i></div>
+          <div class="rhc-title">Nota Mínima para Aprobar</div>
+          <div class="rhc-desc">Calcula la nota que necesita cada estudiante en las actividades restantes para aprobar el periodo. Anticipa reprobaciones.</div>
+        </div>
+        <div class="rh-card-foot">
+          <a href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}" class="rhc-link">
+            Generar Reporte <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="rh-card rhc-red">
+        <div class="rh-card-top">
+          <span class="rhc-tag"><i class="bi bi-exclamation-triangle-fill"></i> Riesgo</span>
+          <div class="rhc-icon"><i class="bi bi-person-dash-fill"></i></div>
+          <div class="rhc-title">Alertas de Riesgo Académico</div>
+          <div class="rhc-desc">Identifica estudiantes en riesgo de perder tus materias. HALU Sentinel genera alertas automáticas.</div>
+        </div>
+        <div class="rh-card-foot">
+          <a href="{% url 'gestion_academica:reporte_riesgo_academico' %}" class="rhc-link">
+            Ver Alertas <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="rh-card rhc-blue">
+        <div class="rh-card-top">
+          <span class="rhc-tag"><i class="bi bi-bar-chart-fill"></i> Rendimiento</span>
+          <div class="rhc-icon"><i class="bi bi-table"></i></div>
+          <div class="rhc-title">Consolidado por Materia</div>
+          <div class="rhc-desc">Vista consolidada de promedios y resultados por materia, actividad y periodo académico.</div>
+        </div>
+        <div class="rh-card-foot">
+          <a href="{% url 'gestion_academica:reporte_consolidado_materia' %}" class="rhc-link">
+            Ver Consolidado <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="rh-card rhc-teal">
+        <div class="rh-card-top">
+          <span class="rhc-tag"><i class="bi bi-clock-fill"></i> Asistencia</span>
+          <div class="rhc-icon"><i class="bi bi-calendar-check-fill"></i></div>
+          <div class="rhc-title">Asistencia por Materia</div>
+          <div class="rhc-desc">Analiza los patrones de asistencia e inasistencia en tus cursos para detectar ausentismo crítico.</div>
+        </div>
+        <div class="rh-card-foot">
+          <a href="{% url 'gestion_academica:reporte_asistencia_materia' %}" class="rhc-link">
+            Ver Asistencia <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="rh-card rhc-purple">
+        <div class="rh-card-top">
+          <span class="rhc-tag"><i class="bi bi-bar-chart-steps"></i> Promedio</span>
+          <div class="rhc-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+          <div class="rhc-title">Promedio por Materia</div>
+          <div class="rhc-desc">Compara los promedios de tus materias entre periodos y detecta tendencias de rendimiento.</div>
+        </div>
+        <div class="rh-card-foot">
+          <a href="{% url 'gestion_academica:reporte_promedio_por_materia' %}" class="rhc-link">
+            Ver Promedios <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="rh-card rhc-green">
+        <div class="rh-card-top">
+          <span class="rhc-tag"><i class="bi bi-shield-fill"></i> Convivencia</span>
+          <div class="rhc-icon"><i class="bi bi-journal-medical"></i></div>
+          <div class="rhc-title">Reporte de Incidencias</div>
+          <div class="rhc-desc">Visualiza el historial de incidencias de convivencia registradas en el observador de tus estudiantes.</div>
+        </div>
+        <div class="rh-card-foot">
+          <a href="{% url 'gestion_academica:reporte_incidencias' %}" class="rhc-link">
+            Ver Incidencias <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ══════════ REPORTES DE DIRECTOR DE GRUPO ══════════ #}
+  {% if es_director_de_grupo %}
+  <div class="rh-director-section">
+    <div class="rh-sec">
+      <div class="rhs-icon"><i class="bi bi-person-badge-fill"></i></div>
+      <h2>Director de Grupo{% if direccion_grupo %} — {{ direccion_grupo.grado.nombre }}{% endif %}</h2>
+    </div>
+    <div class="row g-3 mb-4">
+
+      <div class="col-sm-6 col-lg-4">
+        <div class="rh-card rhc-amber">
+          <div class="rh-card-top">
+            <span class="rhc-tag" style="background:#fef9c3;color:#92400e;"><i class="bi bi-person-video3"></i> Director</span>
+            <div class="rhc-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="rhc-title">Panel del Director de Grupo</div>
+            <div class="rhc-desc">Vista integral del grupo: asistencia, notas, convivencia y alertas de todos los estudiantes a tu cargo.</div>
+          </div>
+          <div class="rh-card-foot">
+            <a href="{% url 'gestion_academica:panel_director_grupo' %}" class="rhc-link">
+              Ir al Panel del Grupo <i class="bi bi-arrow-right-short"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <div class="rh-card rhc-blue">
+          <div class="rh-card-top">
+            <span class="rhc-tag"><i class="bi bi-bar-chart-fill"></i> Grado</span>
+            <div class="rhc-icon"><i class="bi bi-graph-up"></i></div>
+            <div class="rhc-title">Rendimiento por Grado</div>
+            <div class="rhc-desc">Análisis comparativo del rendimiento académico de todos los estudiantes del grupo en cada materia.</div>
+          </div>
+          <div class="rh-card-foot">
+            <a href="{% url 'gestion_academica:reporte_rendimiento_por_grado' %}" class="rhc-link">
+              Ver Rendimiento <i class="bi bi-arrow-right-short"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <div class="rh-card rhc-green">
+          <div class="rh-card-top">
+            <span class="rhc-tag"><i class="bi bi-trophy-fill"></i> Honor</span>
+            <div class="rhc-icon"><i class="bi bi-trophy-fill"></i></div>
+            <div class="rhc-title">Cuadro de Honor del Grado</div>
+            <div class="rhc-desc">Identifica a los mejores estudiantes del grupo para reconocerlos en el boletín y los actos institucionales.</div>
+          </div>
+          <div class="rh-card-foot">
+            <a href="{% url 'gestion_academica:cuadro_honor_grado' %}" class="rhc-link">
+              Ver Cuadro de Honor <i class="bi bi-arrow-right-short"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <div class="rh-card rhc-red">
+          <div class="rh-card-top">
+            <span class="rhc-tag"><i class="bi bi-exclamation-octagon-fill"></i> Riesgo Global</span>
+            <div class="rhc-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="rhc-title">Riesgo Global del Grupo</div>
+            <div class="rhc-desc">Resumen de estudiantes en riesgo académico en todas las materias del grupo para intervención integral.</div>
+          </div>
+          <div class="rh-card-foot">
+            <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="rhc-link">
+              Ver Riesgo Global <i class="bi bi-arrow-right-short"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <div class="rh-card rhc-teal">
+          <div class="rh-card-top">
+            <span class="rhc-tag"><i class="bi bi-clock-history"></i> Asistencia</span>
+            <div class="rhc-icon"><i class="bi bi-calendar-week-fill"></i></div>
+            <div class="rhc-title">Estadística de Asistencia Diaria</div>
+            <div class="rhc-desc">Analiza los patrones de asistencia diaria de todo el grupo para detectar ausentismo sistemático.</div>
+          </div>
+          <div class="rh-card-foot">
+            <a href="{% url 'gestion_academica:reporte_asistencia_diaria' %}" class="rhc-link">
+              Ver Asistencia Diaria <i class="bi bi-arrow-right-short"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-4">
+        <div class="rh-card rhc-slate">
+          <div class="rh-card-top">
+            <span class="rhc-tag"><i class="bi bi-shield-exclamation"></i> Convivencia</span>
+            <div class="rhc-icon"><i class="bi bi-people"></i></div>
+            <div class="rhc-title">Consolidado de Convivencia</div>
+            <div class="rhc-desc">Resumen de anotaciones del observador por tipo en todo el grupo: felicitaciones, llamados de atención e incidencias.</div>
+          </div>
+          <div class="rh-card-foot">
+            <a href="{% url 'gestion_academica:reporte_consolidado_convivencia' %}" class="rhc-link">
+              Ver Convivencia <i class="bi bi-arrow-right-short"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  {% else %}
+  {# Sección de director bloqueada #}
+  <div class="rh-sec" style="margin-top:1.6rem;">
+    <div class="rhs-icon" style="background:#f8fafc;color:#94a3b8;"><i class="bi bi-lock-fill"></i></div>
+    <h2 style="color:#94a3b8;">Reportes de Director de Grupo</h2>
+  </div>
+  <div class="alert" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:.85rem;color:#64748b;padding:1.2rem 1.4rem;margin-bottom:2rem;">
+    <i class="bi bi-info-circle-fill me-2" style="color:#94a3b8;"></i>
+    Estos reportes están disponibles únicamente para docentes asignados como <strong>Director de Grupo</strong>
+    en el periodo académico activo. Contacta a coordinación si crees que esto es un error.
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

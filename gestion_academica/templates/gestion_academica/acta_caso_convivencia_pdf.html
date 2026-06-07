@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Acta de Convivencia – {{ caso.radicado }}</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: 2cm 2.5cm 2.5cm 2.5cm;
+    }
+    body {
+      font-family: "DejaVu Sans", Arial, sans-serif;
+      font-size: 10pt;
+      color: #111;
+      line-height: 1.5;
+    }
+    /* Header institucional */
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 14pt; }
+    .header-table td { vertical-align: middle; }
+    .logo-cell { width: 80pt; text-align: center; }
+    .logo-cell img { max-height: 60pt; max-width: 70pt; }
+    .inst-cell { padding-left: 10pt; }
+    .inst-name { font-size: 13pt; font-weight: bold; color: #1a3a6b; }
+    .inst-sub  { font-size: 8pt; color: #555; }
+    .radicado-cell { text-align: right; font-size: 8pt; color: #555; }
+
+    /* Título del acta */
+    .titulo-acta {
+      text-align: center;
+      font-size: 13pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1pt;
+      border-top: 2pt solid #1a3a6b;
+      border-bottom: 2pt solid #1a3a6b;
+      padding: 6pt 0;
+      margin-bottom: 14pt;
+      color: #1a3a6b;
+    }
+
+    /* Secciones */
+    h2.seccion {
+      font-size: 10pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #1a3a6b;
+      border-bottom: 1pt solid #ccc;
+      padding-bottom: 2pt;
+      margin-top: 14pt;
+      margin-bottom: 6pt;
+    }
+
+    /* Tabla de datos */
+    table.datos { width: 100%; border-collapse: collapse; margin-bottom: 10pt; }
+    table.datos td { padding: 3pt 5pt; border: 0.5pt solid #ccc; font-size: 9.5pt; }
+    table.datos td.lbl { background: #f0f4fa; font-weight: bold; width: 35%; }
+
+    /* Tabla de acciones */
+    table.acciones { width: 100%; border-collapse: collapse; margin-bottom: 10pt; font-size: 9pt; }
+    table.acciones th {
+      background: #1a3a6b; color: #fff;
+      padding: 4pt 5pt; text-align: left; font-size: 9pt;
+    }
+    table.acciones td { padding: 3pt 5pt; border-bottom: 0.5pt solid #ddd; vertical-align: top; }
+    table.acciones tr:nth-child(even) td { background: #f7f9fd; }
+
+    /* Badges inline */
+    .badge {
+      display: inline-block;
+      padding: 1pt 5pt;
+      border-radius: 3pt;
+      font-size: 8pt;
+      font-weight: bold;
+    }
+    .badge-danger  { background: #dc3545; color: #fff; }
+    .badge-warning { background: #ffc107; color: #000; }
+    .badge-success { background: #198754; color: #fff; }
+    .badge-info    { background: #0dcaf0; color: #000; }
+    .badge-secondary { background: #6c757d; color: #fff; }
+
+    /* Firma */
+    .firma-section {
+      margin-top: 40pt;
+      page-break-inside: avoid;
+    }
+    .firma-table { width: 100%; border-collapse: collapse; }
+    .firma-table td {
+      width: 33%;
+      text-align: center;
+      padding-top: 30pt;
+      border-top: 1pt solid #111;
+      font-size: 9pt;
+    }
+    .firma-table td span { display: block; font-size: 8pt; color: #555; }
+
+    /* Footer */
+    .footer-acta {
+      margin-top: 20pt;
+      font-size: 7.5pt;
+      color: #888;
+      text-align: center;
+      border-top: 0.5pt solid #ccc;
+      padding-top: 4pt;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Encabezado institucional -->
+<table class="header-table">
+  <tr>
+    <td class="logo-cell">
+      {# logo omitido en PDF — añadir si configura WeasyPrint con base_url #}
+    </td>
+    <td class="inst-cell">
+      <div class="inst-name">{{ institucion.nombre }}</div>
+      <div class="inst-sub">NIT / DANE: {{ institucion.nit|default:"—" }}</div>
+    </td>
+    <td class="radicado-cell">
+      <strong>Radicado:</strong><br>{{ caso.radicado }}<br>
+      <strong>Fecha acta:</strong><br>{{ fecha_generacion|date:"d/m/Y" }}
+    </td>
+  </tr>
+</table>
+
+<div class="titulo-acta">
+  Acta Formal de Caso de Convivencia Escolar<br>
+  <span style="font-size:9pt;font-weight:normal;">
+    Ley 1620 de 2013 · Decreto 1965 de 2013 · Resolución 1620
+  </span>
+</div>
+
+<!-- Datos del caso -->
+<h2 class="seccion">I. Datos del Expediente</h2>
+<table class="datos">
+  <tr>
+    <td class="lbl">Radicado</td>
+    <td>{{ caso.radicado }}</td>
+    <td class="lbl">Tipo de Situación</td>
+    <td>
+      {% if caso.tipo_situacion == 'TIPO_I' %}
+        <span class="badge badge-success">Tipo I – Leve</span>
+      {% elif caso.tipo_situacion == 'TIPO_II' %}
+        <span class="badge badge-warning">Tipo II – Moderado</span>
+      {% else %}
+        <span class="badge badge-danger">Tipo III – Grave</span>
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <td class="lbl">Estado actual</td>
+    <td>{{ caso.get_estado_display }}</td>
+    <td class="lbl">Responsable</td>
+    <td>{{ caso.responsable.get_full_name|default:"Sin asignar" }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Fecha de apertura</td>
+    <td>{{ caso.fecha_apertura|date:"d/m/Y H:i" }}</td>
+    <td class="lbl">Fecha límite legal</td>
+    <td>{{ caso.fecha_limite|date:"d/m/Y H:i"|default:"—" }}</td>
+  </tr>
+  {% if caso.fecha_cierre %}
+  <tr>
+    <td class="lbl">Fecha de cierre</td>
+    <td colspan="3">{{ caso.fecha_cierre|date:"d/m/Y H:i" }}</td>
+  </tr>
+  {% endif %}
+</table>
+
+<!-- Descripción -->
+<h2 class="seccion">II. Descripción del Caso</h2>
+<p>{{ caso.descripcion_detalle|default:"Sin descripción adicional registrada." }}</p>
+
+{% if caso.anotacion_origen %}
+<p><strong>Anotación origen ({{ caso.anotacion_origen.fecha_hora|date:"d/m/Y" }},
+  {{ caso.anotacion_origen.registrado_por.get_full_name }}):</strong><br>
+  {{ caso.anotacion_origen.descripcion }}
+</p>
+{% endif %}
+
+<!-- Involucrados -->
+<h2 class="seccion">III. Partes Involucradas</h2>
+<table class="datos">
+  <tr>
+    <td class="lbl">Estudiante</td>
+    <td class="lbl">Grado</td>
+    <td class="lbl">Rol</td>
+    <td class="lbl">Documento</td>
+  </tr>
+  {% for inv in caso.involucrados.all %}
+  <tr>
+    <td>{{ inv.estudiante.usuario.get_full_name }}</td>
+    <td>{{ inv.estudiante.grado_actual }}</td>
+    <td>{{ inv.get_rol_display }}</td>
+    <td>{{ inv.estudiante.documento_identidad|default:"—" }}</td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="4">Sin involucrados registrados</td></tr>
+  {% endfor %}
+</table>
+
+<!-- Acciones realizadas -->
+<h2 class="seccion">IV. Acciones de la Ruta de Atención</h2>
+{% with acciones=caso.acciones.all %}
+{% if acciones %}
+<table class="acciones">
+  <thead>
+    <tr>
+      <th style="width:14%">Fecha</th>
+      <th style="width:22%">Acción</th>
+      <th>Descripción</th>
+      <th style="width:20%">Ejecutada por</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for accion in acciones %}
+    <tr>
+      <td>{{ accion.fecha|date:"d/m/Y H:i" }}</td>
+      <td>{{ accion.get_tipo_accion_display }}</td>
+      <td>{{ accion.descripcion }}</td>
+      <td>{{ accion.ejecutado_por.get_full_name }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No se han registrado acciones en este expediente.</p>
+{% endif %}
+{% endwith %}
+
+<!-- Protocolo IA -->
+{% if caso.protocolo_ia %}
+<h2 class="seccion">V. Protocolo Sugerido por Inteligencia Artificial (Halu Sentinel)</h2>
+<p style="font-style:italic;color:#444;">{{ caso.protocolo_ia }}</p>
+{% endif %}
+
+<!-- Resolución final -->
+{% if caso.resolucion_final %}
+<h2 class="seccion">VI. Resolución Final</h2>
+<p>{{ caso.resolucion_final }}</p>
+{% endif %}
+
+<!-- Firmas -->
+<div class="firma-section">
+  <table class="firma-table">
+    <tr>
+      <td>
+        {{ caso.responsable.get_full_name|default:"Coordinador(a) de Convivencia" }}
+        <span>Coordinador(a) Responsable</span>
+      </td>
+      <td>
+        ___________________________
+        <span>Padre / Acudiente</span>
+      </td>
+      <td>
+        ___________________________
+        <span>Rector(a) / Director(a)</span>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- Footer -->
+<div class="footer-acta">
+  Documento generado por Halu Platform · {{ fecha_generacion|date:"d/m/Y" }} ·
+  {{ institucion.nombre }} ·
+  Este documento hace parte del expediente {{ caso.radicado }} y tiene validez institucional
+  en el marco de la Ruta de Atención Integral establecida por la Ley 1620 de 2013.
+</div>
+
+</body>
+</html>

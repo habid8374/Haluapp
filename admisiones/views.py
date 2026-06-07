@@ -2,10 +2,19 @@
 
 # --- Importaciones (sin cambios) ---
 import io
+import hashlib
 import pandas as pd
 from openpyxl.styles import Font
-import mercadopago
-from django.conf import settings
+import re
+import uuid as _uuid
+from finanzas.institucion_credentials import mp_webhook_secret as institucion_mp_webhook_secret
+from finanzas.mercadopago_client import (
+    crear_preferencia as mp_crear_preferencia,
+    consultar_pago as mp_consultar_pago,
+    MercadoPagoError,
+    MercadoPagoSinCredenciales,
+)
+from utils.mercadopago_webhook import resolve_notification_data_id, verify_mercadopago_webhook_signature
 from django.db.models import Sum
 import json
 from urllib.parse import urlencode
@@ -14,12 +23,13 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.views.generic import DetailView, UpdateView, DeleteView
 from django.db import models
 from django.db.models import Count, Value, Q
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -31,17 +41,117 @@ from openpyxl.styles import Font
 import time
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.decorators import login_required, permission_required
-from .models import Aspirante, DocumentoRequerido, DocumentoEntregado, HorarioDisponible, CitaAgendada
+from .models import (
+    Aspirante,
+    DocumentoRequerido,
+    DocumentoEntregado,
+    HorarioDisponible,
+    CitaAgendada,
+    LoteImportacionAspirantes,
+)
 from gestion_academica.models import Grado, Usuario, Estudiante
 from .forms import AspiranteForm, ImportarAspirantesForm
 from .utils import crear_cuenta_cobro_inscripcion, enviar_correo_bienvenida, enviar_correo_cambio_estado, enviar_correo_confirmacion_cita
-from finanzas.models import CuentaPorCobrarEstudiante, PagoRegistrado, InstitucionEducativa, ConceptoPago
+from finanzas.models import (
+    CuentaPorCobrarEstudiante,
+    PagoRegistrado,
+    InstitucionEducativa,
+    ConceptoPago,
+    WebhookEventoMercadoPago,
+)
 from datetime import timedelta
 from gestion_academica.models import PeriodoAcademico
 
 
 
 logger = logging.getLogger(__name__)
+
+
+# --- Validación de archivos subidos al portal del postulante ---
+# Tipos MIME y extensiones aceptados para los documentos de admisión.
+DOCUMENTO_ASPIRANTE_MAX_BYTES = 10 * 1024 * 1024  # 10 MB
+DOCUMENTO_ASPIRANTE_EXTENSIONES = {
+    "pdf", "jpg", "jpeg", "png", "webp", "doc", "docx",
+}
+DOCUMENTO_ASPIRANTE_MIME = {
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/octet-stream",  # algunos navegadores no detectan MIME; validamos por extensión también
+}
+
+
+def _validar_archivo_documento(archivo):
+    """Devuelve (ok, mensaje_error) para un archivo subido por un postulante.
+
+    Reglas:
+    - Tamaño máximo 10 MB.
+    - Extensión en lista blanca (PDF, imagen, Word).
+    - Content-type del request en lista blanca o ``application/octet-stream``
+      (fallback común cuando el navegador no detecta el tipo).
+    """
+    if archivo is None:
+        return False, "No se recibió ningún archivo."
+    if archivo.size > DOCUMENTO_ASPIRANTE_MAX_BYTES:
+        return False, "El archivo supera el tamaño máximo permitido (10 MB)."
+    nombre = (archivo.name or "").lower()
+    extension = nombre.rsplit(".", 1)[-1] if "." in nombre else ""
+    if extension not in DOCUMENTO_ASPIRANTE_EXTENSIONES:
+        return False, "Formato no permitido. Usa PDF, imagen (JPG/PNG/WEBP) o Word (DOC/DOCX)."
+    content_type = (getattr(archivo, "content_type", "") or "").lower()
+    if content_type and content_type not in DOCUMENTO_ASPIRANTE_MIME:
+        return False, "El tipo de archivo no coincide con los formatos permitidos."
+    return True, ""
+
+
+# --- Helpers de autorización para el portal del postulante ---
+
+def _aspirante_desde_cuenta(cuenta):
+    """Resuelve el aspirante asociado a una CuentaPorCobrarEstudiante.
+
+    Maneja los dos casos del modelo:
+    - Cuenta de matrícula: enlace directo `cuenta.aspirante`.
+    - Cuenta de inscripción: enlace vía `cuenta.estudiante.aspirante_origen`.
+    """
+    if cuenta.aspirante_id:
+        return cuenta.aspirante
+    if cuenta.estudiante_id and getattr(cuenta.estudiante, 'aspirante_origen', None):
+        return cuenta.estudiante.aspirante_origen
+    return None
+
+
+def _puede_operar_cuenta_aspirante(request, cuenta, aspirante):
+    """Determina si la petición está autorizada a operar pagos de un aspirante.
+
+    Reglas:
+    1) Si trae `?token=<uuid>` y coincide con `aspirante.access_token`, OK.
+    2) Si el usuario es staff/superuser de la misma institución, OK.
+    3) En cualquier otro caso, denegado.
+    """
+    if not aspirante:
+        return False
+
+    token_raw = (request.GET.get('token') or '').strip()
+    if token_raw:
+        try:
+            token_uuid = _uuid.UUID(token_raw)
+        except (ValueError, TypeError):
+            token_uuid = None
+        if token_uuid and token_uuid == aspirante.access_token:
+            return True
+
+    user = getattr(request, 'user', None)
+    if user and user.is_authenticated:
+        if user.is_superuser:
+            return True
+        if (user.is_staff
+                and getattr(user, 'institucion_asociada_id', None) == cuenta.institucion_id):
+            return True
+
+    return False
 
 
 # --- 2. VISTAS PRINCIPALES DEL CRUD Y LÓGICA DE NEGOCIO ---
@@ -70,16 +180,27 @@ def crear_aspirante_manual(request):
                     aspirante = form.save(commit=False)
                     aspirante.institucion = institucion_usuario
                     aspirante.save()
-                    aspirante.procesar_inscripcion_completa()
-                
-                messages.success(request, f"Aspirante '{aspirante.nombres} {aspirante.apellidos}' registrado exitosamente.")
-                
-                # ▼▼▼ CORRECCIÓN DE LA REDIRECCIÓN ▼▼▼
-                # Apuntamos a la URL correcta que lista los grados con aspirantes.
+                    resultado = aspirante.procesar_inscripcion_completa()
+
+                messages.success(
+                    request,
+                    f"Aspirante '{aspirante.nombres} {aspirante.apellidos}' registrado exitosamente.",
+                )
+
+                # Si requería pago pero la cuenta NO se pudo crear por configuración
+                # incompleta, avisamos al admin para que lo solucione antes de que el
+                # aspirante reciba el correo y vea el portal sin botón de pago.
+                cobro = resultado.cobro_inscripcion
+                if cobro.es_warning:
+                    messages.warning(
+                        request,
+                        f"⚠ El aspirante se creó, pero NO se generó la cuenta de "
+                        f"inscripción: {cobro.mensaje}",
+                    )
+
                 return redirect('admisiones:lista_grados_aspirantes')
 
             except Exception as e:
-                # Este bloque ahora solo se activará si hay un error real en la creación.
                 messages.error(request, f"Ocurrió un error al registrar al aspirante: {e}")
     else:
         form = AspiranteForm(user=request.user)
@@ -91,7 +212,7 @@ def crear_aspirante_manual(request):
     return render(request, 'admisiones/formulario_aspirante_manual.html', context)
 
 @login_required
-@permission_required('admisiones.change_aspirante')
+@permission_required('admisiones.change_aspirante', raise_exception=True)
 def admitir_aspirante(request, aspirante_id):
     aspirante = get_object_or_404(Aspirante, pk=aspirante_id)
     grado_aspirado = aspirante.grado_aspira
@@ -102,14 +223,17 @@ def admitir_aspirante(request, aspirante_id):
         return redirect('admisiones:detalle_aspirante', pk=aspirante.id)
 
     try:
-        # ✅ BÚSQUEDA POR NOMBRE
         concepto_matricula = ConceptoPago.objects.get(
             institucion=aspirante.institucion,
-            nombre_concepto__icontains='Matrícula',
-            nivel_escolaridad=nivel_escolaridad
+            es_pago_matricula=True,
+            nivel_escolaridad=nivel_escolaridad,
         )
     except (ConceptoPago.DoesNotExist, ConceptoPago.MultipleObjectsReturned):
-        messages.error(request, f"Error: No se encontró (o hay duplicados) un Concepto de Pago con 'Matrícula' para el nivel '{nivel_escolaridad}'.")
+        messages.error(
+            request,
+            f"Error: No se encontró (o hay duplicados) un Concepto de Pago "
+            f"marcado como 'Es pago de Matrícula' para el nivel '{nivel_escolaridad}'."
+        )
         return redirect('admisiones:detalle_aspirante', pk=aspirante.id)
 
     with transaction.atomic():
@@ -146,16 +270,19 @@ class AspiranteDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailVie
         """
         context = super().get_context_data(**kwargs)
         aspirante = self.get_object()
-        
-        # --- ✅ INICIO DE LA LÓGICA AÑADIDA ---
-        # Buscamos en la nueva tabla todas las cuentas por cobrar
-        # que pertenezcan a ESTE aspirante.
+
         context['cuentas_del_aspirante'] = CuentaPorCobrarEstudiante.objects.filter(
             aspirante=aspirante
         ).select_related('concepto_pago').order_by('-fecha_creacion')
-        # --- FIN DE LA LÓGICA AÑADIDA ---
-        
+
         context['titulo_pagina'] = f"Perfil del Aspirante: {aspirante}"
+
+        # URL absoluta del portal construida con request.build_absolute_uri(),
+        # que ya respeta USE_X_FORWARDED_HOST y SECURE_PROXY_SSL_HEADER
+        # (Cloudflare tunnel, ngrok, etc.) sin producir "http://https://...".
+        context['portal_url_absoluta'] = self.request.build_absolute_uri(
+            aspirante.get_portal_url()
+        )
         return context
 
 class AspiranteUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
@@ -203,21 +330,6 @@ class AspiranteDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Aspirante
         context['titulo_pagina'] = f"Confirmar Eliminación"
         return context
 
-
-def vista_agendamiento(request, token):
-    aspirante = get_object_or_404(Aspirante, access_token=token)
-    if aspirante.estado != 'ADMITIDO':
-        messages.warning(request, "Aún no estás en la etapa de agendamiento de citas.")
-        return redirect('admisiones:portal_postulante', token=token)
-    if hasattr(aspirante, 'cita_agendada'):
-        messages.info(request, "Ya tienes una cita agendada.")
-        return redirect('admisiones:portal_postulante', token=token)
-    horarios = HorarioDisponible.objects.filter(
-    institucion=aspirante.institucion,
-    fecha_hora_inicio__gte=timezone.now()
-    ).annotate(citas_count=Count('citas_agendadas')).filter(citas_count__lt=models.F('cupos_disponibles'))
-    context = {'aspirante': aspirante, 'horarios_disponibles': horarios, 'titulo_pagina': "Agendar Cita de Admisión"}
-    return render(request, 'admisiones/agendar_cita.html', context)
 
 # --- 4. VISTAS DE DASHBOARD, IMPORTACIÓN Y EXPORTACIÓN ---
 
@@ -281,7 +393,7 @@ def dashboard_data(request):
     return JsonResponse(response_data)
 
 @login_required
-@permission_required('admisiones.add_aspirante')
+@permission_required('admisiones.add_aspirante', raise_exception=True)
 def descargar_plantilla_importacion(request):
     """
     Genera la plantilla de Excel DEFINITIVA con nombres de columna simples
@@ -293,34 +405,78 @@ def descargar_plantilla_importacion(request):
     ws = wb.active
     ws.title = "Aspirantes"
     
+    # Columnas: obligatorias primero, luego opcionales (marcadas con *)
     headers = [
+        # Obligatorias
         'nombres', 'apellidos', 'numero_documento', 'fecha_nacimiento',
-        'email_contacto', 'telefono_contacto', 'grado_aspira', 'sexo',
-        'colegio_procedencia', 'municipio_ciudad', 'departamento', 'paga_inscripcion'
+        'email_contacto', 'grado_aspira', 'paga_inscripcion',
+        # Opcionales — Observador del Estudiante
+        'tipo_documento', 'lugar_nacimiento',
+        'telefono_contacto', 'sexo', 'grupo_sanguineo', 'eps', 'discapacidad',
+        'colegio_procedencia', 'municipio_ciudad', 'departamento', 'direccion',
     ]
     ws.append(headers)
+
+    # Fila de ayuda con descripción de cada columna
+    ws.append([
+        'Nombres completos', 'Apellidos completos', 'Documento de identidad',
+        'DD/MM/AAAA o AAAA-MM-DD', 'Correo electrónico', 'Nombre exacto del grado', 'SI o NO',
+        'TI/CC/RC/PA/CE/OT', 'Ciudad y departamento',
+        'Teléfono', 'M/F/O', 'A+/A-/B+/B-/AB+/AB-/O+/O-', 'Nombre de la EPS',
+        'Condición (vacío=ninguna)',
+        'Colegio anterior', 'Municipio/ciudad', 'Departamento', 'Dirección residencia',
+    ])
+
+    from openpyxl.styles import PatternFill, Font as OFont, Alignment
+    # Cabecera principal: azul oscuro
+    header_fill = PatternFill(start_color="0F3460", end_color="0F3460", fill_type="solid")
+    header_font = OFont(bold=True, color="FFFFFF", size=10)
+    # Cabecera de columnas opcionales: verde oscuro
+    opt_fill   = PatternFill(start_color="1B5E20", end_color="1B5E20", fill_type="solid")
+    # Fila de ayuda: gris claro
+    help_fill  = PatternFill(start_color="F1F5F9", end_color="F1F5F9", fill_type="solid")
+    help_font  = OFont(italic=True, size=9, color="475569")
+
+    OBLIGATORIAS_COUNT = 7  # primeras 7 columnas son obligatorias
+    for i, cell in enumerate(ws[1], start=1):
+        if i <= OBLIGATORIAS_COUNT:
+            cell.fill = header_fill
+        else:
+            cell.fill = opt_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center')
+    for cell in ws[2]:
+        cell.fill = help_fill
+        cell.font = help_font
 
     grados = Grado.objects.filter(institucion=institucion).order_by('orden')
     if grados.exists():
         grado_names = f'"{",".join([grado.nombre for grado in grados])}"'
         dv_grado = DataValidation(type="list", formula1=grado_names, allow_blank=False)
         ws.add_data_validation(dv_grado)
-        dv_grado.add('G2:G1000') # Columna G (grado_aspira)
-
-    dv_sexo = DataValidation(type="list", formula1='"M,F,O"', allow_blank=True)
-    ws.add_data_validation(dv_sexo)
-    dv_sexo.add('H2:H1000')
+        dv_grado.add('F3:F1000')  # Columna F (grado_aspira)
 
     dv_paga = DataValidation(type="list", formula1='"SI,NO"', allow_blank=False)
     ws.add_data_validation(dv_paga)
-    dv_paga.add('L2:L1000')
+    dv_paga.add('G3:G1000')  # Columna G (paga_inscripcion)
 
-    bold_font = Font(bold=True)
-    for cell in ws[1]:
-        cell.font = bold_font
+    dv_tipo_doc = DataValidation(type="list", formula1='"TI,CC,RC,PA,CE,OT"', allow_blank=True)
+    ws.add_data_validation(dv_tipo_doc)
+    dv_tipo_doc.add('H3:H1000')
+
+    dv_sexo = DataValidation(type="list", formula1='"M,F,O"', allow_blank=True)
+    ws.add_data_validation(dv_sexo)
+    dv_sexo.add('K3:K1000')
+
+    dv_gs = DataValidation(type="list", formula1='"A+,A-,B+,B-,AB+,AB-,O+,O-"', allow_blank=True)
+    ws.add_data_validation(dv_gs)
+    dv_gs.add('L3:L1000')
+
     for col_cells in ws.columns:
         max_length = max(len(str(cell.value or '')) for cell in col_cells)
-        ws.column_dimensions[col_cells[0].column_letter].width = max_length + 2
+        ws.column_dimensions[col_cells[0].column_letter].width = max(max_length + 3, 14)
+    ws.row_dimensions[1].height = 22
+    ws.row_dimensions[2].height = 18
 
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="plantilla_importacion_aspirantes.xlsx"'
@@ -331,78 +487,293 @@ def descargar_plantilla_importacion(request):
 @login_required
 @permission_required('admisiones.add_aspirante', raise_exception=True)
 def importar_aspirantes_excel(request):
+    """
+    Sube un archivo Excel, crea un ``LoteImportacionAspirantes`` con el archivo
+    y encola la tarea Celery ``procesar_importacion_aspirantes_task``. El
+    usuario es redirigido a la vista de progreso, que se actualiza en vivo.
+    """
+    from .tasks import procesar_importacion_aspirantes_task
+
     institucion_actual = request.user.institucion_asociada
+    if not institucion_actual:
+        messages.error(request, "Tu usuario no está asociado a ninguna institución.")
+        return redirect('admisiones:lista_grados_aspirantes')
+
     if request.method == 'POST':
         form = ImportarAspirantesForm(request.POST, request.FILES)
         if form.is_valid():
-            archivo = request.FILES['archivo_excel']
-            try:
-                df = pd.read_excel(archivo, dtype=str, keep_default_na=False)
-                df.columns = [str(col).strip().lower() for col in df.columns]
-                
-                aspirantes_creados_count = 0
-                errores = []
+            archivo = form.cleaned_data['archivo_excel']
+            dry_run = form.cleaned_data.get('dry_run') or False
 
-                for index, row in df.iterrows():
-                    try:
-                        with transaction.atomic():
-                            documento = str(row.get('numero_documento', '')).strip()
-                            grado_nombre = str(row.get('grado_aspira', '')).strip()
-                            fecha_str = row.get('fecha_nacimiento')
+            lote = LoteImportacionAspirantes.objects.create(
+                institucion=institucion_actual,
+                creado_por=request.user,
+                archivo=archivo,
+                nombre_original=archivo.name,
+                dry_run=dry_run,
+            )
 
-                            if not (documento and grado_nombre and fecha_str):
-                                raise ValueError("Las columnas 'numero_documento', 'grado_aspira' y 'fecha_nacimiento' son obligatorias.")
+            # Encolamos la tarea SOLO después del commit para evitar que el
+            # worker la levante antes de que el archivo esté visible en BD/MEDIA.
+            transaction.on_commit(
+                lambda: procesar_importacion_aspirantes_task.delay(lote.pk)
+            )
 
-                            if Aspirante.objects.filter(numero_documento=documento, institucion=institucion_actual).exists():
-                                errores.append(f"Fila {index + 2}: El aspirante con documento '{documento}' ya existe.")
-                                continue
-                            
-                            # ✅ BÚSQUEDA DEL GRADO POR NOMBRE, NO POR ID
-                            grado = Grado.objects.select_related('nivel_escolaridad').get(
-                                nombre__iexact=grado_nombre, 
-                                institucion=institucion_actual
-                            )
-                            
-                            aspirante = Aspirante.objects.create(
-                                institucion=institucion_actual,
-                                nombres=str(row.get('nombres', '')).strip(),
-                                apellidos=str(row.get('apellidos', '')).strip(),
-                                numero_documento=documento,
-                                grado_aspira=grado,
-                                fecha_nacimiento=pd.to_datetime(fecha_str, dayfirst=True).date(),
-                                email_contacto=str(row.get('email_contacto', '')).strip(),
-                                telefono_contacto=str(row.get('telefono_contacto', '')).strip(),
-                                sexo=str(row.get('sexo', 'O')).strip().upper(),
-                                colegio_procedencia=str(row.get('colegio_procedencia', '')).strip(),
-                                municipio_ciudad=str(row.get('municipio_ciudad', '')).strip(),
-                                departamento=str(row.get('departamento', '')).strip(),
-                                requiere_pago_inscripcion=str(row.get('paga_inscripcion', 'NO')).strip().upper() in ['SI', 'SÍ']
-                            )
-                            
-                            aspirante.procesar_inscripcion_completa()
-                            aspirantes_creados_count += 1
-
-                    except (ValueError, Grado.DoesNotExist) as e:
-                        errores.append(f"Fila {index + 2}: {e}")
-                    except Exception as e:
-                        logger.error(f"Error inesperado en fila {index + 2}: {e}", exc_info=True)
-                        errores.append(f"Fila {index + 2}: Error inesperado - revise los logs del servidor.")
-
-                if aspirantes_creados_count > 0:
-                    messages.success(request, f"✅ Se importaron {aspirantes_creados_count} aspirantes correctamente.")
-                if errores:
-                    messages.warning(request, "⚠️ Algunas filas no se pudieron importar:")
-                    for error in errores:
-                        messages.error(request, error)
-                
-                return redirect('admisiones:lista_grados_aspirantes')
-
-            except Exception as e:
-                messages.error(request, f"❌ Error general al procesar el archivo Excel: {e}")
+            messages.info(
+                request,
+                "Tu archivo se está procesando en segundo plano. Verás el progreso aquí en vivo.",
+            )
+            return redirect('admisiones:lote_importacion_detalle', lote_id=lote.pk)
     else:
         form = ImportarAspirantesForm()
 
-    return render(request, 'admisiones/importar_aspirantes.html', {'form': form, 'titulo_pagina': 'Importar Aspirantes desde Excel'})
+    lotes_recientes = (
+        LoteImportacionAspirantes.objects
+        .filter(institucion=institucion_actual)
+        .select_related('creado_por')
+        .order_by('-fecha_creacion')[:10]
+    )
+
+    return render(
+        request,
+        'admisiones/importar_aspirantes.html',
+        {
+            'form': form,
+            'titulo_pagina': 'Importar Aspirantes desde Excel',
+            'lotes_recientes': lotes_recientes,
+        },
+    )
+
+
+@login_required
+@permission_required('admisiones.add_aspirante', raise_exception=True)
+def lote_importacion_detalle(request, lote_id):
+    """Vista web del estado de un lote (página de progreso o resumen final)."""
+    lote = get_object_or_404(
+        LoteImportacionAspirantes.objects.select_related('creado_por', 'institucion'),
+        pk=lote_id,
+        institucion=request.user.institucion_asociada,
+    )
+    context = {
+        'lote': lote,
+        'titulo_pagina': f"Lote de importación #{lote.pk}",
+        'url_estado_json': reverse('admisiones:lote_importacion_estado', kwargs={'lote_id': lote.pk}),
+        'url_errores_xlsx': reverse('admisiones:lote_importacion_errores', kwargs={'lote_id': lote.pk}),
+    }
+    return render(request, 'admisiones/lote_progreso.html', context)
+
+
+@login_required
+@permission_required('admisiones.add_aspirante', raise_exception=True)
+def lote_importacion_estado(request, lote_id):
+    """Endpoint JSON para polling del progreso del lote desde la UI."""
+    lote = get_object_or_404(
+        LoteImportacionAspirantes,
+        pk=lote_id,
+        institucion=request.user.institucion_asociada,
+    )
+    # Limitamos errores en la respuesta para no inflar el payload del polling;
+    # la página de resumen los mostrará completos al finalizar.
+    errores = lote.errores or []
+    advertencias_total = sum(1 for e in errores if (e.get('tipo') == 'warning'))
+    errores_total = sum(1 for e in errores if (e.get('tipo') != 'warning'))
+    return JsonResponse({
+        'id': lote.pk,
+        'estado': lote.estado,
+        'estado_display': lote.get_estado_display(),
+        'finalizado': lote.esta_finalizado,
+        'dry_run': lote.dry_run,
+        'total_filas': lote.total_filas,
+        'filas_procesadas': lote.filas_procesadas,
+        'filas_exitosas': lote.filas_exitosas,
+        'filas_fallidas': lote.filas_fallidas,
+        'filas_con_advertencia': lote.filas_con_advertencia,
+        'progreso_porcentaje': lote.progreso_porcentaje,
+        'mensaje_error_general': lote.mensaje_error_general,
+        'errores_preview': errores[:20],
+        'errores_total': errores_total,
+        'advertencias_total': advertencias_total,
+        'fecha_inicio': lote.fecha_inicio.isoformat() if lote.fecha_inicio else None,
+        'fecha_fin': lote.fecha_fin.isoformat() if lote.fecha_fin else None,
+        'puede_cancelarse': lote.puede_cancelarse,
+        'puede_reintentarse': lote.puede_reintentarse,
+        'cancelacion_solicitada': lote.cancelacion_solicitada,
+    })
+
+
+def _puede_gestionar_lote(user, lote):
+    """Aislamiento SaaS: solo el creador del lote o staff de la misma institución
+    pueden cancelarlo o reintentarlo. Superuser tiene acceso total.
+    """
+    if user.is_superuser:
+        return True
+    if not user.institucion_asociada_id or user.institucion_asociada_id != lote.institucion_id:
+        return False
+    if lote.creado_por_id == user.pk:
+        return True
+    return bool(user.is_staff)
+
+
+@login_required
+@permission_required('admisiones.add_aspirante', raise_exception=True)
+@require_POST
+def cancelar_lote_importacion(request, lote_id):
+    """Solicita la cancelación cooperativa del lote.
+
+    Marca el flag ``cancelacion_solicitada=True`` (la tarea lo lee entre filas)
+    e intenta hacer ``revoke`` del task Celery para detener lotes pendientes.
+    """
+    lote = get_object_or_404(
+        LoteImportacionAspirantes,
+        pk=lote_id,
+        institucion=request.user.institucion_asociada,
+    )
+    if not _puede_gestionar_lote(request.user, lote):
+        return HttpResponseForbidden("No tienes permiso para cancelar este lote.")
+
+    if not lote.puede_cancelarse:
+        messages.warning(
+            request,
+            f"El lote ya está en estado {lote.get_estado_display()}; no se puede cancelar.",
+        )
+        return redirect('admisiones:lote_importacion_detalle', lote_id=lote.pk)
+
+    lote.cancelacion_solicitada = True
+    lote.save(update_fields=['cancelacion_solicitada'])
+
+    if lote.task_id:
+        try:
+            from proyecto_colegio.celery import app as celery_app
+            celery_app.control.revoke(lote.task_id, terminate=False)
+            logger.info("Revoke enviado para task %s del lote %s.", lote.task_id, lote.pk)
+        except Exception as exc:
+            logger.warning(
+                "No se pudo enviar revoke al task %s del lote %s: %s",
+                lote.task_id, lote.pk, exc,
+            )
+
+    if lote.estado == LoteImportacionAspirantes.Estado.PENDIENTE:
+        # Si la tarea aún no arrancó, marcamos directamente como CANCELADO.
+        lote.estado = LoteImportacionAspirantes.Estado.CANCELADO
+        lote.mensaje_error_general = "Lote cancelado antes de iniciar."
+        lote.fecha_fin = timezone.now()
+        lote.save(update_fields=['estado', 'mensaje_error_general', 'fecha_fin'])
+
+    messages.info(
+        request,
+        "Solicitud de cancelación enviada. Las filas ya creadas se conservan.",
+    )
+    return redirect('admisiones:lote_importacion_detalle', lote_id=lote.pk)
+
+
+@login_required
+@permission_required('admisiones.add_aspirante', raise_exception=True)
+@require_POST
+def reintentar_lote_importacion(request, lote_id):
+    """Crea un nuevo lote a partir del archivo del original (FALLIDO o CANCELADO)
+    y lo encola. Conservamos el lote viejo como auditoría.
+    """
+    from .tasks import procesar_importacion_aspirantes_task
+
+    lote_origen = get_object_or_404(
+        LoteImportacionAspirantes,
+        pk=lote_id,
+        institucion=request.user.institucion_asociada,
+    )
+    if not _puede_gestionar_lote(request.user, lote_origen):
+        return HttpResponseForbidden("No tienes permiso para reintentar este lote.")
+
+    if not lote_origen.puede_reintentarse:
+        messages.warning(
+            request,
+            f"Solo se pueden reintentar lotes en estado FALLIDO o CANCELADO "
+            f"(actual: {lote_origen.get_estado_display()}).",
+        )
+        return redirect('admisiones:lote_importacion_detalle', lote_id=lote_origen.pk)
+
+    if not lote_origen.archivo or not lote_origen.archivo.name:
+        messages.error(request, "El lote original ya no tiene archivo asociado.")
+        return redirect('admisiones:lote_importacion_detalle', lote_id=lote_origen.pk)
+
+    # Creamos un NUEVO lote apuntando al mismo archivo (no movemos bytes).
+    nuevo_lote = LoteImportacionAspirantes.objects.create(
+        institucion=lote_origen.institucion,
+        creado_por=request.user,
+        archivo=lote_origen.archivo.name,
+        nombre_original=f"[reintento de #{lote_origen.pk}] {lote_origen.nombre_original}",
+        dry_run=lote_origen.dry_run,
+    )
+    transaction.on_commit(
+        lambda: procesar_importacion_aspirantes_task.delay(nuevo_lote.pk)
+    )
+    messages.info(
+        request,
+        f"Reintento encolado como lote #{nuevo_lote.pk}. Sigue el progreso aquí.",
+    )
+    return redirect('admisiones:lote_importacion_detalle', lote_id=nuevo_lote.pk)
+
+
+@login_required
+@permission_required('admisiones.add_aspirante', raise_exception=True)
+@require_POST
+def reenviar_correos_lote(request, lote_id):
+    """Encola la tarea de reenvío de correos de bienvenida para un lote COMPLETADO."""
+    from .tasks import reenviar_correos_bienvenida_lote
+
+    lote = get_object_or_404(
+        LoteImportacionAspirantes,
+        pk=lote_id,
+        institucion=request.user.institucion_asociada,
+    )
+    if lote.estado != LoteImportacionAspirantes.Estado.COMPLETADO:
+        messages.warning(request, "Solo se pueden reenviar correos de lotes completados.")
+        return redirect('admisiones:lote_importacion_detalle', lote_id=lote.pk)
+
+    reenviar_correos_bienvenida_lote.delay(lote.pk, user_id=request.user.pk)
+    messages.success(
+        request,
+        f"Reenvío de correos encolado para el lote #{lote.pk}. "
+        "Recibirás una notificación cuando termine con el resultado detallado."
+    )
+    return redirect('admisiones:lote_importacion_detalle', lote_id=lote.pk)
+
+
+@login_required
+@permission_required('admisiones.add_aspirante', raise_exception=True)
+def lote_importacion_errores_excel(request, lote_id):
+    """Descarga un Excel con la lista de filas que fallaron en la importación."""
+    lote = get_object_or_404(
+        LoteImportacionAspirantes,
+        pk=lote_id,
+        institucion=request.user.institucion_asociada,
+    )
+
+    errores = lote.errores or []
+    # Normalizamos para que la salida tenga columnas estables independientemente
+    # del esquema antiguo ({fila, documento, error}) o el nuevo
+    # ({tipo, fila, documento, mensaje, error}).
+    filas = [
+        {
+            'tipo': (e.get('tipo') or 'error'),
+            'fila': e.get('fila', ''),
+            'documento': e.get('documento', ''),
+            'mensaje': e.get('mensaje') or e.get('error') or '',
+        }
+        for e in errores
+    ] or [{'tipo': '', 'fila': '', 'documento': '', 'mensaje': 'Sin incidencias registradas.'}]
+
+    df = pd.DataFrame(filas, columns=['tipo', 'fila', 'documento', 'mensaje'])
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='Incidencias')
+    output.seek(0)
+
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="lote_{lote.pk}_errores.xlsx"'
+    return response
 
 @login_required
 @permission_required('admisiones.view_aspirante', raise_exception=True)
@@ -504,7 +875,7 @@ def revertir_matriculacion(request, aspirante_id):
     return redirect('admisiones:lista_aspirantes')
 
 @login_required
-@permission_required('admisiones.view_aspirante')
+@permission_required('admisiones.view_aspirante', raise_exception=True)
 def pipeline_admisiones(request):
     """
     Prepara los datos para la vista del pipeline Kanban.
@@ -544,7 +915,7 @@ def pipeline_admisiones(request):
 
 @require_POST
 @login_required
-@permission_required('admisiones.change_aspirante')
+@permission_required('admisiones.change_aspirante', raise_exception=True)
 def actualizar_estado_aspirante_api(request):
     """
     Endpoint de API para actualizar el estado de un aspirante.
@@ -581,79 +952,124 @@ def actualizar_estado_aspirante_api(request):
 
 def crear_preferencia_mercadopago(request, cuenta_por_cobrar_id):
     """
-    VERSIÓN FINAL Y ROBUSTA:
-    Maneja tanto los pagos de inscripción (vía Estudiante) como los de matrícula (vía Aspirante).
+    VERSIÓN ENDURECIDA: solo el aspirante dueño (vía `?token=<uuid>`) o personal
+    de la institución autenticado pueden generar la preferencia de pago.
     """
     logger.info(f"Iniciando creación de preferencia para la cuenta: {cuenta_por_cobrar_id}")
 
-    # --- 1. OBTENCIÓN Y VALIDACIÓN DE DATOS ---
-    # Obtenemos la cuenta y sus relaciones relacionadas para optimizar.
     cuenta = get_object_or_404(
         CuentaPorCobrarEstudiante.objects.select_related(
-            'concepto_pago', 
-            'aspirante__institucion', # Para el pago de matrícula
-            'estudiante__aspirante_origen__institucion' # Para el pago de inscripción
-        ), 
-        pk=cuenta_por_cobrar_id
+            'concepto_pago',
+            'aspirante__institucion',
+            'estudiante__aspirante_origen__institucion',
+            'institucion',
+        ),
+        pk=cuenta_por_cobrar_id,
     )
-    
-    # --- LÓGICA DE BÚSQUEDA INTELIGENTE DEL ASPIRANTE ---
-    aspirante = None
-    # Caso 1: Pago de Matrícula (la cuenta tiene un enlace directo al aspirante)
-    if cuenta.aspirante:
-        aspirante = cuenta.aspirante
-    # Caso 2: Pago de Inscripción (la cuenta se enlaza a través del estudiante)
-    elif cuenta.estudiante and cuenta.estudiante.aspirante_origen:
-        aspirante = cuenta.estudiante.aspirante_origen
 
-    # Si después de ambos intentos no encontramos un aspirante, la data es inconsistente.
+    aspirante = _aspirante_desde_cuenta(cuenta)
     if not aspirante:
-        logger.error(f"Error Crítico: La CuentaPorCobrarEstudiante ID {cuenta.id} no está vinculada a ningún aspirante válido.")
+        logger.error(
+            "Error Crítico: La CuentaPorCobrarEstudiante ID %s no está vinculada a ningún aspirante válido.",
+            cuenta.id,
+        )
         raise Http404("No se pudo procesar el pago: la información del aspirante es inconsistente.")
 
-    # --- 2. LÓGICA DE PAGO (DENTRO DE TRY...EXCEPT) ---
-    try:
-        institucion = aspirante.institucion
+    if not _puede_operar_cuenta_aspirante(request, cuenta, aspirante):
+        logger.warning(
+            "Intento NO autorizado de crear preferencia MP para cuenta %s (user=%s, has_token=%s).",
+            cuenta.id,
+            getattr(request.user, 'pk', None),
+            bool(request.GET.get('token')),
+        )
+        return HttpResponseForbidden("No autorizado para iniciar este pago.")
 
-        access_token = institucion.mp_access_token_prod if institucion.mp_modo_produccion else institucion.mp_access_token_test
-        if not access_token:
-            raise ValueError("No se encontraron credenciales de Mercado Pago para esta institución.")
-
-        # Construcción de URLs
-        query_params = {'token': aspirante.access_token, 'cuenta_id': cuenta.id}
-        base_procesando_url = request.build_absolute_uri(reverse('admisiones:pago_procesando'))
-        url_procesando = f"{base_procesando_url}?{urlencode(query_params)}"
-        notification_url = request.build_absolute_uri(reverse('admisiones:mercadopago_webhook')) + f"?institucion_id={institucion.id}"
-        
-        sdk = mercadopago.SDK(access_token)
-        
-        preference_data = {
-            "items": [{"title": f"{cuenta.concepto_pago.nombre_concepto}", "quantity": 1, "unit_price": float(cuenta.monto_asignado), "currency_id": "COP"}],
-            "payer": {"name": aspirante.nombres, "surname": aspirante.apellidos, "email": aspirante.email_contacto},
-            "back_urls": {"success": url_procesando, "failure": url_procesando, "pending": url_procesando},
-            "auto_return": "approved",
-            "notification_url": notification_url,
-            "external_reference": str(cuenta.id),
-        }
-        
-        logger.info("Enviando los siguientes datos a Mercado Pago: %s", preference_data)
-        preference_response = sdk.preference().create(preference_data)
-        
-        if preference_response.get("status") >= 400:
-            error_msg = preference_response['response'].get('message', 'Error desconocido')
-            raise ValueError(f"Error de la API de Mercado Pago: {error_msg}")
-        
-        redirect_url = preference_response['response'].get('sandbox_init_point') or preference_response['response'].get('init_point')
-        if not redirect_url:
-            raise ValueError("La respuesta de Mercado Pago no contiene una URL de pago válida.")
-            
-        logger.info(f"Preferencia creada. Redirigiendo a: {redirect_url}")
-        return redirect(redirect_url)
-        
-    except Exception as e:
-        logger.error(f"Error creando preferencia de MP para cuenta {cuenta_por_cobrar_id}: {e}", exc_info=True)
-        messages.error(request, f"Hubo un error al generar el enlace de pago: {e}")
+    # Bloquear link si la cuenta ya fue pagada o anulada
+    if cuenta.estado == 'PAGADO':
+        messages.info(
+            request,
+            "Este pago ya fue registrado exitosamente. No es necesario volver a realizarlo.",
+        )
+        if aspirante.estado == 'ADMITIDO':
+            return redirect('admisiones:portal_postulante_pagado', token=aspirante.access_token)
         return redirect('admisiones:portal_postulante', token=aspirante.access_token)
+
+    if cuenta.estado == 'ANULADO':
+        messages.error(
+            request,
+            "Este enlace de pago fue anulado. Contacta a la institución para más información.",
+        )
+        return redirect('admisiones:portal_postulante', token=aspirante.access_token)
+
+    institucion = aspirante.institucion
+
+    query_params = {'token': str(aspirante.access_token), 'cuenta_id': cuenta.id}
+    base_procesando_url = request.build_absolute_uri(reverse('admisiones:pago_procesando'))
+    url_procesando = f"{base_procesando_url}?{urlencode(query_params)}"
+    notification_url = (
+        request.build_absolute_uri(reverse('admisiones:mercadopago_webhook'))
+        + f"?institucion_id={institucion.id}"
+    )
+
+    preference_data = {
+        "items": [{
+            "title": f"{cuenta.concepto_pago.nombre_concepto}",
+            "quantity": 1,
+            "unit_price": float(cuenta.monto_asignado),
+            "currency_id": "COP",
+        }],
+        "payer": {
+            "name": aspirante.nombres,
+            "surname": aspirante.apellidos,
+            "email": aspirante.email_contacto,
+        },
+        "back_urls": {
+            "success": url_procesando,
+            "failure": url_procesando,
+            "pending": url_procesando,
+        },
+        "auto_return": "approved",
+        "notification_url": notification_url,
+        "external_reference": str(cuenta.id),
+    }
+
+    try:
+        body = mp_crear_preferencia(institucion, payload=preference_data, cuenta=cuenta)
+    except MercadoPagoSinCredenciales as exc:
+        logger.error(
+            "Cuenta %s: institución %s sin credenciales MP: %s",
+            cuenta.id, institucion.id, exc,
+        )
+        messages.error(
+            request,
+            "Esta institución aún no tiene configurada la pasarela de pago. "
+            "Contacta al administrador.",
+        )
+        return redirect('admisiones:portal_postulante', token=aspirante.access_token)
+    except MercadoPagoError as exc:
+        logger.error(
+            "Error en Mercado Pago al crear preferencia para cuenta %s: %s",
+            cuenta.id, exc, exc_info=True,
+        )
+        messages.error(
+            request,
+            "No fue posible iniciar el pago en este momento. Reintenta en unos minutos.",
+        )
+        return redirect('admisiones:portal_postulante', token=aspirante.access_token)
+
+    # Preferimos el `init_point` (vivo) sobre el `sandbox_init_point` cuando estamos
+    # en producción; el cliente decide según `mp_modo_produccion`.
+    redirect_url = (
+        body.get('init_point') if institucion.mp_modo_produccion
+        else (body.get('sandbox_init_point') or body.get('init_point'))
+    )
+    if not redirect_url:
+        logger.error("Cuenta %s: respuesta MP sin URL de pago: %s", cuenta.id, body)
+        messages.error(request, "La pasarela no devolvió una URL de pago válida.")
+        return redirect('admisiones:portal_postulante', token=aspirante.access_token)
+
+    logger.info("Cuenta %s: preferencia creada, redirigiendo a MP.", cuenta.id)
+    return redirect(redirect_url)
 
     
 
@@ -679,25 +1095,43 @@ def pago_respuesta_mp(request):
 
 def subir_documento(request, token, doc_req_id):
     aspirante = get_object_or_404(Aspirante, access_token=token)
-    
-    if request.method == 'POST':
-        # Solo procesamos si realmente se envió un archivo
-        if 'archivo' in request.FILES:
-            documento_requerido = get_object_or_404(DocumentoRequerido, pk=doc_req_id)
-            documento_existente = DocumentoEntregado.objects.filter(aspirante=aspirante, documento_requerido=documento_requerido).first()
-            archivo_subido = request.FILES['archivo']
 
-            if documento_existente:
-                documento_existente.archivo = archivo_subido
-                documento_existente.estado = 'subido'
-                documento_existente.save()
-                messages.success(request, f"Documento '{documento_requerido.nombre}' reemplazado exitosamente.")
-            else:
-                DocumentoEntregado.objects.create(aspirante=aspirante, documento_requerido=documento_requerido, archivo=archivo_subido)
-                messages.success(request, f"Documento '{documento_requerido.nombre}' subido exitosamente.")
-        else:
-            # Si se envió el formulario pero sin archivo, mostramos una advertencia
-            messages.warning(request, "No se seleccionó ningún archivo para subir.")
+    if request.method != 'POST':
+        return redirect('admisiones:portal_postulante_pagado', token=token)
+
+    archivo_subido = request.FILES.get('archivo')
+    if not archivo_subido:
+        messages.warning(request, "No se seleccionó ningún archivo para subir.")
+        return redirect('admisiones:portal_postulante_pagado', token=token)
+
+    # Validamos antes de tocar la base de datos: si falla, no creamos registros vacíos.
+    ok, error_msg = _validar_archivo_documento(archivo_subido)
+    if not ok:
+        messages.error(request, error_msg)
+        return redirect('admisiones:portal_postulante_pagado', token=token)
+
+    documento_requerido = get_object_or_404(
+        DocumentoRequerido,
+        pk=doc_req_id,
+        institucion=aspirante.institucion,  # Evita subir contra un docreq de otra institución.
+    )
+
+    documento_existente = DocumentoEntregado.objects.filter(
+        aspirante=aspirante, documento_requerido=documento_requerido
+    ).first()
+
+    if documento_existente:
+        documento_existente.archivo = archivo_subido
+        documento_existente.estado = 'subido'
+        documento_existente.save()
+        messages.success(request, f"Documento '{documento_requerido.nombre}' reemplazado exitosamente.")
+    else:
+        DocumentoEntregado.objects.create(
+            aspirante=aspirante,
+            documento_requerido=documento_requerido,
+            archivo=archivo_subido,
+        )
+        messages.success(request, f"Documento '{documento_requerido.nombre}' subido exitosamente.")
 
     return redirect('admisiones:portal_postulante_pagado', token=token)
 
@@ -735,120 +1169,308 @@ def confirmar_agendamiento(request, token, horario_id):
     return render(request, 'admisiones/confirmar_cita.html', context) 
 
 @csrf_exempt
-# QUITAMOS @transaction.atomic de aquí para tener control manual
 def mercadopago_webhook(request):
+    """Webhook MP endurecido (Fase 3).
+
+    Mejoras vs versión anterior:
+      - **Idempotencia real**: cada notificación se guarda en
+        ``WebhookEventoMercadoPago`` con (institucion, data_id, payload_hash).
+        Si MP reenvía el mismo evento, devolvemos el mismo HTTP que la
+        primera vez sin reprocesar nada.
+      - **Auditoría completa**: cada evento queda persistido aunque la firma
+        falle, con su payload_hash, headers relevantes y resultado.
+      - **Rechazo estricto de firmas inválidas**: HTTP 401 (no 403, no 200).
+      - **Llamada a MP via cliente con reintentos** (timeout + auditoría).
+      - **Errores en transición post-pago no tumban el webhook**: el pago ya
+        está registrado y MP no debe reintentar.
     """
-    Webhook que procesa notificaciones de Mercado Pago.
-    VERSIÓN DEFINITIVA: Usa transacciones manuales para asegurar el registro del pago.
-    """
-    institucion_id = request.GET.get('institucion_id')
-    if not institucion_id:
-        logger.error("Webhook MP: Falta el ID de la institución en la URL.")
-        return HttpResponse("Falta ID", status=400)
+    if request.method != "POST":
+        return HttpResponse("Método no permitido", status=405)
+
+    # 1) institución (multi-tenant): la URL trae ?institucion_id=N
+    institucion_id_raw = request.GET.get("institucion_id")
+    if not institucion_id_raw or not str(institucion_id_raw).isdigit():
+        logger.error("Webhook MP: institucion_id ausente o inválido en la URL.")
+        return HttpResponse("institucion_id invalido", status=400)
 
     try:
-        data = json.loads(request.body)
-        if data.get('type') != 'payment':
-            return HttpResponse(status=200)
-        
-        payment_id = data['data']['id']
-        institucion = InstitucionEducativa.objects.get(pk=institucion_id)
-        access_token = institucion.mp_access_token_prod if institucion.mp_modo_produccion else institucion.mp_access_token_test
-        
-        sdk = mercadopago.SDK(access_token)
-        payment_info = sdk.payment().get(payment_id)["response"]
-        
-        if payment_info.get('status') == 'approved':
-            external_ref = payment_info.get('external_reference')
-            if not external_ref:
-                logger.warning(f"Webhook MP: Pago {payment_id} aprobado sin referencia externa.")
-                return HttpResponse(status=200)
+        institucion = InstitucionEducativa.objects.get(pk=int(institucion_id_raw))
+    except InstitucionEducativa.DoesNotExist:
+        logger.error("Webhook MP: institución %s no encontrada.", institucion_id_raw)
+        return HttpResponse("Institucion no encontrada", status=404)
 
-            # --- INICIO DE LA TRANSACCIÓN CONTROLADA ---
-            # En esta "caja de seguridad" solo haremos lo más importante: registrar el pago.
-            with transaction.atomic():
-                cuenta = CuentaPorCobrarEstudiante.objects.select_for_update().get(id=int(external_ref))
-                
-                if cuenta.estado == 'PAGADO':
-                    logger.info(f"Webhook MP: La cuenta {cuenta.id} ya estaba pagada. Se ignora.")
-                    return HttpResponse(status=200)
+    # 2) Body crudo y hash (necesarios para idempotencia y auditoría)
+    body_raw = request.body or b""
+    payload_hash = hashlib.sha256(body_raw).hexdigest()
 
-                aspirante = cuenta.aspirante or (cuenta.estudiante and cuenta.estudiante.aspirante_origen)
+    try:
+        data = json.loads(body_raw.decode("utf-8") or "{}")
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        logger.error("Webhook MP: payload JSON inválido para institución %s.", institucion.id)
+        return HttpResponse("Payload invalido", status=400)
+
+    tipo_evento = (data.get("type") or "").strip()
+    payment_id = (data.get("data") or {}).get("id")
+    data_id_for_signature = resolve_notification_data_id(request, str(payment_id or ""))
+
+    x_signature = request.META.get("HTTP_X_SIGNATURE", "") or ""
+    x_request_id = request.META.get("HTTP_X_REQUEST_ID", "") or ""
+
+    secret = institucion_mp_webhook_secret(institucion)
+    firma_valida = verify_mercadopago_webhook_signature(
+        secret,
+        data_id=data_id_for_signature,
+        x_request_id=x_request_id,
+        x_signature_header=x_signature,
+    )
+
+    payload_resumen = {
+        "type": tipo_evento,
+        "data_id": data_id_for_signature or "",
+        "user_id": data.get("user_id"),
+        "action": data.get("action"),
+        "live_mode": data.get("live_mode"),
+        "api_version": data.get("api_version"),
+    }
+
+    # 3) Idempotencia: ¿ya existe este evento exacto para esta institución?
+    evento_existente = (
+        WebhookEventoMercadoPago.objects
+        .filter(
+            institucion=institucion,
+            data_id=data_id_for_signature or "",
+            payload_hash=payload_hash,
+        )
+        .first()
+    )
+    if evento_existente and evento_existente.procesado_ok:
+        logger.info(
+            "Webhook MP: evento duplicado (institucion=%s data_id=%s); devolviendo HTTP %s previo.",
+            institucion.id, evento_existente.data_id, evento_existente.estado_http_devuelto,
+        )
+        return HttpResponse(
+            "Evento ya procesado.",
+            status=evento_existente.estado_http_devuelto or 200,
+        )
+
+    # 4) Crear/actualizar el evento. Esto debe persistir SIEMPRE (incluso si la
+    # firma es inválida): así tenemos rastro de intentos sospechosos.
+    evento = evento_existente or WebhookEventoMercadoPago(
+        institucion=institucion,
+        data_id=data_id_for_signature or "",
+        payload_hash=payload_hash,
+    )
+    evento.tipo = tipo_evento[:32]
+    evento.x_request_id = x_request_id[:128]
+    evento.x_signature = x_signature[:255]
+    evento.firma_valida = firma_valida
+    evento.payload_resumen = payload_resumen
+    evento.save()
+
+    # 5) Rechazo estricto de firma inválida (los reintentos legítimos de MP
+    # también traen firma; aquí distinguimos un atacante de un retry real).
+    if not firma_valida:
+        logger.warning(
+            "Webhook MP: firma INVÁLIDA para institución %s (x-request-id=%s).",
+            institucion.id, x_request_id or "<vacío>",
+        )
+        evento.estado_http_devuelto = 401
+        evento.error_mensaje = "Firma x-signature inválida o ausente."
+        evento.fecha_procesamiento = timezone.now()
+        evento.save(update_fields=["estado_http_devuelto", "error_mensaje", "fecha_procesamiento"])
+        return HttpResponse("Firma invalida", status=401)
+
+    # 6) Tipos de evento que ignoramos (devolvemos 200 para que MP no reintente).
+    if tipo_evento and tipo_evento != "payment":
+        evento.estado_http_devuelto = 200
+        evento.procesado_ok = True
+        evento.error_mensaje = f"Tipo de evento '{tipo_evento}' ignorado."
+        evento.fecha_procesamiento = timezone.now()
+        evento.save(update_fields=["estado_http_devuelto", "procesado_ok", "error_mensaje", "fecha_procesamiento"])
+        return HttpResponse(status=200)
+
+    if not payment_id:
+        evento.estado_http_devuelto = 400
+        evento.error_mensaje = "Falta data.id en el payload."
+        evento.fecha_procesamiento = timezone.now()
+        evento.save(update_fields=["estado_http_devuelto", "error_mensaje", "fecha_procesamiento"])
+        return HttpResponse("Falta payment id", status=400)
+
+    # 7) Consultar el pago en MP usando el cliente con reintentos + auditoría.
+    try:
+        payment_info = mp_consultar_pago(institucion, payment_id=payment_id)
+    except MercadoPagoSinCredenciales as exc:
+        logger.error("Webhook MP institución %s sin credenciales: %s", institucion.id, exc)
+        evento.estado_http_devuelto = 503
+        evento.error_mensaje = f"Sin credenciales MP: {exc}"
+        evento.fecha_procesamiento = timezone.now()
+        evento.save(update_fields=["estado_http_devuelto", "error_mensaje", "fecha_procesamiento"])
+        return HttpResponse("Sin credenciales", status=503)
+    except MercadoPagoError as exc:
+        logger.error(
+            "Webhook MP: fallo al consultar pago %s para institución %s: %s",
+            payment_id, institucion.id, exc,
+        )
+        evento.estado_http_devuelto = 502
+        evento.error_mensaje = f"Error consultando MP: {exc}"
+        evento.fecha_procesamiento = timezone.now()
+        evento.save(update_fields=["estado_http_devuelto", "error_mensaje", "fecha_procesamiento"])
+        # 502 hace que MP reintente (queremos eso si el problema es transitorio).
+        return HttpResponse("Error consultando MP", status=502)
+
+    if payment_info.get("status") != "approved":
+        evento.estado_http_devuelto = 200
+        evento.procesado_ok = True
+        evento.error_mensaje = f"Pago en estado '{payment_info.get('status')}', sin acción."
+        evento.fecha_procesamiento = timezone.now()
+        evento.save(update_fields=["estado_http_devuelto", "procesado_ok", "error_mensaje", "fecha_procesamiento"])
+        return HttpResponse(status=200)
+
+    external_ref = payment_info.get("external_reference") or ""
+    if not external_ref or not re.fullmatch(r"\d+", str(external_ref)):
+        logger.warning(
+            "Webhook MP: external_reference inválida ('%s') para pago %s.",
+            external_ref, payment_id,
+        )
+        evento.estado_http_devuelto = 400
+        evento.error_mensaje = f"external_reference inválida: '{external_ref}'."
+        evento.fecha_procesamiento = timezone.now()
+        evento.save(update_fields=["estado_http_devuelto", "error_mensaje", "fecha_procesamiento"])
+        return HttpResponse("external_reference invalida", status=400)
+
+    # 8) Registro del pago (con bloqueo de fila y aislamiento por institución).
+    cuenta = None
+    aspirante = None
+    pago_registrado_obj = None
+    try:
+        with transaction.atomic():
+            # Defensa por si el mismo payment_id viaja en dos webhooks distintos
+            # (data_id distinto pero pago igual) → el filtro por institución evita
+            # cross-tenant.
+            existente = (
+                PagoRegistrado.objects
+                .filter(referencia_transaccion=str(payment_id), institucion=institucion)
+                .first()
+            )
+            if existente:
+                logger.info(
+                    "Webhook MP: pago %s ya estaba registrado para institución %s (idempotencia).",
+                    payment_id, institucion.id,
+                )
+                pago_registrado_obj = existente
+            else:
+                cuenta = CuentaPorCobrarEstudiante.objects.select_for_update().get(
+                    id=int(external_ref),
+                    institucion=institucion,
+                )
+
+                aspirante = _aspirante_desde_cuenta(cuenta)
                 if not aspirante:
-                    raise Exception(f"Inconsistencia: Cuenta {cuenta.id} sin aspirante válido.")
-                
+                    raise RuntimeError(f"Cuenta {cuenta.id} sin aspirante válido.")
+
                 estudiante_asociado = aspirante.estudiante_creado
                 if not estudiante_asociado:
-                    raise Exception(f"Inconsistencia: Aspirante {aspirante.pk} sin estudiante asociado.")
+                    raise RuntimeError(
+                        f"Aspirante {aspirante.pk} sin estudiante asociado."
+                    )
 
-                # 1. Creamos el registro financiero.
-                PagoRegistrado.objects.create(
-                    cuenta=cuenta, 
-                    estudiante=estudiante_asociado,
-                    valor_pagado=Decimal(payment_info['transaction_amount']),
-                    metodo_pago='MERCADO_PAGO', 
-                    referencia_transaccion=str(payment_id), 
-                    institucion=institucion,
-                    observacion=f"Pago confirmado automáticamente vía MP. ID: {payment_id}"
-                )
-                logger.info(f"Webhook: PagoRegistrado creado y CONFIRMADO para cuenta #{cuenta.id}.")
-            # --- FIN DE LA TRANSACCIÓN CONTROLADA ---
-
-            # En este punto, el PagoRegistrado YA ESTÁ GUARDADO de forma permanente.
-            # Nada de lo que pase a continuación puede borrarlo.
-
-            # 2. Ahora, fuera de la transacción principal, ejecutamos el proceso de matrícula.
-            try:
-                concepto_pagado = cuenta.concepto_pago
-                if concepto_pagado.es_pago_matricula and aspirante.estado == 'APROBADO_MATRICULA':
-                    # Llamamos a la función del modelo, pero si falla, el pago ya quedó guardado.
-                    aspirante.matricular()
-                    logger.info(f"Webhook: Aspirante {aspirante.pk} MATRICULADO.")
-                
-                elif concepto_pagado.es_pago_inscripcion and aspirante.estado == 'INSCRITO':
-                    aspirante.estado = 'ADMITIDO'
-                    aspirante.save(update_fields=['estado'])
-                    logger.info(f"Webhook: Aspirante {aspirante.pk} actualizado a ADMITIDO.")
-            except Exception as e:
-                # Si la matriculación falla, el pago ya quedó registrado.
-                # Ahora podemos registrar el error y notificar al admin para que lo resuelva manualmente.
-                logger.error(f"Webhook: El pago para la cuenta {cuenta.id} se registró, pero la matriculación automática falló: {e}", exc_info=True)
-
-    except Exception as e:
-        logger.error(f"Webhook MP: Error general. {e}", exc_info=True)
+                if cuenta.estado != "PAGADO":
+                    pago_registrado_obj = PagoRegistrado.objects.create(
+                        cuenta=cuenta,
+                        estudiante=estudiante_asociado,
+                        valor_pagado=Decimal(str(payment_info["transaction_amount"])),
+                        metodo_pago="MERCADO_PAGO",
+                        referencia_transaccion=str(payment_id),
+                        institucion=institucion,
+                        observacion=f"Pago confirmado automáticamente vía MP. ID: {payment_id}",
+                    )
+                    logger.info(
+                        "Webhook: PagoRegistrado creado para cuenta #%s (institución %s).",
+                        cuenta.id, institucion.id,
+                    )
+                else:
+                    logger.info(
+                        "Webhook MP: cuenta %s ya marcada como PAGADO; no se duplica el pago.",
+                        cuenta.id,
+                    )
+    except CuentaPorCobrarEstudiante.DoesNotExist:
+        logger.error(
+            "Webhook MP: cuenta %s no existe o no pertenece a la institución %s.",
+            external_ref, institucion.id,
+        )
+        evento.estado_http_devuelto = 404
+        evento.error_mensaje = (
+            f"Cuenta {external_ref} no existe o no pertenece a la institución {institucion.id}."
+        )
+        evento.fecha_procesamiento = timezone.now()
+        evento.save(update_fields=["estado_http_devuelto", "error_mensaje", "fecha_procesamiento"])
+        return HttpResponse("Cuenta no encontrada", status=404)
+    except Exception as exc:
+        logger.error("Webhook MP: error registrando pago %s: %s", payment_id, exc, exc_info=True)
+        evento.estado_http_devuelto = 500
+        evento.error_mensaje = f"Error interno: {exc}"
+        evento.fecha_procesamiento = timezone.now()
+        evento.save(update_fields=["estado_http_devuelto", "error_mensaje", "fecha_procesamiento"])
         return HttpResponse("Error interno", status=500)
-        
+
+    # 9) Transición de estado del aspirante (post-commit). Si esto falla, el pago
+    # YA está registrado, así que devolvemos 200 igual y dejamos rastro en el log.
+    try:
+        if cuenta and aspirante:
+            concepto_pagado = cuenta.concepto_pago
+            if concepto_pagado.es_pago_matricula and aspirante.estado == "APROBADO_MATRICULA":
+                _, resultado_cuentas = aspirante.matricular()
+                logger.info(
+                    "Webhook: Aspirante %s MATRICULADO. Cuentas: %s",
+                    aspirante.pk, resultado_cuentas.resumen(),
+                )
+            elif concepto_pagado.es_pago_inscripcion and aspirante.estado == "INSCRITO":
+                aspirante.estado = "ADMITIDO"
+                aspirante.save(update_fields=["estado"])
+                logger.info("Webhook: Aspirante %s actualizado a ADMITIDO.", aspirante.pk)
+    except Exception as exc:
+        logger.error(
+            "Webhook: El pago de la cuenta %s se registró, pero la transición automática falló: %s",
+            cuenta.id if cuenta else external_ref, exc, exc_info=True,
+        )
+
+    # 10) Cerrar el evento como OK.
+    evento.cuenta = cuenta
+    evento.pago_registrado = pago_registrado_obj
+    evento.estado_http_devuelto = 200
+    evento.procesado_ok = True
+    evento.fecha_procesamiento = timezone.now()
+    evento.save(update_fields=[
+        "cuenta", "pago_registrado",
+        "estado_http_devuelto", "procesado_ok", "fecha_procesamiento",
+    ])
     return HttpResponse(status=200)
 
-@login_required # O la forma de autenticación que uses para el portal
+@require_POST
 def cancelar_cita(request, token):
+    """Permite al aspirante cancelar su cita.
+
+    El aspirante NO está autenticado en Django: se identifica por el UUID
+    ``access_token``. Por eso esta vista es pública pero exige POST + CSRF
+    para evitar que un enlace malicioso GET dispare la cancelación
+    (anteriormente era ``@login_required`` y un ``<a href>`` simple, lo que
+    rompía la funcionalidad real para el aspirante).
     """
-    Permite a un aspirante cancelar su propia cita agendada.
-    """
-    # Buscamos al aspirante de forma segura usando el token
     aspirante = get_object_or_404(Aspirante, access_token=token)
 
-    # Verificamos si realmente tiene una cita para cancelar
     try:
         cita_agendada = aspirante.cita_agendada
-        
-        # Guardamos la información de la cita para el mensaje antes de borrarla
-        info_cita_cancelada = str(cita_agendada) 
-
-        # Eliminamos la cita de la base de datos
+        info_cita_cancelada = str(cita_agendada)
         cita_agendada.delete()
-
-        # NOTA: Al eliminar la CitaAgendada, el cupo en el HorarioDisponible se libera automáticamente
-        # porque la cuenta de 'citas_agendadas' se recalculará.
-        
-        messages.success(request, f"Tu cita '{info_cita_cancelada}' ha sido cancelada exitosamente. Ya puedes agendar una nueva.")
-
+        messages.success(
+            request,
+            f"Tu cita '{info_cita_cancelada}' ha sido cancelada exitosamente. "
+            "Ya puedes agendar una nueva.",
+        )
     except CitaAgendada.DoesNotExist:
-        # Esto ocurre si el usuario intenta acceder a la URL pero ya no tiene cita
         messages.warning(request, "No tienes ninguna cita agendada para cancelar.")
 
-    # Siempre redirigimos de vuelta al portal de pagado
-    return redirect('admisiones:portal_postulante_pagado', token=token)    
+    return redirect('admisiones:portal_postulante_pagado', token=token)
 
 def portal_postulante_pagado(request, token):
     """
@@ -898,7 +1520,7 @@ def portal_postulante(request, token):
         cuenta_inscripcion = CuentaPorCobrarEstudiante.objects.filter(
             estudiante=aspirante.estudiante_creado,
             estado='PENDIENTE',
-            concepto_pago__nombre_concepto__icontains='Inscripción'
+            concepto_pago__es_pago_inscripcion=True,
         ).first()
 
     # 2. Si debe pagar MATRÍCULA, la lógica se mantiene igual.
@@ -908,7 +1530,7 @@ def portal_postulante(request, token):
         cuenta_matricula = CuentaPorCobrarEstudiante.objects.filter(
             aspirante=aspirante,
             estado='PENDIENTE',
-            concepto_pago__nombre_concepto__icontains='Matrícula'
+            concepto_pago__es_pago_matricula=True,
         ).first()
 
     # --- Lógica de documentos (se mantiene igual) ---
@@ -932,51 +1554,69 @@ def portal_postulante(request, token):
     }
     return render(request, 'admisiones/portal_postulante.html', context)
 
-@transaction.atomic
+@login_required
+@permission_required('admisiones.change_aspirante', raise_exception=True)
 def matricular_aspirante(request, aspirante_id):
     """
-    Matricula a un aspirante, copiando los valores financieros correctos
-    desde el Nivel de Escolaridad asociado a su grado.
+    Acción manual para matricular un aspirante desde el panel administrativo.
+
+    Reusa el método ``Aspirante.matricular()`` para no duplicar lógica: ese método
+    activa al estudiante preliminar (creado en la fase de inscripción), actualiza
+    rol y estado, y sincroniza las pensiones del año. Antes existía aquí una
+    versión paralela que creaba OTRO ``Estudiante`` y rompía la unicidad de
+    ``documento_identidad`` — esa versión queda eliminada.
     """
-    aspirante = get_object_or_404(Aspirante, pk=aspirante_id, institucion=request.user.institucion_asociada)
-
-    # 1. Obtenemos el Nivel de Escolaridad del grado al que aspira.
-    grado_aspirado = aspirante.grado_aspira
-    nivel_escolaridad = getattr(grado_aspirado, 'nivel_escolaridad', None)
-
-    # 2. Verificamos que el Nivel exista.
-    if not nivel_escolaridad:
-        messages.error(request, f"Error Crítico: El grado '{grado_aspirado}' no tiene un Nivel de Escolaridad asignado.")
-        return redirect('admisiones:detalle_aspirante', pk=aspirante.id)
-
-    # 3. Creamos el perfil de Estudiante, copiando los valores CORRECTOS del Nivel.
-    nuevo_estudiante = Estudiante.objects.create(
-        usuario=aspirante.usuario,
-        institucion=aspirante.institucion,
-        documento_identidad=aspirante.numero_documento,
-        grado_actual=grado_aspirado,
-        # ✅ COPIA LOS VALORES DIRECTAMENTE DEL NIVEL DE ESCOLARIDAD
-        valor_matricula=nivel_escolaridad.valor_matricula_estandar,
-        valor_mensualidad=nivel_escolaridad.valor_pension_estandar,
-        # ... otros campos que quieras copiar del aspirante ...
+    aspirante = get_object_or_404(
+        Aspirante,
+        pk=aspirante_id,
+        institucion=request.user.institucion_asociada,
     )
 
-    # 4. Actualizamos el rol del usuario y el estado del aspirante.
-    aspirante.usuario.rol = 'estudiante'
-    aspirante.usuario.save(update_fields=['rol'])
+    grado_aspirado = aspirante.grado_aspira
+    if not grado_aspirado or not getattr(grado_aspirado, 'nivel_escolaridad', None):
+        messages.error(
+            request,
+            f"El grado '{grado_aspirado}' no tiene un Nivel de Escolaridad asignado. "
+            "No se puede matricular hasta que esté configurado.",
+        )
+        return redirect('admisiones:detalle_aspirante', pk=aspirante.id)
 
-    aspirante.estado = Aspirante.EstadoAdmision.MATRICULADO
-    aspirante.estudiante_creado = nuevo_estudiante
-    aspirante.save(update_fields=['estado', 'estudiante_creado'])
+    if aspirante.estado == Aspirante.EstadoAdmision.MATRICULADO:
+        messages.info(request, f"El aspirante {aspirante} ya está matriculado.")
+        return redirect('admisiones:detalle_aspirante', pk=aspirante.id)
 
-    # La señal post_save de Estudiante ahora se encargará de crear las pensiones
-    # usando el `valor_mensualidad` correcto que acabamos de guardar en el perfil.
+    if not aspirante.estudiante_creado:
+        messages.error(
+            request,
+            "Este aspirante aún no tiene un perfil de estudiante preliminar. "
+            "Debe completar antes el proceso de inscripción.",
+        )
+        return redirect('admisiones:detalle_aspirante', pk=aspirante.id)
+
+    try:
+        estudiante, resultado_cuentas = aspirante.matricular()
+    except Exception as exc:
+        logger.error("Fallo al matricular aspirante %s: %s", aspirante.pk, exc, exc_info=True)
+        messages.error(request, f"No se pudo matricular: {exc}")
+        return redirect('admisiones:detalle_aspirante', pk=aspirante.id)
 
     messages.success(request, f"¡El aspirante {aspirante} ha sido matriculado exitosamente!")
-    return redirect('finanzas:historial_cuentas_estudiante', estudiante_id=nuevo_estudiante.pk)
+
+    # Si la sincronización de cuentas tuvo problemas accionables (faltan
+    # ConceptoPago de pensión/matrícula), avisamos al admin con CTA clara.
+    if resultado_cuentas.es_warning:
+        messages.warning(
+            request,
+            f"⚠ Matrícula realizada, pero NO se generaron todas las cuentas "
+            f"automáticas: {resultado_cuentas.mensaje}",
+        )
+    elif resultado_cuentas.es_exito:
+        messages.info(request, f"Cuentas generadas: {resultado_cuentas.resumen()}")
+
+    return redirect('finanzas:historial_cuentas_estudiante', estudiante_id=estudiante.pk)
 
 @login_required
-@permission_required('admisiones.change_documentoentregado') # Permiso para revisar
+@permission_required('admisiones.change_documentoentregado', raise_exception=True)
 def revision_documentos_lista(request):
     institucion = request.user.institucion_asociada
     
@@ -996,7 +1636,7 @@ def revision_documentos_lista(request):
     return render(request, 'admisiones/revision_documentos_lista.html', context)
 
 @login_required
-@permission_required('admisiones.change_documentoentregado')
+@permission_required('admisiones.change_documentoentregado', raise_exception=True)
 def revision_documento_detalle(request, aspirante_id):
     aspirante = get_object_or_404(Aspirante, pk=aspirante_id, institucion=request.user.institucion_asociada)
 
@@ -1076,43 +1716,71 @@ def lista_aspirantes_por_grado(request, grado_id):
 
 def pago_procesando(request):
     """
-    Página intermedia que verifica el estado del pago y redirige al destino correcto,
-    ya sea el portal de admisiones o el dashboard del estudiante.
-    """
-    cuenta_id = request.GET.get('cuenta_id')
-    next_url = request.GET.get('next')  # Leemos el destino final desde la URL
+    Página intermedia que verifica el estado del pago y redirige al destino correcto.
 
-    if not cuenta_id:
+    Endurecida:
+    - Exige `?cuenta_id=<int>` y `?token=<uuid>` válidos.
+    - Solo el aspirante dueño (token) o personal de la institución autenticado pueden ver
+      esta página; así evitamos enumerar cuentas o estados ajenos.
+    - El destino final se calcula en backend a partir del aspirante (no se acepta `?next=`).
+    """
+    cuenta_id_raw = (request.GET.get('cuenta_id') or '').strip()
+    if not cuenta_id_raw.isdigit():
         messages.error(request, "Información de pago inválida o incompleta.")
         return redirect('gestion_academica:inicio_academico')
 
-    # --- LÓGICA DE REDIRECCIÓN FINAL ---
-    # Si la URL de pago nos dijo a dónde ir (parámetro 'next'), usamos esa URL.
-    if next_url:
-        url_final = next_url
-    else:
-        # Si no, usamos la lógica anterior como respaldo para el flujo de admisiones.
-        aspirante_token = request.GET.get('token')
-        if aspirante_token:
-            url_final = reverse('admisiones:portal_postulante_pagado', args=[aspirante_token])
-        else:
-            # Como último recurso, vamos al inicio.
-            url_final = reverse('admisiones:portal_postulante')
+    cuenta = get_object_or_404(
+        CuentaPorCobrarEstudiante.objects.select_related(
+            'aspirante',
+            'estudiante__aspirante_origen',
+            'institucion',
+        ),
+        pk=int(cuenta_id_raw),
+    )
+
+    aspirante = _aspirante_desde_cuenta(cuenta)
+    if not aspirante or not _puede_operar_cuenta_aspirante(request, cuenta, aspirante):
+        return HttpResponseForbidden("No autorizado para ver este pago.")
+
+    token_str = str(aspirante.access_token)
+    url_final = reverse('admisiones:portal_postulante_pagado', kwargs={'token': token_str})
+
+    # Permitimos override solo a URL interna segura (defensa contra open redirect).
+    raw_next = (request.GET.get('next') or '').strip()
+    if raw_next and url_has_allowed_host_and_scheme(
+        url=raw_next,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        url_final = raw_next
+
+    verif_url = reverse('admisiones:verificar_estado_pago', args=[cuenta.id]) + f"?token={token_str}"
 
     context = {
         'titulo_pagina': 'Procesando tu Pago',
-        'cuenta_id': cuenta_id,
-        'url_verificacion': reverse('admisiones:verificar_estado_pago', args=[cuenta_id]),
-        'url_final': url_final  # Usamos la URL final que acabamos de determinar
+        'cuenta_id': cuenta.id,
+        'url_verificacion': verif_url,
+        'url_final': url_final,
     }
     return render(request, 'admisiones/pago_procesando.html', context)
 
+
 def verificar_estado_pago(request, cuenta_id):
     """
-    Endpoint simple que devuelve el estado de una cuenta para ser consultado por AJAX.
+    Endpoint AJAX que devuelve el estado de una cuenta de un aspirante.
+
+    Endurecido: requiere `?token=<uuid>` válido del aspirante o sesión staff de la
+    misma institución; si no, responde 403.
     """
     try:
-        cuenta = CuentaPorCobrarEstudiante.objects.get(pk=cuenta_id)
-        return JsonResponse({'estado': cuenta.estado})
+        cuenta = CuentaPorCobrarEstudiante.objects.select_related(
+            'aspirante', 'estudiante__aspirante_origen', 'institucion',
+        ).get(pk=cuenta_id)
     except CuentaPorCobrarEstudiante.DoesNotExist:
-        return JsonResponse({'estado': 'NO_ENCONTRADO'}, status=404)    
+        return JsonResponse({'estado': 'NO_ENCONTRADO'}, status=404)
+
+    aspirante = _aspirante_desde_cuenta(cuenta)
+    if not aspirante or not _puede_operar_cuenta_aspirante(request, cuenta, aspirante):
+        return JsonResponse({'estado': 'NO_AUTORIZADO'}, status=403)
+
+    return JsonResponse({'estado': cuenta.estado})

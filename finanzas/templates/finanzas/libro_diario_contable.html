@@ -1,0 +1,346 @@
+{% extends 'base_finanzas.html' %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+    /* ── Acordeón mes ── */
+    .mes-header {
+        background: linear-gradient(135deg, #0f3460 0%, #1a4a80 100%);
+        color: white;
+        border-radius: 10px;
+        padding: .75rem 1.1rem;
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+        transition: opacity .15s;
+    }
+    .mes-header:hover { opacity: .92; }
+    .mes-header .mes-nombre { font-size: 1rem; font-weight: 700; letter-spacing: .3px; }
+    .mes-header .mes-stats { display: flex; gap: 1rem; font-size: .8rem; opacity: .88; flex-wrap: wrap; }
+    .mes-header .mes-stats span { white-space: nowrap; }
+    .mes-chevron { transition: transform .25s; flex-shrink: 0; }
+    .mes-header.collapsed .mes-chevron { transform: rotate(-90deg); }
+
+    /* ── Acordeón día ── */
+    .dia-header {
+        background: #f1f5f9;
+        border-left: 3px solid #0f3460;
+        border-radius: 0 6px 6px 0;
+        padding: .5rem .9rem;
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+        transition: background .15s;
+    }
+    .dia-header:hover { background: #e2e8f0; }
+    .dia-header .dia-label { font-weight: 600; font-size: .88rem; color: #0f3460; }
+    .dia-header .dia-stats { display: flex; gap: .75rem; font-size: .78rem; color: #64748b; flex-wrap: wrap; }
+    .dia-chevron { transition: transform .2s; color: #94a3b8; flex-shrink: 0; font-size: .8rem; }
+    .dia-header.collapsed .dia-chevron { transform: rotate(-90deg); }
+
+    /* ── Tabla de filas ── */
+    .mov-table { font-size: .82rem; }
+    .mov-table th { font-size: .75rem; font-weight: 700; color: #64748b;
+                    text-transform: uppercase; letter-spacing: .4px;
+                    background: #f8faff; border-bottom: 2px solid #e2e8f0; }
+    .mov-table td { vertical-align: middle; border-color: #f1f5f9; }
+    .puc-badge { background: #e0f2fe; color: #075985; font-family: 'Courier New', monospace;
+                 font-size: .73rem; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+    .tipo-I { color: #15803d; font-weight: 700; font-size: .75rem; }
+    .tipo-G { color: #b91c1c; font-weight: 700; font-size: .75rem; }
+    .val-cred { color: #15803d; font-weight: 600; }
+    .val-deb  { color: #b91c1c; font-weight: 600; }
+
+    /* ── KPI cards ── */
+    .kpi-card { border-radius: 12px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+    .kpi-card .kpi-label { font-size: .75rem; color: #64748b; text-transform: uppercase;
+                           letter-spacing: .5px; margin-bottom: 2px; }
+    .kpi-card .kpi-val   { font-size: 1.35rem; font-weight: 800; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'finanzas:dashboard_financiero' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'finanzas:reportes_exportaciones' %}">Reportes</a></li>
+            <li class="breadcrumb-item active">{{ titulo_pagina }}</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <h1 class="h3 mb-1">{{ titulo_pagina }}</h1>
+            <p class="text-muted mb-0" style="font-size:.88rem;">
+                Movimientos agrupados por mes y día · incluye códigos PUC.
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-success btn-sm fw-600" href="{% url 'finanzas:exportacion_contable' %}">
+                <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel/CSV
+            </a>
+            <a id="btn-pdf-libro"
+               href="{% url 'finanzas:libro_diario_pdf' %}{% if filtros_qs %}?{{ filtros_qs }}{% endif %}"
+               class="btn btn-danger btn-sm fw-600" target="_blank">
+                <i class="bi bi-file-earmark-pdf-fill me-1"></i>Descargar PDF completo
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow-sm mb-4" style="border-radius:12px;">
+        <div class="card-header border-0 fw-700" style="background:#f8faff;">
+            <i class="bi bi-funnel me-2 text-primary"></i>Filtros
+        </div>
+        <div class="card-body pt-2">
+            <form method="get" id="form-filtros" class="row g-3 align-items-end">
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label small fw-600" for="id_fecha_inicio">{{ form.fecha_inicio.label }}</label>
+                    {{ form.fecha_inicio }}
+                </div>
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label small fw-600" for="id_fecha_fin">{{ form.fecha_fin.label }}</label>
+                    {{ form.fecha_fin }}
+                </div>
+                <div class="col-md-4 col-lg-3">
+                    <label class="form-label small fw-600" for="id_tipo_transaccion">{{ form.tipo_transaccion.label }}</label>
+                    {{ form.tipo_transaccion }}
+                </div>
+                <div class="col-md-5 col-lg-3">
+                    <label class="form-label small fw-600" for="id_periodo_academico">{{ form.periodo_academico.label }}</label>
+                    {{ form.periodo_academico }}
+                </div>
+                <div class="col-md-12 col-lg-2">
+                    <button type="submit" class="btn btn-primary w-100 fw-600">
+                        <i class="bi bi-search me-1"></i>Consultar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if grupos is not None %}
+
+    <!-- KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4">
+            <div class="card kpi-card">
+                <div class="card-body py-3">
+                    <div class="kpi-label">Registros totales</div>
+                    <div class="kpi-val text-primary">{{ registros_total|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card kpi-card">
+                <div class="card-body py-3">
+                    <div class="kpi-label">Total créditos (ingresos)</div>
+                    <div class="kpi-val" style="color:#15803d;">${{ total_cred|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card kpi-card">
+                <div class="card-body py-3">
+                    <div class="kpi-label">Total débitos (gastos)</div>
+                    <div class="kpi-val" style="color:#b91c1c;">${{ total_deb|floatformat:0|intcomma }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acordeón por mes / día -->
+    {% if grupos %}
+    <div class="d-flex justify-content-end mb-2 gap-2">
+        <button class="btn btn-sm btn-outline-secondary" id="btn-expand-all">
+            <i class="bi bi-arrows-expand me-1"></i>Expandir todo
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" id="btn-collapse-all">
+            <i class="bi bi-arrows-collapse me-1"></i>Colapsar todo
+        </button>
+    </div>
+
+    <div id="acordeon-libro" class="d-flex flex-column gap-3">
+    {% for gm in grupos %}
+    <div class="mes-bloque">
+
+        <!-- ▶ Cabecera MES -->
+        <div class="mes-header" data-bs-toggle="collapse"
+             data-bs-target="#mes-{{ gm.key }}" aria-expanded="true">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <i class="bi bi-calendar3 me-1"></i>
+                <span class="mes-nombre">{{ gm.label }}</span>
+                <div class="mes-stats">
+                    <span><i class="bi bi-receipt me-1"></i>{{ gm.count }} movimiento{{ gm.count|pluralize }}</span>
+                    {% if gm.total_cred %}
+                    <span style="color:#86efac;">↑ ${{ gm.total_cred|floatformat:0|intcomma }}</span>
+                    {% endif %}
+                    {% if gm.total_deb %}
+                    <span style="color:#fca5a5;">↓ ${{ gm.total_deb|floatformat:0|intcomma }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <i class="bi bi-chevron-down mes-chevron"></i>
+        </div>
+
+        <!-- Contenido del mes -->
+        <div class="collapse show" id="mes-{{ gm.key }}">
+            <div class="ps-2 pt-2 d-flex flex-column gap-2">
+
+            {% for gd in gm.dias %}
+            <div class="dia-bloque">
+
+                <!-- ▶ Cabecera DÍA -->
+                <div class="dia-header" data-bs-toggle="collapse"
+                     data-bs-target="#dia-{{ gm.key }}-{{ gd.key }}" aria-expanded="false">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <i class="bi bi-calendar-day" style="color:#0f3460; font-size:.85rem;"></i>
+                        <span class="dia-label">{{ gd.label }}</span>
+                        <div class="dia-stats">
+                            <span>{{ gd.count }} mov.</span>
+                            {% if gd.total_cred %}<span class="val-cred">↑ ${{ gd.total_cred|floatformat:0|intcomma }}</span>{% endif %}
+                            {% if gd.total_deb  %}<span class="val-deb">↓ ${{ gd.total_deb|floatformat:0|intcomma }}</span>{% endif %}
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down dia-chevron"></i>
+                </div>
+
+                <!-- Filas del día -->
+                <div class="collapse" id="dia-{{ gm.key }}-{{ gd.key }}">
+                    <div class="table-responsive mt-1 ms-2"
+                         style="border-left:2px solid #e2e8f0; padding-left:.75rem;">
+                        <table class="table mov-table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:60px;">Tipo</th>
+                                    <th style="width:90px;">Código PUC</th>
+                                    <th style="width:160px;">Cuenta PUC</th>
+                                    <th style="width:80px;">Doc.</th>
+                                    <th>Tercero</th>
+                                    <th>Concepto</th>
+                                    <th style="width:80px;">N° Doc.</th>
+                                    <th class="text-end" style="width:100px;">Débito</th>
+                                    <th class="text-end" style="width:100px;">Crédito</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in gd.filas %}
+                                <tr>
+                                    <td>
+                                        {% if row.tipo == 'Ingreso' %}
+                                        <span class="tipo-I"><i class="bi bi-arrow-up-circle-fill"></i> Ingreso</span>
+                                        {% else %}
+                                        <span class="tipo-G"><i class="bi bi-arrow-down-circle-fill"></i> Gasto</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if row.codigo_puc %}
+                                        <span class="puc-badge">{{ row.codigo_puc }}</span>
+                                        {% else %}
+                                        <span class="text-muted" style="font-size:.73rem;font-style:italic;">Sin PUC</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="font-size:.78rem;">{{ row.nombre_puc|default:"—"|truncatechars:30 }}</td>
+                                    <td class="text-muted" style="font-size:.75rem;">{{ row.documento_tercero|default:"—" }}</td>
+                                    <td>{{ row.nombre_tercero|truncatechars:24 }}</td>
+                                    <td>
+                                        {{ row.concepto|truncatechars:36 }}
+                                        {% if row.metodo_pago %}
+                                        <br><span style="font-size:.72rem;color:#94a3b8;">{{ row.metodo_pago }}{% if row.referencia %} · {{ row.referencia|truncatechars:16 }}{% endif %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted" style="font-size:.75rem;">{{ row.numero_documento|default:"—" }}</td>
+                                    <td class="text-end">
+                                        {% if row.debito %}
+                                        <span class="val-deb">${{ row.debito|floatformat:0|intcomma }}</span>
+                                        {% else %}—{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if row.credito %}
+                                        <span class="val-cred">${{ row.credito|floatformat:0|intcomma }}</span>
+                                        {% else %}—{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div><!-- /dia-bloque -->
+            {% endfor %}
+
+            </div>
+        </div><!-- /collapse mes -->
+
+    </div><!-- /mes-bloque -->
+    {% endfor %}
+    </div><!-- /acordeon-libro -->
+
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-journal-x" style="font-size:2.5rem;opacity:.3;"></i>
+        <p class="mt-2">No hay movimientos para los filtros seleccionados.</p>
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+(function () {
+    // Sincronizar filtros con el botón PDF
+    const btnPdf = document.getElementById('btn-pdf-libro');
+    const formFiltros = document.getElementById('form-filtros');
+    if (btnPdf && formFiltros) {
+        const base = "{% url 'finanzas:libro_diario_pdf' %}";
+        const fromUrl = new URLSearchParams(window.location.search);
+        if (fromUrl.toString()) btnPdf.href = base + '?' + fromUrl.toString();
+        formFiltros.addEventListener('change', function () {
+            const p = new URLSearchParams(new FormData(formFiltros));
+            btnPdf.href = base + '?' + p.toString();
+        });
+    }
+
+    // Girar chevrons al colapsar/expandir (Bootstrap 5 events)
+    document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (trigger) {
+        const target = document.querySelector(trigger.dataset.bsTarget);
+        if (!target) return;
+        const chevron = trigger.querySelector('.mes-chevron, .dia-chevron');
+        if (!chevron) return;
+        target.addEventListener('show.bs.collapse', function () {
+            trigger.classList.remove('collapsed');
+        });
+        target.addEventListener('hide.bs.collapse', function () {
+            trigger.classList.add('collapsed');
+        });
+    });
+
+    // Expandir / Colapsar todo
+    document.getElementById('btn-expand-all')?.addEventListener('click', function () {
+        document.querySelectorAll('#acordeon-libro .collapse').forEach(function (el) {
+            bootstrap.Collapse.getOrCreateInstance(el).show();
+        });
+    });
+    document.getElementById('btn-collapse-all')?.addEventListener('click', function () {
+        document.querySelectorAll('#acordeon-libro .collapse').forEach(function (el) {
+            bootstrap.Collapse.getOrCreateInstance(el).hide();
+        });
+    });
+})();
+</script>
+{% endblock %}

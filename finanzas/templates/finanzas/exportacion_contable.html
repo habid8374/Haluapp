@@ -5,6 +5,13 @@
 
 {% block contenido %}
 <div class="container mt-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'finanzas:dashboard_financiero' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'finanzas:reportes_exportaciones' %}">Reportes</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ titulo_pagina }}</li>
+        </ol>
+    </nav>
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow-sm">
@@ -12,15 +19,17 @@
                     <h3 class="mb-0">{{ titulo_pagina }}</h3>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Selecciona un rango de fechas y el tipo de transacciones para generar un reporte en formato de comprobante contable, listo para importar.</p>
+                    <p class="text-muted">Seleccione rango de fechas, tipo de movimientos, <strong>periodo académico opcional para ingresos</strong> (según el periodo aplicable del concepto de cobro) y formato. El <strong>Excel</strong> incluye hojas <em>Resumen</em> y <em>Movimientos</em>. El <strong>CSV</strong> concatena resumen y detalle (separador <code>;</code>, UTF-8 con BOM). El <strong>PDF</strong> descarga solo la <em>carátula</em> de resumen (misma trazabilidad en auditoría); combine PDF + Excel o CSV para el paquete completo al contador.</p>
+                    <p class="small mb-0"><a href="{% url 'finanzas:libro_diario_contable' %}"><i class="bi bi-journal-text me-1"></i>Ver libro diario en pantalla</a> (mismos criterios, sin generar archivo).</p>
                     <hr>
                     <form method="POST">
                         {% csrf_token %}
                         {{ form|crispy }}
-                        <div class="d-grid mt-4">
+                        <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-success btn-lg">
-                                <i class="bi bi-file-earmark-excel-fill"></i> Generar y Descargar Excel
+                                <i class="bi bi-download"></i> Generar y descargar
                             </button>
+                            <a href="{% url 'finanzas:reportes_exportaciones' %}" class="btn btn-outline-secondary">Volver al centro de reportes</a>
                         </div>
                     </form>
                 </div>

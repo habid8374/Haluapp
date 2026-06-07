@@ -1,0 +1,180 @@
+{% extends 'base_finanzas.html' %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'finanzas:dashboard_financiero' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ titulo_pagina }}</li>
+        </ol>
+    </nav>
+
+    <h1 class="h3 mb-2">{{ titulo_pagina }}</h1>
+    <p class="text-muted mb-3">Acceda a los informes de gestión y a las descargas para contabilidad externa (contador o revisor fiscal).</p>
+
+    {% if periodo_activo %}
+    <p class="small text-muted mb-3">Periodo académico activo en la institución: <strong>{{ periodo_activo }}</strong>. En los informes puede elegir periodo en el formulario o usar <code>?periodo=&lt;id&gt;</code> en la URL.</p>
+    {% endif %}
+
+    {% if alertas_puc.conceptos_sin_puc or alertas_puc.categorias_sin_puc %}
+    <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 mb-4" role="alert">
+        <div>
+            <strong>PUC incompleto.</strong>
+            {% if alertas_puc.conceptos_sin_puc %}{{ alertas_puc.conceptos_sin_puc }} concepto(s) sin cuenta.{% endif %}
+            {% if alertas_puc.categorias_sin_puc %} {{ alertas_puc.categorias_sin_puc }} categoría(s) de gasto sin cuenta.{% endif %}
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-sm btn-outline-dark" href="{% url 'finanzas:lista_conceptos_pago' %}">Conceptos</a>
+            <a class="btn btn-sm btn-outline-dark" href="{% url 'finanzas:lista_categorias_gasto' %}">Categorías</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5 card-title"><i class="bi bi-journal-text text-primary me-2"></i>Análisis y cartera</h2>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><a href="{% url 'finanzas:reporte_general_cuentas' %}">Reporte general de cuentas</a></li>
+                        <li class="mb-2"><a href="{% url 'finanzas:reporte_cartera_por_edades' %}">Cartera por edades</a></li>
+                        <li class="mb-2"><a href="{% url 'finanzas:reporte_flujo_caja' %}">Flujo de caja</a></li>
+                        <li class="mb-2"><a href="{% url 'finanzas:reporte_estado_resultados' %}">Estado de resultados</a></li>
+                        <li><a href="{% url 'finanzas:libro_diario_contable' %}">Libro diario contable (pantalla)</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column">
+                    <h2 class="h5 card-title"><i class="bi bi-file-earmark-excel-fill text-warning me-2"></i>Excel operativo</h2>
+                    <p class="text-secondary small flex-grow-1">Listado de cuentas por cobrar; admite los mismos filtros por URL que el reporte general.</p>
+                    <a class="btn btn-outline-warning" href="{% url 'finanzas:exportar_excel_historial_cuentas' %}">Descargar Excel de cartera</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-success">
+                <div class="card-body d-flex flex-column">
+                    <h2 class="h5 card-title"><i class="bi bi-journal-check text-success me-2"></i>Exportación contable</h2>
+                    <p class="text-secondary small flex-grow-1">Movimientos con código PUC, terceros y débitos/créditos. Formatos: <strong>Excel</strong>, <strong>CSV</strong> y <strong>PDF</strong> de carátula (resumen para archivo físico). Cada descarga queda registrada en auditoría.</p>
+                    {% if puede_exportacion_contable %}
+                    <a class="btn btn-success mt-auto" href="{% url 'finanzas:exportacion_contable' %}">Ir a exportación contable</a>
+                    {% else %}
+                    <p class="text-muted small mb-0">Su usuario no tiene permiso para exportar movimientos contables. Solicite el permiso <em>acceso al módulo de finanzas</em> o <em>ver pagos / ver gastos</em> según corresponda.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if auditorias_exportacion %}
+    {% with ultima=auditorias_exportacion.0 %}
+    <div class="card shadow-sm mt-4" style="border-radius:12px;overflow:hidden;">
+
+        <!-- Encabezado colapsable -->
+        <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap"
+             style="cursor:pointer;background:#f8faff;"
+             data-bs-toggle="collapse" data-bs-target="#auditoria-body"
+             aria-expanded="false" aria-controls="auditoria-body"
+             id="auditoria-toggle">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <i class="bi bi-clock-history text-secondary"></i>
+                <span class="fw-700" style="font-size:.9rem;">Auditoría de exportaciones contables</span>
+                <span class="badge bg-secondary" style="font-size:.75rem;">{{ auditorias_exportacion|length }}</span>
+                <!-- Resumen de última exportación -->
+                <span class="text-muted" style="font-size:.78rem; margin-left:.25rem;">
+                    · Última:
+                    <strong>{{ ultima.creado|date:"d/m/Y H:i" }}</strong>
+                    por <strong>{% if ultima.usuario %}{{ ultima.usuario.get_username }}{% else %}—{% endif %}</strong>
+                    · {{ ultima.formato }}
+                    · {{ ultima.registros|intcomma }} reg.
+                </span>
+            </div>
+            <i class="bi bi-chevron-down text-muted" id="auditoria-chevron"
+               style="transition:transform .25s;"></i>
+        </div>
+
+        <!-- Cuerpo colapsado por defecto -->
+        <div class="collapse" id="auditoria-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0" style="font-size:.83rem;">
+                    <thead style="background:#f1f5f9;">
+                        <tr>
+                            <th class="ps-3">Fecha</th>
+                            <th>Usuario</th>
+                            <th>Rango exportado</th>
+                            <th>Tipo</th>
+                            <th>Formato</th>
+                            <th>Período (ingresos)</th>
+                            <th class="text-end pe-3">Registros</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in auditorias_exportacion %}
+                        <tr>
+                            <td class="ps-3 text-muted">{{ a.creado|date:"d/m/Y H:i" }}</td>
+                            <td>{% if a.usuario %}{{ a.usuario.get_username }}{% else %}—{% endif %}</td>
+                            <td class="text-muted" style="font-size:.78rem;">
+                                {{ a.fecha_inicio|date:"d/m/Y" }} → {{ a.fecha_fin|date:"d/m/Y" }}
+                            </td>
+                            <td>
+                                {% if a.tipo_transaccion == 'INGRESOS' %}
+                                    <span class="badge" style="background:#d1fae5;color:#065f46;">Ingresos</span>
+                                {% elif a.tipo_transaccion == 'GASTOS' %}
+                                    <span class="badge" style="background:#fee2e2;color:#991b1b;">Gastos</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Todos</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if a.formato == 'XLSX' %}
+                                    <span class="badge" style="background:#fef9c3;color:#713f12;"><i class="bi bi-file-earmark-excel me-1"></i>Excel</span>
+                                {% elif a.formato == 'CSV' %}
+                                    <span class="badge" style="background:#e0f2fe;color:#075985;">CSV</span>
+                                {% else %}
+                                    <span class="badge" style="background:#fee2e2;color:#991b1b;"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted" style="font-size:.78rem;">
+                                {% if a.periodo_academico %}{{ a.periodo_academico }}{% else %}Todos{% endif %}
+                            </td>
+                            <td class="text-end pe-3 fw-600">{{ a.registros|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-muted" style="font-size:.75rem;background:#f8faff;">
+                <i class="bi bi-info-circle me-1"></i>
+                Mostrando las últimas {{ auditorias_exportacion|length }} exportaciones.
+                El historial completo está disponible en el panel de administración.
+            </div>
+        </div>
+
+    </div>
+    {% endwith %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+(function () {
+    const toggle  = document.getElementById('auditoria-toggle');
+    const chevron = document.getElementById('auditoria-chevron');
+    const body    = document.getElementById('auditoria-body');
+    if (!toggle || !chevron || !body) return;
+    body.addEventListener('show.bs.collapse', function () {
+        chevron.style.transform = 'rotate(180deg)';
+    });
+    body.addEventListener('hide.bs.collapse', function () {
+        chevron.style.transform = 'rotate(0deg)';
+    });
+})();
+</script>
+{% endblock %}

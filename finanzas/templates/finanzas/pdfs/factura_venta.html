@@ -2,193 +2,481 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Factura de Venta No. {{ cuenta.numero_documento|stringformat:"06d" }}</title>
-    <style>
-        @page {
-            size: letter;
-            margin: 1.5cm;
-            @frame footer {
-                -pdf-frame-content: page_footer;
-                bottom: 1cm;
-                margin-left: 1.5cm;
-                margin-right: 1.5cm;
-                height: 1cm;
-            }
-        }
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 10pt;
-            color: #333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .header-table td {
-            vertical-align: middle;
-        }
-        .header-table .logo {
-            width: 80px;
-        }
-        .header-table .info-institucion {
-            text-align: center;
-        }
-        .header-table .info-institucion h1 {
-            margin: 0;
-            font-size: 16pt;
-            color: #004a8f;
-        }
-        .header-table .info-institucion p {
-            margin: 2px 0;
-            font-size: 8pt;
-        }
-        .header-table .info-factura {
-            width: 180px;
-            border: 1px solid #004a8f;
-            border-radius: 5px;
-            padding: 5px;
-            text-align: center;
-        }
-        .header-table .info-factura h3 {
-            margin: 0;
-            font-size: 12pt;
-            background-color: #004a8f;
-            color: white;
-            padding: 5px;
-            border-radius: 4px 4px 0 0;
-        }
-        .info-cliente {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-top: 20px;
-            border-radius: 5px;
-        }
-        .items-table {
-            margin-top: 20px;
-        }
-        .items-table th {
-            background-color: #f2f2f2;
-            padding: 8px;
-            border-bottom: 2px solid #004a8f;
-        }
-        .items-table td {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-        }
-        .text-right { text-align: right; }
-        .totals-section {
-            margin-top: 20px;
-            width: 50%;
-            margin-left: 50%;
-        }
-        .totals-table td {
-            padding: 5px;
-        }
-        .totals-table .total-final {
-            font-weight: bold;
-            font-size: 12pt;
-            background-color: #f2f2f2;
-        }
-        #page_footer {
-            text-align: center;
-            font-size: 8pt;
-            color: #888;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Factura No. {{ cuenta.numero_documento|stringformat:"06d" }}</title>
+<style>
+/* ═══════════════════════════════════════════
+   CONFIGURACIÓN DE PÁGINA
+   ═══════════════════════════════════════════ */
+@page {
+    size: letter;
+    margin: 1.2cm 1.4cm 2cm 1.4cm;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9.5pt;
+    color: #1e293b;
+    line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════════
+   BARRA DE COLOR SUPERIOR
+   ═══════════════════════════════════════════ */
+.top-bar {
+    background: #0f3460;
+    height: 6px;
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+/* ═══════════════════════════════════════════
+   ENCABEZADO
+   ═══════════════════════════════════════════ */
+.header-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+.header-table td { vertical-align: middle; }
+.logo-cell { width: 90px; }
+.logo-cell img { width: 82px; height: auto; }
+.inst-cell { padding: 0 12px; }
+.inst-name {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #0f3460;
+    letter-spacing: -0.3px;
+}
+.inst-sub {
+    font-size: 7.5pt;
+    color: #64748b;
+    margin-top: 3px;
+    line-height: 1.5;
+}
+.doc-cell { width: 175px; }
+.doc-box {
+    border: 2px solid #0f3460;
+    border-radius: 6px;
+    overflow: hidden;
+    text-align: center;
+}
+.doc-box-header {
+    background: #0f3460;
+    color: white;
+    font-size: 9pt;
+    font-weight: bold;
+    padding: 5px 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.doc-box-body { padding: 8px 6px 6px; }
+.doc-num {
+    font-size: 18pt;
+    font-weight: bold;
+    color: #0f3460;
+    letter-spacing: 1px;
+}
+.doc-num-label {
+    font-size: 7pt;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.doc-date { font-size: 8pt; color: #475569; margin-top: 4px; }
+
+/* ═══════════════════════════════════════════
+   SECCIÓN CLIENTE / DATOS
+   ═══════════════════════════════════════════ */
+.section-label {
+    background: #e8eef8;
+    color: #0f3460;
+    font-size: 7.5pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    padding: 4px 10px;
+    border-left: 3px solid #0f3460;
+    margin-bottom: 6px;
+}
+.data-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+.data-table td { padding: 3px 8px; font-size: 9pt; }
+.data-table .lbl { color: #64748b; width: 110px; font-size: 8pt; }
+.data-table .val { color: #0f172a; font-weight: 600; }
+
+/* ═══════════════════════════════════════════
+   TABLA DE ÍTEMS
+   ═══════════════════════════════════════════ */
+.items-table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+.items-table thead tr {
+    background: #0f3460;
+    color: white;
+}
+.items-table thead th {
+    padding: 7px 10px;
+    font-size: 8pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+}
+.items-table thead th.r { text-align: right; }
+.items-table tbody tr { border-bottom: 1px solid #e2e8f0; }
+.items-table tbody tr:nth-child(even) { background: #f8faff; }
+.items-table tbody td { padding: 8px 10px; font-size: 9pt; }
+.items-table tbody td.r { text-align: right; font-weight: 600; }
+.items-table tfoot td {
+    padding: 5px 10px;
+    font-size: 9pt;
+    border-top: 2px solid #0f3460;
+}
+
+/* ═══════════════════════════════════════════
+   TOTALES
+   ═══════════════════════════════════════════ */
+.totals-wrap { margin-top: 0; }
+.totals-right {
+    width: 260px;
+    float: right;
+    margin-top: 8px;
+}
+.totals-table { width: 100%; border-collapse: collapse; }
+.totals-table td { padding: 4px 10px; font-size: 9pt; }
+.totals-table .r { text-align: right; }
+.totals-table .subtotal td { color: #475569; border-bottom: 1px solid #e2e8f0; }
+.totals-table .descuento td { color: #16a34a; }
+.totals-table .abonos td { color: #2563eb; }
+.totals-table .total-final {
+    background: #0f3460;
+    color: white;
+    border-radius: 4px;
+}
+.totals-table .total-final td {
+    padding: 7px 10px;
+    font-size: 11pt;
+    font-weight: bold;
+}
+.totals-table .pagado-final {
+    background: #dcfce7;
+    color: #15803d;
+    border-radius: 4px;
+}
+.totals-table .pagado-final td {
+    padding: 7px 10px;
+    font-size: 11pt;
+    font-weight: bold;
+}
+
+/* ═══════════════════════════════════════════
+   BADGE DE ESTADO
+   ═══════════════════════════════════════════ */
+.badge-estado {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 8pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.badge-PENDIENTE  { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.badge-PAGADO     { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.badge-VENCIDO    { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.badge-PAGADO_PARCIAL { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+
+/* ═══════════════════════════════════════════
+   TABLA DE PAGOS APLICADOS
+   ═══════════════════════════════════════════ */
+.pagos-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.pagos-table thead tr { background: #f1f5f9; }
+.pagos-table thead th { padding: 5px 9px; font-size: 8pt; color: #64748b; text-transform: uppercase; text-align: left; }
+.pagos-table thead th.r { text-align: right; }
+.pagos-table tbody td { padding: 6px 9px; font-size: 8.5pt; border-bottom: 1px solid #f1f5f9; }
+.pagos-table tbody td.r { text-align: right; color: #15803d; font-weight: 600; }
+
+/* ═══════════════════════════════════════════
+   SELLO PAGADO (watermark visual)
+   ═══════════════════════════════════════════ */
+.sello-pagado {
+    border: 3px solid #15803d;
+    color: #15803d;
+    font-size: 22pt;
+    font-weight: bold;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 6px 18px;
+    border-radius: 6px;
+    display: inline-block;
+    transform: rotate(-12deg);
+    opacity: 0.6;
+    margin-top: 6px;
+}
+
+/* ═══════════════════════════════════════════
+   MÉTODOS DE PAGO
+   ═══════════════════════════════════════════ */
+.pay-box {
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 8px 12px;
+    margin-top: 12px;
+    background: #f8fafc;
+}
+.pay-row { font-size: 8.5pt; margin: 3px 0; color: #334155; }
+.pay-row strong { color: #0f3460; }
+
+/* ═══════════════════════════════════════════
+   PIE DE FIRMA
+   ═══════════════════════════════════════════ */
+.firma-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.firma-table td { text-align: center; padding: 0 16px; }
+.firma-line { border-top: 1px solid #94a3b8; padding-top: 4px; font-size: 8pt; color: #64748b; }
+
+/* ═══════════════════════════════════════════
+   PIE DE PÁGINA FIJO
+   ═══════════════════════════════════════════ */
+.page-footer {
+    position: fixed;
+    bottom: 0.3cm;
+    left: 0; right: 0;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 4px;
+    text-align: center;
+    font-size: 7pt;
+    color: #94a3b8;
+}
+.clearfix::after { content: ""; display: table; clear: both; }
+</style>
 </head>
 <body>
-    <div id="page_footer">
-        Generado por HALU - Sistema de Gestión Escolar | Página <pdf:pagenumber>
-    </div>
 
-    <table class="header-table">
+<!-- PIE FIJO -->
+<div class="page-footer">
+    {{ institucion.nombre }} &nbsp;·&nbsp; NIT: {{ institucion.nit }}
+    {% if institucion.ciudad_departamento %} &nbsp;·&nbsp; {{ institucion.ciudad_departamento }}{% endif %}
+    &nbsp;·&nbsp; Generado el {% now "d/m/Y H:i" %}
+    &nbsp;·&nbsp; Página <pdf:pagenumber> de <pdf:pagecount>
+</div>
+
+<!-- BARRA SUPERIOR -->
+<div class="top-bar"></div>
+
+<!-- ══════════════════════════════════════════
+     ENCABEZADO
+     ══════════════════════════════════════════ -->
+<table class="header-table">
+    <tr>
+        <td class="logo-cell">
+            {% if institucion.logo %}
+            <img src="{{ institucion.logo.path }}" alt="{{ institucion.nombre }}">
+            {% endif %}
+        </td>
+        <td class="inst-cell">
+            <div class="inst-name">{{ institucion.nombre }}</div>
+            <div class="inst-sub">
+                NIT: {{ institucion.nit }}
+                {% if institucion.codigo_dane %} &nbsp;|&nbsp; DANE: {{ institucion.codigo_dane }}{% endif %}<br>
+                {% if institucion.direccion %}{{ institucion.direccion }}{% endif %}
+                {% if institucion.ciudad_departamento %} &nbsp;—&nbsp; {{ institucion.ciudad_departamento }}{% endif %}<br>
+                {% if institucion.telefono %}Tel: {{ institucion.telefono }}{% endif %}
+                {% if institucion.correo_electronico %} &nbsp;|&nbsp; {{ institucion.correo_electronico }}{% endif %}
+            </div>
+        </td>
+        <td class="doc-cell">
+            <div class="doc-box">
+                <div class="doc-box-header">Factura de Venta</div>
+                <div class="doc-box-body">
+                    <div class="doc-num-label">No.</div>
+                    <div class="doc-num">{{ cuenta.numero_documento|stringformat:"06d" }}</div>
+                    <div class="doc-date">
+                        Emisión: {{ cuenta.fecha_creacion|date:"d/m/Y" }}<br>
+                        Vence: <strong>{{ cuenta.fecha_vencimiento_especifica|date:"d/m/Y" }}</strong>
+                    </div>
+                    <div style="margin-top:6px;">
+                        {% if cuenta.estado == 'PAGADO' %}
+                            <span class="badge-estado badge-PAGADO">✓ Pagada</span>
+                        {% elif cuenta.esta_vencida %}
+                            <span class="badge-estado badge-VENCIDO">Vencida</span>
+                        {% elif cuenta.estado == 'PAGADO_PARCIAL' %}
+                            <span class="badge-estado badge-PAGADO_PARCIAL">Parcial</span>
+                        {% else %}
+                            <span class="badge-estado badge-PENDIENTE">Pendiente</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<!-- ══════════════════════════════════════════
+     DATOS DEL CLIENTE
+     ══════════════════════════════════════════ -->
+<div class="section-label">Datos del Cliente</div>
+<table class="data-table">
+    <tr>
+        <td class="lbl">Nombre completo:</td>
+        <td class="val" style="font-size:10.5pt;">{{ cuenta.estudiante.usuario.get_full_name }}</td>
+        <td class="lbl">Grado:</td>
+        <td class="val">{{ cuenta.estudiante.grado_actual.nombre|default:"—" }}</td>
+    </tr>
+    <tr>
+        <td class="lbl">Documento identidad:</td>
+        <td class="val">{{ cuenta.estudiante.documento_identidad|default:"—" }}</td>
+        <td class="lbl">Año escolar:</td>
+        <td class="val">{% now "Y" %}</td>
+    </tr>
+    {% if cuenta.estudiante.usuario.email %}
+    <tr>
+        <td class="lbl">Correo:</td>
+        <td class="val" colspan="3">{{ cuenta.estudiante.usuario.email }}</td>
+    </tr>
+    {% endif %}
+</table>
+
+<!-- ══════════════════════════════════════════
+     DETALLE DE COBRO
+     ══════════════════════════════════════════ -->
+<div class="section-label">Detalle del Cobro</div>
+<table class="items-table">
+    <thead>
         <tr>
-            <td class="logo">
-                {% if institucion.logo %}
-                    <img src="{{ institucion.logo.path }}" width="80" alt="Logo">
+            <th style="width:32px;">#</th>
+            <th>Descripción del Concepto</th>
+            <th style="width:90px;">Período</th>
+            <th class="r" style="width:115px;">Valor</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>
+                <strong>{{ cuenta.concepto_pago.nombre_concepto }}</strong>
+                {% if cuenta.concepto_pago.descripcion %}
+                <br><span style="font-size:8pt;color:#64748b;">{{ cuenta.concepto_pago.descripcion }}</span>
+                {% endif %}
+                {% if cuenta.observaciones_internas %}
+                <br><span style="font-size:8pt;color:#94a3b8;font-style:italic;">{{ cuenta.observaciones_internas }}</span>
                 {% endif %}
             </td>
-            <td class="info-institucion">
-                <h1>{{ institucion.nombre }}</h1>
-                <p>NIT: {{ institucion.nit }}</p>
-                <p>{{ institucion.direccion }} - {{ institucion.ciudad_departamento }}</p>
+            <td>
+                {% if cuenta.mes and cuenta.año %}
+                    {{ cuenta.mes }}/{{ cuenta.año }}
+                {% else %}
+                    {{ cuenta.fecha_vencimiento_especifica|date:"M Y" }}
+                {% endif %}
             </td>
-            <td class="info-factura">
-                <h3>FACTURA DE VENTA</h3>
-                <p style="font-size: 14pt; font-weight: bold; color: red;">No. {{ cuenta.numero_documento|stringformat:"06d" }}</p>
-            </td>
+            <td class="r">${{ cuenta.monto_asignado|floatformat:0|intcomma }}</td>
         </tr>
-    </table>
+    </tbody>
+</table>
 
-    <div class="info-cliente">
-        <table>
-            <tr>
-                <td><strong>Cliente:</strong> {{ cuenta.estudiante.usuario.get_full_name }}</td>
-                <td><strong>Fecha Emisión:</strong> {{ cuenta.fecha_creacion|date:"d/m/Y" }}</td>
+<!-- TOTALES -->
+<div class="clearfix">
+    <div class="totals-right">
+        <table class="totals-table">
+            <tr class="subtotal">
+                <td>Subtotal:</td>
+                <td class="r">${{ cuenta.monto_asignado|floatformat:0|intcomma }}</td>
             </tr>
-            <tr>
-                <td><strong>Grado:</strong> {{ cuenta.estudiante.grado_actual.nombre|default:"N/A" }}</td>
-                <td><strong>Fecha Vencimiento:</strong> {{ cuenta.fecha_vencimiento_especifica|date:"d/m/Y" }}</td>
+            {% if cuenta.monto_pagado_actual > 0 %}
+            <tr class="abonos">
+                <td>Abonos recibidos:</td>
+                <td class="r">– ${{ cuenta.monto_pagado_actual|floatformat:0|intcomma }}</td>
             </tr>
+            {% endif %}
+            {% if cuenta.estado == 'PAGADO' %}
+            <tr class="pagado-final">
+                <td>✓ SALDO PENDIENTE:</td>
+                <td class="r">$0</td>
+            </tr>
+            {% else %}
+            <tr class="total-final">
+                <td>SALDO A PAGAR:</td>
+                <td class="r">${{ cuenta.saldo_pendiente|floatformat:0|intcomma }} COP</td>
+            </tr>
+            {% endif %}
         </table>
     </div>
+</div>
 
-    <table class="items-table">
+<!-- ══════════════════════════════════════════
+     PAGOS APLICADOS (si existen)
+     ══════════════════════════════════════════ -->
+{% if pagos_realizados %}
+<div style="margin-top:18px;">
+    <div class="section-label">Pagos Aplicados</div>
+    <table class="pagos-table">
         <thead>
             <tr>
-                <th style="width: 60%;">Descripción</th>
-                <th class="text-right">Valor</th>
+                <th>Fecha</th>
+                <th>Método de Pago</th>
+                <th>Referencia / Transacción</th>
+                <th>Registrado por</th>
+                <th class="r">Valor Pagado</th>
             </tr>
         </thead>
         <tbody>
+            {% for pago in pagos_realizados %}
             <tr>
-                <td>{{ cuenta.concepto_pago.nombre_concepto }}</td>
-                <td class="text-right">${{ cuenta.monto_asignado|floatformat:2|intcomma }}</td>
+                <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
+                <td>{{ pago.get_metodo_pago_display }}</td>
+                <td>{{ pago.referencia_transaccion|default:"—" }}</td>
+                <td>{{ pago.registrado_por.get_full_name|default:"—" }}</td>
+                <td class="r">${{ pago.valor_pagado|floatformat:0|intcomma }}</td>
             </tr>
+            {% endfor %}
         </tbody>
     </table>
+</div>
+{% endif %}
 
-    {% if pagos_realizados %}
-        <h4 style="font-size: 11pt; margin-top: 25px;">Pagos Aplicados a esta Factura</h4>
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th style="width: 25%;">Fecha</th>
-                    <th style="width: 35%;">Método</th>
-                    <th style="width: 25%;">Referencia</th>
-                    <th class="text-right" style="width: 15%;">Valor</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for pago in pagos_realizados %}
-                <tr>
-                    <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
-                    <td>{{ pago.get_metodo_pago_display }}</td>
-                    <td>{{ pago.referencia_transaccion|default:"N/A" }}</td>
-                    <td class="text-right">${{ pago.valor_pagado|floatformat:2|intcomma }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<!-- ══════════════════════════════════════════
+     SELLO PAGADO
+     ══════════════════════════════════════════ -->
+{% if cuenta.estado == 'PAGADO' %}
+<div style="text-align:right; margin-top:8px;">
+    <span class="sello-pagado">PAGADO</span>
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════════════
+     MÉTODOS DE PAGO
+     ══════════════════════════════════════════ -->
+{% if cuenta.estado != 'PAGADO' %}
+{% if institucion.cuenta_bancaria or institucion.pagos_digitales %}
+<div class="pay-box">
+    <div class="section-label" style="margin-bottom:5px;">Formas de Pago</div>
+    {% if institucion.cuenta_bancaria %}
+    <p class="pay-row"><strong>Transferencia / Consignación:</strong> {{ institucion.cuenta_bancaria }}</p>
     {% endif %}
+    {% if institucion.pagos_digitales %}
+    <p class="pay-row"><strong>Nequi / Daviplata:</strong> {{ institucion.pagos_digitales }}</p>
+    {% endif %}
+    <p class="pay-row"><strong>Pago en línea:</strong> Tarjeta crédito/débito, PSE, Efecty, Baloto — disponible en el portal web de la institución.</p>
+</div>
+{% endif %}
+{% endif %}
 
-    <div class="totals-section">
-        <table class="totals-table">
-            <tr>
-                <td>Subtotal:</td>
-                <td class="text-right">${{ cuenta.monto_asignado|floatformat:2|intcomma }}</td>
-            </tr>
-            <tr>
-                <td>Abonos:</td>
-                <td class="text-right">${{ cuenta.monto_pagado_actual|floatformat:2|intcomma }}</td>
-            </tr>
-            <tr class="total-final">
-                <td><strong>SALDO PENDIENTE:</strong></td>
-                <td class="text-right"><strong>${{ cuenta.saldo_pendiente|floatformat:2|intcomma }}</strong></td>
-            </tr>
-        </table>
-    </div>
+<!-- ══════════════════════════════════════════
+     FIRMAS
+     ══════════════════════════════════════════ -->
+<table class="firma-table">
+    <tr>
+        <td style="width:40%;">
+            <div style="height:30px;"></div>
+            <div class="firma-line">Firma Autorizada — {{ institucion.nombre }}</div>
+        </td>
+        <td style="width:20%;"></td>
+        <td style="width:40%;">
+            <div style="height:30px;"></div>
+            <div class="firma-line">Firma del Acudiente / Estudiante</div>
+        </td>
+    </tr>
+</table>
+
+<!-- RESOLUCIÓN -->
+{% if institucion.texto_resolucion %}
+<div style="text-align:center; font-size:7pt; color:#94a3b8; margin-top:10px; border-top:1px solid #e2e8f0; padding-top:6px;">
+    {{ institucion.texto_resolucion }}
+</div>
+{% endif %}
 
 </body>
 </html>

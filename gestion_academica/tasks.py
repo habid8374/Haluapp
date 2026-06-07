@@ -8,7 +8,6 @@ from decimal import Decimal
 import json
 from .models import PlaneacionClase, DetalleClase
 import google.generativeai as genai
-from django.conf import settings
 from django.db import transaction
 from django.urls import reverse
 from allauth.socialaccount.models import SocialToken
@@ -34,7 +33,266 @@ from .models import (
     Docente, Curso, Aula, Grado, EntregaDeber
 )
 
+from finanzas.models import InstitucionEducativa
+from finanzas.institucion_credentials import google_api_key as get_inst_google_api_key
+
 logger = logging.getLogger(__name__)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  TAREA CELERY: Calcular Corte Preventivo
+# ──────────────────────────────────────────────────────────────────────────────
+
+@shared_task(bind=True, max_retries=2)
+def calcular_corte_preventivo_task(self, corte_id, user_id=None):
+    """
+    Calcula todos los ResultadoCorteEstudiante y DetalleMateriaCortePrev
+    para un CortePreventivo dado. Ejecuta en background (Celery).
+    Notifica al coordinador vía WebSocket al terminar.
+    """
+    from decimal import Decimal, InvalidOperation
+    from django.db.models import Avg, Q
+    from channels.layers import get_channel_layer
+    from asgiref.sync import async_to_sync
+    from .models import (
+        CortePreventivo, ResultadoCorteEstudiante, DetalleMateriaCortePrev,
+        ConfiguracionCortePreventivo, Estudiante, Curso, ActividadCalificable,
+        Calificacion, RegistroAsistencia, Notificacion,
+    )
+
+    channel_layer = get_channel_layer()
+
+    def _notify(uid, tipo, titulo, mensaje, extra=None):
+        if not uid or not channel_layer:
+            return
+        try:
+            payload = {'type': 'staff_notification', 'tipo': tipo,
+                       'titulo': titulo, 'mensaje': mensaje}
+            if extra:
+                payload.update(extra)
+            async_to_sync(channel_layer.group_send)(
+                f'user_{uid}', payload
+            )
+        except Exception:
+            pass
+
+    try:
+        corte = CortePreventivo.objects.select_related(
+            'grado', 'periodo_academico', 'institucion'
+        ).get(pk=corte_id)
+    except CortePreventivo.DoesNotExist:
+        return
+
+    corte.estado = 'CALCULANDO'
+    corte.save(update_fields=['estado'])
+
+    inst = corte.institucion
+    try:
+        cfg = ConfiguracionCortePreventivo.objects.get(institucion=inst)
+        umbral_alto  = cfg.umbral_riesgo_bajo
+        umbral_medio = cfg.umbral_riesgo_medio
+        pct_inasist  = cfg.porcentaje_inasistencia_alerta
+    except ConfiguracionCortePreventivo.DoesNotExist:
+        umbral_alto  = Decimal('2.9')
+        umbral_medio = Decimal('3.4')
+        pct_inasist  = 20
+
+    def _nivel_desempeno(nota):
+        if nota is None:
+            return 'SIN_DATOS'
+        if nota >= Decimal('4.6'):
+            return 'SUPERIOR'
+        if nota >= Decimal('4.0'):
+            return 'ALTO'
+        if nota >= Decimal('3.0'):
+            return 'BASICO'
+        return 'BAJO'
+
+    fecha_corte = corte.fecha_corte
+    grado       = corte.grado
+    periodo     = corte.periodo_academico
+
+    # Cursos del grado en el período
+    cursos = list(
+        Curso.objects.filter(
+            grado=grado, periodo_academico=periodo, institucion=inst
+        ).select_related('materia')
+    )
+
+    # Estudiantes activos del grado
+    estudiantes = list(
+        Estudiante.objects.filter(
+            grado_actual=grado, institucion=inst, activo=True
+        ).select_related('usuario')
+    )
+
+    total_en_riesgo = 0
+
+    for estudiante in estudiantes:
+        promedios_materias = []
+        total_actvs_registradas = 0
+        total_actvs_calificadas = 0
+        materias_en_riesgo = 0
+
+        detalles_a_crear = []
+
+        for curso in cursos:
+            # Actividades hasta la fecha de corte
+            actividades = ActividadCalificable.objects.filter(
+                curso=curso, institucion=inst,
+                fecha_publicacion__lte=fecha_corte
+            )
+            cant_actividades = actividades.count()
+            total_actvs_registradas += cant_actividades
+
+            # Calificaciones del estudiante en esas actividades
+            cals = Calificacion.objects.filter(
+                estudiante=estudiante,
+                actividad_calificable__in=actividades,
+                actividad_calificable__institucion=inst,
+                valor_numerico__isnull=False,
+            ).select_related('actividad_calificable__tipo_actividad')
+
+            cant_calificadas = cals.count()
+            total_actvs_calificadas += cant_calificadas
+            pendientes = cant_actividades - cant_calificadas
+
+            # Calcular promedio ponderado si hay porcentajes, sino promedio simple
+            promedio_materia = None
+            if cant_calificadas > 0:
+                # Verificar si hay porcentajes en tipos de actividad
+                tiene_porcentajes = cals.filter(
+                    actividad_calificable__tipo_actividad__porcentaje__isnull=False
+                ).exists()
+
+                if tiene_porcentajes:
+                    suma_ponderada = Decimal('0')
+                    suma_pesos     = Decimal('0')
+                    for cal in cals:
+                        peso = cal.actividad_calificable.tipo_actividad.porcentaje or Decimal('0')
+                        suma_ponderada += (cal.valor_numerico or Decimal('0')) * peso
+                        suma_pesos += peso
+                    if suma_pesos > 0:
+                        promedio_materia = (suma_ponderada / suma_pesos).quantize(Decimal('0.01'))
+                else:
+                    suma = sum(c.valor_numerico for c in cals if c.valor_numerico)
+                    promedio_materia = (suma / cant_calificadas).quantize(Decimal('0.01'))
+
+            en_riesgo_materia = (
+                promedio_materia is not None and promedio_materia < umbral_alto
+            )
+            if en_riesgo_materia:
+                materias_en_riesgo += 1
+            if promedio_materia is not None:
+                promedios_materias.append(promedio_materia)
+
+            # Buscar o crear el resultado existente para idempotencia
+            try:
+                detalle_obj = DetalleMateriaCortePrev.objects.get(
+                    resultado_estudiante__corte=corte,
+                    resultado_estudiante__estudiante=estudiante,
+                    curso=curso,
+                    institucion=inst,
+                )
+                detalle_obj.promedio_materia        = promedio_materia
+                detalle_obj.nivel_desempeno         = _nivel_desempeno(promedio_materia)
+                detalle_obj.en_riesgo               = en_riesgo_materia
+                detalle_obj.actividades_registradas = cant_actividades
+                detalle_obj.actividades_calificadas = cant_calificadas
+                detalle_obj.actividades_pendientes  = pendientes
+                detalle_obj.save()
+            except DetalleMateriaCortePrev.DoesNotExist:
+                detalles_a_crear.append({
+                    'curso': curso,
+                    'promedio_materia': promedio_materia,
+                    'nivel_desempeno': _nivel_desempeno(promedio_materia),
+                    'en_riesgo': en_riesgo_materia,
+                    'actividades_registradas': cant_actividades,
+                    'actividades_calificadas': cant_calificadas,
+                    'actividades_pendientes': pendientes,
+                })
+
+        # Calcular promedio general
+        promedio_general = None
+        if promedios_materias:
+            promedio_general = (sum(promedios_materias) / len(promedios_materias)).quantize(Decimal('0.01'))
+
+        # Asistencia
+        registros_asist = RegistroAsistencia.objects.filter(
+            estudiante=estudiante, institucion=inst,
+            fecha_solo__lte=fecha_corte,
+            curso__in=cursos,
+        )
+        total_registros = registros_asist.count()
+        presentes = registros_asist.filter(estado__in=['PRESENTE', 'TARDANZA']).count()
+        pct_asistencia = None
+        if total_registros > 0:
+            pct_asistencia = Decimal(str(round(presentes / total_registros * 100, 1)))
+        pct_inasistencia_real = Decimal('100') - (pct_asistencia or Decimal('100'))
+
+        # Nivel de riesgo
+        if promedio_general is not None and promedio_general < umbral_alto:
+            nivel_riesgo = 'ALTO'
+        elif pct_inasistencia_real >= Decimal(str(pct_inasist)):
+            nivel_riesgo = 'ALTO'
+        elif promedio_general is not None and promedio_general < umbral_medio:
+            nivel_riesgo = 'MEDIO'
+        elif materias_en_riesgo >= 2:
+            nivel_riesgo = 'MEDIO'
+        elif materias_en_riesgo == 1:
+            nivel_riesgo = 'BAJO'
+        else:
+            nivel_riesgo = 'SIN_RIESGO'
+
+        if nivel_riesgo in ('ALTO', 'MEDIO'):
+            total_en_riesgo += 1
+
+        # Crear o actualizar ResultadoCorteEstudiante
+        resultado, _ = ResultadoCorteEstudiante.objects.update_or_create(
+            corte=corte, estudiante=estudiante, institucion=inst,
+            defaults={
+                'promedio_general':              promedio_general,
+                'nivel_desempeno_general':       _nivel_desempeno(promedio_general),
+                'nivel_riesgo':                  nivel_riesgo,
+                'porcentaje_asistencia':         pct_asistencia,
+                'total_actividades_registradas': total_actvs_registradas,
+                'total_actividades_calificadas': total_actvs_calificadas,
+                'materias_en_riesgo_count':      materias_en_riesgo,
+            }
+        )
+
+        # Crear los detalles pendientes
+        for d in detalles_a_crear:
+            DetalleMateriaCortePrev.objects.get_or_create(
+                resultado_estudiante=resultado,
+                curso=d['curso'],
+                institucion=inst,
+                defaults={
+                    'promedio_materia':       d['promedio_materia'],
+                    'nivel_desempeno':        d['nivel_desempeno'],
+                    'en_riesgo':              d['en_riesgo'],
+                    'actividades_registradas': d['actividades_registradas'],
+                    'actividades_calificadas': d['actividades_calificadas'],
+                    'actividades_pendientes':  d['actividades_pendientes'],
+                }
+            )
+
+    # Actualizar totales del corte
+    corte.total_estudiantes_evaluados = len(estudiantes)
+    corte.total_en_riesgo = total_en_riesgo
+    corte.estado = 'BORRADOR'
+    corte.save(update_fields=['total_estudiantes_evaluados', 'total_en_riesgo', 'estado'])
+
+    # Notificar al coordinador vía WebSocket
+    uid = user_id or (corte.generado_por_id)
+    _notify(
+        uid, 'success',
+        '✅ Corte Preventivo Calculado',
+        f'"{corte.nombre_corte}" — {len(estudiantes)} estudiantes evaluados, '
+        f'{total_en_riesgo} en riesgo. Ya puedes revisar y publicar.',
+        {'url': f'/academico/cortes-preventivos/{corte.pk}/'}
+    )
+    return {'corte_id': corte_id, 'estudiantes': len(estudiantes), 'en_riesgo': total_en_riesgo}
 
 @shared_task
 def generar_ranking_institucional_task(periodo_id):
@@ -74,77 +332,135 @@ def generar_ranking_institucional_task(periodo_id):
     # Devolvemos el resultado como un JSON
     return json.dumps(reporte_final)
 
+def _primera_ocurrencia_dia(fecha_inicio_periodo, dia_semana):
+    """
+    Devuelve la primera fecha real del día de la semana indicado que cae
+    dentro del período académico.
+
+    BloqueHorario.dia_semana y date.weekday() usan el mismo convenio:
+    0=Lunes, 1=Martes, ..., 6=Domingo.
+
+    Ejemplo: período inicia el lunes 06/01, bloque es miércoles (2)
+             → devuelve 08/01 (no 06/01).
+    """
+    dias_adelante = (dia_semana - fecha_inicio_periodo.weekday()) % 7
+    return fecha_inicio_periodo + timedelta(days=dias_adelante)
+
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=180)
 def sincronizar_horario_google_calendar_task(self, user_id):
     """
     Sincroniza el horario de clases de un usuario (estudiante o docente)
     con su Google Calendar principal.
+
+    Correcciones incluidas:
+    - Cada evento recurrente arranca en la primera ocurrencia real de su
+      día de la semana dentro del período (antes usaba siempre fecha_inicio).
+    - Se renueva el access token OAuth si ha expirado antes de llamar la API.
     """
+    from google.auth.transport.requests import Request as GoogleRequest
+
     try:
         user = Usuario.objects.get(pk=user_id)
         if not user.google_calendar_id:
-            logger.warning(f"Usuario {user_id} no tiene un ID de calendario de Google. Abortando sincronización.")
+            logger.warning(f"Usuario {user_id} sin google_calendar_id. Abortando.")
             return "Usuario sin calendario configurado."
 
         social_token = SocialToken.objects.get(account__user=user, account__provider='google')
-        
+
         credentials = Credentials(
             token=social_token.token,
             refresh_token=social_token.token_secret,
             token_uri='https://oauth2.googleapis.com/token',
             client_id=social_token.app.client_id,
-            client_secret=social_token.app.secret
+            client_secret=social_token.app.secret,
         )
-        
+
+        # Renovar token expirado antes de llamar a la API
+        if credentials.expired and credentials.refresh_token:
+            credentials.refresh(GoogleRequest())
+            social_token.token = credentials.token
+            social_token.save(update_fields=['token'])
+            logger.info(f"Token OAuth renovado para usuario {user_id}.")
+
         service = build('calendar', 'v3', credentials=credentials)
-        
-        # Buscamos el periodo académico activo para definir las fechas de los eventos
-        periodo_activo = PeriodoAcademico.objects.filter(institucion=user.institucion_asociada, activo=True).first()
+
+        periodo_activo = PeriodoAcademico.objects.filter(
+            institucion=user.institucion_asociada, activo=True
+        ).first()
         if not periodo_activo:
-            logger.error(f"No hay un periodo académico activo para la institución del usuario {user_id}.")
+            logger.error(f"Sin período activo para usuario {user_id}.")
             return "Sin periodo activo."
 
-        # Buscamos todos los bloques de horario del usuario
         bloques_horario = BloqueHorario.objects.none()
         if hasattr(user, 'estudiante'):
-            bloques_horario = BloqueHorario.objects.filter(curso__grado=user.estudiante.grado_actual, curso__periodo_academico=periodo_activo)
+            bloques_horario = BloqueHorario.objects.filter(
+                curso__grado=user.estudiante.grado_actual,
+                curso__periodo_academico=periodo_activo,
+            )
         elif hasattr(user, 'docente'):
-            bloques_horario = BloqueHorario.objects.filter(curso__docentes_asignados=user.docente, curso__periodo_academico=periodo_activo)
+            bloques_horario = BloqueHorario.objects.filter(
+                curso__docentes_asignados=user.docente,
+                curso__periodo_academico=periodo_activo,
+            )
+
+        dias_rrule = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU']
 
         for bloque in bloques_horario:
-            # Si el evento ya fue creado, lo saltamos por ahora (en un futuro se podría actualizar)
             if bloque.google_event_id:
+                continue  # Ya sincronizado (actualización pendiente en Fase 3)
+
+            # Primera ocurrencia REAL del día del bloque dentro del período
+            fecha_inicio_evento = _primera_ocurrencia_dia(
+                periodo_activo.fecha_inicio, bloque.dia_semana
+            )
+            if fecha_inicio_evento > periodo_activo.fecha_fin:
+                logger.warning(
+                    f"Bloque {bloque.pk} ({dias_rrule[bloque.dia_semana]}) sin "
+                    f"ocurrencias en el período. Se omite."
+                )
                 continue
 
-            # Creamos el evento en el calendario
+            docentes = ', '.join(
+                d.usuario.get_full_name()
+                for d in bloque.curso.docentes_asignados.all()
+            )
             evento = {
                 'summary': f"{bloque.curso.materia.nombre_materia} - {bloque.curso.grado.nombre}",
                 'location': bloque.aula.nombre if bloque.aula else '',
-                'description': f"Clase impartida por: {', '.join([d.usuario.get_full_name() for d in bloque.curso.docentes_asignados.all()])}",
+                'description': f"Clase impartida por: {docentes}",
                 'start': {
-                    'dateTime': f"{periodo_activo.fecha_inicio.strftime('%Y-%m-%d')}T{bloque.hora_inicio.strftime('%H:%M:%S')}",
+                    'dateTime': (
+                        f"{fecha_inicio_evento.strftime('%Y-%m-%d')}"
+                        f"T{bloque.hora_inicio.strftime('%H:%M:%S')}"
+                    ),
                     'timeZone': 'America/Bogota',
                 },
                 'end': {
-                    'dateTime': f"{periodo_activo.fecha_inicio.strftime('%Y-%m-%d')}T{bloque.hora_fin.strftime('%H:%M:%S')}",
+                    'dateTime': (
+                        f"{fecha_inicio_evento.strftime('%Y-%m-%d')}"
+                        f"T{bloque.hora_fin.strftime('%H:%M:%S')}"
+                    ),
                     'timeZone': 'America/Bogota',
                 },
                 'recurrence': [
-                    f"RRULE:FREQ=WEEKLY;BYDAY={['MO','TU','WE','TH','FR','SA','SU'][bloque.dia_semana]};UNTIL={periodo_activo.fecha_fin.strftime('%Y%m%dT235959Z')}"
+                    f"RRULE:FREQ=WEEKLY;BYDAY={dias_rrule[bloque.dia_semana]};"
+                    f"UNTIL={periodo_activo.fecha_fin.strftime('%Y%m%dT235959Z')}"
                 ],
             }
 
-            created_event = service.events().insert(calendarId=user.google_calendar_id, body=evento).execute()
-            
-            # Guardamos el ID del evento creado para futuras referencias
+            created_event = service.events().insert(
+                calendarId=user.google_calendar_id, body=evento
+            ).execute()
+
             bloque.google_event_id = created_event.get('id')
             bloque.save(update_fields=['google_event_id'])
-            logger.info(f"Evento '{evento['summary']}' creado en el calendario del usuario {user_id}.")
+            logger.info(f"Evento '{evento['summary']}' creado para usuario {user_id}.")
 
-        return f"Sincronización completada para el usuario {user_id}."
+        return f"Sincronización completada para usuario {user_id}."
 
     except Exception as e:
-        logger.error(f"Error en la sincronización de calendario para el usuario {user_id}: {e}", exc_info=True)
+        logger.error(f"Error sincronización calendario usuario {user_id}: {e}", exc_info=True)
         raise self.retry(exc=e)   
     
 
@@ -161,9 +477,9 @@ def generar_contenido_planeacion_task(self, planeacion_id):
 
         
 
-        api_key = getattr(settings, 'GOOGLE_API_KEY', None)
+        api_key = get_inst_google_api_key(planeacion.curso.institucion)
         if not api_key:
-            raise Exception("GOOGLE_API_KEY no configurada.")
+            raise Exception("La institución no tiene configurada google_api_key (Gemini).")
 
         genai.configure(api_key=api_key)
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
@@ -272,9 +588,9 @@ def analizar_propuesta_candidato_task(self, candidato_id):
     try:
         candidato = Candidato.objects.get(pk=candidato_id)
         
-        api_key = getattr(settings, 'GOOGLE_API_KEY', None)
+        api_key = get_inst_google_api_key(candidato.eleccion.institucion)
         if not api_key:
-            raise Exception("GOOGLE_API_KEY no configurada.")
+            raise Exception("La institución no tiene configurada google_api_key (Gemini).")
 
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-2.5-pro')
@@ -331,7 +647,10 @@ def analizar_comportamiento_task(user_id):
         return "Error: Usuario no válido."
 
     try:
-        genai.configure(api_key=settings.GOOGLE_API_KEY)
+        api_key = get_inst_google_api_key(institucion)
+        if not api_key:
+            raise ValueError("Institución sin google_api_key (Gemini).")
+        genai.configure(api_key=api_key)
         generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
         model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
     except Exception as e:
@@ -459,7 +778,12 @@ def generar_propuesta_horario_task(periodo_pk, institucion_id, grado_pk): # <-- 
         Usa el formato de fecha y hora completo ISO 8601 (ej: "2025-08-04T06:30:00").
         """
 
-        genai.configure(api_key=settings.GOOGLE_API_KEY)
+        institucion_obj = InstitucionEducativa.objects.get(pk=institucion_id)
+        api_key = get_inst_google_api_key(institucion_obj)
+        if not api_key:
+            return {'status': 'FAILURE', 'error': 'La institución no tiene configurada google_api_key (Gemini).'}
+
+        genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(prompt)
         
@@ -529,7 +853,11 @@ def analizar_plagio_tarea_task(entrega_id):
         mayor_similitud = 0
         texto_mas_similar = ""
 
-        genai.configure(api_key=settings.GOOGLE_API_KEY)
+        api_key = get_inst_google_api_key(entrega_actual.deber.institucion)
+        if not api_key:
+            return f"No se puede analizar plagio: la institución no tiene google_api_key (Gemini)."
+
+        genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-2.5-flash')
 
         for otra_entrega in otras_entregas:
@@ -584,3 +912,66 @@ def analizar_plagio_tarea_task(entrega_id):
     except Exception as e:
         traceback.print_exc()
         return f"Error inesperado en el análisis de plagio: {e}"
+
+
+# ======================================================================= #
+#  HALU SENTINEL — Tarea de control de plazos (Resolución 1620)            #
+# ======================================================================= #
+
+@shared_task
+def marcar_casos_convivencia_vencidos():
+    """
+    Tarea diaria que marca como VENCIDO cualquier CasoConvivencia cuyo
+    plazo legal ha expirado y aún está en estado ABIERTO o EN_SEGUIMIENTO.
+    También vuelve a notificar a los coordinadores responsables.
+
+    Programar en Celery Beat:
+        'sentinel-plazos-diario': {
+            'task': 'gestion_academica.tasks.marcar_casos_convivencia_vencidos',
+            'schedule': crontab(hour=7, minute=0),  # cada día a las 7am
+        }
+    """
+    from .models import CasoConvivencia, Notificacion, Usuario
+    from django.urls import reverse as _reverse
+
+    ahora = timezone.now()
+    casos_vencidos = CasoConvivencia.objects.filter(
+        fecha_limite__lt=ahora,
+        estado__in=[CasoConvivencia.Estado.ABIERTO, CasoConvivencia.Estado.EN_SEGUIMIENTO],
+    ).select_related('responsable', 'institucion')
+
+    actualizados = 0
+    for caso in casos_vencidos:
+        caso.estado = CasoConvivencia.Estado.VENCIDO
+        caso.save(update_fields=['estado'])
+
+        # Notificar al responsable si lo tiene asignado
+        destinatarios = []
+        if caso.responsable:
+            destinatarios.append(caso.responsable)
+
+        # También notificar a coordinadores de la institución
+        coordinadores = Usuario.objects.filter(
+            institucion_asociada=caso.institucion,
+            is_staff=True,
+            rol__in=['coordinador', 'administrador'],
+        )
+        for coord in coordinadores:
+            if coord not in destinatarios:
+                destinatarios.append(coord)
+
+        url_caso = _reverse('gestion_academica:detalle_caso_convivencia', kwargs={'pk': caso.pk})
+        for dest in destinatarios:
+            Notificacion.objects.create(
+                destinatario=dest,
+                institucion=caso.institucion,
+                mensaje=(
+                    f"⏰ PLAZO VENCIDO — Caso {caso.radicado} ({caso.tipo_situacion}) "
+                    f"sin cerrar. Requiere atención inmediata."
+                ),
+                enlace=url_caso,
+            )
+
+        actualizados += 1
+
+    return f"Sentinel: {actualizados} casos marcados como VENCIDOS."

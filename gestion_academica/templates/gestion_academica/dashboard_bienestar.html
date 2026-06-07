@@ -1,229 +1,669 @@
 {% extends "base_academico.html" %}
+{% load humanize %}
 
-{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block titulo %}HALU Sentinel – Ruta de Convivencia{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+/* ══════════════════════════════════════════════════════
+   HALU PULSE — BIENESTAR / SENTINEL
+   Tema: crimson/rojo convivencia
+══════════════════════════════════════════════════════ */
+:root {
+  --bien-dark:   #7f1d1d;
+  --bien-mid:    #991b1b;
+  --bien-light:  #dc2626;
+  --bien-accent: #fca5a5;
+}
+
+/* ── Hero ─────────────────────────────────────────── */
+.bien-hero {
+  background: linear-gradient(135deg, var(--bien-dark) 0%, var(--bien-mid) 55%, #b91c1c 100%);
+  border-radius: 1rem;
+  padding: 1.6rem 1.8rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.bien-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.bien-hero-title { font-size: 1.45rem; font-weight: 800; letter-spacing: -.5px; margin-bottom: .25rem; }
+.bien-hero-sub   { font-size: .85rem; opacity: .8; }
+.bien-hero-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 2rem; padding: .25rem .75rem; font-size: .78rem; font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+.bien-hero-actions { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
+.bien-hero-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .5rem 1.1rem; border-radius: .6rem; font-size: .82rem; font-weight: 600;
+  text-decoration: none; border: none; cursor: pointer; transition: opacity .15s, transform .1s;
+}
+.bien-hero-btn:active { transform: scale(.97); }
+.bien-hero-btn-primary { background: #fff; color: var(--bien-mid); }
+.bien-hero-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
+.bien-hero-btn-outline:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+/* ── KPI Strip ───────────────────────────────────── */
+.bien-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+}
+.bien-kpi-card {
+  background: #fff;
+  border-radius: .75rem;
+  padding: .9rem .8rem .7rem;
+  text-align: center;
+  box-shadow: 0 1px 6px rgba(0,0,0,.07);
+  border-top: 3px solid transparent;
+  position: relative;
+}
+.bien-kpi-card.kpi-amber  { border-top-color: #f59e0b; }
+.bien-kpi-card.kpi-cyan   { border-top-color: #06b6d4; }
+.bien-kpi-card.kpi-red    { border-top-color: #dc2626; }
+.bien-kpi-card.kpi-dark   { border-top-color: #1e293b; }
+.bien-kpi-card.kpi-green  { border-top-color: #16a34a; }
+.bien-kpi-card.kpi-gray   { border-top-color: #94a3b8; }
+.bien-kpi-val  { font-size: 1.7rem; font-weight: 800; line-height: 1; margin-bottom: .2rem; }
+.bien-kpi-label { font-size: .68rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .5px; line-height: 1.2; }
+.kpi-amber  .bien-kpi-val { color: #b45309; }
+.kpi-cyan   .bien-kpi-val { color: #0e7490; }
+.kpi-red    .bien-kpi-val { color: #dc2626; }
+.kpi-dark   .bien-kpi-val { color: #1e293b; }
+.kpi-green  .bien-kpi-val { color: #16a34a; }
+.kpi-gray   .bien-kpi-val { color: #475569; }
+
+/* ── Section Headers ──────────────────────────────── */
+.bien-section-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.bien-section-hd h2 {
+  font-size: 1.05rem; font-weight: 700; margin: 0; color: #1e293b;
+  display: flex; align-items: center; gap: .5rem;
+}
+.bien-section-hd h2 .bien-ico {
+  width: 32px; height: 32px; border-radius: .5rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; flex-shrink: 0;
+}
+.bien-section-hd h2 .bien-ico.red    { background: #fee2e2; color: #dc2626; }
+.bien-section-hd h2 .bien-ico.amber  { background: #fef3c7; color: #b45309; }
+.bien-section-hd h2 .bien-ico.indigo { background: #e0e7ff; color: #4f46e5; }
+
+/* ── Panel Cards ──────────────────────────────────── */
+.bien-panel {
+  background: #fff;
+  border-radius: .85rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,.07);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.bien-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .5rem; flex-wrap: wrap;
+  padding: .9rem 1.2rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.bien-panel-header-title { font-size: .95rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: .5rem; margin: 0; }
+.bien-panel-body { padding: 0; }
+
+/* ── Filtros ──────────────────────────────────────── */
+.filtro-bar {
+  display: flex; gap: .5rem; flex-wrap: wrap;
+  padding: .6rem 1.2rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+@media (max-width: 575px) {
+  .filtro-bar { flex-direction: column; }
+  .filtro-bar .form-select { width: 100% !important; }
+}
+
+/* ── Tabla desktop ─────────────────────────────────── */
+.bien-table thead th {
+  background: #f8fafc; font-size: .76rem; text-transform: uppercase;
+  letter-spacing: .5px; font-weight: 700; color: #64748b;
+  border-bottom: 2px solid #e2e8f0; white-space: nowrap;
+}
+.bien-table tbody td { vertical-align: middle; font-size: .83rem; }
+.bien-table tbody tr:hover { background: #fef9f9; }
+
+/* ── Tarjeta expediente móvil ─────────────────────── */
+.caso-card {
+  border-left: 4px solid #e2e8f0;
+  border-radius: .65rem;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  transition: box-shadow .15s;
+  margin-bottom: .75rem;
+}
+.caso-card:active { box-shadow: 0 2px 8px rgba(0,0,0,.13); }
+.caso-card.vencido   { border-left-color: #dc2626; background: #fff5f5; }
+.caso-card.tipo-iii  { border-left-color: #f59e0b; background: #fffbeb; }
+.caso-card.cerrado   { border-left-color: #94a3b8; background: #f8fafc; }
+.caso-card-inner     { padding: .9rem 1rem; }
+
+/* ── Semáforo de plazo ─────────────────────────────── */
+.plazo-vencido  { color: #dc2626; font-weight: 700; }
+.plazo-hoy      { color: #dc2626; font-weight: 700; }
+.plazo-urgente  { color: #d97706; font-weight: 600; }
+.plazo-ok       { color: #16a34a; }
+
+/* ── Análisis IA cards ─────────────────────────────── */
+.ia-card {
+  border-radius: .75rem;
+  border: 1px solid #e0e7ff;
+  background: #fafafe;
+  padding: 1rem;
+  height: 100%;
+}
+.ia-card-name { font-size: .88rem; font-weight: 700; color: #1e293b; margin-bottom: .15rem; }
+.ia-card-grade { font-size: .75rem; color: #64748b; margin-bottom: .5rem; }
+.ia-card-text { font-size: .8rem; color: #475569; line-height: 1.5; }
+
+/* ── Estado IA alert ────────────────────────────────── */
+#analysis-status-alert {
+  border-radius: .75rem;
+  border-left: 4px solid #4f46e5;
+  font-size: .88rem;
+}
+</style>
+{% endblock %}
 
 {% block contenido %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <h1 class="h2 mb-0"><i class="bi bi-heart-pulse-fill text-danger me-2"></i> {{ titulo_pagina }}</h1>
-        <div>
-            <button type="button" id="executeAnalysisBtn" class="btn btn-primary me-2">
-                <span id="btn-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                <i id="btn-icon" class="bi bi-arrow-repeat me-2"></i>
-                <span id="btn-text">Ejecutar Análisis de Patrones</span>
-            </button>
-            <a href="{% url 'gestion_academica:dashboard_coordinador' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver al Panel</a>
+<div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1280px;">
+
+  <!-- ══ HERO ═══════════════════════════════════════════════════════════ -->
+  <div class="bien-hero">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <div class="bien-hero-badge mb-2">
+          <i class="bi bi-shield-shaded"></i> Ley 1620 · Decreto 1965/2013
         </div>
+        <div class="bien-hero-title">
+          <i class="bi bi-shield-shaded me-2"></i>HALU Sentinel
+        </div>
+        <div class="bien-hero-sub">Ruta de Atención Integral · Convivencia Escolar</div>
+      </div>
+      <div style="position:relative;z-index:1;">
+        <button type="button" id="executeAnalysisBtn" class="bien-hero-btn bien-hero-btn-primary">
+          <span id="btn-spinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+          <i id="btn-icon" class="bi bi-cpu"></i>
+          <span id="btn-text">Analizar con IA</span>
+        </button>
+      </div>
+    </div>
+    <div class="bien-hero-actions" style="position:relative;z-index:1;">
+      <a href="{% url 'gestion_academica:dashboard_coordinador' %}" class="bien-hero-btn bien-hero-btn-outline">
+        <i class="bi bi-arrow-left"></i> Volver al Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- ══ ALERTA IA ════════════════════════════════════════════════════ -->
+  <div id="analysis-status-alert" class="alert alert-info d-none mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <div class="spinner-border spinner-border-sm flex-shrink-0" role="status"></div>
+      <strong>Análisis en progreso…</strong>
+      <span class="d-none d-sm-inline text-muted">Los resultados aparecerán al finalizar.</span>
+    </div>
+  </div>
+
+  <!-- ══ KPI STRIP ════════════════════════════════════════════════════ -->
+  <div class="bien-kpi-strip">
+    {% for kpi in kpis %}
+    {% if kpi.color == 'warning' %}
+    <div class="bien-kpi-card kpi-amber">
+      <div class="bien-kpi-val">{{ kpi.valor }}</div>
+      <div class="bien-kpi-label">{{ kpi.label }}</div>
+    </div>
+    {% elif kpi.color == 'info' %}
+    <div class="bien-kpi-card kpi-cyan">
+      <div class="bien-kpi-val">{{ kpi.valor }}</div>
+      <div class="bien-kpi-label">{{ kpi.label }}</div>
+    </div>
+    {% elif kpi.color == 'danger' %}
+    <div class="bien-kpi-card kpi-red">
+      <div class="bien-kpi-val">{{ kpi.valor }}</div>
+      <div class="bien-kpi-label">{{ kpi.label }}</div>
+    </div>
+    {% elif kpi.color == 'dark' %}
+    <div class="bien-kpi-card kpi-dark">
+      <div class="bien-kpi-val">{{ kpi.valor }}</div>
+      <div class="bien-kpi-label">{{ kpi.label }}</div>
+    </div>
+    {% elif kpi.color == 'success' %}
+    <div class="bien-kpi-card kpi-green">
+      <div class="bien-kpi-val">{{ kpi.valor }}</div>
+      <div class="bien-kpi-label">{{ kpi.label }}</div>
+    </div>
+    {% else %}
+    <div class="bien-kpi-card kpi-gray">
+      <div class="bien-kpi-val">{{ kpi.valor }}</div>
+      <div class="bien-kpi-label">{{ kpi.label }}</div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+
+  <!-- ══ EXPEDIENTES ACTIVOS ══════════════════════════════════════════ -->
+  <div class="bien-section-hd">
+    <h2>
+      <span class="bien-ico red"><i class="bi bi-folder2-open"></i></span>
+      Expedientes Activos
+      {% if casos_activos %}
+        <span class="badge rounded-pill ms-1" style="background:#fee2e2;color:#dc2626;font-size:.72rem;">{{ casos_activos|length }}</span>
+      {% endif %}
+    </h2>
+    <!-- Filtros toggle en móvil -->
+    <button class="btn btn-sm btn-outline-secondary d-sm-none" type="button"
+            data-bs-toggle="collapse" data-bs-target="#filtrosPanel">
+      <i class="bi bi-funnel me-1"></i>Filtros
+    </button>
+  </div>
+
+  <div class="bien-panel">
+    <!-- Filtros -->
+    <div class="collapse d-sm-block" id="filtrosPanel">
+      <div class="filtro-bar">
+        <select id="filtroEstado" class="form-select form-select-sm" style="width:auto;min-width:150px;">
+          <option value="">Todos los estados</option>
+          <option value="ABIERTO">Abierto</option>
+          <option value="EN_SEGUIMIENTO">En Seguimiento</option>
+          <option value="VENCIDO">Vencido</option>
+          <option value="CERRADO">Cerrado</option>
+        </select>
+        <select id="filtroTipo" class="form-select form-select-sm" style="width:auto;min-width:130px;">
+          <option value="">Todos los tipos</option>
+          <option value="TIPO_I">Tipo I</option>
+          <option value="TIPO_II">Tipo II</option>
+          <option value="TIPO_III">Tipo III</option>
+        </select>
+      </div>
     </div>
 
-    <div id="analysis-status-alert" class="alert alert-info d-none" role="alert">
-        <div class="d-flex align-items-center">
-            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-            <strong>Análisis en progreso...</strong> Los resultados aparecerán aquí automáticamente cuando finalice. No es necesario que permanezcas en esta página.
-        </div>
-    </div>
+    {% if casos_activos %}
+    {% with casos=casos_activos %}
 
-    <div class="alert alert-warning" role="alert">
-        <h4 class="alert-heading">Información Confidencial</h4>
-        <p>Esta sección muestra observaciones que, según el análisis de inteligencia artificial, podrían indicar una situación de riesgo para el bienestar del estudiante. Por favor, maneja esta información con la máxima discreción y profesionalismo.</p>
-    </div>
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">
-            <i class="bi bi-robot me-1"></i> Resúmenes de Comportamiento Generados por IA
-        </div>
-        <div class="card-body">
-            {% for resumen in resumenes_ia %}
-                <div class="border-bottom pb-2 mb-2">
-                    <p class="mb-1">
-                        <strong>Estudiante:</strong> 
-                        <a href="{% url 'gestion_academica:detalle_estudiante' resumen.estudiante.pk %}">{{ resumen.estudiante.usuario.get_full_name }}</a>
-                    </p>
-                    <p class="mb-1"><strong>Análisis de HALU:</strong></p>
-                    <blockquote class="blockquote-footer bg-light p-2 rounded">
-                        {{ resumen.resumen_ia|linebreaksbr }}
-                    </blockquote>
-                    {% if resumen.patrones_detectados %}
-                        <p class="mb-0">
-                            <strong>Patrones Clave:</strong>
-                            {% for patron in resumen.patrones_detectados %}
-                                <span class="badge bg-secondary">{{ patron }}</span>
-                            {% endfor %}
-                        </p>
-                    {% endif %}
-                </div>
-            {% empty %}
-                <p class="text-center text-muted">Aún no se han generado análisis de comportamiento. Presiona "Ejecutar Análisis de Patrones" para comenzar.</p>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="card shadow-sm">
-        <div class="card-header">
-            <i class="bi bi-list-check me-1"></i> Alertas Individuales para Revisión
-        </div>
+      <!-- Vista TABLA — desktop -->
+      <div class="d-none d-md-block">
         <div class="table-responsive">
-            <table class="table table-hover table-striped mb-0 align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Estudiante</th>
-                        <th>Observación del Docente</th>
-                        <th>Sugerencia de la IA</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for alerta in alertas %}
-                <tr class="table-danger">
-                    <td>{{ alerta.fecha_hora|date:"d M, Y" }}</td>
-                    <td><strong>{{ alerta.estudiante.usuario.get_full_name }}</strong></td>
-                    <td><small>{{ alerta.descripcion|truncatewords:15 }}</small></td>
-                    <td>
-                        {% if alerta.analisis_ia %}
-                            <small><em>{{ alerta.analisis_ia|truncatewords:15 }}</em></small>
-                        {% else %}
-                            <small class="text-muted">Análisis pendiente.</small>
-                        {% endif %}
-                    </td>
-                    <td class="text-center">
-                        <a href="{% url 'gestion_academica:detalle_alerta_bienestar' alerta.pk %}" class="btn btn-sm btn-outline-danger">
-                            Ver Detalle Completo
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                    <tr><td colspan="5" class="text-center p-4">¡Buenas noticias! No hay alertas de bienestar pendientes.</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
+          <table class="table table-hover mb-0 bien-table" id="tablaCasos">
+            <thead>
+              <tr>
+                <th>Radicado</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Estudiante(s)</th>
+                <th>Responsable</th>
+                <th>Apertura</th>
+                <th>Plazo</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for caso in casos %}
+              <tr class="sentinel-row
+                {% if caso.estado == 'VENCIDO' %}table-danger
+                {% elif caso.tipo_situacion == 'TIPO_III' and caso.estado in 'ABIERTO,EN_SEGUIMIENTO' %}table-warning
+                {% elif caso.estado == 'CERRADO' %}table-secondary{% endif %}"
+                data-estado="{{ caso.estado }}" data-tipo="{{ caso.tipo_situacion }}">
+                <td><code class="small fw-bold">{{ caso.radicado }}</code></td>
+                <td>
+                  {% if caso.tipo_situacion == 'TIPO_I' %}<span class="badge bg-success">Tipo I</span>
+                  {% elif caso.tipo_situacion == 'TIPO_II' %}<span class="badge bg-warning text-dark">Tipo II</span>
+                  {% else %}<span class="badge bg-danger">Tipo III</span>{% endif %}
+                </td>
+                <td>
+                  {% if caso.estado == 'ABIERTO' %}<span class="badge bg-warning text-dark">Abierto</span>
+                  {% elif caso.estado == 'EN_SEGUIMIENTO' %}<span class="badge bg-info text-dark">Seguimiento</span>
+                  {% elif caso.estado == 'VENCIDO' %}<span class="badge bg-danger"><i class="bi bi-alarm-fill me-1"></i>Vencido</span>
+                  {% elif caso.estado == 'CERRADO' %}<span class="badge bg-success">Cerrado</span>
+                  {% else %}<span class="badge bg-secondary">{{ caso.estado }}</span>{% endif %}
+                </td>
+                <td>
+                  {% for inv in caso.involucrados.all %}
+                    <span class="small d-block">{{ inv.estudiante.usuario.get_full_name }}</span>
+                  {% empty %}<span class="text-muted small">—</span>{% endfor %}
+                </td>
+                <td class="small">
+                  {% if caso.responsable %}{{ caso.responsable.get_full_name }}
+                  {% else %}<span class="text-muted">Sin asignar</span>{% endif %}
+                </td>
+                <td class="small text-nowrap">{{ caso.fecha_apertura|date:"d/m/Y" }}</td>
+                <td class="small text-nowrap">{% include "gestion_academica/_plazo_badge.html" with caso=caso %}</td>
+                <td>
+                  <a href="{% url 'gestion_academica:detalle_caso_convivencia' caso.pk %}"
+                     class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-folder2-open"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-    </div>
-</div>
+      </div>
 
-<div class="modal fade" id="confirmAnalysisModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel"><i class="bi bi-robot text-primary"></i> Confirmar Análisis con IA</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Estás a punto de iniciar un análisis de comportamiento para <strong>todos los estudiantes activos</strong>. Este proceso se ejecutará en segundo plano y puede tardar varios minutos.</p>
-                <p>¿Deseas continuar?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" id="confirmAnalysisBtn" class="btn btn-primary">Sí, Iniciar Análisis</button>
-            </div>
-        </div>
-    </div>
-</div>
+      <!-- Vista TARJETAS — móvil -->
+      <div class="d-md-none p-2 pt-3" id="tarjetasCasos">
+        {% for caso in casos %}
+        <div class="caso-card sentinel-card
+          {% if caso.estado == 'VENCIDO' %}vencido
+          {% elif caso.tipo_situacion == 'TIPO_III' and caso.estado in 'ABIERTO,EN_SEGUIMIENTO' %}tipo-iii
+          {% elif caso.estado == 'CERRADO' %}cerrado{% endif %}"
+          data-estado="{{ caso.estado }}" data-tipo="{{ caso.tipo_situacion }}">
+          <div class="caso-card-inner">
 
-<div class="modal fade" id="analysisResultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="resultModalLabel"><i class="bi bi-check-circle-fill me-2"></i>Análisis Finalizado</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="resultModalBody">
+            <!-- Fila 1: radicado + badges + botón -->
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <code class="fw-bold" style="font-size:.82rem;">{{ caso.radicado }}</code>
+                <div class="mt-1 d-flex flex-wrap gap-1">
+                  {% if caso.tipo_situacion == 'TIPO_I' %}<span class="badge bg-success">Tipo I</span>
+                  {% elif caso.tipo_situacion == 'TIPO_II' %}<span class="badge bg-warning text-dark">Tipo II</span>
+                  {% else %}<span class="badge bg-danger">Tipo III</span>{% endif %}
+                  {% if caso.estado == 'ABIERTO' %}<span class="badge bg-warning text-dark">Abierto</span>
+                  {% elif caso.estado == 'EN_SEGUIMIENTO' %}<span class="badge bg-info text-dark">Seguimiento</span>
+                  {% elif caso.estado == 'VENCIDO' %}<span class="badge bg-danger"><i class="bi bi-alarm-fill me-1"></i>Vencido</span>
+                  {% elif caso.estado == 'CERRADO' %}<span class="badge bg-success">Cerrado</span>{% endif %}
                 </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+              </div>
+              <a href="{% url 'gestion_academica:detalle_caso_convivencia' caso.pk %}"
+                 class="btn btn-sm btn-primary ms-2 flex-shrink-0">
+                <i class="bi bi-folder2-open me-1"></i>Ver
+              </a>
             </div>
+
+            <!-- Fila 2: estudiante(s) -->
+            <div class="d-flex align-items-start gap-2 mb-1">
+              <i class="bi bi-person-fill text-secondary mt-1" style="font-size:.85rem;"></i>
+              <div class="small">
+                {% for inv in caso.involucrados.all %}
+                  {{ inv.estudiante.usuario.get_full_name }}{% if not forloop.last %}, {% endif %}
+                {% empty %}<span class="text-muted">Sin involucrados</span>{% endfor %}
+              </div>
+            </div>
+
+            <!-- Fila 3: responsable + plazo -->
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <small class="text-muted">
+                <i class="bi bi-person-badge me-1"></i>
+                {% if caso.responsable %}{{ caso.responsable.get_full_name|truncatechars:22 }}
+                {% else %}Sin responsable{% endif %}
+              </small>
+              <small>{% include "gestion_academica/_plazo_badge.html" with caso=caso %}</small>
+            </div>
+          </div>
         </div>
+        {% endfor %}
+
+        <p id="sinExpedientesMobil" class="text-center text-muted py-3 d-none">
+          <i class="bi bi-search me-1"></i>Sin resultados para este filtro.
+        </p>
+      </div>
+
+    {% endwith %}
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-shield-check mb-3 d-block text-success" style="font-size:3rem;"></i>
+      <p class="fw-semibold mb-1">¡Sin expedientes activos!</p>
+      <p class="small mb-0">La convivencia escolar está bajo control.</p>
     </div>
+    {% endif %}
+  </div>
+
+  <!-- ══ ALERTAS SIN EXPEDIENTE ════════════════════════════════════════ -->
+  <div class="bien-section-hd">
+    <h2>
+      <span class="bien-ico amber"><i class="bi bi-exclamation-triangle-fill"></i></span>
+      Alertas sin expediente formal
+      {% if alertas_sin_caso %}
+        <span class="badge rounded-pill ms-1" style="background:#fef3c7;color:#92400e;font-size:.72rem;">{{ alertas_sin_caso|length }}</span>
+      {% endif %}
+    </h2>
+  </div>
+
+  <div class="bien-panel">
+    {% if alertas_sin_caso %}
+
+      <!-- Tabla — desktop -->
+      <div class="d-none d-md-block">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 bien-table">
+            <thead>
+              <tr>
+                <th>Fecha</th><th>Estudiante</th><th>Grado</th>
+                <th>Tipo IA</th><th>Descripción</th><th>Docente</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for alerta in alertas_sin_caso %}
+              <tr>
+                <td class="small text-nowrap">{{ alerta.fecha_hora|date:"d/m/Y H:i" }}</td>
+                <td class="small fw-semibold">{{ alerta.estudiante.usuario.get_full_name }}</td>
+                <td class="small">{{ alerta.estudiante.grado_actual }}</td>
+                <td>
+                  {% if alerta.tipo_situacion_ia == 'TIPO_III' %}
+                    <span class="badge bg-danger">Tipo III</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Tipo II</span>
+                  {% endif %}
+                </td>
+                <td class="small">{{ alerta.descripcion|truncatechars:80 }}</td>
+                <td class="small">{{ alerta.registrado_por.get_full_name }}</td>
+                <td class="text-nowrap">
+                  <button type="button"
+                          class="btn btn-sm btn-danger btn-abrir-caso"
+                          data-url="{% url 'gestion_academica:abrir_caso_manual' alerta.pk %}"
+                          data-bs-toggle="modal" data-bs-target="#modalAbrirCaso">
+                    <i class="bi bi-folder-plus"></i>
+                  </button>
+                  <a href="{% url 'gestion_academica:detalle_alerta_bienestar' alerta.pk %}"
+                     class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tarjetas — móvil -->
+      <div class="d-md-none p-2 pt-3">
+        {% for alerta in alertas_sin_caso %}
+        <div class="caso-card {% if alerta.tipo_situacion_ia == 'TIPO_III' %}vencido{% else %}tipo-iii{% endif %}">
+          <div class="caso-card-inner">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <div class="fw-semibold" style="font-size:.86rem;">{{ alerta.estudiante.usuario.get_full_name }}</div>
+                <div class="text-muted" style="font-size:.76rem;">
+                  {{ alerta.estudiante.grado_actual }} · {{ alerta.fecha_hora|date:"d/m/Y" }}
+                </div>
+                <div class="mt-1">
+                  {% if alerta.tipo_situacion_ia == 'TIPO_III' %}
+                    <span class="badge bg-danger">Tipo III</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Tipo II</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="d-flex flex-column gap-1 ms-2">
+                <button type="button"
+                        class="btn btn-sm btn-danger btn-abrir-caso"
+                        data-url="{% url 'gestion_academica:abrir_caso_manual' alerta.pk %}"
+                        data-bs-toggle="modal" data-bs-target="#modalAbrirCaso">
+                  <i class="bi bi-folder-plus"></i>
+                </button>
+                <a href="{% url 'gestion_academica:detalle_alerta_bienestar' alerta.pk %}"
+                   class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </div>
+            </div>
+            <p class="small text-muted mb-1 fst-italic">"{{ alerta.descripcion|truncatechars:100 }}"</p>
+            <small class="text-muted">
+              <i class="bi bi-person me-1"></i>{{ alerta.registrado_por.get_full_name }}
+            </small>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+    <div class="text-center py-4 text-muted">
+      <i class="bi bi-check-circle-fill text-success me-2" style="font-size:1.6rem;"></i>
+      <p class="mt-2 mb-0 small">Todas las alertas graves tienen expediente asignado.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ══ RESÚMENES CONDUCTUALES IA ════════════════════════════════════ -->
+  {% if resumenes_ia %}
+  <div class="bien-section-hd">
+    <h2>
+      <span class="bien-ico indigo"><i class="bi bi-cpu"></i></span>
+      Resúmenes Conductuales (IA)
+    </h2>
+  </div>
+
+  <div class="row g-3 mb-4">
+    {% for r in resumenes_ia %}
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="ia-card">
+        <div class="ia-card-name">{{ r.estudiante.usuario.get_full_name }}</div>
+        <div class="ia-card-grade">
+          <i class="bi bi-mortarboard me-1"></i>{{ r.estudiante.grado_actual }}
+        </div>
+        <p class="ia-card-text mb-2">{{ r.resumen_ia|linebreaksbr }}</p>
+        <a href="{% url 'gestion_academica:historial_observador' r.estudiante.pk %}"
+           class="btn btn-sm w-100"
+           style="background:#e0e7ff;color:#4f46e5;font-weight:600;border:none;">
+          <i class="bi bi-journal-text me-1"></i>Ver Observador
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div><!-- /container -->
+
+<!-- ══ MODAL: Abrir Expediente Formal ══════════════════════════════════ -->
+<div class="modal fade" id="modalAbrirCaso" tabindex="-1" aria-labelledby="modalAbrirCasoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius:1rem;overflow:hidden;">
+      <div class="modal-header border-0 text-white" style="background:linear-gradient(135deg,#991b1b,#dc2626);">
+        <h5 class="modal-title fw-bold" id="modalAbrirCasoLabel">
+          <i class="bi bi-folder-plus me-2"></i>Abrir Expediente Formal
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body py-4 text-center px-4">
+        <i class="bi bi-shield-exclamation text-danger mb-3 d-block" style="font-size:3rem;"></i>
+        <p class="fw-semibold mb-2">¿Abrir un expediente formal de convivencia?</p>
+        <p class="text-muted small mb-0">
+          Se creará un caso oficial bajo la <strong>Ruta de Atención Integral</strong>
+          (Ley 1620 de 2013). Esta acción quedará registrada y activará los
+          plazos legales de seguimiento.
+        </p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
+        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg me-1"></i>Cancelar
+        </button>
+        <a id="btnConfirmarAbrir" href="#" class="btn btn-danger px-4">
+          <i class="bi bi-folder-plus me-1"></i>Sí, abrir expediente
+        </a>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block extra_js %}{{ block.super }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const executeBtn = document.getElementById('executeAnalysisBtn');
-    const confirmBtn = document.getElementById('confirmAnalysisBtn');
-    const statusAlert = document.getElementById('analysis-status-alert');
-    const btnSpinner = document.getElementById('btn-spinner');
-    const btnIcon = document.getElementById('btn-icon');
-    const btnText = document.getElementById('btn-text');
-    const csrfToken = '{{ csrf_token }}';
-    
-    const analysisModal = new bootstrap.Modal(document.getElementById('confirmAnalysisModal'));
-    const resultModalElement = document.getElementById('analysisResultModal');
-    const resultModal = new bootstrap.Modal(resultModalElement);
-    const resultModalBody = document.getElementById('resultModalBody');
-    
-    resultModalElement.addEventListener('hidden.bs.modal', function () {
-        window.location.reload();
-    });
+/* ── Modal: Abrir Expediente ────────────────────────────────────────── */
+document.getElementById('modalAbrirCaso')?.addEventListener('show.bs.modal', function (e) {
+  const trigger = e.relatedTarget;
+  const url = trigger?.dataset?.url;
+  const btnConfirmar = document.getElementById('btnConfirmarAbrir');
+  if (btnConfirmar && url) btnConfirmar.href = url;
+});
 
-    function checkTaskStatus(taskId) {
-        const interval = setInterval(() => {
-            fetch(`{% url 'gestion_academica:analisis_status' %}?task_id=${taskId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'SUCCESS' || data.status === 'FAILURE') {
-                        clearInterval(interval);
-                        statusAlert.classList.add('d-none');
+/* ── Filtros (tabla desktop + tarjetas móvil) ───────────────────────── */
+function filtrarTabla() {
+  const estado = document.getElementById('filtroEstado').value;
+  const tipo   = document.getElementById('filtroTipo').value;
 
-                        if (data.status === 'SUCCESS') {
-                            resultModalBody.textContent = data.result;
-                        } else {
-                            resultModalBody.textContent = 'La tarea falló al ejecutarse. Revisa la consola del servidor de Celery para más detalles.';
-                        }
-                        resultModal.show();
-                    }
-                })
-                .catch(error => {
-                    console.error("Error al verificar el estado de la tarea:", error);
-                    clearInterval(interval);
-                    statusAlert.classList.add('d-none');
-                });
-        }, 5000);
-    }
+  document.querySelectorAll('.sentinel-row').forEach(tr => {
+    const ok = (!estado || tr.dataset.estado === estado) &&
+               (!tipo   || tr.dataset.tipo   === tipo);
+    tr.style.display = ok ? '' : 'none';
+  });
 
-    executeBtn.addEventListener('click', function() {
-        analysisModal.show();
-    });
+  let visibles = 0;
+  document.querySelectorAll('.sentinel-card').forEach(card => {
+    const ok = (!estado || card.dataset.estado === estado) &&
+               (!tipo   || card.dataset.tipo   === tipo);
+    card.style.display = ok ? '' : 'none';
+    if (ok) visibles++;
+  });
 
-    confirmBtn.addEventListener('click', function() {
-        analysisModal.hide();
+  const noRes = document.getElementById('sinExpedientesMobil');
+  if (noRes) noRes.classList.toggle('d-none', visibles > 0 || (!estado && !tipo));
+}
 
-        executeBtn.disabled = true;
-        btnSpinner.classList.remove('d-none');
-        btnIcon.classList.add('d-none');
-        btnText.textContent = 'Iniciando...';
-        
-        fetch("{% url 'gestion_academica:ejecutar_analisis_comportamiento' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.task_id) {
-                statusAlert.classList.remove('d-none');
-                btnText.textContent = 'Análisis en Proceso';
-                checkTaskStatus(data.task_id);
-            } else {
-                alert('Error al iniciar la tarea.');
-                executeBtn.disabled = false;
-                btnSpinner.classList.add('d-none');
-                btnIcon.classList.remove('d-none');
-                btnText.textContent = 'Ejecutar Análisis de Patrones';
-            }
-        })
-        .catch(error => {
-            console.error("Error al iniciar la tarea:", error);
-            alert('Error de conexión al iniciar el análisis.');
-            executeBtn.disabled = false;
-            btnSpinner.classList.add('d-none');
-            btnIcon.classList.remove('d-none');
-            btnText.textContent = 'Ejecutar Análisis de Patrones';
-        });
-    });
+const selEstado = document.getElementById('filtroEstado');
+const selTipo   = document.getElementById('filtroTipo');
+if (selEstado) selEstado.addEventListener('change', filtrarTabla);
+if (selTipo)   selTipo.addEventListener('change', filtrarTabla);
+
+/* ── Análisis IA ────────────────────────────────────────────────────── */
+document.getElementById('executeAnalysisBtn')?.addEventListener('click', function () {
+  const btn     = this;
+  const spinner = document.getElementById('btn-spinner');
+  const icon    = document.getElementById('btn-icon');
+  const text    = document.getElementById('btn-text');
+  const alertEl = document.getElementById('analysis-status-alert');
+
+  btn.disabled = true;
+  spinner.classList.remove('d-none');
+  icon.classList.add('d-none');
+  if (text) text.textContent = 'Analizando…';
+  alertEl.classList.remove('d-none');
+
+  fetch("{% url 'gestion_academica:ejecutar_analisis_comportamiento' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+  })
+  .then(r => r.json())
+  .then(data => {
+    alertEl.innerHTML = '<i class="bi bi-check-circle-fill text-success me-2"></i>' +
+      (data.message || 'Análisis completado. Recargando…');
+    alertEl.classList.replace('alert-info', 'alert-success');
+    setTimeout(() => location.reload(), 3000);
+  })
+  .catch(() => {
+    alertEl.innerHTML = '<i class="bi bi-x-circle-fill text-danger me-2"></i>Error al ejecutar el análisis.';
+    alertEl.classList.replace('alert-info', 'alert-danger');
+    btn.disabled = false;
+    spinner.classList.add('d-none');
+    icon.classList.remove('d-none');
+    if (text) text.textContent = 'Reintentar';
+  });
 });
 </script>
 {% endblock %}

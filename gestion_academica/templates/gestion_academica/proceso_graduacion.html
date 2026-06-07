@@ -1,46 +1,251 @@
 {% extends 'base_academico.html' %}
 {% load static %}
 
-{% block contenido %}
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header">
-            <h4 class="mb-0">{{ titulo_pagina }}</h4>
-        </div>
-        <div class="card-body">
-            <p>
-                Esta herramienta transferirá a los estudiantes del último grado configurado al archivo de egresados.
-                Este proceso es irreversible.
-            </p>
-            
-            <ul class="list-group mb-3">
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    Año académico a cerrar:
-                    <strong>{{ request.user.institucion_asociada.periodo_academico_actual.año }}</strong>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    Grado a graduar:
-                    <strong>{{ ultimo_grado.nombre }}</strong>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    Número de estudiantes a procesar:
-                    <span class="badge bg-primary rounded-pill">{{ conteo_estudiantes }}</span>
-                </li>
-            </ul>
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
 
-            {% if conteo_estudiantes > 0 %}
-            <form method="post" onsubmit="return confirm('¿Estás seguro de que deseas graduar a {{ conteo_estudiantes }} estudiantes? Esta acción no se puede deshacer.');">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger w-100">
-                    <i class="fas fa-user-graduate"></i> Iniciar Proceso de Graduación
-                </button>
-            </form>
-            {% else %}
-            <div class="alert alert-warning" role="alert">
-                No hay estudiantes activos en el grado {{ ultimo_grado.nombre }} para graduar.
-            </div>
-            {% endif %}
+{% block extrastyles %}{{ block.super }}
+<style>
+/* ══════════════════════════════════════════════════════
+   HALU PULSE — PROCESO DE GRADUACIÓN
+   Tema: verde esmeralda (logro/celebración)
+══════════════════════════════════════════════════════ */
+:root {
+  --grad-dark:   #14532d;
+  --grad-mid:    #15803d;
+  --grad-light:  #16a34a;
+  --grad-accent: #86efac;
+}
+
+/* ── Hero ─────────────────────────────────────────── */
+.grad-hero {
+  background: linear-gradient(135deg, var(--grad-dark) 0%, var(--grad-mid) 55%, #15803d 100%);
+  border-radius: 1rem;
+  padding: 1.6rem 1.8rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.grad-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.grad-hero-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 2rem; padding: .25rem .75rem; font-size: .78rem; font-weight: 600;
+}
+.grad-hero-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -.5px; margin-bottom: .2rem; }
+.grad-hero-sub   { font-size: .83rem; opacity: .78; }
+.grad-hero-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .45rem 1rem; border-radius: .6rem; font-size: .82rem; font-weight: 600;
+  text-decoration: none; border: none; cursor: pointer;
+}
+.grad-hero-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
+.grad-hero-btn-outline:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+/* ── Panel ────────────────────────────────────────── */
+.grad-panel {
+  background: #fff;
+  border-radius: .85rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,.07);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.grad-panel-header {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .9rem 1.2rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.grad-panel-title {
+  font-size: .95rem; font-weight: 700; color: #1e293b;
+  display: flex; align-items: center; gap: .5rem; margin: 0;
+}
+.grad-panel-title .ico {
+  width: 30px; height: 30px; border-radius: .45rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; flex-shrink: 0;
+}
+.ico-green  { background: #dcfce7; color: #16a34a; }
+.ico-amber  { background: #fef3c7; color: #92400e; }
+.ico-red    { background: #fee2e2; color: #dc2626; }
+
+/* ── Info items ────────────────────────────────────── */
+.grad-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1px;
+  background: #f1f5f9;
+}
+.grad-info-item {
+  background: #fff;
+  padding: 1.2rem 1.4rem;
+  display: flex; flex-direction: column; gap: .25rem;
+}
+.grad-info-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; font-weight: 600; }
+.grad-info-val   { font-size: 1.15rem; font-weight: 800; color: #1e293b; }
+.grad-info-val.big { font-size: 1.6rem; color: var(--grad-light); }
+
+/* ── Advertencia ─────────────────────────────────── */
+.grad-warning {
+  margin: 0 1.2rem 1.2rem;
+  background: #fefce8;
+  border: 1px solid #fde047;
+  border-radius: .65rem;
+  padding: .9rem 1.1rem;
+  display: flex; align-items: flex-start; gap: .75rem;
+  font-size: .83rem; color: #713f12;
+}
+.grad-warning i { font-size: 1.1rem; color: #d97706; flex-shrink: 0; margin-top: .05rem; }
+
+/* ── Botón confirmar ─────────────────────────────── */
+.grad-confirm-wrap { padding: 1.2rem; }
+.grad-confirm-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff; border: none; border-radius: .7rem;
+  padding: .85rem; font-size: .95rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: .55rem;
+  cursor: pointer; transition: opacity .15s, transform .1s;
+}
+.grad-confirm-btn:hover { opacity: .9; }
+.grad-confirm-btn:active { transform: scale(.98); }
+
+/* ── Vacío ─────────────────────────────────────────── */
+.grad-empty {
+  padding: 2rem 1.4rem;
+  background: #fffbeb;
+  border-radius: .65rem;
+  border: 1px dashed #fde047;
+  text-align: center;
+  color: #92400e;
+  margin: 1.2rem;
+}
+.grad-empty i { font-size: 2rem; display: block; margin-bottom: .5rem; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid px-2 px-md-3 pb-5" style="max-width:760px;">
+
+  <!-- ══ HERO ════════════════════════════════════════════════════════ -->
+  <div class="grad-hero">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
+      <div>
+        <div class="grad-hero-badge mb-2">
+          <i class="bi bi-mortarboard-fill"></i> Proceso Anual
         </div>
+        <div class="grad-hero-title">
+          <i class="bi bi-mortarboard-fill me-2"></i>{{ titulo_pagina }}
+        </div>
+        <div class="grad-hero-sub">Cierre del año escolar · Transferencia al archivo de egresados</div>
+      </div>
+      <a href="{% url 'gestion_academica:dashboard_coordinador' %}" class="grad-hero-btn grad-hero-btn-outline">
+        <i class="bi bi-arrow-left"></i> Dashboard
+      </a>
     </div>
+  </div>
+
+  <!-- ══ DATOS DEL PROCESO ════════════════════════════════════════════ -->
+  <div class="grad-panel">
+    <div class="grad-panel-header">
+      <h2 class="grad-panel-title">
+        <span class="ico ico-green"><i class="bi bi-info-circle-fill"></i></span>
+        Información del Proceso
+      </h2>
+    </div>
+
+    <div class="grad-info-grid">
+      <div class="grad-info-item">
+        <div class="grad-info-label"><i class="bi bi-calendar-year me-1"></i>Año académico a cerrar</div>
+        <div class="grad-info-val">
+          {{ request.user.institucion_asociada.periodo_academico_actual.año|default:"—" }}
+        </div>
+      </div>
+      <div class="grad-info-item">
+        <div class="grad-info-label"><i class="bi bi-mortarboard me-1"></i>Grado a graduar</div>
+        <div class="grad-info-val">{{ ultimo_grado.nombre }}</div>
+      </div>
+      <div class="grad-info-item">
+        <div class="grad-info-label"><i class="bi bi-people-fill me-1"></i>Estudiantes a procesar</div>
+        <div class="grad-info-val {% if conteo_estudiantes > 0 %}big{% endif %}">
+          {{ conteo_estudiantes }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ADVERTENCIA + CONFIRMACIÓN ═══════════════════════════════════ -->
+  <div class="grad-panel">
+    <div class="grad-panel-header">
+      <h2 class="grad-panel-title">
+        <span class="ico ico-amber"><i class="bi bi-exclamation-triangle-fill"></i></span>
+        Confirmar Proceso
+      </h2>
+    </div>
+
+    <div class="grad-warning">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <div>
+        <strong>Acción irreversible.</strong> Esta herramienta transferirá a todos los estudiantes
+        activos del grado <strong>{{ ultimo_grado.nombre }}</strong> al archivo de egresados.
+        Una vez ejecutado, el proceso <strong>no puede deshacerse</strong>.
+        Asegúrate de haber cerrado las calificaciones y el año escolar antes de proceder.
+      </div>
+    </div>
+
+    {% if conteo_estudiantes > 0 %}
+    <div class="grad-confirm-wrap">
+      <form id="form-graduacion" method="post">
+        {% csrf_token %}
+      </form>
+      <button type="button" class="grad-confirm-btn"
+              data-bs-toggle="modal" data-bs-target="#modalConfirmarGraduacion">
+        <i class="bi bi-mortarboard-fill"></i>
+        Iniciar Proceso de Graduación — {{ conteo_estudiantes }} estudiante{{ conteo_estudiantes|pluralize:"s" }}
+      </button>
+    </div>
+    {% else %}
+    <div class="grad-empty">
+      <i class="bi bi-person-x"></i>
+      <p class="fw-semibold mb-1">Sin estudiantes para graduar</p>
+      <p class="small mb-0">No hay estudiantes activos en el grado <strong>{{ ultimo_grado.nombre }}</strong> en este momento.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+<!-- Modal — Confirmar proceso de graduación -->
+<div class="modal fade" id="modalConfirmarGraduacion" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:52px;height:52px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-mortarboard-fill" style="color:#dc2626;font-size:1.4rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Iniciar el proceso de graduación?</h5>
+        <p class="text-muted mb-1" style="font-size:.88rem;">
+          Se graduarán <strong>{{ conteo_estudiantes }} estudiante{{ conteo_estudiantes|pluralize:"s" }}</strong>
+          del grado <strong>{{ ultimo_grado.nombre }}</strong>.
+          Serán transferidos al archivo de egresados.
+        </p>
+        <p class="text-danger fw-semibold mb-0" style="font-size:.82rem;">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>Esta acción es <u>irreversible</u> y no se puede deshacer.
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" form="form-graduacion" class="btn btn-danger btn-sm">
+          <i class="bi bi-mortarboard-fill me-1"></i>Sí, graduar ahora
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock contenido %}

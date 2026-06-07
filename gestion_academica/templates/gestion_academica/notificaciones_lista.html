@@ -1,45 +1,226 @@
 {% extends "base_academico.html" %}
+{% load static %}
 
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
+{% block extrastyles %}{{ block.super }}
+<style>
+  :root {
+    --nf-blue:   #1d4ed8;
+    --nf-indigo: #3730a3;
+    --nf-light:  #4f46e5;
+  }
+
+  /* ── Hero ── */
+  .nf-hero {
+    background: linear-gradient(135deg, var(--nf-indigo) 0%, var(--nf-light) 55%, #4338ca 100%);
+    border-radius: 1rem;
+    padding: 1.4rem 1.8rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .nf-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .nf-hero-title { font-size: 1.3rem; font-weight: 800; letter-spacing: -.5px; position: relative; z-index: 1; }
+  .nf-hero-sub   { font-size: .83rem; opacity: .78; position: relative; z-index: 1; margin-top: .2rem; }
+  .nf-hero-badge {
+    display: inline-flex; align-items: center; gap: .35rem;
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    border-radius: 2rem; padding: .25rem .75rem;
+    font-size: .78rem; font-weight: 600;
+    position: relative; z-index: 1; margin-bottom: .5rem;
+  }
+
+  /* ── Panel envolvente ── */
+  .nf-panel {
+    background: #fff;
+    border-radius: .85rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,.07);
+    overflow: hidden;
+  }
+  .nf-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: .5rem; flex-wrap: wrap;
+    padding: .85rem 1.2rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .nf-panel-title {
+    font-size: .95rem; font-weight: 700; color: #1e293b;
+    display: flex; align-items: center; gap: .5rem; margin: 0;
+  }
+  .nf-panel-ico {
+    width: 30px; height: 30px; border-radius: .45rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; flex-shrink: 0;
+    background: #e0e7ff; color: #4f46e5;
+  }
+
+  /* ── Tarjeta de notificación ── */
+  .nf-item {
+    display: flex; align-items: flex-start; gap: .85rem;
+    padding: .9rem 1.2rem;
+    border-bottom: 1px solid #f8fafc;
+    text-decoration: none; color: inherit;
+    transition: background .12s;
+    position: relative;
+  }
+  .nf-item:last-child { border-bottom: none; }
+  .nf-item:hover { background: #fafafe; }
+  .nf-item.unread { background: #f0f4ff; }
+  .nf-item.unread:hover { background: #e8eeff; }
+
+  /* Punto indicador "no leída" */
+  .nf-item.unread::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, #3b82f6, #6366f1);
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* Ícono izquierdo */
+  .nf-avatar {
+    width: 40px; height: 40px; border-radius: .6rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .nf-avatar-new   { background: #dbeafe; color: #1d4ed8; }
+  .nf-avatar-read  { background: #f1f5f9; color: #94a3b8; }
+  .nf-avatar-ai    { background: #ede9fe; color: #7c3aed; }
+
+  /* Contenido */
+  .nf-body { flex: 1; min-width: 0; }
+  .nf-msg  { font-size: .88rem; color: #1e293b; line-height: 1.45; margin-bottom: .25rem; }
+  .nf-item.unread .nf-msg { font-weight: 700; }
+
+  /* Consejo IA */
+  .nf-ai-box {
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-left: 3px solid #7c3aed;
+    border-radius: 0 .5rem .5rem 0;
+    padding: .5rem .8rem;
+    margin-top: .45rem;
+    font-size: .79rem; color: #4c1d95;
+    white-space: pre-wrap; line-height: 1.5;
+  }
+  .nf-ai-label {
+    font-size: .68rem; font-weight: 700; color: #7c3aed;
+    text-transform: uppercase; letter-spacing: .05em; margin-bottom: .2rem;
+    display: flex; align-items: center; gap: .3rem;
+  }
+
+  /* Meta: badge + fecha */
+  .nf-meta {
+    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+    margin-top: .35rem;
+  }
+  .nf-badge-new {
+    display: inline-flex; align-items: center; gap: .25rem;
+    background: #dbeafe; color: #1d4ed8;
+    border-radius: 2rem; padding: .1rem .5rem;
+    font-size: .68rem; font-weight: 700;
+  }
+  .nf-time {
+    font-size: .73rem; color: #94a3b8;
+    display: flex; align-items: center; gap: .25rem;
+  }
+
+  /* Estado vacío */
+  .nf-empty {
+    text-align: center; padding: 3.5rem 1rem; color: #94a3b8;
+  }
+  .nf-empty i { font-size: 2.5rem; display: block; margin-bottom: .75rem; opacity: .5; }
+  .nf-empty p { margin: 0; font-size: .92rem; }
+</style>
+{% endblock %}
+
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2 mb-0"><i class="bi bi-bell-fill me-2"></i> {{ titulo_pagina }}</h1>
-        {# Este botón ahora te regresará a la página exacta desde la que hiciste clic #}
-        <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Volver
-        </a>
+<div class="container-fluid px-2 px-md-3 pb-5" style="max-width: 860px;">
+
+  <!-- Hero -->
+  <div class="nf-hero">
+    <div class="nf-hero-badge"><i class="bi bi-bell-fill"></i> Centro de mensajes</div>
+    <div class="nf-hero-title"><i class="bi bi-bell-fill me-2"></i>{{ titulo_pagina }}</div>
+    <div class="nf-hero-sub">
+      {% if notificaciones %}
+        {{ notificaciones|length }} notificación{{ notificaciones|length|pluralize:"es" }} en total
+      {% else %}
+        Todo al día — sin notificaciones pendientes
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Panel de notificaciones -->
+  <div class="nf-panel">
+
+    <div class="nf-panel-header">
+      <h2 class="nf-panel-title">
+        <span class="nf-panel-ico"><i class="bi bi-inbox-fill"></i></span>
+        Bandeja de notificaciones
+      </h2>
+      <a href="{{ request.META.HTTP_REFERER|default:'/' }}"
+         style="display:inline-flex;align-items:center;gap:.35rem;background:#f1f5f9;color:#475569;text-decoration:none;border-radius:.5rem;padding:.3rem .75rem;font-size:.78rem;font-weight:600;transition:background .12s;"
+         onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
     </div>
 
-    <div class="list-group shadow-sm">
-        {% for notificacion in notificaciones %}
-            {# Se usa la URL del enlace que creamos en la vista #}
-            <a href="{{ notificacion.enlace|default:'#' }}" class="list-group-item list-group-item-action {% if not notificacion.fecha_leido %}list-group-item-info fw-bold{% endif %}">
-                <div class="d-flex w-100 justify-content-between">
-                    <p class="mb-1">
-                        {# La etiqueta "Nuevo" se muestra si no ha sido leída antes de entrar a esta página #}
-                        {% if not notificacion.fecha_leido %}
-                            <span class="badge bg-primary me-2">Nuevo</span>
-                        {% endif %}
-                        {{ notificacion.mensaje }}
-                    </p>
-                    <small class="text-muted">{{ notificacion.fecha_creacion|timesince }} atrás</small>
-                </div>
-                {# --- AQUÍ MOSTRAMOS EL CONSEJO DE LA IA --- #}
-                {% if notificacion.consejo_ia %}
-                <div class="mt-2 p-3 bg-light rounded">
-                    <p class="mb-0" style="white-space: pre-wrap;">{{ notificacion.consejo_ia }}</p>
-                </div>
-                {% endif %}
+    {% for notificacion in notificaciones %}
+      <a href="{{ notificacion.enlace|default:'#' }}"
+         class="nf-item {% if not notificacion.leido %}unread{% endif %}">
 
-                <small class="text-muted">Recibido el {{ notificacion.fecha_creacion|date:"d M, Y" }}</small>
-            </div>
-        {% empty %}
-            <div class="list-group-item text-center p-5">
-                <p class="h4 text-muted">No tienes notificaciones.</p>
-            </div>
-        {% endfor %}
-    </div>
+        <!-- Ícono según tipo -->
+        <div class="nf-avatar {% if notificacion.consejo_ia %}nf-avatar-ai{% elif not notificacion.leido %}nf-avatar-new{% else %}nf-avatar-read{% endif %}">
+          {% if notificacion.consejo_ia %}
+            <i class="bi bi-stars"></i>
+          {% elif not notificacion.leido %}
+            <i class="bi bi-bell-fill"></i>
+          {% else %}
+            <i class="bi bi-check2"></i>
+          {% endif %}
+        </div>
+
+        <!-- Cuerpo -->
+        <div class="nf-body">
+          <div class="nf-msg">{{ notificacion.mensaje }}</div>
+
+          {% if notificacion.consejo_ia %}
+          <div class="nf-ai-box">
+            <div class="nf-ai-label"><i class="bi bi-stars"></i> Sugerencia de IA</div>
+            {{ notificacion.consejo_ia }}
+          </div>
+          {% endif %}
+
+          <div class="nf-meta">
+            {% if not notificacion.leido %}
+            <span class="nf-badge-new"><i class="bi bi-circle-fill" style="font-size:.45rem;"></i> Nuevo</span>
+            {% endif %}
+            <span class="nf-time">
+              <i class="bi bi-clock"></i>
+              {{ notificacion.fecha_creacion|timesince }} atrás
+              &middot;
+              {{ notificacion.fecha_creacion|date:"d M Y" }}
+            </span>
+          </div>
+        </div>
+
+      </a>
+    {% empty %}
+      <div class="nf-empty">
+        <i class="bi bi-bell-slash-fill"></i>
+        <p class="fw-semibold">No tienes notificaciones</p>
+        <p class="small mt-1" style="color:#b0bec5;">Cuando recibas avisos o sugerencias aparecerán aquí.</p>
+      </div>
+    {% endfor %}
+
+  </div>
+
 </div>
 {% endblock %}

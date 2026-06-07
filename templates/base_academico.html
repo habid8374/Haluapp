@@ -2,204 +2,510 @@
 {% load static %}
 {% load notificaciones_tags %}
 
-{% block titulo %}Módulo Académico - {{ branding.NOMBRE }}{% endblock %}
+{% block titulo %}{{ branding.NOMBRE }}{% endblock %}
 
+{% block body_class %}layout-academico{% endblock %}
 
+{% block extrastyles %}
+{{ block.super }}
+<style>
+  /* ══════════════════════════════════════════════════════
+     HALU — SIDEBAR LAYOUT
+     Transforma el menú flotante en sidebar fijo izquierdo.
+     Sólo aplica cuando body tiene .layout-academico
+  ══════════════════════════════════════════════════════ */
+
+  body.layout-academico {
+    --sidebar-w: 245px;
+    --brand-primary: #0b5ed7;
+    --brand-primary-dark: #0a4db4;
+  }
+
+  /* Ocultar botón flotante original */
+  body.layout-academico #floatingMenuToggle {
+    display: none !important;
+  }
+
+  /* ── Sidebar (panel convertido) ── */
+  body.layout-academico #mainMenuPanel {
+    position: fixed !important;
+    top: 3.4rem !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: 0 !important;
+    width: var(--sidebar-w) !important;
+    max-height: none !important;
+    height: calc(100vh - 3.4rem) !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-right: 1px solid var(--border-color, #dbe5f4) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    z-index: 1020 !important;
+    box-shadow: 3px 0 20px rgba(10, 40, 80, .06) !important;
+    padding: .75rem .65rem 2rem !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background-color: #ffffff !important;
+    transition: transform .28s ease !important;
+  }
+
+  /* Scrollbar delgado */
+  body.layout-academico #mainMenuPanel::-webkit-scrollbar { width: 4px; }
+  body.layout-academico #mainMenuPanel::-webkit-scrollbar-thumb {
+    background: #c5d8f5; border-radius: 4px;
+  }
+
+  /* Empujar contenido principal */
+  body.layout-academico {
+    padding-left: var(--sidebar-w);
+    transition: padding-left .28s ease;
+  }
+
+  /* Mejorar nav-links en sidebar */
+  body.layout-academico #mainMenuPanel .nav-link {
+    padding-left: .75rem !important;
+    border-radius: .5rem;
+    transition: background .15s, padding-left .15s, color .15s;
+  }
+  body.layout-academico #mainMenuPanel .nav-link:hover {
+    background-color: #eaf2ff !important;
+    color: #0b5ed7 !important;
+    padding-left: 1rem !important;
+  }
+  body.layout-academico #mainMenuPanel .nav-link.active {
+    background-color: #dbeafe !important;
+    color: #0b5ed7 !important;
+    font-weight: 600 !important;
+    padding-left: 1rem !important;
+  }
+  body.layout-academico #mainMenuPanel .nav-link.sub-item {
+    font-size: .82rem !important;
+    padding: .42rem .75rem !important;
+  }
+
+  /* Cabecera dentro del sidebar */
+  .sidebar-brand-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .2rem .35rem .8rem;
+    border-bottom: 1px solid #dbe5f4;
+    margin-bottom: .5rem;
+  }
+  .sidebar-brand-row .sb-label {
+    font-size: .73rem;
+    font-weight: 800;
+    color: #0b5ed7;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  /* Botón toggle en navbar */
+  .btn-sidebar-toggle {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,.9);
+    font-size: 1.4rem;
+    padding: .28rem .5rem;
+    border-radius: .45rem;
+    cursor: pointer;
+    transition: background .18s;
+    display: flex;
+    align-items: center;
+    margin-right: .35rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .btn-sidebar-toggle:hover { background: rgba(255,255,255,.18); color: #fff; }
+
+  /* Avatar inicial en navbar */
+  .nav-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,.22);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .84rem;
+    flex-shrink: 0;
+  }
+
+  /* ── MOBILE (<992px): sidebar como drawer ── */
+  @media (max-width: 991.98px) {
+    body.layout-academico {
+      padding-left: 0 !important;
+    }
+    body.layout-academico #mainMenuPanel {
+      transform: translateX(-108%) !important;
+      width: 285px !important;
+      box-shadow: 8px 0 32px rgba(0,0,0,.2) !important;
+      z-index: 1055 !important;
+    }
+    body.layout-academico.sidebar-open #mainMenuPanel {
+      transform: translateX(0) !important;
+    }
+    /* Overlay oscuro */
+    body.layout-academico.sidebar-open::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 30, 60, .45);
+      z-index: 1054;
+    }
+  }
+
+  /* Ajuste del contenedor principal en escritorio */
+  @media (min-width: 992px) {
+    body.layout-academico main.container {
+      max-width: 100% !important;
+      padding-left: 1.5rem !important;
+      padding-right: 1.5rem !important;
+    }
+  }
+
+  /* ── MOBILE: navbar en una sola fila ──
+     1. Ocultamos el navbar-toggler de Bootstrap (el sidebar es la navegación).
+     2. Forzamos el área derecha (avatar/campana) siempre visible.
+     3. Evitamos que el container haga wrap a segunda fila.
+     4. La marca se encoge si es necesario; en pantallas muy pequeñas
+        ocultamos el texto y dejamos solo el logo/ícono.
+  ── */
+  body.layout-academico .navbar-toggler {
+    display: none !important;
+  }
+  body.layout-academico #navbarNavContent {
+    display: flex !important;
+    flex-basis: auto !important;
+    flex-shrink: 0;          /* el bloque de íconos no se encoge */
+  }
+  /* El container no rompe a segunda línea nunca */
+  body.layout-academico .top-navbar .container-fluid {
+    flex-wrap: nowrap !important;
+  }
+  /* La marca puede encogerse cuando el espacio es poco */
+  body.layout-academico .navbar-brand {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* En móvil pequeño (<480px) ocultar el texto, dejar solo logo/ícono */
+  @media (max-width: 479px) {
+    body.layout-academico .navbar-brand .brand-text {
+      display: none;
+    }
+  }
+</style>
+{% endblock extrastyles %}
+
+{# ── Navbar: agregar botón de toggle antes del brand ── #}
+{% block navbar_brand %}
+<button class="btn-sidebar-toggle" id="sidebarToggleBtn"
+        aria-label="Abrir/cerrar menú lateral" type="button">
+  <i class="bi bi-list"></i>
+</button>
+<a class="navbar-brand ms-1" href="{% url 'gestion_academica:inicio_academico' %}">
+  {% if configuracion_institucion and configuracion_institucion.logo %}
+    <img src="{{ configuracion_institucion.logo.url }}" alt="Logo" class="logo-navbar">
+  {% elif branding.LOGO_URL %}
+    <img src="{% static branding.LOGO_URL %}" alt="{{ branding.NOMBRE }}" class="logo-navbar">
+  {% else %}
+    <i class="bi bi-mortarboard-fill me-1"></i>
+  {% endif %}
+  <span class="brand-text">{{ configuracion_institucion.nombre_institucion|default:branding.NOMBRE|default:"HALU" }}</span>
+</a>
+{% endblock navbar_brand %}
+
+{# ── Navbar derecha: notificaciones + mensajes + usuario ── #}
 {% block navbar_content %}
-<li class="nav-item">
-    <a class="nav-link position-relative" href="{% url 'gestion_academica:lista_notificaciones' %}">
-        <i class="bi bi-bell-fill fs-5"></i>
-        {% if unread_count > 0 %}
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ unread_count }}
-            </span>
-        {% endif %}
-    {# Tu barra de navegación superior se mantiene igual, pero añadimos la campana #}
-    <a class="navbar-brand" href="{% url 'gestion_academica:inicio_academico' %}">
-        {% if configuracion_institucion and configuracion_institucion.logo %}
-            <img src="{{ configuracion_institucion.logo.url }}" alt="Logo" class="logo-navbar">
-        {% else %}
-            <i class="bi bi-mortarboard-fill"></i>
-        {% endif %}
-        {{ configuracion_institucion.nombre_institucion|default:"Módulo Académico" }}
-    </a>
-    <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
-        {% if user.is_authenticated %}
-        
-            {% notificaciones_bell %}
+<ul class="navbar-nav ms-auto d-flex flex-row align-items-center gap-1">
+  {% if user.is_authenticated %}
 
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle ps-2" href="#" id="navbarDropdownUserLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle"></i> {{ user.get_full_name|default:user.username }}
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUserLink">
-                    <li><a class="dropdown-item" href="{% url 'gestion_academica:ver_mi_perfil' %}">Mi Perfil</a></li>
-                    <li><a class="dropdown-item" href="{% url 'socialaccount_connections' %}">Conexiones de Cuenta</a></li>
-                    <li><a class="dropdown-item" href="{% url 'password_change' %}">Cambiar Contraseña</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form id="logout-form-navbar" action="{% url 'logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-                        <a class="dropdown-item" href="#" onclick="document.getElementById('logout-form-navbar').submit(); return false;"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a>
-                    </li>
-                </ul>
-            </li>
+    {% notificaciones_bell %}
+
+    {# Badge de mensajes siempre visible en barra #}
+    {% if user.rol in 'docente,familiar,estudiante' %}
+    <li class="nav-item">
+      <a class="nav-link position-relative px-2" href="{% url 'mensajeria:inbox' %}" title="Mensajes">
+        <i class="bi bi-chat-dots-fill" style="font-size:1.2rem"></i>
+        <span id="nav-msg-badge-top"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+              style="font-size:.58rem;display:none"></span>
+      </a>
+    </li>
+    {% endif %}
+
+    {# Dropdown usuario #}
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle ps-1 d-flex align-items-center gap-2"
+         href="#" id="navbarDropdownUserLink" role="button"
+         data-bs-toggle="dropdown" aria-expanded="false">
+        {% if user.foto_perfil %}
+          <img src="{{ user.foto_perfil.url }}" alt="{{ user.get_full_name }}"
+               style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">
+        {% else %}
+          <div class="nav-avatar">
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+          </div>
         {% endif %}
-    </ul>
+        <span class="d-none d-md-inline" style="font-size:.86rem">
+          {{ user.get_full_name|default:user.username|truncatechars:22 }}
+        </span>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end shadow"
+          aria-labelledby="navbarDropdownUserLink" style="min-width:220px">
+        <li>
+          <div class="px-3 py-2 border-bottom">
+            <div class="fw-semibold small">{{ user.get_full_name|default:user.username }}</div>
+            <div class="text-muted" style="font-size:.73rem">{{ user.email }}</div>
+          </div>
+        </li>
+        <li><a class="dropdown-item" href="{% url 'gestion_academica:ver_mi_perfil' %}">
+          <i class="bi bi-person-circle me-2 text-primary"></i>Mi Perfil</a></li>
+        <li><a class="dropdown-item" href="{% url 'socialaccount_connections' %}">
+          <i class="bi bi-link-45deg me-2 text-secondary"></i>Conexiones de Cuenta</a></li>
+        <li><a class="dropdown-item" href="{% url 'password_change' %}">
+          <i class="bi bi-key-fill me-2 text-warning"></i>Cambiar Contraseña</a></li>
+        {% if user.is_staff %}
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+            <i class="bi bi-shield-lock-fill me-2 text-danger"></i>Admin Avanzado</a></li>
+        {% endif %}
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <form id="logout-form-navbar" action="{% url 'logout' %}" method="post" style="display:none">
+            {% csrf_token %}
+          </form>
+          <a class="dropdown-item text-danger" href="#"
+             onclick="event.preventDefault();document.getElementById('logout-form-navbar').submit();">
+            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+          </a>
+        </li>
+      </ul>
+    </li>
+
+  {% endif %}
+</ul>
 {% endblock navbar_content %}
 
+{# SIDEBAR — contenido del menú #}
 {% block floating_menu_content %}
-     <ul class="nav flex-column">
-        <h5 class="menu-section-title">Principal</h5>
-        <li class="nav-item item-color-1"><a class="nav-link {% if request.resolver_match.url_name == 'inicio_academico' %}active{% endif %}" href="{% url 'gestion_academica:inicio_academico' %}"><i class="bi bi-house-door-fill"></i> Inicio</a></li>
-        
+  <div class="sidebar-brand-row">
+    <i class="bi bi-mortarboard-fill text-primary" style="font-size:1.05rem"></i>
+    <span class="sb-label">Gestión Académica</span>
+  </div>
 
-        
-        {# ========================================================== #}
-        {#      MENÚ PARA ESTUDIANTES                                 #}
-        {# ========================================================== #}
-        {% if user.rol == 'estudiante' %}
-    <hr class="menu-divider">
-    <h5 class="menu-section-title">Mi Espacio</h5>
+  <ul class="nav flex-column">
+
+    <h5 class="menu-section-title">Principal</h5>
     <li class="nav-item item-color-1">
-        <a class="nav-link" href="{% url 'gestion_academica:dashboard_estudiante' %}"><i class="bi bi-grid-1x2-fill"></i> Mi Panel</a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'inicio_academico' %}active{% endif %}"
+         href="{% url 'gestion_academica:inicio_academico' %}">
+        <i class="bi bi-house-door-fill"></i> Inicio
+      </a>
     </li>
-    <li class="nav-item item-color-2">
-        <a class="nav-link" href="{% url 'gestion_academica:dashboard_estudiante' %}#seccion-horario"><i class="bi bi-table"></i> Mi Horario</a>
-    </li>
-    <li class="nav-item item-color-3">
-        <a class="nav-link" href="{% url 'gestion_academica:dashboard_estudiante' %}#seccion-calendario"><i class="bi bi-calendar3"></i> Mi Agenda</a>
-    </li>
-    <li class="nav-item item-color-4">
-        <a class="nav-link" href="{% url 'gestion_academica:mi_boletin_periodo_actual' %}"><i class="bi bi-file-earmark-text-fill"></i> Mi Boletín</a>
-    </li>
-    <li class="nav-item item-color-5">
-        <a class="nav-link" href="{% url 'cursos:catalogo' %}"><i class="bi bi-laptop"></i> Cursos Virtuales</a>
-    </li>
-{% endif %}
-        
-        {# ========================================================== #}
-        {#      MENÚ PARA ADMINISTRADORES Y PERSONAL (STAFF)          #}
-        {# ========================================================== #}
-        {% if user.is_staff %}
-    
-    {# Módulo de Admisiones #}
-    {% if perms.admisiones.view_aspirante %}
-    <hr class="menu-divider">
-    <h5 class="menu-section-title">Procesos</h5>
-    <li class="nav-item item-color-3"><a class="nav-link" href="{% url 'admisiones:dashboard_admisiones' %}"><i class="bi bi-bar-chart-line-fill"></i> Módulo de Admisiones</a></li>
-    {% endif %}
-    {% if user.is_staff %}
-    <li class="nav-item item-color-1">
-        <a class="nav-link" href="{% url 'gestion_academica:proceso_graduacion' %}">
-            <i class="bi bi-patch-check-fill"></i> Proceso de Graduación
+
+    {# ════════ ESTUDIANTE ════════ #}
+    {% if user.rol == 'estudiante' %}
+      <hr class="menu-divider">
+      <h5 class="menu-section-title">Mi Espacio</h5>
+      <li class="nav-item item-color-1">
+        <a class="nav-link" href="{% url 'gestion_academica:dashboard_estudiante' %}">
+          <i class="bi bi-grid-1x2-fill"></i> Mi Panel
         </a>
-    </li>
+      </li>
+      <li class="nav-item item-color-2">
+        <a class="nav-link" href="{% url 'gestion_academica:dashboard_estudiante' %}#seccion-horario">
+          <i class="bi bi-table"></i> Mi Horario
+        </a>
+      </li>
+      <li class="nav-item item-color-3">
+        <a class="nav-link" href="{% url 'gestion_academica:dashboard_estudiante' %}#seccion-calendario">
+          <i class="bi bi-calendar3"></i> Mi Agenda
+        </a>
+      </li>
+      <li class="nav-item item-color-4">
+        <a class="nav-link" href="{% url 'gestion_academica:mi_boletin_periodo_actual' %}">
+          <i class="bi bi-file-earmark-text-fill"></i> Mi Boletín
+        </a>
+      </li>
+      <li class="nav-item item-color-5">
+        <a class="nav-link" href="{% url 'elearning:catalogo' %}">
+          <i class="bi bi-laptop"></i> E-learning
+        </a>
+      </li>
     {% endif %}
 
-    {# --- Módulo de Cursos Virtuales (AÑADIDO) --- #}
-    <hr class="menu-divider">
-    <h5 class="menu-section-title">E-Learning</h5>
-    <li class="nav-item item-color-5">
-        <a class="nav-link collapsed" href="#collapseCursos" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseCursos">
-            <i class="bi bi-laptop"></i> Cursos Virtuales <i class="bi bi-chevron-down float-end"></i>
+    {# ════════ STAFF ════════ #}
+    {% if user.is_staff %}
+
+      {% if perms.admisiones.view_aspirante %}
+        <hr class="menu-divider">
+        <h5 class="menu-section-title">Procesos</h5>
+        <li class="nav-item item-color-3">
+          <a class="nav-link" href="{% url 'admisiones:dashboard_admisiones' %}">
+            <i class="bi bi-bar-chart-line-fill"></i> Módulo de Admisiones
+          </a>
+        </li>
+      {% endif %}
+      <li class="nav-item item-color-1">
+        <a class="nav-link" href="{% url 'gestion_academica:proceso_graduacion' %}">
+          <i class="bi bi-patch-check-fill"></i> Proceso de Graduación
+        </a>
+      </li>
+
+      <hr class="menu-divider">
+      <h5 class="menu-section-title">E-Learning</h5>
+      <li class="nav-item item-color-5">
+        <a class="nav-link collapsed" href="#collapseCursos"
+           data-bs-toggle="collapse" role="button"
+           aria-expanded="false" aria-controls="collapseCursos">
+          <i class="bi bi-laptop"></i> Cursos Virtuales
+          <i class="bi bi-chevron-down float-end"></i>
         </a>
         <div class="collapse ps-3" id="collapseCursos">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'cursos:catalogo' %}">
-                        <i class="bi bi-collection-play"></i> Ir al Aula / Catálogo
-                    </a>
-                </li>
-                {% if perms.cursos.add_curso %}
-                <li class="nav-item"><a class="nav-link sub-item" href="{% url 'cursos:gestion_cursos_admin' %}"><i class="bi bi-gear-wide-connected"></i> Gestionar Cursos</a></li>
-                <li class="nav-item"><a class="nav-link sub-item" href="{% url 'cursos:matricular_manual' %}"><i class="bi bi-person-check-fill"></i> Matricular Estudiante</a></li>
-                <li class="nav-item"><a class="nav-link sub-item" href="{% url 'cursos:registrar_estudiante_curso' %}"><i class="bi bi-person-plus-fill"></i> Admisión Express</a></li>
-                <li class="nav-item"><a class="nav-link sub-item" href="{% url 'cursos:reporte_estadisticas' %}"><i class="bi bi-bar-chart-line"></i> Reporte de Ventas</a></li>
-                {% endif %}
-            </ul>
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'elearning:catalogo' %}">
+                <i class="bi bi-collection-play"></i> Ir al Aula / Catálogo
+              </a>
+            </li>
+            {% if perms.elearning.add_curso %}
+              <li class="nav-item">
+                <a class="nav-link sub-item" href="{% url 'elearning:gestion_cursos_admin' %}">
+                  <i class="bi bi-gear-wide-connected"></i> Gestionar e-learning
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link sub-item" href="{% url 'elearning:matricular_manual' %}">
+                  <i class="bi bi-person-check-fill"></i> Matricular en oferta
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link sub-item" href="{% url 'elearning:registrar_estudiante_curso' %}">
+                  <i class="bi bi-person-plus-fill"></i> Alta express e-learning
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link sub-item" href="{% url 'elearning:reporte_estadisticas' %}">
+                  <i class="bi bi-bar-chart-line"></i> Reporte ventas e-learning
+                </a>
+              </li>
+            {% endif %}
+          </ul>
         </div>
-    </li>
+      </li>
 
-    {# Módulo de Gestión Académica #}
-    {% if perms.gestion_academica.acceso_modulo_academico %}
+      {% if perms.gestion_academica.acceso_modulo_academico %}
         <hr class="menu-divider">
         <h5 class="menu-section-title">Gestión General</h5>
-        {% if perms.gestion_academica.view_grado %}<li class="nav-item item-color-1"><a class="nav-link" href="{% url 'gestion_academica:lista_grados' %}"><i class="bi bi-diagram-3-fill"></i> Grados</a></li>{% endif %}
-        {% if perms.gestion_academica.view_estudiante %}<li class="nav-item item-color-2"><a class="nav-link" href="{% url 'gestion_academica:lista_grados_para_estudiantes' %}"><i class="bi bi-people-fill"></i> Estudiantes</a></li>{% endif %}
-        
+        {% if perms.gestion_academica.view_grado %}
+          <li class="nav-item item-color-1">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_grados' %}">
+              <i class="bi bi-diagram-3-fill"></i> Grados
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_estudiante %}
+          <li class="nav-item item-color-2">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_grados_para_estudiantes' %}">
+              <i class="bi bi-people-fill"></i> Estudiantes
+            </a>
+          </li>
+        {% endif %}
         <li class="nav-item item-color-6">
-    <a class="nav-link" href="{% url 'gestion_academica:admin_asistencia_diaria' %}">
-        <i class="bi bi-calendar-check"></i> Control de Asistencia
-    </a>
-</li>
-{% if perms.gestion_academica.view_usuario %}
-            <li class="nav-item item-color-blue"> {# Puedes usar un nuevo color #}
-                <a class="nav-link" href="{% url 'gestion_academica:lista_usuarios' %}">
-                    <i class="bi bi-people-fill"></i> Gestión de Usuarios
-                </a>
-            </li>
+          <a class="nav-link" href="{% url 'gestion_academica:admin_asistencia_diaria' %}">
+            <i class="bi bi-calendar-check"></i> Control de Asistencia
+          </a>
+        </li>
+        {% if perms.gestion_academica.view_usuario %}
+          <li class="nav-item item-color-1">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_usuarios' %}">
+              <i class="bi bi-people-fill"></i> Gestión de Usuarios
+            </a>
+          </li>
         {% endif %}
         {% if perms.gestion_academica.view_docente %}
-<li class="nav-item">
-    <a class="nav-link collapsed" href="#submenuDocentes" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="submenuDocentes">
-        <i class="bi bi-person-workspace"></i> Docentes <i class="bi bi-chevron-down float-end"></i>
-    </a>
-    <div class="collapse ps-3" id="submenuDocentes">
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_docentes' %}">
+          <li class="nav-item">
+            <a class="nav-link collapsed" href="#submenuDocentes"
+               data-bs-toggle="collapse" role="button"
+               aria-expanded="false" aria-controls="submenuDocentes">
+              <i class="bi bi-person-workspace"></i> Docentes
+              <i class="bi bi-chevron-down float-end"></i>
+            </a>
+            <div class="collapse ps-3" id="submenuDocentes">
+              <ul class="nav flex-column">
+                <li class="nav-item">
+                  <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_docentes' %}">
                     <i class="bi bi-card-list"></i> Lista de Docentes
-                </a>
-            </li>
-            
-           
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link sub-item" href="{% url 'gestion_academica:escaner_asistencia_docente' %}">
+                    <i class="bi bi-qr-code-scan"></i> Escanear Asistencia
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link sub-item" href="{% url 'gestion_academica:historial_asistencia_docente' %}">
+                    <i class="bi bi-clipboard-check-fill"></i> Historial Asistencia
+                  </a>
+                </li>
+                {% if perms.gestion_academica.add_docente %}
+                  <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:importar_docentes_excel' %}">
+                      <i class="bi bi-upload"></i> Importar desde Excel
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link sub-item" href="{% url 'gestion_academica:descargar_plantilla_docentes' %}">
+                      <i class="bi bi-file-earmark-arrow-down"></i> Descargar Plantilla
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+            </div>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.add_familiar %}
+          <li class="nav-item item-color-4">
+            <a class="nav-link" href="{% url 'gestion_academica:crear_familiar' %}">
+              <i class="bi bi-person-heart"></i> Registrar Familiar
+            </a>
+          </li>
+          <li class="nav-item item-color-4">
+            <a class="nav-link {% if request.resolver_match.url_name == 'cargar_familiares' %}active{% endif %}" href="{% url 'gestion_academica:cargar_familiares' %}">
+              <i class="bi bi-people-fill"></i> Cargar Acudientes (masivo)
+            </a>
+          </li>
+        {% endif %}
 
-<li class="nav-item item-color-5">
-    <a class="nav-link" href="{% url 'gestion_academica:escaner_asistencia_docente' %}">
-        <i class="bi bi-qr-code-scan"></i> Escanear Asistencia Docente
-    </a>
-</li>
-
-<li class="nav-item item-color-4">
-    <a class="nav-link" href="{% url 'gestion_academica:historial_asistencia_docente' %}"   >
-        <i class="bi bi-clipboard-check-fill"></i> Historial Asistencia Docentes
-    </a>
-</li>
-            {% if perms.gestion_academica.add_docente %}
-            <li class="nav-item">
-                <a class="nav-link sub-item" href="{% url 'gestion_academica:importar_docentes_excel' %}">
-                    <i class="bi bi-upload"></i> Importar desde Excel
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-item" href="{% url 'gestion_academica:descargar_plantilla_docentes' %}">
-                    <i class="bi bi-file-earmark-arrow-down"></i> Descargar Plantilla
-                </a>
-            </li>
-            {% endif %}
-        </ul>
-    </div>
-</li>
-{% endif %}
-        
-        {# --- ENLACE AÑADIDO Y CORREGIDO --- #}
-        {% if perms.gestion_academica.add_familiar %}<li class="nav-item item-color-4"><a class="nav-link" href="{% url 'gestion_academica:crear_familiar' %}"><i class="bi bi-person-heart"></i> Registrar Familiar</a></li>{% endif %}
-        
         <h5 class="menu-section-title mt-3">Configuración Académica</h5>
         {% if perms.gestion_academica.view_areaacademica %}
-        <li class="nav-item item-color-4">
-         <a class="nav-link" href="{% url 'gestion_academica:listar_areas_academicas' %}">
-          <i class="bi bi-intersect"></i> Áreas Académicas
-         </a>
-        </li> 
-        <li class="nav-item item-color-X"> {# Elige un color #}
-         <a class="nav-link" href="{% url 'gestion_academica:gestion_horarios' %}">
-          <i class="bi bi-calendar-week-fill"></i> Gestión de Horarios
-         </a>
-        </li>
+          <li class="nav-item item-color-4">
+            <a class="nav-link" href="{% url 'gestion_academica:listar_areas_academicas' %}">
+              <i class="bi bi-intersect"></i> Áreas Académicas
+            </a>
+          </li>
+          <li class="nav-item item-color-6">
+            <a class="nav-link" href="{% url 'gestion_academica:gestion_horarios' %}">
+              <i class="bi bi-calendar-week-fill"></i> Gestión de Horarios
+            </a>
+          </li>
         {% endif %}
-        {% if perms.gestion_academica.view_materia %}<li class="nav-item item-color-1"><a class="nav-link" href="{% url 'gestion_academica:lista_materias' %}"><i class="bi bi-journal-bookmark-fill"></i> Materias</a></li>{% endif %}
-        {% if perms.gestion_academica.view_curso %}<li class="nav-item item-color-5"><a class="nav-link" href="{% url 'gestion_academica:lista_cursos' %}"><i class="bi bi-collection-fill"></i> Cursos</a></li>{% endif %}
+        {% if perms.gestion_academica.view_materia %}
+          <li class="nav-item item-color-1">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_materias' %}">
+              <i class="bi bi-journal-bookmark-fill"></i> Materias
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_curso %}
+          <li class="nav-item item-color-5">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_cursos' %}">
+              <i class="bi bi-collection-fill"></i> Cursos
+            </a>
+          </li>
+        {% endif %}
         {% if perms.gestion_academica.view_aula %}
           <li class="nav-item item-color-6">
             <a class="nav-link" href="{% url 'gestion_academica:lista_aulas' %}">
@@ -207,300 +513,782 @@
             </a>
           </li>
         {% endif %}
-        {% if perms.gestion_academica.view_directorcurso %}<li class="nav-item item-color-1"><a class="nav-link" href="{% url 'gestion_academica:lista_directores_curso' %}"><i class="bi bi-person-badge-fill"></i> Directores de Curso</a></li>{% endif %}
-        {% if perms.gestion_academica.view_descriptorlogro %}<li class="nav-item item-color-5"><a class="nav-link" href="/admin/gestion_academica/descriptorlogro/"><i class="bi bi-patch-check-fill"></i> Descriptores</a></li>{% endif %}
-        {% if perms.gestion_academica.view_periodoacademico %}<li class="nav-item item-color-2"><a class="nav-link" href="{% url 'gestion_academica:lista_periodos' %}"><i class="bi bi-calendar-range"></i> Periodos</a></li>{% endif %}
-        {% if perms.gestion_academica.view_tipoactividad %}<li class="nav-item item-color-3"><a class="nav-link" href="{% url 'gestion_academica:lista_tipos_actividad' %}"><i class="bi bi-tags-fill"></i> Tipos de Actividad</a></li>{% endif %}
-    {% endif %}
+        {% if perms.gestion_academica.view_directorcurso %}
+          <li class="nav-item item-color-1">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_directores_curso' %}">
+              <i class="bi bi-person-badge-fill"></i> Directores de Curso
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_descriptorlogro %}
+          <li class="nav-item item-color-5">
+            <a class="nav-link" href="/admin/gestion_academica/descriptorlogro/">
+              <i class="bi bi-patch-check-fill"></i> Descriptores
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_periodoacademico %}
+          <li class="nav-item item-color-2">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_periodos' %}">
+              <i class="bi bi-calendar-range"></i> Periodos
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_tipoactividad %}
+          <li class="nav-item item-color-3">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_tipos_actividad' %}">
+              <i class="bi bi-tags-fill"></i> Tipos de Actividad
+            </a>
+          </li>
+        {% endif %}
+      {% endif %}
 
-            {% if perms.finanzas.acceso_modulo_finanzas %}
+      {% if perms.finanzas.acceso_modulo_finanzas %}
+        {% with inst=request.user.institucion_asociada %}
+        {% if request.user.is_superuser or not inst or inst.tipo_institucion != 'publico' %}
         <hr class="menu-divider">
         <h5 class="menu-section-title">Otros Módulos</h5>
-        <li class="nav-item item-color-2"><a class="nav-link" href="{% url 'finanzas:dashboard_financiero' %}"><i class="bi bi-currency-dollar"></i> Ir a Módulo de Finanzas</a></li>
+        <li class="nav-item item-color-2">
+          <a class="nav-link" href="{% url 'finanzas:dashboard_financiero' %}">
+            <i class="bi bi-currency-dollar"></i> Ir a Módulo de Finanzas
+          </a>
+        </li>
+        {% endif %}
+        {% endwith %}
+      {% endif %}
+
+      <hr class="menu-divider">
+      <li class="nav-item item-color-4">
+        <a class="nav-link" href="{% url 'admin:index' %}">
+          <i class="bi bi-speedometer2"></i> Admin Avanzado
+        </a>
+      </li>
+      {% if user.is_superuser %}
+        <li class="nav-item item-color-7">
+          <a class="nav-link" href="{% url 'platform_control:tickets' %}">
+            <i class="bi bi-headset"></i> Panel de Soporte
+          </a>
+        </li>
+      {% endif %}
+
+    {% endif %}{# end is_staff #}
+
+    {# ════════ DOCENTE ════════ #}
+    {% if user.rol == 'docente' %}
+      <hr class="menu-divider">
+      <h5 class="menu-section-title">Panel de Docente</h5>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_docente' %}active{% endif %}"
+           href="{% url 'gestion_academica:dashboard_docente' %}">
+          <i class="bi bi-grid-fill"></i> Mi Panel Principal
+        </a>
+      </li>
+      <li class="nav-item item-color-3">
+        <a class="nav-link {% if request.resolver_match.namespace == 'mensajeria' %}active{% endif %}"
+           href="{% url 'mensajeria:inbox' %}">
+          <i class="bi bi-chat-dots-fill"></i> Mensajes
+          <span id="nav-mensajes-badge" class="badge bg-danger ms-1" style="display:none"></span>
+        </a>
+      </li>
+      <li class="nav-item item-color-2">
+        <a class="nav-link {% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}{% else %}collapsed{% endif %}" href="#gestionSubmenu"
+           data-bs-toggle="collapse" role="button"
+           aria-expanded="{% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}true{% else %}false{% endif %}"
+           aria-controls="gestionSubmenu">
+          <i class="bi bi-tools"></i> Centro de Gestión
+          <i class="bi bi-chevron-down float-end"></i>
+        </a>
+        <div class="collapse {% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}show{% endif %}" id="gestionSubmenu">
+          <ul class="nav flex-column ps-3">
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if 'planeador' in request.path %}active{% endif %}"
+                 href="{% url 'gestion_academica:planeador_clases' %}">
+                <i class="bi bi-robot"></i> Planeador de Clases (IA)
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if 'planes-semanales' in request.path %}active{% endif %}"
+                 href="{% url 'gestion_academica:mis_planes_semanales' %}">
+                <i class="bi bi-calendar-week-fill"></i> Mis Planes Semanales
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}">
+                <i class="bi bi-tags-fill"></i> Categorías de Actividad
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_actividades' %}">
+                <i class="bi bi-card-list"></i> Definir Actividades
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_deberes' %}">
+                <i class="bi bi-journal-check"></i> Gestionar Deberes
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_descriptores' %}">
+                <i class="bi bi-card-list"></i> Gestionar Descriptores
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if 'cuestionarios' in request.path %}active{% endif %}"
+                 href="{% url 'cuestionarios:lista' %}">
+                <i class="bi bi-patch-question-fill"></i> Evaluaciones con IA
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}">
+                <i class="bi bi-pencil-square"></i> Libro de Notas
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if 'galeria' in request.path %}active{% endif %}"
+                 href="{% url 'recursos_educativos:galeria_directa' %}">
+                <i class="bi bi-images"></i> Galería 3D
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_materiales' %}">
+                <i class="bi bi-folder-plus"></i> Materiales de Apoyo
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_menciones' %}">
+                <i class="bi bi-award"></i> Menciones y Honores
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}">
+                <i class="bi bi-eye"></i> Observador
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}">
+                <i class="bi bi-graph-up-arrow"></i> Reporte Nota Mínima
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:reporte_riesgo_global' %}">
+                <i class="bi bi-graph-up-arrow"></i> Reporte Global de Riesgo
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:gestionar_disponibilidad' %}">
+                <i class="bi bi-clock-history"></i> Mi Disponibilidad
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_para_lecciones' %}">
+                <i class="bi bi-calendar-week"></i> Historial de Lecciones
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+      <li class="nav-item item-color-3">
+        <a class="nav-link" href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}">
+          <i class="bi bi-people-fill"></i> Asistir en Otro Curso
+        </a>
+      </li>
     {% endif %}
 
-    {# Panel de Admin Avanzado #}
-    <hr class="menu-divider">
-    <li class="nav-item item-color-4"><a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Admin Avanzado</a></li>
-{# ▼▼▼ ENLACE AÑADIDO PARA SUPERADMIN ▼▼▼ #}
-        {% if user.is_superuser %}
-            <li class="nav-item item-color-danger">
-                <a class="nav-link" href="{% url 'finanzas:superadmin_tickets' %}">
-                    <i class="bi bi-headset"></i> Panel de Soporte
-                </a>
-            </li>
-        {% endif %}
-        {# ▲▲▲ FIN DEL ENLACE AÑADIDO ▲▲▲ #}
-
-    {% endif %} {# <-- ESTE ES EL CIERRE DEL BLOQUE if user.is_staff #}
-        
-        {# MENÚS PARA OTROS ROLES (SI NO SON STAFF) #}
-        {% if user.rol == 'docente' %}
-            <hr class="menu-divider">
-            <h5 class="menu-section-title">Panel de Docente</h5>
-            <li class="nav-item item-color-1">
-                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_docente' %}active{% endif %}" href="{% url 'gestion_academica:dashboard_docente' %}">
-                    <i class="bi bi-grid-fill"></i> Mi Panel Principal
-                </a>
-            </li>
-            <!-- ▼▼▼ ENLACE AÑADIDO ▼▼▼ -->
-    <li class="nav-item item-color-purple"> {# Puedes usar un nuevo color #}
-        <a class="nav-link {% if request.resolver_match.url_name == 'planeador_clases' %}active{% endif %}" href="{% url 'gestion_academica:planeador_clases' %}">
-            <i class="bi bi-robot me-2"></i> Planeador de Clases (IA)
+    {# ════════ COORDINADOR / ADMINISTRADOR STAFF ════════ #}
+    {% if user.is_staff and user.rol in 'coordinador,administrador' %}
+      <hr class="menu-divider">
+      <h5 class="menu-section-title">Panel de Coordinación</h5>
+      <li class="nav-item item-color-5">
+        <a class="nav-link" href="{% url 'gestion_academica:dashboard_coordinador' %}">
+          <i class="bi bi-person-video3"></i> Dashboard Principal
         </a>
-    </li>
-    <!-- ▲▲▲ FIN DEL ENLACE ▲▲▲ -->
-    
-            <li class="nav-item item-color-2">
-                <a class="nav-link collapsed" href="#gestionSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="gestionSubmenu">
-                    <i class="bi bi-tools"></i> Centro de Gestión <i class="bi bi-chevron-down float-end"></i>
-                </a>
-         <div class="collapse" id="gestionSubmenu">
-                    <ul class="nav flex-column ps-3">
-                <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}"><i class="bi bi-tags-fill"></i> Gestionar Categorías</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_actividades' %}"><i class="bi bi-card-list"></i> Definir Actividades</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_deberes' %}"><i class="bi bi-journal-check"></i> Gestionar Deberes</a>
-               </li>
-                <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_descriptores' %}"><i class="bi bi-card-list"></i> Gestionar Descriptores</a>
-                </li>
-                 <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}"><i class="bi bi-pencil-square"></i> Libro de Notas</a>
-                </li>
-                 <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_materiales' %}"><i class="bi bi-folder-plus"></i> Materiales de Apoyo</a>
-                </li>
-                 <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_menciones' %}"><i class="bi bi-award"></i> Menciones y Honores</a>
-                </li>
-                 <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}"><i class="bi bi-eye"></i> Observador</a>
-                 </li>
-                                    
-                <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}"><i class="bi bi-graph-up-arrow"></i> Reporte Nota Mínima</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_materiales' %}"><i class="bi bi-folder-plus"></i> Archivos y Materiales</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:reporte_riesgo_global' %}"><i class="bi bi-graph-up-arrow"></i> Reporte Global de Riesgo</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:gestionar_disponibilidad' %}"><i class="bi bi-clock-history"></i> Mi Disponibilidad</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_para_lecciones' %}"><i class="bi bi-calendar-week"></i> Historial de Lecciones</a>
-                </li>   
-                
-            
-                </li>
-            </ul>
+      </li>
+      <li class="nav-item item-color-8">
+        <a class="nav-link" href="{% url 'gestion_academica:sincronizar_permisos' %}">
+          <i class="bi bi-shield-lock-fill"></i> Sincronizar Permisos
+        </a>
+      </li>
+      <li class="nav-item item-color-6">
+        <a class="nav-link" href="{% url 'gestion_academica:admin_asistencia_diaria' %}">
+          <i class="bi bi-calendar-check"></i> Control de Asistencia
+        </a>
+      </li>
+      <li class="nav-item item-color-7">
+        <a class="nav-link" href="{% url 'gestion_academica:reporte_riesgo_academico' %}">
+          <i class="bi bi-shield-exclamation"></i> Reporte de Riesgo (IA)
+        </a>
+      </li>
+      <li class="nav-item item-color-8">
+        <a class="nav-link {% if 'reportes' in request.resolver_match.view_name %}active{% endif %}"
+           href="{% url 'gestion_academica:reportes_dashboard' %}">
+          <i class="bi bi-file-earmark-bar-graph-fill"></i> Centro de Reportes
+        </a>
+      </li>
+      <li class="nav-item item-color-8">
+        <a class="nav-link" href="{% url 'gestion_academica:optimizador_horarios' %}">
+          <i class="bi bi-grid-3x3-gap-fill"></i> Optimizador de Horarios
+        </a>
+      </li>
+      <li class="nav-item item-color-2">
+        <a class="nav-link {% if 'mallas' in request.path %}active{% endif %}"
+           href="{% url 'gestion_academica:malla_curricular_list' %}">
+          <i class="bi bi-journal-bookmark-fill"></i> Mallas Curriculares
+        </a>
+      </li>
+      <li class="nav-item item-color-5">
+        <a class="nav-link {% if 'coordinador/planes-semanales' in request.path %}active{% endif %}"
+           href="{% url 'gestion_academica:supervisar_planes_semanales' %}">
+          <i class="bi bi-kanban-fill"></i> Supervisión de Planes
+        </a>
+      </li>
+      <li class="nav-item item-color-6">
+        <a class="nav-link {% if 'cortes-preventivos' in request.path %}active{% endif %}"
+           href="{% url 'gestion_academica:lista_cortes_preventivos' %}">
+          <i class="bi bi-clipboard2-pulse-fill"></i> Cortes Preventivos
+        </a>
+      </li>
+      <li class="nav-item item-color-7">
+        <a class="nav-link" href="{% url 'gestion_academica:dashboard_bienestar' %}">
+          <i class="bi bi-heart-pulse-fill"></i> Alertas de Bienestar
+        </a>
+      </li>
+      <li class="nav-item item-color-8">
+        <a class="nav-link {% if 'sentinel' in request.path %}active{% endif %}"
+           href="{% url 'gestion_academica:dashboard_bienestar' %}?sentinel=1">
+          <i class="bi bi-shield-shaded"></i> Halu Sentinel
+          <span class="badge bg-danger ms-1 sentinel-badge" style="display:none"></span>
+        </a>
+      </li>
+      <li class="nav-item item-color-8">
+        <a class="nav-link" href="{% url 'gestion_academica:historial_convivencia' %}">
+          <i class="bi bi-journal-richtext"></i> Historial de Convivencia
+        </a>
+      </li>
+      <li class="nav-item item-color-8">
+        <a class="nav-link" href="{% url 'gestion_academica:supervisar_citas' %}">
+          <i class="bi bi-calendar2-week-fill"></i> Supervisión de Citas
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sub-item" href="{% url 'gestion_academica:gestionar_promocion_grados' %}">
+          <i class="bi bi-calendar2-week-fill"></i> Secuencia de Promoción
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="#gestionGeneralStaff" data-bs-toggle="collapse" role="button">
+          <i class="bi bi-buildings-fill"></i> Gestión General
+          <i class="bi bi-chevron-down float-end"></i>
+        </a>
+        <div class="collapse" id="gestionGeneralStaff">
+          <ul class="nav flex-column ps-3">
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if 'tipos-actividad' in request.path %}active{% endif %}"
+                 href="{% url 'gestion_academica:lista_tipos_actividad' %}">
+                <i class="bi bi-tags-fill"></i> Categorías de Actividad
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_esquemas_calificacion' %}">
+                <i class="bi bi-sliders"></i> Esquemas de Calificación
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_estudiante_certificado' %}">
+                <i class="bi bi-file-earmark-check"></i> Generar Certificados
+              </a>
+            </li>
+          </ul>
         </div>
+      </li>
+    {% endif %}
+
+    {# ════════ FAMILIAR ════════ #}
+    {% if user.rol == 'familiar' %}
+      <h5 class="menu-section-title">Portal Familiar</h5>
+      <li class="nav-item item-color-1">
+        <a class="nav-link" href="{% url 'gestion_academica:portal_familiar_inicio' %}">
+          <i class="bi bi-people"></i> Mis Estudiantes
+        </a>
+      </li>
+      <li class="nav-item item-color-3">
+        <a class="nav-link {% if request.resolver_match.namespace == 'mensajeria' %}active{% endif %}"
+           href="{% url 'mensajeria:inbox' %}">
+          <i class="bi bi-chat-dots-fill"></i> Mensajes
+          <span id="nav-mensajes-badge" class="badge bg-danger ms-1" style="display:none"></span>
+        </a>
+      </li>
+    {% endif %}
+
+    {# ════════ EGRESADO ════════ #}
+    {% if user.rol == 'egresado' %}
+      <hr class="menu-divider">
+      <h5 class="menu-section-title">Mi Portal</h5>
+      <li class="nav-item item-color-1">
+        <a class="nav-link" href="{% url 'gestion_academica:portal_egresado' %}">
+          <i class="bi bi-mortarboard-fill"></i> Portal de Egresado
+        </a>
+      </li>
+    {% endif %}
+
+    <hr class="menu-divider">
+    <h5 class="menu-section-title">Cuenta</h5>
+    <li class="nav-item item-color-2">
+      <a class="nav-link {% if request.resolver_match.url_name == 'ver_mi_perfil' %}active{% endif %}"
+         href="{% url 'gestion_academica:ver_mi_perfil' %}">
+        <i class="bi bi-person-lines-fill"></i> Mi Perfil
+      </a>
     </li>
-    
-            <li class="nav-item item-color-3">
-                <a class="nav-link {% if request.resolver_match.url_name == 'seleccionar_curso_asistencia' %}active{% endif %}" href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}">
-                   <i class="bi bi-people-fill"></i> Asistir en Otro Curso
-                </a>
-             </li>
-        {% endif %}
+    <li class="nav-item item-color-3">
+      <form id="logout-form-menu" action="{% url 'logout' %}" method="post" style="display:none">
+        {% csrf_token %}
+      </form>
+      <a class="nav-link" href="#"
+         onclick="event.preventDefault();document.getElementById('logout-form-menu').submit();">
+        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+      </a>
+    </li>
 
-         {# NUEVO MENÚ PARA COORDINADORES Y ADMINISTRADORES STAFF #}
-        {% if user.is_staff and user.rol in 'coordinador,administrador' %}
-             <hr class="menu-divider">
-            <h5 class="menu-section-title">Panel de Coordinación</h5>
-            <li class="nav-item item-color-5">
-                <a class="nav-link" href="{% url 'gestion_academica:dashboard_coordinador' %}">
-                    <i class="bi bi-person-video3"></i> Dashboard Principal
-                </a>
-            </li>
-            <li class="nav-item item-color-purple"> {# Nuevo color o el que prefieras #}
-                <a class="nav-link {% if request.resolver_match.url_name == 'sincronizar_permisos' %}active{% endif %}" href="{% url 'gestion_academica:sincronizar_permisos' %}">
-                    <i class="bi bi-shield-lock-fill"></i> Sincronizar Permisos
-                </a>
-            </li>
-            <li class="nav-item item-color-6">
-                <a class="nav-link" href="{% url 'gestion_academica:admin_asistencia_diaria' %}">
-                    <i class="bi bi-calendar-check"></i> Control de Asistencia
-                </a>
-            </li>  
-            
-             <li class="nav-item item-color-7">
-                <a class="nav-link" href="{% url 'gestion_academica:reporte_riesgo_academico' %}">
-                     <i class="bi bi-shield-exclamation"></i> Reporte de Riesgo (IA)
-                </a>
-            </li>
-            
-            <li class="nav-item item-color-8">
-            <a class="nav-link {% if 'reportes' in request.resolver_match.view_name %}active{% endif %}" href="{% url 'gestion_academica:reportes_dashboard' %}">
-                <i class="bi bi-file-earmark-bar-graph-fill"></i> Dashboard de Reportes
-            </a>
-            </li>
-            
-          
-                <li class="nav-item item-color-8">
-                   <a class="nav-link" href="{% url 'gestion_academica:optimizador_horarios' %}">
-                       <i class="bi bi-grid-3x3-gap-fill"></i> Optimizador de Horarios
-                   </a>
-                </li>
-                                      
-
-
-            <li class="nav-item item-color-7">
-                <a class="nav-link" href="{% url 'gestion_academica:dashboard_bienestar' %}">
-                    <i class="bi bi-heart-pulse-fill"></i> Alertas de Bienestar
-                </a>
-            </li>
-            <li class="nav-item item-color-8">
-                <a class="nav-link" href="{% url 'gestion_academica:historial_convivencia' %}">
-                    <i class="bi bi-journal-richtext"></i> Historial de Convivencia
-                </a>
-            </li>
-            <li class="nav-item item-color-8">
-                <a class="nav-link" href="{% url 'gestion_academica:supervisar_citas' %}">
-                    <i class="bi bi-calendar2-week-fill"></i> Supervisión de Citas
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-item" href="{% url 'gestion_academica:gestionar_promocion_grados' %}">
-                <i class="bi bi-calendar2-week-fill"></i>Secuencia de Promoción
-            </a>
-        </li>
-            <li class="nav-item">
-    <a class="nav-link collapsed" href="#gestionGeneralStaff" data-bs-toggle="collapse" role="button">
-        <i class="bi bi-buildings-fill"></i> Gestión General <i class="bi bi-chevron-down float-end"></i>
-    </a>
-    <div class="collapse" id="gestionGeneralStaff">
-        <ul class="nav flex-column ps-3">
-            {# ... tus otros enlaces (Estudiantes, Docentes, etc.) ... #}
-            
-            <li class="nav-item">
-                <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_estudiante_certificado' %}">Generar Certificados</a>
-            </li>
-            </ul>
-    </div>
-</li>
-        {% endif %}
-
-        {% if user.rol == 'familiar' %}
-            <h5 class="menu-section-title">Portal Familiar</h5>
-            <li class="nav-item item-color-1"><a class="nav-link" href="{% url 'gestion_academica:portal_familiar_inicio' %}"><i class="bi bi-people"></i> Mis Estudiantes</a></li>
-        {% endif %}
-
-        {% if user.rol == 'egresado' %}
-            <hr class="menu-divider">
-            <h5 class="menu-section-title">Mi Portal</h5>
-            <li class="nav-item item-color-1">
-                <a class="nav-link" href="{% url 'gestion_academica:portal_egresado' %}">
-                    <i class="bi bi-mortarboard-fill"></i> Portal de Egresado
-                </a>
-            </li>
-        {% endif %}
-
-        <hr class="menu-divider">
-        <h5 class="menu-section-title">Cuenta</h5>
-        <li class="nav-item item-color-2"><a class="nav-link {% if request.resolver_match.url_name == 'ver_mi_perfil' %}active{% endif %}" href="{% url 'gestion_academica:ver_mi_perfil' %}"><i class="bi bi-person-lines-fill"></i> Mi Perfil</a></li>
-        <li class="nav-item item-color-3">
-            <form id="logout-form-menu" action="{% url 'logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-            <a class="nav-link" href="#" onclick="event.preventDefault(); document.getElementById('logout-form-menu').submit();"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a>
-        </li>
-    </ul>
+  </ul>
 {% endblock floating_menu_content %}
-{# 👉 ESTE ES EL BLOQUE DE CONTENIDO PRINCIPAL #}
+
+{# ── Contenido por defecto (lo reemplazan las vistas hijas) ── #}
 {% block contenido %}
-    <div class="container-fluid mt-4">
-        <h1 class="h4">Bienvenido/a al Módulo Académico</h1>
-        <p class="text-muted">Selecciona una opción del menú para comenzar.</p>
-    </div>
+  <div class="container-fluid mt-4">
+    <h1 class="h4">Bienvenido/a al Módulo Académico</h1>
+    <p class="text-muted">Selecciona una opción del menú lateral para comenzar.</p>
+  </div>
 {% endblock %}
 
 {% block extra_js %}
-     {{ block.super }}
+{{ block.super }}
 
-    {% if user.is_authenticated and user.is_staff %}
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1200;">
-        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="cursor: move; min-width: 300px;">
-            <div class="toast-header bg-primary text-white">
-                <i class="bi bi-bell-fill me-2"></i>
-                <strong class="me-auto">Nueva Notificación</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body" id="toast-body-content">
-            </div>
-        </div>
-    </div>
+{# ── JS: sidebar toggle ── #}
+<script>
+(function () {
+  var body  = document.body;
+  var btn   = document.getElementById('sidebarToggleBtn');
+  var panel = document.getElementById('mainMenuPanel');
+  if (!btn || !panel) return;
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const notificationSocket = new WebSocket(
-                (window.location.protocol === 'https:' ? 'wss://' : 'ws://')
-                + window.location.host
-                + '/ws/notifications/'
-            );
+  function isMobile() { return window.innerWidth < 992; }
 
-            notificationSocket.onmessage = function(e) {
-                const data = JSON.parse(e.data);
-                const toastBody = document.getElementById('toast-body-content');
-                const toastElement = document.getElementById('liveToast');
-                
-                if (toastBody && toastElement) {
-                    toastBody.textContent = data.message;
-                    const toast = new bootstrap.Toast(toastElement);
-                    toast.show();
-                }
-            };
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (isMobile()) {
+      body.classList.toggle('sidebar-open');
+    }
+    /* En escritorio el sidebar siempre está visible — sin colapso por ahora */
+  });
 
-            notificationSocket.onclose = function(e) {
-                console.error('Socket de notificaciones cerrado inesperadamente.');
-            };
+  /* Cerrar en mobile al clic fuera */
+  document.addEventListener('click', function (e) {
+    if (isMobile() && body.classList.contains('sidebar-open')) {
+      if (!panel.contains(e.target) && !btn.contains(e.target)) {
+        body.classList.remove('sidebar-open');
+      }
+    }
+  });
 
-            // Hacer el toast draggable
-            const toastElement = document.getElementById('liveToast');
-            let isDragging = false;
-            let currentX;
-            let currentY;
-            let initialX;
-            let initialY;
+  /* Cerrar en mobile al navegar */
+  panel.querySelectorAll('a:not([data-bs-toggle])').forEach(function (a) {
+    a.addEventListener('click', function () {
+      if (isMobile()) body.classList.remove('sidebar-open');
+    });
+  });
 
-            toastElement.addEventListener('mousedown', function(e) {
-                // Solo iniciar arrastre si se hace clic en el header del toast
-                if (e.target.closest('.toast-header')) {
-                    initialX = e.clientX - currentX;
-                    initialY = e.clientY - currentY;
-                    isDragging = true;
-                    toastElement.style.transition = 'none'; // Desactivar todas las transiciones durante el arrastre
-                    toastElement.style.transform = 'none'; // Evitar cualquier escalado
-                    toastElement.style.minWidth = '300px'; // Mantener el ancho mínimo
-                }
-            });
+  /* Escape */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && isMobile()) body.classList.remove('sidebar-open');
+  });
+})();
+</script>
 
-            document.addEventListener('mousemove', function(e) {
-                if (isDragging) {
-                    e.preventDefault();
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                    toastElement.style.position = 'absolute';
-                    toastElement.style.left = currentX + 'px';
-                    toastElement.style.top = currentY + 'px';
-                }
-            });
-
-            document.addEventListener('mouseup', function() {
-                isDragging = false;
-                toastElement.style.transition = 'opacity 0.3s ease'; // Restaurar solo la transición de opacidad
-                toastElement.style.minWidth = '300px'; // Asegurar que el ancho mínimo se mantenga
-            });
-
-            // Inicializar posición relativa
-            currentX = 0;
-            currentY = 0;
+{# ── Badge mensajes en navbar top ── #}
+{% if user.is_authenticated and user.rol in 'docente,familiar,estudiante' %}
+<script>
+(function () {
+  var badgeTop  = document.getElementById('nav-msg-badge-top');
+  var badgeSide = document.getElementById('nav-mensajes-badge');
+  if (!badgeTop && !badgeSide) return;
+  function actualizar() {
+    fetch("{% url 'mensajeria:api_no_leidos' %}", { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d) return;
+        var n = d.no_leidos || 0;
+        var txt = n > 99 ? '99+' : (n > 0 ? String(n) : '');
+        [badgeTop, badgeSide].forEach(function (b) {
+          if (!b) return;
+          b.textContent = txt;
+          b.style.display = n > 0 ? '' : 'none';
         });
-    </script>
-    {% endif %}
+      })
+      .catch(function () {});
+  }
+  actualizar();
+  setInterval(actualizar, 30000);
+})();
+</script>
+{% endif %}
+
+{# ── Notificaciones staff via WS ── #}
+{% if user.is_authenticated and user.is_staff %}
+<div id="staff-ws-notifications-root"
+     class="toast-container position-fixed top-0 end-0 p-3"
+     style="z-index:1200"
+     data-institucion-id="{{ user.institucion_asociada_id|default:'' }}">
+  <div id="staff-notif-toast" class="toast" role="alert"
+       aria-live="polite" aria-atomic="true" style="cursor:move;min-width:300px">
+    <div id="staff-notif-header" class="toast-header bg-primary text-white">
+      <i id="staff-notif-icon" class="bi bi-bell-fill me-2"></i>
+      <strong id="staff-notif-title" class="me-auto">Notificación</strong>
+      <button id="staff-notif-close" type="button"
+              class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      <p id="staff-notif-body" class="small mb-2"></p>
+      <a id="staff-notif-link" class="btn btn-sm btn-light mt-2 d-none" href="#">
+        Abrir en admisiones
+      </a>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/notifications_staff_ws.js' %}"></script>
+{% endif %}
+
+{# ── Banners flotantes de noticias y anuncios ── #}
+{% if user.is_authenticated and banners_activos %}
+<style>
+#halu-banners-container {
+  position: fixed;
+  bottom: 25px;
+  left: 25px;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  max-width: 360px;
+}
+.halu-banner {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  padding: 14px 14px 14px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-left: 5px solid #4f46e5;
+  animation: haluBannerIn .35s ease;
+  position: relative;
+  min-width: 0;
+}
+.halu-banner.urgente { border-left-color: #dc2626; }
+.halu-banner.evento  { border-left-color: #7c3aed; }
+.halu-banner-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+.urgente .halu-banner-icon { background: #fef2f2; color: #dc2626; }
+.evento  .halu-banner-icon { background: #f5f3ff; color: #7c3aed; }
+.halu-banner-body { flex: 1; min-width: 0; }
+.halu-banner-titulo {
+  font-size: .82rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 3px;
+  line-height: 1.3;
+}
+.halu-banner-img {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.halu-banner-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: .85rem;
+  color: #9ca3af;
+  cursor: pointer;
+  /* touch target mínimo 44×44 */
+  padding: 8px;
+  line-height: 1;
+  border-radius: 50%;
+}
+.halu-banner-close:hover { color: #374151; background: #f3f4f6; }
+@keyframes haluBannerIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes haluBannerOut {
+  to { opacity: 0; transform: translateY(10px); }
+}
+
+/* ── Tablet (≤ 768px) ── */
+@media (max-width: 768px) {
+  #halu-banners-container {
+    bottom: 80px; /* espacio sobre nav inferior de apps móviles */
+    left: 12px;
+    max-width: 300px;
+    gap: 8px;
+  }
+  .halu-banner {
+    padding: 12px 12px 12px 14px;
+    gap: 10px;
+  }
+  .halu-banner-img {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ── Móvil (≤ 576px) ── */
+@media (max-width: 576px) {
+  #halu-banners-container {
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    left: 10px;
+    right: 10px;
+    max-width: none;
+    gap: 8px;
+  }
+  .halu-banner {
+    border-radius: 10px;
+    padding: 11px 36px 11px 14px; /* padding-right extra para el botón ×  */
+    gap: 9px;
+  }
+  .halu-banner-img { display: none; } /* la imagen sobra en pantallas pequeñas */
+  .halu-banner-icon {
+    width: 30px;
+    height: 30px;
+    font-size: .85rem;
+  }
+  .halu-banner-titulo { font-size: .8rem; }
+  .halu-banner-texto-resumen {
+    font-size: .72rem;
+    -webkit-line-clamp: 2;
+  }
+  .halu-banner-texto-completo { font-size: .75rem; }
+  .halu-banner-expandir { font-size: .7rem; }
+  /* close centrado verticalmente solo en banner colapsado */
+  .halu-banner:not(.expandido) .halu-banner-close {
+    top: 50%;
+    transform: translateY(-50%);
+    right: 6px;
+    padding: 10px 8px;
+  }
+  /* close en esquina superior cuando está expandido */
+  .halu-banner.expandido .halu-banner-close {
+    top: 8px;
+    right: 8px;
+    transform: none;
+    padding: 8px;
+  }
+}
+
+/* ── Muy pequeño (≤ 360px) ── */
+@media (max-width: 360px) {
+  .halu-banner-icon { display: none; }
+  .halu-banner { border-radius: 8px; }
+}
+
+/* ── Estado expandido ── */
+.halu-banner.expandido {
+  max-width: 480px;
+  flex-wrap: wrap;
+  transition: max-width .25s ease;
+}
+.halu-banner.expandido .halu-banner-texto-completo {
+  display: block;
+}
+.halu-banner.expandido .halu-banner-texto-resumen {
+  display: none;
+}
+/* la imagen se convierte en fila propia bajo el contenido */
+.halu-banner.expandido .halu-banner-img {
+  display: block;
+  order: 10;
+  flex-basis: 100%;
+  width: 100%;
+  height: auto;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 4px;
+  flex-shrink: unset;
+}
+.halu-banner-texto-resumen {
+  display: block;
+  font-size: .75rem;
+  color: #555;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.halu-banner-texto-completo {
+  display: none;
+  font-size: .78rem;
+  color: #444;
+  margin: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  scrollbar-width: thin;
+}
+.halu-banner-texto-completo::-webkit-scrollbar { width: 4px; }
+.halu-banner-texto-completo::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+.halu-banner-expandir {
+  margin-top: 7px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.urgente .halu-banner-expandir { color: #dc2626; }
+.evento  .halu-banner-expandir { color: #7c3aed; }
+.halu-banner-expandir:hover { opacity: .75; }
+
+/* expandido en móvil: ocupar ancho completo e imagen visible */
+@media (max-width: 576px) {
+  .halu-banner.expandido {
+    max-width: none;
+    left: 10px;
+    right: 10px;
+  }
+  .halu-banner.expandido .halu-banner-img { display: block; }
+  .halu-banner.expandido .halu-banner-texto-resumen { -webkit-line-clamp: unset; }
+}
+</style>
+
+<div id="halu-banners-container"></div>
+
+<script>
+(function () {
+  var BANNERS_RAW = [
+    {% for b in banners_activos %}
+    {
+      id: {{ b.pk }},
+      rev: {{ b.banner_revision }},
+      tipo: "{{ b.tipo|lower }}",
+      titulo: "{{ b.titulo|escapejs }}",
+      resumen: "{{ b.contenido|truncatewords:18|escapejs }}",
+      completo: "{{ b.contenido|escapejs }}",
+      imagen: "{% if b.imagen_destacada %}{{ b.imagen_destacada.url }}{% endif %}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+
+  var LS_PREFIX = 'halu_banner_cerrado_';
+  var MAX_VISIBLE = window.innerWidth <= 576 ? 2 : 3;
+  var cola = [];
+  var visibles = 0;
+
+  // La clave incluye la revisión: al reactivar desde el admin sube la revisión
+  // y la clave anterior queda huérfana → el banner reaparece para todos.
+  function lsKey(b) {
+    return LS_PREFIX + b.id + '_r' + b.rev;
+  }
+
+  function iaCerrado(b) {
+    return localStorage.getItem(lsKey(b)) === '1';
+  }
+
+  function marcarCerrado(b) {
+    localStorage.setItem(lsKey(b), '1');
+  }
+
+  function cerrarBanner(el, b) {
+    marcarCerrado(b);
+    el.style.animation = 'haluBannerOut .25s ease forwards';
+    setTimeout(function () {
+      el.remove();
+      visibles--;
+      mostrarSiguiente();
+    }, 250);
+  }
+
+  function crearEl(b) {
+    var tipo = b.tipo === 'urgente' ? 'urgente' : 'evento';
+    var icono = tipo === 'urgente' ? 'bi-exclamation-triangle-fill' : 'bi-star-fill';
+    var hayMas = b.completo.length > b.resumen.length;
+
+    var div = document.createElement('div');
+    div.className = 'halu-banner ' + tipo;
+
+    var iconDiv = '<div class="halu-banner-icon"><i class="bi ' + icono + '"></i></div>';
+    var body = '<div class="halu-banner-body">'
+             + '<p class="halu-banner-titulo">' + _esc(b.titulo) + '</p>'
+             + '<p class="halu-banner-texto-resumen">' + _esc(b.resumen) + '</p>'
+             + '<p class="halu-banner-texto-completo">' + _esc(b.completo) + '</p>'
+             + (hayMas
+                 ? '<button class="halu-banner-expandir" aria-label="Expandir noticia">'
+                   + '<i class="bi bi-chevron-down"></i><span>Ver más</span>'
+                   + '</button>'
+                 : '')
+             + '</div>';
+    var img = b.imagen ? '<img src="' + _esc(b.imagen) + '" class="halu-banner-img" alt="">' : '';
+    var close = '<button class="halu-banner-close" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>';
+
+    div.innerHTML = iconDiv + body + img + close;
+
+    div.querySelector('.halu-banner-close').addEventListener('click', function () {
+      cerrarBanner(div, b);  // pasa el objeto completo para construir la clave correcta
+    });
+
+    if (hayMas) {
+      var btnExp = div.querySelector('.halu-banner-expandir');
+      var icnExp = btnExp.querySelector('i');
+      var txtExp = btnExp.querySelector('span');
+      btnExp.addEventListener('click', function () {
+        var expandido = div.classList.toggle('expandido');
+        icnExp.className = expandido ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+        txtExp.textContent = expandido ? 'Ver menos' : 'Ver más';
+      });
+    }
+
+    return div;
+  }
+
+  function _esc(str) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(str || ''));
+    return d.innerHTML;
+  }
+
+  function mostrarSiguiente() {
+    while (cola.length > 0 && visibles < MAX_VISIBLE) {
+      var b = cola.shift();
+      if (iaCerrado(b)) continue;
+      var el = crearEl(b);
+      document.getElementById('halu-banners-container').appendChild(el);
+      visibles++;
+    }
+  }
+
+  BANNERS_RAW.forEach(function (b) {
+    if (!iaCerrado(b.id)) cola.push(b);
+  });
+  mostrarSiguiente();
+})();
+</script>
+{% endif %}
+
 {% endblock extra_js %}

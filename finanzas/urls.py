@@ -7,8 +7,11 @@ app_name = 'finanzas'
 urlpatterns = [
     # ---- 1. Dashboard y Vistas Principales ----
     path('', views.dashboard_financiero, name='dashboard_financiero'),
+    path('reportes-exportaciones/', views.reportes_exportaciones_hub, name='reportes_exportaciones'),
+    path('estudiantes/', views.vista_financiera_dashboard, name='listado_estudiantes_finanzas'),
     path('reporte/general/', views.estado_pagos_estudiante, name='reporte_general_cuentas'),
     path('configuracion/pagos/', views.configurar_pagos, name='configurar_pagos'),
+    path('configuracion/pagos/reiniciar-consecutivo-efectivo/', views.reiniciar_consecutivo_efectivo, name='reiniciar_consecutivo_efectivo'),
 
     # ---- 2. Gestión de Cuentas por Estudiante (Acciones) ----
     # Estas URLs se llaman desde la lista de estudiantes o desde el historial de uno
@@ -27,6 +30,11 @@ urlpatterns = [
 
     # ---- 4. Portal del Estudiante y Flujo de Pago Online ----
     path('mi-estado-de-cuenta/', views.mi_estado_de_cuenta, name='mi_estado_de_cuenta'),
+    path(
+        'familiar/estado-cuenta/<int:estudiante_pk>/',
+        views.familiar_estado_cuenta_estudiante,
+        name='familiar_estado_cuenta_estudiante',
+    ),
     path('pago/iniciar/<int:cuenta_pk>/', views.iniciar_pago_mercadopago, name='iniciar_pago'),
     path('pago/respuesta/', views.pago_respuesta_mp, name='pago_respuesta_mp'),
     path('webhook/mercadopago/', views.finanzas_mercadopago_webhook, name='finanzas_mercadopago_webhook'),
@@ -65,9 +73,10 @@ urlpatterns = [
     path('reportes/cartera-por-edades/', views.reporte_cartera_por_edades, name='reporte_cartera_por_edades'),
     path('reportes/flujo-caja/', views.reporte_flujo_caja, name='reporte_flujo_caja'),
     path('herramientas/facturacion-masiva/', views.facturacion_masiva, name='facturacion_masiva'),
-    path('superadmin/', views.dashboard_superadmin, name='dashboard_superadmin'),
-    path('superadmin/institucion/<int:pk>/toggle-active/', views.toggle_institucion_activa, name='toggle_institucion_activa'),
+    path('herramientas/orden-pago/previsualizar/', views.previsualizar_orden_pago, name='previsualizar_orden_pago'),
     path('herramientas/exportacion-contable/', views.exportacion_contable, name='exportacion_contable'),
+    path('reportes/libro-diario-contable/', views.libro_diario_contable, name='libro_diario_contable'),
+    path('reportes/libro-diario-contable/pdf/', views.libro_diario_pdf, name='libro_diario_pdf'),
     path('pdf/factura-venta/<int:cuenta_id>/', views.generar_factura_venta, name='generar_factura_venta'),
     path('pdf/comprobante-egreso/<int:gasto_id>/', views.generar_comprobante_egreso, name='generar_comprobante_egreso'),
     path('configuracion/categorias-gasto/<int:pk>/eliminar/', views.CategoriaGastoDeleteView.as_view(), name='eliminar_categoria_gasto'),
@@ -88,13 +97,11 @@ urlpatterns = [
     path('puc/crear/', views.CuentaContableCreateView.as_view(), name='crear_cuenta_contable'),
     path('puc/<int:pk>/editar/', views.CuentaContableUpdateView.as_view(), name='editar_cuenta_contable'),
     path('puc/<int:pk>/eliminar/', views.CuentaContableDeleteView.as_view(), name='eliminar_cuenta_contable'),
-    path('pago/iniciar/<int:cuenta_pk>/', views.iniciar_pago, name='iniciar_pago'),
+    path(
+        'pago/matricula/iniciar/<int:cuenta_pk>/',
+        views.iniciar_pago,
+        name='iniciar_pago_matricula',
+    ),
     path('sincronizar/masivo/', views.sincronizar_cuentas_masivo, name='sincronizar_cuentas_masivo'),
-    path('superadmin/soporte/', views.superadmin_tickets_view, name='superadmin_tickets'),
-    path('superadmin/soporte/ticket/<str:ticket_id>/', views.superadmin_ticket_detail_view, name='superadmin_ticket_detail'),
-    path('superadmin/soporte/ticket/<str:ticket_id>/cerrar/', views.cerrar_ticket_view, name='cerrar_ticket'),
     path('seleccionar-estudiante/', views.seleccionar_estudiante_para_historial, name='seleccionar_estudiante_para_historial'),
-    path('superadmin/login/', views.superadmin_login_view, name='superadmin_login'),
-    path('superadmin/lock/', views.superadmin_lock_view, name='superadmin_lock'),
-
 ]

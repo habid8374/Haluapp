@@ -1,25 +1,117 @@
 {% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}Grados con Estudiantes{% endblock %}
 
 {% block contenido %}
-<div class="container mt-5">
-    <div class="d-flex justify-content-end mb-3">
-        <a href="{% url 'gestion_academica:inicio_academico' %}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Volver al Inicio
-        </a>
-    </div>
+<style>
+  :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
 
-    <h2>Selecciona un Grado</h2>
-    <ul class="list-group">
-        {% for grado in grados %}
-            <li class="list-group-item">
-                <a href="{% url 'gestion_academica:lista_estudiantes_por_grado' grado.pk %}">
-                    {{ grado.nombre }}
-                </a>
-            </li>
-        {% empty %}
-            <li class="list-group-item">No hay grados disponibles.</li>
-        {% endfor %}
-    </ul>
+  .ps-hero {
+    background: linear-gradient(135deg, var(--ps-dark) 0%, var(--ps-mid) 55%, var(--ps-light) 100%);
+    padding: 2.2rem 2rem 2rem;
+    position: relative; overflow: hidden;
+    border-radius: .85rem; margin-bottom: 1.8rem;
+  }
+  .ps-hero::before {
+    content:''; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .ps-hero-title { font-size:1.65rem; font-weight:900; color:#fff; margin:0; position:relative; z-index:1; }
+  .ps-hero-sub   { font-size:.88rem; color:rgba(255,255,255,.75); margin-top:.35rem; position:relative; z-index:1; }
+  .ps-hero-badge {
+    background:rgba(255,255,255,.15); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.25); border-radius:30px;
+    padding:.35rem .9rem; font-size:.78rem; color:#fff; font-weight:600;
+    position:relative; z-index:1; text-decoration:none; display:inline-block;
+  }
+  .ps-hero-badge:hover { background:rgba(255,255,255,.25); color:#fff; }
+
+  /* Grade cards */
+  .pg-card {
+    background:#fff; border-radius:.85rem;
+    box-shadow:0 1px 6px rgba(0,0,0,.07);
+    padding:1.25rem 1.4rem;
+    display:flex; align-items:center; gap:.9rem;
+    text-decoration:none;
+    border:1.5px solid transparent;
+    transition: border-color .18s, box-shadow .18s, transform .15s;
+    position:relative; overflow:hidden; height:100%;
+  }
+  .pg-card::before {
+    content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
+    background: linear-gradient(180deg, var(--ps-mid), var(--ps-light));
+    border-radius:4px 0 0 4px;
+  }
+  .pg-card:hover {
+    border-color:rgba(79,70,229,.25);
+    box-shadow:0 4px 18px rgba(79,70,229,.15);
+    transform:translateY(-2px);
+  }
+  .pg-card-icon {
+    width:44px; height:44px; border-radius:12px; flex-shrink:0;
+    background: linear-gradient(135deg, var(--ps-mid), var(--ps-light));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.15rem;
+  }
+  .pg-card-name { font-size:.97rem; font-weight:700; color:var(--ps-dark); }
+  .pg-card-sub  { font-size:.77rem; color:#94a3b8; margin-top:2px; }
+  .pg-card-arrow { margin-left:auto; color:rgba(79,70,229,.4); font-size:.95rem; flex-shrink:0; }
+
+  .ps-empty {
+    background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
+    padding:3rem 2rem; text-align:center; color:#94a3b8;
+  }
+  .ps-empty i { font-size:2.8rem; margin-bottom:.8rem; display:block; opacity:.5; }
+</style>
+
+<div class="container mt-4">
+
+  <!-- Hero -->
+  <div class="ps-hero">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h1 class="ps-hero-title">
+          <i class="bi bi-grid-3x3-gap-fill me-2" style="opacity:.85"></i>Grados con Estudiantes
+        </h1>
+        <p class="ps-hero-sub">Selecciona un grado para consultar su listado de estudiantes</p>
+      </div>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="ps-hero-badge">
+          <i class="bi bi-mortarboard me-1"></i>{{ grados|length }} grado{{ grados|length|pluralize:"s" }}
+        </span>
+        <a href="{% url 'gestion_academica:inicio_academico' %}" class="ps-hero-badge">
+          <i class="bi bi-arrow-left me-1"></i>Volver al Inicio
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid de grados -->
+  {% if grados %}
+    <div class="row g-3">
+      {% for grado in grados %}
+        <div class="col-sm-6 col-lg-4">
+          <a href="{% url 'gestion_academica:lista_estudiantes_por_grado' grado.pk %}" class="pg-card">
+            <div class="pg-card-icon">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+              <div class="pg-card-name">{{ grado.nombre }}</div>
+              <div class="pg-card-sub">Ver estudiantes</div>
+            </div>
+            <i class="bi bi-chevron-right pg-card-arrow"></i>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="ps-empty">
+      <i class="bi bi-inbox"></i>
+      <p class="mb-1 fw-bold" style="color:#475569;">No hay grados disponibles.</p>
+      <p class="mb-0" style="font-size:.85rem;">Aún no se han registrado grados en el sistema.</p>
+    </div>
+  {% endif %}
+
 </div>
 {% endblock %}

@@ -1,13 +1,157 @@
-{# en gestion_academica/templates/gestion_academica/tags/notificaciones_bell.html #}
+{% load static %}
+{# ── Campana de notificaciones — dropdown global ── #}
+<style>
+/* ── Campanita responsive ── */
+.nb-panel {
+  min-width: 320px; max-width: 360px;
+  border-radius: .85rem !important;
+  border: 1px solid #e2e8f0 !important;
+  overflow: hidden;
+}
+.nb-item {
+  display: flex; align-items: flex-start; gap: .7rem;
+  padding: .7rem .95rem;
+  border-bottom: 1px solid #f1f5f9;
+  text-decoration: none;
+  transition: background .12s;
+}
+.nb-item:last-child { border-bottom: none; }
+.nb-item:hover { background: #eef2ff !important; }
+.nb-icon {
+  width: 32px; height: 32px; border-radius: .45rem;
+  flex-shrink: 0; display: flex; align-items: center;
+  justify-content: center; font-size: .88rem;
+}
+.nb-msg {
+  font-size: .8rem; color: #1e293b; line-height: 1.4;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nb-meta {
+  display: flex; align-items: center; gap: .4rem;
+  margin-top: .15rem; flex-wrap: wrap;
+}
+.nb-badge-new {
+  background: #dbeafe; color: #1d4ed8; border-radius: 2rem;
+  padding: .05rem .4rem; font-size: .62rem; font-weight: 700;
+}
+.nb-time {
+  font-size: .66rem; color: #94a3b8;
+  display: flex; align-items: center; gap: .2rem;
+}
+/* Móvil: ajustar ancho al viewport y reducir padding/fuentes */
+@media (max-width: 575px) {
+  .nb-panel {
+    min-width: min(320px, calc(100vw - 1rem)) !important;
+    max-width: min(360px, calc(100vw - 1rem)) !important;
+  }
+  .nb-item { padding: .5rem .7rem; gap: .5rem; }
+  .nb-icon  { width: 26px; height: 26px; font-size: .75rem; }
+  .nb-msg   { font-size: .75rem; }
+  .nb-time  { font-size: .6rem; }
+  .nb-header-title { font-size: .82rem !important; }
+  .nb-list  { max-height: 260px !important; }
+}
+</style>
 
-<li class="nav-item">
-    <a class="nav-link position-relative" href="#"> {# <-- Más adelante, este enlace llevará a la página de notificaciones #}
-        <i class="bi bi-bell-fill fs-5"></i>
+<li class="nav-item dropdown">
+
+  {# Botón campana #}
+  <a class="nav-link position-relative px-2"
+     href="#"
+     id="dropdownNotifBell"
+     role="button"
+     data-bs-toggle="dropdown"
+     data-bs-auto-close="outside"
+     aria-expanded="false"
+     title="Mis notificaciones">
+    <i class="bi bi-bell-fill" style="font-size:1.15rem;"></i>
+    {% if unread_count > 0 %}
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+          style="font-size:.52rem;min-width:15px;padding:.18em .38em;">
+      {{ unread_count }}
+      <span class="visually-hidden">notificaciones sin leer</span>
+    </span>
+    {% endif %}
+  </a>
+
+  {# Dropdown panel #}
+  <div class="dropdown-menu dropdown-menu-end shadow-lg p-0 nb-panel"
+       aria-labelledby="dropdownNotifBell">
+
+    {# Cabecera #}
+    <div style="background:linear-gradient(135deg,#3730a3,#4f46e5);padding:.7rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;">
+      <div style="display:flex;align-items:center;gap:.4rem;color:#fff;min-width:0;">
+        <i class="bi bi-bell-fill" style="flex-shrink:0;font-size:.88rem;"></i>
+        <span class="nb-header-title" style="font-size:.86rem;font-weight:700;white-space:nowrap;">Mis Notificaciones</span>
         {% if unread_count > 0 %}
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ unread_count }}
-                <span class="visually-hidden">notificaciones sin leer</span>
-            </span>
+        <span style="background:rgba(255,255,255,.25);color:#fff;border-radius:2rem;padding:.08rem .45rem;font-size:.64rem;font-weight:700;flex-shrink:0;">
+          {{ unread_count }} nueva{{ unread_count|pluralize:"s" }}
+        </span>
         {% endif %}
-    </a>
+      </div>
+      <a href="{% url 'gestion_academica:lista_notificaciones' %}"
+         style="color:rgba(255,255,255,.8);font-size:.7rem;font-weight:600;text-decoration:none;flex-shrink:0;">
+        Ver todas <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+    {# Lista de notificaciones recientes #}
+    <div class="nb-list" style="max-height:310px;overflow-y:auto;">
+      {% if recientes %}
+        {% for n in recientes %}
+        <a href="{{ n.enlace|default:'#' }}"
+           class="nb-item"
+           style="background:{% if not n.leido %}#f0f4ff{% else %}#fff{% endif %};">
+
+          {# Ícono #}
+          <div class="nb-icon"
+               style="{% if n.consejo_ia %}background:#ede9fe;color:#7c3aed;{% elif not n.leido %}background:#dbeafe;color:#1d4ed8;{% else %}background:#f1f5f9;color:#94a3b8;{% endif %}">
+            {% if n.consejo_ia %}
+              <i class="bi bi-stars"></i>
+            {% elif not n.leido %}
+              <i class="bi bi-bell-fill"></i>
+            {% else %}
+              <i class="bi bi-check2"></i>
+            {% endif %}
+          </div>
+
+          {# Contenido #}
+          <div style="flex:1;min-width:0;">
+            <div class="nb-msg" style="{% if not n.leido %}font-weight:700;{% endif %}">
+              {{ n.mensaje }}
+            </div>
+            <div class="nb-meta">
+              {% if not n.leido %}
+              <span class="nb-badge-new">
+                <i class="bi bi-circle-fill" style="font-size:.32rem;vertical-align:middle;"></i> Nuevo
+              </span>
+              {% endif %}
+              <span class="nb-time">
+                <i class="bi bi-clock" style="font-size:.58rem;"></i>{{ n.fecha_creacion|timesince }} atrás
+              </span>
+            </div>
+          </div>
+
+        </a>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:1.6rem 1rem;color:#94a3b8;">
+          <i class="bi bi-bell-slash-fill" style="font-size:1.6rem;display:block;margin-bottom:.4rem;opacity:.45;"></i>
+          <p style="font-size:.8rem;margin:0;font-weight:600;">Sin notificaciones</p>
+          <p style="font-size:.72rem;margin:.15rem 0 0;opacity:.7;">Aquí aparecerán tus avisos.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    {# Pie: ir a todas #}
+    {% if recientes %}
+    <div style="padding:.5rem 1rem;border-top:1px solid #f1f5f9;text-align:center;background:#fafafe;">
+      <a href="{% url 'gestion_academica:lista_notificaciones' %}"
+         style="font-size:.76rem;font-weight:700;color:#3730a3;text-decoration:none;">
+        <i class="bi bi-grid-fill me-1"></i>Ver todas las notificaciones
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
 </li>

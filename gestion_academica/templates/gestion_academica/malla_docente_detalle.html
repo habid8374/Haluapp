@@ -1,0 +1,298 @@
+{% extends "base_academico.html" %}
+{% load static %}
+{% load gestion_academica_filters %}
+
+{% block titulo %}Malla — {{ malla.materia.nombre_materia }} · {{ malla.grado.nombre }}{% endblock %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+  /* ── Hero ── */
+  .mc-hero {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    border-radius: 16px;
+    padding: 1.8rem 2.2rem;
+    color: #fff;
+    margin-bottom: 1.8rem;
+  }
+  .mc-hero h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: .2rem; }
+  .mc-hero p  { opacity: .85; margin: 0; font-size: .9rem; }
+
+  /* ── Meta strip ── */
+  .meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .7rem 1.4rem;
+    background: #eef2ff;
+    border: 1.5px solid #c7d2fe;
+    border-radius: 12px;
+    padding: .8rem 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+  .meta-item .lbl {
+    font-size: .7rem;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 1px;
+  }
+  .meta-item .val {
+    font-size: .95rem;
+    font-weight: 800;
+    color: #1e1b4b;
+  }
+
+  /* ── Propósito ── */
+  .proposito-box {
+    background: #f0f4ff;
+    border-left: 4px solid #4f46e5;
+    border-radius: 0 10px 10px 0;
+    padding: .7rem 1.1rem;
+    font-size: .88rem;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+  }
+  .proposito-box strong { color: #3730a3; }
+
+  /* ── Período ── */
+  .periodo-header {
+    background: linear-gradient(90deg, #1e1b4b, #3730a3);
+    border-radius: 10px 10px 0 0;
+    padding: .7rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .periodo-header h5 { color: #fff; font-weight: 800; font-size: 1rem; margin: 0; }
+  .periodo-block { margin-bottom: 2rem; }
+
+  /* ── Tabla ── */
+  .malla-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .malla-table thead th {
+    background: #3730a3;
+    color: #fff;
+    padding: 8px 10px;
+    font-weight: 700;
+    font-size: .78rem;
+    text-align: left;
+    border: 1px solid #3730a3;
+  }
+  .malla-table tbody td {
+    padding: 8px 10px;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .malla-table tbody tr:nth-child(even) td { background: #f8fafc; }
+  .malla-table tbody tr:hover td         { background: #eef2ff; }
+
+  /* ── Nivel chips ── */
+  .nivel {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: .7rem;
+    font-weight: 800;
+    margin-right: 3px;
+    margin-bottom: 2px;
+  }
+  .nivel-bajo     { background: #fee2e2; color: #7f1d1d; }
+  .nivel-basico   { background: #fef3c7; color: #78350f; }
+  .nivel-alto     { background: #dbeafe; color: #1e3a8a; }
+  .nivel-superior { background: #dcfce7; color: #14532d; }
+
+  .lbl-ebc { font-size: .7rem; font-weight: 700; color: #4f46e5; margin-right: 2px; }
+  .lbl-dba { font-size: .7rem; font-weight: 700; color: #7c3aed; margin-right: 2px; }
+
+  /* ── Vacío ── */
+  .periodo-vacio {
+    background: #f8fafc;
+    border: 1.5px dashed #c7d2fe;
+    border-radius: 0 0 10px 10px;
+    padding: 1.5rem;
+    text-align: center;
+    color: #94a3b8;
+    font-size: .85rem;
+  }
+
+  /* ── Semanas ── */
+  .tc { text-align: center; font-weight: 800; color: #1e1b4b; }
+
+  /* ── Btn volver ── */
+  .btn-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,.18);
+    border: 1.5px solid rgba(255,255,255,.5);
+    color: #fff;
+    border-radius: 8px;
+    padding: .4rem .9rem;
+    font-size: .82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background .18s;
+  }
+  .btn-volver:hover { background: rgba(255,255,255,.3); color: #fff; }
+
+  .btn-imprimir {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1.5px solid rgba(255,255,255,.8);
+    color: #4f46e5;
+    border-radius: 8px;
+    padding: .4rem .9rem;
+    font-size: .82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all .18s;
+  }
+  .btn-imprimir:hover { background: #f0f4ff; color: #3730a3; }
+
+  /* ── Readonly badge ── */
+  .badge-readonly {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,.2);
+    border: 1px solid rgba(255,255,255,.4);
+    color: #fff;
+    border-radius: 20px;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    margin-top: .5rem;
+  }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid py-4 px-3 px-md-4">
+
+  <!-- Hero -->
+  <div class="mc-hero">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <h1><i class="bi bi-grid-3x3-gap-fill me-2"></i>{{ malla.materia.nombre_materia }}</h1>
+        <p>{{ malla.grado.nombre }} &mdash; Año lectivo {{ malla.año_lectivo }}</p>
+        <div class="badge-readonly"><i class="bi bi-eye"></i> Vista de consulta (sólo lectura)</div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap mt-1">
+        <a href="{% url 'gestion_academica:malla_docente_consulta' %}" class="btn-volver">
+          <i class="bi bi-arrow-left"></i> Mis Mallas
+        </a>
+        <a href="{% url 'gestion_academica:malla_docente_imprimir' malla.pk %}"
+           target="_blank" class="btn-imprimir">
+          <i class="bi bi-printer-fill"></i> Imprimir
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meta -->
+  <div class="meta-strip">
+    <div class="meta-item">
+      <span class="lbl">Área / Asignatura</span>
+      <span class="val">{{ malla.materia.nombre_materia }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="lbl">Grado</span>
+      <span class="val">{{ malla.grado.nombre }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="lbl">Año Lectivo</span>
+      <span class="val">{{ malla.año_lectivo }}</span>
+    </div>
+    {% if malla.materia.intensidad_horaria_semanal %}
+    <div class="meta-item">
+      <span class="lbl">Intensidad Horaria</span>
+      <span class="val">{{ malla.materia.intensidad_horaria_semanal }} h / semana</span>
+    </div>
+    {% endif %}
+    <div class="meta-item">
+      <span class="lbl">Última actualización</span>
+      <span class="val">{{ malla.fecha_actualizacion|date:"d/m/Y" }}</span>
+    </div>
+  </div>
+
+  {% if malla.descripcion_general %}
+  <div class="proposito-box">
+    <strong>Propósito general:</strong> {{ malla.descripcion_general }}
+  </div>
+  {% endif %}
+
+  <!-- Períodos -->
+  {% for p in periodos %}
+  <div class="periodo-block">
+    <div class="periodo-header">
+      <i class="bi bi-calendar-range" style="font-size:1.1rem; color:#a5b4fc;"></i>
+      <h5>{{ p }}° Período Académico</h5>
+    </div>
+
+    {% with items=por_periodo|get_item:p %}
+    {% if items %}
+    <div class="table-responsive" style="border-radius: 0 0 10px 10px; border: 1px solid #e2e8f0; border-top: none;">
+      <table class="malla-table">
+        <thead>
+          <tr>
+            <th style="width:13%;">Eje Temático</th>
+            <th style="width:13%;">Logro del Período</th>
+            <th style="width:9%;">Competencias</th>
+            <th style="width:11%;">EBC / DBA</th>
+            <th style="width:22%;">Indicadores de Desempeño</th>
+            <th style="width:10%;">Metodología</th>
+            <th style="width:9%;">Recursos</th>
+            <th style="width:9%;">Evaluación</th>
+            <th style="width:4%;">Sem.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td><strong>{{ item.eje_tematico }}</strong></td>
+            <td>{{ item.logro|default:"—" }}</td>
+            <td>{{ item.competencias|default:"—" }}</td>
+            <td>
+              {% if item.ebc %}<div><span class="lbl-ebc">EBC:</span> {{ item.ebc }}</div>{% endif %}
+              {% if item.dba %}<div class="mt-1"><span class="lbl-dba">DBA:</span> {{ item.dba }}</div>{% endif %}
+              {% if not item.ebc and not item.dba %}—{% endif %}
+            </td>
+            <td>
+              {% if item.indicador_bajo %}
+              <div><span class="nivel nivel-bajo">Bajo</span> {{ item.indicador_bajo }}</div>
+              {% endif %}
+              {% if item.indicador_basico %}
+              <div class="mt-1"><span class="nivel nivel-basico">Básico</span> {{ item.indicador_basico }}</div>
+              {% endif %}
+              {% if item.indicador_alto %}
+              <div class="mt-1"><span class="nivel nivel-alto">Alto</span> {{ item.indicador_alto }}</div>
+              {% endif %}
+              {% if item.indicador_superior %}
+              <div class="mt-1"><span class="nivel nivel-superior">Superior</span> {{ item.indicador_superior }}</div>
+              {% endif %}
+              {% if not item.indicador_bajo and not item.indicador_basico and not item.indicador_alto and not item.indicador_superior %}—{% endif %}
+            </td>
+            <td>{{ item.metodologia|default:"—" }}</td>
+            <td>{{ item.recursos|default:"—" }}</td>
+            <td>{{ item.evaluacion|default:"—" }}</td>
+            <td class="tc">{{ item.tiempo_semanas }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="periodo-vacio">
+      <i class="bi bi-inbox me-1"></i> Sin contenido registrado para el {{ p }}° Período.
+    </div>
+    {% endif %}
+    {% endwith %}
+  </div>
+  {% endfor %}
+
+</div>
+{% endblock %}

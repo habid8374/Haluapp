@@ -1,11 +1,18 @@
 # admisiones/signals.py
 
+from django.db import transaction
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 import logging
 
+from django.contrib.auth import get_user_model
+from django.db.models import Q
+
+from gestion_academica.models import Notificacion
+
 from .models import Aspirante, CitaAgendada
 from .utils import (
+    build_absolute_site_uri,
     crear_cuenta_cobro_matricula,
     enviar_correo_bienvenida,
     enviar_correo_cambio_estado,
@@ -13,77 +20,156 @@ from .utils import (
 )
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
+
+def _safe_on_commit(fn):
+    """Programa ``fn`` para ejecutarse al hacer commit; si no hay transacción
+    activa, lo ejecuta inmediatamente. Garantiza que los correos nunca salen
+    si la transacción que los produjo termina haciendo rollback.
+    """
+    transaction.on_commit(fn)
+
+
 @receiver(pre_save, sender=Aspirante)
 def guardar_estado_original(sender, instance, **kwargs):
-    if instance.pk:
-        try:
-            instance._original_estado = Aspirante.objects.get(pk=instance.pk).estado
-        except Aspirante.DoesNotExist:
-            instance._original_estado = None
+    if not instance.pk:
+        instance._original_estado = None
+        return
+    try:
+        instance._original_estado = Aspirante.objects.get(pk=instance.pk).estado
+    except Aspirante.DoesNotExist:
+        instance._original_estado = None
+
 
 @receiver(post_save, sender=Aspirante)
 def gestionar_notificaciones_aspirante(sender, instance, created, **kwargs):
     """
-    Gestiona el envío de correos y la creación de cobros de forma directa (síncrona).
-    VERSIÓN RESTAURADA Y CON ORDEN CORREGIDO.
+    Crea cobros y envía correos solo DESPUÉS de que la transacción haya hecho
+    commit. Si la transacción se revierte, los efectos colaterales (correos)
+    no se ejecutan, evitando estados inconsistentes para el postulante.
+
+    Para procesos masivos (importación de aspirantes) la señal acepta dos
+    "flags" en la instancia que permiten saltar el envío inmediato y dejarlo
+    en manos del worker que está haciendo el batch:
+      - ``_omitir_correo_bienvenida``: si True, no se envía el correo "creado".
+      - ``_omitir_correo_estado``: si True, no se envía el correo de cambio
+        de estado (útil al cambiar estados en masa).
     """
     if created:
-        enviar_correo_bienvenida(request=None, aspirante=instance)
+        if getattr(instance, "_omitir_correo_bienvenida", False):
+            return
+        _safe_on_commit(lambda: enviar_correo_bienvenida(request=None, aspirante=instance))
+        return
+
+    if getattr(instance, "_omitir_correo_estado", False):
         return
 
     estado_anterior = getattr(instance, '_original_estado', None)
-    if estado_anterior != instance.estado:
-        
-        if instance.estado == Aspirante.EstadoAdmision.APROBADO_MATRICULA:
-            logger.info(f"SEÑAL: Aspirante '{instance}' aprobado. Creando cobro y enviando correo...")
-            
-            from .utils import crear_cuenta_cobro_matricula
-            
-            # ▼▼▼ CORRECCIÓN CLAVE AQUÍ ▼▼▼
-            # Desempaquetamos la tupla que devuelve la función.
-            exito, cuenta_objeto = crear_cuenta_cobro_matricula(instance)
+    if estado_anterior == instance.estado:
+        return
 
-            if exito:
-                # Ahora le pasamos el objeto de la cuenta, no la tupla.
-                enviar_correo_cambio_estado(instance, cuenta_matricula=cuenta_objeto)
-            else:
-                # La variable 'cuenta_objeto' aquí contiene el mensaje de error.
-                logger.error(f"SEÑAL: Fallo al crear cobro de matrícula para {instance.pk}: {cuenta_objeto}")
-            # ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲
-        
+    if instance.estado == Aspirante.EstadoAdmision.APROBADO_MATRICULA:
+        logger.info("SEÑAL: Aspirante '%s' aprobado. Creando cobro y enviando correo...", instance)
+        exito, cuenta_objeto = crear_cuenta_cobro_matricula(instance)
+        if exito:
+            _safe_on_commit(
+                lambda: enviar_correo_cambio_estado(instance, cuenta_matricula=cuenta_objeto)
+            )
         else:
-            logger.info(f"SEÑAL: Enviando correo de cambio de estado para {instance.pk}.")
-            enviar_correo_cambio_estado(instance)
-            
+            logger.error(
+                "SEÑAL: Fallo al crear cobro de matrícula para %s: %s",
+                instance.pk, cuenta_objeto,
+            )
+        return
+
+    logger.info("SEÑAL: Enviando correo de cambio de estado para %s.", instance.pk)
+    _safe_on_commit(lambda: enviar_correo_cambio_estado(instance))
+
+def _notificar_cita_post_commit(cita_pk):
+    """Envía correo y notificaciones (DB + WebSocket) para una cita ya persistida.
+
+    Se invoca SIEMPRE después del commit. Re-busca la cita por PK para evitar
+    trabajar con un objeto cuya transacción haya sido revertida.
+    """
+    try:
+        cita = CitaAgendada.objects.select_related(
+            "aspirante", "horario", "horario__entrevistador", "institucion",
+        ).get(pk=cita_pk)
+    except CitaAgendada.DoesNotExist:
+        logger.info("Cita %s ya no existe al ejecutar on_commit; se omite.", cita_pk)
+        return
+
+    logger.info("SEÑAL (CitaAgendada): Enviando correo de confirmación para '%s'.", cita.aspirante)
+    try:
+        enviar_correo_confirmacion_cita(cita)
+    except Exception as e:
+        logger.error("Error enviando correo de confirmación de cita %s: %s", cita_pk, e, exc_info=True)
+
+    try:
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            return
+
+        horario = cita.horario
+        tipo_txt = horario.get_tipo_cita_display()
+        fecha_txt = horario.fecha_hora_inicio.strftime("%d/%m/%Y %H:%M")
+        aspirante = cita.aspirante
+        nombre_asp = f"{aspirante.nombres} {aspirante.apellidos}".strip()
+        partes = [f"{tipo_txt}: {nombre_asp}.", f"Fecha y hora: {fecha_txt}."]
+        if horario.entrevistador_id:
+            ev = horario.entrevistador
+            nombre_ev = (ev.get_full_name() or ev.get_username() or "").strip()
+            if nombre_ev:
+                partes.append(f"Responsable: {nombre_ev}.")
+        mensaje = " ".join(partes)
+        url = reverse("admisiones:detalle_aspirante", kwargs={"pk": aspirante.pk})
+        enlace_abs = build_absolute_site_uri(url)
+
+        User = get_user_model()
+        institucion = cita.institucion
+        staff_users_qs = (
+            User.objects.filter(
+                Q(is_superuser=True)
+                | Q(is_staff=True, institucion_asociada_id=institucion.pk)
+            ).distinct()
+        )
+
+        to_create = []
+        user_ids_ws = []
+        for u in staff_users_qs.iterator(chunk_size=200):
+            to_create.append(
+                Notificacion(
+                    destinatario=u,
+                    mensaje=mensaje[:255],
+                    enlace=enlace_abs,
+                    institucion=institucion,
+                )
+            )
+            user_ids_ws.append(u.pk)
+        if to_create:
+            Notificacion.objects.bulk_create(to_create)
+
+        event_payload = {
+            "type": "send_notification",
+            "kind": "cita_nueva",
+            "title": "Nueva cita de admisión",
+            "message": mensaje,
+            "url": url,
+            "severity": "info",
+            "institucion_id": cita.institucion_id,
+        }
+        for uid in user_ids_ws:
+            async_to_sync(channel_layer.group_send)(f"user_{uid}", event_payload)
+    except Exception as e:
+        logger.error("Error al enviar notificación de cita en tiempo real: %s", e, exc_info=True)
+
 
 @receiver(post_save, sender=CitaAgendada)
 def notificar_creacion_de_cita(sender, instance, created, **kwargs):
-    if created:
-        # 1. La lógica de envío de correo se mantiene
-        logger.info(f"SEÑAL (CitaAgendada): Enviando correo de confirmación para '{instance.aspirante}'.")
-        enviar_correo_confirmacion_cita(instance)
-        
-        # 2. Lógica de notificación en tiempo real CORREGIDA
-        try:
-            channel_layer = get_channel_layer()
-            if channel_layer is not None:
-                # ▼▼▼ CORRECCIÓN CLAVE AQUÍ ▼▼▼
-                # Obtenemos los nombres y apellidos desde el aspirante asociado (instance.aspirante)
-                mensaje = (
-                    f"Nueva cita agendada: {instance.aspirante.nombres} {instance.aspirante.apellidos} "
-                    f"para el {instance.horario.fecha_hora_inicio.strftime('%d/%m a las %H:%M')}."
-                )
-                # ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲
-                
-                async_to_sync(channel_layer.group_send)(
-                    'admin_notifications',
-                    {
-                        'type': 'send_notification',
-                        'message': mensaje
-                    }
-                )
-        except Exception as e:
-            logger.error(f"Error al enviar notificación de cita en tiempo real: {e}")
+    if not created:
+        return
+    cita_pk = instance.pk
+    _safe_on_commit(lambda: _notificar_cita_post_commit(cita_pk))

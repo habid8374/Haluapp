@@ -1,279 +1,506 @@
-{% extends "base_academico.html" %} 
+{% extends "base_academico.html" %}
 {% load static %}
 
-{% block titulo %}
-    HALU - Bienvenido al Módulo Académico
-{% endblock titulo %}
-
-{% block extrastyles %}
-{{ block.super }}
-<style>
-    .welcome-section {
-        position: relative;
-        overflow: hidden;
-        padding: 3rem 1.5rem;
-        border-radius: 1rem;
-        background: transparent;
-        text-align: center;
-        color: white;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-        margin-top: 2rem;
-    }
-
-    .welcome-video-background {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 120%; /* o 100% si ya se ve completo */
-    height: auto;
-    min-height: 100%;
-    transform: translate(-50%, -50%);
-    object-fit: cover;
-    opacity: 0.25;
-    z-index: 0;
-    border-radius: 1rem;
-}
-
-    .welcome-section .container {
-        position: relative;
-        z-index: 1;
-    }
-
-    .animated-item {
-        opacity: 0;
-        transform: translateY(25px);
-        animation: fadeInSlideUp 0.8s ease-out forwards;
-    }
-
-    .welcome-logo { animation-delay: 0.1s; }
-    .welcome-title {
-    font-size: 2.5rem;
-    font-weight: 600;
-    color: #0D6EFD; /* Azul tecnológico */
-    margin-bottom: 0.75rem;
-}
-    .welcome-lead {
-    font-size: 1.2rem;
-    color: #dbe7f9; /* Gris claro azulado */
-    margin-bottom: 1.5rem;
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-}
-    .welcome-user-info {
-    font-size: 1rem;
-    color: #c9d9ec; /* Otro gris clarito azulado */
-    margin-bottom: 2rem;
-}
-    .welcome-actions .btn-action-1 { animation-delay: 0.9s; }
-    .welcome-actions .btn-action-2 { animation-delay: 1.1s; }
-    .welcome-actions .btn-action-3 { animation-delay: 1.3s; }
-
-    .welcome-title,
-    .welcome-lead,
-    .welcome-user-info {
-        text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
-    }
-
-    .welcome-logo img {
-        max-height: 100px;
-        margin-bottom: 1.5rem;
-        filter: drop-shadow(0 0 8px rgba(0,0,0,0.7));
-    }
-
-    .welcome-title {
-        font-size: 2.5rem;
-        font-weight: 300;
-        margin-bottom: 0.75rem;
-    }
-
-    .welcome-lead {
-        font-size: 1.2rem;
-        margin-bottom: 1.5rem;
-        max-width: 700px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .welcome-user-info {
-        font-size: 1rem;
-        margin-bottom: 2rem;
-    }
-
-    .welcome-actions .btn {
-        margin: 0.5rem 0.75rem;
-        padding: 0.65rem 1.25rem;
-        font-size: 0.95rem;
-        min-width: 200px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .welcome-actions .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    }
-
-    .info-cards .card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.8s ease-out, transform 0.8s ease-out;
-        opacity: 0;
-        transform: translateY(25px);
-    }
-    .info-cards .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.2)!important;
-    }
-    .info-cards .card-body i {
-        font-size: 3.5rem;
-        margin-bottom: 0.75rem;
-        display: block;
-        color: var(--windows-azul);
-    }
-    .info-cards .card-body .text-success { color: var(--windows-verde)!important; }
-    .info-cards .card-body .text-info { color: var(--windows-azul)!important; }
-
-    @keyframes fadeInSlideUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-</style>
-{% endblock extrastyles %}
 
 {% block contenido %}
-<section class="welcome-section">
-    <video autoplay muted loop class="welcome-video-background">
-        <source src="{% static 'videos/fondo_halu.mp4' %}" type="video/mp4">
-        Tu navegador no soporta video HTML5.
-    </video>
-    <div class="container">
-        <div class="welcome-logo animated-item">
-            <img src="{% static branding.LOGO_URL %}" alt="Logo {{ branding.NOMBRE }}" class="img-fluid">
-        </div>
-        <h1 class="welcome-title animated-item">
-            {{ mensaje|default:"¡Bienvenido!" }}
-        </h1>
-        <p class="welcome-lead animated-item" style="color: #dbe7f9;">
-    Estás en el Módulo Académico de 
-    <strong style="color: #0D6EFD;">{{ branding.NOMBRE }}</strong>.<br>
-    Ecosistema de Desarrollo Integral del Estudiante - EDIE.
-</p>
+<style>
+/* ═══════════════════════════════════════════════
+   HALU PULSE — Dashboard de inicio institucional
+   Todo inline en contenido para evitar conflictos
+═══════════════════════════════════════════════ */
 
-{% if user.is_authenticated %}
-<p class="welcome-user-info animated-item" style="color: #dbe7f9;">
-    Has iniciado sesión como: 
-    <strong style="color: #0D6EFD;">{{ user.get_full_name|default:user.username }}</strong>
-    {% if user.rol and user.rol != 'Desconocido' %}
-        (Rol: <span style="color: #0D6EFD;">{{ user.rol }}</span>)
-    {% endif %}
-    {% if user.institucion_asociada %}
-        <br>Institución: <strong style="color: #0D6EFD;">{{ user.institucion_asociada.nombre }}</strong>
-    {% endif %}
-</p>
+/* Greeting hero */
+.pulse-hero {
+  background: linear-gradient(135deg, #0a3d8c 0%, #0b5ed7 55%, #3b82f6 100%);
+  border-radius: 1.1rem;
+  padding: 1.8rem 2rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.pulse-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -10%;
+  width: 380px; height: 380px;
+  background: rgba(255,255,255,.06);
+  border-radius: 50%;
+}
+.pulse-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -60%; left: 5%;
+  width: 260px; height: 260px;
+  background: rgba(255,255,255,.04);
+  border-radius: 50%;
+}
+.pulse-hero .hero-inner { position: relative; z-index: 1; }
+.pulse-greeting { font-size: 1.55rem; font-weight: 800; margin-bottom: .2rem; }
+.pulse-sub { font-size: .92rem; opacity: .82; margin-bottom: 0; }
+.pulse-badge-rol {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 2rem; padding: .28rem .85rem;
+  font-size: .78rem; font-weight: 700; letter-spacing: .04em;
+  backdrop-filter: blur(4px);
+}
+.pulse-date-chip {
+  font-size: .78rem; opacity: .75;
+  background: rgba(255,255,255,.12);
+  padding: .2rem .7rem; border-radius: 1rem;
+  display: inline-block;
+}
+
+/* KPI strip */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: .9rem;
+  margin-bottom: 1.5rem;
+}
+.kpi-card {
+  background: #fff;
+  border: 1px solid #dbe5f4;
+  border-radius: .9rem;
+  padding: 1rem 1.1rem;
+  display: flex; flex-direction: column; gap: .2rem;
+  box-shadow: 0 2px 10px rgba(11,94,215,.06);
+  transition: transform .18s, box-shadow .18s;
+  position: relative; overflow: hidden;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(11,94,215,.12); }
+.kpi-card .kpi-icon {
+  font-size: 1.45rem; margin-bottom: .1rem;
+  width: 40px; height: 40px;
+  border-radius: .65rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.kpi-card .kpi-val { font-size: 1.7rem; font-weight: 800; line-height: 1.1; color: #1f2937; }
+.kpi-card .kpi-lbl { font-size: .72rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.kpi-card .kpi-sub { font-size: .7rem; color: #94a3b8; margin-top: .1rem; }
+.kpi-card.kpi-blue  .kpi-icon { background: #dbeafe; color: #1d4ed8; }
+.kpi-card.kpi-green .kpi-icon { background: #dcfce7; color: #16a34a; }
+.kpi-card.kpi-amber .kpi-icon { background: #fef9c3; color: #ca8a04; }
+.kpi-card.kpi-purple .kpi-icon { background: #f3e8ff; color: #7c3aed; }
+.kpi-card.kpi-red   .kpi-icon { background: #fee2e2; color: #dc2626; }
+.kpi-card.kpi-teal  .kpi-icon { background: #ccfbf1; color: #0d9488; }
+.kpi-card .kpi-pulse-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #22c55e;
+  position: absolute; top: .75rem; right: .75rem;
+  animation: pulse-ring 2s infinite;
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(34,197,94,.5); }
+  70%  { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+}
+
+/* Panels row */
+.pulse-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 768px) { .pulse-panels { grid-template-columns: 1fr; } }
+.panel-card {
+  background: #fff; border: 1px solid #dbe5f4;
+  border-radius: .9rem; padding: 1.25rem 1.35rem;
+  box-shadow: 0 2px 10px rgba(11,94,215,.05);
+}
+.panel-card .panel-title {
+  font-size: .73rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .05em; color: #64748b;
+  display: flex; align-items: center; gap: .45rem;
+  margin-bottom: 1rem; padding-bottom: .55rem;
+  border-bottom: 1px solid #f0f4fb;
+}
+
+/* Quick action buttons */
+.qa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: .65rem;
+}
+.qa-btn {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .35rem; padding: .85rem .5rem;
+  border-radius: .75rem; border: 1px solid #dbe5f4;
+  background: #f8fbff; color: #374151;
+  text-decoration: none;
+  font-size: .78rem; font-weight: 600;
+  text-align: center; line-height: 1.3;
+  transition: all .18s;
+}
+.qa-btn i { font-size: 1.4rem; }
+.qa-btn:hover {
+  background: #0b5ed7; color: #fff;
+  border-color: #0b5ed7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(11,94,215,.22);
+  text-decoration: none;
+}
+.qa-btn.qa-danger:hover { background: #dc2626; border-color: #dc2626; }
+.qa-btn.qa-green:hover  { background: #16a34a; border-color: #16a34a; }
+.qa-btn.qa-purple:hover { background: #7c3aed; border-color: #7c3aed; }
+
+/* Timeline */
+.tl-item {
+  display: flex; gap: .75rem; align-items: flex-start;
+  padding: .65rem 0;
+  border-bottom: 1px solid #f0f4fb;
+  font-size: .82rem;
+}
+.tl-item:last-child { border-bottom: none; }
+.tl-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: .9rem;
+}
+.tl-dot.blue   { background: #dbeafe; color: #1d4ed8; }
+.tl-dot.green  { background: #dcfce7; color: #16a34a; }
+.tl-dot.amber  { background: #fef9c3; color: #ca8a04; }
+.tl-dot.red    { background: #fee2e2; color: #dc2626; }
+.tl-dot.purple { background: #f3e8ff; color: #7c3aed; }
+.tl-body { flex: 1; }
+.tl-body .tl-msg { color: #374151; font-weight: 500; }
+.tl-body .tl-time { color: #94a3b8; font-size: .72rem; }
+</style>
+
+<div class="container-fluid px-2 px-md-3 mt-1 mt-md-3" style="max-width:1200px">
+
+  {# ── HERO ── #}
+  <div class="pulse-hero">
+    <div class="hero-inner d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="pulse-badge-rol">
+            <i class="bi bi-person-fill"></i>
+            {{ rol_usuario|default:"Administrador"|capfirst }}
+          </span>
+          <span class="pulse-date-chip" id="pulse-fecha-live"></span>
+        </div>
+        <p class="pulse-greeting mb-0">
+          {% now "H" as hora %}
+          {% if hora|add:"0" < 12 %}
+            Buenos días,
+          {% elif hora|add:"0" < 18 %}
+            Buenas tardes,
+          {% else %}
+            Buenas noches,
+          {% endif %}
+          {{ nombre_usuario }}
+        </p>
+        <p class="pulse-sub mt-1">
+          {% if periodo_activo %}
+            Período activo: <strong>{{ periodo_activo.nombre }}</strong> &nbsp;·&nbsp;
+          {% endif %}
+          Sistema operando normalmente
+          <span class="ms-1" style="color:#4ade80">●</span>
+        </p>
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'gestion_academica:reportes_dashboard' %}"
+           class="btn btn-sm" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(4px)">
+          <i class="bi bi-file-earmark-bar-graph me-1"></i> Reportes
+        </a>
+        {% if user.is_staff %}
+        <a href="{% url 'admin:index' %}"
+           class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(4px)">
+          <i class="bi bi-shield-lock me-1"></i> Admin
+        </a>
         {% endif %}
-        <div class="welcome-actions">
-            {% if user.is_authenticated %}
-                {% if user.rol == 'estudiante' %}
-                    {% if perms.gestion_academica.ver_mis_calificaciones %}
-                        <a href="{% url 'gestion_academica:mis_cursos_calificaciones' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
-                            <i class="bi bi-card-checklist"></i> Ver Mis Calificaciones
-                        </a>
-                    {% endif %}
-                    {% if perms.gestion_academica.ver_mis_deberes %}
-                        <a href="{% url 'gestion_academica:mis_deberes_lista' %}" class="btn btn-info btn-lg animated-item btn-action-2">
-                            <i class="bi bi-journal-arrow-up"></i> Mis Deberes
-                        </a>
-                    {% endif %}
-                {% elif user.rol == 'docente' %}
-                    {% if perms.gestion_academica.acceso_libro_notas_docente %}
-                        <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
-                            <i class="bi bi-journal-richtext"></i> Ver Libro de Notas
-                        </a>
-                    {% endif %}
-                    {% if perms.gestion_academica.view_actividadcalificable %}
-                        <a href="{% url 'gestion_academica:lista_actividades_calificables' %}" class="btn btn-info btn-lg animated-item btn-action-2">
-                            <i class="bi bi-card-list"></i> Gestionar Actividades
-                        </a>
-                    {% endif %}
-                {% elif user.rol == 'familiar' %}
-                    {% if perms.gestion_academica.acceso_portal_familiar %}
-                        <a href="{% url 'gestion_academica:portal_familiar_inicio' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
-                            <i class="bi bi-people-fill"></i> Ir al Portal Familiar
-                        </a>
-                    {% endif %}
-                {% elif user.is_superuser or user.rol == 'administrativo' %}
-                    <a href="{% url 'admin:index' %}" class="btn btn-success btn-lg animated-item btn-action-1">
-                        <i class="bi bi-speedometer2"></i> Panel de Administración
-                    </a>
-                    <a href="{% url 'gestion_academica:lista_grados_para_estudiantes' %}" class="btn btn-primary btn-lg animated-item btn-action-2">
-                        <i class="bi bi-people-fill"></i> Gestión de Estudiantes
-                    </a>
-                    {% if user.is_superuser or user.rol == 'administrativo' %}
-                        <a href="{% url 'finanzas:dashboard_financiero' %}" class="btn btn-warning btn-lg animated-item btn-action-3">
-                            <i class="bi bi-currency-dollar"></i> Ir al Módulo Financiero
-                        </a>
-                    {% endif %}
-                {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# ── KPI STRIP ── #}
+  <div class="kpi-strip" id="kpi-strip">
+
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-pulse-dot"></div>
+      <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="kpi-val">{{ total_alumnos|default:"—" }}</div>
+      <div class="kpi-lbl">Alumnos Activos</div>
+      <div class="kpi-sub">En esta institución</div>
+    </div>
+
+    <div class="kpi-card kpi-green">
+      <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="kpi-val">{% if promedio_institucional %}{{ promedio_institucional }}{% else %}—{% endif %}</div>
+      <div class="kpi-lbl">Promedio Global</div>
+      <div class="kpi-sub">
+        {% if periodo_activo %}{{ periodo_activo.nombre }}{% else %}Sin período activo{% endif %}
+      </div>
+    </div>
+
+    <div class="kpi-card {% if asistencia_hoy_pct is not None %}{% if asistencia_hoy_pct >= 85 %}kpi-teal{% elif asistencia_hoy_pct >= 70 %}kpi-amber{% else %}kpi-red{% endif %}{% else %}kpi-teal{% endif %}">
+      <div class="kpi-pulse-dot"></div>
+      <div class="kpi-icon"><i class="bi bi-calendar-check-fill"></i></div>
+      <div class="kpi-val">{% if asistencia_hoy_pct is not None %}{{ asistencia_hoy_pct }}%{% else %}—{% endif %}</div>
+      <div class="kpi-lbl">Asistencia Hoy</div>
+      <div class="kpi-sub" id="pulse-fecha-kpi"></div>
+    </div>
+
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-icon"><i class="bi bi-calendar-range"></i></div>
+      <div class="kpi-val" style="font-size:1.1rem;padding-top:.3rem">
+        {% if periodo_activo %}{{ periodo_activo.nombre|truncatechars:18 }}{% else %}—{% endif %}
+      </div>
+      <div class="kpi-lbl">Período Activo</div>
+      <div class="kpi-sub">
+        {% if periodo_activo and periodo_activo.fecha_fin %}
+          Hasta {{ periodo_activo.fecha_fin|date:"d M Y" }}
+        {% else %}Sin fecha fin{% endif %}
+      </div>
+    </div>
+
+    <div class="kpi-card {% if alumnos_riesgo > 0 %}kpi-red{% else %}kpi-green{% endif %}">
+      <div class="kpi-icon"><i class="bi bi-shield-exclamation"></i></div>
+      <div class="kpi-val">{{ alumnos_riesgo|default:"0" }}</div>
+      <div class="kpi-lbl">Riesgo Alto (IA)</div>
+      <div class="kpi-sub">Alumnos detectados</div>
+    </div>
+
+    <div class="kpi-card {% if casos_sentinel > 0 %}kpi-red{% else %}kpi-green{% endif %}">
+      <div class="kpi-icon"><i class="bi bi-shield-shaded"></i></div>
+      <div class="kpi-val">{{ casos_sentinel|default:"0" }}</div>
+      <div class="kpi-lbl">Casos Sentinel</div>
+      <div class="kpi-sub">Abiertos / En seguimiento</div>
+    </div>
+
+  </div>
+
+  {# ── PANELS ── #}
+  <div class="pulse-panels">
+
+    {# Panel 1: Acciones rápidas #}
+    <div class="panel-card">
+      <div class="panel-title">
+        <i class="bi bi-lightning-charge-fill text-warning"></i> Acciones Rápidas
+      </div>
+      <div class="qa-grid">
+        {% if perms.gestion_academica.view_estudiante %}
+        <a href="{% url 'gestion_academica:lista_grados_para_estudiantes' %}" class="qa-btn">
+          <i class="bi bi-people-fill" style="color:#1d4ed8"></i>
+          Estudiantes
+        </a>
+        {% endif %}
+        {% if perms.gestion_academica.view_docente %}
+        <a href="{% url 'gestion_academica:lista_docentes' %}" class="qa-btn">
+          <i class="bi bi-person-workspace" style="color:#7c3aed"></i>
+          Docentes
+        </a>
+        {% endif %}
+        <a href="{% url 'gestion_academica:admin_asistencia_diaria' %}" class="qa-btn">
+          <i class="bi bi-calendar-check" style="color:#0d9488"></i>
+          Asistencia
+        </a>
+        {% if perms.gestion_academica.view_grado %}
+        <a href="{% url 'gestion_academica:lista_grados' %}" class="qa-btn">
+          <i class="bi bi-diagram-3-fill" style="color:#0b5ed7"></i>
+          Grados
+        </a>
+        {% endif %}
+        <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="qa-btn">
+          <i class="bi bi-bar-chart-fill" style="color:#ca8a04"></i>
+          Reportes
+        </a>
+        <a href="{% url 'gestion_academica:reporte_riesgo_academico' %}" class="qa-btn qa-danger">
+          <i class="bi bi-shield-exclamation" style="color:#dc2626"></i>
+          Riesgo IA
+        </a>
+        {% if perms.admisiones.view_aspirante %}
+        <a href="{% url 'admisiones:dashboard_admisiones' %}" class="qa-btn qa-green">
+          <i class="bi bi-person-badge" style="color:#16a34a"></i>
+          Admisiones
+        </a>
+        {% endif %}
+        {% if perms.finanzas.acceso_modulo_finanzas %}
+        <a href="{% url 'finanzas:dashboard_financiero' %}" class="qa-btn qa-purple">
+          <i class="bi bi-currency-dollar" style="color:#7c3aed"></i>
+          Finanzas
+        </a>
+        {% endif %}
+        <a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="qa-btn">
+          <i class="bi bi-heart-pulse-fill" style="color:#db2777"></i>
+          Bienestar
+        </a>
+        <a href="{% url 'gestion_academica:gestion_horarios' %}" class="qa-btn">
+          <i class="bi bi-calendar-week-fill" style="color:#ea580c"></i>
+          Horarios
+        </a>
+      </div>
+    </div>
+
+    {# Panel 2: Actividad reciente (estado del sistema) #}
+    <div class="panel-card">
+      <div class="panel-title">
+        <i class="bi bi-activity text-primary"></i> Estado del Sistema
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot {% if asistencia_hoy_pct is not None and asistencia_hoy_pct >= 85 %}green{% elif asistencia_hoy_pct is not None %}amber{% else %}blue{% endif %}">
+          <i class="bi bi-calendar-check"></i>
+        </div>
+        <div class="tl-body">
+          <div class="tl-msg">
+            {% if asistencia_hoy_pct is not None %}
+              Asistencia registrada hoy: <strong>{{ asistencia_hoy_pct }}%</strong>
             {% else %}
-                <a href="{% url 'login' %}" class="btn btn-primary btn-lg animated-item btn-action-1">
-                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
-                </a>
+              Asistencia de hoy pendiente de registro
             {% endif %}
+          </div>
+          <div class="tl-time">Registro diario</div>
         </div>
-    </div>
-</section>
+      </div>
 
-<div class="container mt-5 mb-4 info-cards">
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card text-center shadow-sm h-100 animated-item">
-                <div class="card-body">
-                    <i class="bi bi-calendar-check-fill text-primary"></i>
-                    <h5 class="card-title mt-2">Calendario Académico</h5>
-                    <p class="card-text">Consulta fechas importantes, eventos y festivos programados.</p>
-                    <a href="{% url 'gestion_academica:calendario_academico' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-calendar3"></i> Ver Calendario
-                    </a>
-                </div>
-            </div>
+      <div class="tl-item">
+        <div class="tl-dot {% if periodo_activo %}green{% else %}amber{% endif %}">
+          <i class="bi bi-calendar-range"></i>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card text-center shadow-sm h-100 animated-item">
-                <div class="card-body">
-                    <i class="bi bi-newspaper text-success"></i>
-                    <h5 class="card-title mt-2">Noticias y Anuncios</h5>
-                    <p class="card-text">Mantente al día con las últimas novedades y comunicados de la institución.</p>
-                    <a href="{% url 'gestion_academica:lista_noticias' %}" class="btn btn-outline-success">
-                        <i class="bi bi-card-text"></i> Leer Noticias
-                    </a>
-                </div>
-            </div>
+        <div class="tl-body">
+          <div class="tl-msg">
+            {% if periodo_activo %}
+              Período <strong>{{ periodo_activo.nombre }}</strong> activo
+            {% else %}
+              <strong>Sin período académico activo</strong> — configura uno
+            {% endif %}
+          </div>
+          <div class="tl-time">Configuración académica</div>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card text-center shadow-sm h-100 animated-item">
-                <div class="card-body">
-                    <i class="bi bi-question-circle-fill text-info"></i>
-                    <h5 class="card-title mt-2">Ayuda y Soporte</h5>
-                    <p class="card-text">Encuentra respuestas a preguntas frecuentes o contacta con nosotros.</p>
-                    <a href="{% url 'gestion_academica:ayuda_soporte' %}" class="btn btn-outline-info">
-                        <i class="bi bi-info-lg"></i> Centro de Ayuda
-                    </a>
-                </div>
-            </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot {% if alumnos_riesgo > 0 %}red{% else %}green{% endif %}">
+          <i class="bi bi-shield-exclamation"></i>
         </div>
+        <div class="tl-body">
+          <div class="tl-msg">
+            {% if alumnos_riesgo > 0 %}
+              <strong>{{ alumnos_riesgo }} alumno{{ alumnos_riesgo|pluralize:"s" }}</strong> con riesgo académico alto
+            {% else %}
+              Sin alumnos en riesgo académico alto
+            {% endif %}
+          </div>
+          <div class="tl-time">Motor de predicción IA</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot {% if casos_sentinel > 0 %}red{% else %}green{% endif %}">
+          <i class="bi bi-shield-shaded"></i>
+        </div>
+        <div class="tl-body">
+          <div class="tl-msg">
+            {% if casos_sentinel > 0 %}
+              <strong>{{ casos_sentinel }} caso{{ casos_sentinel|pluralize:"s" }}</strong> activo{{ casos_sentinel|pluralize:"s" }} en Sentinel
+            {% else %}
+              Sin casos de convivencia abiertos
+            {% endif %}
+          </div>
+          <div class="tl-time">Módulo HALU Sentinel</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot blue">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="tl-body">
+          <div class="tl-msg">
+            <strong>{{ total_alumnos }}</strong> alumno{{ total_alumnos|pluralize:"s" }} matriculado{{ total_alumnos|pluralize:"s" }} activo{{ total_alumnos|pluralize:"s" }}
+          </div>
+          <div class="tl-time">Matrícula vigente</div>
+        </div>
+      </div>
+
+      <div class="text-end mt-2">
+        <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-arrow-right me-1"></i> Centro de Reportes
+        </a>
+      </div>
     </div>
+
+  </div>
+
+  {# ── MÓDULOS RÁPIDOS ── #}
+  <div class="panel-card mb-3">
+    <div class="panel-title">
+      <i class="bi bi-grid-1x2-fill text-primary"></i> Módulos del Sistema
+    </div>
+    <div class="row g-2">
+      <div class="col-6 col-md-3">
+        <a href="{% url 'gestion_academica:lista_grados_para_estudiantes' %}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+           style="background:#dbeafe;color:#1e3a5f;transition:background .18s"
+           onmouseover="this.style.background='#bfdbfe'" onmouseout="this.style.background='#dbeafe'">
+          <i class="bi bi-people-fill fs-3" style="color:#1d4ed8"></i>
+          <div>
+            <div class="fw-700 small">Gestión Académica</div>
+            <div style="font-size:.72rem;opacity:.7">Estudiantes y cursos</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-6 col-md-3">
+        <a href="{% url 'finanzas:dashboard_financiero' %}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+           style="background:#f3e8ff;color:#3b0764;transition:background .18s"
+           onmouseover="this.style.background='#e9d5ff'" onmouseout="this.style.background='#f3e8ff'">
+          <i class="bi bi-currency-dollar fs-3" style="color:#7c3aed"></i>
+          <div>
+            <div class="fw-700 small">Módulo Finanzas</div>
+            <div style="font-size:.72rem;opacity:.7">Cartera y pagos</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-6 col-md-3">
+        <a href="{% url 'admisiones:dashboard_admisiones' %}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+           style="background:#dcfce7;color:#14532d;transition:background .18s"
+           onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
+          <i class="bi bi-person-badge fs-3" style="color:#16a34a"></i>
+          <div>
+            <div class="fw-700 small">Admisiones</div>
+            <div style="font-size:.72rem;opacity:.7">Pipeline de aspirantes</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-6 col-md-3">
+        <a href="{% url 'elearning:catalogo' %}"
+           class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+           style="background:#fef3c7;color:#713f12;transition:background .18s"
+           onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
+          <i class="bi bi-laptop fs-3" style="color:#ca8a04"></i>
+          <div>
+            <div class="fw-700 small">E-Learning</div>
+            <div style="font-size:.72rem;opacity:.7">Cursos virtuales</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
 </div>
-{% endblock contenido %}
 
-{% block extrajavascript %}
-{{ block.super }}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const infoCards = document.querySelectorAll('.info-cards .card.animated-item');
-        let cardDelay = 1.5;
-        infoCards.forEach(card => {
-            card.style.animationDelay = cardDelay + 's';
-            cardDelay += 0.2;
-        });
-    });
+(function () {
+  var dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  function actualizarFecha() {
+    var d = new Date();
+    var txt = dias[d.getDay()] + ', ' + d.getDate() + ' de ' + meses[d.getMonth()] + ' de ' + d.getFullYear();
+    var el = document.getElementById('pulse-fecha-live');
+    var el2 = document.getElementById('pulse-fecha-kpi');
+    if (el)  el.textContent = txt;
+    if (el2) el2.textContent = dias[d.getDay()].slice(0,3) + ' ' + d.getDate() + '/' + (d.getMonth()+1);
+  }
+  actualizarFecha();
+  setInterval(actualizarFecha, 60000);
+})();
 </script>
-{% endblock extrajavascript %}
+{% endblock contenido %}

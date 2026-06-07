@@ -4,95 +4,1004 @@
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
 {% block extrastyles %}
+{{ block.super }}
 <style>
-    .libro-notas-table th, .libro-notas-table td { vertical-align: middle; text-align: center; padding: 0.4rem; }
-    .libro-notas-table th.categoria-header { background-color: #343a40; color: white; font-weight: bold; }
-    .libro-notas-table td.estudiante-nombre { text-align: left; min-width: 250px; font-weight: 500; position: sticky; left: 0; background-color: white; z-index: 2; }
-    .libro-notas-table thead th { position: sticky; top: 0; z-index: 3; }
-    .libro-notas-table input.form-control-sm { border: 1px solid #ced4da; border-radius: .2rem; width: 65px; margin: auto; }
-    .nota-final-col { font-weight: bold; background-color: #eef; border-left: 2px solid #0d6efd !important; }
+/* ═══════════════════════════════════════════════════════
+   HALU PULSE — Libro de Notas v3 (Mobile-first)
+═══════════════════════════════════════════════════════ */
 
-    /* ▼▼▼ ESTILOS AÑADIDOS PARA EL TOOLTIP ▼▼▼ */
-    .libro-notas-table th.actividad-header {
-        background-color: #f8f9fa;
-        font-weight: normal;
-        font-size: 0.9em;
-        min-width: 100px;
-        border-bottom: 2px dashed #ccc; /* Subrayado punteado para indicar que hay más info */
-        cursor: help; /* Cambia el cursor para indicar que es un elemento de ayuda */
-    }
+/* ── Hero ── */
+.ln-hero {
+  background: linear-gradient(135deg, #07285f 0%, #0a3d8c 42%, #0b5ed7 100%);
+  border-radius: 1.1rem; padding: 1.6rem 2rem; color: #fff;
+  margin-bottom: 1.2rem; display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+  position: relative; overflow: hidden;
+}
+.ln-hero::before {
+  content: ''; position: absolute; width: 260px; height: 260px;
+  border-radius: 50%; background: rgba(255,255,255,.05);
+  top: -90px; right: -50px; pointer-events: none;
+}
+.ln-hero-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
+  border-radius: 2rem; padding: .22rem .75rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .3px;
+  text-transform: uppercase; margin-bottom: .55rem;
+}
+.ln-hero-title {
+  font-size: 1.45rem; font-weight: 800;
+  font-family: 'Manrope', sans-serif; margin-bottom: .2rem; line-height: 1.2;
+}
+.ln-hero-sub { font-size: .86rem; opacity: .82; }
+.ln-hero-actions { display: flex; gap: .5rem; flex-wrap: wrap; flex-shrink: 0; }
+.ln-ha-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .45rem 1rem; border-radius: .55rem; font-size: .82rem; font-weight: 600;
+  text-decoration: none; transition: all .2s; cursor: pointer; border: none;
+}
+.ln-ha-btn.ln-white { background:#fff; color:#0b5ed7; }
+.ln-ha-btn.ln-white:hover { background:#e8f0fe; color:#0b5ed7; }
+.ln-ha-btn.ln-green {
+  background: rgba(34,197,94,.22); color:#dcfce7;
+  border: 1px solid rgba(34,197,94,.4);
+}
+.ln-ha-btn.ln-green:hover { background: rgba(34,197,94,.36); color:#dcfce7; }
+.ln-ha-btn.ln-glass {
+  background: rgba(255,255,255,.14); color:#fff;
+  border: 1px solid rgba(255,255,255,.3);
+}
+.ln-ha-btn.ln-glass:hover { background: rgba(255,255,255,.26); color:#fff; }
+
+/* ── Info chips ── */
+.ln-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.ln-chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: #f7faff; border: 1px solid #dbe5f4;
+  border-radius: 2rem; padding: .28rem .8rem;
+  font-size: .78rem; color: #334155; font-weight: 500;
+}
+.ln-chip i { color: #0b5ed7; }
+.ln-chip.cat { background: #eaf2ff; border-color: #bfdbfe; color: #1d4ed8; }
+
+/* ══════════════════════════════════════════
+   TABLA — VISTA ESCRITORIO (≥ 681px)
+══════════════════════════════════════════ */
+.ln-table-card {
+  display: none; /* oculta por defecto; JS la activa en "Hoja de Cálculo" */
+  background: #fff; border: 1px solid #dbe5f4; border-radius: 1rem;
+  overflow: hidden; box-shadow: 0 4px 18px rgba(11,94,215,.08);
+  margin-bottom: 1.5rem;
+}
+/* Hint de scroll horizontal */
+.ln-scroll-hint {
+  display: none; /* se muestra solo en tablet intermedia via JS */
+  font-size: .75rem; color: #64748b; text-align: right;
+  padding: .4rem .9rem .1rem; border-bottom: 1px solid #f1f5f9;
+}
+.ln-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Degradado que indica que hay más contenido a la derecha */
+  background: linear-gradient(to right, white 30%, rgba(255,255,255,0)),
+              linear-gradient(to right, rgba(255,255,255,0), white 70%) 100% 0,
+              radial-gradient(farthest-side at 0 50%, rgba(11,94,215,.12), rgba(255,255,255,0)),
+              radial-gradient(farthest-side at 100% 50%, rgba(11,94,215,.12), rgba(255,255,255,0)) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+.ln-table {
+  width: 100%; border-collapse: collapse; min-width: 580px;
+}
+.ln-table th, .ln-table td {
+  padding: .5rem .65rem; text-align: center;
+  border-bottom: 1px solid #f1f5f9; font-size: .82rem; vertical-align: middle;
+}
+.ln-table tbody tr:last-child td { border-bottom: none; }
+.ln-table tbody tr:hover { background: #f8faff; }
+
+/* Sticky student name */
+.ln-cell-name {
+  text-align: left !important; min-width: 180px; max-width: 220px;
+  position: sticky; left: 0; background: #fff; z-index: 2;
+  font-weight: 600; color: #0f3f90;
+  border-right: 2px solid #eaf2ff;
+  padding-left: .9rem !important; font-size: .85rem;
+}
+.ln-table tbody tr:hover .ln-cell-name { background: #f8faff; }
+
+/* Category header */
+.ln-cat-hdr {
+  background: linear-gradient(120deg, #0a3d8c, #1a56db);
+  color: #fff; font-weight: 700; font-size: .74rem;
+  letter-spacing: .3px; text-transform: uppercase;
+  position: sticky; top: 0; z-index: 3;
+  white-space: nowrap; border: none;
+}
+.ln-cat-hdr.name-col {
+  background: linear-gradient(120deg, #07285f, #0a3d8c) !important;
+  text-align: left; padding-left: .9rem; left: 0; z-index: 5;
+}
+.ln-cat-hdr.final-col {
+  background: linear-gradient(120deg, #15803d, #22c55e) !important;
+  min-width: 90px;
+}
+/* Activity sub-header */
+.ln-act-hdr {
+  background: #eaf2ff; color: #1d4ed8;
+  font-size: .75rem; font-weight: 700;
+  position: sticky; top: 38px; z-index: 3;
+  border-bottom: 2px solid #bfdbfe;
+  cursor: help; white-space: nowrap; min-width: 86px;
+}
+.ln-act-hdr.name-col-2 {
+  background: #f7faff !important; color: #64748b;
+  left: 0; z-index: 5; border-bottom-color: #dbe5f4;
+  text-align: left; padding-left: .9rem;
+}
+.ln-act-hdr.final-col-2 {
+  background: #f0fdf4 !important; color: #15803d;
+  border-bottom-color: #86efac !important; font-weight: 800;
+}
+/* Note input */
+.ln-input {
+  width: 68px; border: 1.5px solid #dbe5f4; border-radius: .4rem;
+  padding: .28rem .4rem; text-align: center;
+  font-size: .84rem; font-weight: 600; color: #1f2937;
+  background: #fff; transition: all .15s;
+  margin: 0 auto; display: block;
+}
+.ln-input:focus {
+  outline: none; border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.15); background: #eff6ff;
+}
+.ln-input:not(:placeholder-shown) {
+  border-color: #93c5fd; background: #f0f7ff;
+}
+/* Final grade cell */
+.ln-final-cell {
+  font-weight: 800; font-size: .92rem; color: #15803d;
+  background: #f0fdf4 !important; border-left: 2px solid #86efac;
+  min-width: 80px;
+}
+/* Action bar */
+.ln-action-bar {
+  display: flex; gap: .75rem; justify-content: flex-end; flex-wrap: wrap;
+  padding: .9rem 1.1rem; background: #f7faff; border-top: 1px solid #dbe5f4;
+}
+
+/* ══════════════════════════════════════════
+   CARDS — VISTA MÓVIL (≤ 680px)
+   Cada estudiante = 1 card expandible
+══════════════════════════════════════════ */
+.ln-mobile-cards { display: block; } /* visible por defecto en todos los tamaños */
+
+.ln-student-card {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: .95rem;
+  margin-bottom: .75rem; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+}
+/* Header del accordeon */
+.ln-sc-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .85rem 1.1rem; cursor: pointer;
+  background: linear-gradient(120deg, #0a3d8c, #1a56db);
+  color: #fff; border: none; width: 100%; text-align: left;
+  transition: filter .15s;
+}
+.ln-sc-toggle:hover { filter: brightness(1.08); }
+.ln-sc-name {
+  font-weight: 800; font-size: .93rem;
+  font-family: 'Manrope', sans-serif;
+}
+.ln-sc-final {
+  font-size: .78rem; opacity: .85; margin-top: .1rem;
+}
+.ln-sc-chevron {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; transition: transform .25s;
+}
+.ln-sc-toggle.open .ln-sc-chevron { transform: rotate(180deg); }
+/* Body del accordeon */
+.ln-sc-body { display: none; padding: .6rem 0; }
+.ln-sc-body.open { display: block; }
+/* Fila de actividad dentro de la card */
+.ln-sc-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .55rem 1.1rem; border-bottom: 1px solid #f1f5f9; gap: .75rem;
+}
+.ln-sc-row:last-child { border-bottom: none; }
+.ln-sc-row-cat {
+  padding: .4rem 1.1rem; background: #eaf2ff;
+  font-size: .7rem; font-weight: 800; color: #1d4ed8;
+  text-transform: uppercase; letter-spacing: .3px;
+  border-bottom: 1px solid #bfdbfe;
+}
+.ln-sc-label {
+  font-size: .82rem; font-weight: 600; color: #334155;
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Input en móvil — más grande para touch */
+.ln-input-mobile {
+  width: 82px; border: 2px solid #dbe5f4; border-radius: .5rem;
+  padding: .42rem .55rem; text-align: center;
+  font-size: .92rem; font-weight: 700; color: #1f2937;
+  background: #fff; transition: all .18s;
+  flex-shrink: 0;
+  /* Touch target mínimo recomendado Apple/Google: 44px */
+  min-height: 44px;
+}
+.ln-input-mobile:focus {
+  outline: none; border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.2); background: #eff6ff;
+}
+.ln-input-mobile:not(:placeholder-shown) {
+  border-color: #93c5fd; background: #f0f7ff;
+}
+/* Fila de definitiva */
+.ln-sc-final-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .65rem 1.1rem; background: #f0fdf4;
+  border-top: 2px solid #86efac;
+}
+.ln-sc-final-row .ln-sc-label { color: #15803d; font-weight: 800; }
+.ln-sc-final-row .ln-final-val {
+  font-size: 1.1rem; font-weight: 900; color: #15803d;
+  font-family: 'Manrope', sans-serif;
+}
+
+/* ── Acción guardar en móvil — botón fijo al fondo ── */
+.ln-save-fab {
+  display: none;
+  position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 1020;
+  box-shadow: 0 8px 24px rgba(11,94,215,.35);
+  border-radius: 2rem;
+  white-space: nowrap;
+}
+
+/* ══════ RESPONSIVE — solo tipografía; vistas las controla JS ══════ */
+@media (max-width: 680px) {
+  .ln-hero { padding: 1.2rem 1.1rem; }
+  .ln-hero-title { font-size: 1.15rem; }
+  .ln-ha-btn { font-size: .78rem; padding: .4rem .75rem; }
+}
+/* El FAB aparece cuando JS añade la clase .visible */
+.ln-save-fab.visible { display: inline-flex !important; }
+/* Padding inferior cuando el FAB está activo */
+body.ln-fab-active { padding-bottom: 7rem !important; }
+
+/* ═══════════════════════════════════════════════════
+   TABS — Selector Período Actual / Vista Anual
+═══════════════════════════════════════════════════ */
+.ln-tab-bar {
+  display: flex; gap: .35rem;
+  background: #fff; border: 1px solid #dbe5f4; border-radius: .9rem;
+  padding: .32rem; margin-bottom: 1.1rem;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+}
+.ln-tab-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: .4rem;
+  padding: .55rem .9rem; border-radius: .6rem; border: none; cursor: pointer;
+  font-size: .84rem; font-weight: 600; color: #64748b; background: transparent;
+  transition: all .2s; white-space: nowrap;
+}
+.ln-tab-btn:hover { background: #f0f7ff; color: #1d4ed8; }
+.ln-tab-btn.active {
+  background: linear-gradient(135deg, #0a3d8c, #1a56db);
+  color: #fff; box-shadow: 0 3px 10px rgba(11,94,215,.28);
+}
+.ln-tab-badge {
+  padding: .1rem .5rem; border-radius: 2rem; font-size: .7rem; font-weight: 700;
+  background: rgba(255,255,255,.22);
+}
+.ln-tab-btn:not(.active) .ln-tab-badge { background: #eaf2ff; color: #1d4ed8; }
+@media (max-width: 420px) {
+  .ln-tab-btn { font-size: .76rem; padding: .48rem .5rem; }
+}
+
+/* ═══════════════════════════════════════════════════
+   TABLA ANUAL — DESKTOP (≥ 681px)
+═══════════════════════════════════════════════════ */
+.la-table-card {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: 1rem;
+  overflow: hidden; box-shadow: 0 4px 18px rgba(11,94,215,.08); margin-bottom: 1.5rem;
+}
+.la-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.la-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+.la-table th, .la-table td {
+  padding: .55rem .75rem; text-align: center;
+  border-bottom: 1px solid #f1f5f9; font-size: .84rem; vertical-align: middle;
+}
+.la-table tbody tr:last-child td { border-bottom: none; }
+.la-table tbody tr:hover { background: #f8faff; }
+.la-hdr {
+  background: linear-gradient(120deg,#07285f,#0a3d8c);
+  color: #fff; font-weight: 700; font-size: .74rem; letter-spacing: .3px;
+  text-transform: uppercase; position: sticky; top: 0; z-index: 3;
+  white-space: nowrap; border: none;
+}
+.la-hdr.name-col { text-align: left; padding-left: .9rem; min-width: 180px; left: 0; z-index: 5; }
+.la-hdr.periodo  { background: linear-gradient(120deg,#0a3d8c,#1a56db) !important; min-width: 90px; }
+.la-hdr.actual   { background: linear-gradient(120deg,#1d4ed8,#3b82f6) !important; box-shadow: inset 0 -3px 0 #fbbf24; min-width: 90px; }
+.la-hdr.final-col{ background: linear-gradient(120deg,#15803d,#22c55e) !important; min-width: 115px; }
+.la-cell-name {
+  text-align: left !important; position: sticky; left: 0; background: #fff; z-index: 2;
+  font-weight: 600; color: #0f3f90; border-right: 2px solid #eaf2ff;
+  padding-left: .9rem !important; font-size: .85rem; min-width: 180px; max-width: 220px;
+}
+.la-table tbody tr:hover .la-cell-name { background: #f8faff; }
+.la-cell-actual { background: #eff6ff !important; border-left: 2px solid #93c5fd; border-right: 2px solid #93c5fd; }
+.la-cell-final  { border-left: 2px solid #86efac; background: #f0fdf4 !important; }
+.la-nota {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 50px; padding: .26rem .5rem; border-radius: .4rem;
+  font-weight: 800; font-size: .88rem; font-family: 'Manrope', sans-serif;
+}
+.la-nota.ok   { background: #dcfce7; color: #15803d; }
+.la-nota.fail { background: #fee2e2; color: #dc2626; }
+.la-nota.nd   { background: #f1f5f9; color: #94a3b8; font-weight: 400; font-size: .78rem; }
+.la-definitiva { display: flex; flex-direction: column; align-items: center; gap: .08rem; }
+.la-definitiva .la-dval { font-size: 1.05rem; font-weight: 900; font-family: 'Manrope', sans-serif; }
+.la-definitiva .la-dest { font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+.la-def-ok   .la-dval { color: #15803d; } .la-def-ok   .la-dest { color: #16a34a; }
+.la-def-fail .la-dval { color: #dc2626; } .la-def-fail .la-dest { color: #dc2626; }
+.la-def-nd   .la-dval { color: #94a3b8; } .la-def-nd   .la-dest { color: #94a3b8; }
+.la-leyenda {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .55rem;
+  padding: .65rem 1rem; background: #f7faff; border-top: 1px solid #dbe5f4; font-size: .75rem; color: #64748b;
+}
+.la-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* Resumen rápido encabezado */
+.la-resumen-bar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .5rem;
+  background: #fff; border: 1px solid #dbe5f4; border-radius: .85rem;
+  padding: .65rem 1rem; margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(11,94,215,.05);
+}
+.la-chip {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .26rem .72rem; border-radius: 2rem; font-size: .78rem; font-weight: 600;
+}
+.la-chip-año  { background: #eaf2ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.la-chip-mat  { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+.la-chip-ok   { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+.la-chip-fail { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
+.la-chip-nd   { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+/* ═══════════════════════════════════════════════════
+   CARDS ANUALES — MÓVIL (≤ 680px)
+═══════════════════════════════════════════════════ */
+.la-mobile-cards { display: none; }
+.la-student-card {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: .95rem;
+  margin-bottom: .75rem; overflow: hidden; box-shadow: 0 2px 8px rgba(11,94,215,.06);
+}
+.la-sc-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .85rem 1.1rem; cursor: pointer;
+  background: linear-gradient(120deg,#07285f,#1a56db);
+  color: #fff; border: none; width: 100%; text-align: left; transition: filter .15s;
+}
+.la-sc-toggle.ok-bg   { background: linear-gradient(120deg,#14532d,#15803d); }
+.la-sc-toggle.fail-bg { background: linear-gradient(120deg,#7f1d1d,#dc2626); }
+.la-sc-toggle:hover { filter: brightness(1.08); }
+.la-sc-name   { font-weight: 800; font-size: .93rem; font-family: 'Manrope', sans-serif; }
+.la-sc-sub    { font-size: .76rem; opacity: .88; margin-top: .1rem; }
+.la-sc-chev   {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; transition: transform .25s;
+}
+.la-sc-toggle.open .la-sc-chev { transform: rotate(180deg); }
+.la-sc-body   { display: none; }
+.la-sc-body.open { display: block; }
+.la-per-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .6rem 1.1rem; border-bottom: 1px solid #f1f5f9; gap: .5rem;
+}
+.la-per-row.actual { background: #eff6ff; border-left: 3px solid #3b82f6; padding-left: .85rem; }
+.la-per-label { font-size: .82rem; font-weight: 600; color: #334155; }
+.la-actual-tag {
+  font-size: .65rem; font-weight: 700; background: #dbeafe; color: #1d4ed8;
+  border-radius: 2rem; padding: .08rem .42rem; margin-left: .3rem; vertical-align: middle;
+}
+.la-def-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .7rem 1.1rem; border-top: 2px solid #86efac; background: #f0fdf4;
+}
+.la-def-row.fail { border-top-color: #fca5a5; background: #fef2f2; }
+.la-def-row-label { font-size: .83rem; font-weight: 800; color: #15803d; }
+.la-def-row.fail  .la-def-row-label { color: #dc2626; }
+.la-def-row-val   { font-size: 1.15rem; font-weight: 900; color: #15803d; font-family: 'Manrope', sans-serif; }
+.la-def-row.fail  .la-def-row-val   { color: #dc2626; }
+
+@media (max-width: 680px) {
+  .la-table-card   { display: none; }
+  .la-mobile-cards { display: block; }
+}
 </style>
-{% endblock %}
+{% endblock extrastyles %}
 
 {% block contenido %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h1 class="mb-0">{{ titulo_pagina }}</h1>
-            <h5 class="text-muted">Curso: {{ curso.materia.nombre_materia }} - {{ curso.grado.nombre }}</h5>
-        </div>
-        <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+<div class="container-fluid mt-3">
+
+  {# ── Hero ── #}
+  <div class="ln-hero">
+    <div>
+      <div class="ln-hero-badge"><i class="bi bi-book-fill"></i> Libro de Notas</div>
+      <div class="ln-hero-title">{{ curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and curso.materia.nombre_idioma_secundario %} <span style="font-size:.65em;opacity:.8;font-style:italic;">/ {{ curso.materia.nombre_idioma_secundario }}</span>{% endif %}</div>
+      <div class="ln-hero-sub">
+        <i class="bi bi-mortarboard-fill me-1"></i>{{ curso.grado.nombre }}
+        &nbsp;·&nbsp;<i class="bi bi-people-fill me-1"></i>{{ libro_notas_data|length }} estudiantes
+      </div>
+    </div>
+    <div class="ln-hero-actions">
+      <button type="button" class="ln-ha-btn ln-glass" id="btn-toggle-view"
+              title="Cambiar entre vista por alumno y hoja de cálculo">
+        <i class="bi bi-table"></i>
+        <span class="d-none d-sm-inline ms-1">Hoja de Cálculo</span>
+      </button>
+      <a href="{% url 'gestion_academica:exportar_libro_de_notas_excel' curso_pk=curso.pk %}" class="ln-ha-btn ln-green">
+        <i class="bi bi-file-earmark-excel-fill"></i> Excel
+      </a>
+      <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="ln-ha-btn ln-glass">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  {# ── BARRA DE TABS ── #}
+  <div class="ln-tab-bar" role="tablist">
+    <button class="ln-tab-btn active" id="tab-btn-periodo" role="tab"
+            aria-selected="true" aria-controls="tab-periodo" data-tab="tab-periodo">
+      <i class="bi bi-pencil-square"></i>
+      <span class="d-none d-sm-inline">Período Actual</span>
+      <span class="d-sm-none">Período</span>
+      <span class="ln-tab-badge">{{ curso.periodo_academico.nombre }}</span>
+    </button>
+    <button class="ln-tab-btn" id="tab-btn-anual" role="tab"
+            aria-selected="false" aria-controls="tab-anual" data-tab="tab-anual">
+      <i class="bi bi-bar-chart-steps"></i>
+      <span class="d-none d-sm-inline">Vista Anual</span>
+      <span class="d-sm-none">Anual</span>
+      <span class="ln-tab-badge">{{ año_escolar }}</span>
+    </button>
+  </div>
+
+  {# ── Chips de categorías ── #}
+  <div class="ln-chips" id="chips-periodo">
+    <span class="ln-chip"><i class="bi bi-diagram-3-fill"></i> Categorías:</span>
+    {% for categoria, actividades_lista in actividades_agrupadas.items %}
+    <span class="ln-chip cat">
+      <i class="bi bi-tag-fill"></i> {{ categoria.nombre }} <strong>({{ categoria.porcentaje }}%)</strong>
+    </span>
+    {% empty %}
+    <span class="ln-chip" style="color:#dc2626;border-color:#fca5a5;background:#fef2f2;">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Sin categorías — Ve a Centro de Gestión → Categorías de Actividad
+    </span>
+    {% endfor %}
+    <a href="https://www.mineducacion.gov.co/1759/articles-187765_archivo_pdf_decreto_1290.pdf"
+       target="_blank" rel="noopener noreferrer"
+       class="ln-chip ms-auto"
+       style="background:#f0fdf4;border-color:#86efac;color:#15803d;text-decoration:none;"
+       title="Ver Decreto 1290 de 2009 — Ministerio de Educación Nacional">
+      <i class="bi bi-patch-check-fill"></i>
+      Decreto 1290 / 2009 · MEN
+    </a>
+  </div>
+
+  {# ── Mensajes ── #}
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+    {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <div id="tab-periodo" role="tabpanel">
+  <form method="post" id="ln-form">
+    {% csrf_token %}
+
+    {# ══════════ TABLA — ESCRITORIO ══════════ #}
+    <div class="ln-table-card">
+      <div class="ln-table-scroll">
+        <table class="ln-table">
+          <thead>
+            {# Fila 1: categorías #}
+            <tr>
+              <th class="ln-cat-hdr name-col" rowspan="2">Estudiante</th>
+              {% for categoria, actividades_lista in actividades_agrupadas.items %}
+              <th class="ln-cat-hdr" colspan="{{ actividades_lista|length }}">
+                {{ categoria.nombre }}&nbsp;<span style="font-size:.68rem;font-weight:500;opacity:.85;">({{ categoria.porcentaje }}%)</span>
+              </th>
+              {% endfor %}
+              <th class="ln-cat-hdr final-col" rowspan="2">Definitiva</th>
+            </tr>
+            {# Fila 2: actividades #}
+            <tr>
+              {% for categoria, actividades_lista in actividades_agrupadas.items %}
+              {% for actividad in actividades_lista %}
+              <th class="ln-act-hdr" title="{{ actividad.descripcion|default:'Sin descripción adicional' }}">
+                {{ actividad.titulo|truncatechars:18 }}
+              </th>
+              {% endfor %}
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in libro_notas_data %}
+            <tr>
+              <td class="ln-cell-name">
+                <i class="bi bi-person-circle me-1" style="color:#94a3b8;font-size:.9rem;"></i>
+                {{ item.estudiante.usuario.get_full_name }}
+              </td>
+              {% for categoria, actividades_lista in actividades_agrupadas.items %}
+              {% for actividad in actividades_lista %}
+              <td style="padding:.3rem .4rem;">
+                <input type="text"
+                       name="nota-E{{ item.estudiante.pk }}-A{{ actividad.pk }}"
+                       id="nota-E{{ item.estudiante.pk }}-A{{ actividad.pk }}"
+                       class="ln-input"
+                       value="{{ notas_map|get_item:item.estudiante.pk|get_item:actividad.pk|stringformat:'.2f'|default_if_none:'' }}"
+                       autocomplete="off"
+                       inputmode="decimal"
+                       placeholder="—">
+              </td>
+              {% endfor %}
+              {% endfor %}
+              <td class="ln-final-cell">
+                {% if item.nota_final_curso is not None %}
+                  {{ item.nota_final_curso|floatformat:2 }}
+                {% else %}
+                  <span style="color:#94a3b8;font-weight:400;">—</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+            {% if not libro_notas_data %}
+            <tr>
+              <td colspan="100%" style="text-align:center;padding:2.5rem;color:#94a3b8;">
+                <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+                No hay estudiantes en este curso.
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+      <div class="ln-action-bar">
+        <a href="{% url 'gestion_academica:exportar_libro_de_notas_excel' curso_pk=curso.pk %}" class="btn btn-outline-success">
+          <i class="bi bi-file-earmark-excel-fill me-2"></i>Exportar Excel
+        </a>
+        {% if not es_coordinador %}
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save-fill me-2"></i>Guardar Todas las Notas
+        </button>
+        {% else %}
+        <span class="btn btn-secondary disabled" style="opacity:.6;" title="Vista de solo lectura para coordinadores">
+          <i class="bi bi-eye-fill me-2"></i>Solo lectura
+        </span>
+        {% endif %}
+      </div>
     </div>
 
-    {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+    <div class="ln-mobile-cards" id="ln-cards">
+      {% for item in libro_notas_data %}
+      <div class="ln-student-card">
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="table-responsive shadow-sm">
-            <table class="table table-bordered libro-notas-table">
-                <thead>
-                    <tr>
-                        <th rowspan="2" class="estudiante-nombre align-middle">Estudiante</th>
-                        {% for categoria, actividades_lista in actividades_agrupadas.items %}
-                            <th colspan="{{ actividades_lista|length }}" class="categoria-header">{{ categoria.nombre }} ({{ categoria.porcentaje }}%)</th>
-                        {% endfor %}
-                        <th rowspan="2" class="nota-final-col align-middle">Definitiva</th>
-                    </tr>
-                    <tr>
-                        {% for categoria, actividades_lista in actividades_agrupadas.items %}
-                            {% for actividad in actividades_lista %}
-                                <th class="actividad-header" title="{{ actividad.descripcion|default:'Sin descripción' }}">
-                                    {{ actividad.titulo }}
-                                </th>
-                            {% endfor %}
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in libro_notas_data %}
-                    <tr>
-                        <td class="estudiante-nombre">{{ item.estudiante.usuario.get_full_name }}</td>
-                        {% for categoria, actividades_lista in actividades_agrupadas.items %}
-                            {% for actividad in actividades_lista %}
-                                <td class="p-1">
-                                    <input type="text"
-                                           name="nota-E{{ item.estudiante.pk }}-A{{ actividad.pk }}"
-                                           class="form-control form-control-sm text-center"
-                                           value="{{ notas_map|get_item:item.estudiante.pk|get_item:actividad.pk|stringformat:'.2f'|default_if_none:'' }}">
-                                </td>
-                            {% endfor %}
-                        {% endfor %}
-                        <td class="nota-final-col">
-                            {% if item.nota_final_curso is not None %}
-                                {{ item.nota_final_curso|floatformat:2 }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="100%" class="text-center p-4">No hay estudiantes en este curso.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        {# Cabecera — acordeón toggle #}
+        <button type="button"
+                class="ln-sc-toggle"
+                aria-expanded="false"
+                aria-controls="card-body-{{ item.estudiante.pk }}">
+          <div>
+            <div class="ln-sc-name">
+              <i class="bi bi-person-circle me-1" style="opacity:.75;"></i>
+              {{ item.estudiante.usuario.get_full_name }}
+            </div>
+            <div class="ln-sc-final">
+              Definitiva:
+              {% if item.nota_final_curso is not None %}
+                <strong>{{ item.nota_final_curso|floatformat:2 }}</strong>
+              {% else %}
+                <span style="opacity:.65;">sin notas</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="ln-sc-chevron"><i class="bi bi-chevron-down"></i></div>
+        </button>
+
+        {# Body del acordeón #}
+        <div class="ln-sc-body" id="card-body-{{ item.estudiante.pk }}">
+          {% for categoria, actividades_lista in actividades_agrupadas.items %}
+
+          {# Separador de categoría #}
+          <div class="ln-sc-row-cat">
+            <i class="bi bi-tag-fill me-1"></i>{{ categoria.nombre }} ({{ categoria.porcentaje }}%)
+          </div>
+
+          {% for actividad in actividades_lista %}
+          <div class="ln-sc-row">
+            <label class="ln-sc-label"
+                   for="mob-nota-E{{ item.estudiante.pk }}-A{{ actividad.pk }}"
+                   title="{{ actividad.titulo }}">
+              {{ actividad.titulo }}
+            </label>
+            <input type="text"
+                   name="nota-E{{ item.estudiante.pk }}-A{{ actividad.pk }}"
+                   id="mob-nota-E{{ item.estudiante.pk }}-A{{ actividad.pk }}"
+                   class="ln-input-mobile"
+                   value="{{ notas_map|get_item:item.estudiante.pk|get_item:actividad.pk|stringformat:'.2f'|default_if_none:'' }}"
+                   autocomplete="off"
+                   inputmode="decimal"
+                   placeholder="0.0">
+          </div>
+          {% endfor %}
+
+          {% endfor %}
+
+          {# Definitiva al fondo de la card #}
+          <div class="ln-sc-final-row">
+            <span class="ln-sc-label"><i class="bi bi-check-circle-fill me-1"></i>Definitiva</span>
+            <span class="ln-final-val">
+              {% if item.nota_final_curso is not None %}
+                {{ item.nota_final_curso|floatformat:2 }}
+              {% else %}
+                —
+              {% endif %}
+            </span>
+          </div>
         </div>
-        <div class="text-end mt-3">
-            <a href="{% url 'gestion_academica:exportar_libro_de_notas_excel' curso_pk=curso.pk %}" class="btn btn-outline-success btn-lg">
-               <i class="bi bi-file-earmark-excel-fill me-2"></i>Exportar a Excel
-            </a>
-            <button type="submit" class="btn btn-success btn-lg"><i class="bi bi-save-fill me-2"></i>Guardar Todas las Notas</button>
+
+      </div>
+      {% empty %}
+      <div class="text-center p-4" style="color:#94a3b8;">
+        <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+        No hay estudiantes en este curso.
+      </div>
+      {% endfor %}
+    </div>
+
+    {# Botón guardar flotante en móvil — sólo para docentes #}
+    {% if not es_coordinador %}
+    <button type="submit" class="btn btn-primary btn-lg ln-save-fab">
+      <i class="bi bi-save-fill me-2"></i>Guardar Notas
+    </button>
+    {% endif %}
+
+  </form>{# fin form #}
+  </div>{# fin tab-periodo #}
+
+  <div id="tab-anual" role="tabpanel" style="display:none;">
+
+    {# Resumen rápido #}
+    {% with aprobados=datos_anuales|length %}
+    <div class="la-resumen-bar">
+      <span class="la-chip la-chip-año"><i class="bi bi-calendar-fill"></i> Año {{ año_escolar }}</span>
+      <span class="la-chip la-chip-mat"><i class="bi bi-book-fill"></i> {{ curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and curso.materia.nombre_idioma_secundario %} / {{ curso.materia.nombre_idioma_secundario }}{% endif %}</span>
+      <span class="la-chip la-chip-nd"><i class="bi bi-mortarboard-fill"></i> {{ curso.grado.nombre }}</span>
+      <span class="la-chip la-chip-nd"><i class="bi bi-person-fill"></i> {{ datos_anuales|length }} estudiantes</span>
+      <span class="la-chip la-chip-nd ms-auto" style="font-size:.72rem;">
+        <i class="bi bi-patch-check-fill text-success"></i>
+        Mín. aprobación: <strong>{{ nota_minima }}</strong>
+      </span>
+    </div>
+    {% endwith %}
+
+    {# ── TABLA DESKTOP ── #}
+    <div class="la-table-card">
+      <div class="la-table-scroll">
+        <table class="la-table">
+          <thead>
+            <tr>
+              <th class="la-hdr name-col"><i class="bi bi-person-fill me-1"></i>Estudiante</th>
+              {% for item_p in datos_anuales.0.notas_periodos %}
+                {% if item_p.es_actual %}
+                <th class="la-hdr actual" title="Período actual — en curso">
+                  {{ item_p.periodo.nombre }}
+                  <span style="display:block;font-size:.62rem;opacity:.8;font-weight:500;">▶ actual</span>
+                </th>
+                {% else %}
+                <th class="la-hdr periodo">{{ item_p.periodo.nombre }}</th>
+                {% endif %}
+              {% endfor %}
+              <th class="la-hdr final-col"><i class="bi bi-trophy-fill me-1"></i>Definitiva</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in datos_anuales %}
+            <tr>
+              <td class="la-cell-name">
+                <i class="bi bi-person-circle me-1" style="color:#94a3b8;"></i>
+                {{ item.estudiante.usuario.get_full_name }}
+              </td>
+              {% for np in item.notas_periodos %}
+              <td {% if np.es_actual %}class="la-cell-actual"{% endif %}>
+                {% if np.nota is not None %}
+                  <span class="la-nota {% if np.nota >= nota_minima %}ok{% else %}fail{% endif %}">
+                    {{ np.nota|floatformat:2 }}
+                  </span>
+                {% else %}
+                  <span class="la-nota nd">—</span>
+                {% endif %}
+              </td>
+              {% endfor %}
+              <td class="la-cell-final">
+                {% if item.promedio_anual is not None %}
+                <div class="la-definitiva {% if item.aprueba %}la-def-ok{% else %}la-def-fail{% endif %}">
+                  <span class="la-dval">{{ item.promedio_anual|floatformat:2 }}</span>
+                  <span class="la-dest">{% if item.aprueba %}✓ Aprueba{% else %}✗ Reprueba{% endif %}</span>
+                </div>
+                {% else %}
+                <div class="la-definitiva la-def-nd">
+                  <span class="la-dval">—</span>
+                  <span class="la-dest">Sin datos</span>
+                </div>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="100%" style="text-align:center;padding:2.5rem;color:#94a3b8;">
+                <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+                No hay estudiantes en este curso.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="la-leyenda">
+        <span><span class="la-dot" style="background:#86efac;"></span> ≥ {{ nota_minima }} Aprueba</span>
+        <span><span class="la-dot" style="background:#fca5a5;"></span> &lt; {{ nota_minima }} Reprueba</span>
+        <span><span class="la-dot" style="background:#e2e8f0;"></span> Sin calificar</span>
+        <span style="border:2px solid #93c5fd;width:12px;height:12px;display:inline-block;border-radius:3px;vertical-align:middle;"></span> Período actual
+        <span class="ms-auto" style="font-size:.72rem;">
+          <i class="bi bi-patch-check-fill text-success me-1"></i>
+          Conforme al <a href="https://www.mineducacion.gov.co/1759/articles-187765_archivo_pdf_decreto_1290.pdf"
+            target="_blank" rel="noopener" style="color:#15803d;font-weight:700;">Decreto 1290 / 2009 · MEN</a>
+        </span>
+      </div>
+    </div>
+
+    {# ── CARDS MÓVIL ── #}
+    <div class="la-mobile-cards">
+      {% for item in datos_anuales %}
+      <div class="la-student-card">
+        <button type="button"
+                class="la-sc-toggle {% if item.aprueba == True %}ok-bg{% elif item.aprueba == False %}fail-bg{% endif %}"
+                aria-expanded="false"
+                aria-controls="la-body-{{ item.estudiante.pk }}">
+          <div>
+            <div class="la-sc-name">
+              <i class="bi bi-person-circle me-1" style="opacity:.75;"></i>
+              {{ item.estudiante.usuario.get_full_name }}
+            </div>
+            <div class="la-sc-sub">
+              Definitiva:
+              {% if item.promedio_anual is not None %}
+                <strong>{{ item.promedio_anual|floatformat:2 }}</strong>
+                — {% if item.aprueba %}✓ Aprueba{% else %}✗ Reprueba{% endif %}
+              {% else %}
+                <span style="opacity:.65;">sin datos suficientes</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="la-sc-chev"><i class="bi bi-chevron-down"></i></div>
+        </button>
+
+        <div class="la-sc-body" id="la-body-{{ item.estudiante.pk }}">
+          {% for np in item.notas_periodos %}
+          <div class="la-per-row {% if np.es_actual %}actual{% endif %}">
+            <span class="la-per-label">
+              {{ np.periodo.nombre }}
+              {% if np.es_actual %}<span class="la-actual-tag">actual</span>{% endif %}
+            </span>
+            {% if np.nota is not None %}
+              <span class="la-nota {% if np.nota >= nota_minima %}ok{% else %}fail{% endif %}">
+                {{ np.nota|floatformat:2 }}
+              </span>
+            {% else %}
+              <span class="la-nota nd">—</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          <div class="la-def-row {% if item.aprueba == False %}fail{% endif %}">
+            <span class="la-def-row-label">
+              <i class="bi bi-trophy-fill me-1"></i>Definitiva Anual
+            </span>
+            <span class="la-def-row-val">
+              {% if item.promedio_anual is not None %}{{ item.promedio_anual|floatformat:2 }}{% else %}—{% endif %}
+            </span>
+          </div>
         </div>
-        
-    </form>
+      </div>
+      {% empty %}
+      <div class="text-center p-4" style="color:#94a3b8;">
+        <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+        No hay estudiantes en este curso.
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
 </div>
+{% endblock contenido %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+
+  /* ─── Acordeón de estudiantes (vista por alumno) ─── */
+  document.querySelectorAll('.ln-sc-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var bodyId = btn.getAttribute('aria-controls');
+      var body   = document.getElementById(bodyId);
+      var isOpen = btn.classList.contains('open');
+      if (isOpen) {
+        btn.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        body.classList.remove('open');
+      } else {
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        body.classList.add('open');
+      }
+    });
+  });
+
+  /* ─── Toggle vista: Acordeón (Por Alumno) ↔ Hoja de Cálculo ─── */
+  var viewToggleBtn = document.getElementById('btn-toggle-view');
+  var tableCard     = document.querySelector('.ln-table-card');
+  var cardsSection  = document.getElementById('ln-cards');
+  var saveFab       = document.querySelector('.ln-save-fab');
+
+  var currentView = 'cards';
+  try { currentView = sessionStorage.getItem('ln_view') || 'cards'; } catch(e) {}
+
+  function applyView(view, persist) {
+    currentView = view;
+    if (view === 'table') {
+      if (tableCard)    tableCard.style.display    = '';
+      if (cardsSection) cardsSection.style.display = 'none';
+      if (saveFab) {
+        saveFab.classList.remove('visible');
+        document.body.classList.remove('ln-fab-active');
+      }
+      if (viewToggleBtn) viewToggleBtn.innerHTML =
+        '<i class="bi bi-person-lines-fill"></i><span class="d-none d-sm-inline ms-1">Por Alumno</span>';
+    } else {
+      if (tableCard)    tableCard.style.display    = 'none';
+      if (cardsSection) cardsSection.style.display = '';
+      if (saveFab) {
+        saveFab.classList.add('visible');
+        document.body.classList.add('ln-fab-active');
+      }
+      if (viewToggleBtn) viewToggleBtn.innerHTML =
+        '<i class="bi bi-table"></i><span class="d-none d-sm-inline ms-1">Hoja de Cálculo</span>';
+    }
+    if (persist !== false) {
+      try { sessionStorage.setItem('ln_view', view); } catch(e) {}
+    }
+  }
+
+  if (viewToggleBtn) {
+    viewToggleBtn.addEventListener('click', function () {
+      applyView(currentView === 'table' ? 'cards' : 'table');
+    });
+  }
+
+  /* Aplicar vista guardada (o 'cards' por defecto) */
+  applyView(currentView, false);
+
+  /* ─── Evitar envío duplicado: deshabilita la vista OCULTA antes de enviar ─── */
+  var form = document.getElementById('ln-form');
+  if (form) {
+    form.addEventListener('submit', function () {
+      if (currentView === 'table') {
+        /* La tabla está visible → deshabilita los inputs de las cards */
+        form.querySelectorAll('.ln-mobile-cards .ln-input-mobile').forEach(function (inp) {
+          inp.disabled = true;
+        });
+      } else {
+        /* Las cards están visibles → deshabilita los inputs de la tabla */
+        form.querySelectorAll('.ln-table .ln-input').forEach(function (inp) {
+          inp.disabled = true;
+        });
+      }
+    });
+  }
+
+  /* ─── Sincronizar valor entre tabla ↔ card mientras escribe ─── */
+  function syncInputs(source, targetId) {
+    var target = document.getElementById(targetId);
+    if (target && target !== source) { target.value = source.value; }
+  }
+  /* tabla → card */
+  document.querySelectorAll('.ln-table .ln-input').forEach(function (inp) {
+    inp.addEventListener('input', function () { syncInputs(inp, 'mob-' + inp.id); });
+  });
+  /* card → tabla */
+  document.querySelectorAll('.ln-mobile-cards .ln-input-mobile').forEach(function (inp) {
+    var tableId = inp.id.replace(/^mob-/, '');
+    inp.addEventListener('input', function () { syncInputs(inp, tableId); });
+  });
+
+})();
+
+/* ═══════ TABS: Período Actual ↔ Vista Anual ═══════ */
+(function () {
+  var tabs = document.querySelectorAll('.ln-tab-btn');
+  var panes = {
+    'tab-periodo': document.getElementById('tab-periodo'),
+    'tab-anual':   document.getElementById('tab-anual'),
+  };
+  var chipsEl = document.getElementById('chips-periodo');
+
+  function activateTab(targetId) {
+    tabs.forEach(function (btn) {
+      var isActive = btn.dataset.tab === targetId;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    Object.keys(panes).forEach(function (id) {
+      if (panes[id]) panes[id].style.display = (id === targetId) ? '' : 'none';
+    });
+    // Los chips de categorías solo tienen sentido en el período actual
+    if (chipsEl) chipsEl.style.display = (targetId === 'tab-periodo') ? '' : 'none';
+    // Guardar preferencia en sessionStorage
+    try { sessionStorage.setItem('ln_tab', targetId); } catch(e) {}
+  }
+
+  tabs.forEach(function (btn) {
+    btn.addEventListener('click', function () { activateTab(btn.dataset.tab); });
+  });
+
+  // 1. URL param tiene prioridad (?tab=anual desde dashboard)
+  var urlTab = new URLSearchParams(window.location.search).get('tab');
+  if (urlTab && panes['tab-' + urlTab]) {
+    activateTab('tab-' + urlTab);
+  } else {
+    // 2. Restaurar desde sessionStorage si no hay param en URL
+    try {
+      var saved = sessionStorage.getItem('ln_tab');
+      if (saved && panes[saved]) { activateTab(saved); }
+    } catch(e) {}
+  }
+})();
+
+/* ═══════ ACORDEÓN: Cards Vista Anual (móvil) ═══════ */
+(function () {
+  document.querySelectorAll('.la-sc-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var bodyId = btn.getAttribute('aria-controls');
+      var body   = document.getElementById(bodyId);
+      var isOpen = btn.classList.contains('open');
+      if (isOpen) {
+        btn.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        body.classList.remove('open');
+      } else {
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        body.classList.add('open');
+      }
+    });
+  });
+})();
+</script>
 {% endblock %}

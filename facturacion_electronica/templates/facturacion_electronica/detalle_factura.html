@@ -1,0 +1,127 @@
+{% extends "base_finanzas.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4" style="max-width: 920px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="h3 mb-0">
+      {% if factura.tipo == 'FACTURA' %}<span class="badge bg-primary">Factura</span>
+      {% elif factura.tipo == 'NOTA_CREDITO' %}<span class="badge bg-info text-dark">Nota Crédito</span>
+      {% else %}<span class="badge bg-dark">Nota Débito</span>{% endif %}
+      <span class="ms-2">{{ factura.numero|default:factura.reference_code }}</span>
+    </h1>
+    <a href="{% url 'facturacion_electronica:lista_facturas' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Volver</a>
+  </div>
+
+  {% if messages %}{% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <div class="row g-3">
+    <!-- Datos del documento -->
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold">Documento</div>
+        <div class="card-body" style="font-size:.9rem;">
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">Estado</span>
+            {% if factura.estado == 'VALIDADA' %}<span class="badge bg-success">Validada DIAN</span>
+            {% elif factura.estado == 'ERROR' %}<span class="badge bg-warning text-dark">Error</span>
+            {% else %}<span class="badge bg-secondary">{{ factura.get_estado_display }}</span>{% endif %}
+          </div>
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">Referencia</span><code>{{ factura.reference_code }}</code></div>
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">CUFE/CUDE</span><span style="word-break:break-all;font-size:.72rem;">{{ factura.cufe|default:"—" }}</span></div>
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">Ambiente</span><span>{{ factura.ambiente }}</span></div>
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">Creado</span><span>{{ factura.fecha_creacion|date:"d/m/Y H:i" }}</span></div>
+          {% if factura.documento_origen %}
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">Origen</span>
+            <a href="{% url 'facturacion_electronica:detalle_factura' factura.documento_origen.pk %}">{{ factura.documento_origen.numero }}</a></div>
+          {% endif %}
+          {% if factura.mensaje %}<div class="alert alert-warning py-1 mt-2 mb-0" style="font-size:.8rem;">{{ factura.mensaje }}</div>{% endif %}
+          <div class="mt-3 d-flex gap-2 flex-wrap">
+            {% if factura.url_pdf %}<a href="{{ factura.url_pdf }}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i> PDF</a>{% endif %}
+            {% if factura.qr %}<a href="{{ factura.qr }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="bi bi-qr-code"></i> Ver en DIAN</a>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cliente -->
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header fw-bold">Cliente / Adquiriente</div>
+        <div class="card-body" style="font-size:.9rem;">
+          {% if factura.estudiante %}
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">Estudiante</span><strong>{{ factura.estudiante.usuario.get_full_name }}</strong></div>
+          {% endif %}
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">Identificación</span><span>{{ customer.identification|default:"—" }}</span></div>
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">Nombre</span><span>{{ customer.names|default:"—" }}</span></div>
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">Email</span><span>{{ customer.email|default:"—" }}</span></div>
+          {% if factura.pago %}
+          <div class="d-flex justify-content-between py-1"><span class="text-muted">Pago vinculado</span><span>${{ factura.pago.valor_pagado|floatformat:0 }} {% if factura.pago.anulado %}<span class="badge bg-danger">anulado</span>{% endif %}</span></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ítems -->
+  <div class="card shadow-sm mt-3">
+    <div class="card-header fw-bold">Detalle</div>
+    <div class="card-body p-0">
+      <table class="table mb-0" style="font-size:.88rem;">
+        <thead class="table-light"><tr><th class="ps-3">Concepto</th><th class="text-end">Cant.</th><th class="text-end">Precio</th><th class="text-end pe-3">Subtotal</th></tr></thead>
+        <tbody>
+          {% for it in items %}
+          <tr><td class="ps-3">{{ it.name }}</td><td class="text-end">{{ it.quantity }}</td><td class="text-end">${{ it.price|floatformat:0 }}</td><td class="text-end pe-3">${{ it.price|floatformat:0 }}</td></tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center text-muted py-3">Sin ítems registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot><tr class="fw-bold"><td colspan="3" class="text-end">Total</td><td class="text-end pe-3">${{ total|floatformat:0 }}</td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Notas asociadas -->
+  {% if notas %}
+  <div class="card shadow-sm mt-3">
+    <div class="card-header fw-bold">Notas asociadas</div>
+    <div class="card-body p-0">
+      <table class="table mb-0" style="font-size:.86rem;">
+        <thead class="table-light"><tr><th class="ps-3">Tipo</th><th>Número</th><th>Estado</th><th>Fecha</th><th class="pe-3">Ver</th></tr></thead>
+        <tbody>
+          {% for n in notas %}
+          <tr>
+            <td class="ps-3">{% if n.tipo == 'NOTA_CREDITO' %}N. Crédito{% else %}N. Débito{% endif %}</td>
+            <td>{{ n.numero|default:n.reference_code }}</td>
+            <td>{% if n.estado == 'VALIDADA' %}<span class="badge bg-success">Validada</span>{% else %}<span class="badge bg-warning text-dark">{{ n.get_estado_display }}</span>{% endif %}</td>
+            <td>{{ n.fecha_creacion|date:"d/m/Y H:i" }}</td>
+            <td class="pe-3"><a href="{% url 'facturacion_electronica:detalle_factura' n.pk %}">Detalle</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Auditoría (JSON) -->
+  <div class="accordion mt-3" id="accAudit">
+    <div class="accordion-item">
+      <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#auditBody">
+        <i class="bi bi-code-slash me-2"></i> Auditoría técnica (JSON enviado / recibido)</button></h2>
+      <div id="auditBody" class="accordion-collapse collapse" data-bs-parent="#accAudit">
+        <div class="accordion-body">
+          <h6 class="text-muted">Enviado a Factus</h6>
+          <pre style="font-size:.72rem;background:#f8fafc;padding:.75rem;border-radius:8px;max-height:280px;overflow:auto;">{{ factura.json_enviado|pprint }}</pre>
+          <h6 class="text-muted mt-3">Respuesta de Factus</h6>
+          <pre style="font-size:.72rem;background:#f8fafc;padding:.75rem;border-radius:8px;max-height:280px;overflow:auto;">{{ factura.json_respuesta|pprint }}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

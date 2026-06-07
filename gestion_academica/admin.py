@@ -15,12 +15,15 @@ from .models import (
     Materia, PeriodoAcademico, Curso, DirectorCurso,
     EsquemaCalificacion, TipoActividad, ActividadCalificable, Calificacion,
     PlanCurricular, Deber, EntregaDeber, MencionReconocimiento, ArchivoPlanAcademico,
-    ConfiguracionInstitucion, Noticia, EnlaceVideollamada, AreaAcademica, 
+    ConfiguracionInstitucion, Noticia, EnlaceVideollamada, AreaAcademica,
     DescriptorLogro, RegistroAsistencia, Aula, BloqueHorario, Pregunta, Opcion, EscalaValorativa,
     LeccionDiaria, AnalisisRiesgo, PrediccionRiesgoEstudiante, Notificacion, AnotacionObservador,
     DisponibilidadDocente, CitaReunion, IntentoActividad, Egresado, ArchivoHistorico, SolicitudDocumento,
     EscalaCualitativa, NivelEscolaridad, DimensionDesarrollo, EvaluacionLogroPreescolar, LogroPreescolar,
-    PlaneacionClase, DetalleClase
+    PlaneacionClase, DetalleClase,
+    CasoConvivencia, InvolucradoCaso, AccionCaso,
+    ConfiguracionCortePreventivo, CortePreventivo,
+    ResultadoCorteEstudiante, DetalleMateriaCortePrev,
 )
 from import_export import resources
 
@@ -95,17 +98,21 @@ class EstudianteAdmin(admin.ModelAdmin):
         ('Información de Usuario y Académica', {
             'fields': ('usuario', 'codigo_estudiante', 'grado_actual', 'institucion')
         }),
-        ('Información Personal', {
-            'fields': ('documento_identidad', 'fecha_nacimiento', 'sexo', 'direccion') # <-- 'sexo' añadido aquí
+        ('Identificación Personal', {
+            'fields': ('tipo_documento', 'documento_identidad', 'fecha_nacimiento', 'lugar_nacimiento', 'sexo', 'direccion')
         }),
-        ('Datos de Procedencia (Heredados de Admisión)', {
-            'fields': ('colegio_procedencia', 'municipio_ciudad', 'departamento'), # <-- Nuevos campos agrupados
-            'classes': ('collapse',) # Opcional: para que aparezca colapsado
+        ('Datos de Salud', {
+            'fields': ('grupo_sanguineo', 'eps', 'discapacidad'),
+            'classes': ('collapse',),
+        }),
+        ('Datos de Procedencia', {
+            'fields': ('colegio_procedencia', 'municipio_ciudad', 'departamento'),
+            'classes': ('collapse',),
         }),
         ('Información Financiera', {
-            'fields': ('valor_matricula', 'valor_mensualidad'),
-            'classes': ('collapse',)
-        })
+            'fields': ('valor_matricula', 'valor_mensualidad', 'descuentos'),
+            'classes': ('collapse',),
+        }),
     )
 
     def usuario_nombre(self, obj):
@@ -119,8 +126,8 @@ class RegistroAsistenciaResource(resources.ModelResource):
     def get_queryset(self):
         request = self.context.get('request')
         qs = super().get_queryset()
-        if request and hasattr(request.user, 'institucioneducativa'):
-            return qs.filter(institucion=request.user.institucioneducativa)
+        if request and getattr(request.user, 'institucion_asociada', None):
+            return qs.filter(institucion=request.user.institucion_asociada)
         return qs.none()
 
     class Meta:
@@ -155,17 +162,37 @@ class RegistroAsistenciaAdmin(ImportExportModelAdmin):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
-        if hasattr(request.user, 'institucioneducativa'):
-            return qs.filter(institucion=request.user.institucioneducativa)
+        if getattr(request.user, 'institucion_asociada', None):
+            return qs.filter(institucion=request.user.institucion_asociada)
         return qs.none()
     
 @admin.register(Docente)
 class DocenteAdmin(admin.ModelAdmin):
-    list_display = ('usuario_nombre', 'codigo_docente', 'especialidad', 'institucion')
+    list_display = (
+        'usuario_nombre',
+        'codigo_docente',
+        'modalidad_liquidacion',
+        'valor_hora_docencia',
+        'especialidad',
+        'institucion',
+    )
     search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name', 'codigo_docente')
-    list_filter = ('especialidad', 'institucion')
+    list_filter = ('institucion', 'modalidad_liquidacion', 'especialidad')
     ordering = ('institucion', 'usuario__last_name', 'usuario__first_name')
     raw_id_fields = ('usuario', 'institucion')
+    fieldsets = (
+        (None, {
+            'fields': ('usuario', 'institucion', 'codigo_docente', 'documento_identidad', 'especialidad'),
+        }),
+        ('Liquidación (referencia)', {
+            'fields': ('modalidad_liquidacion', 'valor_hora_docencia'),
+            'description': 'Por horas: use valor hora para estimados en exportaciones. Salario fijo: control de asistencia sin cálculo automático de pago.',
+        }),
+        ('Otros', {
+            'classes': ('collapse',),
+            'fields': ('firma_docente', 'dashboard_layout'),
+        }),
+    )
 
     def usuario_nombre(self, obj):
         return obj.usuario.get_full_name() if obj.usuario else obj.usuario.username
@@ -363,11 +390,44 @@ class EnlaceVideollamadaAdmin(admin.ModelAdmin):
 
 @admin.register(Noticia)
 class NoticiaAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'fecha_publicacion', 'publicado_por', 'institucion')
+    list_display = ('titulo', 'tipo', 'banner_activo', 'audiencia', 'fecha_expiracion_banner', 'fecha_publicacion', 'institucion')
     search_fields = ('titulo', 'contenido')
-    list_filter = ('fecha_publicacion', 'institucion')
+    list_filter = ('tipo', 'mostrar_banner', 'audiencia', 'fecha_publicacion', 'institucion')
     ordering = ('institucion', '-fecha_publicacion',)
     raw_id_fields = ('publicado_por', 'institucion')
+    actions = ['activar_banner', 'desactivar_banner']
+
+    fieldsets = (
+        ('Contenido', {
+            'fields': ('titulo', 'contenido', 'imagen_destacada', 'institucion', 'publicado_por'),
+        }),
+        ('Configuración del Banner', {
+            'fields': ('tipo', 'mostrar_banner', 'audiencia', 'fecha_expiracion_banner'),
+            'description': 'Los tipos Urgente y Evento pueden mostrarse como banner flotante.',
+        }),
+    )
+
+    @admin.display(boolean=True, description='Banner activo')
+    def banner_activo(self, obj):
+        from django.utils import timezone
+        if not obj.mostrar_banner:
+            return False
+        if obj.fecha_expiracion_banner and obj.fecha_expiracion_banner < timezone.now().date():
+            return False
+        return True
+
+    @admin.action(description='Activar / reactivar banner para seleccionados')
+    def activar_banner(self, request, queryset):
+        from django.db.models import F
+        count = queryset.count()
+        # Incrementar la revisión fuerza que reaparezca para usuarios que ya lo cerraron
+        queryset.update(mostrar_banner=True, banner_revision=F('banner_revision') + 1)
+        self.message_user(request, f'{count} banner(s) activado(s). Los usuarios que lo habían cerrado lo verán de nuevo.')
+
+    @admin.action(description='Desactivar banner para seleccionados')
+    def desactivar_banner(self, request, queryset):
+        queryset.update(mostrar_banner=False)
+        self.message_user(request, f'{queryset.count()} banner(s) desactivado(s).')
 
 @admin.register(AreaAcademica)
 class AreaAcademicaAdmin(admin.ModelAdmin):
@@ -537,9 +597,31 @@ class PrediccionRiesgoEstudianteAdmin(admin.ModelAdmin):
 
 @admin.register(Notificacion)
 class NotificacionAdmin(admin.ModelAdmin):
-    list_display = ('destinatario', 'mensaje', 'leido', 'fecha_creacion')
-    list_filter = ('leido', 'fecha_creacion')
-    search_fields = ('destinatario__username', 'mensaje')  
+    list_display = ('destinatario', 'mensaje', 'leido', 'fecha_creacion', 'institucion')
+    list_filter = ('leido', 'fecha_creacion', 'institucion')
+    search_fields = ('destinatario__username', 'destinatario__first_name', 'destinatario__last_name', 'mensaje')
+    date_hierarchy = 'fecha_creacion'
+    ordering = ('-fecha_creacion',)
+    list_per_page = 30
+    actions = ['marcar_como_leidas']
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        inst = getattr(request.user, 'institucion_asociada', None)
+        return qs.filter(institucion=inst) if inst else qs.none()
+
+    def has_delete_permission(self, request, obj=None):
+        """Solo superusuario o administrador puede eliminar notificaciones."""
+        if request.user.is_superuser:
+            return True
+        return getattr(request.user, 'rol', '') == 'administrador'
+
+    @admin.action(description='Marcar seleccionadas como leídas')
+    def marcar_como_leidas(self, request, queryset):
+        updated = queryset.update(leido=True)
+        self.message_user(request, f'{updated} notificación(es) marcada(s) como leída(s).')
 
 @admin.register(AnotacionObservador)
 class AnotacionObservadorAdmin(admin.ModelAdmin):
@@ -555,7 +637,16 @@ class AnotacionObservadorAdmin(admin.ModelAdmin):
     
     @admin.display(description='Descripción')
     def descripcion_corta(self, obj):
-        return str(obj.descripcion)[:50] + '...' if len(str(obj.descripcion)) > 50 else str(obj.descripcion) 
+        return str(obj.descripcion)[:50] + '...' if len(str(obj.descripcion)) > 50 else str(obj.descripcion)
+
+    def has_delete_permission(self, request, obj=None):
+        """
+        Solo el superusuario o el administrador puede eliminar
+        anotaciones del observador del estudiante.
+        """
+        if request.user.is_superuser:
+            return True
+        return getattr(request.user, 'rol', '') == 'administrador'
 
 @admin.register(DisponibilidadDocente)
 class DisponibilidadDocenteAdmin(admin.ModelAdmin):
@@ -659,6 +750,89 @@ class EvaluacionLogroPreescolarAdmin(admin.ModelAdmin):
             return qs.filter(institucion=request.user.institucion_asociada)
         return qs    
 
+# ─── Halu Sentinel Admin ──────────────────────────────────────────────────────
+
+class InvolucradoCasoInline(admin.TabularInline):
+    model = InvolucradoCaso
+    extra = 1
+    autocomplete_fields = ['estudiante']
+    fields = ('estudiante', 'rol')
+
+
+class AccionCasoInline(admin.StackedInline):
+    model = AccionCaso
+    extra = 0
+    readonly_fields = ('fecha',)
+    fields = ('tipo_accion', 'descripcion', 'ejecutado_por', 'fecha', 'evidencia')
+    autocomplete_fields = ['ejecutado_por']
+
+
+@admin.register(CasoConvivencia)
+class CasoConvivenciaAdmin(admin.ModelAdmin):
+    list_display = ('radicado', 'tipo_situacion', 'estado', 'anotacion_origen',
+                    'responsable', 'fecha_apertura', 'fecha_limite', 'institucion')
+    list_filter = ('tipo_situacion', 'estado', 'institucion')
+    search_fields = ('radicado', 'descripcion_detalle',
+                     'anotacion_origen__estudiante__usuario__last_name')
+    readonly_fields = ('radicado', 'fecha_apertura', 'fecha_cierre')
+    date_hierarchy = 'fecha_apertura'
+    inlines = [InvolucradoCasoInline, AccionCasoInline]
+    autocomplete_fields = ['responsable', 'institucion']
+
+    fieldsets = (
+        ('Identificación', {
+            'fields': ('radicado', 'institucion', 'tipo_situacion', 'estado')
+        }),
+        ('Origen y Responsable', {
+            'fields': ('anotacion_origen', 'responsable', 'descripcion_detalle')
+        }),
+        ('Fechas', {
+            'fields': ('fecha_apertura', 'fecha_limite', 'fecha_cierre')
+        }),
+        ('IA / Resolución', {
+            'classes': ('collapse',),
+            'fields': ('protocolo_ia', 'resolucion_final')
+        }),
+    )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        inst = getattr(request.user, 'institucion_asociada', None)
+        return qs.filter(institucion=inst) if inst else qs.none()
+
+    def has_delete_permission(self, request, obj=None):
+        """
+        Solo el superusuario o el administrador de la institución
+        puede eliminar casos de convivencia (Halu Sentinel).
+        """
+        if request.user.is_superuser:
+            return True
+        return getattr(request.user, 'rol', '') == 'administrador'
+
+
+@admin.register(AccionCaso)
+class AccionCasoAdmin(admin.ModelAdmin):
+    list_display = ('caso', 'tipo_accion', 'ejecutado_por', 'fecha')
+    list_filter = ('tipo_accion', 'caso__tipo_situacion', 'caso__estado')
+    search_fields = ('caso__radicado', 'descripcion')
+    autocomplete_fields = ['caso', 'ejecutado_por']
+    readonly_fields = ('fecha',)
+
+    def has_delete_permission(self, request, obj=None):
+        """
+        Solo el superusuario o el administrador puede eliminar
+        acciones de casos de convivencia.
+        """
+        if request.user.is_superuser:
+            return True
+        return getattr(request.user, 'rol', '') == 'administrador'
+
+
+# ─── END Halu Sentinel Admin ──────────────────────────────────────────────────
+
+
 class DetalleClaseInline(admin.TabularInline):
     """
     Permite ver y editar los detalles de cada clase directamente
@@ -706,4 +880,110 @@ class PlaneacionClaseAdmin(admin.ModelAdmin):
     )
     # --- FIN DE LA CORRECCIÓN CLAVE ---
 
-    inlines = [DetalleClaseInline]     
+    inlines = [DetalleClaseInline]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  CORTE PREVENTIVO
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin.register(ConfiguracionCortePreventivo)
+class ConfiguracionCortePreventivoAdmin(admin.ModelAdmin):
+    list_display = ('institucion', 'umbral_riesgo_bajo', 'umbral_riesgo_medio',
+                    'porcentaje_inasistencia_alerta', 'permitir_descarga_familiar')
+    list_filter  = ('institucion',)
+    fieldsets = (
+        ('Institución', {'fields': ('institucion',)}),
+        ('Umbrales de Riesgo', {
+            'description': 'Promedio mínimo para cada nivel. Se recomienda Bajo=2.9, Medio=3.4.',
+            'fields': ('umbral_riesgo_bajo', 'umbral_riesgo_medio', 'porcentaje_inasistencia_alerta'),
+        }),
+        ('Contenido del Informe', {
+            'fields': (
+                'mostrar_promedio_parcial', 'mostrar_asistencia',
+                'mostrar_observaciones_docente', 'firma_rector_en_reporte',
+                'permitir_descarga_familiar',
+            ),
+        }),
+        ('Pie de Página PDF', {'fields': ('texto_pie_pagina',)}),
+    )
+
+
+class ResultadoCorteInline(admin.TabularInline):
+    model   = ResultadoCorteEstudiante
+    extra   = 0
+    fields  = ('estudiante', 'promedio_general', 'nivel_riesgo',
+               'porcentaje_asistencia', 'materias_en_riesgo_count',
+               'requiere_citacion_padres', 'notificacion_enviada')
+    readonly_fields = ('estudiante', 'promedio_general', 'nivel_riesgo',
+                       'porcentaje_asistencia', 'materias_en_riesgo_count',
+                       'notificacion_enviada')
+    show_change_link = True
+    can_delete       = False
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(CortePreventivo)
+class CortePreventivoAdmin(admin.ModelAdmin):
+    list_display  = ('nombre_corte', 'institucion', 'grado', 'periodo_academico',
+                     'fecha_corte', 'estado', 'total_estudiantes_evaluados',
+                     'total_en_riesgo', 'generado_por')
+    list_filter   = ('institucion', 'estado', 'grado', 'periodo_academico')
+    search_fields = ('nombre_corte', 'grado__nombre', 'periodo_academico__nombre')
+    ordering      = ('-fecha_corte', 'grado__nombre')
+    readonly_fields = ('fecha_generacion', 'fecha_publicacion',
+                       'total_estudiantes_evaluados', 'total_en_riesgo', 'generado_por')
+    fieldsets = (
+        ('Identificación', {
+            'fields': ('institucion', 'nombre_corte', 'grado', 'periodo_academico', 'fecha_corte'),
+        }),
+        ('Estado y Estadísticas', {
+            'fields': ('estado', 'total_estudiantes_evaluados', 'total_en_riesgo',
+                       'fecha_generacion', 'fecha_publicacion', 'generado_por'),
+        }),
+        ('Observaciones', {
+            'fields': ('observacion_general',),
+        }),
+    )
+    inlines = [ResultadoCorteInline]
+
+
+class DetalleMateriaInline(admin.TabularInline):
+    model   = DetalleMateriaCortePrev
+    extra   = 0
+    fields  = ('curso', 'promedio_materia', 'nivel_desempeno', 'en_riesgo',
+               'actividades_registradas', 'actividades_calificadas', 'actividades_pendientes')
+    readonly_fields = fields
+    can_delete      = False
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ResultadoCorteEstudiante)
+class ResultadoCorteEstudianteAdmin(admin.ModelAdmin):
+    list_display  = ('estudiante', 'corte', 'promedio_general', 'nivel_riesgo',
+                     'porcentaje_asistencia', 'materias_en_riesgo_count',
+                     'requiere_citacion_padres', 'notificacion_enviada')
+    list_filter   = ('nivel_riesgo', 'requiere_citacion_padres',
+                     'notificacion_enviada', 'corte__institucion')
+    search_fields = ('estudiante__usuario__first_name', 'estudiante__usuario__last_name',
+                     'corte__nombre_corte')
+    readonly_fields = ('promedio_general', 'nivel_desempeno_general', 'nivel_riesgo',
+                       'porcentaje_asistencia', 'total_actividades_registradas',
+                       'total_actividades_calificadas', 'materias_en_riesgo_count',
+                       'notificacion_enviada', 'fecha_notificacion')
+    inlines = [DetalleMateriaInline]
+
+
+@admin.register(DetalleMateriaCortePrev)
+class DetalleMateriaCortePrevAdmin(admin.ModelAdmin):
+    list_display  = ('resultado_estudiante', 'curso', 'promedio_materia',
+                     'nivel_desempeno', 'en_riesgo', 'actividades_registradas',
+                     'actividades_calificadas', 'actividades_pendientes')
+    list_filter   = ('en_riesgo', 'nivel_desempeno', 'institucion')
+    search_fields = ('curso__materia__nombre_materia',
+                     'resultado_estudiante__estudiante__usuario__last_name')
+    readonly_fields = ('promedio_materia', 'nivel_desempeno', 'en_riesgo',
+                       'actividades_registradas', 'actividades_calificadas',
+                       'actividades_pendientes')     

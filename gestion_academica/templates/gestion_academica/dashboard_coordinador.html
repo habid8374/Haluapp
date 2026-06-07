@@ -1,209 +1,901 @@
 {% extends "base_academico.html" %}
+{% load static %}
 
-{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block titulo %}{{ titulo_pagina|default:"Panel de Coordinación" }}{% endblock %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+/* ═══════════════════════════════════════════════════════
+   HALU PULSE — Dashboard Coordinador
+   Paleta: Indigo / Violeta — autoridad y supervisión
+═══════════════════════════════════════════════════════ */
+
+:root {
+  --coord-dark:   #1e1b4b;
+  --coord-mid:    #3730a3;
+  --coord-light:  #4f46e5;
+  --coord-accent: #818cf8;
+}
+
+/* ── Hero ── */
+.coord-hero {
+  background: linear-gradient(135deg, var(--coord-dark) 0%, var(--coord-mid) 45%, var(--coord-light) 100%);
+  border-radius: 1.1rem; padding: 2rem 2.2rem 2.6rem;
+  color: #fff; position: relative; overflow: hidden; margin-bottom: 1.5rem;
+}
+.coord-hero::before {
+  content: ''; position: absolute;
+  width: 340px; height: 340px; border-radius: 50%;
+  background: rgba(255,255,255,.05); top: -110px; right: -80px; pointer-events: none;
+}
+.coord-hero::after {
+  content: ''; position: absolute;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: rgba(255,255,255,.04); bottom: -70px; left: 30%; pointer-events: none;
+}
+.ch-badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28);
+  border-radius: 2rem; padding: .25rem .82rem;
+  font-size: .72rem; font-weight: 700; letter-spacing: .3px;
+  text-transform: uppercase; margin-bottom: .75rem;
+}
+.ch-greeting {
+  font-size: 1.85rem; font-weight: 800;
+  font-family: 'Manrope', sans-serif; line-height: 1.2; margin-bottom: .3rem;
+}
+.ch-sub { font-size: .9rem; opacity: .82; margin-bottom: 1.4rem; }
+.ch-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.ch-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28);
+  color: #fff; border-radius: .55rem; padding: .45rem .95rem;
+  font-size: .82rem; font-weight: 600; text-decoration: none; transition: all .2s;
+}
+.ch-btn:hover { background: rgba(255,255,255,.26); color: #fff; transform: translateY(-1px); }
+.ch-btn.ch-white { background:#fff; color: var(--coord-light); border-color:transparent; }
+.ch-btn.ch-white:hover { background:#eef2ff; color: var(--coord-light); }
+.ch-btn.ch-red { background:rgba(239,68,68,.22); border-color:rgba(239,68,68,.4); }
+.ch-btn.ch-red:hover { background:rgba(239,68,68,.36); }
+
+/* ── KPI Strip ── */
+.coord-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: .85rem; margin-bottom: 1.5rem;
+}
+.coord-kpi-card {
+  background: #fff; border: 1px solid #dbe5f4;
+  border-radius: .9rem; padding: 1.1rem; position: relative;
+  overflow: hidden; text-decoration: none; display: block;
+  box-shadow: 0 2px 8px rgba(79,70,229,.07);
+  transition: transform .2s, box-shadow .2s;
+}
+.coord-kpi-card::before {
+  content: ''; position: absolute; top:0; left:0; right:0;
+  height: 3px; border-radius: .9rem .9rem 0 0;
+}
+.coord-kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(79,70,229,.14); text-decoration:none; }
+.ckc-icon { width:38px;height:38px;border-radius:.6rem;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:.65rem; }
+.ckc-num  { font-size:2rem;font-weight:900;font-family:'Manrope',sans-serif;line-height:1;margin-bottom:.2rem; }
+.ckc-label{ font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:#64748b; }
+.ckc-link { font-size:.71rem;font-weight:600;margin-top:.5rem;display:flex;align-items:center;gap:.2rem;opacity:.75; }
+
+.ckc-indigo::before { background:linear-gradient(90deg,#4f46e5,#818cf8); }
+.ckc-indigo .ckc-icon{ background:#eef2ff;color:#4f46e5; }
+.ckc-indigo .ckc-num { color:#4f46e5; }
+.ckc-indigo .ckc-link{ color:#4f46e5; }
+
+.ckc-red::before { background:linear-gradient(90deg,#dc2626,#f87171); }
+.ckc-red .ckc-icon   { background:#fef2f2;color:#dc2626; }
+.ckc-red .ckc-num    { color:#dc2626; }
+.ckc-red .ckc-link   { color:#dc2626; }
+
+.ckc-amber::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+.ckc-amber .ckc-icon { background:#fefce8;color:#d97706; }
+.ckc-amber .ckc-num  { color:#d97706; }
+.ckc-amber .ckc-link { color:#d97706; }
+
+.ckc-teal::before { background:linear-gradient(90deg,#0d9488,#2dd4bf); }
+.ckc-teal .ckc-icon  { background:#f0fdfa;color:#0d9488; }
+.ckc-teal .ckc-num   { color:#0d9488; }
+.ckc-teal .ckc-link  { color:#0d9488; }
+
+.ckc-green::before { background:linear-gradient(90deg,#15803d,#22c55e); }
+.ckc-green .ckc-icon { background:#f0fdf4;color:#15803d; }
+.ckc-green .ckc-num  { color:#15803d; }
+.ckc-green .ckc-link { color:#15803d; }
+
+/* ── Section header ── */
+.coord-sec {
+  display:flex;align-items:center;gap:.65rem;
+  margin:1.8rem 0 1rem;padding-bottom:.55rem;
+  border-bottom:2px solid #eef2ff;
+}
+.coord-sec .cs-icon {
+  width:34px;height:34px;border-radius:.5rem;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;flex-shrink:0;
+}
+.coord-sec h2 { font-size:1.05rem;font-weight:800;color:#0f3f90;margin:0; }
+
+/* ── Elección widget ── */
+.elec-widget {
+  background:#fff;border:1px solid #dbe5f4;border-radius:1.1rem;
+  overflow:hidden;box-shadow:0 4px 18px rgba(79,70,229,.08);
+  margin-bottom:1.5rem;
+}
+.elec-header {
+  background:linear-gradient(120deg,var(--coord-dark),var(--coord-mid));
+  padding:1.1rem 1.4rem;color:#fff;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;
+}
+.elec-header .eh-title { font-size:1.05rem;font-weight:800;font-family:'Manrope',sans-serif;margin-bottom:.1rem; }
+.elec-header .eh-cargo { font-size:.8rem;opacity:.82; }
+.elec-badge-estado {
+  display:inline-flex;align-items:center;gap:.35rem;
+  padding:.3rem .8rem;border-radius:2rem;font-size:.73rem;font-weight:700;
+  flex-shrink:0;
+}
+.elec-badge-activa  { background:rgba(34,197,94,.25);border:1px solid rgba(34,197,94,.5);color:#dcfce7; }
+.elec-badge-cerrada { background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#e0e7ff; }
+.elec-badge-proxima { background:rgba(251,191,36,.25);border:1px solid rgba(251,191,36,.4);color:#fef9c3; }
+
+/* Métricas de participación */
+.elec-meta-strip {
+  display:flex;flex-wrap:wrap;gap:.6rem;
+  padding:.85rem 1.4rem;
+  background:#fafafe;border-bottom:1px solid #eef2ff;
+}
+.elec-meta-chip {
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:#fff;border:1px solid #e0e7ff;border-radius:.6rem;
+  padding:.35rem .85rem;font-size:.8rem;font-weight:600;color:#334155;
+}
+.elec-meta-chip i { color:var(--coord-light); }
+.elec-meta-chip strong { color:var(--coord-dark); }
+
+/* Barra de participación general */
+.elec-part-bar-wrap { padding:0 1.4rem .85rem;background:#fafafe;border-bottom:1px solid #eef2ff; }
+.elec-part-bar-label { font-size:.76rem;font-weight:600;color:#64748b;margin-bottom:.3rem;display:flex;justify-content:space-between; }
+.elec-part-bar {
+  height:10px;background:#e0e7ff;border-radius:999px;overflow:hidden;
+}
+.elec-part-bar-fill {
+  height:100%;background:linear-gradient(90deg,var(--coord-mid),var(--coord-accent));
+  border-radius:999px;transition:width .6s ease;
+}
+
+/* Candidatos */
+.elec-candidates { padding:1rem 1.4rem 1.4rem; }
+.elec-candidate-row {
+  display:flex;align-items:center;gap:1rem;
+  padding:.8rem 0; border-bottom:1px solid #f1f5f9;
+}
+.elec-candidate-row:last-child { border-bottom:none; }
+.elec-cand-pos {
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;font-weight:800;flex-shrink:0;
+  font-family:'Manrope',sans-serif;
+}
+.pos-1 { background:#fef9c3;color:#92400e;border:2px solid #fde68a; }
+.pos-2 { background:#f1f5f9;color:#475569;border:2px solid #e2e8f0; }
+.pos-3 { background:#fff7ed;color:#c2410c;border:2px solid #fed7aa; }
+.pos-n { background:#f8fafc;color:#94a3b8;border:1px solid #e2e8f0; }
+
+.elec-cand-avatar {
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--coord-mid),var(--coord-accent));
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:1rem;font-weight:800;flex-shrink:0;font-family:'Manrope',sans-serif;
+  overflow:hidden;
+}
+.elec-cand-avatar img { width:100%;height:100%;object-fit:cover; }
+.elec-cand-info { flex:1;min-width:0; }
+.elec-cand-name { font-size:.9rem;font-weight:700;color:#0f3f90;margin-bottom:.1rem;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.elec-cand-grado { font-size:.74rem;color:#94a3b8; }
+/* Barra de votos */
+.elec-vote-bar-wrap { min-width:120px;max-width:200px;flex:1; }
+.elec-vote-bar {
+  height:8px;background:#eef2ff;border-radius:999px;overflow:hidden;margin-bottom:.3rem;
+}
+.elec-vote-bar-fill {
+  height:100%;border-radius:999px;
+  background:linear-gradient(90deg,var(--coord-mid),var(--coord-accent));
+  transition:width .5s ease;
+}
+.elec-cand-row-leader .elec-vote-bar-fill {
+  background:linear-gradient(90deg,#d97706,#fbbf24);
+}
+.elec-vote-count { font-size:.72rem;font-weight:700;color:#64748b;white-space:nowrap; }
+
+/* ── Herramientas ── */
+.coord-tool-card {
+  background:#fff;border:1px solid #dbe5f4;border-radius:.95rem;
+  overflow:hidden;height:100%;display:flex;flex-direction:column;
+  box-shadow:0 2px 8px rgba(79,70,229,.06);
+  transition:transform .2s,box-shadow .2s;
+}
+.coord-tool-card:hover { transform:translateY(-3px);box-shadow:0 10px 26px rgba(79,70,229,.13); }
+.ctc-top { padding:1.2rem 1.25rem .75rem;flex:1; }
+.ctc-icon {
+  width:48px;height:48px;border-radius:.7rem;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;margin-bottom:.85rem;
+}
+.ctc-title { font-size:.96rem;font-weight:800;color:#0f3f90;margin-bottom:.28rem;font-family:'Manrope',sans-serif; }
+.ctc-desc  { font-size:.8rem;color:#64748b;line-height:1.6; }
+.ctc-foot { padding:.7rem 1.25rem;border-top:1px solid #f1f5f9;background:#fafcff; }
+.ctc-link {
+  display:inline-flex;align-items:center;gap:.35rem;
+  font-size:.8rem;font-weight:700;text-decoration:none;transition:gap .2s;
+}
+.ctc-link:hover { gap:.6rem; }
+
+.ctc-indigo .ctc-icon { background:#eef2ff;color:#4f46e5; }
+.ctc-indigo .ctc-link { color:#4f46e5; }
+.ctc-red    .ctc-icon { background:#fef2f2;color:#dc2626; }
+.ctc-red    .ctc-link { color:#dc2626; }
+.ctc-amber  .ctc-icon { background:#fefce8;color:#d97706; }
+.ctc-amber  .ctc-link { color:#d97706; }
+.ctc-teal   .ctc-icon { background:#f0fdfa;color:#0d9488; }
+.ctc-teal   .ctc-link { color:#0d9488; }
+.ctc-green  .ctc-icon { background:#f0fdf4;color:#15803d; }
+.ctc-green  .ctc-link { color:#15803d; }
+.ctc-purple .ctc-icon { background:#faf5ff;color:#7c3aed; }
+.ctc-purple .ctc-link { color:#7c3aed; }
+.ctc-blue   .ctc-icon { background:#eaf2ff;color:#1d4ed8; }
+.ctc-blue   .ctc-link { color:#1d4ed8; }
+.ctc-slate  .ctc-icon { background:#f8fafc;color:#475569; }
+.ctc-slate  .ctc-link { color:#475569; }
+
+/* ── Reporte de Grados ── */
+.coord-grade-card {
+  background:#fff;border:1px solid #dbe5f4;border-radius:1rem;
+  overflow:hidden;box-shadow:0 2px 10px rgba(79,70,229,.06);
+  margin-bottom:2rem;
+}
+.coord-grade-head {
+  background:linear-gradient(120deg,#f7faff,#eef2ff);
+  border-bottom:1px solid #dbe5f4;padding:.9rem 1.2rem;
+  display:flex;align-items:center;gap:.65rem;
+}
+.coord-grade-head h5 { font-size:.95rem;font-weight:800;color:#0f3f90;margin:0; }
+.coord-grade-body { padding:1.2rem; }
+
+@media (max-width:768px) {
+  .coord-hero { padding:1.4rem 1.2rem 1.9rem; }
+  .ch-greeting { font-size:1.35rem; }
+  .coord-kpi-strip { grid-template-columns:repeat(2,1fr); }
+  .elec-header { padding:.9rem 1rem; }
+  .elec-candidates { padding:.75rem 1rem 1rem; }
+  .elec-vote-bar-wrap { min-width:80px; }
+}
+@media (max-width:480px) {
+  .coord-kpi-strip { grid-template-columns:repeat(2,1fr); }
+  .elec-cand-grado { display:none; }
+}
+</style>
+{% endblock extrastyles %}
 
 {% block contenido %}
-<div class="container-fluid mt-4">
-    <h1 class="h2 mb-4">Bienvenido/a, Coordinador(a) {{ coordinador.get_full_name }}</h1>
-    <p class="lead text-muted">Desde aquí puedes acceder a los reportes y herramientas de gestión globales de la institución.</p>
-    <hr>
-    
-    <div class="row g-4">
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center d-flex flex-column">
-                    <i class="bi bi-shield-exclamation fs-1 text-danger"></i>
-                    <h5 class="card-title mt-3">Reporte de Riesgo Académico</h5>
-                    <p class="card-text flex-grow-1">Supervisa el rendimiento y los estudiantes en riesgo por curso.</p>
-                    <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="btn btn-danger stretched-link mt-auto">Ver Reporte</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center d-flex flex-column">
-                <i class="bi bi-shield-exclamation fs-1 text-danger"></i>
-                <h5 class="card-title mt-3">Reporte de Riesgo Inasistencias</h5>
-                <p class="card-text flex-grow-1">Detecta estudiantes en riesgo por notas bajas, inasistencias o falta de seguimiento académico.</p>
-                <a href="{% url 'gestion_academica:reporte_riesgo_academico' %}" class="btn btn-danger stretched-link mt-auto">Ver Reporte de Riesgo</a>
-            </div>
-        </div>
-    </div>
-        <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center d-flex flex-column">
-                <i class="bi bi-patch-check-fill fs-1 text-success"></i>
-                <h5 class="card-title mt-3">Proceso de Graduación</h5>
-                <p class="card-text flex-grow-1">Transfiere a los estudiantes del último grado al archivo de egresados y genera sus reportes finales.</p>
-                <a href="{% url 'gestion_academica:proceso_graduacion' %}" class="btn btn-success stretched-link mt-auto">Iniciar Proceso</a>
-            </div>
-        </div>
-    </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center d-flex flex-column">
-                    <i class="bi bi-calendar-check fs-1 text-info"></i>
-                    <h5 class="card-title mt-3">Dashboard de Asistencia</h5>
-                    <p class="card-text flex-grow-1">Monitorea la asistencia diaria de todos los estudiantes.</p>
-                    <a href="{% url 'gestion_academica:admin_asistencia_diaria' %}" class="btn btn-info stretched-link mt-auto">Ver Dashboard</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-    <div class="card h-100 shadow-sm">
-        <div class="card-body text-center d-flex flex-column">
-            <i class="bi bi-bar-chart-fill fs-1 text-primary"></i>
-            <h5 class="card-title mt-3">Análisis IA de Elecciones</h5>
-            <p class="card-text flex-grow-1">
-                Consulta los análisis automáticos de las propuestas de los candidatos en los procesos electorales estudiantiles.
-            </p>
-            <a href="{% url 'gestion_academica:dashboard_eleccion_ia' 1 %}" class="btn btn-primary stretched-link mt-auto">
-                Ver Panel Comparativo
-            </a>
-        </div>
-    </div>
-</div>
-<div class="col-md-6 col-lg-4">
-    <div class="card h-100 shadow-sm">
-        <div class="card-body text-center d-flex flex-column">
-            <i class="bi bi-clipboard-plus fs-1 text-success"></i>
-            <h5 class="card-title mt-3">Gestión de Elecciones</h5>
-            <p class="card-text flex-grow-1">Crea y administra procesos electorales estudiantiles directamente desde el panel.</p>
-            <a href="{% url 'gestion_academica:gestionar_elecciones' %}" class="btn btn-success stretched-link mt-auto">Ir a Elecciones</a>
-        </div>
-    </div>
-</div>
+<div class="container-fluid mt-3">
 
-        <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center d-flex flex-column">
-                <i class="bi bi-calendar2-week-fill fs-1 text-info"></i>
-                <h5 class="card-title mt-3">Supervisión de Citas</h5>
-                <p class="card-text flex-grow-1">Consulta el historial y los acuerdos de las reuniones entre docentes y familiares.</p>
-                <a href="{% url 'gestion_academica:supervisar_citas' %}" class="btn btn-info stretched-link mt-auto">Ver Historial</a>
-            </div>
-        </div>
+  {# ════ HERO ════ #}
+  <div class="coord-hero">
+    <div class="ch-badge"><i class="bi bi-building-check"></i> Coordinación Académica</div>
+    <div class="ch-greeting">
+      {% now "H" as hora_int %}
+      {% if hora_int < "12" %}Buenos días{% elif hora_int < "19" %}Buenas tardes{% else %}Buenas noches{% endif %},
+      {{ usuario.get_full_name|default:usuario.username }} 🎓
     </div>
-    <div class="col-md-6 col-lg-4">
-    <div class="card h-100 shadow-sm">
-        <div class="card-body text-center d-flex flex-column">
-            <i class="bi bi-shield-check fs-1 text-success"></i>
-            <h5 class="card-title mt-3">Historial de Convivencia</h5>
-            <p class="card-text flex-grow-1">
-                Visualiza los reportes de situaciones clasificadas por la IA como TIPO I, II o III según la Ruta de Convivencia Escolar.
-            </p>
-            <a href="{% url 'gestion_academica:historial_convivencia' %}" class="btn btn-success stretched-link mt-auto">
-                Ver Reporte
-            </a>
-        </div>
+    <div class="ch-sub" id="coord-live-date">Panel de Supervisión Institucional</div>
+    <div class="ch-actions">
+      <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="ch-btn ch-red">
+        <i class="bi bi-shield-exclamation"></i> Riesgo Global
+      </a>
+      <a href="{% url 'gestion_academica:admin_asistencia_diaria' %}" class="ch-btn ch-white">
+        <i class="bi bi-calendar-check-fill"></i> Asistencia
+      </a>
+      <a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="ch-btn">
+        <i class="bi bi-heart-pulse-fill"></i> Bienestar
+      </a>
+      <a href="{% url 'gestion_academica:supervisar_citas' %}" class="ch-btn">
+        <i class="bi bi-calendar2-week-fill"></i> Supervisar Citas
+      </a>
     </div>
-</div>
-    
-        <!-- Widget de Asistencia General -->
-        <div class="col-md-6 col-lg-4">
-            <a href="{% url 'gestion_academica:reporte_asistencia_materia' %}" class="text-decoration-none">
-                <div class="card text-white bg-info h-100 shadow">
-                    <div class="card-body text-center d-flex flex-column justify-content-center">
-                        <i class="bi bi-calendar-check-fill fs-1"></i>
-                        <h5 class="card-title mt-3">Asistencia General (Hoy)</h5>
-                        <p class="fs-1 fw-bold mb-0">{{ porcentaje_asistencia_hoy }}%</p>
-                        <p class="card-text">Del total de estudiantes activos.</p>
-                    </div>
-                </div>
-            </a>
+  </div>
+
+  {# ════ KPI STRIP ════ #}
+  <div class="coord-kpi-strip">
+
+    <a href="{% url 'gestion_academica:reporte_asistencia_materia' %}" class="coord-kpi-card ckc-teal">
+      <div class="ckc-icon"><i class="bi bi-calendar-check-fill"></i></div>
+      <div class="ckc-num">{{ porcentaje_asistencia_hoy }}<span style="font-size:1.1rem;">%</span></div>
+      <div class="ckc-label">Asistencia hoy</div>
+      <div class="ckc-link"><i class="bi bi-arrow-right-short"></i> Ver detalle</div>
+    </a>
+
+    <a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="coord-kpi-card {% if alertas_bienestar_count > 0 %}ckc-red{% else %}ckc-green{% endif %}">
+      <div class="ckc-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+      <div class="ckc-num">{{ alertas_bienestar_count }}</div>
+      <div class="ckc-label">Alertas bienestar</div>
+      <div class="ckc-link"><i class="bi bi-arrow-right-short"></i> Revisar</div>
+    </a>
+
+    <a href="{% url 'gestion_academica:historial_convivencia' %}" class="coord-kpi-card ckc-amber">
+      <div class="ckc-icon"><i class="bi bi-shield-exclamation"></i></div>
+      <div class="ckc-num">{{ cantidad_convivencia }}</div>
+      <div class="ckc-label">Casos convivencia</div>
+      <div class="ckc-link"><i class="bi bi-arrow-right-short"></i> Ver historial</div>
+    </a>
+
+    {% if eleccion_mas_reciente %}
+    <a href="{% url 'gestion_academica:gestionar_elecciones' %}" class="coord-kpi-card ckc-indigo">
+      <div class="ckc-icon"><i class="bi bi-ballot-fill"></i></div>
+      <div class="ckc-num">{{ total_votos }}</div>
+      <div class="ckc-label">Votos emitidos</div>
+      <div class="ckc-link">
+        {% if eleccion_activa %}<i class="bi bi-circle-fill" style="font-size:.5rem;animation:pulse 1.5s infinite;"></i> En curso{% else %}<i class="bi bi-arrow-right-short"></i> Ver elección{% endif %}
+      </div>
+    </a>
+    {% else %}
+    <a href="{% url 'gestion_academica:gestionar_elecciones' %}" class="coord-kpi-card ckc-indigo">
+      <div class="ckc-icon"><i class="bi bi-ballot"></i></div>
+      <div class="ckc-num" style="font-size:1rem;padding-top:.5rem;">Sin elección</div>
+      <div class="ckc-label">Elecciones</div>
+      <div class="ckc-link"><i class="bi bi-plus-circle"></i> Crear proceso</div>
+    </a>
+    {% endif %}
+
+    <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="coord-kpi-card ckc-red">
+      <div class="ckc-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="ckc-num" style="font-size:1rem;padding-top:.5rem;line-height:1.4;">Riesgo Global</div>
+      <div class="ckc-label">Por cursos y grados</div>
+      <div class="ckc-link"><i class="bi bi-arrow-right-short"></i> Analizar</div>
+    </a>
+
+    <a href="{% url 'gestion_academica:proceso_graduacion' %}" class="coord-kpi-card ckc-green">
+      <div class="ckc-icon"><i class="bi bi-patch-check-fill"></i></div>
+      <div class="ckc-num" style="font-size:1rem;padding-top:.5rem;line-height:1.4;">Graduación</div>
+      <div class="ckc-label">Egresados</div>
+      <div class="ckc-link"><i class="bi bi-arrow-right-short"></i> Proceso</div>
+    </a>
+
+  </div>
+
+  {# ════ WIDGET DE ELECCIONES ════ #}
+  {% if eleccion_mas_reciente %}
+  <div class="coord-sec">
+    <div class="cs-icon" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-ballot-fill"></i></div>
+    <h2>Resultados de Elecciones Estudiantiles</h2>
+    {% if eleccion_mas_reciente %}
+    <div class="ms-auto d-flex gap-2">
+      <a href="{% url 'gestion_academica:gestionar_elecciones' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-gear-fill me-1"></i>Gestionar
+      </a>
+      <a href="{% url 'gestion_academica:dashboard_eleccion_ia' eleccion_mas_reciente.pk %}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-robot me-1"></i>Análisis IA
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="elec-widget">
+    <div class="elec-header">
+      <div>
+        <div class="eh-title">{{ eleccion_mas_reciente.nombre }}</div>
+        <div class="eh-cargo"><i class="bi bi-person-badge-fill me-1"></i>Cargo: {{ eleccion_mas_reciente.cargo }}</div>
+      </div>
+      {% if eleccion_activa %}
+      <span class="elec-badge-estado elec-badge-activa"><i class="bi bi-circle-fill" style="font-size:.5rem;"></i> Votación activa</span>
+      {% else %}
+        {% now "Y-m-d" as today_str %}
+        {% if eleccion_mas_reciente.fecha_inicio|date:"Y-m-d" > today_str %}
+        <span class="elec-badge-estado elec-badge-proxima"><i class="bi bi-clock-fill"></i> Próxima</span>
+        {% else %}
+        <span class="elec-badge-estado elec-badge-cerrada"><i class="bi bi-lock-fill"></i> Cerrada</span>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="elec-meta-strip">
+      <div class="elec-meta-chip"><i class="bi bi-calendar3"></i> Inicio: <strong>{{ eleccion_mas_reciente.fecha_inicio|date:"d M Y" }}</strong></div>
+      <div class="elec-meta-chip"><i class="bi bi-calendar-x-fill"></i> Cierre: <strong>{{ eleccion_mas_reciente.fecha_fin|date:"d M Y" }}</strong></div>
+      <div class="elec-meta-chip"><i class="bi bi-person-check-fill"></i> Votos emitidos: <strong>{{ total_votos }}</strong></div>
+      <div class="elec-meta-chip"><i class="bi bi-people-fill"></i> Votantes elegibles: <strong>{{ total_votantes_elegibles }}</strong></div>
+    </div>
+
+    <div class="elec-part-bar-wrap">
+      <div class="elec-part-bar-label">
+        <span>Participación electoral</span>
+        <span><strong>{{ porcentaje_participacion }}%</strong></span>
+      </div>
+      <div class="elec-part-bar">
+        <div class="elec-part-bar-fill" style="width:{{ porcentaje_participacion }}%;"></div>
+      </div>
+    </div>
+
+    <div class="elec-candidates">
+      {% if votos_data %}
+      {% for item in votos_data %}
+      <div class="elec-candidate-row {% if forloop.first %}elec-cand-row-leader{% endif %}">
+        <div class="elec-cand-pos {% if forloop.counter == 1 %}pos-1{% elif forloop.counter == 2 %}pos-2{% elif forloop.counter == 3 %}pos-3{% else %}pos-n{% endif %}">
+          {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
+        </div>
+        <div class="elec-cand-avatar">
+          {% if item.candidato.foto %}
+          <img src="{{ item.candidato.foto.url }}" alt="{{ item.candidato.estudiante.usuario.get_full_name }}">
+          {% else %}
+          {{ item.candidato.estudiante.usuario.first_name|slice:":1"|upper }}{{ item.candidato.estudiante.usuario.last_name|slice:":1"|upper }}
+          {% endif %}
+        </div>
+        <div class="elec-cand-info">
+          <div class="elec-cand-name">{{ item.candidato.estudiante.usuario.get_full_name }}</div>
+          <div class="elec-cand-grado"><i class="bi bi-mortarboard-fill me-1"></i>{{ item.candidato.estudiante.grado_actual.nombre|default:"—" }}</div>
+        </div>
+        <div class="elec-vote-bar-wrap">
+          <div class="elec-vote-bar">
+            <div class="elec-vote-bar-fill" style="width:{{ item.porcentaje }}%;"></div>
+          </div>
+          <div class="elec-vote-count">
+            {{ item.votos }} voto{{ item.votos|pluralize }} &middot; {{ item.porcentaje }}%
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div style="text-align:center;padding:2rem;color:#94a3b8;">
+        <i class="bi bi-ballot" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.5;"></i>
+        <p class="mb-1 fw-semibold">Aún no hay candidatos inscritos</p>
+        <a href="{% url 'gestion_academica:gestionar_candidatos' eleccion_mas_reciente.pk %}" class="btn btn-sm btn-outline-primary mt-2">
+          <i class="bi bi-person-plus-fill me-1"></i>Inscribir candidatos
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ════ HERRAMIENTAS DE GESTIÓN ════ #}
+  <div class="coord-sec">
+    <div class="cs-icon" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+    <h2>Herramientas de Gestión</h2>
+  </div>
+  <div class="row g-3 mb-2">
+
+    {# ── CORTE PREVENTIVO (widget destacado) ── #}
+    <div class="col-12">
+      <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#6d28d9 100%);
+                  border-radius:1rem;padding:1.2rem 1.5rem;color:#fff;
+                  display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;
+                  box-shadow:0 6px 24px rgba(79,70,229,.3);position:relative;overflow:hidden;">
+        {# Burbujas decorativas #}
+        <div style="position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06);pointer-events:none;"></div>
+        <div style="position:absolute;right:80px;bottom:-50px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none;"></div>
+
+        <div style="width:56px;height:56px;border-radius:.9rem;background:rgba(255,255,255,.15);
+                    display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex-shrink:0;">
+          <i class="bi bi-clipboard2-pulse-fill"></i>
         </div>
 
-        <!-- Widget de Alertas de Bienestar -->
-        <div class="col-md-6 col-lg-4">
-            <a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="text-decoration-none">
-                <div class="card text-white {% if alertas_bienestar_count > 0 %}bg-danger{% else %}bg-success{% endif %} h-100 shadow">
-                    <div class="card-body text-center d-flex flex-column justify-content-center">
-                        <i class="bi bi-heart-pulse-fill fs-1"></i>
-                        <h5 class="card-title mt-3">Alertas de Bienestar</h5>
-                        <p class="fs-1 fw-bold mb-0">{{ alertas_bienestar_count }}</p>
-                        <p class="card-text">Observaciones que requieren revisión.</p>
-                    </div>
-                </div>
-            </a>
+        <div style="flex:1;min-width:200px;">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;">
+            <span style="font-size:1.1rem;font-weight:800;font-family:'Manrope',sans-serif;">Cortes Preventivos</span>
+            <span style="background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.4);
+                         border-radius:2rem;padding:.1rem .5rem;font-size:.65rem;font-weight:800;letter-spacing:.5px;">NUEVO</span>
+          </div>
+          <p style="font-size:.82rem;opacity:.85;margin:0;line-height:1.5;">
+            Genera informes intermedios de alerta temprana por grado: calcula promedios parciales,
+            detecta estudiantes en riesgo y exporta PDF/Excel para docentes y familias.
+          </p>
         </div>
-        
-        
-     <!-- Sección de Reporte de Cursos (MODIFICADA) -->
-    <div class="card shadow-sm mt-5">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-collection-fill me-2"></i>Reporte de Cursos Activos por Grado</h5>
-        </div>
-        <div class="card-body">
-            <!-- Filtro por Grado (MODIFICADO) -->
-            <div class="row g-3 align-items-end mb-4">
-                <div class="col-md-6">
-                    <label for="grado-select" class="form-label fw-bold">Selecciona un Grado para ver su estructura:</label>
-                    <!-- Se eliminó el onchange y el form, y se añadió un ID -->
-                    <select id="grado-select" class="form-select">
-                        <option value="">--- Elige un grado ---</option>
-                        {% for grado in grados_institucion %}
-                            <option value="{{ grado.pk }}">{{ grado.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
 
-            <!-- Contenedor para la Tabla de Resultados -->
-            <div id="reporte-cursos-container">
-                <div class="alert alert-info text-center">
-                    Por favor, selecciona un grado para ver los cursos.
-                </div>
-            </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.6rem;flex-shrink:0;">
+          <a href="{% url 'gestion_academica:lista_cortes_preventivos' %}"
+             style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+                    color:#fff;border-radius:.55rem;padding:.45rem 1rem;
+                    font-size:.82rem;font-weight:700;text-decoration:none;
+                    display:inline-flex;align-items:center;gap:.4rem;transition:.2s;"
+             onmouseover="this.style.background='rgba(255,255,255,.3)'"
+             onmouseout="this.style.background='rgba(255,255,255,.18)'">
+            <i class="bi bi-list-ul"></i> Ver Cortes
+          </a>
+          <a href="{% url 'gestion_academica:crear_corte_preventivo' %}"
+             style="background:#fff;color:#4f46e5;border-radius:.55rem;
+                    padding:.45rem 1rem;font-size:.82rem;font-weight:700;
+                    text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;transition:.2s;"
+             onmouseover="this.style.background='#eef2ff'"
+             onmouseout="this.style.background='#fff'">
+            <i class="bi bi-plus-circle-fill"></i> Nuevo Corte
+          </a>
         </div>
+      </div>
     </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-red">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-shield-exclamation"></i></div>
+          <div class="ctc-title">Riesgo Académico Global</div>
+          <div class="ctc-desc">Supervisa el rendimiento y los estudiantes en riesgo de pérdida en todos los cursos de la institución.</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="ctc-link">
+            Ver Reporte <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-amber">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-person-dash-fill"></i></div>
+          <div class="ctc-title">Riesgo por Inasistencias</div>
+          <div class="ctc-desc">Detecta estudiantes en riesgo por notas bajas, inasistencias o falta de seguimiento académico.</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:reporte_riesgo_academico' %}" class="ctc-link">
+            Ver Reporte <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-teal">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-calendar-check-fill"></i></div>
+          <div class="ctc-title">Dashboard de Asistencia</div>
+          <div class="ctc-desc">Monitorea la asistencia diaria de todos los estudiantes activos de la institución.</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:admin_asistencia_diaria' %}" class="ctc-link">
+            Ver Dashboard <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-purple">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+          <div class="ctc-title">Bienestar — Halu Sentinel</div>
+          <div class="ctc-desc">Visualiza y gestiona los casos de convivencia clasificados por IA según la Ruta de Atención (Ley 1620).</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="ctc-link">
+            Ver Casos <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-blue">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-calendar2-week-fill"></i></div>
+          <div class="ctc-title">Supervisión de Citas</div>
+          <div class="ctc-desc">Consulta el historial y los acuerdos de reuniones entre docentes y familias a nivel institucional.</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:supervisar_citas' %}" class="ctc-link">
+            Ver Historial <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-green">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-patch-check-fill"></i></div>
+          <div class="ctc-title">Proceso de Graduación</div>
+          <div class="ctc-desc">Transfiere a los estudiantes del último grado al archivo de egresados y genera sus reportes finales.</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:proceso_graduacion' %}" class="ctc-link">
+            Iniciar Proceso <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-indigo">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-bar-chart-fill"></i></div>
+          <div class="ctc-title">Análisis IA de Elecciones</div>
+          <div class="ctc-desc">Consulta los análisis comparativos automáticos de las propuestas de los candidatos estudiantiles.</div>
+        </div>
+        <div class="ctc-foot">
+          {% if eleccion_mas_reciente %}
+          <a href="{% url 'gestion_academica:dashboard_eleccion_ia' eleccion_mas_reciente.pk %}" class="ctc-link">
+            Ver Análisis <i class="bi bi-arrow-right-short"></i>
+          </a>
+          {% else %}
+          <span class="ctc-link text-muted" style="cursor:default;font-weight:500;">
+            <i class="bi bi-info-circle me-1"></i>Sin elecciones creadas
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-indigo">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-clipboard-plus-fill"></i></div>
+          <div class="ctc-title">Gestión de Elecciones</div>
+          <div class="ctc-desc">Crea y administra procesos electorales estudiantiles, inscribe candidatos y controla fechas.</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:gestionar_elecciones' %}" class="ctc-link">
+            Ir a Elecciones <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-slate">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+          <div class="ctc-title">Centro de Reportes</div>
+          <div class="ctc-desc">Accede al panel de reportes académicos: promedios, rendimiento, asistencia y consolidados.</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="ctc-link">
+            Ver Reportes <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-blue">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-journal-richtext"></i></div>
+          <div class="ctc-title">Libro de Notas</div>
+          <div class="ctc-desc">Consulta el libro de notas de cualquier curso de la institución. Acceso de solo lectura para supervisión.</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:coordinador_seleccionar_curso_libro_notas' %}" class="ctc-link">
+            Ver Cursos <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card" style="border-left:4px solid #4f46e5;">
+        <div class="ctc-top">
+          <div class="ctc-icon" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-bar-chart-steps"></i></div>
+          <div class="ctc-title" style="color:#4f46e5;">Vista Anual</div>
+          <div class="ctc-desc">Revisa el promedio anual de cada estudiante en todos los períodos del año escolar, por curso.</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:coordinador_seleccionar_curso_libro_notas' %}?tab=anual" class="ctc-link" style="color:#4f46e5;">
+            Ver Vista Anual <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-4">
+      <div class="coord-tool-card ctc-teal">
+        <div class="ctc-top">
+          <div class="ctc-icon"><i class="bi bi-person-lines-fill"></i></div>
+          <div class="ctc-title">Rendimiento por Estudiante</div>
+          <div class="ctc-desc">Visualiza el desempeño acumulado de cada estudiante a lo largo de todos los períodos del año.</div>
+        </div>
+        <div class="ctc-foot">
+          <a href="{% url 'gestion_academica:reporte_acumulado_periodo' %}" class="ctc-link">
+            Ver Reporte <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ════ ALERTA PLANES PENDIENTES ════ #}
+  {% if planes_pendientes_count > 0 %}
+  <a href="{% url 'gestion_academica:supervisar_planes_semanales' %}" class="text-decoration-none d-block mb-3"
+     style="border-radius:1rem;overflow:hidden;box-shadow:0 4px 18px rgba(234,88,12,.25);">
+    <div style="background:linear-gradient(135deg,#ea580c 0%,#f97316 60%,#fb923c 100%);padding:1rem 1.4rem;display:flex;align-items:center;gap:1rem;position:relative;overflow:hidden;">
+      {# Ondas de fondo #}
+      <div style="position:absolute;right:-20px;top:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08);"></div>
+      <div style="position:absolute;right:20px;top:10px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.06);"></div>
+      {# Ícono con pulso #}
+      <div style="position:relative;flex-shrink:0;">
+        <div style="width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:.85rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#fff;">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+        <span style="position:absolute;-top:4px;right:-4px;background:#fff;color:#ea580c;font-size:.65rem;font-weight:900;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2);">{{ planes_pendientes_count }}</span>
+      </div>
+      {# Texto #}
+      <div style="flex:1;color:#fff;">
+        <div style="font-size:.73rem;opacity:.9;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">Acción requerida</div>
+        <div style="font-size:1.05rem;font-weight:800;line-height:1.2;margin:.15rem 0;">
+          {% if planes_pendientes_count == 1 %}
+            1 plan semanal esperando tu revisión
+          {% else %}
+            {{ planes_pendientes_count }} planes semanales esperando tu revisión
+          {% endif %}
+        </div>
+        <div style="font-size:.78rem;opacity:.88;">Docentes han enviado sus planeaciones — revisa, aprueba o devuelve con observaciones.</div>
+      </div>
+      {# Flecha #}
+      <div style="color:rgba(255,255,255,.8);font-size:1.5rem;flex-shrink:0;"><i class="bi bi-arrow-right-circle-fill"></i></div>
+    </div>
+  </a>
+  {% endif %}
+
+  {# ════ PLANEACIÓN CURRICULAR ════ #}
+  <div class="coord-sec" style="margin-top:.5rem;">
+    <div class="cs-icon" style="background:#e0e7ff;color:#4f46e5;"><i class="bi bi-journal-bookmark-fill"></i></div>
+    <h2>Planeación Curricular</h2>
+  </div>
+
+  {# Resumen rápido: mallas + planes pendientes #}
+  <div style="background:linear-gradient(135deg,#1e1b4b 0%,#3730a3 55%,#4338ca 100%);border-radius:1rem;padding:1.3rem 1.5rem;margin-bottom:1.25rem;color:#fff;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\");"></div>
+    <div class="row g-3 align-items-center" style="position:relative;z-index:1;">
+      <div class="col-md-8">
+        <div style="font-size:.78rem;opacity:.8;margin-bottom:.2rem;"><i class="bi bi-journal-bookmark-fill me-1"></i> Sistema de Planeación Curricular</div>
+        <div style="font-size:1.05rem;font-weight:800;margin-bottom:.3rem;">Malla Curricular + Planes Semanales de Docentes</div>
+        <div style="font-size:.81rem;opacity:.82;">
+          Define la malla oficial por materia (EBC, DBA, logros e indicadores por período) y supervisa que cada docente tenga su plan semanal entregado a tiempo.
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex flex-column gap-2">
+          <a href="{% url 'gestion_academica:malla_curricular_list' %}"
+             style="display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;text-decoration:none;border-radius:.6rem;padding:.5rem .9rem;font-size:.82rem;font-weight:700;transition:background .15s;"
+             onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
+            <i class="bi bi-journal-bookmark-fill"></i> Gestionar Mallas Curriculares
+          </a>
+          <a href="{% url 'gestion_academica:supervisar_planes_semanales' %}"
+             style="display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;text-decoration:none;border-radius:.6rem;padding:.5rem .9rem;font-size:.82rem;font-weight:700;transition:background .15s;"
+             onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
+            <i class="bi bi-kanban-fill"></i> Supervisar Planes Semanales
+            {% if planes_pendientes_count > 0 %}
+            <span style="margin-left:auto;background:#f97316;color:#fff;font-size:.68rem;font-weight:900;border-radius:20px;padding:.15rem .45rem;white-space:nowrap;">{{ planes_pendientes_count }} pendiente{% if planes_pendientes_count != 1 %}s{% endif %}</span>
+            {% endif %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Mini-info de qué es cada cosa #}
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div style="background:#fff;border-radius:.85rem;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#3730a3,#4f46e5);padding:.7rem 1.1rem;display:flex;align-items:center;gap:.6rem;">
+          <div style="width:32px;height:32px;border-radius:.45rem;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;"><i class="bi bi-journal-bookmark-fill"></i></div>
+          <div style="color:#fff;font-weight:800;font-size:.9rem;">Malla Curricular</div>
+        </div>
+        <div style="padding:.9rem 1.1rem;font-size:.8rem;color:#475569;line-height:1.6;">
+          <p class="mb-2">Una malla por <strong>materia · grado · año</strong>. El coordinador la define con:</p>
+          <ul class="mb-2 ps-3" style="font-size:.77rem;">
+            <li>Ejes temáticos por período (1°, 2°, 3°, 4°)</li>
+            <li>Estándares Básicos (EBC) y Derechos Básicos (DBA)</li>
+            <li>Logros e indicadores por nivel (Bajo / Básico / Alto / Superior)</li>
+            <li>Metodología, recursos y criterios de evaluación</li>
+          </ul>
+          <p class="mb-0 text-muted" style="font-size:.74rem;">Los docentes la consultan como hoja de ruta para sus planes semanales.</p>
+        </div>
+        <div style="padding:.6rem 1.1rem;border-top:1px solid #f1f5f9;">
+          <a href="{% url 'gestion_academica:malla_curricular_list' %}" style="font-size:.78rem;font-weight:700;color:#4f46e5;text-decoration:none;">
+            <i class="bi bi-arrow-right-circle-fill me-1"></i> Ir a Mallas Curriculares
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div style="background:#fff;border-radius:.85rem;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#0369a1,#0ea5e9);padding:.7rem 1.1rem;display:flex;align-items:center;gap:.6rem;">
+          <div style="width:32px;height:32px;border-radius:.45rem;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;"><i class="bi bi-kanban-fill"></i></div>
+          <div style="color:#fff;font-weight:800;font-size:.9rem;">Planes Semanales</div>
+        </div>
+        <div style="padding:.9rem 1.1rem;font-size:.8rem;color:#475569;line-height:1.6;">
+          <p class="mb-2">Cada docente entrega su plan semana a semana:</p>
+          <ul class="mb-2 ps-3" style="font-size:.77rem;">
+            <li>Clases planificadas día a día (Lunes–Viernes)</li>
+            <li>Vinculadas a la malla curricular de su materia</li>
+            <li>Opción de convertir en Deber o Actividad Evaluativa</li>
+            <li>Flujo: <strong>Borrador → Enviado → Aprobado</strong></li>
+          </ul>
+          <p class="mb-0 text-muted" style="font-size:.74rem;">El coordinador ve el semáforo de todos los docentes y puede aprobar o devolver con observaciones.</p>
+        </div>
+        <div style="padding:.6rem 1.1rem;border-top:1px solid #f1f5f9;">
+          <a href="{% url 'gestion_academica:supervisar_planes_semanales' %}" style="font-size:.78rem;font-weight:700;color:#0369a1;text-decoration:none;display:flex;align-items:center;gap:.4rem;">
+            <i class="bi bi-arrow-right-circle-fill"></i> Ir a Supervisión de Planes
+            {% if planes_pendientes_count > 0 %}
+            <span style="background:#ea580c;color:#fff;font-size:.65rem;font-weight:900;border-radius:20px;padding:.1rem .4rem;">{{ planes_pendientes_count }} pendiente{% if planes_pendientes_count != 1 %}s{% endif %}</span>
+            {% endif %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ════ REPORTE DE CURSOS POR GRADO ════ #}
+  <div class="coord-sec">
+    <div class="cs-icon" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-collection-fill"></i></div>
+    <h2>Estructura de Cursos por Grado</h2>
+  </div>
+  <div class="coord-grade-card">
+    <div class="coord-grade-head">
+      <div class="cs-icon" style="width:28px;height:28px;background:#eef2ff;color:#4f46e5;font-size:.85rem;">
+        <i class="bi bi-funnel-fill"></i>
+      </div>
+      <h5>Selecciona un grado para ver sus cursos activos</h5>
+    </div>
+    <div class="coord-grade-body">
+      <div class="row g-3 align-items-end mb-4">
+        <div class="col-md-5">
+          <label for="grado-select" class="form-label fw-bold" style="font-size:.85rem;color:#334155;">Filtrar por grado:</label>
+          <select id="grado-select" class="form-select" style="border-color:#dbe5f4;">
+            <option value="">— Elige un grado —</option>
+            {% for grado in grados_institucion %}
+            <option value="{{ grado.pk }}">{{ grado.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div id="reporte-cursos-container">
+        <div class="text-center p-4" style="color:#94a3b8;background:#f7faff;border-radius:.75rem;border:1px dashed #dbe5f4;">
+          <i class="bi bi-collection" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.5;"></i>
+          Selecciona un grado para ver su estructura de cursos, docentes y aulas.
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
+<script type="application/json" id="coord-api-cursos-cfg">{{ api_cursos_por_grado_json|safe }}</script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const gradoSelect = document.getElementById('grado-select');
-    const container = document.getElementById('reporte-cursos-container');
+/* Fecha en vivo en el hero */
+(function () {
+  var el = document.getElementById('coord-live-date');
+  if (!el) return;
+  var opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+  el.textContent = new Date().toLocaleDateString('es-ES', opts);
+})();
 
-    gradoSelect.addEventListener('change', function() {
-        const gradoId = this.value;
+/* AJAX cursos por grado */
+document.addEventListener('DOMContentLoaded', function () {
+  var gradoSelect = document.getElementById('grado-select');
+  var container   = document.getElementById('reporte-cursos-container');
+  var apiCfg = { pattern:'', ph:'' };
+  try { apiCfg = JSON.parse(document.getElementById('coord-api-cursos-cfg').textContent); } catch(e){}
 
-        if (!gradoId) {
-            container.innerHTML = '<div class="alert alert-info text-center">Por favor, selecciona un grado para ver los cursos.</div>';
-            return;
-        }
-
-        // 1. Muestra un indicador de carga
-        container.innerHTML = `
-            <div class="d-flex justify-content-center align-items-center p-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <strong class="ms-3">Cargando cursos...</strong>
-            </div>
-        `;
-
-        // 2. Construye la URL de la nueva vista parcial
-        const url = `/academico/api/cursos-por-grado/${gradoId}/`;
-
-        // 3. Llama a la vista en segundo plano
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta del servidor.');
-                }
-                return response.text(); // Obtenemos el HTML de la tabla
-            })
-            .then(html => {
-                // 4. Reemplaza el indicador de carga con la tabla
-                container.innerHTML = html;
-            })
-            .catch(error => {
-                console.error('Error al cargar los cursos:', error);
-                container.innerHTML = '<div class="alert alert-danger text-center">Ocurrió un error al cargar los datos. Por favor, intenta de nuevo.</div>';
-            });
-    });
+  gradoSelect.addEventListener('change', function () {
+    var gradoId = this.value;
+    if (!gradoId) {
+      container.innerHTML = '<div class="text-center p-4" style="color:#94a3b8;background:#f7faff;border-radius:.75rem;border:1px dashed #dbe5f4;"><i class="bi bi-collection" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.5;"></i>Selecciona un grado para ver su estructura.</div>';
+      return;
+    }
+    container.innerHTML = '<div class="d-flex justify-content-center align-items-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando…</span></div><strong class="ms-3" style="color:#64748b;">Cargando cursos…</strong></div>';
+    var url = (apiCfg.pattern && apiCfg.ph) ? apiCfg.pattern.replace(apiCfg.ph, gradoId) : '';
+    if (!url) { container.innerHTML = '<div class="alert alert-danger">No se pudo construir la URL del servicio.</div>'; return; }
+    fetch(url)
+      .then(function(r){ if(!r.ok) throw new Error('Error'); return r.text(); })
+      .then(function(html){ container.innerHTML = html; })
+      .catch(function(){ container.innerHTML = '<div class="alert alert-danger">Error al cargar los datos. Intenta de nuevo.</div>'; });
+  });
 });
 </script>
 {% endblock %}
-

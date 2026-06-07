@@ -38,8 +38,14 @@ urlpatterns = [
     path('dashboard/', views.dashboard_admisiones, name='dashboard_admisiones'),
     path('importar/', views.importar_aspirantes_excel, name='importar_aspirantes'),
     path('importar/plantilla/', views.descargar_plantilla_importacion, name='descargar_plantilla_importacion'),
+    path('importar/lote/<int:lote_id>/', views.lote_importacion_detalle, name='lote_importacion_detalle'),
+    path('importar/lote/<int:lote_id>/estado/', views.lote_importacion_estado, name='lote_importacion_estado'),
+    path('importar/lote/<int:lote_id>/cancelar/', views.cancelar_lote_importacion, name='lote_importacion_cancelar'),
+    path('importar/lote/<int:lote_id>/reintentar/', views.reintentar_lote_importacion, name='lote_importacion_reintentar'),
+    path('importar/lote/<int:lote_id>/errores.xlsx', views.lote_importacion_errores_excel, name='lote_importacion_errores'),
+    path('importar/lote/<int:lote_id>/reenviar-correos/', views.reenviar_correos_lote, name='lote_reenviar_correos'),
     path('exportar/matriculados/', views.exportar_matriculados_excel, name='exportar_matriculados'),
-     path('aspirantes/crear/', views.crear_aspirante_manual, name='crear_aspirante_manual'),
+    path('aspirantes/crear/', views.crear_aspirante_manual, name='crear_aspirante_manual'),
 
     # ---- Vistas de API y Vistas Especiales ----
     path('api/dashboard-data/', views.dashboard_data, name='dashboard_data'),

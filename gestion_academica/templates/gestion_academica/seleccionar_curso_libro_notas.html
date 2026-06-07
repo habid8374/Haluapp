@@ -1,42 +1,178 @@
 {% extends "base_academico.html" %}
-{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% load static %}
+
+{% block titulo %}Seleccionar Curso — Libro de Notas{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+.csl-hero {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border-radius: 1.1rem; padding: 1.6rem 2rem; color: #fff;
+  margin-bottom: 1.3rem; position: relative; overflow: hidden;
+}
+.csl-hero::before {
+  content: ''; position: absolute; width: 240px; height: 240px;
+  border-radius: 50%; background: rgba(255,255,255,.06);
+  top: -90px; right: -50px; pointer-events: none;
+}
+.csl-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
+  border-radius: 2rem; padding: .2rem .72rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .3px;
+  text-transform: uppercase; margin-bottom: .55rem;
+}
+.csl-title { font-size: 1.4rem; font-weight: 800; margin-bottom: .2rem; }
+.csl-sub   { font-size: .86rem; opacity: .82; }
+
+/* Filter bar */
+.csl-filter {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: .85rem;
+  padding: .85rem 1.1rem; margin-bottom: 1.1rem;
+  box-shadow: 0 2px 6px rgba(79,70,229,.05);
+}
+
+/* Course cards */
+.csl-grid { display: flex; flex-direction: column; gap: .75rem; }
+.csl-card {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: 1rem;
+  padding: 1.1rem 1.3rem; display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  box-shadow: 0 2px 8px rgba(79,70,229,.05);
+  transition: box-shadow .2s, border-color .2s;
+}
+.csl-card:hover { box-shadow: 0 6px 20px rgba(79,70,229,.12); border-color: #a5b4fc; }
+.csl-icon {
+  width: 46px; height: 46px; border-radius: .75rem; flex-shrink: 0;
+  background: #eef2ff; color: #4f46e5;
+  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+.csl-info { flex: 1; min-width: 0; }
+.csl-materia { font-size: 1rem; font-weight: 800; color: #1e1b4b; margin-bottom: .15rem; }
+.csl-grado   { font-size: .82rem; color: #64748b; }
+.csl-actions { display: flex; gap: .5rem; flex-wrap: wrap; flex-shrink: 0; }
+
+.btn-ln-notas {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .45rem 1rem; border-radius: .55rem; font-size: .82rem; font-weight: 600;
+  background: linear-gradient(135deg,#4f46e5,#7c3aed); color: #fff;
+  border: none; text-decoration: none; transition: filter .15s; white-space: nowrap;
+}
+.btn-ln-notas:hover { filter: brightness(1.1); color: #fff; }
+
+.btn-ln-anual {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .45rem 1rem; border-radius: .55rem; font-size: .82rem; font-weight: 600;
+  background: #f0fdf4; color: #15803d; border: 1.5px solid #86efac;
+  text-decoration: none; transition: all .15s; white-space: nowrap;
+}
+.btn-ln-anual:hover { background: #dcfce7; color: #15803d; border-color: #4ade80; }
+
+@media (max-width: 540px) {
+  .csl-card { gap: .75rem; }
+  .csl-actions { width: 100%; }
+  .btn-ln-notas, .btn-ln-anual { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
 
 {% block contenido %}
-<div class="container mt-4">
-    <h1 class="mb-4">{{ titulo_pagina }}</h1>
+<div class="container-fluid mt-3">
 
-    <form method="get" class="mb-4 card card-body shadow-sm">
-        <div class="row align-items-end">
-            <div class="col-md-4">
-                <label for="periodo" class="form-label">Filtrar por Periodo Académico:</label>
-                <select name="periodo" id="periodo" class="form-select" onchange="this.form.submit()">
-                    {% for periodo in periodos_disponibles %}
-                        <option value="{{ periodo.pk }}" {% if periodo.pk == periodo_seleccionado.pk %}selected{% endif %}>
-                            {{ periodo.nombre }} ({{ periodo.año_escolar }})
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
+  <!-- Hero -->
+  <div class="csl-hero">
+    <div class="csl-badge"><i class="bi bi-journal-richtext me-1"></i>Coordinación Académica</div>
+    <div class="csl-title">Libro de Notas por Curso</div>
+    <div class="csl-sub">Supervisión de notas y vista anual de todos los cursos de la institución</div>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+      <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Filtro de período -->
+  {% if periodos_disponibles %}
+  <div class="csl-filter">
+    <form method="get" class="row align-items-end g-2">
+      {% if request.GET.tab %}
+      <input type="hidden" name="tab" value="{{ request.GET.tab }}">
+      {% endif %}
+      <div class="col-sm-auto">
+        <label for="periodo" class="form-label fw-600 mb-1" style="font-size:.82rem;color:#374151;">
+          <i class="bi bi-calendar-check-fill me-1 text-primary"></i>Período académico:
+        </label>
+        <select name="periodo" id="periodo" class="form-select form-select-sm" onchange="this.form.submit()">
+          {% for periodo in periodos_disponibles %}
+          <option value="{{ periodo.pk }}" {% if periodo.pk == periodo_seleccionado.pk %}selected{% endif %}>
+            {{ periodo.nombre }} ({{ periodo.año_escolar }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if periodo_seleccionado %}
+      <div class="col-sm-auto">
+        <span class="badge" style="background:#eef2ff;color:#4f46e5;font-size:.78rem;padding:.35rem .75rem;font-weight:700;">
+          <i class="bi bi-calendar2-week-fill me-1"></i>{{ periodo_seleccionado.nombre }}
+        </span>
+      </div>
+      {% endif %}
     </form>
+  </div>
+  {% endif %}
 
-    {% if periodo_seleccionado %}
-        <p class="lead text-muted">Mostrando cursos para el periodo: <strong>{{ periodo_seleccionado.nombre }}</strong>.</p>
-        <div class="list-group shadow-sm">
-            {% for curso in cursos %}
-                {# --- INICIO DE LA LÓGICA CORREGIDA --- #}
-                {# El enlace ahora apunta a la nueva URL despachadora #}
-                <a href="{% url 'gestion_academica:redirigir_libro_notas' curso_pk=curso.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                    <span><strong>{{ curso.materia.nombre_materia }}</strong> - {{ curso.grado.nombre }}</span>
-                    <span class="badge bg-primary rounded-pill">Ir a Calificar <i class="bi bi-chevron-right"></i></span>
-                </a>
-                {# --- FIN DE LA LÓGICA CORREGIDA --- #}
-            {% empty %}
-                <div class="list-group-item">No tienes cursos asignados para el periodo seleccionado.</div>
-            {% endfor %}
+  {% if periodo_seleccionado %}
+    {% if cursos %}
+    <!-- Información modo lectura -->
+    <div class="d-flex align-items-center gap-2 mb-3 p-3"
+         style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.75rem;font-size:.83rem;color:#1e40af;">
+      <i class="bi bi-eye-fill flex-shrink-0"></i>
+      <span><strong>Modo supervisión:</strong> Puedes consultar el libro de notas y la Vista Anual de cualquier curso. Las notas solo pueden ser modificadas por el docente asignado.</span>
+    </div>
+    <div class="csl-grid">
+      {% for curso in cursos %}
+      <div class="csl-card">
+        <div class="csl-icon"><i class="bi bi-journal-richtext"></i></div>
+        <div class="csl-info">
+          <div class="csl-materia">{{ curso.materia.nombre_materia }}</div>
+          <div class="csl-grado">
+            <i class="bi bi-mortarboard-fill me-1" style="color:#4f46e5;"></i>{{ curso.grado.nombre }}
+          </div>
         </div>
+        <div class="csl-actions">
+          <a href="{% url 'gestion_academica:redirigir_libro_notas' curso_pk=curso.pk %}"
+             class="btn-ln-notas">
+            <i class="bi bi-pencil-square"></i> Ver Notas
+          </a>
+          <a href="{% url 'gestion_academica:redirigir_libro_notas' curso_pk=curso.pk %}?tab=anual"
+             class="btn-ln-anual">
+            <i class="bi bi-bar-chart-steps"></i> Vista Anual
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div class="text-center py-5" style="color:#9ca3af;">
+        <i class="bi bi-journal-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+        <p class="mb-0 fw-600">No hay cursos registrados para este período.</p>
+      </div>
+      {% endfor %}
+    </div>
     {% else %}
-         <div class="alert alert-warning">No hay periodos académicos disponibles.</div>
+    <div class="text-center py-5" style="color:#9ca3af;">
+      <i class="bi bi-journal-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+      <p class="mb-0 fw-600">No hay cursos para el período seleccionado.</p>
+    </div>
     {% endif %}
+  {% else %}
+  <div class="alert alert-warning d-flex align-items-center gap-2">
+    <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+    <span>No hay períodos académicos disponibles en el sistema.</span>
+  </div>
+  {% endif %}
+
 </div>
-{% endblock %}
+{% endblock contenido %}

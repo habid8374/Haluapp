@@ -2,31 +2,144 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bienvenido al Proceso de Admisión</title>
+    <style>
+        @media only screen and (max-width: 600px) {
+            .container { width: 100% !important; padding: 16px !important; }
+        }
+    </style>
 </head>
-<body style="font-family: sans-serif; margin: 20px; color: #333;">
-    <h1 style="color: #005a9e;">¡Gracias por tu interés en nuestra institución!</h1>
-    
-    <p>Hola <strong>{{ aspirante.nombres }} {{ aspirante.apellidos }}</strong>,</p>
+<body style="margin:0; padding:0; background-color:#f4f6f9; font-family: Arial, Helvetica, sans-serif; color:#333333;">
 
-    <p>Hemos recibido tu solicitud de admisión para el grado <strong>{{ aspirante.grado_aspira.nombre }}</strong> y estamos muy emocionados de conocerte.</p>
+    <!-- Wrapper -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="background-color:#f4f6f9; padding: 32px 16px;">
+        <tr>
+            <td align="center">
 
-    <p>Para continuar con el proceso, hemos creado un portal personal para ti. Aquí podrás subir los documentos requeridos y seguir el estado de tu solicitud en tiempo real.</p>
+                <!-- Contenedor principal -->
+                <table class="container" width="600" cellpadding="0" cellspacing="0" border="0"
+                       style="max-width:600px; width:100%; background-color:#ffffff;
+                              border-radius:10px; overflow:hidden;
+                              box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 
-    <p style="text-align: center; margin: 30px 0;">
-        <a href="{{ portal_url }}" style="background-color: #0078D4; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-size: 16px;">
-            Acceder a mi Portal de Postulante
-        </a>
-    </p>
+                    <!-- Encabezado -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #0055a5 0%, #0078D4 100%);
+                                   padding: 36px 32px; text-align: center;">
+                            <h1 style="margin:0; color:#ffffff; font-size:22px; font-weight:700; line-height:1.3;">
+                                ¡Bienvenido al Proceso de Admisión!
+                            </h1>
+                            <p style="margin: 8px 0 0; color: rgba(255,255,255,0.85); font-size:14px;">
+                                {{ aspirante.institucion.nombre }}
+                            </p>
+                        </td>
+                    </tr>
 
-    <p>Si el botón no funciona, también puedes copiar y pegar el siguiente enlace en tu navegador:</p>
-    <p><small>{{ portal_url }}</small></p>
+                    <!-- Cuerpo -->
+                    <tr>
+                        <td style="padding: 32px 32px 24px;">
 
-    <p>¡Te deseamos mucho éxito!</p>
+                            <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">
+                                Hola <strong>{{ aspirante.nombres }} {{ aspirante.apellidos }}</strong>,
+                            </p>
+                            <p style="margin:0 0 16px; font-size:15px; line-height:1.6; color:#555;">
+                                Hemos recibido tu solicitud de admisión para el grado
+                                <strong style="color:#0078D4;">{{ aspirante.grado_aspira.nombre }}</strong>.
+                                Estamos emocionados de tenerte como postulante.
+                            </p>
+                            <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#555;">
+                                Hemos creado un portal personal para ti. Desde allí podrás
+                                subir los documentos requeridos y hacer seguimiento a tu solicitud en tiempo real.
+                            </p>
 
-    <p>Atentamente,<br>
-    El equipo de Admisiones<br>
-    <strong>{{ branding.NOMBRE }}</strong>
-    </p>
+                            <!-- Botón Portal (botón principal) -->
+                            <table align="center" width="260" cellpadding="0" cellspacing="0" border="0"
+                                   style="margin: 8px auto 28px;">
+                                <tr>
+                                    <td align="center" bgcolor="#0078D4"
+                                        style="border-radius:7px; padding:14px 20px;">
+                                        <a href="{{ portal_url }}"
+                                           style="display:block; color:#ffffff;
+                                                  text-decoration:none; font-size:15px;
+                                                  font-weight:bold; text-align:center;
+                                                  line-height:1.4;">
+                                            Acceder a mi Portal de Postulante
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            {% if cuenta_inscripcion and enlace_pago_inscripcion %}
+                            <!-- Bloque de pago de inscripción -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                                   style="border:1px solid #ffe0a3; border-radius:8px;
+                                          background-color:#fff8e6; margin-bottom:24px;">
+                                <tr>
+                                    <td style="padding: 20px 24px;">
+                                        <h2 style="margin:0 0 10px; color:#b76e00; font-size:17px;">
+                                            💳 Pago de Inscripción Requerido
+                                        </h2>
+                                        <p style="margin:0 0 8px; font-size:14px; color:#6b4f00;">
+                                            Tu institución requiere el pago de la inscripción para continuar.
+                                        </p>
+                                        <p style="margin:0 0 18px; font-size:18px; font-weight:bold; color:#333;">
+                                            Monto: ${{ monto_inscripcion|floatformat:0 }}
+                                        </p>
+                                        <table align="center" width="240" cellpadding="0" cellspacing="0" border="0"
+                                               style="margin: 0 auto;">
+                                            <tr>
+                                                <td align="center" bgcolor="#2e8b57"
+                                                    style="border-radius:7px; padding:13px 20px;">
+                                                    <a href="{{ enlace_pago_inscripcion }}"
+                                                       style="display:block; color:#ffffff;
+                                                              text-decoration:none; font-size:15px;
+                                                              font-weight:bold; text-align:center;
+                                                              line-height:1.4;">
+                                                        Pagar Inscripción Ahora
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <p style="margin:12px 0 0; font-size:11px; color:#888; text-align:center;">
+                                            Pago seguro vía Mercado Pago. También puedes hacerlo desde tu portal.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+
+                            <p style="margin:0 0 6px; font-size:13px; color:#999;">
+                                Si el botón no funciona, copia y pega este enlace en tu navegador:
+                            </p>
+                            <p style="margin:0; font-size:12px; color:#0078D4; word-break:break-all;">
+                                {{ portal_url }}
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- Pie -->
+                    <tr>
+                        <td style="background-color:#f8f9fb; padding:20px 32px;
+                                   border-top:1px solid #e8eaed; text-align:center;">
+                            <p style="margin:0 0 4px; font-size:14px; color:#555; line-height:1.6;">
+                                ¡Te deseamos mucho éxito en tu proceso!
+                            </p>
+                            <p style="margin:0; font-size:13px; color:#888;">
+                                El equipo de Admisiones &nbsp;·&nbsp;
+                                <strong style="color:#0078D4;">{{ aspirante.institucion.nombre }}</strong>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+                <!-- fin contenedor -->
+
+            </td>
+        </tr>
+    </table>
+
 </body>
 </html>

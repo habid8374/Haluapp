@@ -10,7 +10,7 @@ class EventoCalendarioSerializer(serializers.Serializer):
     # Campos comunes a todos los eventos
     title = serializers.CharField()
     color = serializers.CharField(required=False)
-    url = serializers.URLField(required=False)
+    url = serializers.CharField(required=False, allow_blank=True)
     description = serializers.CharField(required=False)
     allDay = serializers.BooleanField(required=False)
 

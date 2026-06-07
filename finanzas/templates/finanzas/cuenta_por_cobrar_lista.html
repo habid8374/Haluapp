@@ -64,8 +64,8 @@
                                                 <i class="bi bi-file-earmark-text"></i>
                                             </a>
                                         {% else %}
-                                            <a href="{% url 'finanzas:volante_mensualidad' cuenta.pk %}" class="btn btn-sm btn-info" target="_blank" title="Generar Volante de Mensualidad">
-                                                <i class="bi bi-file-earmark-text"></i>
+                                            <a href="{% url 'finanzas:volante_mensualidad' cuenta.pk %}" class="btn btn-sm btn-info" target="_blank" title="Reimprimir Orden de Pago">
+                                                <i class="bi bi-receipt"></i>
                                             </a>
                                         {% endif %}
                                     {% endif %}

@@ -10,10 +10,10 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-5">
-                    <label for="id_grado" class="form-label">Filtrar por Grado:</label>
+                <div class="col-md-3">
+                    <label for="id_grado" class="form-label">Grado</label>
                     <select name="grado" id="id_grado" class="form-select">
-                        <option value="">--- Todos los Grados ---</option>
+                        <option value="">--- Todos ---</option>
                         {% for grado in grados_filtro %}
                             <option value="{{ grado.pk }}" {% if selected_grado == grado.pk|stringformat:"s" %}selected{% endif %}>
                                 {{ grado.nombre }}
@@ -21,10 +21,10 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-5">
-                    <label for="id_estudiante" class="form-label">Filtrar por Estudiante:</label>
+                <div class="col-md-3">
+                    <label for="id_estudiante" class="form-label">Estudiante</label>
                     <select name="estudiante" id="id_estudiante" class="form-select">
-                        <option value="">--- Todos los Estudiantes ---</option>
+                        <option value="">--- Todos ---</option>
                         {% for estudiante in estudiantes_filtro %}
                             <option value="{{ estudiante.pk }}" {% if selected_estudiante == estudiante.pk|stringformat:"s" %}selected{% endif %}>
                                 {{ estudiante.usuario.get_full_name }}
@@ -32,12 +32,25 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col-md-4">
+                    <label for="id_periodo_acad" class="form-label">Periodo académico (concepto)</label>
+                    <select name="periodo" id="id_periodo_acad" class="form-select">
+                        <option value="">Todos</option>
+                        {% for p in periodos_filtro %}
+                            <option value="{{ p.pk }}" {% if selected_periodo == p.pk|stringformat:"s" %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Acota la cartera al concepto de cobro del periodo seleccionado.</div>
+                </div>
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100">Filtrar</button>
                 </div>
             </form>
         </div>
     </div>
+    {% if periodo_filtrado %}
+    <p class="text-muted small mb-3">Cartera filtrada por conceptos del periodo <strong>{{ periodo_filtrado }}</strong>.</p>
+    {% endif %}
     <div class="row g-4 mb-4">
         <div class="col-12">
             <div class="card text-center text-white bg-danger">

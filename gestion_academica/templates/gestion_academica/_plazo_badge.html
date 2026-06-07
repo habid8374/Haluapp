@@ -1,0 +1,23 @@
+{% comment %}
+Partial: muestra el plazo restante de un CasoConvivencia.
+Variables requeridas: caso
+{% endcomment %}
+{% if caso.estado == 'CERRADO' or caso.estado == 'ARCHIVADO' %}
+  <span class="text-muted">—</span>
+{% elif caso.fecha_limite %}
+  {% with dias=caso.dias_restantes %}
+    {% if dias is None %}
+      <span class="text-muted">—</span>
+    {% elif dias < 0 %}
+      <span class="plazo-vencido">Venció hace {{ dias|cut:"-" }}d</span>
+    {% elif dias == 0 %}
+      <span class="plazo-hoy"><i class="bi bi-alarm-fill"></i> Hoy</span>
+    {% elif dias <= 2 %}
+      <span class="plazo-urgente">{{ dias }}d</span>
+    {% else %}
+      <span class="plazo-ok">{{ dias }}d</span>
+    {% endif %}
+  {% endwith %}
+{% else %}
+  <span class="text-muted">—</span>
+{% endif %}

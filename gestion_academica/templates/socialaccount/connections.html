@@ -1,6 +1,7 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
-{% load socialaccount %} {# <-- CORRECCIÓN CLAVE: ESTA LÍNEA FALTABA #}
+{% load socialaccount %}
+{% load socialapp_checks %}
 
 {% block titulo %}{% trans "Account Connections" %}{% endblock %}
 
@@ -39,12 +40,16 @@
                     {% endif %}
 
                     <h5 class="mt-4">{% trans 'Add a third-party account' %}</h5>
+                    {% google_socialapp_configured as google_social_ok %}
+                    {% if google_social_ok %}
                     <div class="list-group">
                         <a class="list-group-item list-group-item-action" href="{% provider_login_url 'google' process='connect' %}">
                             <i class="bi bi-google me-2 text-danger"></i>Conectar con Google
                         </a>
-                        <!-- Aquí podrías añadir otros proveedores como Microsoft, etc. -->
                     </div>
+                    {% else %}
+                    <p class="text-muted small">Google no está configurado para este sitio. Un administrador debe crear la aplicación en <em>Social applications</em> del admin de Django.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

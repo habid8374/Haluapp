@@ -1,6 +1,7 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
 {% load socialaccount %}
+{% load socialapp_checks %}
 
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
@@ -11,11 +12,48 @@
         <div class="col-lg-4 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-body text-center">
-                    <i class="bi bi-person-circle" style="font-size: 80px; color: #6c757d;"></i>
-                    <h3 class="card-title mt-3">{{ user.get_full_name }}</h3>
-                    <p class="text-muted mb-1">@{{ user.username }}</p>
-                    <p class="text-muted">{{ user.email }}</p>
-                    <span class="badge bg-primary fs-6">{{ user.get_rol_display }}</span>
+                    {# ── Avatar ── #}
+                    <div class="position-relative d-inline-block mb-2">
+                      {% if user.foto_perfil %}
+                        <img src="{{ user.foto_perfil.url }}" alt="{{ user.get_full_name }}"
+                             style="width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid #dbe5f4;box-shadow:0 4px 12px rgba(11,94,215,.15)">
+                      {% else %}
+                        <div style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#0b5ed7,#3b82f6);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 12px rgba(11,94,215,.2)">
+                          <span style="font-size:2.4rem;font-weight:800;color:#fff">
+                            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                          </span>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <h3 class="card-title mt-2 mb-0">{{ user.get_full_name }}</h3>
+                    <p class="text-muted mb-1 small">@{{ user.username }}</p>
+                    <p class="text-muted small">{{ user.email }}</p>
+                    <span class="badge bg-primary mb-3">{{ user.get_rol_display }}</span>
+
+                    {# ── Cambiar foto ── #}
+                    <form method="post" enctype="multipart/form-data" class="mt-2">
+                      {% csrf_token %}
+                      <label for="fotoPerfilInput"
+                             class="btn btn-sm btn-outline-primary w-100"
+                             style="cursor:pointer">
+                        <i class="bi bi-camera-fill me-1"></i>
+                        {% if user.foto_perfil %}Cambiar foto{% else %}Subir foto de perfil{% endif %}
+                      </label>
+                      <input type="file" id="fotoPerfilInput" name="foto_perfil"
+                             accept="image/jpeg,image/png,image/webp"
+                             class="d-none"
+                             onchange="this.form.submit()">
+                      {% if user.foto_perfil %}
+                        <div class="mt-1">
+                          <button type="button" class="btn btn-link btn-sm p-0 text-danger small"
+                                  data-bs-toggle="modal" data-bs-target="#modalEliminarFoto"
+                                  style="text-decoration:none;">
+                            <i class="bi bi-trash3 me-1"></i>Eliminar foto
+                          </button>
+                          <input type="hidden" name="eliminar_foto" id="eliminarFotoInput" value="">
+                        </div>
+                      {% endif %}
+                    </form>
                 </div>
             </div>
         </div>
@@ -65,28 +103,63 @@
                 </div>
                 <div class="card-body">
                     <p>Gestiona las opciones de seguridad y conexión de tu cuenta.</p>
-                    <div class="d-grid gap-2 d-md-flex">
+                    <div class="d-grid gap-2 d-md-flex flex-wrap">
                         <a href="{% url 'password_change' %}" class="btn btn-outline-danger"><i class="bi bi-key-fill me-2"></i>Cambiar Contraseña</a>
-                        
-                        <!-- ▼▼▼ BOTÓN PARA CONECTAR CON GOOGLE ▼▼▼ -->
+
+                        {% google_socialapp_configured as google_social_ok %}
+                        {% if google_social_ok %}
                         <a href="{% url 'socialaccount_connections' %}" class="btn btn-outline-primary">
                             <i class="bi bi-google me-2"></i>Conectar mi cuenta de Google
                         </a>
-                         <!-- ▼▼▼ LÓGICA DEL BOTÓN DE CALENDARIO AÑADIDA AQUÍ ▼▼▼ -->
                         {% if not user.google_calendar_id %}
                             <a href="{% provider_login_url 'google' process='connect' scope='https://www.googleapis.com/auth/calendar' %}" class="btn btn-outline-success">
                                 <i class="bi bi-calendar-plus-fill me-2"></i>Sincronizar Calendario
                             </a>
                         {% else %}
-                            <button class="btn btn-success" disabled>
+                            <button type="button" class="btn btn-success" disabled>
                                 <i class="bi bi-check-circle-fill me-2"></i>Calendario Sincronizado
                             </button>
                         {% endif %}
-                        <!-- ▲▲▲ FIN DE LA LÓGICA DEL BOTÓN ▲▲▲ -->
+                        {% else %}
+                        <p class="text-muted small mb-0 align-self-center">
+                            La conexión con Google (y el calendario) no está activa: falta registrar la aplicación Google en el administrador de Django (Social applications) para este sitio.
+                        </p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<!-- Modal — Confirmar eliminación de foto de perfil -->
+<div class="modal fade" id="modalEliminarFoto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-person-x-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Eliminar tu foto de perfil?</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;">
+          Se eliminará tu foto de perfil y se mostrará el avatar predeterminado.
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger btn-sm" id="btnConfirmarEliminarFoto">
+          <i class="bi bi-trash3 me-1"></i>Sí, eliminar foto
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('btnConfirmarEliminarFoto').addEventListener('click', function () {
+  var inp = document.getElementById('eliminarFotoInput');
+  if (inp) { inp.value = 'si'; inp.form.submit(); }
+});
+</script>
 {% endblock %}

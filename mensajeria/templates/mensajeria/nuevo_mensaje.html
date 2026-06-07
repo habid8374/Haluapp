@@ -1,0 +1,228 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}Nuevo Mensaje{% endblock %}
+
+{% block contenido %}
+<div class="container mt-3 mt-md-4 px-2 px-md-3" style="max-width:720px">
+
+  <div class="d-flex align-items-center gap-3 mb-3">
+    <a href="{% url 'mensajeria:inbox' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+      <h2 class="h5 mb-0">
+        <i class="bi bi-pencil-square me-2 text-primary"></i>{{ titulo }}
+      </h2>
+      {% if subtitulo %}
+        <small class="text-muted">{{ subtitulo }}</small>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ══════════════════════════════════════════════════════════════════════ #}
+  {# VISTA DOCENTE: acordeón por grado → alumnos → familiares              #}
+  {# ══════════════════════════════════════════════════════════════════════ #}
+  {% if user.rol == 'docente' %}
+
+    {% if grupos_grado %}
+      <div class="accordion" id="acordeonGrados">
+        {% for grupo in grupos_grado %}
+        {% with grado_id="grado"|add:forloop.counter|stringformat:"s" %}
+        <div class="accordion-item border mb-2 rounded shadow-sm">
+
+          {# ── Cabecera del grado ── #}
+          <h2 class="accordion-header">
+            <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-semibold"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#{{ grado_id }}"
+                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                    aria-controls="{{ grado_id }}">
+              <i class="bi bi-people-fill me-2 text-primary"></i>
+              {{ grupo.grado }}
+              <span class="badge bg-secondary ms-2 fw-normal">{{ grupo.alumnos|length }} alumno{{ grupo.alumnos|length|pluralize:"s" }}</span>
+            </button>
+          </h2>
+
+          {# ── Contenido: lista de alumnos ── #}
+          <div id="{{ grado_id }}"
+               class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+               data-bs-parent="#acordeonGrados">
+            <div class="accordion-body p-0">
+              {% for fila in grupo.alumnos %}
+              <div class="border-bottom {% if forloop.last %}border-0{% endif %}">
+
+                {# Nombre del alumno #}
+                <div class="d-flex align-items-center gap-2 px-3 pt-3 pb-1">
+                  <div class="rounded-circle bg-light border d-flex align-items-center
+                              justify-content-center flex-shrink-0 fw-bold text-secondary"
+                       style="width:34px;height:34px;font-size:.85rem;">
+                    {{ fila.estudiante.usuario.first_name|first|upper }}{{ fila.estudiante.usuario.last_name|first|upper }}
+                  </div>
+                  <span class="fw-semibold small">{{ fila.nombre_est }}</span>
+                </div>
+
+                {# Familiares del alumno #}
+                {% if fila.familiares %}
+                  <div class="px-3 pb-3 ps-5">
+                    {% for fam in fila.familiares %}
+                    <form method="post"
+                          action="{% url 'mensajeria:iniciar' fam.usuario.pk %}"
+                          class="d-flex align-items-center gap-2 py-2
+                                 {% if not forloop.last %}border-bottom border-light{% endif %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="estudiante_id" value="{{ fam.estudiante_id }}">
+
+                      <div class="rounded-circle bg-primary text-white d-flex align-items-center
+                                  justify-content-center flex-shrink-0 fw-bold"
+                           style="width:36px;height:36px;font-size:.85rem;">
+                        {{ fam.usuario.first_name|first|upper }}{{ fam.usuario.last_name|first|upper }}
+                      </div>
+
+                      <span class="flex-grow-1 small">{{ fam.etiqueta }}</span>
+
+                      <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-chat-dots-fill me-1"></i>Chatear
+                      </button>
+                    </form>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="text-muted small px-3 pb-2 ps-5 mb-0">
+                    <i class="bi bi-person-dash me-1"></i>Sin familiar registrado
+                  </p>
+                {% endif %}
+
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+        {% endwith %}
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-people" style="font-size:3rem;"></i>
+        <p class="mt-3">No tienes alumnos asignados en este momento.</p>
+      </div>
+    {% endif %}
+
+  {# ══════════════════════════════════════════════════════════════════════ #}
+  {# VISTA FAMILIAR / ESTUDIANTE / STAFF: lista con buscador               #}
+  {# ══════════════════════════════════════════════════════════════════════ #}
+  {% else %}
+
+    {# Buscador #}
+    <div class="input-group mb-3 shadow-sm">
+      <input type="text" id="buscarDest" class="form-control"
+             placeholder="Buscar por nombre o materia…" autocomplete="off">
+      <button class="btn btn-primary" id="btnBuscar" type="button">
+        <i class="bi bi-search"></i>
+      </button>
+      <button class="btn btn-outline-secondary d-none" id="btnLimpiar" type="button">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    {% if destinatarios %}
+      <div class="list-group shadow-sm" id="listaDest">
+        {% for item in destinatarios %}
+        <div class="list-group-item list-group-item-action p-0 dest-item">
+          <form method="post"
+                action="{% url 'mensajeria:iniciar' item.usuario.pk %}"
+                class="d-flex align-items-center gap-3 p-3">
+            {% csrf_token %}
+            {% if item.estudiante_id %}
+              <input type="hidden" name="estudiante_id" value="{{ item.estudiante_id }}">
+            {% endif %}
+
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center
+                        justify-content-center flex-shrink-0 fw-bold"
+                 style="width:44px;height:44px;font-size:1rem;">
+              {{ item.usuario.first_name|first|upper }}{{ item.usuario.last_name|first|upper }}
+            </div>
+
+            <div class="flex-grow-1 overflow-hidden">
+              <div class="fw-semibold dest-nombre">{{ item.etiqueta }}</div>
+              {% if item.sub %}
+                <small class="text-muted d-block dest-sub">{{ item.sub }}</small>
+              {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+              <i class="bi bi-chat-dots-fill d-none d-sm-inline me-1"></i>
+              <span class="d-none d-sm-inline">Chatear</span>
+              <i class="bi bi-send-fill d-sm-none"></i>
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+
+      <p id="sinResultados" class="text-center text-muted mt-4 d-none">
+        <i class="bi bi-search me-2"></i>Sin resultados para "<span id="txtBusqueda"></span>".
+      </p>
+
+    {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-person-x" style="font-size:3rem;"></i>
+        <p class="mt-3">No hay personas disponibles para iniciar una conversación.</p>
+        {% if user.rol == 'familiar' or user.rol == 'estudiante' %}
+          <p class="small">
+            Ocurre cuando el colegio aún no ha asignado docentes a los cursos de tu nivel.
+            Consulta con la coordinación.
+          </p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var input      = document.getElementById('buscarDest');
+  var btnBuscar  = document.getElementById('btnBuscar');
+  var btnLimpiar = document.getElementById('btnLimpiar');
+  var sinRes     = document.getElementById('sinResultados');
+  var txtBusq    = document.getElementById('txtBusqueda');
+  var items      = document.querySelectorAll('.dest-item');
+
+  if (!input || !items.length) return;
+
+  // Pre-calcular texto de cada ítem
+  var textos = [];
+  items.forEach(function(el) {
+    var n = el.querySelector('.dest-nombre');
+    var s = el.querySelector('.dest-sub');
+    textos.push(((n ? n.textContent : '') + ' ' + (s ? s.textContent : '')).toLowerCase());
+  });
+
+  function filtrar() {
+    var q = input.value.toLowerCase().trim();
+    var visible = 0;
+    items.forEach(function(el, i) {
+      var ok = !q || textos[i].indexOf(q) !== -1;
+      el.style.display = ok ? '' : 'none';
+      if (ok) visible++;
+    });
+    if (btnLimpiar) btnLimpiar.classList.toggle('d-none', !q);
+    if (sinRes) {
+      sinRes.classList.toggle('d-none', !(visible === 0 && q));
+      if (txtBusq) txtBusq.textContent = q;
+    }
+  }
+
+  input.addEventListener('input', filtrar);
+  if (btnBuscar) btnBuscar.addEventListener('click', function() { filtrar(); input.focus(); });
+  input.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); filtrar(); } });
+  if (btnLimpiar) btnLimpiar.addEventListener('click', function() { input.value = ''; filtrar(); input.focus(); });
+})();
+</script>
+{% endblock %}

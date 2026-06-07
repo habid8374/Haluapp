@@ -1,0 +1,266 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+:root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
+.ps-hero { background:linear-gradient(135deg,var(--ps-dark) 0%,var(--ps-mid) 55%,#4338ca 100%); border-radius:1rem; padding:1.5rem 1.8rem; color:#fff; position:relative; overflow:hidden; margin-bottom:1.5rem; }
+.ps-hero::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+.ps-hero-badge { display:inline-flex; align-items:center; gap:.35rem; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); border-radius:2rem; padding:.25rem .75rem; font-size:.78rem; font-weight:600; }
+.ps-hero-title { font-size:1.3rem; font-weight:800; letter-spacing:-.5px; margin-bottom:.2rem; }
+.ps-hero-sub   { font-size:.83rem; opacity:.78; }
+.ps-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.42rem .95rem; border-radius:.6rem; font-size:.81rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; }
+.ps-btn-outline { background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.3); }
+.ps-btn-outline:hover { background:rgba(255,255,255,.22); color:#fff; }
+
+.ps-panel { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; margin-bottom:1.25rem; }
+.ps-panel-header { display:flex; align-items:center; gap:.5rem; padding:.85rem 1.2rem; border-bottom:1px solid #f1f5f9; }
+.ps-panel-title { font-size:.95rem; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:.5rem; margin:0; }
+.ps-panel-title .ico { width:30px; height:30px; border-radius:.45rem; display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; }
+.ico-indigo { background:#e0e7ff; color:#4f46e5; }
+.ico-green  { background:#dcfce7; color:#15803d; }
+.ico-amber  { background:#fef3c7; color:#b45309; }
+
+/* Días */
+.ps-day-block { border-bottom:1px solid #f1f5f9; }
+.ps-day-block:last-child { border-bottom:none; }
+.ps-day-header { display:flex; align-items:center; gap:.75rem; padding:.65rem 1.2rem; background:#fafafe; }
+.ps-day-badge { background:linear-gradient(135deg,var(--ps-mid),var(--ps-light)); color:#fff; border-radius:.5rem; padding:.2rem .65rem; font-size:.76rem; font-weight:800; }
+.ps-day-date  { font-size:.76rem; color:#64748b; }
+.ps-item-row { display:flex; align-items:flex-start; gap:.75rem; padding:.65rem 1.4rem; border-top:1px solid #f8fafc; }
+.ps-item-num { width:24px; height:24px; border-radius:50%; background:#e0e7ff; color:#4f46e5; font-size:.7rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:.1rem; }
+.ps-item-info { flex:1; }
+.ps-item-titulo { font-size:.85rem; font-weight:700; color:#1e293b; }
+.ps-item-desc   { font-size:.76rem; color:#64748b; margin-top:.15rem; }
+.ps-item-chips  { display:flex; gap:.35rem; flex-wrap:wrap; margin-top:.35rem; }
+.ps-chip { display:inline-flex; align-items:center; gap:.25rem; border-radius:2rem; padding:.15rem .55rem; font-size:.7rem; font-weight:600; }
+.ps-chip-malla { background:#ede9fe; color:#7c3aed; }
+.ps-chip-deber { background:#dcfce7; color:#15803d; }
+.ps-chip-act   { background:#dbeafe; color:#1d4ed8; }
+.ps-day-empty  { padding:.5rem 1.4rem; font-size:.76rem; color:#94a3b8; font-style:italic; }
+
+/* Review form */
+.ps-review-form { padding:1.2rem; }
+.ps-aprobar-btn { background:linear-gradient(135deg,#15803d,#22c55e); color:#fff; border:none; border-radius:.6rem; padding:.65rem 1.2rem; font-size:.88rem; font-weight:700; display:flex; align-items:center; gap:.5rem; cursor:pointer; width:100%; justify-content:center; margin-top:.75rem; transition:opacity .15s; }
+.ps-aprobar-btn:hover { opacity:.88; }
+.ps-obs-btn { background:linear-gradient(135deg,#b45309,#f59e0b); color:#fff; border:none; border-radius:.6rem; padding:.65rem 1.2rem; font-size:.88rem; font-weight:700; display:flex; align-items:center; gap:.5rem; cursor:pointer; width:100%; justify-content:center; margin-top:.5rem; transition:opacity .15s; }
+.ps-obs-btn:hover { opacity:.88; }
+
+.ps-info-card { background:#eef2ff; border:1px solid #c7d2fe; border-radius:.75rem; padding:.85rem 1rem; margin-bottom:1rem; font-size:.82rem; color:#3730a3; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1100px;">
+
+  <div class="ps-hero">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
+      <div>
+        <div class="ps-hero-badge mb-2"><i class="bi bi-clipboard-check-fill"></i> Revisión Coordinador</div>
+        <div class="ps-hero-title">{{ titulo_pagina }}</div>
+        <div class="ps-hero-sub">{{ plan.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and plan.curso.materia.nombre_idioma_secundario %} / {{ plan.curso.materia.nombre_idioma_secundario }}{% endif %} · {{ plan.curso.grado.nombre }} · {{ label }}</div>
+      </div>
+      <div>
+        <a href="{% url 'gestion_academica:supervisar_planes_semanales' %}" class="ps-btn ps-btn-outline"><i class="bi bi-arrow-left"></i> Supervisión</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 align-items-start">
+
+    <!-- Contenido del plan -->
+    <div class="col-12 col-lg-8">
+      <div class="ps-info-card">
+        <strong>Docente:</strong> {{ plan.docente.usuario.get_full_name }} &nbsp;·&nbsp;
+        <strong>Enviado:</strong> {{ plan.fecha_envio|date:"d/m/Y H:i" }} &nbsp;·&nbsp;
+        <strong>Clases:</strong> {{ plan.items.count }}
+      </div>
+
+      <div class="ps-panel">
+        <div class="ps-panel-header">
+          <h2 class="ps-panel-title"><span class="ico ico-indigo"><i class="bi bi-calendar3-week-fill"></i></span> Contenido del Plan</h2>
+        </div>
+
+        {% for fecha, dia in dias.items %}
+        <div class="ps-day-block">
+          <div class="ps-day-header">
+            <span class="ps-day-badge">{{ dia.nombre }}</span>
+            <span class="ps-day-date">{{ fecha|date:"d \d\e F" }}</span>
+          </div>
+          {% if dia.items %}
+            {% for item in dia.items %}
+            <div class="ps-item-row">
+              <div class="ps-item-num">{{ forloop.counter }}</div>
+              <div class="ps-item-info">
+                <div class="ps-item-titulo">{{ item.titulo }}</div>
+                {% if item.descripcion %}<div class="ps-item-desc">{{ item.descripcion }}</div>{% endif %}
+                <div class="ps-item-chips">
+                  {% if item.item_malla %}<span class="ps-chip ps-chip-malla"><i class="bi bi-bookmark-fill"></i> Malla</span>{% endif %}
+                  {% if item.deber %}<span class="ps-chip ps-chip-deber"><i class="bi bi-journal-check"></i> Deber</span>{% endif %}
+                  {% if item.actividad %}<span class="ps-chip ps-chip-act"><i class="bi bi-clipboard-check"></i> Actividad</span>{% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="ps-day-empty">Sin clases planificadas.</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Panel de revisión -->
+    <div class="col-12 col-lg-4">
+      {% if puede_revisar %}
+      <div class="ps-panel">
+        <div class="ps-panel-header">
+          <h2 class="ps-panel-title"><span class="ico ico-green"><i class="bi bi-clipboard-check-fill"></i></span> Decisión del Coordinador</h2>
+        </div>
+        <div class="ps-review-form">
+          <p style="font-size:.8rem;color:#475569;margin-bottom:.75rem;">Revisa el plan y toma una decisión. Si apruebas, el docente recibirá una notificación de confirmación. Si devuelves, escribe qué debe corregir.</p>
+
+          <!-- Aprobar → dispara modal de confirmación -->
+          <button type="button" class="ps-aprobar-btn"
+                  data-bs-toggle="modal" data-bs-target="#modalAprobarPlan">
+            <i class="bi bi-check-circle-fill"></i> Aprobar Plan
+          </button>
+
+          <hr style="margin:1rem 0;border-color:#f1f5f9;">
+
+          <!-- Devolver con observaciones -->
+          <form id="form-observar" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="observar">
+            <div class="mb-2">
+              <label class="form-label fw-semibold" style="font-size:.81rem;">Observaciones para el Docente *</label>
+              <textarea name="observaciones" id="txt-observaciones" class="form-control" rows="4" placeholder="Indica qué debe ajustar o mejorar en el plan…"></textarea>
+              <div id="obs-error-msg" class="invalid-feedback" style="display:none;font-size:.78rem;">
+                <i class="bi bi-exclamation-circle me-1"></i>Escribe las observaciones antes de devolver el plan.
+              </div>
+            </div>
+            <button type="button" class="ps-obs-btn"
+                    data-bs-toggle="modal" data-bs-target="#modalDevolverPlan">
+              <i class="bi bi-arrow-return-left"></i> Devolver con Observaciones
+            </button>
+          </form>
+        </div>
+      </div>
+      {% else %}
+      <div class="ps-panel">
+        <div class="ps-panel-header">
+          <h2 class="ps-panel-title"><span class="ico ico-indigo"><i class="bi bi-info-circle-fill"></i></span> Estado del Plan</h2>
+        </div>
+        <div style="padding:1rem 1.2rem;font-size:.82rem;color:#475569;">
+          {% if plan.estado == 'APROBADO' %}
+          <div style="background:#dcfce7;border-radius:.6rem;padding:.75rem;color:#15803d;font-weight:700;text-align:center;"><i class="bi bi-check-circle-fill me-2"></i>Plan aprobado</div>
+          {% elif plan.estado == 'CON_OBSERVACIONES' %}
+          <div style="background:#fef3c7;border-radius:.6rem;padding:.75rem;color:#b45309;font-weight:700;text-align:center;"><i class="bi bi-exclamation-circle-fill me-2"></i>Devuelto con observaciones</div>
+          {% else %}
+          <div style="background:#f1f5f9;border-radius:.6rem;padding:.75rem;color:#475569;text-align:center;">En borrador — no enviado aún</div>
+          {% endif %}
+          {% if plan.revisado_por %}
+          <p class="mt-2 mb-0">Revisado por: <strong>{{ plan.revisado_por.get_full_name }}</strong><br>{{ plan.fecha_revision|date:"d/m/Y H:i" }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{# ════ MODAL: Confirmar Aprobación ════ #}
+<div class="modal fade" id="modalAprobarPlan" tabindex="-1" aria-labelledby="modalAprobarLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+    <div class="modal-content" style="border-radius:1rem;border:none;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18);">
+      <div style="background:linear-gradient(135deg,#15803d,#22c55e);padding:1.5rem;text-align:center;color:#fff;">
+        <div style="width:64px;height:64px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto .75rem;">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h5 style="font-weight:800;margin:0;font-size:1.1rem;">¿Aprobar este plan?</h5>
+        <p style="font-size:.82rem;opacity:.9;margin:.4rem 0 0;">El docente recibirá una notificación de confirmación.</p>
+      </div>
+      <div style="padding:1.25rem;">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:.65rem;padding:.75rem 1rem;font-size:.81rem;color:#15803d;margin-bottom:1rem;">
+          <strong>{{ plan.docente.usuario.get_full_name }}</strong> —
+          {{ plan.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and plan.curso.materia.nombre_idioma_secundario %} / {{ plan.curso.materia.nombre_idioma_secundario }}{% endif %} · {{ label }}
+        </div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal" style="border-radius:.6rem;font-size:.84rem;font-weight:600;">
+            Cancelar
+          </button>
+          <form method="post" style="flex:1;">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="aprobar">
+            <button type="submit" class="btn w-100" style="background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;border-radius:.6rem;font-size:.84rem;font-weight:700;">
+              <i class="bi bi-check-circle-fill me-1"></i> Sí, Aprobar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ════ MODAL: Confirmar Devolución con Observaciones ════ #}
+<div class="modal fade" id="modalDevolverPlan" tabindex="-1" aria-labelledby="modalDevolverLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+    <div class="modal-content" style="border-radius:1rem;border:none;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18);">
+      <div style="background:linear-gradient(135deg,#b45309,#f59e0b);padding:1.3rem 1.5rem;display:flex;align-items:center;gap:.85rem;color:#fff;">
+        <div style="width:48px;height:48px;background:rgba(255,255,255,.2);border-radius:.7rem;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">
+          <i class="bi bi-arrow-return-left"></i>
+        </div>
+        <div>
+          <h5 style="font-weight:800;margin:0;font-size:1rem;">¿Devolver con observaciones?</h5>
+          <p style="font-size:.79rem;opacity:.9;margin:0;">El docente deberá corregir y reenviar el plan.</p>
+        </div>
+      </div>
+      <div style="padding:1.25rem;">
+        <p id="modal-obs-preview" style="font-size:.81rem;color:#475569;background:#fffbeb;border:1px solid #fde68a;border-radius:.6rem;padding:.75rem;margin-bottom:1rem;white-space:pre-line;min-height:48px;"></p>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal" style="border-radius:.6rem;font-size:.84rem;font-weight:600;">
+            Cancelar
+          </button>
+          <button type="button" id="btn-confirmar-devolver" class="btn flex-fill" style="background:linear-gradient(135deg,#b45309,#f59e0b);color:#fff;border-radius:.6rem;font-size:.84rem;font-weight:700;">
+            <i class="bi bi-arrow-return-left me-1"></i> Sí, Devolver
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+// Modal "Devolver" → validar observaciones antes de abrir y mostrar preview
+document.querySelector('[data-bs-target="#modalDevolverPlan"]').addEventListener('click', function(e) {
+  const obs = document.getElementById('txt-observaciones').value.trim();
+  if (!obs) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    document.getElementById('txt-observaciones').classList.add('is-invalid');
+    document.getElementById('txt-observaciones').focus();
+    // Mostrar mensaje sin confirm()
+    const errDiv = document.getElementById('obs-error-msg');
+    if (errDiv) errDiv.style.display = 'block';
+    return false;
+  }
+  document.getElementById('txt-observaciones').classList.remove('is-invalid');
+  document.getElementById('modal-obs-preview').textContent = obs;
+});
+
+// Limpiar error al escribir
+document.getElementById('txt-observaciones').addEventListener('input', function() {
+  this.classList.remove('is-invalid');
+  const errDiv = document.getElementById('obs-error-msg');
+  if (errDiv) errDiv.style.display = 'none';
+});
+
+// Confirmar devolución → submit del form
+document.getElementById('btn-confirmar-devolver').addEventListener('click', function() {
+  document.getElementById('form-observar').submit();
+});
+</script>
+{% endblock %}

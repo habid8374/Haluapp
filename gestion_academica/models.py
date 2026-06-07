@@ -1,5 +1,7 @@
 # gestion_academica/models.py
 from django.db import models
+from django.db.models import Q
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.conf import settings 
@@ -13,6 +15,23 @@ import uuid
 from django.utils.text import slugify
 
 
+# ── Choices reutilizables en varios modelos ─────────────────────────────────
+TIPO_DOCUMENTO_CHOICES = [
+    ('TI', 'Tarjeta de Identidad'),
+    ('CC', 'Cédula de Ciudadanía'),
+    ('RC', 'Registro Civil'),
+    ('PA', 'Pasaporte'),
+    ('CE', 'Cédula de Extranjería'),
+    ('OT', 'Otro'),
+]
+
+GRUPO_SANGUINEO_CHOICES = [
+    ('A+', 'A+'), ('A-', 'A-'),
+    ('B+', 'B+'), ('B-', 'B-'),
+    ('AB+', 'AB+'), ('AB-', 'AB-'),
+    ('O+', 'O+'), ('O-', 'O-'),
+]
+# ────────────────────────────────────────────────────────────────────────────
 
 # NO DEBE HABER NINGUNA IMPORTACIÓN DIRECTA DE finanzas.models AQUÍ
 # from finanzas.models import InstitucionEducativa # ESTA LÍNEA DEBE HABER SIDO ELIMINADA POR COMPLETO
@@ -38,14 +57,18 @@ class Usuario(AbstractUser):
         related_name='usuarios', # 'usuarios' es un nombre más corto y común
         verbose_name="Institución Asociada"
     )
-    # ▼▼▼ AÑADE ESTE CAMPO AL FINAL DEL MODELO ▼▼▼
     google_calendar_id = models.CharField(
         max_length=255,
         blank=True,
         null=True,
         verbose_name="ID del Calendario de Google Sincronizado"
     )
-    # ▲▲▲ FIN DEL CAMPO AÑADIDO ▲▲▲
+    foto_perfil = models.ImageField(
+        upload_to='fotos_perfil/',
+        null=True,
+        blank=True,
+        verbose_name="Foto de Perfil"
+    )
 
     
     def get_full_name(self):
@@ -268,6 +291,11 @@ class Estudiante(models.Model):
     fecha_nacimiento = models.DateField(null=True, blank=True, verbose_name="Fecha de Nacimiento")
     direccion = models.CharField(max_length=255, blank=True, null=True, verbose_name="Dirección")
     grado_actual = models.ForeignKey(Grado, on_delete=models.SET_NULL, null=True, blank=True, related_name='estudiantes_actuales', verbose_name="Grado Actual")
+    # Acudiente titular para facturación electrónica (el adquiriente de la factura).
+    acudiente_responsable = models.ForeignKey(
+        'gestion_academica.Familiar', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='estudiantes_responsable', verbose_name="Acudiente responsable (facturación)",
+    )
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', 
         on_delete=models.CASCADE, 
@@ -279,6 +307,28 @@ class Estudiante(models.Model):
     colegio_procedencia = models.CharField(max_length=255, blank=True, null=True, verbose_name="Colegio de Procedencia")
     municipio_ciudad = models.CharField(max_length=100, blank=True, null=True, verbose_name="Municipio/Ciudad")
     departamento = models.CharField(max_length=100, blank=True, null=True, verbose_name="Departamento")
+
+    # ── Campos del Observador del Estudiante ────────────────────────────────
+    tipo_documento = models.CharField(
+        max_length=2, choices=TIPO_DOCUMENTO_CHOICES,
+        blank=True, null=True, verbose_name="Tipo de Documento"
+    )
+    lugar_nacimiento = models.CharField(
+        max_length=150, blank=True, null=True, verbose_name="Lugar de Nacimiento"
+    )
+    grupo_sanguineo = models.CharField(
+        max_length=3, choices=GRUPO_SANGUINEO_CHOICES,
+        blank=True, null=True, verbose_name="Grupo Sanguíneo"
+    )
+    eps = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name="EPS / Entidad de Salud"
+    )
+    discapacidad = models.CharField(
+        max_length=255, blank=True, null=True,
+        verbose_name="Discapacidad (si aplica)",
+        help_text="Dejar en blanco si no aplica."
+    )
+    # ────────────────────────────────────────────────────────────────────────
 
     valor_matricula = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name="Valor Estándar de Matrícula")
     valor_mensualidad = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), verbose_name="Valor Estándar de Mensualidad")
@@ -315,9 +365,71 @@ class Estudiante(models.Model):
         return nombre_completo if nombre_completo else self.usuario.username
     
     qr_identifier = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, verbose_name="Identificador Único para QR")
-    
-    
+
+    # ------------------------------------------------------------------
+    # Estado financiero (usado por el bloqueo del portal — Fase C)
+    # ------------------------------------------------------------------
+
+    @property
+    def cuentas_vencidas_qs(self):
+        """QuerySet de cuentas vencidas (no pagadas y con vencimiento pasado).
+
+        Tener en cuenta que ``estado`` puede actualizarse al guardar la cuenta
+        (ver ``CuentaPorCobrarEstudiante._update_estado_based_on_saldo``), así
+        que también filtramos por ``fecha_vencimiento_especifica < hoy`` para
+        capturar cuentas que aún no han pasado por save().
+        """
+        from django.utils import timezone
+        from finanzas.models import CuentaPorCobrarEstudiante
+        hoy = timezone.localdate()
+        return (
+            CuentaPorCobrarEstudiante.objects
+            .filter(estudiante=self)
+            .exclude(estado__in=["PAGADO", "ANULADO"])
+            .filter(fecha_vencimiento_especifica__lt=hoy)
+        )
+
+    @property
+    def dias_de_atraso_max(self):
+        """Días de atraso de la cuenta vencida más antigua (0 si no hay)."""
+        from django.utils import timezone
+        primera = (
+            self.cuentas_vencidas_qs
+            .order_by("fecha_vencimiento_especifica")
+            .values_list("fecha_vencimiento_especifica", flat=True)
+            .first()
+        )
+        if not primera:
+            return 0
+        return (timezone.localdate() - primera).days
+
+    def esta_al_dia(self) -> bool:
+        """Devuelve True si el estudiante NO tiene cuentas vencidas.
+
+        Considera el toggle de la institución ``bloquear_portal_por_mora``:
+        si está apagado, **siempre** devuelve True (la institución decidió no
+        bloquear por mora, p. ej. en periodo de gracia generalizado).
+
+        Considera ``dias_gracia_mora`` de la institución: una cuenta vencida
+        hace N días o menos NO se considera causal de bloqueo.
+        """
+        institucion = self.institucion
+        if institucion is None:
+            return True
+        if not getattr(institucion, "bloquear_portal_por_mora", True):
+            return True
+
+        gracia = int(getattr(institucion, "dias_gracia_mora", 0) or 0)
+        if gracia <= 0:
+            return not self.cuentas_vencidas_qs.exists()
+        return self.dias_de_atraso_max <= gracia
+
+
 class Docente(models.Model):
+    class ModalidadLiquidacion(models.TextChoices):
+        POR_HORA = 'POR_HORA', 'Por horas laboradas'
+        SALARIO_FIJO = 'SALARIO_FIJO', 'Salario fijo (planta / directivo)'
+
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True, limit_choices_to={'rol': 'docente'}, verbose_name="Cuenta de Usuario")
     documento_identidad = models.CharField(max_length=20, blank=True, null=True, verbose_name="Documento de Identidad")
     codigo_docente = models.CharField(max_length=20, blank=True, null=True, verbose_name="Código de Docente") 
@@ -326,6 +438,21 @@ class Docente(models.Model):
     firma_docente = models.ImageField(upload_to='firmas/', blank=True, null=True, verbose_name="Firma del Docente (Imagen)") 
     qr_identifier = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     dashboard_layout = models.JSONField(null=True, blank=True, verbose_name="Diseño del Dashboard")
+    modalidad_liquidacion = models.CharField(
+        max_length=20,
+        choices=ModalidadLiquidacion.choices,
+        default=ModalidadLiquidacion.SALARIO_FIJO,
+        verbose_name="Modalidad de liquidación",
+        help_text="Por horas: útil para liquidar con marcas entrada/salida. Salario fijo: control de asistencia sin cálculo automático de horas pagadas.",
+    )
+    valor_hora_docencia = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Valor hora (referencia)",
+        help_text="Opcional. Referencia para docentes por hora; no reemplaza la nómina legal.",
+    )
 
     class Meta:
         verbose_name = "Docente"
@@ -348,6 +475,22 @@ class Familiar(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True, limit_choices_to={'rol': 'familiar'}, verbose_name="Cuenta de Usuario (Login)")
     parentesco = models.CharField(max_length=50, verbose_name="Parentesco con el Estudiante")
     telefono = models.CharField(max_length=20, blank=True, null=True, verbose_name="Teléfono de Contacto")
+    documento_identidad = models.CharField(
+        max_length=20, blank=True, null=True, verbose_name="Número de Documento"
+    )
+    tipo_documento = models.CharField(
+        max_length=2, choices=TIPO_DOCUMENTO_CHOICES,
+        blank=True, null=True, verbose_name="Tipo de Documento"
+    )
+    ocupacion = models.CharField(
+        max_length=150, blank=True, null=True, verbose_name="Ocupación"
+    )
+    lugar_trabajo = models.CharField(
+        max_length=200, blank=True, null=True, verbose_name="Lugar de Trabajo / Empresa"
+    )
+    direccion = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Dirección de Residencia"
+    )
     estudiantes_asociados = models.ManyToManyField(Estudiante, related_name='familiares', verbose_name="Estudiante(s) Asociado(s)")
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
 
@@ -389,17 +532,39 @@ class AreaAcademica(models.Model):
 
 
 class Materia(models.Model):
+    IDIOMA_INSTRUCCION_CHOICES = [
+        ('es', 'Español'),
+        ('en', 'Inglés'),
+        ('fr', 'Francés'),
+        ('pt', 'Portugués'),
+        ('de', 'Alemán'),
+        ('zh', 'Mandarín'),
+    ]
+
     nombre_materia = models.CharField(max_length=100, verbose_name="Nombre de la Materia")
-    
+    nombre_idioma_secundario = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        verbose_name="Nombre en Idioma Secundario",
+        help_text="Ej: 'Mathematics', 'Natural Sciences'. Solo visible en colegios bilingües.",
+    )
     # --- CAMBIO 1: Se quita unique=True de aquí ---
     codigo_materia = models.CharField(max_length=20, blank=True, null=True, verbose_name="Código de Materia")
-    
+
     descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción")
-    
+
     # --- CAMBIO 2: Se quita null=True, blank=True ---
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
-    
+
     intensidad_horaria_semanal = models.PositiveIntegerField(default=0, verbose_name="Intensidad Horaria Semanal (Ihs)")
+    idioma_instruccion = models.CharField(
+        max_length=5,
+        choices=IDIOMA_INSTRUCCION_CHOICES,
+        default='es',
+        verbose_name="Idioma de Instrucción",
+        help_text="Idioma en que se dicta esta materia.",
+    )
 
     class Meta:
         verbose_name = "Materia"
@@ -592,9 +757,13 @@ class ActividadCalificable(models.Model):
         help_text="Dejar en blanco si no hay límite de tiempo."
     )
     numero_intentos_permitidos = models.PositiveIntegerField(
-        default=1,
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(20)],
         verbose_name="Número de Intentos Permitidos",
-        help_text="¿Cuántas veces puede el estudiante realizar esta actividad?"
+        help_text=(
+            "Veces que el estudiante puede iniciar la actividad (cada sesión cuenta). "
+            "Por defecto 5, adecuado para etapa escolar; máximo 20 para evaluaciones especiales."
+        ),
     )
     # --- FIN DE CAMPOS DE CONFIGURACIÓN ---
 
@@ -780,30 +949,79 @@ class ConfiguracionInstitucion(models.Model):
         return f"Configuración para {self.institucion_principal.nombre}"
 
 class Noticia(models.Model):
+    TIPO_URGENTE = 'URGENTE'
+    TIPO_EVENTO = 'EVENTO'
+    TIPO_INFORMATIVO = 'INFORMATIVO'
+    TIPO_CHOICES = [
+        (TIPO_URGENTE, 'Urgente (pagos, fechas límite, acceso)'),
+        (TIPO_EVENTO, 'Evento (celebraciones, actividades)'),
+        (TIPO_INFORMATIVO, 'Informativo (sin banner)'),
+    ]
+
+    AUDIENCIA_TODOS = 'TODOS'
+    AUDIENCIA_DOCENTES = 'DOCENTES'
+    AUDIENCIA_ESTUDIANTES = 'ESTUDIANTES'
+    AUDIENCIA_FAMILIAS = 'FAMILIAS'
+    AUDIENCIA_CHOICES = [
+        (AUDIENCIA_TODOS, 'Todos (docentes + estudiantes + familias)'),
+        (AUDIENCIA_DOCENTES, 'Solo docentes'),
+        (AUDIENCIA_ESTUDIANTES, 'Solo estudiantes'),
+        (AUDIENCIA_FAMILIAS, 'Solo familias / acudientes'),
+    ]
+
     titulo = models.CharField(max_length=200, verbose_name="Título de la Noticia/Anuncio")
     contenido = models.TextField(verbose_name="Contenido Completo")
     fecha_publicacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Publicación")
     publicado_por = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
-        null=True, 
+        null=True,
         blank=True,
         related_name='noticias_publicadas',
         verbose_name="Publicado por"
     )
     imagen_destacada = models.ImageField(
-        upload_to='noticias_imagenes/', 
-        blank=True, 
-        null=True, 
+        upload_to='noticias_imagenes/',
+        blank=True,
+        null=True,
         verbose_name="Imagen Destacada (Opcional)"
     )
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
+
+    tipo = models.CharField(
+        max_length=15,
+        choices=TIPO_CHOICES,
+        default=TIPO_INFORMATIVO,
+        verbose_name="Tipo"
+    )
+    mostrar_banner = models.BooleanField(
+        default=False,
+        verbose_name="Mostrar como banner flotante",
+        help_text="Activa esto para que aparezca como banner en la esquina inferior izquierda."
+    )
+    fecha_expiracion_banner = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de expiración del banner",
+        help_text="El banner se oculta automáticamente después de esta fecha. Dejar vacío para que no expire."
+    )
+    audiencia = models.CharField(
+        max_length=15,
+        choices=AUDIENCIA_CHOICES,
+        default=AUDIENCIA_TODOS,
+        verbose_name="Audiencia del banner"
+    )
+    banner_revision = models.PositiveIntegerField(
+        default=1,
+        verbose_name="Revisión del banner",
+        help_text="Se incrementa automáticamente al reactivar el banner, forzando que reaparezca para todos los usuarios."
+    )
 
     class Meta:
         verbose_name = "Noticia o Anuncio"
         verbose_name_plural = "Noticias y Anuncios"
         ordering = ['-fecha_publicacion']
-        unique_together = ('titulo', 'fecha_publicacion', 'institucion',) 
+        unique_together = ('titulo', 'fecha_publicacion', 'institucion',)
 
     def __str__(self):
         return self.titulo
@@ -1107,10 +1325,15 @@ class IntentoActividad(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
-        # Un estudiante solo puede tener un intento "en progreso" por actividad a la vez
-        unique_together = ('estudiante', 'actividad', 'estado')
         verbose_name = "Intento de Actividad"
         verbose_name_plural = "Intentos de Actividades"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['estudiante', 'actividad'],
+                condition=Q(estado='en_progreso'),
+                name='ga_intentoactividad_uniq_en_progreso',
+            ),
+        ]
 
 class ObservacionBoletin(models.Model):
     estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='observaciones_boletin')
@@ -1411,16 +1634,38 @@ class Voto(models.Model):
         
         
 class RegistroAsistenciaDocente(models.Model):
+    class Estado(models.TextChoices):
+        PRESENTE = 'PRESENTE', 'Presente'
+        AUSENTE = 'AUSENTE', 'Ausente'
+        JUSTIFICADO = 'JUSTIFICADO', 'Justificado'
+
     docente = models.ForeignKey(Docente, on_delete=models.CASCADE, related_name='asistencias')
-    fecha = models.DateTimeField(auto_now_add=True)
-    estado = models.CharField(max_length=20, choices=[('PRESENTE', 'Presente')], default='PRESENTE')
+    dia = models.DateField(verbose_name="Día de la jornada", db_index=True)
+    hora_entrada = models.DateTimeField(null=True, blank=True, verbose_name="Marca de entrada")
+    hora_salida = models.DateTimeField(null=True, blank=True, verbose_name="Marca de salida")
+    fecha = models.DateTimeField(auto_now=True, verbose_name="Última actualización")
+    estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.PRESENTE)
     registrado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Registro de Asistencia de Docente"
         verbose_name_plural = "Asistencias de Docentes"
-        ordering = ['-fecha']
+        ordering = ['-dia', '-hora_entrada']
+        unique_together = [('docente', 'dia')]
+
+    def __str__(self):
+        return f"{self.docente} — {self.dia}"
+
+    @property
+    def horas_en_institucion(self):
+        """Horas entre entrada y salida (solo informativo)."""
+        if not (self.hora_entrada and self.hora_salida):
+            return None
+        delta = self.hora_salida - self.hora_entrada
+        if delta.total_seconds() <= 0:
+            return None
+        return round(delta.total_seconds() / 3600.0, 2)
 
 class Egresado(models.Model):
     estudiante = models.OneToOneField(
@@ -1664,4 +1909,601 @@ class AnalisisComportamientoIA(models.Model):
     class Meta:
         verbose_name = "Análisis de Comportamiento (IA)"
         verbose_name_plural = "Análisis de Comportamiento (IA)"
-        ordering = ['-fecha_analisis']     
+        ordering = ['-fecha_analisis']
+
+
+# ======================================================================= #
+#  HALU SENTINEL — Ruta de Atención Integral (Resolución 1620 / Ley 1620)  #
+# ======================================================================= #
+
+class CasoConvivencia(models.Model):
+    """
+    Expediente formal de una situación de convivencia escolar.
+    Se crea automáticamente cuando la IA clasifica una AnotacionObservador
+    como Tipo II o Tipo III, o manualmente por un coordinador.
+
+    Ciclo de vida: ABIERTO → EN_SEGUIMIENTO → CERRADO / ARCHIVADO
+    Plazos legales (Res. 1620 / Dec. 1965 Art. 42):
+      - Tipo I  : resolución inmediata por el docente
+      - Tipo II : Comité de Convivencia debe responder en 5 días hábiles
+      - Tipo III: reporte a autoridades en máx. 2 horas hábiles
+    """
+
+    class TipoSituacion(models.TextChoices):
+        TIPO_I   = 'TIPO I',   'Tipo I — Conflicto menor'
+        TIPO_II  = 'TIPO II',  'Tipo II — Daño moderado'
+        TIPO_III = 'TIPO III', 'Tipo III — Daño grave / delito'
+
+    class Estado(models.TextChoices):
+        ABIERTO        = 'ABIERTO',        'Abierto'
+        EN_SEGUIMIENTO = 'EN_SEGUIMIENTO', 'En seguimiento'
+        VENCIDO        = 'VENCIDO',        'Vencido — plazo superado'
+        CERRADO        = 'CERRADO',        'Cerrado'
+        ARCHIVADO      = 'ARCHIVADO',      'Archivado'
+
+    class RolInvolucrado(models.TextChoices):
+        VICTIMA   = 'VICTIMA',   'Víctima'
+        AGRESOR   = 'AGRESOR',   'Agresor/a'
+        TESTIGO   = 'TESTIGO',   'Testigo'
+        OTRO      = 'OTRO',      'Otro involucrado'
+
+    # ── Identificación ─────────────────────────────────────────────────
+    radicado = models.CharField(
+        max_length=20, unique=True, editable=False,
+        verbose_name='Número de radicado',
+        help_text='Generado automáticamente: CONV-AAAA-NNNN',
+    )
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='casos_convivencia',
+    )
+
+    # ── Clasificación ───────────────────────────────────────────────────
+    tipo_situacion = models.CharField(
+        max_length=10, choices=TipoSituacion.choices,
+        verbose_name='Tipo de situación (Res. 1620)',
+    )
+    estado = models.CharField(
+        max_length=15, choices=Estado.choices,
+        default=Estado.ABIERTO, verbose_name='Estado del caso',
+    )
+
+    # ── Origen ─────────────────────────────────────────────────────────
+    anotacion_origen = models.OneToOneField(
+        AnotacionObservador, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='caso_convivencia',
+        verbose_name='Anotación que originó el caso',
+    )
+    descripcion_detalle = models.TextField(
+        verbose_name='Descripción detallada del hecho',
+        help_text='Completar o ampliar la descripción inicial.',
+    )
+
+    # ── Actores ─────────────────────────────────────────────────────────
+    # Los involucrados se registran a través de InvolucradoCaso (intermedia)
+    # para poder asignarles un rol (víctima, agresor, testigo).
+
+    # ── Responsable y plazos ────────────────────────────────────────────
+    responsable = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='casos_convivencia_asignados',
+        verbose_name='Coordinador responsable',
+    )
+    fecha_apertura  = models.DateTimeField(auto_now_add=True)
+    fecha_limite    = models.DateTimeField(
+        null=True, blank=True,
+        verbose_name='Fecha límite legal de respuesta',
+    )
+    fecha_cierre    = models.DateTimeField(null=True, blank=True)
+
+    # ── Campos adicionales ──────────────────────────────────────────────
+    protocolo_ia = models.TextField(
+        blank=True, verbose_name='Protocolo sugerido por IA',
+    )
+    resolucion_final = models.TextField(
+        blank=True, verbose_name='Resolución y compromisos finales',
+        help_text='Completar al cerrar el caso.',
+    )
+
+    class Meta:
+        verbose_name = 'Caso de Convivencia'
+        verbose_name_plural = 'Casos de Convivencia'
+        ordering = ['-fecha_apertura']
+        permissions = [
+            ('puede_gestionar_casos', 'Puede gestionar casos de convivencia (Sentinel)'),
+        ]
+
+    def __str__(self):
+        return f'{self.radicado} — {self.tipo_situacion} ({self.estado})'
+
+    def save(self, *args, **kwargs):
+        if not self.radicado:
+            self.radicado = self._generar_radicado()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def _generar_radicado():
+        from django.utils import timezone as tz
+        año = tz.now().year
+        ultimo = (
+            CasoConvivencia.objects
+            .filter(radicado__startswith=f'CONV-{año}-')
+            .order_by('-radicado')
+            .first()
+        )
+        if ultimo:
+            try:
+                n = int(ultimo.radicado.split('-')[-1]) + 1
+            except ValueError:
+                n = 1
+        else:
+            n = 1
+        return f'CONV-{año}-{n:04d}'
+
+    def esta_vencido(self):
+        from django.utils import timezone as tz
+        if self.fecha_limite and self.estado not in (
+            self.Estado.CERRADO, self.Estado.ARCHIVADO
+        ):
+            return tz.now() > self.fecha_limite
+        return False
+
+    def dias_restantes(self):
+        from django.utils import timezone as tz
+        if not self.fecha_limite:
+            return None
+        delta = self.fecha_limite - tz.now()
+        return int(delta.total_seconds() / 3600 / 24)
+
+
+class InvolucradoCaso(models.Model):
+    """Tabla intermedia que vincula estudiantes a un caso con su rol."""
+    caso      = models.ForeignKey(CasoConvivencia, on_delete=models.CASCADE, related_name='involucrados')
+    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='casos_involucrado')
+    rol        = models.CharField(max_length=10, choices=CasoConvivencia.RolInvolucrado.choices)
+
+    class Meta:
+        unique_together = ('caso', 'estudiante')
+        verbose_name = 'Involucrado en caso'
+        verbose_name_plural = 'Involucrados en caso'
+
+    def __str__(self):
+        return f'{self.estudiante} → {self.rol} en {self.caso.radicado}'
+
+
+class AccionCaso(models.Model):
+    """
+    Cada acción documentada sobre un CasoConvivencia:
+    reuniones, notificaciones a padres, reportes a autoridades,
+    acuerdos, seguimientos y el cierre formal.
+    """
+
+    class TipoAccion(models.TextChoices):
+        NOTIFICACION_PADRE   = 'NOTIFICACION_PADRE',   'Notificación a padre/tutor'
+        REUNION_COMITE       = 'REUNION_COMITE',       'Reunión de Comité de Convivencia'
+        REPORTE_AUTORIDAD    = 'REPORTE_AUTORIDAD',    'Reporte a autoridad externa (ICBF / Policía)'
+        ACUERDO_COMPROMISO   = 'ACUERDO_COMPROMISO',   'Acuerdo y compromisos firmados'
+        SEGUIMIENTO          = 'SEGUIMIENTO',          'Seguimiento periódico'
+        MEDIACION            = 'MEDIACION',            'Proceso de mediación escolar'
+        REMISION_PROFESIONAL = 'REMISION_PROFESIONAL', 'Remisión a profesional externo'
+        CIERRE               = 'CIERRE',               'Cierre formal del caso'
+        OTRO                 = 'OTRO',                 'Otra acción'
+
+    caso          = models.ForeignKey(CasoConvivencia, on_delete=models.CASCADE, related_name='acciones')
+    tipo_accion   = models.CharField(max_length=25, choices=TipoAccion.choices, verbose_name='Tipo de acción')
+    descripcion   = models.TextField(verbose_name='Descripción de lo actuado')
+    ejecutado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, related_name='acciones_caso',
+        verbose_name='Ejecutado por',
+    )
+    fecha         = models.DateTimeField(auto_now_add=True)
+    evidencia     = models.FileField(
+        upload_to='sentinel/evidencias/%Y/%m/',
+        null=True, blank=True,
+        verbose_name='Evidencia / documento adjunto',
+    )
+
+    class Meta:
+        verbose_name = 'Acción sobre caso'
+        verbose_name_plural = 'Acciones sobre casos'
+        ordering = ['fecha']
+
+    def __str__(self):
+        return f'[{self.caso.radicado}] {self.get_tipo_accion_display()} — {self.fecha.strftime("%d/%m/%Y")}'
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  MÓDULO: MALLA CURRICULAR + PLAN SEMANAL DOCENTE
+# ══════════════════════════════════════════════════════════════════════════════
+
+_MESES_CHOICES = [
+    (1, 'Enero'), (2, 'Febrero'), (3, 'Marzo'), (4, 'Abril'),
+    (5, 'Mayo'), (6, 'Junio'), (7, 'Julio'), (8, 'Agosto'),
+    (9, 'Septiembre'), (10, 'Octubre'), (11, 'Noviembre'), (12, 'Diciembre'),
+]
+
+
+class MallaCurricular(models.Model):
+    """
+    Hoja de ruta curricular por materia + grado + año lectivo.
+    Creada por el coordinador o jefe de área; consultada por los docentes
+    como referencia para sus planes semanales.
+    """
+    materia = models.ForeignKey(
+        'Materia', on_delete=models.CASCADE,
+        related_name='mallas_curriculares', verbose_name="Materia",
+    )
+    grado = models.ForeignKey(
+        'Grado', on_delete=models.CASCADE,
+        related_name='mallas_curriculares', verbose_name="Grado",
+    )
+    año_lectivo = models.PositiveIntegerField(
+        verbose_name="Año Lectivo", default=datetime.date.today().year,
+    )
+    descripcion_general = models.TextField(
+        blank=True, null=True, verbose_name="Propósitos Generales / Descripción",
+    )
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='mallas_creadas',
+    )
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        verbose_name="Institución",
+    )
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Malla Curricular"
+        verbose_name_plural = "Mallas Curriculares"
+        unique_together = ('materia', 'grado', 'año_lectivo', 'institucion')
+        ordering = ['grado__orden', 'materia__nombre_materia']
+
+    def __str__(self):
+        return f"Malla · {self.materia} · {self.grado} · {self.año_lectivo}"
+
+    def total_items(self):
+        return self.items.count()
+
+
+class ItemMalla(models.Model):
+    """
+    Un eje temático dentro de la malla curricular, organizado por período.
+    Sigue la estructura oficial colombiana: EBC, DBA, competencias,
+    logros, indicadores de desempeño por nivel (Bajo/Básico/Alto/Superior).
+    """
+    malla = models.ForeignKey(
+        MallaCurricular, on_delete=models.CASCADE, related_name='items',
+    )
+    periodo = models.PositiveSmallIntegerField(
+        verbose_name="Período",
+        choices=[(1, '1° Período'), (2, '2° Período'), (3, '3° Período'), (4, '4° Período')],
+    )
+    eje_tematico = models.CharField(
+        max_length=255, verbose_name="Eje Temático / Contenido", default='',
+    )
+    # Referentes nacionales
+    ebc = models.TextField(
+        blank=True, null=True,
+        verbose_name="Estándares Básicos de Competencias (EBC)",
+    )
+    dba = models.TextField(
+        blank=True, null=True,
+        verbose_name="Derechos Básicos de Aprendizaje (DBA)",
+    )
+    # Competencias y logro
+    competencias = models.TextField(
+        blank=True, null=True, verbose_name="Competencias",
+    )
+    logro = models.TextField(
+        verbose_name="Logro del Período", default='',
+    )
+    # Indicadores de desempeño por nivel
+    indicador_bajo = models.TextField(
+        blank=True, null=True, verbose_name="Indicador — Desempeño Bajo (1.0–2.9)",
+    )
+    indicador_basico = models.TextField(
+        blank=True, null=True, verbose_name="Indicador — Desempeño Básico (3.0–3.9)",
+    )
+    indicador_alto = models.TextField(
+        blank=True, null=True, verbose_name="Indicador — Desempeño Alto (4.0–4.5)",
+    )
+    indicador_superior = models.TextField(
+        blank=True, null=True, verbose_name="Indicador — Desempeño Superior (4.6–5.0)",
+    )
+    # Planeación pedagógica
+    metodologia = models.TextField(
+        blank=True, null=True, verbose_name="Metodología / Estrategias Pedagógicas",
+    )
+    recursos = models.TextField(
+        blank=True, null=True, verbose_name="Recursos",
+    )
+    evaluacion = models.TextField(
+        blank=True, null=True, verbose_name="Criterios de Evaluación",
+    )
+    tiempo_semanas = models.PositiveSmallIntegerField(
+        default=10, verbose_name="Duración (semanas del período)",
+    )
+    # --- Campos bilingües (Nivel 3) ---
+    # Solo se llenan cuando la institución tiene es_bilingue=True.
+    # El sufijo _L2 indica "segundo idioma" (language 2).
+    eje_tematico_L2 = models.CharField(
+        max_length=255, blank=True, default='',
+        verbose_name="Eje Temático (Idioma Secundario)",
+    )
+    logro_L2 = models.TextField(
+        blank=True, default='',
+        verbose_name="Logro del Período (Idioma Secundario)",
+    )
+    competencias_L2 = models.TextField(
+        blank=True, null=True,
+        verbose_name="Competencias (Idioma Secundario)",
+    )
+    indicador_bajo_L2 = models.TextField(
+        blank=True, null=True,
+        verbose_name="Indicador Bajo (Idioma Secundario)",
+    )
+    indicador_basico_L2 = models.TextField(
+        blank=True, null=True,
+        verbose_name="Indicador Básico (Idioma Secundario)",
+    )
+    indicador_alto_L2 = models.TextField(
+        blank=True, null=True,
+        verbose_name="Indicador Alto (Idioma Secundario)",
+    )
+    indicador_superior_L2 = models.TextField(
+        blank=True, null=True,
+        verbose_name="Indicador Superior (Idioma Secundario)",
+    )
+    orden = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Ítem de Malla"
+        verbose_name_plural = "Ítems de Malla"
+        ordering = ['periodo', 'orden']
+
+    def __str__(self):
+        return f"P{self.periodo} · {self.eje_tematico}"
+
+
+class PlanSemanal(models.Model):
+    """
+    Plan semanal de un docente para un curso.
+    Flujo de estados: BORRADOR → ENVIADO → APROBADO / CON_OBSERVACIONES
+    """
+    class Estado(models.TextChoices):
+        BORRADOR          = 'BORRADOR',          'Borrador'
+        ENVIADO           = 'ENVIADO',           'Enviado al Coordinador'
+        APROBADO          = 'APROBADO',          'Aprobado'
+        CON_OBSERVACIONES = 'CON_OBSERVACIONES', 'Con Observaciones'
+
+    docente = models.ForeignKey(
+        'Docente', on_delete=models.CASCADE, related_name='planes_semanales',
+    )
+    curso = models.ForeignKey(
+        'Curso', on_delete=models.CASCADE, related_name='planes_semanales',
+    )
+    semana_inicio = models.DateField(verbose_name="Inicio de Semana (Lunes)")
+    semana_fin    = models.DateField(verbose_name="Fin de Semana (Viernes)")
+    estado = models.CharField(
+        max_length=20, choices=Estado.choices, default=Estado.BORRADOR,
+    )
+    observaciones_coordinador = models.TextField(
+        blank=True, null=True, verbose_name="Observaciones del Coordinador",
+    )
+    revisado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='planes_revisados',
+    )
+    fecha_envio    = models.DateTimeField(null=True, blank=True)
+    fecha_revision = models.DateTimeField(null=True, blank=True)
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        verbose_name = "Plan Semanal"
+        verbose_name_plural = "Planes Semanales"
+        unique_together = ('docente', 'curso', 'semana_inicio')
+        ordering = ['-semana_inicio']
+
+    def __str__(self):
+        return f"{self.docente} · {self.curso} · {self.semana_inicio}"
+
+
+class ItemPlanSemanal(models.Model):
+    """
+    Una clase/sesión dentro del plan semanal.
+    Opcionalmente enlazada a un ítem de malla curricular.
+    Puede convertirse en Deber o ActividadCalificable con un clic.
+    """
+    plan = models.ForeignKey(
+        PlanSemanal, on_delete=models.CASCADE, related_name='items',
+    )
+    fecha       = models.DateField(verbose_name="Fecha de la Clase")
+    titulo      = models.CharField(max_length=255, verbose_name="Tema / Título")
+    descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción / Actividades")
+    item_malla  = models.ForeignKey(
+        ItemMalla, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='items_plan', verbose_name="Ítem de Malla Vinculado",
+    )
+    # Conversiones (se llenan al convertir)
+    deber = models.OneToOneField(
+        'Deber', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='item_plan_origen',
+    )
+    actividad = models.OneToOneField(
+        'ActividadCalificable', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='item_plan_origen',
+    )
+    orden = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Ítem de Plan Semanal"
+        verbose_name_plural = "Ítems de Plan Semanal"
+        ordering = ['fecha', 'orden']
+
+    def __str__(self):
+        return f"{self.fecha} – {self.titulo}"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  MÓDULO: CORTE PREVENTIVO
+#  Informes académicos intermedios de alerta temprana (Decreto 1290/2009)
+# ══════════════════════════════════════════════════════════════════════════════
+
+class ConfiguracionCortePreventivo(models.Model):
+    """Configuración global del módulo de cortes preventivos por institución."""
+
+    institucion = models.OneToOneField(
+        'finanzas.InstitucionEducativa',
+        on_delete=models.CASCADE,
+        related_name='config_corte_preventivo',
+        verbose_name="Institución",
+    )
+    umbral_riesgo_bajo = models.DecimalField(
+        max_digits=4, decimal_places=2, default=2.90,
+        verbose_name="Umbral Riesgo Alto (nota por debajo de...)",
+        help_text="Estudiantes con promedio menor a este valor se marcan en RIESGO ALTO. Ej: 2.9",
+    )
+    umbral_riesgo_medio = models.DecimalField(
+        max_digits=4, decimal_places=2, default=3.40,
+        verbose_name="Umbral Riesgo Medio (nota por debajo de...)",
+        help_text="Estudiantes entre el umbral alto y este valor se marcan en RIESGO MEDIO. Ej: 3.4",
+    )
+    porcentaje_inasistencia_alerta = models.PositiveIntegerField(
+        default=20,
+        verbose_name="% Inasistencia que genera alerta",
+        help_text="Si el porcentaje de clases perdidas supera este valor, se activa alerta de asistencia. Ej: 20 = 20%",
+    )
+    mostrar_promedio_parcial = models.BooleanField(default=True, verbose_name="Mostrar promedio parcial en el reporte")
+    mostrar_asistencia = models.BooleanField(default=True, verbose_name="Incluir asistencia en el reporte")
+    mostrar_observaciones_docente = models.BooleanField(default=True, verbose_name="Incluir observaciones de docentes")
+    firma_rector_en_reporte = models.BooleanField(default=True, verbose_name="Incluir firma del rector en el PDF")
+    permitir_descarga_familiar = models.BooleanField(
+        default=False,
+        verbose_name="Permitir que familias descarguen el reporte desde el portal",
+    )
+    texto_pie_pagina = models.TextField(
+        blank=True,
+        default="Este informe es de carácter preventivo y no constituye el boletín oficial de calificaciones.",
+        verbose_name="Texto del pie de página del reporte PDF",
+    )
+
+    class Meta:
+        verbose_name = "Configuración de Corte Preventivo"
+        verbose_name_plural = "Configuraciones de Corte Preventivo"
+
+    def __str__(self):
+        return f"Config. Corte Preventivo — {self.institucion}"
+
+
+class CortePreventivo(models.Model):
+    """Evento de corte: encabezado del reporte para un grado y período."""
+
+    ESTADO_CHOICES = [
+        ('BORRADOR',   'Borrador'),
+        ('CALCULANDO', 'Calculando...'),
+        ('PUBLICADO',  'Publicado'),
+        ('ARCHIVADO',  'Archivado'),
+    ]
+
+    institucion      = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
+    periodo_academico = models.ForeignKey('PeriodoAcademico', on_delete=models.CASCADE, related_name='cortes_preventivos', verbose_name="Período Académico")
+    grado            = models.ForeignKey('Grado', on_delete=models.CASCADE, related_name='cortes_preventivos', verbose_name="Grado")
+    fecha_corte      = models.DateField(verbose_name="Fecha de Corte", help_text="Fecha hasta la cual se toman en cuenta las actividades y calificaciones")
+    nombre_corte     = models.CharField(max_length=150, verbose_name="Nombre del Corte", help_text="Ej: Corte 1 – Mayo 2025")
+    estado           = models.CharField(max_length=15, choices=ESTADO_CHOICES, default='BORRADOR', verbose_name="Estado")
+    generado_por     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Generado por")
+    fecha_generacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    fecha_publicacion = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Publicación")
+    observacion_general = models.TextField(blank=True, verbose_name="Observación General del Coordinador", help_text="Mensaje del coordinador para todos los estudiantes del grado")
+    total_estudiantes_evaluados = models.PositiveIntegerField(default=0, verbose_name="Total Estudiantes Evaluados")
+    total_en_riesgo  = models.PositiveIntegerField(default=0, verbose_name="Total en Riesgo")
+
+    class Meta:
+        verbose_name = "Corte Preventivo"
+        verbose_name_plural = "Cortes Preventivos"
+        unique_together = ('institucion', 'periodo_academico', 'grado', 'fecha_corte')
+        ordering = ['-fecha_corte', 'grado__nombre']
+
+    def __str__(self):
+        return f"{self.nombre_corte} — {self.grado} ({self.periodo_academico})"
+
+
+class ResultadoCorteEstudiante(models.Model):
+    """Resultado individual de cada estudiante dentro de un corte."""
+
+    NIVEL_CHOICES = [
+        ('SUPERIOR', 'Superior'),
+        ('ALTO',     'Alto'),
+        ('BASICO',   'Básico'),
+        ('BAJO',     'Bajo'),
+        ('SIN_DATOS','Sin datos'),
+    ]
+    RIESGO_CHOICES = [
+        ('ALTO',       'Riesgo Alto'),
+        ('MEDIO',      'Riesgo Medio'),
+        ('BAJO',       'Riesgo Bajo'),
+        ('SIN_RIESGO', 'Sin Riesgo'),
+    ]
+
+    corte       = models.ForeignKey(CortePreventivo, on_delete=models.CASCADE, related_name='resultados', verbose_name="Corte")
+    estudiante  = models.ForeignKey('Estudiante', on_delete=models.CASCADE, related_name='resultados_corte', verbose_name="Estudiante")
+    institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
+
+    promedio_general         = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, verbose_name="Promedio General")
+    nivel_desempeno_general  = models.CharField(max_length=10, choices=NIVEL_CHOICES, default='SIN_DATOS', verbose_name="Nivel de Desempeño")
+    nivel_riesgo             = models.CharField(max_length=10, choices=RIESGO_CHOICES, default='SIN_RIESGO', verbose_name="Nivel de Riesgo")
+    porcentaje_asistencia    = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="% Asistencia")
+    total_actividades_registradas = models.PositiveIntegerField(default=0, verbose_name="Total Actividades Registradas")
+    total_actividades_calificadas = models.PositiveIntegerField(default=0, verbose_name="Total Actividades Calificadas")
+    materias_en_riesgo_count = models.PositiveIntegerField(default=0, verbose_name="Materias en Riesgo")
+    observacion_director_curso = models.TextField(blank=True, verbose_name="Observación del Director de Curso")
+    requiere_citacion_padres = models.BooleanField(default=False, verbose_name="Requiere Citación de Padres")
+    notificacion_enviada     = models.BooleanField(default=False, verbose_name="Notificación Enviada")
+    fecha_notificacion       = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Notificación")
+
+    class Meta:
+        verbose_name = "Resultado de Estudiante"
+        verbose_name_plural = "Resultados de Estudiantes"
+        unique_together = ('corte', 'estudiante', 'institucion')
+        ordering = ['estudiante__usuario__last_name', 'estudiante__usuario__first_name']
+
+    def __str__(self):
+        return f"{self.estudiante} — {self.corte.nombre_corte} [{self.nivel_riesgo}]"
+
+
+class DetalleMateriaCortePrev(models.Model):
+    """Resultado por materia de un estudiante dentro del corte."""
+
+    NIVEL_CHOICES = [
+        ('SUPERIOR', 'Superior'),
+        ('ALTO',     'Alto'),
+        ('BASICO',   'Básico'),
+        ('BAJO',     'Bajo'),
+        ('SIN_DATOS','Sin datos'),
+    ]
+
+    resultado_estudiante  = models.ForeignKey(ResultadoCorteEstudiante, on_delete=models.CASCADE, related_name='detalles_materias', verbose_name="Resultado del Estudiante")
+    curso                 = models.ForeignKey('Curso', on_delete=models.CASCADE, verbose_name="Curso")
+    institucion           = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
+    promedio_materia      = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, verbose_name="Promedio en la Materia")
+    nivel_desempeno       = models.CharField(max_length=10, choices=NIVEL_CHOICES, default='SIN_DATOS', verbose_name="Nivel de Desempeño")
+    en_riesgo             = models.BooleanField(default=False, verbose_name="¿En riesgo?")
+    actividades_registradas = models.PositiveIntegerField(default=0, verbose_name="Actividades Registradas")
+    actividades_calificadas = models.PositiveIntegerField(default=0, verbose_name="Actividades Calificadas")
+    actividades_pendientes  = models.PositiveIntegerField(default=0, verbose_name="Actividades Pendientes de Nota")
+    observacion_docente   = models.TextField(blank=True, verbose_name="Observación del Docente")
+
+    class Meta:
+        verbose_name = "Detalle por Materia"
+        verbose_name_plural = "Detalles por Materia"
+        unique_together = ('resultado_estudiante', 'curso', 'institucion')
+        ordering = ['curso__materia__nombre_materia']
+
+    def __str__(self):
+        return f"{self.curso.materia.nombre_materia} — {self.resultado_estudiante.estudiante}"

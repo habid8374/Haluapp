@@ -1,0 +1,188 @@
+{% extends "base_academico.html" %}
+{% load gestion_academica_filters %}
+
+{% block titulo %}Cortes Preventivos{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .badge-estado-BORRADOR    { background:#f3f4f6; color:#374151; border:1px solid #d1d5db; }
+  .badge-estado-CALCULANDO  { background:#fef3c7; color:#92400e; border:1px solid #fbbf24; }
+  .badge-estado-PUBLICADO   { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+  .badge-estado-ARCHIVADO   { background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1; }
+  .corte-card { transition:.15s; border-radius:14px; }
+  .corte-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.10); }
+  .risk-pill { display:inline-block; padding:2px 10px; border-radius:20px; font-size:.72rem; font-weight:700; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<!-- Hero Banner -->
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+      <h2 class="mb-1 fw-800"><i class="bi bi-clipboard2-pulse-fill me-2"></i>Cortes Preventivos</h2>
+      <p class="mb-0 opacity-75">Informes de alerta temprana para el seguimiento académico por grado y período</p>
+    </div>
+    {% if puede_gestionar %}
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'gestion_academica:crear_corte_preventivo' %}"
+         class="btn btn-light fw-700 d-flex align-items-center gap-2">
+        <i class="bi bi-plus-circle-fill text-primary"></i>Nuevo Corte
+      </a>
+      <a href="{% url 'gestion_academica:configuracion_corte_preventivo' %}"
+         class="btn btn-outline-light d-flex align-items-center gap-2">
+        <i class="bi bi-gear-fill"></i>Configuración
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius:14px;">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small fw-600 mb-1"><i class="bi bi-calendar3 me-1"></i>Período</label>
+        <select name="periodo" class="form-select form-select-sm">
+          <option value="">— Todos los períodos —</option>
+          {% for p in periodos %}
+            <option value="{{ p.pk }}" {% if filtro_periodo == p.pk|stringformat:"s" %}selected{% endif %}>
+              {{ p }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-600 mb-1"><i class="bi bi-mortarboard me-1"></i>Grado</label>
+        <select name="grado" class="form-select form-select-sm">
+          <option value="">— Todos —</option>
+          {% for g in grados %}
+            <option value="{{ g.pk }}" {% if filtro_grado == g.pk|stringformat:"s" %}selected{% endif %}>
+              {{ g.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-600 mb-1"><i class="bi bi-funnel me-1"></i>Estado</label>
+        <select name="estado" class="form-select form-select-sm">
+          <option value="">— Todos —</option>
+          <option value="BORRADOR"   {% if filtro_estado == "BORRADOR" %}selected{% endif %}>Borrador</option>
+          <option value="CALCULANDO" {% if filtro_estado == "CALCULANDO" %}selected{% endif %}>Calculando</option>
+          <option value="PUBLICADO"  {% if filtro_estado == "PUBLICADO" %}selected{% endif %}>Publicado</option>
+          <option value="ARCHIVADO"  {% if filtro_estado == "ARCHIVADO" %}selected{% endif %}>Archivado</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-search me-1"></i>Filtrar</button>
+        <a href="{% url 'gestion_academica:lista_cortes_preventivos' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x"></i></a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Lista de cortes -->
+{% if cortes %}
+  <div class="row g-3">
+    {% for corte in cortes %}
+    <div class="col-md-6 col-xl-4">
+      <div class="card corte-card border-0 shadow-sm h-100">
+        <div class="card-body p-0">
+          <!-- Header de la card -->
+          <div class="p-3 pb-2" style="border-radius:14px 14px 0 0;
+            background:{% if corte.estado == 'PUBLICADO' %}linear-gradient(135deg,#f0fdf4,#dcfce7){% elif corte.estado == 'CALCULANDO' %}linear-gradient(135deg,#fffbeb,#fef3c7){% elif corte.estado == 'ARCHIVADO' %}linear-gradient(135deg,#f8fafc,#f1f5f9){% else %}linear-gradient(135deg,#f5f3ff,#ede9fe){% endif %};">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <span class="badge-estado-{{ corte.estado }} badge rounded-pill px-2 py-1 mb-2" style="font-size:.7rem;">
+                  {% if corte.estado == 'CALCULANDO' %}<span class="spinner-border spinner-border-sm me-1" style="width:.6rem;height:.6rem;"></span>{% endif %}
+                  {{ corte.get_estado_display }}
+                </span>
+                <h6 class="mb-0 fw-700" style="font-size:.95rem;line-height:1.3;">{{ corte.nombre_corte }}</h6>
+              </div>
+              {% if corte.total_en_riesgo > 0 %}
+              <span class="risk-pill" style="background:#fee2e2;color:#dc2626;">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ corte.total_en_riesgo }} en riesgo
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div class="p-3 pt-2">
+            <div class="row g-1 small text-muted mb-2">
+              <div class="col-6"><i class="bi bi-mortarboard me-1 text-primary"></i>{{ corte.grado.nombre }}</div>
+              <div class="col-6"><i class="bi bi-calendar3 me-1 text-primary"></i>{{ corte.fecha_corte|date:"d/m/Y" }}</div>
+              <div class="col-12"><i class="bi bi-book me-1 text-primary"></i>{{ corte.periodo_academico }}</div>
+              {% if corte.total_estudiantes_evaluados > 0 %}
+              <div class="col-12">
+                <i class="bi bi-people me-1 text-primary"></i>
+                {{ corte.total_estudiantes_evaluados }} estudiante{{ corte.total_estudiantes_evaluados|pluralize }} evaluado{{ corte.total_estudiantes_evaluados|pluralize }}
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Barra de progreso de riesgo (si ya fue calculado) -->
+            {% if corte.total_estudiantes_evaluados > 0 %}
+            <div class="mb-2">
+              {% widthratio corte.total_en_riesgo corte.total_estudiantes_evaluados 100 as pct_riesgo %}
+              <div class="progress" style="height:6px;border-radius:4px;">
+                <div class="progress-bar bg-danger" style="width:{{ pct_riesgo }}%;"></div>
+              </div>
+              <div class="d-flex justify-content-between" style="font-size:.68rem;color:#9ca3af;">
+                <span>{{ pct_riesgo }}% en riesgo</span>
+                <span>{{ corte.total_estudiantes_evaluados }} total</span>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Acciones -->
+            <div class="d-flex gap-2 flex-wrap mt-2">
+              <a href="{% url 'gestion_academica:detalle_corte_preventivo' corte.pk %}"
+                 class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-eye-fill"></i> Ver detalle
+              </a>
+              {% if puede_gestionar and corte.estado == 'BORRADOR' %}
+              <form method="post" action="{% url 'gestion_academica:calcular_corte' corte.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
+                  <i class="bi bi-calculator"></i>Calcular
+                </button>
+              </form>
+              {% endif %}
+              {% if corte.estado in 'PUBLICADO BORRADOR' %}
+              <a href="{% url 'gestion_academica:exportar_pdf_grado' corte.pk %}"
+                 class="btn btn-outline-secondary btn-sm" title="PDF por grado">
+                <i class="bi bi-file-earmark-pdf"></i>
+              </a>
+              <a href="{% url 'gestion_academica:exportar_excel_corte' corte.pk %}"
+                 class="btn btn-outline-secondary btn-sm" title="Exportar Excel">
+                <i class="bi bi-file-earmark-excel"></i>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card border-0 shadow-sm text-center py-5" style="border-radius:14px;">
+    <i class="bi bi-clipboard2-pulse" style="font-size:3.5rem;color:#c4b5fd;"></i>
+    <h5 class="mt-3 text-muted">No hay cortes preventivos</h5>
+    <p class="text-muted small mb-3">
+      {% if filtro_periodo or filtro_grado or filtro_estado %}
+        No se encontraron cortes con los filtros aplicados.
+      {% else %}
+        Crea el primer corte preventivo para comenzar el seguimiento académico de tus estudiantes.
+      {% endif %}
+    </p>
+    {% if puede_gestionar %}
+    <a href="{% url 'gestion_academica:crear_corte_preventivo' %}" class="btn btn-primary mx-auto" style="width:fit-content;">
+      <i class="bi bi-plus-circle-fill me-2"></i>Crear primer corte
+    </a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

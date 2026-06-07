@@ -1,0 +1,57 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4" style="max-width: 880px;">
+
+  <!-- Hero -->
+  <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:18px; padding:1.75rem 2rem; color:white; margin-bottom:1.5rem;">
+    <h2 class="fw-bold mb-1"><i class="bi bi-people-fill me-2"></i>Carga de Acudientes / Familiares</h2>
+    <p class="mb-0" style="opacity:.9;">Vincula a cada acudiente con sus estudiantes matriculados. La plantilla ya trae la lista de estudiantes.</p>
+  </div>
+
+  {% if messages %}{% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <div class="row g-3 mb-3">
+    <div class="col-6"><div class="card shadow-sm"><div class="card-body text-center"><div class="h3 mb-0 text-primary">{{ total_estudiantes }}</div><small class="text-muted">Estudiantes matriculados</small></div></div></div>
+    <div class="col-6"><div class="card shadow-sm"><div class="card-body text-center"><div class="h3 mb-0 text-success">{{ total_familiares }}</div><small class="text-muted">Acudientes registrados</small></div></div></div>
+  </div>
+
+  <!-- Paso 1: descargar -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h5 class="fw-bold"><span class="badge bg-primary me-2">1</span>Descarga la plantilla</h5>
+      <p class="text-muted mb-3" style="font-size:.9rem;">El Excel incluye la lista de estudiantes matriculados (en lista desplegable) para que enlaces cada acudiente con su(s) estudiante(s). Marca <strong>SI</strong> en <code>RESPONSABLE_FACTURACION</code> para el acudiente titular de la factura.</p>
+      <a href="{% url 'gestion_academica:descargar_plantilla_familiares' %}" class="btn btn-outline-primary">
+        <i class="bi bi-file-earmark-excel me-1"></i> Descargar plantilla de acudientes
+      </a>
+    </div>
+  </div>
+
+  <!-- Paso 2: subir -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="fw-bold"><span class="badge bg-primary me-2">2</span>Sube el archivo diligenciado</h5>
+      <form method="post" enctype="multipart/form-data" class="mt-2">
+        {% csrf_token %}
+        <div class="mb-3">
+          <input type="file" name="archivo" accept=".xlsx" class="form-control" required>
+          <small class="text-muted">Formato .xlsx, hoja "ACUDIENTES".</small>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i> Cargar acudientes</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="alert alert-info mt-3" style="font-size:.85rem;">
+    <i class="bi bi-info-circle me-1"></i>
+    Cada acudiente recibe un <strong>usuario de acceso</strong> (su email) con contraseña temporal = su número de documento.
+    Un mismo acudiente puede enlazarse a varios estudiantes (una fila por cada estudiante).
+    El <strong>email</strong> es obligatorio (login + envío de la factura electrónica).
+  </div>
+
+</div>
+{% endblock %}

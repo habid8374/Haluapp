@@ -4,28 +4,66 @@
 
 {% block contenido %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h1 class="h2">{{ titulo_pagina }}</h1>
-            <p class="lead text-secondary">Hola {{ estudiante.usuario.get_full_name }}, este es tu resumen financiero.</p>
+            {% if es_vista_familiar %}
+            <p class="lead text-secondary mb-0">
+                Estado de cuenta de <strong>{{ estudiante.usuario.get_full_name }}</strong> (pagos en línea con Mercado Pago).
+            </p>
+            {% else %}
+            <p class="lead text-secondary mb-0">Hola {{ estudiante.usuario.get_full_name }}, este es tu resumen financiero.</p>
+            {% endif %}
         </div>
-        <a href="{% url 'gestion_academica:dashboard_estudiante' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver al Panel</a>
+        <a href="{{ volver_url }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
     </div>
 
-    <!-- Filtros de Estado -->
     <div class="mb-4">
-        <div class="btn-group" role="group">
-            <a href="{% url 'finanzas:mi_estado_de_cuenta' %}" class="btn {% if not filtro_activo %}btn-primary{% else %}btn-outline-primary{% endif %}">Todas</a>
-            <a href="?filtro=PENDIENTE" class="btn {% if filtro_activo == 'PENDIENTE' %}btn-danger{% else %}btn-outline-danger{% endif %}">Pendientes y Vencidas</a>
-            <a href="?filtro=PAGADO" class="btn {% if filtro_activo == 'PAGADO' %}btn-success{% else %}btn-outline-success{% endif %}">Pagadas</a>
+        <div class="btn-group flex-wrap" role="group">
+            <a href="{% if es_vista_familiar %}{% url 'finanzas:familiar_estado_cuenta_estudiante' estudiante.pk %}{% else %}{% url 'finanzas:mi_estado_de_cuenta' %}{% endif %}" class="btn {% if not filtro_activo %}btn-primary{% else %}btn-outline-primary{% endif %}">Todas</a>
+            <a href="{% if es_vista_familiar %}{% url 'finanzas:familiar_estado_cuenta_estudiante' estudiante.pk %}{% else %}{% url 'finanzas:mi_estado_de_cuenta' %}{% endif %}?filtro=PENDIENTE" class="btn {% if filtro_activo == 'PENDIENTE' %}btn-danger{% else %}btn-outline-danger{% endif %}">Pendientes y vencidas</a>
+            <a href="{% if es_vista_familiar %}{% url 'finanzas:familiar_estado_cuenta_estudiante' estudiante.pk %}{% else %}{% url 'finanzas:mi_estado_de_cuenta' %}{% endif %}?filtro=PAGADO" class="btn {% if filtro_activo == 'PAGADO' %}btn-success{% else %}btn-outline-success{% endif %}">Pagadas</a>
         </div>
     </div>
 
-    <!-- Tabla detallada de cuentas -->
+    {# ── Aviso modo TEST de Mercado Pago ── #}
+    {% if not mp_modo_produccion %}
+    <div class="alert alert-warning d-flex gap-3 align-items-start mb-4" role="alert"
+         style="border-left:4px solid #f59e0b;background:#fffbeb;">
+      <i class="bi bi-flask-fill flex-shrink-0 mt-1" style="font-size:1.3rem;color:#d97706;"></i>
+      <div>
+        <strong>Pasarela de pagos en modo PRUEBA</strong>
+        <p class="mb-2 mt-1" style="font-size:.88rem;">
+          El sistema está usando credenciales de prueba de Mercado Pago. Los pagos no son reales.
+          Para completar un pago de prueba usa las siguientes tarjetas de test:
+        </p>
+        <div class="row g-2" style="font-size:.83rem;">
+          <div class="col-sm-6">
+            <div style="background:#fff;border:1px solid #fde68a;border-radius:.5rem;padding:.55rem .85rem;">
+              <span class="badge bg-primary me-1">VISA</span>
+              <code>4509 9535 6623 3704</code>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div style="background:#fff;border:1px solid #fde68a;border-radius:.5rem;padding:.55rem .85rem;">
+              <span class="badge bg-danger me-1">Master</span>
+              <code>5031 7557 3453 0604</code>
+            </div>
+          </div>
+          <div class="col-12" style="color:#92400e;font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            CVV: <code>123</code> &nbsp;·&nbsp; Vencimiento: cualquier fecha futura &nbsp;·&nbsp;
+            Nombre titular: <code>APRO</code> (para aprobar) o <code>OTHE</code> (para rechazar)
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="card shadow-sm">
-        <div class="card-header d-flex justify-content-between">
-            <h4 class="mb-0">Detalle de Cuentas</h4>
-            <h5 class="mb-0">Saldo Pendiente (Filtro Actual): <span class="text-danger">${{ total_deuda_filtrada|floatformat:2 }}</span></h5>
+        <div class="card-header d-flex flex-column flex-md-row justify-content-between gap-2">
+            <h4 class="mb-0">Detalle de cuentas</h4>
+            <h5 class="mb-0">Saldo pendiente (filtro actual): <span class="text-danger">${{ total_deuda_filtrada|floatformat:2 }}</span></h5>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -33,16 +71,15 @@
                     <thead class="table-light">
                         <tr>
                             <th>Concepto</th>
-                            <th class="text-end">Monto Asignado</th>
-                            <th class="text-end">Saldo Pendiente</th>
-                            <th>Fecha de Vencimiento</th>
+                            <th class="text-end">Monto asignado</th>
+                            <th class="text-end">Saldo pendiente</th>
+                            <th>Fecha de vencimiento</th>
                             <th class="text-center">Estado</th>
                             <th class="text-center">Acción</th>
                         </tr>
                     </thead>
                     <tbody>
                     {% for cuenta in cuentas %}
-                        {# --- LÓGICA SIMPLIFICADA USANDO LA PROPIEDAD DEL MODELO --- #}
                         <tr class="{% if cuenta.esta_vencida %}table-danger{% endif %}">
                             <td>{{ cuenta.concepto_pago.nombre_concepto }}</td>
                             <td class="text-end">${{ cuenta.monto_asignado|floatformat:2 }}</td>
@@ -52,24 +89,25 @@
                                 {% if cuenta.estado == 'PAGADO' %}
                                     <span class="badge bg-success">Pagado</span>
                                 {% elif cuenta.esta_vencida %}
-                                    <span class="badge bg-danger">VENCIDO</span>
+                                    <span class="badge bg-danger">Vencido</span>
                                 {% elif cuenta.estado == 'PAGADO_PARCIAL' %}
-                                    <span class="badge bg-warning text-dark">Pago Parcial</span>
+                                    <span class="badge bg-warning text-dark">Pago parcial</span>
                                 {% else %}
                                     <span class="badge bg-info">Pendiente</span>
                                 {% endif %}
                             </td>
                             <td class="text-center">
-    {% if cuenta.saldo_pendiente > 0 %}
-        {# Asegúrate de que esta línea sea exactamente así #}
-        <a href="{% url 'finanzas:iniciar_pago' cuenta_pk=cuenta.pk %}" class="btn btn-sm {% if cuenta.esta_vencida %}btn-danger{% else %}btn-success{% endif %}">
-            Pagar Ahora <i class="bi bi-credit-card-fill"></i>
-        </a>
-    {% else %}
-        <i class="bi bi-check-circle-fill fs-4 text-success" title="Pagado"></i>
-    {% endif %}
+                                {% if cuenta.saldo_pendiente > 0 %}
+                                <a href="{% url 'finanzas:iniciar_pago' cuenta_pk=cuenta.pk %}" class="btn btn-sm {% if cuenta.esta_vencida %}btn-danger{% else %}btn-success{% endif %}">
+                                    Pagar ahora <i class="bi bi-credit-card-fill"></i>
+                                </a>
+                                {% else %}
+                                <i class="bi bi-check-circle-fill fs-4 text-success" title="Pagado"></i>
+                                {% endif %}
                             </td>
                         </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted">No hay cuentas en este filtro.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>

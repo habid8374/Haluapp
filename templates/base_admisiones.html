@@ -1,108 +1,437 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static notificaciones_tags %}
 
-{# ==================================================================== #}
-{# TÍTULO DE LA PÁGINA                                                  #}
-{# ==================================================================== #}
 {% block titulo %}Módulo de Admisiones - {{ branding.NOMBRE }}{% endblock %}
 
+{% block body_class %}layout-admisiones{% endblock %}
 
-{# ==================================================================== #}
-{# NAVBAR SUPERIOR (MENÚ HORIZONTAL)                                    #}
-{# ==================================================================== #}
-{% block navbar_links %}
-    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-            <a class="nav-link {% if 'lista_grados_aspirantes' in request.path or 'lista_aspirantes_por_grado' in request.path %}active{% endif %}" href="{% url 'admisiones:lista_grados_aspirantes' %}">
-                <i class="bi bi-list-ul me-1"></i>Aspirantes
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_admisiones' %}active{% endif %}" href="{% url 'admisiones:dashboard_admisiones' %}">
-                <i class="bi bi-bar-chart-line-fill me-1"></i>Dashboard
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.url_name == 'pipeline_admisiones' %}active{% endif %}" href="{% url 'admisiones:pipeline_admisiones' %}">
-                <i class="bi bi-kanban-fill me-1"></i>Pipeline
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'gestion_academica:inicio_academico' %}">
-                <i class="bi bi-arrow-right-square me-1"></i>Ir a Módulo Académico
-            </a>
-        </li>
-    </ul>
-    {{ block.super }}
-{% endblock navbar_links %}
+{% block extrastyles %}
+{{ block.super }}
+<style>
+  /* ══════════════════════════════════════════════════════
+     HALU — SIDEBAR LAYOUT (Admisiones)
+     Transforma el menú flotante en sidebar fijo izquierdo.
+  ══════════════════════════════════════════════════════ */
+  body.layout-admisiones {
+    --sidebar-w: 245px;
+    --brand-primary: #1358c8;
+    --brand-primary-dark: #0f469f;
+  }
 
+  /* Ocultar botón flotante original */
+  body.layout-admisiones #floatingMenuToggle { display: none !important; }
 
-{# ==================================================================== #}
-{# MENÚ LATERAL FLOTANTE (MENÚ VERTICAL)                                #}
-{# ==================================================================== #}
-{% block floating_menu_content %}
-<ul class="nav flex-column">
-    <li class="nav-item menu-main-title">
-        <span class="nav-link disabled"><i class="bi bi-person-badge"></i> Módulo Admisiones</span>
+  /* ── Sidebar (panel convertido) ── */
+  body.layout-admisiones #mainMenuPanel {
+    position: fixed !important;
+    top: 3.4rem !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: 0 !important;
+    width: var(--sidebar-w) !important;
+    max-height: none !important;
+    height: calc(100vh - 3.4rem) !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-right: 1px solid var(--border-color, #dbe5f4) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    z-index: 1020 !important;
+    box-shadow: 3px 0 20px rgba(10, 40, 80, .06) !important;
+    padding: .75rem .65rem 2rem !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background-color: #ffffff !important;
+    transition: transform .28s ease !important;
+  }
+
+  /* Scrollbar delgado */
+  body.layout-admisiones #mainMenuPanel::-webkit-scrollbar { width: 4px; }
+  body.layout-admisiones #mainMenuPanel::-webkit-scrollbar-thumb {
+    background: #c5d8f5; border-radius: 4px;
+  }
+
+  /* Empujar contenido principal */
+  body.layout-admisiones { padding-left: var(--sidebar-w); transition: padding-left .28s ease; }
+
+  /* Mejorar nav-links en sidebar */
+  body.layout-admisiones #mainMenuPanel .nav-link {
+    padding-left: .75rem !important; border-radius: .5rem;
+    transition: background .15s, padding-left .15s, color .15s;
+  }
+  body.layout-admisiones #mainMenuPanel .nav-link:hover {
+    background-color: #eaf2ff !important; color: #1358c8 !important; padding-left: 1rem !important;
+  }
+  body.layout-admisiones #mainMenuPanel .nav-link.active {
+    background-color: #dbeafe !important; color: #1358c8 !important;
+    font-weight: 600 !important; padding-left: 1rem !important;
+  }
+
+  /* Botón toggle + Avatar */
+  .btn-sidebar-toggle-adm {
+    background: none; border: none; color: rgba(255,255,255,.9);
+    font-size: 1.4rem; padding: .28rem .5rem; border-radius: .45rem;
+    cursor: pointer; transition: background .18s;
+    display: flex; align-items: center; margin-right: .35rem;
+    flex-shrink: 0; line-height: 1;
+  }
+  .btn-sidebar-toggle-adm:hover { background: rgba(255,255,255,.18); color: #fff; }
+  .nav-avatar-adm {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,.22);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .84rem; flex-shrink: 0;
+  }
+
+  /* Cabecera dentro del sidebar */
+  .sidebar-brand-row-adm {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .2rem .35rem .8rem;
+    border-bottom: 1px solid #dbe5f4; margin-bottom: .5rem;
+  }
+  .sidebar-brand-row-adm .sb-label {
+    font-size: .73rem; font-weight: 800; color: #1358c8;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+
+  /* ── MOBILE (<992px): sidebar como drawer ── */
+  @media (max-width: 991.98px) {
+    body.layout-admisiones { padding-left: 0 !important; }
+
+    /* Estado por defecto: fuera de pantalla a la izquierda (CSS fallback pre-JS) */
+    body.layout-admisiones #mainMenuPanel {
+      transform: translateX(-285px) !important;
+      width: 285px !important;
+      box-shadow: 8px 0 32px rgba(0,0,0,.2) !important;
+      z-index: 1055 !important;
+      transition: transform .28s cubic-bezier(.4,0,.2,1) !important;
+    }
+    /* El estado abierto/cerrado lo maneja JS con style.setProperty('important')
+       que siempre gana sobre cualquier regla CSS con !important             */
+
+    /* Overlay oscuro cuando el sidebar está abierto */
+    body.layout-admisiones.sidebar-open::after {
+      content: ''; position: fixed; inset: 0;
+      background: rgba(10,30,60,.45); z-index: 1054;
+    }
+  }
+
+  /* Ajuste contenedor principal en escritorio */
+  @media (min-width: 992px) {
+    body.layout-admisiones main.container {
+      max-width: 100% !important;
+      padding-left: 1.5rem !important;
+      padding-right: 1.5rem !important;
+    }
+  }
+
+  /* ── MOBILE: navbar en una sola fila ── */
+  body.layout-admisiones .navbar-toggler {
+    display: none !important;
+  }
+  body.layout-admisiones #navbarNavContent {
+    display: flex !important;
+    flex-basis: auto !important;
+    flex-shrink: 0;
+  }
+  body.layout-admisiones .top-navbar .container-fluid {
+    flex-wrap: nowrap !important;
+  }
+  body.layout-admisiones .navbar-brand {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  @media (max-width: 479px) {
+    body.layout-admisiones .navbar-brand .brand-text {
+      display: none;
+    }
+  }
+</style>
+{% endblock extrastyles %}
+
+{# ── Navbar: hamburger + brand (siempre visible, fuera del collapse) ── #}
+{% block navbar_brand %}
+<button class="btn-sidebar-toggle-adm" id="sidebarToggleBtnAdm"
+        aria-label="Abrir/cerrar menú lateral" type="button">
+  <i class="bi bi-list"></i>
+</button>
+<a class="navbar-brand ms-1" href="{% url 'admisiones:dashboard_admisiones' %}">
+  {% if configuracion_institucion and configuracion_institucion.logo %}
+    <img src="{{ configuracion_institucion.logo.url }}" alt="Logo" class="logo-navbar">
+  {% elif branding.LOGO_URL %}
+    <img src="{% static branding.LOGO_URL %}" alt="{{ branding.NOMBRE }}" class="logo-navbar">
+  {% else %}
+    <i class="bi bi-person-badge me-1"></i>
+  {% endif %}
+  <span class="brand-text">{{ configuracion_institucion.nombre_institucion|default:"Módulo de Admisiones" }}</span>
+</a>
+{% endblock navbar_brand %}
+
+{# ── Navbar derecha: notificaciones + usuario ── #}
+{% block navbar_content %}
+<ul class="navbar-nav ms-auto d-flex flex-row align-items-center gap-1">
+  {% if user.is_authenticated %}
+    {% notificaciones_bell %}
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle ps-1 d-flex align-items-center gap-2"
+         href="#" id="navbarDropdownUserAdm" role="button"
+         data-bs-toggle="dropdown" aria-expanded="false">
+        {% if user.foto_perfil %}
+          <img src="{{ user.foto_perfil.url }}" alt="{{ user.get_full_name }}"
+               style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">
+        {% else %}
+          <div class="nav-avatar-adm">
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+          </div>
+        {% endif %}
+        <span class="d-none d-md-inline" style="font-size:.86rem">
+          {{ user.get_full_name|default:user.username|truncatechars:22 }}
+        </span>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end shadow"
+          aria-labelledby="navbarDropdownUserAdm" style="min-width:220px">
+        <li>
+          <div class="px-3 py-2 border-bottom">
+            <div class="fw-semibold small">{{ user.get_full_name|default:user.username }}</div>
+            <div class="text-muted" style="font-size:.73rem">{{ user.email }}</div>
+          </div>
+        </li>
+        <li><a class="dropdown-item" href="{% url 'gestion_academica:ver_mi_perfil' %}">
+          <i class="bi bi-person-circle me-2 text-primary"></i>Mi Perfil</a></li>
+        <li><a class="dropdown-item" href="{% url 'password_change' %}">
+          <i class="bi bi-key-fill me-2 text-warning"></i>Cambiar Contraseña</a></li>
+        {% if user.is_staff %}
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+            <i class="bi bi-shield-lock-fill me-2 text-danger"></i>Admin Avanzado</a></li>
+        {% endif %}
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <form id="logout-form-navbar-adm" action="{% url 'logout' %}" method="post" style="display:none">
+            {% csrf_token %}
+          </form>
+          <a class="dropdown-item text-danger" href="#"
+             onclick="event.preventDefault();document.getElementById('logout-form-navbar-adm').submit();">
+            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+          </a>
+        </li>
+      </ul>
     </li>
-    <hr class="menu-divider">
+  {% else %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'login' %}">
+        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+      </a>
+    </li>
+  {% endif %}
+</ul>
+{% endblock navbar_content %}
 
+{# SIDEBAR — contenido del menú #}
+{% block floating_menu_content %}
+  <div class="sidebar-brand-row-adm">
+    <i class="bi bi-person-badge text-primary" style="font-size:1.05rem"></i>
+    <span class="sb-label">Admisiones</span>
+  </div>
+
+  <ul class="nav flex-column">
     <h5 class="menu-section-title">Análisis y Gestión</h5>
     <li class="nav-item item-color-4">
-        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_admisiones' %}active{% endif %}" href="{% url 'admisiones:dashboard_admisiones' %}">
-            <i class="bi bi-bar-chart-line-fill"></i> Dashboard
-        </a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_admisiones' %}active{% endif %}"
+         href="{% url 'admisiones:dashboard_admisiones' %}">
+        <i class="bi bi-bar-chart-line-fill"></i> Dashboard
+      </a>
     </li>
     <li class="nav-item item-color-5">
-        <a class="nav-link {% if request.resolver_match.url_name == 'pipeline_admisiones' %}active{% endif %}" href="{% url 'admisiones:pipeline_admisiones' %}">
-            <i class="bi bi-kanban-fill"></i> Pipeline de Admisiones
-        </a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'pipeline_admisiones' %}active{% endif %}"
+         href="{% url 'admisiones:pipeline_admisiones' %}">
+        <i class="bi bi-kanban-fill"></i> Pipeline de Admisiones
+      </a>
     </li>
 
     <hr class="menu-divider">
-
     <h5 class="menu-section-title">Registros</h5>
     <li class="nav-item item-color-1">
-       <a class="nav-link {% if 'lista_grados_aspirantes' in request.path or 'lista_aspirantes_por_grado' in request.path %}active{% endif %}" href="{% url 'admisiones:lista_grados_aspirantes' %}">
-           <i class="bi bi-people-fill"></i> Ver Aspirantes
-       </a>
+      <a class="nav-link {% if 'lista_grados_aspirantes' in request.path or 'lista_aspirantes_por_grado' in request.path %}active{% endif %}"
+         href="{% url 'admisiones:lista_grados_aspirantes' %}">
+        <i class="bi bi-people-fill"></i> Ver Aspirantes
+      </a>
     </li>
     <li class="nav-item item-color-2">
-         <a class="nav-link {% if request.resolver_match.url_name == 'crear_aspirante_manual' %}active{% endif %}" href="{% url 'admisiones:crear_aspirante_manual' %}">
-            <i class="bi bi-person-plus-fill"></i> Registrar Aspirante
-        </a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'crear_aspirante_manual' %}active{% endif %}"
+         href="{% url 'admisiones:crear_aspirante_manual' %}">
+        <i class="bi bi-person-plus-fill"></i> Registrar Aspirante
+      </a>
     </li>
 
     <hr class="menu-divider">
-    
     <h5 class="menu-section-title">Portal del Postulante</h5>
     <li class="nav-item item-color-3">
-        <a class="nav-link" href="{% url 'admisiones:revision_documentos_lista' %}">
-            <i class="bi bi-folder2-open"></i> Gestionar Documentos
-        </a>
+      <a class="nav-link" href="{% url 'admisiones:revision_documentos_lista' %}">
+        <i class="bi bi-folder2-open"></i> Gestionar Documentos
+      </a>
     </li>
 
     <hr class="menu-divider">
-
     <h5 class="menu-section-title">Herramientas</h5>
     <li class="nav-item item-color-3">
-        <a class="nav-link {% if request.resolver_match.url_name == 'importar_aspirantes' %}active{% endif %}" href="{% url 'admisiones:importar_aspirantes' %}">
-            <i class="bi bi-file-earmark-arrow-up-fill"></i> Importar Excel
-        </a>
+      <a class="nav-link {% if request.resolver_match.url_name == 'importar_aspirantes' %}active{% endif %}"
+         href="{% url 'admisiones:importar_aspirantes' %}">
+        <i class="bi bi-file-earmark-arrow-up-fill"></i> Importar Excel
+      </a>
     </li>
     <li class="nav-item item-color-5">
-        <a class="nav-link" href="{% url 'admisiones:exportar_matriculados' %}">
-            <i class="bi bi-file-earmark-excel-fill"></i> Exportar Matriculados
-        </a>
+      <a class="nav-link" href="{% url 'admisiones:exportar_matriculados' %}">
+        <i class="bi bi-file-earmark-excel-fill"></i> Exportar Matriculados
+      </a>
     </li>
-</ul>
+
+    <hr class="menu-divider">
+    <h5 class="menu-section-title">Ir a Módulos</h5>
+    <li class="nav-item item-color-1">
+      <a class="nav-link" href="{% url 'gestion_academica:inicio_academico' %}">
+        <i class="bi bi-mortarboard-fill"></i> Módulo Académico
+      </a>
+    </li>
+
+    <hr class="menu-divider">
+    <h5 class="menu-section-title">Cuenta</h5>
+    <li class="nav-item item-color-2">
+      <a class="nav-link {% if request.resolver_match.url_name == 'ver_mi_perfil' %}active{% endif %}"
+         href="{% url 'gestion_academica:ver_mi_perfil' %}">
+        <i class="bi bi-person-lines-fill"></i> Mi Perfil
+      </a>
+    </li>
+    <li class="nav-item item-color-3">
+      <form id="logout-form-menu-adm" action="{% url 'logout' %}" method="post" style="display:none">
+        {% csrf_token %}
+      </form>
+      <a class="nav-link" href="#"
+         onclick="event.preventDefault();document.getElementById('logout-form-menu-adm').submit();">
+        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+      </a>
+    </li>
+  </ul>
 {% endblock floating_menu_content %}
 
+{% block contenido %}{% endblock contenido %}
 
-{# ==================================================================== #}
-{# CONTENIDO PRINCIPAL DE LA PÁGINA                                    #}
-{# ==================================================================== #}
-{% block contenido %}
-    {# Este bloque será reemplazado por el contenido de cada página hija, #}
-    {# como la del dashboard, la lista de aspirantes, etc. #}
-{% endblock contenido %}
+{% block extra_js %}
+{{ block.super }}
+
+{# ── JS: sidebar toggle ── #}
+<script>
+(function () {
+  'use strict';
+
+  var body  = document.body;
+  var btn   = document.getElementById('sidebarToggleBtnAdm');
+  var panel = document.getElementById('mainMenuPanel');
+
+  if (!btn || !panel) return;
+
+  /*
+   * Usamos panel.style.setProperty(..., 'important') para que el inline style
+   * con !important gane SIEMPRE sobre cualquier regla CSS con !important.
+   * Esto evita cualquier batalla de especificidad CSS.
+   */
+
+  /* Contraresta el opacity:0 / visibility:hidden del .main-menu-panel base */
+  panel.style.setProperty('opacity',    '1',       'important');
+  panel.style.setProperty('visibility', 'visible', 'important');
+
+  function isMobile() { return window.innerWidth < 992; }
+
+  var _abierto = false;
+
+  /* Establece estado inicial: oculto en móvil, visible en escritorio */
+  function init() {
+    _abierto = false;
+    body.classList.remove('sidebar-open');
+    btn.setAttribute('aria-expanded', 'false');
+    if (isMobile()) {
+      panel.style.setProperty('transform', 'translateX(-285px)', 'important');
+    } else {
+      panel.style.removeProperty('transform'); /* CSS desktop: transform:none */
+    }
+  }
+  init();
+
+  function abrirSidebar() {
+    _abierto = true;
+    panel.style.setProperty('transform', 'translateX(0px)', 'important');
+    if (isMobile()) body.classList.add('sidebar-open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+
+  function cerrarSidebar() {
+    _abierto = false;
+    body.classList.remove('sidebar-open');
+    btn.setAttribute('aria-expanded', 'false');
+    if (isMobile()) {
+      panel.style.setProperty('transform', 'translateX(-285px)', 'important');
+    } else {
+      panel.style.removeProperty('transform');
+    }
+  }
+
+  /* Botón hamburguesa */
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    _abierto ? cerrarSidebar() : abrirSidebar();
+  });
+
+  /* Toque en el overlay → cierra */
+  document.addEventListener('click', function (e) {
+    if (!_abierto) return;
+    if (!panel.contains(e.target) && !btn.contains(e.target)) {
+      cerrarSidebar();
+    }
+  });
+
+  /* Clic en enlace del menú → cierra y navega */
+  panel.querySelectorAll('a:not([data-bs-toggle])').forEach(function (a) {
+    a.addEventListener('click', cerrarSidebar);
+  });
+
+  /* Tecla Escape → cierra */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && _abierto) cerrarSidebar();
+  });
+
+  /* Resize: recalcula estado inicial (cambio desktop ↔ móvil) */
+  window.addEventListener('resize', init);
+})();
+</script>
+
+{# ── Notificaciones staff via WS ── #}
+{% if user.is_authenticated and user.is_staff %}
+<div id="staff-ws-notifications-root"
+     class="toast-container position-fixed top-0 end-0 p-3"
+     style="z-index:1200"
+     data-institucion-id="{{ user.institucion_asociada_id|default:'' }}">
+  <div id="staff-notif-toast" class="toast" role="alert"
+       aria-live="polite" aria-atomic="true" style="cursor:move;min-width:300px">
+    <div id="staff-notif-header" class="toast-header bg-primary text-white">
+      <i id="staff-notif-icon" class="bi bi-bell-fill me-2"></i>
+      <strong id="staff-notif-title" class="me-auto">Notificación</strong>
+      <button id="staff-notif-close" type="button"
+              class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body">
+      <p id="staff-notif-body" class="small mb-2"></p>
+      <a id="staff-notif-link" class="btn btn-sm btn-light mt-2 d-none" href="#">
+        Abrir en admisiones
+      </a>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/notifications_staff_ws.js' %}"></script>
+{% endif %}
+
+{% endblock extra_js %}

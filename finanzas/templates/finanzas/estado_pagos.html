@@ -7,23 +7,58 @@
 <div class="container-fluid mt-4">
     <h1 class="mb-4">{{ titulo_pagina }}</h1>
 
-    <form action="{% url 'finanzas:sincronizar_cuentas_masivo' %}" method="post" onsubmit="return confirm('¿Estás seguro de que quieres sincronizar las cuentas de TODOS los estudiantes activos? Este proceso puede tardar unos momentos.');">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-arrow-repeat"></i> Sincronizar Todas las Cuentas
-            </button>
-        </form>
-    </div>
-    
     <div class="card mb-4 shadow-sm">
-        <div class="card-header"><i class="bi bi-funnel-fill me-2"></i> Filtros de Búsqueda</div>
+        <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <p class="text-muted small mb-0">Genera o actualiza las cuentas por cobrar para todos los estudiantes activos de la institución.</p>
+            <button type="button" class="btn btn-primary"
+                    data-bs-toggle="modal" data-bs-target="#modalSincronizarTodas">
+                <i class="bi bi-arrow-repeat me-1"></i> Sincronizar todas las cuentas
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación — Sincronizar todas las cuentas -->
+    <div class="modal fade" id="modalSincronizarTodas" tabindex="-1" aria-labelledby="modalSincronizarTodasLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <div style="width:48px;height:48px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-arrow-repeat" style="color:#2563eb;font-size:1.3rem;"></i>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <h5 class="fw-bold mb-1">¿Sincronizar todas las cuentas?</h5>
+                    <p class="text-muted mb-0" style="font-size:.88rem;">
+                        Se generarán o actualizarán las cuentas por cobrar de <strong>todos los estudiantes activos</strong>
+                        de la institución. Este proceso puede tardar unos momentos.
+                    </p>
+                    <p class="text-warning mt-2 mb-0" style="font-size:.78rem;">
+                        <i class="bi bi-info-circle me-1"></i>Las cuentas existentes no se eliminarán, solo se crearán las faltantes.
+                    </p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <form action="{% url 'finanzas:sincronizar_cuentas_masivo' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-arrow-repeat me-1"></i>Sí, sincronizar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header"><i class="bi bi-funnel-fill me-2"></i> Filtros de búsqueda</div>
         <div class="card-body">
             <form method="GET" action="{% url 'finanzas:reporte_general_cuentas' %}">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <label for="id_estudiante" class="form-label">Estudiante:</label>
+                    <div class="col-lg-3 col-md-6">
+                        <label for="id_estudiante" class="form-label">Estudiante</label>
                         <select name="estudiante" id="id_estudiante" class="form-select">
-                            <option value="">--- Buscar por Nombre ---</option>
+                            <option value="">--- Buscar por nombre ---</option>
                             {% for est in estudiantes_disponibles_filtro %}
                                 <option value="{{ est.pk }}" {% if selected_estudiante == est.pk|stringformat:"s" %}selected{% endif %}>
                                     {{ est.usuario.get_full_name }}
@@ -31,10 +66,10 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label for="id_grado" class="form-label">Grado:</label>
+                    <div class="col-lg-2 col-md-6">
+                        <label for="id_grado" class="form-label">Grado</label>
                         <select name="grado" id="id_grado" class="form-select">
-                            <option value="">--- Todos los Grados ---</option>
+                            <option value="">--- Todos ---</option>
                             {% for grado in grados_disponibles %}
                                 <option value="{{ grado.pk }}" {% if selected_grado == grado.pk|stringformat:"s" %}selected{% endif %}>
                                     {{ grado.nombre }}
@@ -42,10 +77,10 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label for="id_estado" class="form-label">Con Cuentas en Estado:</label>
+                    <div class="col-lg-2 col-md-6">
+                        <label for="id_estado" class="form-label">Estado de cuenta</label>
                         <select name="estado" id="id_estado" class="form-select">
-                            <option value="">--- Cualquier Estado ---</option>
+                            <option value="">--- Cualquiera ---</option>
                             {% for valor, texto in estados_pago %}
                                 <option value="{{ valor }}" {% if selected_estado == valor %}selected{% endif %}>
                                     {{ texto }}
@@ -53,10 +88,20 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-3 col-md-6">
+                        <label for="id_periodo" class="form-label">Periodo académico</label>
+                        <select name="periodo" id="id_periodo" class="form-select">
+                            <option value="">Todos (sin filtrar por periodo)</option>
+                            {% for p in periodos_filtro %}
+                                <option value="{{ p.pk }}" {% if selected_periodo == p.pk|stringformat:"s" %}selected{% endif %}>{{ p }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
                         <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filtrar</button>
                     </div>
                 </div>
+                <p class="text-muted small mt-2 mb-0">Si elige un periodo, solo se listan estudiantes con al menos una cuenta cuyo concepto de cobro pertenece a ese periodo académico.</p>
             </form>
         </div>
     </div>

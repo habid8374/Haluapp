@@ -13,7 +13,9 @@ from .models import (
     Gasto,
     Proveedor,
     ConsecutivoDocumento,
-    
+    AuditoriaExportacionContable,
+    WebhookEventoMercadoPago,
+    LlamadaMercadoPago,
 )   
 from gestion_academica.models import EscalaValorativa
 
@@ -37,9 +39,14 @@ class InstitucionEducativaAdmin(admin.ModelAdmin):
         }),
         # --- INICIO: NUEVA SECCIÓN DE CONFIGURACIÓN MAESTRA ---
         ('Configuración de Plataforma (Super-Admin)', {
-            'fields': ('activa', 'tarifa_mensual_plataforma', 'comision_por_transaccion_porcentaje'),
-            'classes': ('collapse',), # Aparecerá colapsado por defecto
+            'fields': ('activa', 'tipo_institucion', 'tarifa_mensual_plataforma', 'comision_por_transaccion_porcentaje'),
+            'classes': ('collapse',),
             'description': 'Estos campos solo deben ser modificados por el super-administrador de HALU.'
+        }),
+        ('Bilingüismo / Multiidioma', {
+            'fields': ('es_bilingue', 'idioma_secundario'),
+            'classes': ('collapse',),
+            'description': 'Activa esta sección para habilitar campos de segundo idioma en materias y mallas curriculares.',
         }),
         # --- FIN: NUEVA SECCIÓN ---
         ('Información para Boletines', {
@@ -47,7 +54,16 @@ class InstitucionEducativaAdmin(admin.ModelAdmin):
         }),
         ('Configuración de Pagos', {
             'classes': ('collapse',),
-            'fields': ('cuenta_bancaria', 'pagos_digitales', 'mp_public_key_test', 'mp_access_token_test', 'mp_public_key_prod', 'mp_access_token_prod', 'mp_modo_produccion')
+            'fields': (
+                'cuenta_bancaria',
+                'pagos_digitales',
+                'mp_public_key_test',
+                'mp_access_token_test',
+                'mp_public_key_prod',
+                'mp_access_token_prod',
+                'mp_modo_produccion',
+                'mp_webhook_secret',
+            )
         }),
         ('Configuración de Envío de Correo (SMTP)', {
             'classes': ('collapse',),
@@ -55,8 +71,11 @@ class InstitucionEducativaAdmin(admin.ModelAdmin):
         }),
         # --- AÑADE ESTE NUEVO FIELDSET ---
         ('Integraciones Externas', {
-            'classes': ('collapse',), # Para que aparezca colapsado
-            'fields': ('google_calendar_embed_code',)
+            'classes': ('collapse',),
+            'fields': (
+                'google_calendar_embed_code',
+                'google_api_key',
+            ),
         }),
         # --- FIN DEL NUEVO FIELDSET ---
     )
@@ -76,20 +95,34 @@ class TipoConceptoPagoAdmin(admin.ModelAdmin):
 class ConceptoPagoAdmin(admin.ModelAdmin):
     # ✅ Se elimina 'tipo_de_cobro' de la lista
     list_display = (
-        'nombre_concepto', 
+        'nombre_concepto',
         'valor',
-        'nivel_escolaridad', 
+        'nivel_escolaridad',
         'institucion',
+        'flags_uso',
         'permite_mora',
     )
-    
+
     # ✅ Se elimina 'tipo_de_cobro' de los filtros
-    list_filter = ('institucion', 'nivel_escolaridad', 'permite_mora')
+    list_filter = ('institucion', 'nivel_escolaridad', 'permite_mora', 'es_pago_inscripcion', 'es_pago_matricula', 'es_pago_pension')
     
     search_fields = ('nombre_concepto',)
     
     # ✅ Se elimina 'tipo_de_cobro' del ordenamiento
     ordering = ('institucion', 'nivel_escolaridad__orden', 'nombre_concepto')
+
+    @admin.display(description='Uso')
+    def flags_uso(self, obj):
+        partes = []
+        if obj.es_pago_inscripcion:
+            partes.append('Ins')
+        if obj.es_pago_matricula:
+            partes.append('Mat')
+        if obj.es_pago_pension:
+            partes.append('Pen')
+        if obj.es_solicitable_por_egresado:
+            partes.append('Egr')
+        return ' / '.join(partes) if partes else '—'
 
     autocomplete_fields = ['institucion', 'tipo_concepto', 'periodo_academico_aplicable', 'cuenta_contable', 'nivel_escolaridad']
 
@@ -108,7 +141,13 @@ class ConceptoPagoAdmin(admin.ModelAdmin):
             'fields': ('permite_mora', 'porcentaje_mora_mensual')
         }),
         ('Configuración para Módulos (Banderas)', {
-            'fields': ('es_pago_inscripcion', 'es_pago_matricula', 'es_solicitable_por_egresado', 'automatico'),
+            'fields': (
+                'es_pago_inscripcion',
+                'es_pago_matricula',
+                'es_pago_pension',
+                'es_solicitable_por_egresado',
+                'automatico',
+            ),
             'classes': ('collapse',)
         })
     )
@@ -155,7 +194,84 @@ class ConsecutivoDocumentoAdmin(admin.ModelAdmin):
 class ProveedorAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'nit_o_cedula', 'institucion')
     search_fields = ('nombre', 'nit_o_cedula')
-    list_filter = ('institucion',)    
+    list_filter = ('institucion',)
+
+
+@admin.register(AuditoriaExportacionContable)
+class AuditoriaExportacionContableAdmin(admin.ModelAdmin):
+    list_display = (
+        "creado",
+        "institucion",
+        "usuario",
+        "fecha_inicio",
+        "fecha_fin",
+        "tipo_transaccion",
+        "formato",
+        "registros",
+        "periodo_academico",
+    )
+    list_filter = ("institucion", "formato", "tipo_transaccion")
+    date_hierarchy = "creado"
+    readonly_fields = (
+        "institucion",
+        "usuario",
+        "creado",
+        "fecha_inicio",
+        "fecha_fin",
+        "tipo_transaccion",
+        "formato",
+        "periodo_academico",
+        "registros",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(WebhookEventoMercadoPago)
+class WebhookEventoMercadoPagoAdmin(admin.ModelAdmin):
+    list_display = (
+        "fecha_recepcion", "institucion", "tipo", "data_id",
+        "firma_valida", "estado_http_devuelto", "procesado_ok",
+    )
+    list_filter = ("institucion", "procesado_ok", "firma_valida", "tipo")
+    search_fields = ("data_id", "x_request_id", "payload_hash")
+    readonly_fields = (
+        "institucion", "data_id", "tipo", "payload_hash",
+        "x_request_id", "x_signature", "firma_valida",
+        "payload_resumen", "estado_http_devuelto", "procesado_ok",
+        "error_mensaje", "pago_registrado", "cuenta",
+        "fecha_recepcion", "fecha_procesamiento",
+    )
+    date_hierarchy = "fecha_recepcion"
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(LlamadaMercadoPago)
+class LlamadaMercadoPagoAdmin(admin.ModelAdmin):
+    list_display = (
+        "fecha", "institucion", "accion", "intento",
+        "estado_http", "exito", "latencia_ms",
+        "external_reference", "monto", "modo_produccion",
+    )
+    list_filter = ("institucion", "accion", "exito", "modo_produccion")
+    search_fields = ("external_reference", "error_mensaje")
+    readonly_fields = (
+        "institucion", "accion", "external_reference", "monto", "cuenta",
+        "intento", "latencia_ms", "estado_http", "exito",
+        "error_mensaje", "request_resumen", "response_resumen",
+        "modo_produccion", "fecha",
+    )
+    date_hierarchy = "fecha"
+
+    def has_add_permission(self, request):
+        return False
+
 
 # --- Registro de los modelos en el panel de administración ---
 admin.site.register(InstitucionEducativa, InstitucionEducativaAdmin)
@@ -163,3 +279,30 @@ admin.site.register(TipoConceptoPago, TipoConceptoPagoAdmin)
 admin.site.register(CuentaPorCobrarEstudiante, CuentaPorCobrarEstudianteAdmin)
 admin.site.register(PagoRegistrado, PagoRegistradoAdmin)
 admin.site.register(Permission)
+
+
+# --- EjecucionHealthCheck (auditoría del dashboard de mantenimiento) ---
+from .models import EjecucionHealthCheck
+
+
+@admin.register(EjecucionHealthCheck)
+class EjecucionHealthCheckAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", "iniciado_at", "iniciado_por", "institucion_filtro",
+        "estado", "errores_count", "warnings_count", "pasos_completados",
+        "_duracion",
+    )
+    list_filter = ("estado", "institucion_filtro")
+    readonly_fields = (
+        "iniciado_at", "terminado_at", "task_id", "iniciado_por",
+        "institucion_filtro", "estado", "errores_count", "warnings_count",
+        "pasos_completados", "eventos", "error_excepcion",
+    )
+    date_hierarchy = "iniciado_at"
+
+    def has_add_permission(self, request):
+        return False
+
+    def _duracion(self, obj):
+        return f"{obj.duracion_segundos}s" if obj.duracion_segundos is not None else "—"
+    _duracion.short_description = "Duración"

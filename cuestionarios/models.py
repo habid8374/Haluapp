@@ -17,7 +17,10 @@ class Cuestionario(models.Model):
         default=30,
         help_text="Duración en minutos (0 para ilimitado)"
     )
-    intentos_permitidos = models.PositiveIntegerField(default=1)
+    intentos_permitidos = models.PositiveIntegerField(
+        default=5,
+        help_text="Máximo de veces que el estudiante puede presentar el cuestionario (recomendado 3–5).",
+    )
     activo = models.BooleanField(default=True)
     mostrar_respuestas = models.BooleanField(
         default=False,

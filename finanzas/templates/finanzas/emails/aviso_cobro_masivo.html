@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviso de Cobro — {{ cuenta.concepto_pago.nombre_concepto }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #f0f4f8; color: #333; }
+        .wrapper { max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+        .header { background: linear-gradient(135deg, #1a3a6b 0%, #2563eb 100%); padding: 36px 40px; text-align: center; color: white; }
+        .header img { max-height: 76px; margin-bottom: 14px; display: block; margin-left: auto; margin-right: auto; }
+        .header h1 { font-size: 21px; font-weight: 800; letter-spacing: 0.3px; margin-bottom: 4px; }
+        .header p { font-size: 12px; opacity: 0.80; }
+        .school-strip { background: #f1f5f9; border-bottom: 1px solid #e2e8f0; padding: 10px 40px; font-size: 11.5px; color: #64748b; text-align: center; line-height: 1.6; }
+        .body { padding: 32px 40px; }
+        .badge-new { display: inline-block; background: #fef3c7; color: #92400e; font-size: 10.5px; font-weight: 800; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 18px; border: 1px solid #fde68a; }
+        .greeting { font-size: 16px; margin-bottom: 8px; color: #1e293b; }
+        .intro { font-size: 14px; color: #475569; margin-bottom: 26px; line-height: 1.65; }
+        .charge-card { border: 2px solid #2563eb; border-radius: 10px; overflow: hidden; margin-bottom: 28px; }
+        .charge-card-header { background: #1a3a6b; padding: 12px 20px; color: white; font-size: 11pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; }
+        .charge-table { width: 100%; border-collapse: collapse; }
+        .charge-table td { padding: 12px 20px; font-size: 13.5px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+        .charge-table td:first-child { color: #64748b; width: 44%; }
+        .charge-table td:last-child { font-weight: 600; color: #1e293b; }
+        .charge-table tr:last-child td { border-bottom: none; }
+        .amount-big { font-size: 22px; color: #1a3a6b; font-weight: 800; }
+        .badge-pending { display: inline-block; background: #fee2e2; color: #991b1b; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+        .section-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+        .mp-wrapper { text-align: center; margin: 22px 0 8px 0; }
+        .mp-btn { display: inline-block; background: linear-gradient(135deg, #009ee3 0%, #006fb3 100%); color: white; text-decoration: none; padding: 16px 38px; border-radius: 9px; font-size: 15px; font-weight: 800; letter-spacing: 0.3px; }
+        .mp-caption { font-size: 11.5px; color: #64748b; margin-top: 10px; text-align: center; }
+        .mp-methods-list { font-size: 12px; color: #475569; margin-top: 6px; text-align: center; }
+        .divider-or { text-align: center; margin: 22px 0; position: relative; }
+        .divider-or::before { content: ''; display: block; height: 1px; background: #e2e8f0; position: absolute; top: 50%; left: 0; right: 0; }
+        .divider-or span { background: white; padding: 0 14px; position: relative; font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .alt-methods { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9px; padding: 20px 22px; margin-bottom: 24px; }
+        .alt-method { display: table; width: 100%; margin-bottom: 14px; }
+        .alt-method:last-child { margin-bottom: 0; }
+        .method-icon { display: table-cell; width: 42px; vertical-align: top; }
+        .icon-box { width: 36px; height: 36px; border-radius: 8px; text-align: center; line-height: 36px; font-size: 18px; }
+        .icon-bank { background: #dbeafe; }
+        .icon-nequi { background: #ede9fe; }
+        .method-info { display: table-cell; vertical-align: top; padding-left: 12px; }
+        .method-info h4 { font-size: 13px; font-weight: 700; margin-bottom: 3px; color: #1e293b; }
+        .method-info p { font-size: 12px; color: #64748b; line-height: 1.5; }
+        .warning-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 0 7px 7px 0; font-size: 12.5px; color: #92400e; margin-bottom: 24px; line-height: 1.55; }
+        .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 22px 40px; text-align: center; font-size: 11px; color: #94a3b8; line-height: 1.7; }
+        .footer strong { color: #64748b; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+
+    <!-- CABECERA CON GRADIENTE -->
+    <div class="header">
+        {% if institucion.logo %}
+        <img src="{{ domain }}{{ institucion.logo.url }}" alt="{{ institucion.nombre }}">
+        {% endif %}
+        <h1>{{ institucion.nombre }}</h1>
+        {% if institucion.texto_aprobacion %}<p>{{ institucion.texto_aprobacion }}</p>{% endif %}
+    </div>
+
+    <!-- BARRA DATOS INSTITUCIÓN -->
+    <div class="school-strip">
+        NIT: <strong>{{ institucion.nit }}</strong>
+        {% if institucion.direccion %} &nbsp;·&nbsp; {{ institucion.direccion }}{% endif %}
+        {% if institucion.ciudad_departamento %} &nbsp;·&nbsp; {{ institucion.ciudad_departamento }}{% endif %}
+        {% if institucion.telefono %} &nbsp;·&nbsp; Tel: {{ institucion.telefono }}{% endif %}
+    </div>
+
+    <!-- CUERPO -->
+    <div class="body">
+        <div class="badge-new">📄 Nuevo Aviso de Cobro</div>
+
+        <p class="greeting">Estimado/a <strong>{{ nombre_destinatario }}</strong>,</p>
+        <p class="intro">
+            Le informamos que se ha generado el siguiente cobro a nombre del estudiante
+            <strong>{{ estudiante.usuario.get_full_name }}</strong>. Por favor, realice el pago
+            antes de la fecha de vencimiento indicada para evitar recargos por mora.
+        </p>
+
+        <!-- TARJETA DE COBRO -->
+        <div class="charge-card">
+            <div class="charge-card-header">📋 Detalle del Cobro</div>
+            <table class="charge-table">
+                <tr>
+                    <td>Estudiante</td>
+                    <td>{{ estudiante.usuario.get_full_name }}</td>
+                </tr>
+                {% if estudiante.grado_actual %}
+                <tr>
+                    <td>Grado</td>
+                    <td>{{ estudiante.grado_actual }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td>Concepto de cobro</td>
+                    <td>{{ cuenta.concepto_pago.nombre_concepto }}</td>
+                </tr>
+                <tr>
+                    <td>Valor a pagar</td>
+                    <td><span class="amount-big">${{ cuenta.monto_asignado|floatformat:0 }}</span> <small style="font-size:12px;color:#64748b;font-weight:normal;">COP</small></td>
+                </tr>
+                <tr>
+                    <td>Fecha de vencimiento</td>
+                    <td><strong>{{ cuenta.fecha_vencimiento_especifica|date:"d \d\e F \d\e Y" }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Estado</td>
+                    <td><span class="badge-pending">Pendiente de pago</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- FACTURA ELECTRÓNICA DIAN (si existe) -->
+        {% if factura_electronica_url %}
+        <div style="background:#f0f9ff;border:2px solid #0ea5e9;border-radius:10px;padding:18px 22px;margin-bottom:24px;">
+          <p style="font-size:13px;font-weight:800;color:#0c4a6e;margin-bottom:6px;">📜 Factura Electrónica DIAN adjunta</p>
+          <p style="font-size:12.5px;color:#0c4a6e;margin-bottom:12px;line-height:1.55;">
+            Se ha adjunto a este correo la factura electrónica validada ante la DIAN{% if factura_numero %} <strong>(N° {{ factura_numero }})</strong>{% endif %}.
+            También puede consultarla en línea:
+          </p>
+          <a href="{{ factura_electronica_url }}" style="display:inline-block;background:#0ea5e9;color:#fff;padding:10px 24px;border-radius:7px;text-decoration:none;font-weight:800;font-size:13px;">
+            Ver Factura DIAN
+          </a>
+        </div>
+        {% endif %}
+
+        <!-- OPCIONES DE PAGO -->
+        <p class="section-title">💳 Opciones de Pago</p>
+
+        <!-- BOTÓN MERCADO PAGO -->
+        <div class="mp-wrapper">
+            <a href="{{ portal_url }}" class="mp-btn">Pagar en línea con Mercado Pago</a>
+            <p class="mp-caption">Ingrese al portal con su usuario y contraseña para pagar.</p>
+            <p class="mp-methods-list">Tarjeta de crédito · Débito · PSE · Efecty · Baloto · Nequi · y más</p>
+        </div>
+
+        {% if institucion.cuenta_bancaria or institucion.pagos_digitales %}
+        <div class="divider-or"><span>o pague por transferencia</span></div>
+
+        <div class="alt-methods">
+            {% if institucion.cuenta_bancaria %}
+            <div class="alt-method">
+                <div class="method-icon"><div class="icon-box icon-bank">🏦</div></div>
+                <div class="method-info">
+                    <h4>Transferencia / Consignación Bancaria</h4>
+                    <p>{{ institucion.cuenta_bancaria }}</p>
+                </div>
+            </div>
+            {% endif %}
+            {% if institucion.pagos_digitales %}
+            <div class="alt-method">
+                <div class="method-icon"><div class="icon-box icon-nequi">📱</div></div>
+                <div class="method-info">
+                    <h4>Nequi / Daviplata</h4>
+                    <p>{{ institucion.pagos_digitales }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="warning-box">
+            ⚠️ <strong>Nota:</strong> Si ya realizó este pago, por favor ignore este mensaje.
+            Para cualquier consulta comuníquese con la institución al
+            {% if institucion.telefono %}<strong>{{ institucion.telefono }}</strong>{% endif %}
+            {% if institucion.correo_electronico %} o escriba a <strong>{{ institucion.correo_electronico }}</strong>{% endif %}.
+        </div>
+    </div>
+
+    <!-- PIE DE PÁGINA -->
+    <div class="footer">
+        <strong>{{ institucion.nombre }}</strong><br>
+        {% if institucion.direccion %}{{ institucion.direccion }}{% if institucion.ciudad_departamento %}, {{ institucion.ciudad_departamento }}{% endif %}<br>{% endif %}
+        {% if institucion.telefono %}Tel: {{ institucion.telefono }}{% if institucion.correo_electronico %} &nbsp;·&nbsp; {{ institucion.correo_electronico }}{% endif %}<br>{% endif %}
+        <br>
+        Este mensaje fue generado automáticamente. Por favor, no responda a este correo.<br>
+        © {% now "Y" %} {{ institucion.nombre }} — Todos los derechos reservados.
+    </div>
+
+</div>
+</body>
+</html>

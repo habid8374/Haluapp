@@ -1,56 +1,57 @@
-{# gestion_academica/templates/gestion_academica/esquema_calificacion_formulario.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-{% load crispy_forms_tags %} {# Opcional, solo si usas django-crispy-forms y quieres usar el filtro |crispy #}
-
-{% block titulo %}{{ titulo_formulario|default:"Formulario de Esquema de Calificación" }}{% endblock titulo %}
+{% extends "base_academico.html" %}
+{% load static %}
+{% block titulo %}{{ titulo_formulario|default:"Esquema de Calificación" }}{% endblock %}
 
 {% block contenido %}
-<div class="container mt-4">
-    <h1 class="mb-4">{{ titulo_formulario|default:"Formulario de Esquema de Calificación" }}</h1>
-    <hr>
-    <form method="post" novalidate class="shadow-sm p-4 bg-white rounded-3">
-        {% csrf_token %}
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
+  <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);top:-70px;right:-30px;pointer-events:none;"></div>
+  <div>
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
+      <i class="bi bi-sliders me-1"></i>Evaluación Académica
+    </div>
+    <h2 class="mb-1 fw-800" style="font-size:1.35rem;">{{ titulo_formulario|default:"Esquema de Calificación" }}</h2>
+    <p class="mb-0" style="opacity:.82;font-size:.85rem;">Configura la estructura de ponderación para calificaciones</p>
+  </div>
+</div>
 
-        {# Mostrar errores generales del formulario (que no son de un campo específico) #}
-        {% if form.non_field_errors %}
-            <div class="alert alert-danger" role="alert">
-                <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> Errores del Formulario:</h4>
-                <ul class="mb-0 ps-3">
-                {% for error in form.non_field_errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-                </ul>
-            </div>
+<div class="card shadow-sm border-0" style="border-radius:14px;">
+  <div class="card-body p-4">
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-3">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <ul class="mb-0 ps-3">
+        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label fw-600">
+          {{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}
+          <small class="form-text text-muted">{{ field.help_text }}</small>
         {% endif %}
-
-        {# Opción 1: Usar Crispy Forms (si está configurado y lo prefieres) #}
-        {# Descomenta la siguiente línea y comenta el bucle manual si usas crispy-forms #}
-        {# {{ form|crispy }} #}
-
-        {# Opción 2: Renderizar manualmente cada campo para más control (o si no usas crispy-forms) #}
-        {% for field in form %}
-            <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}</label>
-                {{ field }} {# Esta línea renderiza el widget del campo (input, textarea, etc.) #}
-                {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
-                {% for error_message in field.errors %} {# Iterar sobre los mensajes de error del campo #}
-                    <div class="text-danger mt-1"><small>{{ error_message }}</small></div>
-                {% endfor %}
-            </div>
+        {% for error in field.errors %}
+          <div class="text-danger mt-1"><small><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</small></div>
         {% endfor %}
+      </div>
+      {% endfor %}
 
-        <hr>
-        <div class="d-flex justify-content-end">
-            <button type="submit" class="btn btn-success me-2">
-                <i class="bi bi-check-circle-fill"></i> Guardar Cambios
-            </button>
-            <a href="{% url 'gestion_academica:lista_esquemas_calificacion' %}" class="btn btn-secondary">
-                <i class="bi bi-x-circle-fill"></i> Cancelar
-            </a>
-        </div>
+      <div class="d-flex gap-2 justify-content-end mt-3">
+        <a href="{% url 'gestion_academica:lista_esquemas_calificacion' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-x-circle me-1"></i>Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-circle-fill me-1"></i>Guardar Cambios
+        </button>
+      </div>
     </form>
+  </div>
 </div>
 {% endblock contenido %}

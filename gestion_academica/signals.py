@@ -13,8 +13,9 @@ import json
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, get_connection
 
-from .models import Calificacion, ArchivoPlanAcademico, Notificacion, AnotacionObservador, Usuario, Candidato, TicketSoporte, RegistroAsistencia, Curso
+from .models import Calificacion, ArchivoPlanAcademico, Notificacion, AnotacionObservador, Usuario, Candidato, TicketSoporte, RegistroAsistencia, Curso, NivelEscolaridad, Familiar, CitaReunion, CasoConvivencia, InvolucradoCaso
 from finanzas.models import InstitucionEducativa
+from finanzas.institucion_credentials import google_api_key as get_inst_google_api_key
 
 import logging
 
@@ -43,7 +44,10 @@ def sugerir_material_de_refuerzo(sender, instance, created, **kwargs):
     # 1. Generar el consejo personalizado con la IA
     consejo_ia = "" # Valor por defecto en caso de que la IA falle
     try:
-        genai.configure(api_key=settings.GOOGLE_API_KEY)
+        api_key = get_inst_google_api_key(institucion)
+        if not api_key:
+            raise ValueError("Institución sin google_api_key")
+        genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-2.5-flash')
         
         prompt = (
@@ -96,9 +100,9 @@ def analizar_observacion_convivencia(sender, instance, created, **kwargs):
     texto_a_analizar = anotacion.descripcion
 
     try:
-        api_key = getattr(settings, 'GOOGLE_API_KEY', None)
+        api_key = get_inst_google_api_key(anotacion.institucion)
         if not api_key:
-            print("ADVERTENCIA: GOOGLE_API_KEY no está configurada. No se puede analizar la observación.")
+            print("ADVERTENCIA: la institución no tiene google_api_key. No se puede analizar la observación.")
             return
 
         genai.configure(api_key=api_key)
@@ -131,8 +135,7 @@ def analizar_observacion_convivencia(sender, instance, created, **kwargs):
         
         if tipo_situacion in ['TIPO II', 'TIPO III']:
             anotacion.requiere_revision = True
-            # Lógica de notificación para coordinadores...
-        
+
         # Usamos update() para evitar un bucle infinito en el signal
         AnotacionObservador.objects.filter(pk=anotacion.pk).update(
             tipo_situacion_ia=anotacion.tipo_situacion_ia,
@@ -140,7 +143,86 @@ def analizar_observacion_convivencia(sender, instance, created, **kwargs):
             acciones_protocolo_ia=anotacion.acciones_protocolo_ia,
             requiere_revision=anotacion.requiere_revision
         )
-    
+
+        # ── Apertura automática de Caso de Convivencia (Tipo II / III) ──
+        if tipo_situacion in ['TIPO II', 'TIPO III']:
+            from django.db import transaction
+            from django.utils import timezone as _tz
+            from datetime import timedelta
+
+            def _crear_caso():
+                try:
+                    # Calcular fecha límite legal
+                    if tipo_situacion == 'TIPO III':
+                        # 2 horas hábiles (urgente)
+                        fecha_limite = _tz.now() + timedelta(hours=2)
+                    else:
+                        # 5 días hábiles ≈ 7 días calendario
+                        fecha_limite = _tz.now() + timedelta(days=7)
+
+                    caso = CasoConvivencia.objects.create(
+                        institucion=anotacion.institucion,
+                        tipo_situacion=tipo_situacion,
+                        anotacion_origen=anotacion,
+                        descripcion_detalle=anotacion.descripcion,
+                        protocolo_ia=ai_data.get('protocolo_sugerido', ''),
+                        fecha_limite=fecha_limite,
+                    )
+                    # Registrar al estudiante como involucrado (rol por defecto: VICTIMA)
+                    InvolucradoCaso.objects.create(
+                        caso=caso,
+                        estudiante=anotacion.estudiante,
+                        rol=CasoConvivencia.RolInvolucrado.VICTIMA,
+                    )
+                    # Notificar a coordinadores de la institución
+                    coordinadores = Usuario.objects.filter(
+                        institucion_asociada=anotacion.institucion,
+                        is_staff=True,
+                        rol__in=['coordinador', 'administrador'],
+                    )
+                    urgencia = "⚠️ URGENTE — " if tipo_situacion == 'TIPO III' else ""
+                    url_caso = reverse('gestion_academica:detalle_caso_convivencia', kwargs={'pk': caso.pk})
+                    for coord in coordinadores:
+                        Notificacion.objects.create(
+                            destinatario=coord,
+                            institucion=anotacion.institucion,
+                            mensaje=(
+                                f"{urgencia}Nuevo caso {tipo_situacion} abierto: "
+                                f"{anotacion.estudiante} — Radicado {caso.radicado}"
+                            ),
+                            enlace=url_caso,
+                        )
+                    # Push WebSocket en tiempo real a coordinadores
+                    try:
+                        from channels.layers import get_channel_layer
+                        from asgiref.sync import async_to_sync
+                        channel_layer = get_channel_layer()
+                        if channel_layer:
+                            severity = 'danger' if tipo_situacion == 'TIPO III' else 'warning'
+                            for coord in coordinadores:
+                                async_to_sync(channel_layer.group_send)(
+                                    f"user_{coord.pk}",
+                                    {
+                                        'type': 'send_notification',
+                                        'kind': 'sentinel',
+                                        'title': f'{urgencia}Halu Sentinel — Caso {tipo_situacion}',
+                                        'message': (
+                                            f"Caso {caso.radicado} abierto para "
+                                            f"{anotacion.estudiante}. "
+                                            f"Plazo: {fecha_limite.strftime('%d/%m %H:%M')}"
+                                        ),
+                                        'url': url_caso,
+                                        'severity': severity,
+                                    }
+                                )
+                    except Exception as ws_err:
+                        logger.warning("WS Sentinel no disponible: %s", ws_err)
+
+                except Exception as caso_err:
+                    logger.exception("Error creando CasoConvivencia para anotación %s: %s", anotacion.pk, caso_err)
+
+            transaction.on_commit(_crear_caso)
+
     except Exception as e:
         print(f"ERROR CRÍTICO en el signal de Halu Sentinel: {e}")
 
@@ -150,7 +232,11 @@ def analizar_propuesta_candidato(sender, instance, created, **kwargs):
         return
 
     try:
-        genai.configure(api_key=settings.GOOGLE_API_KEY)
+        api_key = get_inst_google_api_key(instance.eleccion.institucion)
+        if not api_key:
+            print("ADVERTENCIA: institución sin google_api_key; se omite análisis de propuesta.")
+            return
+        genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-2.5-flash')
 
         prompt = (
@@ -293,4 +379,179 @@ def crear_registros_asistencia_por_clase(sender, instance, created, **kwargs):
                 }
             )
             if fue_creado:
-                logger.info(f"Creado registro de asistencia para {estudiante} en el curso '{curso}'.")           
+                logger.info(f"Creado registro de asistencia para {estudiante} en el curso '{curso}'.")
+
+
+# ---------------------------------------------------------------------------
+# Generación automática de Conceptos de Pago al crear/editar un Nivel
+# ---------------------------------------------------------------------------
+
+@receiver(post_save, sender=NivelEscolaridad)
+def crear_conceptos_pago_para_nivel(sender, instance, created, **kwargs):
+    """Mantiene sincronizados los ConceptoPago estándar para cada nivel.
+
+    Al crear (o editar) un ``NivelEscolaridad``, asegura que existan en su
+    institución:
+      - 1 ConceptoPago de Inscripción (es_pago_inscripcion=True)
+      - 1 ConceptoPago de Matrícula <año> (es_pago_matricula=True)
+      - 10 ConceptoPago de Pensión Feb–Nov <año> (es_pago_pension=True)
+
+    Es idempotente y no pisa los valores que el admin haya editado a mano.
+    """
+    # Evita ciclos: si la actualización viene del propio servicio (por ejemplo,
+    # ajustando 'valor' en cascada), no debemos disparar de nuevo.
+    if getattr(instance, "_omitir_sync_conceptos", False):
+        return
+
+    # Necesitamos institución para generar conceptos. Si por alguna razón no
+    # está (no debería: el modelo tiene FK obligatoria), abortamos limpio.
+    if instance.institucion_id is None:
+        logger.warning(
+            "NivelEscolaridad %s sin institución; no se sincronizan conceptos.",
+            instance.pk,
+        )
+        return
+
+    # Diferimos al commit para que la sincronización de conceptos no entre
+    # en una transacción que aún puede revertirse (importación masiva,
+    # vista que falla después del save, etc.).
+    from django.db import transaction
+    from finanzas.services import sincronizar_conceptos_de_nivel
+
+    def _sync():
+        try:
+            resultado = sincronizar_conceptos_de_nivel(instance)
+            logger.info(
+                "ConceptoPago auto-sync por NivelEscolaridad %s (%s): %s",
+                instance.pk, "creado" if created else "editado", resultado.resumen(),
+            )
+        except Exception as exc:  # noqa: BLE001
+            # Falla NO debe romper la creación del Nivel; solo logueamos.
+            logger.error(
+                "Fallo al sincronizar ConceptoPago para NivelEscolaridad %s: %s",
+                instance.pk, exc, exc_info=True,
+            )
+
+    transaction.on_commit(_sync)
+
+
+# ---------------------------------------------------------------------------
+# Permisos del portal familiar (Meta.permissions del modelo Familiar)
+# ---------------------------------------------------------------------------
+
+FAMILIAR_PORTAL_PERM_CODENAMES = (
+    "acceso_portal_familiar",
+    "ver_calificaciones_estudiante_familiar",
+    "ver_boletin_estudiante_familiar",
+    "ver_deberes_estudiante_familiar",
+)
+
+
+def asegurar_permisos_portal_familiar_usuario(usuario):
+    """
+    Asigna al usuario los permisos ligados al modelo ``Familiar`` para el portal.
+    Idempotente: puede llamarse en cada guardado del perfil familiar.
+    """
+    from django.contrib.auth.models import Permission
+    from django.contrib.contenttypes.models import ContentType
+
+    if not usuario or not getattr(usuario, "pk", None):
+        return
+    ct = ContentType.objects.get_for_model(Familiar)
+    perms = list(
+        Permission.objects.filter(
+            content_type=ct, codename__in=FAMILIAR_PORTAL_PERM_CODENAMES
+        )
+    )
+    if len(perms) < len(FAMILIAR_PORTAL_PERM_CODENAMES):
+        logger.warning(
+            "Faltan permisos Meta de Familiar en la BD (esperados %s, hallados %s). "
+            "Ejecute migrate y revise contenttypes.",
+            len(FAMILIAR_PORTAL_PERM_CODENAMES),
+            len(perms),
+        )
+    if perms:
+        usuario.user_permissions.add(*perms)
+
+
+@receiver(post_save, sender=Familiar)
+def asignar_permisos_portal_al_guardar_familiar(sender, instance, **kwargs):
+    try:
+        asegurar_permisos_portal_familiar_usuario(instance.usuario)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception(
+            "No se pudieron asignar permisos de portal al usuario del familiar: %s",
+            exc,
+        )
+
+
+def _notificar_docente_cita_reunion_academica(cita_pk):
+    """
+    Tras crear una CitaReunion (familiar–docente): notificación en BD + WebSocket
+    al usuario del docente (mismo canal `user_{pk}` que admisiones/consumers).
+    """
+    from django.urls import reverse
+    from django.utils import timezone
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    from admisiones.utils import build_absolute_site_uri
+
+    try:
+        cita = CitaReunion.objects.select_related(
+            "docente__usuario",
+            "familiar__usuario",
+            "estudiante__usuario",
+            "institucion",
+        ).get(pk=cita_pk)
+    except CitaReunion.DoesNotExist:
+        return
+
+    docente_user = cita.docente.usuario
+    est = cita.estudiante.usuario.get_full_name() or cita.estudiante.usuario.username
+    fam = cita.familiar.usuario.get_full_name() or cita.familiar.usuario.username
+    fh = timezone.localtime(cita.fecha_hora_inicio).strftime("%d/%m/%Y %H:%M")
+    asunto_corto = (cita.asunto or "")[:100]
+    mensaje = (
+        f"Nueva cita con acudiente {fam} (estudiante: {est}). "
+        f"Asunto: {asunto_corto}. Fecha: {fh}."
+    )[:255]
+
+    rel_url = reverse("gestion_academica:docente_mis_citas")
+    enlace_abs = build_absolute_site_uri(rel_url)
+
+    Notificacion.objects.create(
+        destinatario=docente_user,
+        mensaje=mensaje,
+        enlace=enlace_abs,
+        institucion=cita.institucion,
+    )
+
+    try:
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            return
+        event_payload = {
+            "type": "send_notification",
+            "kind": "cita_reunion_academica",
+            "title": "Nueva cita con familia",
+            "message": mensaje,
+            "url": rel_url,
+            "severity": "info",
+            "institucion_id": cita.institucion_id,
+        }
+        async_to_sync(channel_layer.group_send)(
+            f"user_{docente_user.pk}",
+            event_payload,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.error("WS notificación cita reunión académica: %s", e, exc_info=True)
+
+
+@receiver(post_save, sender=CitaReunion)
+def notificar_docente_nueva_cita_reunion(sender, instance, created, **kwargs):
+    if not created:
+        return
+    from django.db import transaction
+
+    cita_pk = instance.pk
+    transaction.on_commit(lambda pk=cita_pk: _notificar_docente_cita_reunion_academica(pk))

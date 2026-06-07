@@ -35,8 +35,12 @@
                             <td>{{ area.institucion.nombre }}</td>
                             <td>
                                 <a href="{% url 'gestion_academica:editar_area_academica' area.pk %}" class="btn btn-sm btn-warning">Editar</a>
-                                <a href="{% url 'gestion_academica:eliminar_area_academica' area.pk %}" class="btn btn-sm btn-danger"
-                                   onclick="return confirm('¿Estás seguro de eliminar esta área académica?')">Eliminar</a>
+                                <button type="button" class="btn btn-sm btn-danger"
+                                        data-bs-toggle="modal" data-bs-target="#modalEliminarArea"
+                                        data-action="{% url 'gestion_academica:eliminar_area_academica' area.pk %}"
+                                        data-nombre="{{ area.nombre }}">
+                                    Eliminar
+                                </button>
                             </td>
                         </tr>
                     {% endfor %}
@@ -47,4 +51,39 @@
         <div class="alert alert-info">No hay áreas académicas registradas.</div>
     {% endif %}
 </div>
+
+<!-- Modal — Confirmar eliminación de área académica -->
+<div class="modal fade" id="modalEliminarArea" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Eliminar esta área académica?</h5>
+        <p id="modal-area-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;">
+          <i class="bi bi-info-circle me-1"></i>Esta acción no se puede deshacer.
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <a id="btn-confirmar-eliminar-area" href="#" class="btn btn-danger btn-sm">
+          <i class="bi bi-trash-fill me-1"></i>Sí, eliminar
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.querySelectorAll('[data-bs-target="#modalEliminarArea"]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.getElementById('btn-confirmar-eliminar-area').href = this.dataset.action;
+    document.getElementById('modal-area-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
 {% endblock %}

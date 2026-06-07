@@ -1,0 +1,295 @@
+{% extends "base_academico.html" %}
+{% load static %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'recursos_educativos/cuerpo-humano/css/styles.css' %}">
+<style>
+  /* Neutralizar main.container para que no interfiera con el layout 3D */
+  body.layout-academico main.container {
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin-bottom: 0 !important;
+    max-width: 100% !important;
+  }
+  body.layout-academico main.container > .mt-4 {
+    margin-top: 0 !important;
+  }
+
+  /* Ocultar topbar propio de la app — HALU ya tiene navegación */
+  .topbar { display: none !important; }
+
+  /* Ajustar altura: topbar HALU (3.4rem) + context bar (~2.6rem) */
+  .app {
+    height: calc(100vh - 3.4rem - 2.6rem) !important;
+    overflow: hidden;
+  }
+
+  /* Comprimir columnas para caber dentro del sidebar de HALU (245px ocupados) */
+  .workspace {
+    grid-template-columns: 220px minmax(380px, 1fr) 240px !important;
+    gap: 10px !important;
+    padding: 10px 14px 14px !important;
+  }
+
+  /* Columna izquierda más compacta */
+  .organ-card { min-width: 0; }
+  .organ-list { font-size: .85rem; }
+
+  /* Columna derecha más compacta */
+  .right-column { min-width: 0; }
+  .detail-card, .notes-card { font-size: .82rem; }
+  .detail-card__avatar { width: 44px !important; height: 44px !important; }
+
+  /* Texto del viewer más compacto */
+  .viewer-header { padding: .5rem .8rem !important; }
+  #viewer-name  { font-size: 1.1rem !important; }
+  #viewer-system { font-size: .78rem !important; }
+
+  /* Galería educativa más pequeña */
+  .gallery__item img { height: 72px !important; object-fit: cover; }
+
+  /* Barra de modos más compacta */
+  .viewer-mode { gap: .4rem !important; font-size: .78rem !important; }
+
+  /* Scroll vertical si el contenido no cabe (pantallas bajas) */
+  .app { overflow-y: auto !important; }
+  .workspace { overflow-y: auto; min-height: min-content; }
+
+  /* Barra de contexto HALU */
+  .r3d-context-bar {
+    background:#fff; border-bottom:1px solid #f1f5f9;
+    padding:.65rem 1.2rem;
+    display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+    font-size:.82rem; position:relative; z-index:10;
+  }
+  .r3d-context-bar a { color:#4f46e5; text-decoration:none; font-weight:600; }
+  .r3d-context-bar a:hover { text-decoration:underline; }
+  .r3d-sep { color:#e2e8f0; }
+
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- Variables para la app JS — deben ir ANTES de cargar app.js -->
+<script>
+  window.ASSETS_BASE = "{% static 'recursos_educativos/cuerpo-humano/app-assets/' %}";
+</script>
+
+<!-- Barra de contexto HALU -->
+<div class="r3d-context-bar">
+  <a href="{% url 'gestion_academica:inicio_academico' %}">
+    <i class="bi bi-house-fill"></i> Inicio
+  </a>
+  <span class="r3d-sep">›</span>
+  <span style="color:#4f46e5; font-weight:700;">
+    <i class="bi bi-images me-1"></i>Galería 3D — Cuerpo Humano
+  </span>
+</div>
+
+<!-- Estructura HTML exacta del app original (sin .topbar) -->
+<div class="app" id="app">
+  <main class="workspace">
+
+    <aside class="card organ-card">
+      <h2 class="card__title">Órganos y sistemas</h2>
+      <div class="organ-list" id="organ-list"></div>
+    </aside>
+
+    <section class="center-column">
+      <section class="card viewer-card" id="viewer-card">
+        <div class="viewer-header">
+          <div class="viewer-title">
+            <h1 id="viewer-name">—</h1>
+            <p id="viewer-system">—</p>
+          </div>
+          <div class="viewer-mode">
+            <div class="viewer-mode__label">Modo de vista</div>
+            <div class="viewer-mode__tabs" id="mode-tabs">
+              <button class="is-active" data-mode="3d">3D</button>
+              <button data-mode="ar">AR</button>
+              <button data-mode="360">360°</button>
+            </div>
+            <label class="viewer-mode__toggle">
+              <span class="switch is-on" id="anatomy-switch" role="switch" aria-checked="true"></span>
+              Fondo anatómico
+            </label>
+          </div>
+        </div>
+
+        <div class="viewer-stage with-anatomy" id="viewer-stage">
+          <div class="viewer-stage__art" aria-hidden="true"></div>
+          <div class="viewer-stage__loading">Cargando modelo 3D…</div>
+
+          <model-viewer
+            id="model-viewer"
+            alt="Modelo 3D del órgano seleccionado"
+            camera-controls
+            touch-action="pan-y"
+            shadow-intensity="0.8"
+            exposure="1"
+            environment-image="neutral"
+            auto-rotate-delay="500"
+            interaction-prompt="auto"
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+          ></model-viewer>
+
+          <button id="btn-exit-fullscreen" class="exit-fullscreen" title="Salir de pantalla completa">
+            <i data-lucide="minimize-2"></i>
+            <span>Salir</span>
+          </button>
+        </div>
+
+        <div class="viewer-actions">
+          <div class="viewer-actions__group">
+            <button id="btn-reset" title="Restablecer vista">
+              <i data-lucide="rotate-ccw"></i><span>Restablecer</span>
+            </button>
+            <button id="btn-zoom-in" title="Acercar">
+              <i data-lucide="zoom-in"></i><span>Acercar</span>
+            </button>
+            <button id="btn-zoom-out" title="Alejar">
+              <i data-lucide="zoom-out"></i><span>Alejar</span>
+            </button>
+          </div>
+          <div class="viewer-actions__group">
+            <button id="btn-fullscreen" title="Pantalla completa">
+              <i data-lucide="maximize"></i><span>Pantalla completa</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div class="center-bottom">
+        <article class="card collapsible" data-key="galeria">
+          <header class="card__head">
+            <h2 class="card__title">Galería educativa</h2>
+            <button class="card__toggle" aria-expanded="true" aria-label="Mostrar u ocultar galería">
+              <i data-lucide="chevron-down"></i>
+            </button>
+          </header>
+          <div class="card__body">
+            <div class="gallery">
+              <button class="gallery__item" data-gallery="anatomia">
+                <img id="gallery-anatomy" alt="Anatomía" />
+                <span>Anatomía</span>
+              </button>
+              <button class="gallery__item" data-gallery="ficha">
+                <img id="gallery-facts" alt="Ficha visual" />
+                <span>Ficha visual</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <article class="card compare-card collapsible" data-key="comparar">
+          <header class="card__head">
+            <h2 class="card__title">Comparar órganos</h2>
+            <button class="card__toggle" aria-expanded="true" aria-label="Mostrar u ocultar comparador">
+              <i data-lucide="chevron-down"></i>
+            </button>
+          </header>
+          <div class="card__body">
+            <div class="compare-row">
+              <div class="compare-chip">
+                <img id="compare-a-thumb" alt="" />
+                <strong id="compare-a-name">—</strong>
+                <small id="compare-a-system">—</small>
+                <select id="compare-a-select"></select>
+              </div>
+              <div class="compare-vs">VS</div>
+              <div class="compare-chip">
+                <img id="compare-b-thumb" alt="" />
+                <strong id="compare-b-name">—</strong>
+                <small id="compare-b-system">—</small>
+                <select id="compare-b-select"></select>
+              </div>
+            </div>
+            <button class="compare-open" id="btn-compare">Abrir comparación</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <aside class="right-column">
+      <section class="card detail-card">
+        <h2 class="card__title">Detalles del órgano</h2>
+        <div class="detail-card__header">
+          <img id="detail-avatar" class="detail-card__avatar" alt="" />
+          <div class="detail-card__name">
+            <strong id="detail-name">—</strong>
+            <em id="detail-descriptor">—</em>
+          </div>
+        </div>
+        <div class="detail-grid" id="detail-grid"></div>
+      </section>
+
+      <section class="card notes-card collapsible" data-key="notas">
+        <header class="card__head">
+          <h2 class="card__title">Notas clínicas</h2>
+          <button class="card__toggle" aria-expanded="true" aria-label="Mostrar u ocultar notas">
+            <i data-lucide="chevron-down"></i>
+          </button>
+        </header>
+        <div class="card__body">
+          <p id="notes-text">—</p>
+          <p class="dato" id="notes-fact">—</p>
+        </div>
+      </section>
+    </aside>
+
+  </main>
+</div>
+
+<!-- Modales (requeridos por app.js) -->
+<div class="modal" id="modal-image">
+  <div class="modal__panel modal__panel--image">
+    <div class="modal__head">
+      <h2 id="modal-image-title">Galería</h2>
+      <button class="modal__close" data-close aria-label="Cerrar">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <img id="modal-image-img" alt="" />
+    <p id="modal-image-caption"></p>
+  </div>
+</div>
+
+<div class="modal" id="modal-compare">
+  <div class="modal__panel">
+    <div class="modal__head">
+      <h2>Comparar órganos</h2>
+      <button class="modal__close" data-close aria-label="Cerrar">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="compare-grid" id="compare-grid"></div>
+  </div>
+</div>
+
+<div class="modal" id="modal-view">
+  <div class="modal__panel">
+    <div class="modal__head">
+      <h2 id="modal-view-title">—</h2>
+      <button class="modal__close" data-close aria-label="Cerrar">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div id="modal-view-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Listo</div>
+
+<!-- Scripts: model-viewer CDN → lucide → app.js (importa data.js internamente) -->
+<script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script type="module" src="{% static 'recursos_educativos/cuerpo-humano/js/app.js' %}"></script>
+
+{% endblock %}

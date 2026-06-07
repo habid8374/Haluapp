@@ -1,0 +1,283 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Libro Diario Contable — {{ institucion.nombre }}</title>
+<style>
+@page {
+    size: letter landscape;
+    margin: 1.2cm 1.4cm 2cm 1.4cm;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8pt;
+    color: #1e293b;
+}
+
+/* ── BARRA SUPERIOR ── */
+.top-bar { background: #0f3460; height: 5px; width: 100%; margin-bottom: 10px; }
+
+/* ── ENCABEZADO ── */
+.header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.header-table td { vertical-align: middle; }
+.logo-cell { width: 70px; }
+.logo-cell img { width: 62px; height: auto; }
+.inst-cell { padding: 0 10px; }
+.inst-name { font-size: 12pt; font-weight: bold; color: #0f3460; }
+.inst-sub { font-size: 7pt; color: #64748b; margin-top: 2px; line-height: 1.5; }
+.doc-cell { width: 185px; }
+.doc-box {
+    border: 2px solid #0f3460;
+    border-radius: 5px;
+    overflow: hidden;
+    text-align: center;
+}
+.doc-box-header {
+    background: #0f3460;
+    color: white;
+    font-size: 8pt;
+    font-weight: bold;
+    padding: 4px 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.doc-box-body { padding: 6px; }
+.doc-box-body p { font-size: 7.5pt; color: #475569; margin: 2px 0; }
+.doc-box-body strong { color: #0f3460; font-size: 8.5pt; }
+
+/* ── SEPARADOR ── */
+.divider { border: none; border-top: 1.5px solid #cbd5e1; margin: 8px 0; }
+
+/* ── RESUMEN KPIs ── */
+.kpi-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.kpi-table td { padding: 6px 10px; border: 1px solid #e2e8f0; }
+.kpi-label { font-size: 7pt; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi-value { font-size: 11pt; font-weight: bold; }
+.kpi-green { color: #15803d; }
+.kpi-red   { color: #b91c1c; }
+.kpi-blue  { color: #0f3460; }
+
+/* ── TABLA DE MOVIMIENTOS ── */
+.section-label {
+    background: #e8eef8;
+    color: #0f3460;
+    font-size: 7.5pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    padding: 4px 10px;
+    border-left: 3px solid #0f3460;
+    margin-bottom: 6px;
+}
+
+.mov-table { width: 100%; border-collapse: collapse; }
+.mov-table thead tr { background: #0f3460; color: white; }
+.mov-table thead th {
+    padding: 5px 6px;
+    font-size: 7pt;
+    font-weight: bold;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+.mov-table thead th.r { text-align: right; }
+.mov-table tbody tr { border-bottom: 1px solid #f1f5f9; }
+.mov-table tbody tr:nth-child(even) { background: #f8faff; }
+.mov-table tbody td { padding: 4px 6px; font-size: 7.5pt; vertical-align: middle; }
+.mov-table tbody td.r { text-align: right; }
+.mov-table tbody td.mono { font-family: 'Courier New', monospace; font-size: 7pt; }
+
+/* Tipo badges */
+.tipo-I { color: #15803d; font-weight: bold; }
+.tipo-G { color: #b91c1c; font-weight: bold; }
+
+/* PUC pill */
+.puc-code {
+    background: #e0f2fe;
+    color: #075985;
+    font-family: 'Courier New', monospace;
+    font-size: 7pt;
+    padding: 1px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+}
+.puc-empty {
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 7pt;
+}
+
+/* ── FILA DE TOTALES ── */
+.totals-row td {
+    background: #0f3460;
+    color: white;
+    font-weight: bold;
+    font-size: 8.5pt;
+    padding: 6px 6px;
+    border-top: 2px solid #0f3460;
+}
+.totals-row td.r { text-align: right; }
+
+/* ── FILA SIN DATOS ── */
+.empty-row td {
+    text-align: center;
+    padding: 20px;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* ── PIE DE PÁGINA FIJO ── */
+.page-footer {
+    position: fixed;
+    bottom: 0.3cm;
+    left: 0; right: 0;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 4px;
+    text-align: center;
+    font-size: 6.5pt;
+    color: #94a3b8;
+}
+</style>
+</head>
+<body>
+
+<!-- PIE FIJO -->
+<div class="page-footer">
+    {{ institucion.nombre }} &nbsp;·&nbsp; NIT: {{ institucion.nit }}
+    &nbsp;·&nbsp; Libro Diario Contable {{ fecha_inicio|date:"d/m/Y" }} al {{ fecha_fin|date:"d/m/Y" }}
+    &nbsp;·&nbsp; Generado el {% now "d/m/Y H:i" %} por {{ generado_por }}
+    &nbsp;·&nbsp; Página <pdf:pagenumber> de <pdf:pagecount>
+</div>
+
+<!-- BARRA SUPERIOR -->
+<div class="top-bar"></div>
+
+<!-- ENCABEZADO -->
+<table class="header-table">
+    <tr>
+        <td class="logo-cell">
+            {% if institucion.logo %}
+            <img src="{{ institucion.logo.path }}" alt="{{ institucion.nombre }}">
+            {% endif %}
+        </td>
+        <td class="inst-cell">
+            <div class="inst-name">{{ institucion.nombre }}</div>
+            <div class="inst-sub">
+                NIT: {{ institucion.nit }}
+                {% if institucion.codigo_dane %} &nbsp;|&nbsp; DANE: {{ institucion.codigo_dane }}{% endif %}
+                {% if institucion.ciudad_departamento %} &nbsp;|&nbsp; {{ institucion.ciudad_departamento }}{% endif %}
+                {% if institucion.telefono %}<br>Tel: {{ institucion.telefono }}{% endif %}
+                {% if institucion.correo_electronico %} &nbsp;|&nbsp; {{ institucion.correo_electronico }}{% endif %}
+            </div>
+        </td>
+        <td class="doc-cell">
+            <div class="doc-box">
+                <div class="doc-box-header">Libro Diario Contable</div>
+                <div class="doc-box-body">
+                    <p>Período:</p>
+                    <p><strong>{{ fecha_inicio|date:"d/m/Y" }}</strong> al <strong>{{ fecha_fin|date:"d/m/Y" }}</strong></p>
+                    <p style="margin-top:4px;">Tipo: <strong>{{ tipo_transaccion }}</strong></p>
+                    <p>Registros: <strong>{{ filas|length }}</strong></p>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<hr class="divider">
+
+<!-- KPIs RESUMEN -->
+<table class="kpi-table">
+    <tr>
+        <td style="width:33%;">
+            <div class="kpi-label">Total registros</div>
+            <div class="kpi-value kpi-blue">{{ filas|length }}</div>
+        </td>
+        <td style="width:33%;">
+            <div class="kpi-label">Total créditos (ingresos)</div>
+            <div class="kpi-value kpi-green">${{ total_cred|floatformat:0|intcomma }} COP</div>
+        </td>
+        <td style="width:34%;">
+            <div class="kpi-label">Total débitos (gastos)</div>
+            <div class="kpi-value kpi-red">${{ total_deb|floatformat:0|intcomma }} COP</div>
+        </td>
+    </tr>
+</table>
+
+<!-- TABLA DE MOVIMIENTOS -->
+<div class="section-label" style="margin-top:8px;">Detalle de Movimientos — incluye códigos PUC</div>
+
+<table class="mov-table">
+    <thead>
+        <tr>
+            <th style="width:60px;">Fecha</th>
+            <th style="width:42px;">Tipo</th>
+            <th style="width:58px;">Código PUC</th>
+            <th style="width:140px;">Cuenta PUC</th>
+            <th style="width:72px;">Doc. Tercero</th>
+            <th style="width:115px;">Tercero</th>
+            <th>Concepto</th>
+            <th style="width:62px;">N° Doc.</th>
+            <th class="r" style="width:80px;">Débito</th>
+            <th class="r" style="width:80px;">Crédito</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in filas %}
+        <tr>
+            <td>{{ row.fecha|date:"d/m/Y" }}</td>
+            <td>
+                {% if row.tipo == 'Ingreso' %}
+                <span class="tipo-I">↑ Ingreso</span>
+                {% else %}
+                <span class="tipo-G">↓ Gasto</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if row.codigo_puc %}
+                <span class="puc-code">{{ row.codigo_puc }}</span>
+                {% else %}
+                <span class="puc-empty">Sin PUC</span>
+                {% endif %}
+            </td>
+            <td>{{ row.nombre_puc|default:"—"|truncatechars:38 }}</td>
+            <td class="mono">{{ row.documento_tercero|default:"—" }}</td>
+            <td>{{ row.nombre_tercero|truncatechars:22 }}</td>
+            <td>
+                {{ row.concepto|truncatechars:40 }}
+                {% if row.metodo_pago %}
+                <br><span style="font-size:6.5pt;color:#94a3b8;">{{ row.metodo_pago }}{% if row.referencia %} · {{ row.referencia|truncatechars:18 }}{% endif %}</span>
+                {% endif %}
+            </td>
+            <td class="mono">{{ row.numero_documento|default:"—" }}</td>
+            <td class="r">{% if row.debito %}<span class="tipo-G">${{ row.debito|floatformat:0|intcomma }}</span>{% else %}—{% endif %}</td>
+            <td class="r">{% if row.credito %}<span class="tipo-I">${{ row.credito|floatformat:0|intcomma }}</span>{% else %}—{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr class="empty-row">
+            <td colspan="10">No hay movimientos en el período seleccionado.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    {% if filas %}
+    <tr class="totals-row">
+        <td colspan="8"><strong>TOTALES DEL PERÍODO</strong></td>
+        <td class="r">${{ total_deb|floatformat:0|intcomma }}</td>
+        <td class="r">${{ total_cred|floatformat:0|intcomma }}</td>
+    </tr>
+    {% endif %}
+</table>
+
+<!-- NOTA SOBRE PUC FALTANTE -->
+{% for row in filas %}{% if not row.codigo_puc %}{% if forloop.first %}
+<div style="margin-top:10px; font-size:7pt; color:#b45309; background:#fff7ed; border:1px solid #fcd34d; border-radius:4px; padding:5px 10px;">
+    <strong>⚠ Nota:</strong> Algunos movimientos no tienen código PUC asignado. Para completar el plan de cuentas, vaya a
+    <em>Finanzas → Configuración → Conceptos de Pago</em> o <em>Categorías de Gasto</em> y asigne la cuenta contable correspondiente.
+</div>
+{% endif %}{% endif %}{% endfor %}
+
+</body>
+</html>

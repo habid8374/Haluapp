@@ -15,7 +15,7 @@
 
     {% for data in materias_con_logros %}
     <section>
-        <h3>{{ data.materia.nombre_materia|upper }}</h3>
+        <h3>{{ data.materia.nombre_materia|upper }}{% if es_bilingue and data.materia.nombre_idioma_secundario %} / {{ data.materia.nombre_idioma_secundario|upper }}{% endif %}</h3>
         <table border="1" style="width:100%; border-collapse: collapse;">
             <thead>
                 <tr>

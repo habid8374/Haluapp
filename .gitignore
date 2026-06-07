@@ -17,6 +17,7 @@ env/
 db.sqlite3
 *.sqlite3
 debug.log
+logs/
 
 # Uploaded/generated files
 media/
@@ -26,4 +27,4 @@ staticfiles_collected/
 .DS_Store
 Thumbs.db
 .vscode/
-.idea/
+.idea/.claude/worktrees/

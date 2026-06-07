@@ -1,79 +1,557 @@
-{% extends "base_academico.html" %}
 {% load static %}
-{% load crispy_forms_tags %}
-{% load socialaccount %} {# <-- 1. AÑADIDO: Carga las etiquetas de allauth #}
+{% load socialaccount %}
+{% load socialapp_checks %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HALU · Iniciar Sesión</title>
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
 
-{% block titulo %}Iniciar Sesión - HALU{% endblock titulo %}
+    /* ══════════════════════════════
+       LAYOUT
+    ══════════════════════════════ */
+    .page { display: flex; height: 100vh; width: 100vw; }
 
-{% block contenido %}
-<div class="container d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 4.5rem - 4rem);">
-    <div class="row justify-content-center w-100">
-        <div class="col-md-6 col-lg-5 col-xl-4">
-            <div class="card shadow-lg border-0 rounded-lg mt-5">
-                <div class="card-header bg-primary text-white text-center py-4 rounded-top">
-                    <img src="{% static 'core/img/logo_mi_software.png' %}" alt="Logo HALU" style="max-height: 50px; margin-bottom: 10px;">
-                    <h3 class="mb-0 fw-bold">Iniciar Sesión</h3>
-                </div>
-                <div class="card-body p-4">
-                    {% if form.errors %}
-                        <div class="alert alert-danger mb-3" role="alert">
-                            <i class="bi bi-x-octagon-fill me-2"></i> Tu nombre de usuario y contraseña no coinciden. Por favor, inténtalo de nuevo.
-                        </div>
-                    {% endif %}
+    /* ══════════════════════════════
+       PANEL IZQUIERDO — VIDEO
+    ══════════════════════════════ */
+    .school-panel {
+      flex: 0 0 55%;
+      position: relative;
+      overflow: hidden;
+      background: #0f172a; /* fallback si el video no carga */
+    }
 
-                    {% if next %}
-                        {% if user.is_authenticated %}
-                            <div class="alert alert-warning mb-3" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i> Tu cuenta no tiene acceso a esta página. Para proceder,
-                                por favor inicia sesión con una cuenta que tenga acceso.
-                            </div>
-                        {% else %}
-                            <div class="alert alert-info mb-3" role="alert">
-                                <i class="bi bi-info-circle-fill me-2"></i> Por favor, inicia sesión para ver esta página.
-                            </div>
-                        {% endif %}
-                    {% endif %}
+    /* Video de fondo */
+    .school-panel video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
 
-                    <form method="post" action="{% url 'login' %}">
-                        {% csrf_token %}
-                        
-                        {{ form|crispy }}
-                        
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-box-arrow-in-right me-2"></i> Iniciar Sesión
-                            </button>
-                        </div>
-                        <input type="hidden" name="next" value="{{ next }}">
-                    </form>
+    /* Overlay oscuro para legibilidad del texto */
+    .school-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 20, 50, 0.52);
+      z-index: 2;
+    }
 
-                    <!-- ▼▼▼ 2. CÓDIGO AÑADIDO ▼▼▼ -->
-                    <hr>
-                    <p class="text-center text-muted mb-2">O inicia sesión con:</p>
-                    <div class="d-grid gap-2">
-                        <a href="{% provider_login_url 'google' %}" class="btn btn-danger btn-lg">
-                            <i class="bi bi-google me-2"></i> Iniciar sesión con Google
-                        </a>
-                    </div>
-                    <!-- ▲▲▲ FIN DEL CÓDIGO AÑADIDO ▲▲▲ -->
+    /* Branding central */
+    .school-brand {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      text-align: center;
+      width: 90%;
+    }
+    .school-brand img {
+      height: 72px;
+      filter: brightness(0) invert(1) drop-shadow(0 4px 16px rgba(0,0,0,.4));
+      margin-bottom: 16px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .school-brand .bn {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 6px;
+      text-shadow: 0 2px 16px rgba(0,0,0,.5);
+    }
+    .school-brand .bs {
+      font-size: .82rem;
+      color: rgba(255,255,255,.85);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      margin-top: 6px;
+      font-weight: 600;
+      text-shadow: 0 1px 8px rgba(0,0,0,.4);
+    }
+    .school-brand .tagline {
+      margin-top: 18px;
+      font-size: .92rem;
+      color: rgba(255,255,255,.8);
+      font-style: italic;
+      max-width: 260px;
+      line-height: 1.6;
+      margin-left: auto;
+      margin-right: auto;
+      text-shadow: 0 1px 8px rgba(0,0,0,.4);
+    }
 
-                </div>
-                <div class="card-footer text-center p-3">
-                    <a href="{% url 'password_reset' %}" class="text-muted text-decoration-none">
-                        ¿Olvidaste tu contraseña?
-                    </a>
-                    
-                    {% if not HAY_USUARIOS_REGISTRADOS %}
-                    <div class="mt-3">
-                        <small class="text-muted">¿Primera vez aquí?</small><br>
-                        <a href="{% url 'gestion_academica:registro_inicial' %}" class="btn btn-outline-success btn-sm mt-2">
-                            <i class="bi bi-person-plus-fill me-2"></i> Registrar Institución y Admin
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+    /* Separador decorativo bajo el nombre */
+    .brand-line {
+      width: 48px; height: 3px;
+      background: linear-gradient(90deg, #60a5fa, #93c5fd);
+      border-radius: 2px;
+      margin: 10px auto 0;
+    }
+
+    /* ══════════════════════════════
+       PANEL DERECHO — FORMULARIO
+    ══════════════════════════════ */
+    .form-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8faff;
+      padding: 2rem;
+      position: relative;
+      overflow-y: auto;
+    }
+
+    /* Franja superior azul */
+    .form-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #1e1b4b, #1d4ed8, #3b82f6, #60a5fa, #3b82f6, #1d4ed8, #1e1b4b);
+      background-size: 300% 100%;
+      animation: blueBar 5s linear infinite;
+    }
+    @keyframes blueBar {
+      0%   { background-position: 0% 0; }
+      100% { background-position: 300% 0; }
+    }
+
+    /* Círculo decorativo esquina */
+    .form-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -60px;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,.08), transparent 70%);
+      pointer-events: none;
+    }
+
+    .form-box {
+      width: 100%;
+      max-width: 400px;
+      animation: riseUp .6s cubic-bezier(.22,.68,0,1.2) both;
+    }
+    @keyframes riseUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Logo + nombre */
+    .form-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 2rem;
+    }
+    .form-header img { height: 44px; }
+    .form-header .ht { font-size: 1.5rem; font-weight: 900; color: #1e1b4b; letter-spacing: 1px; line-height: 1; }
+    .form-header .hs { font-size: .68rem; color: #3b82f6; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+
+    /* Saludo */
+    .greeting h1 { font-size: 1.5rem; font-weight: 800; color: #1e1b4b; margin-bottom: 4px; }
+    .greeting p  { font-size: .88rem; color: #64748b; margin-bottom: 1.8rem; }
+
+    /* Alerta error */
+    .alert-err {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      border-left: 4px solid #2563eb;
+      border-radius: 10px;
+      padding: .75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      color: #1d4ed8;
+      font-size: .85rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      animation: shake .4s ease;
+    }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)}
+    }
+    .alert-info {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      border-radius: 10px;
+      padding: .75rem 1rem;
+      color: #1d4ed8;
+      font-size: .85rem;
+      margin-bottom: 1.2rem;
+    }
+
+    /* Campos con label flotante */
+    .field-wrap { position: relative; margin-bottom: 1.3rem; }
+    .field-wrap input {
+      width: 100%;
+      padding: 1rem 2.8rem 0.6rem 1rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: .95rem;
+      color: #1e293b;
+      background: #fff;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .field-wrap input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,.13);
+    }
+    .field-wrap label {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: .9rem;
+      color: #94a3b8;
+      pointer-events: none;
+      transition: all .18s;
+      background: #fff;
+      padding: 0 4px;
+    }
+    .field-wrap input:focus ~ label,
+    .field-wrap input:not(:placeholder-shown) ~ label {
+      top: 0; font-size: .7rem; color: #3b82f6; font-weight: 700;
+    }
+    .field-wrap .fi-ico {
+      position: absolute;
+      right: 1rem; top: 50%;
+      transform: translateY(-50%);
+      color: #cbd5e1;
+      font-size: 1rem;
+      pointer-events: none;
+      transition: color .18s;
+    }
+    .field-wrap input:focus ~ .fi-ico { color: #3b82f6; }
+    .field-wrap .pw-toggle { pointer-events: all; cursor: pointer; }
+
+    /* Botón principal */
+    .btn-ingresar {
+      width: 100%;
+      padding: .9rem;
+      background: linear-gradient(135deg, #1e1b4b, #1d4ed8, #3b82f6);
+      background-size: 200% 100%;
+      background-position: 0% 50%;
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background-position .4s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 20px rgba(29,78,216,.35);
+      margin-top: .4rem;
+    }
+    .btn-ingresar:hover {
+      background-position: 100% 50%;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(29,78,216,.45);
+    }
+    .btn-ingresar:active { transform: translateY(0); }
+    .btn-ingresar::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -80%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+      transition: left .5s;
+    }
+    .btn-ingresar:hover::after { left: 130%; }
+    .btn-ingresar .btn-text { transition: opacity .2s; }
+    .btn-ingresar .btn-spin { display: none; }
+    .btn-ingresar.loading .btn-text { opacity: 0; }
+    .btn-ingresar.loading .btn-spin { display: inline-block; }
+    .spin-ring {
+      width: 22px; height: 22px;
+      border: 3px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: inline-block; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Divider */
+    .or-div {
+      display: flex; align-items: center; gap: .7rem;
+      margin: 1.1rem 0; color: #94a3b8; font-size: .78rem;
+    }
+    .or-div::before, .or-div::after { content:''; flex:1; height:1px; background:#e2e8f0; }
+
+    /* Botón Google */
+    .btn-google {
+      width: 100%; padding: .75rem;
+      background: #fff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      color: #374151;
+      font-size: .88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: .6rem;
+      text-decoration: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .btn-google:hover {
+      border-color: #93c5fd;
+      box-shadow: 0 2px 10px rgba(59,130,246,.15);
+      color: #374151;
+    }
+    .btn-google svg { width: 18px; height: 18px; }
+
+    /* Footer */
+    .form-foot { margin-top: 1.5rem; text-align: center; }
+    .form-foot a { color: #1d4ed8; font-size: .82rem; font-weight: 600; text-decoration: none; }
+    .form-foot a:hover { text-decoration: underline; }
+    .form-foot .reg-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-top: .8rem;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: .45rem 1rem;
+      color: #1d4ed8;
+      font-size: .8rem;
+      font-weight: 700;
+      transition: background .18s;
+    }
+    .form-foot .reg-link:hover { background: #dbeafe; }
+
+    /* ══════════════════════════════
+       RESPONSIVE — MOBILE
+    ══════════════════════════════ */
+    @media (max-width: 820px) {
+      html, body { overflow-x: hidden; overflow-y: auto; height: auto; }
+
+      .page {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      /* Banner superior compacto */
+      .school-panel {
+        flex: 0 0 auto;
+        height: 180px;
+      }
+
+      /* Brand en horizontal centrado en mobile */
+      .school-brand {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        white-space: nowrap;
+        text-align: left;
+        width: auto;
+      }
+      .school-brand img { height: 44px; margin: 0; }
+      .school-brand .bn { font-size: 1.7rem; letter-spacing: 3px; }
+      .school-brand .bs { font-size: .62rem; letter-spacing: 1.5px; }
+      .school-brand .tagline { display: none; }
+      .brand-line { display: none; }
+
+      /* Formulario ocupa toda la pantalla restante */
+      .form-panel {
+        flex: 1;
+        padding: 1.8rem 1.2rem 2rem;
+        min-height: calc(100vh - 180px);
+      }
+
+      .form-box { max-width: 100%; }
+
+      /* Header del formulario más compacto */
+      .form-header { margin-bottom: 1.3rem; }
+      .form-header img { height: 36px; }
+      .form-header .ht { font-size: 1.3rem; }
+
+      /* Saludo más compacto */
+      .greeting h1 { font-size: 1.25rem; }
+      .greeting p  { font-size: .85rem; margin-bottom: 1.3rem; }
+
+      /* Inputs: font-size mínimo 16px para evitar zoom en iOS */
+      .field-wrap input { font-size: 16px; padding: 1rem 2.8rem .6rem 1rem; }
+      .field-wrap label { font-size: 16px; }
+      .field-wrap input:focus ~ label,
+      .field-wrap input:not(:placeholder-shown) ~ label {
+        font-size: .72rem;
+      }
+
+      /* Botón más grande para tacto */
+      .btn-ingresar { padding: 1rem; font-size: 1rem; }
+
+      /* Botón Google */
+      .btn-google { padding: .85rem; font-size: .9rem; }
+
+      /* Pie de formulario */
+      .form-foot { margin-top: 1.2rem; }
+    }
+
+    @media (max-width: 400px) {
+      .school-panel { height: 150px; }
+      .form-panel { min-height: calc(100vh - 150px); padding: 1.4rem 1rem 1.8rem; }
+      .school-brand .bn { font-size: 1.5rem; }
+      .form-panel::before { height: 3px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══════ PANEL IZQUIERDO — VIDEO ══════ -->
+  <div class="school-panel">
+
+    <!-- Video de fondo -->
+    <video autoplay muted loop playsinline>
+      <source src="{% static 'core/video/login_bg.mp4' %}" type="video/mp4">
+    </video>
+
+    <!-- Branding central (sobre el overlay) -->
+    <div class="school-brand">
+      <img src="{% static 'core/img/logo_mi_software.png' %}" alt="HALU">
+      <div class="bn">HALU</div>
+      <div class="bs">Sistema de Gestión Escolar</div>
+      <div class="brand-line"></div>
+      <div class="tagline">"Educando con tecnología, conectando comunidades"</div>
     </div>
+
+  </div>
+
+  <!-- ══════ PANEL DERECHO ══════ -->
+  <div class="form-panel">
+    <div class="form-box">
+
+      <div class="form-header">
+        <img src="{% static 'core/img/logo_mi_software.png' %}" alt="HALU">
+        <div>
+          <div class="ht">HALU</div>
+          <div class="hs">Plataforma Educativa</div>
+        </div>
+      </div>
+
+      <div class="greeting">
+        <h1>¡Bienvenido de nuevo! 👋</h1>
+        <p>Ingresa tus datos para acceder a la plataforma escolar.</p>
+      </div>
+
+      {% if form.errors %}
+      <div class="alert-err">
+        <i class="bi bi-exclamation-triangle-fill" style="font-size:1.1rem;flex-shrink:0;"></i>
+        Usuario o contraseña incorrectos. Intenta de nuevo.
+      </div>
+      {% endif %}
+
+      {% if next %}
+        {% if user.is_authenticated %}
+        <div class="alert-info"><i class="bi bi-lock-fill me-1"></i> Tu cuenta no tiene acceso a esa sección.</div>
+        {% else %}
+        <div class="alert-info"><i class="bi bi-info-circle-fill me-1"></i> Inicia sesión para continuar.</div>
+        {% endif %}
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}" id="login-form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <div class="field-wrap">
+          <input type="text" name="username" id="id_username"
+                 placeholder=" " autocomplete="username" autofocus
+                 value="{{ form.username.value|default:'' }}">
+          <label for="id_username">Usuario</label>
+          <i class="bi bi-person fi-ico"></i>
+        </div>
+
+        <div class="field-wrap">
+          <input type="password" name="password" id="id_password"
+                 placeholder=" " autocomplete="current-password">
+          <label for="id_password">Contraseña</label>
+          <i class="bi bi-eye pw-toggle fi-ico" id="pw-toggle"></i>
+        </div>
+
+        <button type="submit" class="btn-ingresar" id="btn-ingresar">
+          <span class="btn-text"><i class="bi bi-door-open me-2"></i>Ingresar a HALU</span>
+          <span class="btn-spin"><span class="spin-ring"></span></span>
+        </button>
+      </form>
+
+      {% google_socialapp_configured as show_google_login %}
+      {% if show_google_login %}
+      <div class="or-div">o continúa con</div>
+      <a href="{% provider_login_url 'google' %}" class="btn-google">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Iniciar sesión con Google
+      </a>
+      {% endif %}
+
+      <div class="form-foot">
+        <a href="{% url 'password_reset' %}"><i class="bi bi-key me-1"></i>¿Olvidaste tu contraseña?</a>
+        {% if not HAY_USUARIOS_REGISTRADOS %}
+        <br>
+        <a href="{% url 'gestion_academica:registro_inicial' %}" class="reg-link">
+          <i class="bi bi-building-add"></i> Registrar institución
+        </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
 </div>
-{% endblock contenido %}
+
+<script>
+/* Toggle password */
+document.getElementById('pw-toggle').addEventListener('click', function () {
+  const inp = document.getElementById('id_password');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  this.classList.toggle('bi-eye');
+  this.classList.toggle('bi-eye-slash');
+});
+
+/* Loading state */
+document.getElementById('login-form').addEventListener('submit', function () {
+  const btn = document.getElementById('btn-ingresar');
+  btn.classList.add('loading');
+  btn.disabled = true;
+});
+
+/* Acceso oculto al panel de control — triple clic en el logo */
+(function () {
+  var clicks = 0, timer;
+  function bindLogo(el) {
+    if (!el) return;
+    el.addEventListener('click', function () {
+      clicks++;
+      clearTimeout(timer);
+      timer = setTimeout(function () { clicks = 0; }, 700);
+      if (clicks >= 3) { clicks = 0; window.location.href = '/halu-control/login/'; }
+    });
+  }
+  bindLogo(document.querySelector('.school-brand img'));
+  bindLogo(document.querySelector('.form-header img'));
+})();
+</script>
+</body>
+</html>

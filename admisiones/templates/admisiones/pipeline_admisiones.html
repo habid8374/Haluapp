@@ -1,6 +1,6 @@
 {% extends "base_admisiones.html" %}
 
-{% block extra_css %}
+{% block extrastyles %}
 <style>
     .pipeline-board {
         display: flex;
@@ -84,6 +84,7 @@
 {% endblock contenido %}
 
 {% block extra_js %}
+{{ block.super }}
 <!-- Incluimos SortableJS desde un CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 

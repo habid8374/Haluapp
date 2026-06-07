@@ -1,31 +1,523 @@
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Observador - {{ estudiante }}</title>
-    <style>@page { size: letter; margin: 2cm; } body { font-family: sans-serif; } .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; } .logo { max-height: 60px; float: left; } .anotacion { border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 15px; page-break-inside: avoid; } .footer { font-size: 8pt; color: #777; position: fixed; bottom: 0; } </style>
+<meta charset="UTF-8">
+<title>Observador del Estudiante — {{ estudiante.usuario.get_full_name }}</title>
+<style>
+@page {
+    size: letter;
+    margin: 1.8cm 1.6cm 2.2cm 1.6cm;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5pt;
+    color: #1e293b;
+    line-height: 1.4;
+}
+
+/* ── BARRA SUPERIOR ── */
+.top-bar {
+    background: #0f3460;
+    height: 6px;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+/* ── ENCABEZADO INSTITUCIÓN ── */
+.header-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.header-table td { vertical-align: middle; }
+.logo-cell { width: 72px; }
+.logo-cell img { width: 66px; height: auto; }
+.inst-cell { padding: 0 10px; }
+.inst-name { font-size: 12pt; font-weight: bold; color: #0f3460; }
+.inst-sub  { font-size: 7pt; color: #64748b; margin-top: 3px; line-height: 1.6; }
+.doc-cell  { width: 195px; }
+.doc-box { border: 2px solid #0f3460; border-radius: 5px; overflow: hidden; text-align: center; }
+.doc-box-header {
+    background: #0f3460; color: white;
+    font-size: 8pt; font-weight: bold;
+    padding: 5px 8px;
+    text-transform: uppercase; letter-spacing: 1px;
+}
+.doc-box-body { padding: 6px 8px; }
+.doc-box-body p { font-size: 7.5pt; color: #475569; margin: 2px 0; }
+.doc-box-body strong { color: #0f3460; font-size: 8pt; }
+
+/* ── NORMA LEGAL ── */
+.norma-bar {
+    background: #e8eef8;
+    border-left: 4px solid #0f3460;
+    padding: 4px 10px;
+    font-size: 7pt;
+    color: #475569;
+    margin-bottom: 10px;
+}
+
+/* ── SECCIÓN ETIQUETA ── */
+.section-label {
+    background: #0f3460;
+    color: white;
+    font-size: 7.5pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 4px 10px;
+    margin-bottom: 6px;
+    margin-top: 10px;
+}
+
+/* ── TABLA DE DATOS ── */
+.datos-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.datos-table td {
+    border: 1px solid #e2e8f0;
+    padding: 4px 8px;
+    font-size: 8pt;
+}
+.datos-table .lbl {
+    background: #f1f5f9;
+    color: #64748b;
+    font-weight: bold;
+    font-size: 7pt;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    width: 28%;
+    white-space: nowrap;
+}
+.datos-table .val {
+    color: #0f172a;
+    font-size: 8pt;
+}
+.datos-table .val-empty {
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 7.5pt;
+}
+
+/* ── TABLA ANOTACIONES ── */
+.anot-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+.anot-table thead tr { background: #0f3460; color: white; }
+.anot-table thead th {
+    padding: 5px 6px;
+    font-size: 7pt;
+    font-weight: bold;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+.anot-table tbody tr { border-bottom: 1px solid #f1f5f9; page-break-inside: avoid; }
+.anot-table tbody tr:nth-child(even) { background: #f8faff; }
+.anot-table tbody td { padding: 5px 6px; font-size: 8pt; vertical-align: top; }
+.tipo-ACADEMICA       { color: #0369a1; font-weight: bold; font-size: 7pt; }
+.tipo-CONVIVENCIA     { color: #b45309; font-weight: bold; font-size: 7pt; }
+.tipo-FELICITACION    { color: #15803d; font-weight: bold; font-size: 7pt; }
+.tipo-LLAMADO_ATENCION{ color: #b91c1c; font-weight: bold; font-size: 7pt; }
+.tipo-OTRO            { color: #475569; font-weight: bold; font-size: 7pt; }
+.sentimiento-POSITIVO { color: #15803d; font-size: 7pt; }
+.sentimiento-NEGATIVO { color: #b91c1c; font-size: 7pt; }
+.sentimiento-NEUTRO   { color: #475569; font-size: 7pt; }
+.empty-row td { text-align: center; padding: 18px; color: #94a3b8; font-style: italic; }
+
+/* ── COMPROMISO ── */
+.compromiso-box {
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+}
+.compromiso-box p { margin-bottom: 4px; font-size: 8pt; color: #475569; }
+.linea-firma { border-bottom: 1px solid #94a3b8; width: 100%; margin: 18px 0 4px; }
+
+/* ── TABLA DE FIRMAS ── */
+.firmas-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.firmas-table td {
+    width: 25%;
+    text-align: center;
+    vertical-align: bottom;
+    padding: 0 6px;
+}
+.firma-img { max-height: 45px; max-width: 100px; display: block; margin: 0 auto 2px; }
+.firma-linea { border-top: 1px solid #94a3b8; padding-top: 4px; font-size: 7pt; color: #475569; }
+.firma-nombre { font-weight: bold; font-size: 7.5pt; color: #0f3460; }
+.firma-cargo  { font-size: 7pt; color: #64748b; }
+
+/* ── PIE FIJO ── */
+.page-footer {
+    position: fixed;
+    bottom: 0.4cm; left: 0; right: 0;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 4px;
+    text-align: center;
+    font-size: 6.5pt;
+    color: #94a3b8;
+}
+
+/* ── DIVIDER ── */
+hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
+</style>
 </head>
 <body>
-    <div class="header">
-        {% if institucion.logo %}<img src="{{ institucion.logo.path }}" class="logo">{% endif %}
-        <h1>Observador del Estudiante</h1>
-        <h2>{{ institucion.nombre }}</h2>
-    </div>
-    <h3>Estudiante: {{ estudiante.usuario.get_full_name }}</h3>
-    <p><strong>Grado:</strong> {{ estudiante.grado_actual.nombre }}</p>
-    <p><strong>Fecha de Generación:</strong> {{ fecha_generacion|date:"d F, Y" }}</p>
-    <hr>
-    {% for anotacion in anotaciones %}
-    <div class="anotacion">
-        <p><strong>Fecha:</strong> {{ anotacion.fecha_hora|date:"d M, Y, h:i a" }} | <strong>Tipo:</strong> {{ anotacion.get_tipo_display }}</p>
-        <p><strong>Registrado por:</strong> {{ anotacion.registrado_por.get_full_name }}</p>
-        {% if anotacion.curso %}<p><strong>En clase de:</strong> {{ anotacion.curso.materia }}</p>{% endif %}
-        <hr>
-        <p>{{ anotacion.descripcion|linebreaksbr }}</p>
-    </div>
-    {% empty %}
-    <p>No hay anotaciones registradas en el observador para este estudiante.</p>
-    {% endfor %}
-    <div class="footer">Documento interno confidencial - Sistema de Gestión Escolar HALU</div>
+
+<!-- PIE FIJO -->
+<div class="page-footer">
+    {{ institucion.nombre }}
+    &nbsp;·&nbsp; NIT: {{ institucion.nit }}
+    &nbsp;·&nbsp; Observador del Estudiante — {{ estudiante.usuario.get_full_name }}
+    &nbsp;·&nbsp; Generado el {% now "d/m/Y H:i" %} por {{ generado_por }}
+    &nbsp;·&nbsp; Página <pdf:pagenumber> de <pdf:pagecount>
+</div>
+
+<!-- BARRA SUPERIOR -->
+<div class="top-bar"></div>
+
+<!-- ENCABEZADO -->
+<table class="header-table">
+    <tr>
+        <td class="logo-cell">
+            {% if institucion.logo %}
+            <img src="{{ institucion.logo.path }}" alt="{{ institucion.nombre }}">
+            {% endif %}
+        </td>
+        <td class="inst-cell">
+            <div class="inst-name">{{ institucion.nombre }}</div>
+            <div class="inst-sub">
+                NIT: {{ institucion.nit }}
+                {% if institucion.codigo_dane %} &nbsp;|&nbsp; DANE: {{ institucion.codigo_dane }}{% endif %}
+                {% if institucion.ciudad_departamento %} &nbsp;|&nbsp; {{ institucion.ciudad_departamento }}{% endif %}
+                {% if institucion.telefono %}<br>Tel: {{ institucion.telefono }}{% endif %}
+                {% if institucion.correo_electronico %} &nbsp;|&nbsp; {{ institucion.correo_electronico }}{% endif %}
+                {% if institucion.texto_aprobacion %}<br>{{ institucion.texto_aprobacion }}{% endif %}
+            </div>
+        </td>
+        <td class="doc-cell">
+            <div class="doc-box">
+                <div class="doc-box-header">Observador del Estudiante</div>
+                <div class="doc-box-body">
+                    <p>Año escolar: <strong>{% now "Y" %}</strong></p>
+                    {% if periodo_seleccionado %}
+                    <p>Período: <strong>{{ periodo_seleccionado.nombre }}</strong></p>
+                    <p style="font-size:6.5pt;">{{ periodo_seleccionado.fecha_inicio|date:"d/m/Y" }} — {{ periodo_seleccionado.fecha_fin|date:"d/m/Y" }}</p>
+                    {% else %}
+                    <p>Período: <strong>Todos</strong></p>
+                    {% endif %}
+                    <p>Anotaciones: <strong>{{ anotaciones|length }}</strong></p>
+                    <p>Generado: <strong>{% now "d/m/Y" %}</strong></p>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<!-- NORMA LEGAL -->
+<div class="norma-bar">
+    <strong>Marco normativo:</strong>
+    Ley 115 de 1994, Art. 87 (Manual de Convivencia) &nbsp;·&nbsp;
+    Decreto 1860 de 1994, Art. 17 (Registro Escolar del Alumno) &nbsp;·&nbsp;
+    Ley 1620 de 2013 (Convivencia Escolar) &nbsp;·&nbsp;
+    Decreto 1965 de 2013 (Protocolo de Atención)
+    &nbsp;·&nbsp; <em>Documento de carácter confidencial.</em>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECCIÓN 1: DATOS DEL ESTUDIANTE                           -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section-label">1. Datos del Estudiante</div>
+<table class="datos-table">
+    <tr>
+        <td class="lbl">Nombres y Apellidos</td>
+        <td class="val" colspan="3"><strong>{{ estudiante.usuario.get_full_name|upper }}</strong></td>
+    </tr>
+    <tr>
+        <td class="lbl">Tipo de Documento</td>
+        <td class="val">
+            {% if estudiante.tipo_documento %}{{ estudiante.get_tipo_documento_display }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+        <td class="lbl">Número de Documento</td>
+        <td class="val">
+            {% if estudiante.documento_identidad %}{{ estudiante.documento_identidad }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="lbl">Fecha de Nacimiento</td>
+        <td class="val">
+            {% if estudiante.fecha_nacimiento %}{{ estudiante.fecha_nacimiento|date:"d/m/Y" }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+        <td class="lbl">Lugar de Nacimiento</td>
+        <td class="val">
+            {% if estudiante.lugar_nacimiento %}{{ estudiante.lugar_nacimiento }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="lbl">Sexo</td>
+        <td class="val">
+            {% if estudiante.sexo %}{{ estudiante.get_sexo_display }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+        <td class="lbl">Grado</td>
+        <td class="val">
+            {% if estudiante.grado_actual %}{{ estudiante.grado_actual.nombre }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="lbl">Dirección</td>
+        <td class="val">
+            {% if estudiante.direccion %}{{ estudiante.direccion }}{% if estudiante.municipio_ciudad %}, {{ estudiante.municipio_ciudad }}{% endif %}{% if estudiante.departamento %} — {{ estudiante.departamento }}{% endif %}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+        <td class="lbl">Colegio Anterior</td>
+        <td class="val">
+            {% if estudiante.colegio_procedencia %}{{ estudiante.colegio_procedencia }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="lbl">Grupo Sanguíneo</td>
+        <td class="val">
+            {% if estudiante.grupo_sanguineo %}{{ estudiante.grupo_sanguineo }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+        <td class="lbl">EPS / Entidad de Salud</td>
+        <td class="val">
+            {% if estudiante.eps %}{{ estudiante.eps }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+    </tr>
+    {% if estudiante.discapacidad %}
+    <tr>
+        <td class="lbl">Condición / Discapacidad</td>
+        <td class="val" colspan="3">{{ estudiante.discapacidad }}</td>
+    </tr>
+    {% endif %}
+</table>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECCIÓN 2: DATOS DEL ACUDIENTE / FAMILIAR                 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section-label">2. Datos del Acudiente / Familiar</div>
+{% if familiar %}
+<table class="datos-table">
+    <tr>
+        <td class="lbl">Nombre Completo</td>
+        <td class="val" colspan="3"><strong>{{ familiar.usuario.get_full_name|upper }}</strong></td>
+    </tr>
+    <tr>
+        <td class="lbl">Parentesco</td>
+        <td class="val">{{ familiar.parentesco }}</td>
+        <td class="lbl">Teléfono de Contacto</td>
+        <td class="val">
+            {% if familiar.telefono %}{{ familiar.telefono }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="lbl">Tipo de Documento</td>
+        <td class="val">
+            {% if familiar.tipo_documento %}{{ familiar.get_tipo_documento_display }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+        <td class="lbl">Número de Documento</td>
+        <td class="val">
+            {% if familiar.documento_identidad %}{{ familiar.documento_identidad }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="lbl">Correo Electrónico</td>
+        <td class="val">{{ familiar.usuario.email|default:"—" }}</td>
+        <td class="lbl">Ocupación</td>
+        <td class="val">
+            {% if familiar.ocupacion %}{{ familiar.ocupacion }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="lbl">Lugar de Trabajo</td>
+        <td class="val">
+            {% if familiar.lugar_trabajo %}{{ familiar.lugar_trabajo }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+        <td class="lbl">Dirección de Residencia</td>
+        <td class="val">
+            {% if familiar.direccion %}{{ familiar.direccion }}
+            {% else %}<span class="val-empty">—</span>{% endif %}
+        </td>
+    </tr>
+</table>
+{% else %}
+<p style="font-size:8pt; color:#94a3b8; font-style:italic; padding:6px 0;">
+    No hay acudiente / familiar registrado para este estudiante.
+</p>
+{% endif %}
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECCIÓN 3: REGISTRO DE ANOTACIONES                        -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section-label">
+    3. Registro de Anotaciones
+    {% if periodo_seleccionado %} — {{ periodo_seleccionado.nombre }}{% endif %}
+</div>
+
+<table class="anot-table">
+    <thead>
+        <tr>
+            <th style="width:66px;">Fecha</th>
+            <th style="width:82px;">Tipo</th>
+            <th style="width:80px;">Materia / Clase</th>
+            <th>Descripción</th>
+            <th style="width:95px;">Registrado por</th>
+            <th style="width:58px;">IA</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in anotaciones %}
+        <tr>
+            <td style="white-space:nowrap;">{{ a.fecha_hora|date:"d/m/Y" }}<br><span style="font-size:6.5pt;color:#94a3b8;">{{ a.fecha_hora|date:"H:i" }}</span></td>
+            <td>
+                <span class="tipo-{{ a.tipo }}">
+                    {% if a.tipo == 'ACADEMICA' %}📚 Académica
+                    {% elif a.tipo == 'CONVIVENCIA' %}🤝 Convivencia
+                    {% elif a.tipo == 'FELICITACION' %}⭐ Felicitación
+                    {% elif a.tipo == 'LLAMADO_ATENCION' %}⚠ Llamado de Atención
+                    {% else %}📝 Otro
+                    {% endif %}
+                </span>
+                {% if a.tipo_situacion_ia and a.tipo_situacion_ia != 'NINGUNO' %}
+                <br><span style="font-size:6.5pt;color:#b45309;">{{ a.tipo_situacion_ia }}</span>
+                {% endif %}
+            </td>
+            <td style="font-size:7.5pt;">
+                {% if a.curso %}{{ a.curso.materia.nombre_materia|truncatechars:20 }}
+                {% else %}<span style="color:#94a3b8;">—</span>{% endif %}
+            </td>
+            <td style="font-size:8pt;">
+                {{ a.descripcion|linebreaksbr|truncatechars:280 }}
+                {% if a.requiere_revision %}
+                <br><span style="font-size:6.5pt; color:#b91c1c; font-weight:bold;">⚑ Requiere revisión</span>
+                {% endif %}
+            </td>
+            <td style="font-size:7.5pt;">{{ a.registrado_por.get_full_name|default:"—"|truncatechars:22 }}</td>
+            <td style="font-size:7pt;">
+                {% if a.sentimiento_detectado %}
+                <span class="sentimiento-{{ a.sentimiento_detectado }}">
+                    {% if a.sentimiento_detectado == 'POSITIVO' %}😊 Pos.
+                    {% elif a.sentimiento_detectado == 'NEGATIVO' %}😟 Neg.
+                    {% else %}😐 Neu.
+                    {% endif %}
+                </span>
+                {% else %}—{% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr class="empty-row">
+            <td colspan="6">No hay anotaciones registradas{% if periodo_seleccionado %} para el {{ periodo_seleccionado.nombre }}{% endif %}.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECCIÓN 4: COMPROMISOS Y ACUERDOS                         -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section-label">4. Compromisos y Acuerdos Suscritos</div>
+<div class="compromiso-box">
+    <p>Descripción del compromiso adoptado:</p>
+    <div class="linea-firma"></div>
+    <div class="linea-firma"></div>
+    <div class="linea-firma" style="margin-top:22px;"></div>
+    <p style="margin-top:4px;">Fecha de seguimiento: _____________________</p>
+    <p style="margin-top:6px;">Resultado del seguimiento:</p>
+    <div class="linea-firma"></div>
+    <div class="linea-firma"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SECCIÓN 5: FIRMAS                                         -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="section-label">5. Firmas</div>
+
+<table class="firmas-table">
+    <!-- Fila de imágenes de firma -->
+    <tr>
+        <td>
+            {% if firma_docente %}
+            <img src="{{ firma_docente.path }}" class="firma-img" alt="Firma docente">
+            {% else %}
+            <div style="height:45px;"></div>
+            {% endif %}
+        </td>
+        <td>
+            <!-- Firma acudiente: espacio en blanco para sello físico -->
+            <div style="height:45px;"></div>
+        </td>
+        <td>
+            <!-- Firma estudiante: espacio en blanco -->
+            <div style="height:45px;"></div>
+        </td>
+        <td>
+            {% if institucion.firma_rectora %}
+            <img src="{{ institucion.firma_rectora.path }}" class="firma-img" alt="Firma rector">
+            {% else %}
+            <div style="height:45px;"></div>
+            {% endif %}
+        </td>
+    </tr>
+    <!-- Fila de nombres -->
+    <tr>
+        <td>
+            <div class="firma-linea">
+                <div class="firma-nombre">
+                    {% if docente_generador %}{{ docente_generador.usuario.get_full_name }}
+                    {% else %}{{ generado_por }}{% endif %}
+                </div>
+                <div class="firma-cargo">Docente / Director de Grupo</div>
+            </div>
+        </td>
+        <td>
+            <div class="firma-linea">
+                <div class="firma-nombre">
+                    {% if familiar %}{{ familiar.usuario.get_full_name }}
+                    {% else %}___________________________{% endif %}
+                </div>
+                <div class="firma-cargo">
+                    {% if familiar %}{{ familiar.parentesco }}{% else %}Acudiente{% endif %}
+                    &nbsp;|&nbsp; C.C.: {% if familiar and familiar.documento_identidad %}{{ familiar.documento_identidad }}{% else %}___________{% endif %}
+                </div>
+            </div>
+        </td>
+        <td>
+            <div class="firma-linea">
+                <div class="firma-nombre">{{ estudiante.usuario.get_full_name }}</div>
+                <div class="firma-cargo">
+                    Estudiante
+                    {% if estudiante.documento_identidad %}
+                    &nbsp;|&nbsp; Doc.: {{ estudiante.documento_identidad }}
+                    {% endif %}
+                </div>
+            </div>
+        </td>
+        <td>
+            <div class="firma-linea">
+                <div class="firma-nombre">{{ institucion.nombre_rectora|default:"___________________________" }}</div>
+                <div class="firma-cargo">Rector(a)</div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<!-- PIE LEGAL -->
+<div style="margin-top:14px; border-top:1px solid #e2e8f0; padding-top:6px; text-align:center; font-size:6.5pt; color:#94a3b8;">
+    {% if institucion.texto_resolucion %}{{ institucion.texto_resolucion }} &nbsp;·&nbsp; {% endif %}
+    Documento confidencial — uso exclusivo de la institución educativa.
+    Prohibida su reproducción o divulgación sin autorización.
+</div>
+
 </body>
 </html>

@@ -1,0 +1,23 @@
+{% extends "base_academico.html" %}
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="h4">Reporte e-learning (referencial)</h1>
+    <p class="text-muted small">Los ingresos reales están en Finanzas (cuentas y pagos). Aquí: precio × inscritos como referencia rápida.</p>
+    <table class="table table-sm">
+        <thead><tr><th>Oferta</th><th>Inscritos</th><th>Referencia $</th><th>Progreso prom.</th></tr></thead>
+        <tbody>
+            {% for row in data_reporte %}
+            <tr>
+                <td>{{ row.curso.nombre }}</td>
+                <td>{{ row.alumnos }}</td>
+                <td>{{ row.ingresos }}</td>
+                <td>{{ row.promedio_progreso }}%</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-muted">Sin datos.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="fw-semibold">Total referencia: ${{ total_general }}</p>
+</div>
+{% endblock %}

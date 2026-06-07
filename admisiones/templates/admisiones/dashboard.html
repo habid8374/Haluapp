@@ -1,169 +1,241 @@
 {% extends "base_admisiones.html" %}
-
 {% block titulo %}Dashboard de Admisiones{% endblock %}
+
+{% block extrastyles %}
+{{ block.super }}
+<style>
+  :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
+
+  .ps-hero {
+    background: linear-gradient(135deg, var(--ps-dark) 0%, var(--ps-mid) 55%, var(--ps-light) 100%);
+    padding: 2rem 2rem 1.8rem;
+    position: relative; overflow: hidden;
+    border-radius: .85rem; margin-bottom: 1.8rem;
+  }
+  .ps-hero::before {
+    content:''; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .ps-hero-title { font-size:1.55rem; font-weight:900; color:#fff; margin:0; position:relative; z-index:1; }
+  .ps-hero-sub   { font-size:.87rem; color:rgba(255,255,255,.75); margin-top:.3rem; position:relative; z-index:1; }
+  .ps-hero-badge {
+    background:rgba(255,255,255,.15); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.25); border-radius:30px;
+    padding:.32rem .85rem; font-size:.77rem; color:#fff; font-weight:600;
+    position:relative; z-index:1;
+  }
+
+  /* Chart cards */
+  .ps-chart-card {
+    background:#fff; border-radius:.85rem;
+    box-shadow:0 1px 6px rgba(0,0,0,.07);
+    overflow:hidden; height:100%;
+    border:1px solid #f1f5f9;
+    transition: box-shadow .18s;
+  }
+  .ps-chart-card:hover { box-shadow:0 4px 18px rgba(0,0,0,.1); }
+  .ps-chart-header {
+    padding:.9rem 1.3rem;
+    border-bottom:1px solid #f1f5f9;
+    display:flex; align-items:center; gap:.65rem;
+  }
+  .ps-chart-header-icon {
+    width:32px; height:32px; border-radius:8px; flex-shrink:0;
+    background: linear-gradient(135deg, var(--ps-mid), var(--ps-light));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:.85rem;
+  }
+  .ps-chart-title { font-weight:800; color:var(--ps-dark); font-size:.9rem; }
+  .ps-chart-body {
+    padding:1.2rem;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ps-chart-body-auto { padding:1.2rem; }
+
+  /* Error state */
+  .ps-error-state {
+    background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
+    padding:2rem; text-align:center; color:#ef4444;
+    border-left:4px solid #ef4444;
+  }
+</style>
+{% endblock %}
 
 {% block contenido %}
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2"><i class="bi bi-bar-chart-line-fill me-2"></i>Dashboard de Admisiones</h1>
-    </div>
-    
-    <div class="row g-4">
-        {# Primera fila de gráficos #}
-        <div class="col-lg-5 col-md-12">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Aspirantes por Estado</h5>
-                </div>
-                <div class="card-body d-flex align-items-center justify-content-center">
-                    <canvas id="chartPorEstado"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-7 col-md-12">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Distribución por Grado</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="chartPorGrado"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row g-4 mt-4">
-        {# Segunda fila de gráficos #}
-        <div class="col-lg-8 col-md-12">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Top Colegios de Procedencia</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="chartPorColegio"></canvas>
-                </div>
-            </div>
-        </div>
-        <!-- ================================================================ -->
-        <!--  INICIO: GRÁFICO DE SEXO AÑADIDO                                   -->
-        <!-- ================================================================ -->
-        <div class="col-lg-4 col-md-12">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Distribución por Sexo</h5>
-                </div>
-                <div class="card-body d-flex align-items-center justify-content-center">
-                    <canvas id="graficoPorSexo"></canvas>
-                </div>
-            </div>
-        </div>
-        <!-- ================================================================ -->
-        <!--  FIN: GRÁFICO DE SEXO AÑADIDO                                      -->
-        <!-- ================================================================ -->
+  <!-- Hero -->
+  <div class="ps-hero">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h1 class="ps-hero-title">
+          <i class="bi bi-bar-chart-line-fill me-2" style="opacity:.85"></i>Dashboard de Admisiones
+        </h1>
+        <p class="ps-hero-sub">Estadísticas y análisis del proceso de admisión institucional</p>
+      </div>
+      <span class="ps-hero-badge">
+        <i class="bi bi-graph-up me-1"></i>Análisis en tiempo real
+      </span>
     </div>
-    
-    <div class="row g-4 mt-4">
-        {# Tercera fila para el gráfico de municipios #}
-        <div class="col-12">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Top Municipios de Procedencia</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="chartPorMunicipio"></canvas>
-                </div>
-            </div>
+  </div>
+
+  <!-- Fila 1: Estado + Por Grado -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-5 col-md-12">
+      <div class="ps-chart-card">
+        <div class="ps-chart-header">
+          <div class="ps-chart-header-icon"><i class="bi bi-pie-chart-fill"></i></div>
+          <span class="ps-chart-title">Aspirantes por Estado</span>
         </div>
+        <div class="ps-chart-body" style="min-height:280px;">
+          <canvas id="chartPorEstado"></canvas>
+        </div>
+      </div>
     </div>
+    <div class="col-lg-7 col-md-12">
+      <div class="ps-chart-card">
+        <div class="ps-chart-header">
+          <div class="ps-chart-header-icon"><i class="bi bi-bar-chart-fill"></i></div>
+          <span class="ps-chart-title">Distribución por Grado</span>
+        </div>
+        <div class="ps-chart-body-auto" style="min-height:280px;">
+          <canvas id="chartPorGrado"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fila 2: Colegios + Sexo -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-8 col-md-12">
+      <div class="ps-chart-card">
+        <div class="ps-chart-header">
+          <div class="ps-chart-header-icon"><i class="bi bi-buildings-fill"></i></div>
+          <span class="ps-chart-title">Top Colegios de Procedencia</span>
+        </div>
+        <div class="ps-chart-body-auto" style="min-height:280px;">
+          <canvas id="chartPorColegio"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-12">
+      <div class="ps-chart-card">
+        <div class="ps-chart-header">
+          <div class="ps-chart-header-icon"><i class="bi bi-gender-ambiguous"></i></div>
+          <span class="ps-chart-title">Distribución por Sexo</span>
+        </div>
+        <div class="ps-chart-body" style="min-height:280px;">
+          <canvas id="graficoPorSexo"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fila 3: Municipios -->
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="ps-chart-card">
+        <div class="ps-chart-header">
+          <div class="ps-chart-header-icon"><i class="bi bi-geo-alt-fill"></i></div>
+          <span class="ps-chart-title">Top Municipios de Procedencia</span>
+        </div>
+        <div class="ps-chart-body-auto" style="min-height:260px;">
+          <canvas id="chartPorMunicipio"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // CORRECCIÓN: Apuntamos a la URL correcta 'dashboard_data'
     fetch("{% url 'admisiones:dashboard_data' %}")
         .then(response => {
             if (!response.ok) { throw new Error('La respuesta de la API no fue exitosa.'); }
             return response.json();
         })
         .then(data => {
-            console.log("Datos recibidos para el dashboard:", data);
+            // Paleta unificada con el design system
+            const palette = [
+                'rgba(29,78,216,.8)',   // azul
+                'rgba(124,58,237,.8)',  // violeta
+                'rgba(16,185,129,.8)',  // verde
+                'rgba(245,158,11,.8)',  // ámbar
+                'rgba(239,68,68,.8)',   // rojo
+            ];
+            const borderColor = '#fff';
 
-            // --- GRÁFICO 1: ASPIRANTES POR ESTADO ---
+            // --- GRÁFICO 1: ASPIRANTES POR ESTADO (pie) ---
             const canvasEstado = document.getElementById('chartPorEstado');
             if (canvasEstado) {
-                new Chart(canvasEstado.getContext('2d'), { type: 'pie', data: { labels: data.porEstado.labels.map(l => l.replace(/_/g, ' ')), datasets: [{ label: 'Aspirantes', data: data.porEstado.data, backgroundColor: ['rgba(25, 135, 84, 0.8)', 'rgba(13, 202, 240, 0.8)', 'rgba(255, 193, 7, 0.8)', 'rgba(220, 53, 69, 0.8)', 'rgba(108, 117, 125, 0.8)'], borderColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false } });
+                new Chart(canvasEstado.getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: data.porEstado.labels.map(l => l.replace(/_/g, ' ')),
+                        datasets: [{ label: 'Aspirantes', data: data.porEstado.data, backgroundColor: palette, borderColor: borderColor, borderWidth: 2 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } } } }
+                });
             }
 
-            // --- GRÁFICO 2: ASPIRANTES POR GRADO ---
+            // --- GRÁFICO 2: ASPIRANTES POR GRADO (bar) ---
             const canvasGrado = document.getElementById('chartPorGrado');
             if (canvasGrado) {
-                new Chart(canvasGrado.getContext('2d'), { type: 'bar', data: { labels: data.porGrado.labels, datasets: [{ label: 'Nº de Aspirantes', data: data.porGrado.data, backgroundColor: 'rgba(13, 110, 253, 0.7)' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
+                new Chart(canvasGrado.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: data.porGrado.labels, datasets: [{ label: 'Nº de Aspirantes', data: data.porGrado.data, backgroundColor: 'rgba(55,48,163,.75)', borderRadius: 6 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+                });
             }
 
-            // --- GRÁFICO 3: TOP COLEGIOS DE PROCEDENCIA ---
+            // --- GRÁFICO 3: TOP COLEGIOS (bar horizontal) ---
             const canvasColegio = document.getElementById('chartPorColegio');
             if (canvasColegio && data.porColegio.labels.length > 0) {
-                new Chart(canvasColegio.getContext('2d'), { type: 'bar', data: { labels: data.porColegio.labels, datasets: [{ label: 'Nº de Aspirantes', data: data.porColegio.data, backgroundColor: 'rgba(108, 117, 125, 0.7)' }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+                new Chart(canvasColegio.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: data.porColegio.labels, datasets: [{ label: 'Nº de Aspirantes', data: data.porColegio.data, backgroundColor: 'rgba(79,70,229,.72)', borderRadius: 6 }] },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: '#f1f5f9' } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+                });
             } else if (canvasColegio) {
-                 canvasColegio.parentElement.innerHTML = '<p class="text-center text-muted mt-4">No hay datos de colegios para mostrar.</p>';
+                canvasColegio.parentElement.innerHTML = '<p class="text-center text-muted mt-4" style="font-size:.88rem;">No hay datos de colegios para mostrar.</p>';
             }
 
-            // --- GRÁFICO 4: TOP MUNICIPIOS DE PROCEDENCIA ---
+            // --- GRÁFICO 4: TOP MUNICIPIOS (bar horizontal) ---
             const canvasMunicipio = document.getElementById('chartPorMunicipio');
             if (canvasMunicipio && data.porMunicipio.labels.length > 0) {
-                new Chart(canvasMunicipio.getContext('2d'), { type: 'bar', data: { labels: data.porMunicipio.labels, datasets: [{ label: 'Nº de Aspirantes', data: data.porMunicipio.data, backgroundColor: 'rgba(23, 162, 184, 0.7)' }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+                new Chart(canvasMunicipio.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: data.porMunicipio.labels, datasets: [{ label: 'Nº de Aspirantes', data: data.porMunicipio.data, backgroundColor: 'rgba(16,185,129,.72)', borderRadius: 6 }] },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: '#f1f5f9' } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+                });
             } else if (canvasMunicipio) {
-                canvasMunicipio.parentElement.innerHTML = '<p class="text-center text-muted mt-4">No hay datos de municipios para mostrar.</p>';
+                canvasMunicipio.parentElement.innerHTML = '<p class="text-center text-muted mt-4" style="font-size:.88rem;">No hay datos de municipios para mostrar.</p>';
             }
 
-            // ================================================================
-            // --- INICIO DEL CÓDIGO NUEVO PARA EL GRÁFICO DE SEXO ---
-            // ================================================================
+            // --- GRÁFICO 5: DISTRIBUCIÓN POR SEXO (doughnut) ---
             const canvasSexo = document.getElementById('graficoPorSexo');
             if (canvasSexo && data.porSexo.labels.length > 0) {
                 new Chart(canvasSexo.getContext('2d'), {
-                    type: 'doughnut', // Gráfico de dona
+                    type: 'doughnut',
                     data: {
                         labels: data.porSexo.labels,
-                        datasets: [{
-                            label: 'Aspirantes',
-                            data: data.porSexo.data,
-                            backgroundColor: [
-                                'rgba(54, 162, 235, 0.7)',  // Azul
-                                'rgba(255, 99, 132, 0.7)',   // Rosa
-                                'rgba(255, 206, 86, 0.7)',   // Amarillo
-                                'rgba(75, 192, 192, 0.7)'    // Verde azulado
-                            ],
-                            borderColor: '#fff',
-                            borderWidth: 2
-                        }]
+                        datasets: [{ label: 'Aspirantes', data: data.porSexo.data, backgroundColor: ['rgba(29,78,216,.8)', 'rgba(219,39,119,.8)', 'rgba(245,158,11,.8)', 'rgba(16,185,129,.8)'], borderColor: '#fff', borderWidth: 2 }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                            }
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } } }, cutout: '60%' }
                 });
             } else if (canvasSexo) {
-                 canvasSexo.parentElement.innerHTML = '<p class="text-center text-muted mt-4">No hay datos de sexo para mostrar.</p>';
+                canvasSexo.parentElement.innerHTML = '<p class="text-center text-muted mt-4" style="font-size:.88rem;">No hay datos de sexo para mostrar.</p>';
             }
-            // ================================================================
-            // --- FIN DEL CÓDIGO NUEVO ---
-            // ================================================================
         })
         .catch(error => {
             console.error("Error al cargar datos del dashboard:", error);
-            // Opcional: mostrar un mensaje de error en la página
-            document.querySelector('.container-fluid').innerHTML = '<div class="alert alert-danger">No se pudieron cargar los datos del dashboard. Por favor, intenta de nuevo más tarde.</div>';
+            document.querySelector('.container-fluid').insertAdjacentHTML('afterbegin', '<div class="ps-error-state mb-4"><i class="bi bi-exclamation-triangle-fill me-2"></i>No se pudieron cargar los datos del dashboard. Por favor, intenta de nuevo más tarde.</div>');
         });
 });
 </script>

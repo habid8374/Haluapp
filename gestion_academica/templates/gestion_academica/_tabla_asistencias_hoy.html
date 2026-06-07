@@ -2,7 +2,9 @@
     <thead class="table-light">
         <tr>
             <th>Docente</th>
-            <th>Hora</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Horas</th>
             <th>Estado</th>
         </tr>
     </thead>
@@ -10,11 +12,18 @@
         {% for a in asistencias_hoy %}
         <tr>
             <td>{{ a.docente.usuario.get_full_name }}</td>
-            <td>{{ a.fecha|date:"H:i:s" }}</td>
-            <td><span class="badge bg-success">{{ a.estado }}</span></td>
+            <td>{% if a.hora_entrada %}{{ a.hora_entrada|date:"H:i" }}{% else %}—{% endif %}</td>
+            <td>{% if a.hora_salida %}{{ a.hora_salida|date:"H:i" }}{% else %}—{% endif %}</td>
+            <td>{% if a.horas_en_institucion %}{{ a.horas_en_institucion }}{% else %}—{% endif %}</td>
+            <td>
+                {% if a.estado == 'PRESENTE' %}<span class="badge bg-success">Presente</span>
+                {% elif a.estado == 'AUSENTE' %}<span class="badge bg-danger">Ausente</span>
+                {% elif a.estado == 'JUSTIFICADO' %}<span class="badge bg-secondary">Justificado</span>
+                {% else %}<span class="badge bg-light text-dark">{{ a.estado }}</span>{% endif %}
+            </td>
         </tr>
         {% empty %}
-        <tr><td colspan="3" class="text-center text-muted">Aún no hay asistencias hoy.</td></tr>
+        <tr><td colspan="5" class="text-center text-muted">Aún no hay asistencias hoy.</td></tr>
         {% endfor %}
     </tbody>
 </table>

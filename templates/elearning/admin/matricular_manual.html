@@ -1,0 +1,72 @@
+{% extends "base_academico.html" %}
+
+{% block contenido %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="bi bi-person-check-fill"></i> Matricular Estudiante Existente</h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    {% if es_superuser %}
+                    <div class="mb-4 p-3 bg-light border rounded">
+                        <label class="form-label fw-bold"><i class="bi bi-building"></i> Seleccionar Institución:</label>
+                        <form method="get" action="">
+                            <select name="institucion_id" class="form-select" onchange="this.form.submit()">
+                                {% for inst in instituciones %}
+                                    <option value="{{ inst.id }}" {% if inst.id == institucion_actual.id %}selected{% endif %}>
+                                        {{ inst.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+                    {% else %}
+                        <div class="alert alert-info"><i class="bi bi-building"></i> Institución: <strong>{{ institucion_actual.nombre }}</strong></div>
+                    {% endif %}
+
+                    <p class="text-muted mb-4">
+                        Utilice este formulario para matricular manualmente a un estudiante que <strong>ya existe</strong> en la plataforma (por ejemplo, si pagó en efectivo).
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Seleccionar Estudiante</label>
+                            <select name="estudiante_id" class="form-select" required>
+                                <option value="">-- Buscar estudiante --</option>
+                                {% for estudiante in estudiantes %}
+                                    <option value="{{ estudiante.id }}">
+                                        {{ estudiante.usuario.get_full_name }} ({{ estudiante.documento_identidad }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Solo se muestran estudiantes activos de su institución.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Seleccionar Curso</label>
+                            <select name="curso_id" class="form-select" required>
+                                <option value="">-- Seleccione un curso --</option>
+                                {% for curso in cursos %}
+                                    <option value="{{ curso.id }}">{{ curso.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-info text-white btn-lg">
+                                <i class="bi bi-check-circle"></i> Matricular y Enviar Acceso
+                            </button>
+                            <a href="{% url 'elearning:gestion_cursos_admin' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

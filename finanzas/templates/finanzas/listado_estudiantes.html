@@ -1,37 +1,195 @@
-{# finanzas/templates/finanzas/listado_estudiantes.html #}
-{% extends 'base_finanzas.html' %} {# ¡CORREGIDO: Ahora hereda de base_finanzas.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
+{% extends 'base_finanzas.html' %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .est-fila { border-left: 4px solid transparent; transition: background .15s; }
+  .est-fila:hover { background: #f8f9ff !important; }
+  .est-mora      { border-left-color: #dc2626; }
+  .est-parcial   { border-left-color: #d97706; }
+  .est-pendiente { border-left-color: #2563eb; }
+  .est-al-dia    { border-left-color: #16a34a; }
+
+  .badge-mora      { background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; }
+  .badge-parcial   { background:#fffbeb; color:#d97706; border:1px solid #fcd34d; }
+  .badge-pendiente { background:#eff6ff; color:#2563eb; border:1px solid #93c5fd; }
+  .badge-al-dia    { background:#f0fdf4; color:#16a34a; border:1px solid #86efac; }
+
+  .grado-header { cursor:pointer; user-select:none; }
+  .grado-header:hover { background:#f1f5f9 !important; }
+  .leyenda-dot { width:11px; height:11px; border-radius:50%; display:inline-block; vertical-align:middle; }
+  .accordion-chevron { transition: transform .2s; }
+  .collapsed .accordion-chevron { transform: rotate(-90deg); }
+</style>
+{% endblock %}
 
 {% block contenido %}
-    <div class="container mt-4">
-        <h1 class="mb-4">Seleccionar Estudiante para Historial Financiero</h1>
-        <p class="lead">Haz clic en el nombre de un estudiante para ver su historial de cuentas por cobrar.</p>
+<div class="container-fluid mt-4 px-4">
 
-        <a href="{% url 'finanzas:dashboard_financiero' %}" class="btn btn-secondary mb-3">
-            <i class="bi bi-arrow-left-circle"></i> Volver al Dashboard Financiero
-        </a>
-
-        {% if estudiantes %}
-            <div class="list-group shadow-sm rounded-3">
-                {% for estudiante in estudiantes %}
-                    <a href="{% url 'finanzas:historial_cuentas_estudiante' estudiante.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>{{ estudiante.usuario.get_full_name }}</strong> 
-                            {% if estudiante.codigo_estudiante %}<small class="text-muted">({{ estudiante.codigo_estudiante }})</small>{% endif %}
-                            {% if estudiante.grado_actual %}<br><small class="text-info">{{ estudiante.grado_actual.nombre }}</small>{% endif %}
-                        </div>
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                {% empty %} {# Esto es un "else" para el "for" loop cuando está vacío #}
-                    <div class="list-group-item text-center text-muted py-3">
-                        <i class="bi bi-info-circle me-2"></i> No hay estudiantes registrados que coincidan con los criterios.
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="alert alert-info text-center mt-4" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i> No hay estudiantes registrados en el sistema.
-            </div>
-        {% endif %}
+  <!-- Hero Banner -->
+  <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 class="mb-1"><i class="bi bi-wallet2 me-2"></i>{{ titulo_pagina }}</h2>
+        <p class="mb-0 opacity-75">Estudiantes agrupados por grado · Estado de cartera en tiempo real</p>
+      </div>
+      <a href="{% url 'finanzas:dashboard_financiero' %}" class="btn btn-light btn-sm">
+        <i class="bi bi-arrow-left-circle me-1"></i> Dashboard
+      </a>
     </div>
+  </div>
+
+  <!-- Leyenda -->
+  <div class="d-flex flex-wrap gap-3 mb-3 align-items-center">
+    <small class="text-muted fw-semibold">Estado de cartera:</small>
+    <span class="badge badge-mora rounded-pill px-3 py-2">
+      <span class="leyenda-dot me-1" style="background:#dc2626;"></span>En mora
+    </span>
+    <span class="badge badge-parcial rounded-pill px-3 py-2">
+      <span class="leyenda-dot me-1" style="background:#d97706;"></span>Pago parcial
+    </span>
+    <span class="badge badge-pendiente rounded-pill px-3 py-2">
+      <span class="leyenda-dot me-1" style="background:#2563eb;"></span>Pendiente
+    </span>
+    <span class="badge badge-al-dia rounded-pill px-3 py-2">
+      <span class="leyenda-dot me-1" style="background:#16a34a;"></span>Al día
+    </span>
+  </div>
+
+  {% if grados_lista %}
+  <div class="accordion" id="acordeonGrados">
+    {% for grado in grados_lista %}
+
+    <div class="card shadow-sm mb-3 border-0" style="border-radius:12px;overflow:hidden;">
+
+      <!-- Cabecera del grado -->
+      <div class="card-header bg-white px-4 py-3 grado-header"
+           data-bs-toggle="collapse"
+           data-bs-target="#grado-{{ forloop.counter }}"
+           aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+           aria-controls="grado-{{ forloop.counter }}">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;">
+              <i class="bi bi-mortarboard-fill text-white"></i>
+            </div>
+            <div>
+              <h5 class="mb-0 fw-bold">{{ grado.nombre }}</h5>
+              <small class="text-muted">{{ grado.total }} estudiante{{ grado.total|pluralize }}</small>
+            </div>
+          </div>
+          <div class="d-flex gap-2 align-items-center flex-wrap">
+            {% if grado.en_mora %}
+              <span class="badge badge-mora rounded-pill px-2 py-1">
+                <i class="bi bi-exclamation-circle-fill me-1"></i>{{ grado.en_mora }} en mora
+              </span>
+            {% endif %}
+            {% if grado.parcial %}
+              <span class="badge badge-parcial rounded-pill px-2 py-1">{{ grado.parcial }} parcial</span>
+            {% endif %}
+            {% if grado.pendiente %}
+              <span class="badge badge-pendiente rounded-pill px-2 py-1">{{ grado.pendiente }} pendiente</span>
+            {% endif %}
+            <span class="badge badge-al-dia rounded-pill px-2 py-1">{{ grado.al_dia }} al día</span>
+            <i class="bi bi-chevron-down text-muted ms-1 accordion-chevron"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de estudiantes del grado -->
+      <div id="grado-{{ forloop.counter }}"
+           class="collapse {% if forloop.first %}show{% endif %}">
+        <div class="table-responsive">
+          <table class="table table-sm mb-0 align-middle">
+            <thead style="background:#f8f9ff;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;color:#64748b;">
+              <tr>
+                <th class="ps-4 py-2">Estudiante</th>
+                <th class="py-2">Estado</th>
+                <th class="text-end py-2">Total asignado</th>
+                <th class="text-center py-2">Cuentas</th>
+                <th class="text-end pe-4 py-2">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for est in grado.estudiantes %}
+              <tr class="est-fila
+                  {% if est.estado_financiero == 'MORA' %}est-mora
+                  {% elif est.estado_financiero == 'PARCIAL' %}est-parcial
+                  {% elif est.estado_financiero == 'PENDIENTE' %}est-pendiente
+                  {% else %}est-al-dia{% endif %}">
+
+                <td class="ps-4 py-3">
+                  <div class="fw-semibold" style="font-size:.93rem;">
+                    {{ est.usuario.get_full_name }}
+                  </div>
+                  {% if est.codigo_estudiante %}
+                    <small class="text-muted">Cód. {{ est.codigo_estudiante }}</small>
+                  {% endif %}
+                </td>
+
+                <td class="py-3">
+                  {% if est.estado_financiero == 'MORA' %}
+                    <span class="badge badge-mora rounded-pill px-2 py-1">
+                      <i class="bi bi-exclamation-circle-fill me-1"></i>En mora
+                    </span>
+                  {% elif est.estado_financiero == 'PARCIAL' %}
+                    <span class="badge badge-parcial rounded-pill px-2 py-1">
+                      <i class="bi bi-pie-chart-fill me-1"></i>Parcial
+                    </span>
+                  {% elif est.estado_financiero == 'PENDIENTE' %}
+                    <span class="badge badge-pendiente rounded-pill px-2 py-1">
+                      <i class="bi bi-clock-fill me-1"></i>Pendiente
+                    </span>
+                  {% else %}
+                    <span class="badge badge-al-dia rounded-pill px-2 py-1">
+                      <i class="bi bi-check-circle-fill me-1"></i>Al día
+                    </span>
+                  {% endif %}
+                </td>
+
+                <td class="text-end py-3 fw-semibold" style="font-size:.93rem;">
+                  {% if est.total_asignado %}
+                    ${{ est.total_asignado|floatformat:0|intcomma }}
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+
+                <td class="text-center py-3">
+                  {% if est.num_cuentas %}
+                    <span class="badge bg-light text-secondary border" style="font-size:.8rem;">
+                      {{ est.num_cuentas }}
+                    </span>
+                  {% else %}
+                    <span class="text-muted small">—</span>
+                  {% endif %}
+                </td>
+
+                <td class="text-end pe-4 py-3">
+                  <a href="{% url 'finanzas:historial_cuentas_estudiante' est.pk %}"
+                     class="btn btn-outline-primary btn-sm px-3">
+                    <i class="bi bi-eye me-1"></i>Ver cartera
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="alert alert-info text-center mt-4">
+    <i class="bi bi-info-circle-fill me-2"></i>
+    No hay estudiantes registrados en la institución.
+  </div>
+  {% endif %}
+
+</div>
 {% endblock contenido %}

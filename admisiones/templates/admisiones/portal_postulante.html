@@ -22,13 +22,24 @@
                         <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Paso 1: Pago de Inscripción</h4>
                         <p>Para continuar con el proceso, debes realizar el pago de la inscripción.</p>
                         <p><strong>Monto a Pagar:</strong> ${{ cuenta_inscripcion.monto_asignado|floatformat:2 }} COP</p>
-                        <a href="{% url 'admisiones:crear_preferencia_mercadopago' cuenta_inscripcion.id %}" class="btn btn-primary btn-lg mt-2">
+                        <a href="{% url 'admisiones:crear_preferencia_mercadopago' cuenta_inscripcion.id %}?token={{ aspirante.access_token }}" class="btn btn-primary btn-lg mt-2">
                             <img src="https://img.icons8.com/color/48/000000/mercado-pago.png" alt="Mercado Pago" style="height: 24px; vertical-align: middle; margin-right: 8px;"/>
                             Pagar Inscripción
                         </a>
                     </div>
                 {% else %}
-                    <div class="alert alert-info">Tu cuenta de pago para la inscripción está siendo generada. Por favor, recarga en unos minutos.</div>
+                    <div class="alert alert-danger border-danger">
+                        <h4 class="alert-heading"><i class="bi bi-exclamation-octagon-fill"></i> Pago de Inscripción Pendiente de Configuración</h4>
+                        <p class="mb-1">
+                            La institución <strong>{{ aspirante.institucion.nombre }}</strong> aún no ha configurado el cobro de inscripción para tu nivel
+                            ({{ aspirante.grado_aspira.nivel_escolaridad|default:"sin nivel asignado" }}).
+                        </p>
+                        <hr>
+                        <p class="mb-0 small">
+                            Por favor contacta a la institución para que habiliten el cobro y puedas continuar con tu proceso.
+                            Si tu institución ya lo configura, podrás recargar esta página y aparecerá el botón de pago.
+                        </p>
+                    </div>
                 {% endif %}
             {% endif %}
 
@@ -39,13 +50,21 @@
                         <h4 class="alert-heading"><i class="bi bi-check-circle-fill"></i> ¡Felicitaciones! Último Paso: Pago de Matrícula</h4>
                         <p>Has sido aprobado para matricularte. Para finalizar el proceso, por favor realiza el pago de la matrícula.</p>
                         <p><strong>Monto a Pagar:</strong> ${{ cuenta_matricula.monto_asignado|floatformat:2 }} COP</p>
-                        <a href="{% url 'admisiones:crear_preferencia_mercadopago' cuenta_matricula.id %}" class="btn btn-success btn-lg mt-2">
+                        <a href="{% url 'admisiones:crear_preferencia_mercadopago' cuenta_matricula.id %}?token={{ aspirante.access_token }}" class="btn btn-success btn-lg mt-2">
                             <img src="https://img.icons8.com/color/48/000000/mercado-pago.png" alt="Mercado Pago" style="height: 24px; vertical-align: middle; margin-right: 8px;"/>
                             Pagar Matrícula
                         </a>
                     </div>
                 {% else %}
-                    <div class="alert alert-info">Tu cuenta de pago para la matrícula está siendo generada. Por favor, recarga en unos minutos.</div>
+                    <div class="alert alert-danger border-danger">
+                        <h4 class="alert-heading"><i class="bi bi-exclamation-octagon-fill"></i> Pago de Matrícula Pendiente de Configuración</h4>
+                        <p class="mb-1">
+                            La institución aún no ha configurado el cobro de matrícula para tu nivel
+                            ({{ aspirante.grado_aspira.nivel_escolaridad|default:"sin nivel asignado" }}).
+                        </p>
+                        <hr>
+                        <p class="mb-0 small">Por favor contáctala para que habiliten el cobro de matrícula.</p>
+                    </div>
                 {% endif %}
             {% endif %}
             

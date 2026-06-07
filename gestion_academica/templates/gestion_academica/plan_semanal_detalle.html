@@ -1,0 +1,855 @@
+﻿{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+:root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
+
+/* ── HERO ── */
+.ps-hero { background:linear-gradient(135deg,var(--ps-dark) 0%,var(--ps-mid) 55%,#4338ca 100%); border-radius:1rem; padding:1.5rem 1.8rem; color:#fff; position:relative; overflow:hidden; margin-bottom:1.5rem; }
+.ps-hero::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+.ps-hero-badge { display:inline-flex; align-items:center; gap:.35rem; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); border-radius:2rem; padding:.25rem .75rem; font-size:.78rem; font-weight:600; }
+.ps-hero-title { font-size:1.3rem; font-weight:800; letter-spacing:-.5px; margin-bottom:.2rem; }
+.ps-hero-sub   { font-size:.83rem; opacity:.78; }
+.ps-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.42rem .95rem; border-radius:.6rem; font-size:.81rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; }
+.ps-btn-outline { background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.3); }
+.ps-btn-outline:hover { background:rgba(255,255,255,.22); color:#fff; }
+
+/* ── Estado badges ── */
+.ps-estado { display:inline-flex; align-items:center; gap:.35rem; border-radius:2rem; padding:.3rem .85rem; font-size:.78rem; font-weight:700; }
+.ps-estado-borrador { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3); }
+.ps-estado-enviado  { background:#dbeafe; color:#1d4ed8; }
+.ps-estado-aprobado { background:#dcfce7; color:#15803d; }
+.ps-estado-obs      { background:#fef3c7; color:#b45309; }
+
+/* ── Observaciones box ── */
+.ps-obs-box { background:#fef9c3; border:1px solid #fde047; border-radius:.75rem; padding:.85rem 1.1rem; margin-bottom:1.25rem; }
+.ps-obs-box-title { font-size:.83rem; font-weight:700; color:#92400e; margin-bottom:.3rem; }
+.ps-obs-box-text  { font-size:.82rem; color:#78350f; }
+
+/* ── Panel genérico ── */
+.ps-panel { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; margin-bottom:1.25rem; }
+.ps-panel-header { display:flex; align-items:center; justify-content:space-between; gap:.5rem; flex-wrap:wrap; padding:.85rem 1.2rem; border-bottom:1px solid #f1f5f9; }
+.ps-panel-title { font-size:.95rem; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:.5rem; margin:0; }
+.ps-panel-title .ico { width:30px; height:30px; border-radius:.45rem; display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; }
+.ico-indigo { background:#e0e7ff; color:#4f46e5; }
+.ico-green  { background:#dcfce7; color:#15803d; }
+
+/* ── Vista EDITABLE: días / ítems ── */
+.ps-day-block { border-bottom:1px solid #f1f5f9; }
+.ps-day-block:last-child { border-bottom:none; }
+.ps-day-header { display:flex; align-items:center; gap:.75rem; padding:.75rem 1.2rem; background:#fafafe; }
+.ps-day-badge { background:linear-gradient(135deg,var(--ps-mid),var(--ps-light)); color:#fff; border-radius:.55rem; padding:.25rem .7rem; font-size:.78rem; font-weight:800; flex-shrink:0; }
+.ps-day-date  { font-size:.78rem; color:#64748b; }
+.ps-day-empty { padding:.65rem 1.4rem; font-size:.78rem; color:#94a3b8; font-style:italic; }
+
+.ps-item-card { margin:.5rem 1.2rem; border:1px solid #e2e8f0; border-radius:.65rem; overflow:hidden; }
+.ps-item-header { display:flex; align-items:center; gap:.75rem; padding:.65rem .85rem; background:#fff; }
+.ps-item-num { width:28px; height:28px; border-radius:50%; background:#e0e7ff; color:#4f46e5; font-size:.73rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ps-item-titulo { font-size:.86rem; font-weight:700; color:#1e293b; flex:1; }
+.ps-item-desc { padding:0 .85rem .65rem; font-size:.77rem; color:#64748b; }
+.ps-item-malla { padding:0 .85rem .5rem; }
+.ps-item-malla-chip { display:inline-flex; align-items:center; gap:.3rem; background:#ede9fe; color:#7c3aed; border-radius:2rem; padding:.15rem .6rem; font-size:.71rem; font-weight:600; }
+.ps-item-actions { display:flex; align-items:center; gap:.4rem; padding:.5rem .85rem .65rem; flex-wrap:wrap; border-top:1px solid #f8fafc; }
+.ps-ia-btn { display:inline-flex; align-items:center; gap:.3rem; padding:.25rem .65rem; border-radius:.4rem; font-size:.73rem; font-weight:600; text-decoration:none; cursor:pointer; border:none; transition:background .12s; }
+.ps-ia-btn-deber  { background:#dcfce7; color:#15803d; }
+.ps-ia-btn-deber:hover { background:#bbf7d0; }
+.ps-ia-btn-act    { background:#dbeafe; color:#1d4ed8; }
+.ps-ia-btn-act:hover { background:#bfdbfe; }
+.ps-ia-btn-del    { background:#fee2e2; color:#b91c1c; }
+.ps-ia-btn-del:hover { background:#fecaca; }
+.ps-ia-linked     { background:#e0e7ff; color:#3730a3; }
+
+/* ── Formulario agregar clase ── */
+.ps-add-form { padding:1.1rem 1.2rem; }
+.ps-add-btn { background:linear-gradient(135deg,var(--ps-mid),var(--ps-light)); color:#fff; border:none; border-radius:.55rem; padding:.55rem .9rem; font-size:.82rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:.4rem; transition:opacity .15s; }
+.ps-add-btn:hover { opacity:.88; }
+
+/* ══════════════════════════════════
+   VISTA ACORDEÓN — PLAN APROBADO
+══════════════════════════════════ */
+.psa-accordion { }
+
+.psa-day {
+  border-bottom: 1px solid #f1f5f9;
+}
+.psa-day:last-child { border-bottom: none; }
+
+/* Botón de cabecera del día */
+.psa-day-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .85rem 1.2rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s;
+  user-select: none;
+}
+.psa-day-btn:hover { background: #f8fafc; }
+.psa-day-btn.open  { background: #f0fdf4; }
+
+.psa-day-dot {
+  width: 36px; height: 36px;
+  border-radius: .6rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; font-weight: 800;
+  flex-shrink: 0;
+  text-align: center; line-height: 1.2;
+  transition: background .15s, color .15s;
+}
+.psa-day-dot-active  { background: linear-gradient(135deg,#15803d,#16a34a); color: #fff; }
+.psa-day-dot-empty   { background: #f1f5f9; color: #94a3b8; }
+
+.psa-day-info { flex: 1; min-width: 0; }
+.psa-day-name { font-size: .9rem; font-weight: 700; color: #1e293b; }
+.psa-day-date { font-size: .73rem; color: #64748b; margin-top: .05rem; }
+
+.psa-day-right { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+.psa-count-chip {
+  background: #dcfce7; color: #15803d;
+  border-radius: 2rem; padding: .15rem .6rem;
+  font-size: .71rem; font-weight: 700;
+}
+.psa-count-chip-empty {
+  background: #f1f5f9; color: #94a3b8;
+  border-radius: 2rem; padding: .15rem .6rem;
+  font-size: .71rem;
+}
+.psa-chevron {
+  width: 22px; height: 22px;
+  background: #e0e7ff; color: #4f46e5;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .65rem;
+  transition: transform .25s ease;
+}
+.psa-day-btn.open .psa-chevron { transform: rotate(180deg); background: #dcfce7; color: #15803d; }
+
+/* Contenido colapsable */
+.psa-collapse { overflow: hidden; max-height: 0; transition: max-height .3s ease; }
+.psa-collapse.open { max-height: 2000px; }
+
+/* Ítems en vista solo-lectura */
+.psa-item {
+  margin: .55rem 1.2rem;
+  border: 1px solid #e2e8f0;
+  border-radius: .65rem;
+  overflow: hidden;
+  background: #fff;
+}
+.psa-item-top {
+  display: flex; align-items: flex-start; gap: .75rem;
+  padding: .7rem .9rem;
+}
+.psa-item-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #dcfce7; color: #15803d;
+  font-size: .73rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: .05rem;
+}
+.psa-item-body { flex: 1; min-width: 0; }
+.psa-item-titulo { font-size: .88rem; font-weight: 700; color: #1e293b; }
+.psa-item-desc { font-size: .77rem; color: #64748b; margin-top: .3rem; line-height: 1.5; }
+.psa-item-footer {
+  display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+  padding: .4rem .9rem .65rem 3.2rem;
+}
+.psa-chip {
+  display: inline-flex; align-items: center; gap: .25rem;
+  border-radius: 2rem; padding: .15rem .55rem;
+  font-size: .7rem; font-weight: 600;
+}
+.psa-chip-malla   { background: #ede9fe; color: #7c3aed; }
+.psa-chip-deber   { background: #dcfce7; color: #15803d; }
+.psa-chip-act     { background: #dbeafe; color: #1d4ed8; }
+
+/* Día vacío dentro del acordeón */
+.psa-empty-day {
+  padding: .6rem 1.2rem .9rem;
+  font-size: .77rem; color: #94a3b8; font-style: italic;
+}
+
+/* Panel resumen lateral */
+.psa-summary { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; }
+.psa-summary-header { padding:.85rem 1.2rem; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:.5rem; }
+.psa-summary-title { font-size:.9rem; font-weight:700; color:#1e293b; margin:0; }
+.psa-stat { display:flex; align-items:center; justify-content:space-between; padding:.65rem 1.2rem; border-bottom:1px solid #f8fafc; font-size:.82rem; }
+.psa-stat:last-child { border-bottom:none; }
+.psa-stat-label { color:#64748b; }
+.psa-stat-val { font-weight:700; color:#1e293b; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1100px;">
+
+  <!-- HERO -->
+  <div class="ps-hero">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
+      <div>
+        <div class="ps-hero-badge mb-2">
+          <i class="bi bi-calendar-week-fill"></i> {{ plan.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and plan.curso.materia.nombre_idioma_secundario %} / {{ plan.curso.materia.nombre_idioma_secundario }}{% endif %} · {{ plan.curso.grado.nombre }}
+        </div>
+        <div class="ps-hero-title"><i class="bi bi-journal-text me-2"></i>Plan Semanal · {{ label }}</div>
+        <div class="ps-hero-sub">{{ plan.items.count }} clase{{ plan.items.count|pluralize:"s" }} planificada{{ plan.items.count|pluralize:"s" }}</div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap align-items-center">
+        {% if plan.estado == 'BORRADOR' %}
+          <span class="ps-estado ps-estado-borrador"><i class="bi bi-pencil-fill"></i> Borrador</span>
+        {% elif plan.estado == 'ENVIADO' %}
+          <span class="ps-estado ps-estado-enviado"><i class="bi bi-send-fill"></i> Enviado</span>
+        {% elif plan.estado == 'APROBADO' %}
+          <span class="ps-estado ps-estado-aprobado"><i class="bi bi-check-circle-fill"></i> Aprobado</span>
+        {% else %}
+          <span class="ps-estado ps-estado-obs"><i class="bi bi-exclamation-circle-fill"></i> Con Observaciones</span>
+        {% endif %}
+        <a href="{% url 'gestion_academica:mis_planes_semanales' %}" class="ps-btn ps-btn-outline">
+          <i class="bi bi-arrow-left"></i> Mis Planes
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banner de estado -->
+  {% if plan.estado == 'ENVIADO' %}
+  <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:.75rem;padding:.9rem 1.2rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem;">
+    <i class="bi bi-hourglass-split" style="font-size:1.3rem;color:#1d4ed8;flex-shrink:0;"></i>
+    <div>
+      <div style="font-size:.84rem;font-weight:700;color:#1e40af;">Esperando revisión del coordinador</div>
+      <div style="font-size:.78rem;color:#1d4ed8;opacity:.85;">Este plan está bloqueado para edición hasta que el coordinador lo apruebe o devuelva con observaciones.</div>
+    </div>
+  </div>
+  {% elif plan.estado == 'CON_OBSERVACIONES' %}
+  <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:.75rem;padding:.9rem 1.2rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem;">
+    <i class="bi bi-pencil-square" style="font-size:1.3rem;color:#b45309;flex-shrink:0;"></i>
+    <div style="flex:1;">
+      <div style="font-size:.84rem;font-weight:700;color:#92400e;">Correcciones requeridas — plan editable</div>
+      <div style="font-size:.78rem;color:#b45309;opacity:.9;">Puedes agregar, eliminar o modificar las clases. Cuando termines, usa <strong>"Enviar corrección"</strong> en cualquier clase.</div>
+    </div>
+  </div>
+  {% elif plan.estado == 'APROBADO' %}
+  <div style="background:#dcfce7;border:1px solid #86efac;border-radius:.75rem;padding:.9rem 1.2rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem;">
+    <i class="bi bi-check-circle-fill" style="font-size:1.3rem;color:#15803d;flex-shrink:0;"></i>
+    <div>
+      <div style="font-size:.84rem;font-weight:700;color:#14532d;">Plan aprobado por el coordinador ✓</div>
+      <div style="font-size:.78rem;color:#166534;opacity:.85;">Da clic en cada día para ver las clases planificadas.</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Observaciones del coordinador -->
+  {% if plan.observaciones_coordinador %}
+  <div class="ps-obs-box">
+    <div class="ps-obs-box-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Observaciones del Coordinador</div>
+    <div class="ps-obs-box-text">{{ plan.observaciones_coordinador }}</div>
+  </div>
+  {% endif %}
+
+  {% if plan.estado == 'APROBADO' %}
+
+  <div class="row g-3 align-items-start">
+
+    <!-- Acordeón días -->
+    <div class="col-12 col-lg-8">
+      <div class="ps-panel">
+        <div class="ps-panel-header">
+          <h2 class="ps-panel-title">
+            <span class="ico ico-green"><i class="bi bi-calendar3-week-fill"></i></span>
+            Clases de la Semana
+          </h2>
+          <span style="font-size:.75rem;color:#64748b;"><i class="bi bi-hand-index me-1"></i>Toca un día para expandir</span>
+        </div>
+
+        <div class="psa-accordion" id="acordeon-plan">
+          {% for fecha, dia in dias.items %}
+          <div class="psa-day">
+
+            <button type="button"
+                    class="psa-day-btn {% if forloop.first and dia.items %}open{% endif %}"
+                    data-target="dia-{{ forloop.counter }}">
+              <div class="psa-day-dot {% if dia.items %}psa-day-dot-active{% else %}psa-day-dot-empty{% endif %}">
+                {{ fecha|date:"d" }}<br><span style="font-size:.58rem;">{{ fecha|date:"M" }}</span>
+              </div>
+              <div class="psa-day-info">
+                <div class="psa-day-name">{{ dia.nombre }}</div>
+                <div class="psa-day-date">{{ fecha|date:"d \d\e F \d\e Y" }}</div>
+              </div>
+              <div class="psa-day-right">
+                {% if dia.items %}
+                  <span class="psa-count-chip">
+                    <i class="bi bi-list-check me-1"></i>{{ dia.items|length }} clase{{ dia.items|length|pluralize:"s" }}
+                  </span>
+                {% else %}
+                  <span class="psa-count-chip-empty">Sin clases</span>
+                {% endif %}
+                {% if dia.items %}
+                <div class="psa-chevron"><i class="bi bi-chevron-down"></i></div>
+                {% endif %}
+              </div>
+            </button>
+
+            {% if dia.items %}
+            <div class="psa-collapse {% if forloop.first %}open{% endif %}" id="dia-{{ forloop.counter }}">
+              {% for item in dia.items %}
+              <div class="psa-item">
+                <div class="psa-item-top">
+                  <div class="psa-item-num">{{ forloop.counter }}</div>
+                  <div class="psa-item-body">
+                    <div class="psa-item-titulo">{{ item.titulo }}</div>
+                    {% if item.descripcion %}
+                    <div class="psa-item-desc">{{ item.descripcion|linebreaksbr }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if item.item_malla or item.deber or item.actividad %}
+                <div class="psa-item-footer">
+                  {% if item.item_malla %}
+                  <span class="psa-chip psa-chip-malla">
+                    <i class="bi bi-bookmark-fill"></i> Malla: {{ item.item_malla.eje_tematico|truncatechars:45 }}
+                  </span>
+                  {% endif %}
+                  {% if item.deber %}
+                  <span class="psa-chip psa-chip-deber">
+                    <i class="bi bi-journal-check"></i> Deber vinculado
+                  </span>
+                  {% endif %}
+                  {% if item.actividad %}
+                  <span class="psa-chip psa-chip-act">
+                    <i class="bi bi-clipboard-check"></i> Actividad vinculada
+                  </span>
+                  {% endif %}
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+              <div style="height:.4rem;"></div>
+            </div>
+            {% endif %}
+
+          </div>
+          {% endfor %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Panel resumen lateral -->
+    <div class="col-12 col-lg-4">
+      <div class="psa-summary">
+        <div class="psa-summary-header">
+          <span class="ico ico-green" style="width:28px;height:28px;border-radius:.4rem;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;"><i class="bi bi-clipboard2-check-fill"></i></span>
+          <h3 class="psa-summary-title">Resumen del Plan</h3>
+        </div>
+        <div class="psa-stat">
+          <span class="psa-stat-label"><i class="bi bi-calendar3 me-1"></i>Semana</span>
+          <span class="psa-stat-val">{{ label }}</span>
+        </div>
+        <div class="psa-stat">
+          <span class="psa-stat-label"><i class="bi bi-book me-1"></i>Materia</span>
+          <span class="psa-stat-val">{{ plan.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and plan.curso.materia.nombre_idioma_secundario %} / {{ plan.curso.materia.nombre_idioma_secundario }}{% endif %}</span>
+        </div>
+        <div class="psa-stat">
+          <span class="psa-stat-label"><i class="bi bi-people me-1"></i>Grado</span>
+          <span class="psa-stat-val">{{ plan.curso.grado.nombre }}</span>
+        </div>
+        <div class="psa-stat">
+          <span class="psa-stat-label"><i class="bi bi-list-check me-1"></i>Total clases</span>
+          <span class="psa-stat-val" style="color:#15803d;">{{ plan.items.count }}</span>
+        </div>
+        <div class="psa-stat">
+          <span class="psa-stat-label"><i class="bi bi-check2-circle me-1"></i>Estado</span>
+          <span class="psa-stat-val" style="color:#15803d;"><i class="bi bi-check-circle-fill me-1"></i>Aprobado</span>
+        </div>
+      </div>
+
+      <!-- Malla curricular (lectura) -->
+      {% if malla_items %}
+      <div class="ps-panel" style="margin-top:1rem;">
+        <div class="ps-panel-header">
+          <h2 class="ps-panel-title"><span class="ico ico-indigo"><i class="bi bi-journal-bookmark-fill"></i></span> Malla Curricular</h2>
+        </div>
+        <div style="padding:.85rem 1.1rem;">
+          <p style="font-size:.78rem;color:#64748b;margin-bottom:.75rem;">Temas de referencia para esta materia y grado:</p>
+          {% for mi in malla_items|slice:":6" %}
+          <div class="malla-item-card" style="border:1px solid #e2e8f0;border-radius:.55rem;padding:.5rem .75rem;margin-bottom:.45rem;font-size:.76rem;cursor:pointer;transition:background .15s;"
+               data-bs-toggle="modal" data-bs-target="#modal-malla-{{ mi.pk }}"
+               onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background=''">
+            <div style="font-weight:700;color:#1e293b;display:flex;align-items:center;justify-content:space-between;">
+              <span>{{ mi.eje_tematico }}</span>
+              <i class="bi bi-arrows-fullscreen ms-1" style="font-size:.65rem;color:#94a3b8;flex-shrink:0;"></i>
+            </div>
+            <div style="color:#7c3aed;font-size:.71rem;margin-top:.3rem;">
+              <i class="bi bi-bookmark-fill me-1"></i>{{ mi.get_periodo_display }} · {{ mi.tiempo_semanas }} sem.
+            </div>
+          </div>
+          {% endfor %}
+          {% if malla_items|length > 6 %}
+          <p style="font-size:.74rem;color:#94a3b8;text-align:center;margin-top:.5rem;">… y {{ malla_items|length|add:"-6" }} más</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  {% else %}
+
+  <div class="row g-3 align-items-start">
+
+    <!-- Días de la semana con sus clases -->
+    <div class="col-12 col-lg-8">
+      <div class="ps-panel">
+        <div class="ps-panel-header">
+          <h2 class="ps-panel-title"><span class="ico ico-indigo"><i class="bi bi-calendar3-week-fill"></i></span> Clases de la Semana</h2>
+        </div>
+
+        {% for fecha, dia in dias.items %}
+        <div class="ps-day-block">
+          <div class="ps-day-header">
+            <span class="ps-day-badge">{{ dia.nombre }}</span>
+            <span class="ps-day-date">{{ fecha|date:"d \d\e F" }}</span>
+          </div>
+
+          {% if dia.items %}
+            {% for item in dia.items %}
+            <div class="ps-item-card">
+              <div class="ps-item-header">
+                <div class="ps-item-num">{{ forloop.counter }}</div>
+                <div class="ps-item-titulo">{{ item.titulo }}</div>
+              </div>
+              {% if item.descripcion %}
+              <div class="ps-item-desc">{{ item.descripcion|linebreaksbr }}</div>
+              {% endif %}
+              {% if item.item_malla %}
+              <div class="ps-item-malla">
+                <span class="ps-item-malla-chip"><i class="bi bi-bookmark-fill"></i> Malla: {{ item.item_malla.eje_tematico|truncatechars:50 }}</span>
+              </div>
+              {% endif %}
+              <div class="ps-item-actions">
+                {% if plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
+                  <button type="button" class="ps-ia-btn"
+                          style="background:#e0e7ff;color:#3730a3;"
+                          data-bs-toggle="modal" data-bs-target="#modalEditarItem"
+                          data-item-pk="{{ item.pk }}"
+                          data-titulo="{{ item.titulo|escapejs }}"
+                          data-descripcion="{{ item.descripcion|default:''|escapejs }}"
+                          data-malla="{{ item.item_malla_id|default:'' }}"
+                          data-action="{% url 'gestion_academica:item_plan_edit' item.pk %}">
+                    <i class="bi bi-pencil-fill"></i> Editar
+                  </button>
+                {% endif %}
+
+                {% if item.deber %}
+                  <span class="ps-ia-btn ps-ia-linked"><i class="bi bi-check-circle-fill"></i> Deber</span>
+                {% elif plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
+                  <a href="{% url 'gestion_academica:item_plan_crear_deber' item.pk %}" class="ps-ia-btn ps-ia-btn-deber"><i class="bi bi-journal-check"></i> → Deber</a>
+                {% endif %}
+
+                {% if item.actividad %}
+                  <span class="ps-ia-btn ps-ia-linked"><i class="bi bi-check-circle-fill"></i> Actividad</span>
+                {% elif plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
+                  <a href="{% url 'gestion_academica:item_plan_crear_actividad' item.pk %}" class="ps-ia-btn ps-ia-btn-act"><i class="bi bi-clipboard-check"></i> → Actividad</a>
+                {% endif %}
+
+                {% if plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
+                <button type="button" class="ps-ia-btn ps-ia-btn-del"
+                        data-bs-toggle="modal" data-bs-target="#modalEliminarItem"
+                        data-action="{% url 'gestion_academica:item_plan_delete' item.pk %}">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+                {% endif %}
+
+                {% if plan.estado == 'CON_OBSERVACIONES' %}
+                <button type="button"
+                        class="ps-ia-btn"
+                        style="background:linear-gradient(135deg,#92400e,#b45309);color:#fff;margin-left:auto;"
+                        data-bs-toggle="modal" data-bs-target="#modalEnviarPlan">
+                  <i class="bi bi-arrow-repeat"></i> Enviar corrección
+                </button>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="ps-day-empty">Sin clases planificadas para este día.</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+
+    <!-- Panel derecho: agregar ítem + malla -->
+    <div class="col-12 col-lg-4">
+
+      {% if plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
+      <div class="ps-panel">
+        <div class="ps-panel-header">
+          <h2 class="ps-panel-title"><span class="ico ico-indigo"><i class="bi bi-plus-circle-fill"></i></span> Agregar Clase</h2>
+        </div>
+        <div class="ps-add-form">
+          <form method="post" action="{% url 'gestion_academica:item_plan_add' plan.pk %}">
+            {% csrf_token %}
+            <div class="mb-2">
+              <label class="form-label fw-semibold" style="font-size:.8rem;">Día</label>
+              <select name="fecha" class="form-select form-select-sm" required>
+                {% for fecha, dia in dias.items %}
+                <option value="{{ fecha|date:'Y-m-d' }}">{{ dia.nombre }} — {{ fecha|date:"d/m" }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label fw-semibold" style="font-size:.8rem;">Tema / Título *</label>
+              <input type="text" name="titulo" class="form-control form-control-sm" placeholder="Ej: Ecuaciones de primer grado" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label fw-semibold" style="font-size:.8rem;">Descripción / Actividades</label>
+              <textarea name="descripcion" class="form-control form-control-sm" rows="3" placeholder="¿Qué harán los estudiantes?"></textarea>
+            </div>
+            {% if malla_items %}
+            <div class="mb-3">
+              <label class="form-label fw-semibold" style="font-size:.8rem;">Vincular a Malla Curricular <span class="text-muted">(opcional)</span></label>
+              <select name="item_malla" class="form-select form-select-sm">
+                <option value="">— Sin vínculo —</option>
+                {% for mi in malla_items %}
+                <option value="{{ mi.pk }}">P{{ mi.periodo }} · {{ mi.eje_tematico|truncatechars:45 }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+            <button type="submit" class="ps-add-btn w-100 justify-content-center"><i class="bi bi-plus-lg"></i> Añadir al Plan</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if malla_items %}
+      <div class="ps-panel">
+        <div class="ps-panel-header">
+          <h2 class="ps-panel-title"><span class="ico ico-indigo"><i class="bi bi-journal-bookmark-fill"></i></span> Malla Curricular</h2>
+        </div>
+        <div style="padding:.85rem 1.1rem;">
+          <p style="font-size:.78rem;color:#64748b;margin-bottom:.75rem;">Temas definidos para esta materia y grado:</p>
+          {% for mi in malla_items|slice:":6" %}
+          <div class="malla-item-card" style="border:1px solid #e2e8f0;border-radius:.55rem;padding:.5rem .75rem;margin-bottom:.45rem;font-size:.76rem;cursor:pointer;transition:background .15s;"
+               data-bs-toggle="modal" data-bs-target="#modal-malla-{{ mi.pk }}"
+               onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background=''">
+            <div style="font-weight:700;color:#1e293b;display:flex;align-items:center;justify-content:space-between;">
+              <span>{{ mi.eje_tematico }}</span>
+              <i class="bi bi-arrows-fullscreen ms-1" style="font-size:.65rem;color:#94a3b8;flex-shrink:0;"></i>
+            </div>
+            <div style="color:#7c3aed;font-size:.71rem;margin-top:.3rem;">
+              <i class="bi bi-bookmark-fill me-1"></i>{{ mi.get_periodo_display }} · {{ mi.tiempo_semanas }} sem.
+            </div>
+          </div>
+          {% endfor %}
+          {% if malla_items|length > 6 %}
+          <p style="font-size:.74rem;color:#94a3b8;text-align:center;margin-top:.5rem;">… y {{ malla_items|length|add:"-6" }} más</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+  {% endif %}
+
+</div>
+
+{% if plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
+<form method="post" action="{% url 'gestion_academica:plan_semanal_enviar' plan.pk %}" id="form-enviar-plan" style="display:none;">
+  {% csrf_token %}
+</form>
+
+<!-- ══ MODAL: Enviar / Reenviar plan al coordinador ══ -->
+<div class="modal fade" id="modalEnviarPlan" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <div class="d-flex align-items-center gap-2">
+          {% if plan.estado == 'CON_OBSERVACIONES' %}
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,#b45309,#d97706);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-arrow-repeat text-white"></i>
+          </div>
+          <h5 class="modal-title mb-0" style="color:#92400e;font-weight:800;">Reenviar Plan Corregido</h5>
+          {% else %}
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-send-fill text-white"></i>
+          </div>
+          <h5 class="modal-title mb-0" style="color:#1e1b4b;font-weight:800;">Enviar al Coordinador</h5>
+          {% endif %}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-3">
+        {% if plan.estado == 'CON_OBSERVACIONES' %}
+        <p style="font-size:.9rem;color:#475569;margin-bottom:.75rem;">
+          Vas a reenviar el plan con las correcciones aplicadas. El coordinador lo revisará nuevamente.
+        </p>
+        <div style="background:#fffbeb;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:.65rem 1rem;font-size:.84rem;color:#92400e;">
+          <i class="bi bi-check2-circle me-1"></i>
+          Asegúrate de haber atendido <strong>todas las observaciones</strong> antes de reenviar.
+        </div>
+        {% else %}
+        <p class="text-muted mb-1" style="font-size:.92rem;">¿Estás seguro de enviar este plan para revisión?</p>
+        <div style="background:#eef2ff;border-left:4px solid #4f46e5;border-radius:0 8px 8px 0;padding:.65rem 1rem;margin-top:.75rem;font-size:.85rem;color:#3730a3;">
+          <i class="bi bi-info-circle-fill me-1"></i>
+          Una vez enviado, <strong>no podrás editarlo</strong> hasta que el coordinador lo revise.
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer border-0 pt-0 gap-2">
+        <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg me-1"></i>Cancelar
+        </button>
+        {% if plan.estado == 'CON_OBSERVACIONES' %}
+        <button type="button" class="btn text-white rounded-3 fw-700" id="btn-confirmar-envio"
+                style="background:linear-gradient(135deg,#b45309,#d97706);border:none;">
+          <i class="bi bi-arrow-repeat me-1"></i>Sí, reenviar
+        </button>
+        {% else %}
+        <button type="button" class="btn text-white rounded-3 fw-700" id="btn-confirmar-envio"
+                style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;">
+          <i class="bi bi-send-fill me-1"></i>Sí, enviar
+        </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Editar ítem ══ -->
+<div class="modal fade" id="modalEditarItem" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <div class="d-flex align-items-center gap-2">
+          <div style="width:38px;height:38px;background:#e0e7ff;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-pencil-fill" style="color:#4f46e5;"></i>
+          </div>
+          <h5 class="modal-title mb-0" style="color:#1e1b4b;font-weight:800;">Editar Clase</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" id="form-editar-item">
+        {% csrf_token %}
+        <div class="modal-body pt-3">
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Tema / Título *</label>
+            <input type="text" id="edit-titulo" name="titulo" class="form-control" required placeholder="Ej: Ecuaciones de primer grado">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Descripción / Actividades</label>
+            <textarea id="edit-descripcion" name="descripcion" class="form-control" rows="3" placeholder="¿Qué harán los estudiantes?"></textarea>
+          </div>
+          {% if malla_items %}
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.83rem;">Vínculo Malla Curricular <span class="text-muted">(opcional)</span></label>
+            <select id="edit-malla" name="item_malla" class="form-select">
+              <option value="">— Sin vínculo —</option>
+              {% for mi in malla_items %}
+              <option value="{{ mi.pk }}">P{{ mi.periodo }} · {{ mi.eje_tematico|truncatechars:45 }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+        </div>
+        <div class="modal-footer border-0 pt-0 gap-2">
+          <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn text-white rounded-3 fw-700"
+                  style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;">
+            <i class="bi bi-check-lg me-1"></i>Guardar cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Eliminar ítem ══ -->
+<div class="modal fade" id="modalEliminarItem" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <div class="d-flex align-items-center gap-2">
+          <div style="width:38px;height:38px;background:#fee2e2;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-trash-fill" style="color:#dc2626;"></i>
+          </div>
+          <h5 class="modal-title fw-800 mb-0" style="color:#1e1b4b;font-weight:800;">Eliminar clase</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <p class="text-muted mb-0" style="font-size:.9rem;">¿Eliminar esta clase del plan? Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0 gap-2">
+        <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" id="form-eliminar-item" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger rounded-3 fw-700">
+            <i class="bi bi-trash-fill me-1"></i>Eliminar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+{# ── Modales individuales por ítem de malla (server-side, sin encoding issues) ── #}
+{% for mi in malla_items %}
+<div class="modal fade" id="modal-malla-{{ mi.pk }}" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="border-radius:16px;border:none;">
+      <div class="modal-header border-0" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;padding:1.25rem 1.5rem;border-radius:16px 16px 0 0;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.72rem;font-weight:600;opacity:.8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;">
+            <i class="bi bi-journal-bookmark-fill me-1"></i>Ítem de Malla Curricular
+          </div>
+          <h5 class="modal-title fw-bold mb-0" style="font-size:1.05rem;">{{ mi.eje_tematico }}</h5>
+          <div style="font-size:.78rem;opacity:.85;margin-top:.25rem;">{{ mi.get_periodo_display }} · {{ mi.tiempo_semanas }} semanas</div>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-2 flex-shrink-0" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+
+        {% if mi.logro %}
+        <div style="padding:1rem 1.5rem;{% if mi.competencias or mi.indicador_bajo or mi.indicador_basico or mi.indicador_alto or mi.indicador_superior %}border-bottom:1px solid #f1f5f9;{% endif %}">
+          <div style="font-size:.72rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">
+            <i class="bi bi-trophy-fill me-1"></i>Logro del Período
+          </div>
+          <p style="font-size:.88rem;color:#1e293b;margin:0;white-space:pre-line;line-height:1.6;">{{ mi.logro }}</p>
+        </div>
+        {% endif %}
+
+        {% if mi.competencias %}
+        <div style="padding:1rem 1.5rem;{% if mi.indicador_bajo or mi.indicador_basico or mi.indicador_alto or mi.indicador_superior %}border-bottom:1px solid #f1f5f9;{% endif %}">
+          <div style="font-size:.72rem;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">
+            <i class="bi bi-lightning-fill me-1"></i>Competencias
+          </div>
+          <p style="font-size:.88rem;color:#1e293b;margin:0;white-space:pre-line;line-height:1.6;">{{ mi.competencias }}</p>
+        </div>
+        {% endif %}
+
+        {% if mi.indicador_bajo or mi.indicador_basico or mi.indicador_alto or mi.indicador_superior %}
+        <div style="padding:1rem 1.5rem;">
+          <div style="font-size:.72rem;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">
+            <i class="bi bi-bar-chart-steps me-1"></i>Indicadores de Desempeño
+          </div>
+          <div class="row g-2">
+            {% if mi.indicador_bajo %}
+            <div class="col-md-6">
+              <div style="background:#fef2f2;border-radius:.55rem;padding:.65rem .75rem;">
+                <div style="font-size:.7rem;font-weight:700;color:#dc2626;margin-bottom:.3rem;">Bajo (1.0–2.9)</div>
+                <div style="font-size:.83rem;color:#1e293b;white-space:pre-line;line-height:1.5;">{{ mi.indicador_bajo }}</div>
+              </div>
+            </div>
+            {% endif %}
+            {% if mi.indicador_basico %}
+            <div class="col-md-6">
+              <div style="background:#fefce8;border-radius:.55rem;padding:.65rem .75rem;">
+                <div style="font-size:.7rem;font-weight:700;color:#d97706;margin-bottom:.3rem;">Básico (3.0–3.9)</div>
+                <div style="font-size:.83rem;color:#1e293b;white-space:pre-line;line-height:1.5;">{{ mi.indicador_basico }}</div>
+              </div>
+            </div>
+            {% endif %}
+            {% if mi.indicador_alto %}
+            <div class="col-md-6">
+              <div style="background:#f0fdf4;border-radius:.55rem;padding:.65rem .75rem;">
+                <div style="font-size:.7rem;font-weight:700;color:#15803d;margin-bottom:.3rem;">Alto (4.0–4.5)</div>
+                <div style="font-size:.83rem;color:#1e293b;white-space:pre-line;line-height:1.5;">{{ mi.indicador_alto }}</div>
+              </div>
+            </div>
+            {% endif %}
+            {% if mi.indicador_superior %}
+            <div class="col-md-6">
+              <div style="background:#eef2ff;border-radius:.55rem;padding:.65rem .75rem;">
+                <div style="font-size:.7rem;font-weight:700;color:#4f46e5;margin-bottom:.3rem;">Superior (4.6–5.0)</div>
+                <div style="font-size:.83rem;color:#1e293b;white-space:pre-line;line-height:1.5;">{{ mi.indicador_superior }}</div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+      <div class="modal-footer border-0" style="padding:.75rem 1.5rem;">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+{% if plan.estado == 'APROBADO' %}
+/* ── Acordeón días (plan aprobado) ── */
+document.querySelectorAll('.psa-day-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var targetId = this.getAttribute('data-target');
+    var collapse = document.getElementById(targetId);
+    if (!collapse) return; // día sin clases, sin panel colapsable
+
+    var isOpen = collapse.classList.contains('open');
+
+    // Cerrar todos
+    document.querySelectorAll('.psa-collapse').forEach(function(c) { c.classList.remove('open'); });
+    document.querySelectorAll('.psa-day-btn').forEach(function(b) { b.classList.remove('open'); });
+
+    // Abrir el pulsado (toggle)
+    if (!isOpen) {
+      collapse.classList.add('open');
+      btn.classList.add('open');
+    }
+  });
+});
+
+{% else %}
+/* ── Enviar/Reenviar plan ── */
+var btnEnvio = document.getElementById('btn-confirmar-envio');
+if (btnEnvio) {
+  btnEnvio.addEventListener('click', function () {
+    document.getElementById('form-enviar-plan').submit();
+  });
+}
+
+/* ── Eliminar ítem ── */
+var modalEliminar = document.getElementById('modalEliminarItem');
+if (modalEliminar) {
+  modalEliminar.addEventListener('show.bs.modal', function (e) {
+    document.getElementById('form-eliminar-item').action = e.relatedTarget.getAttribute('data-action');
+  });
+}
+
+/* ── Editar ítem ── */
+var modalEditar = document.getElementById('modalEditarItem');
+if (modalEditar) {
+  modalEditar.addEventListener('show.bs.modal', function (e) {
+    var btn = e.relatedTarget;
+    document.getElementById('edit-titulo').value      = btn.getAttribute('data-titulo') || '';
+    document.getElementById('edit-descripcion').value = btn.getAttribute('data-descripcion') || '';
+    var selectMalla = document.getElementById('edit-malla');
+    if (selectMalla) selectMalla.value = btn.getAttribute('data-malla') || '';
+    document.getElementById('form-editar-item').action = btn.getAttribute('data-action');
+  });
+}
+{% endif %}
+
+/* ── Modales de malla: renderizados server-side, sin JS adicional necesario ── */
+</script>
+{% endblock %}

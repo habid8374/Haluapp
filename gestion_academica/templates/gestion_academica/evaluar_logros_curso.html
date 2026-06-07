@@ -1,65 +1,310 @@
 {% extends "base_academico.html" %}
-{% load logro_filters %} {# <-- 1. Cargamos nuestro nuevo filtro #}
+{% load logro_filters %}
 
-{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block titulo %}Evaluar Logros — {{ curso }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+/* ═══════════════════════════════════════════════
+   HALU PULSE — Evaluar Logros Preescolar
+═══════════════════════════════════════════════ */
+
+.el-hero {
+  background: linear-gradient(135deg, #07285f 0%, #0a3d8c 42%, #0b5ed7 100%);
+  border-radius: 1.1rem; padding: 1.6rem 2rem; color: #fff;
+  margin-bottom: 1.3rem; position: relative; overflow: hidden;
+}
+.el-hero::before {
+  content: ''; position: absolute; width: 240px; height: 240px;
+  border-radius: 50%; background: rgba(255,255,255,.05);
+  top: -80px; right: -40px; pointer-events: none;
+}
+.el-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
+  border-radius: 2rem; padding: .22rem .75rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .3px;
+  text-transform: uppercase; margin-bottom: .55rem;
+}
+.el-title { font-size: 1.3rem; font-weight: 800; margin-bottom: .35rem; line-height: 1.25; }
+.el-meta  { font-size: .83rem; opacity: .88; display: flex; flex-wrap: wrap; gap: .5rem; }
+.el-meta span { display: inline-flex; align-items: center; gap: .3rem; }
+.el-back {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28);
+  color: #fff; border-radius: .55rem; padding: .42rem .95rem;
+  font-size: .82rem; font-weight: 600; text-decoration: none;
+  transition: background .15s; flex-shrink: 0;
+}
+.el-back:hover { background: rgba(255,255,255,.26); color: #fff; }
+
+/* ── TABLA ESCRITORIO ── */
+.el-table-card {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: 1rem;
+  overflow: hidden; box-shadow: 0 4px 18px rgba(11,94,215,.07);
+  margin-bottom: 1.5rem;
+}
+.el-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.el-table { width: 100%; border-collapse: collapse; min-width: 560px; }
+.el-table thead th {
+  background: #f4f8ff; padding: .7rem .9rem;
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .35px; color: #4b5563;
+  border-bottom: 2px solid #e0e7ff;
+  white-space: nowrap; text-align: center;
+}
+.el-table thead th:first-child { text-align: left; min-width: 180px; }
+.el-table tbody tr { transition: background .12s; }
+.el-table tbody tr:hover { background: #f7faff; }
+.el-table tbody td {
+  padding: .6rem .9rem; border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle; font-size: .85rem;
+}
+.el-table tbody tr:last-child td { border-bottom: none; }
+.el-name { font-weight: 700; color: #1e1b4b; font-size: .9rem; }
+.el-logro-hdr {
+  font-size: .78rem; color: #374151; font-weight: 600;
+  white-space: normal; max-width: 150px; text-align: center; line-height: 1.3;
+}
+.el-radio-group { display: flex; flex-direction: column; gap: .2rem; align-items: center; }
+.el-radio-label {
+  display: inline-flex; align-items: center; gap: .25rem;
+  font-size: .76rem; color: #374151; cursor: pointer; white-space: nowrap;
+}
+.el-radio-label input[type="radio"] { accent-color: #0b5ed7; }
+
+/* ── CARDS MÓVIL (< lg) ── */
+.el-mob-card {
+  background: #fff; border: 1px solid #e0e7ff; border-radius: .9rem;
+  margin-bottom: .8rem; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(11,94,215,.05);
+}
+.el-mob-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .85rem 1.1rem; cursor: pointer; gap: .5rem;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f9fafb;
+}
+.el-mob-header:hover { background: #f0f7ff; }
+.el-mob-name { font-weight: 800; color: #1e1b4b; font-size: .92rem; }
+.el-mob-chevron { color: #6b7280; transition: transform .2s; }
+.el-mob-header.open .el-mob-chevron { transform: rotate(180deg); }
+.el-mob-body { display: none; padding: .8rem 1.1rem; }
+.el-mob-body.open { display: block; }
+.el-mob-logro {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; padding: .55rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.el-mob-logro:last-child { border-bottom: none; }
+.el-mob-logro-txt { font-size: .82rem; color: #374151; flex: 1; line-height: 1.4; }
+.el-mob-logro-opts { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: flex-end; }
+.el-mob-opt-label {
+  display: inline-flex; align-items: center; gap: .22rem;
+  font-size: .75rem; color: #374151; cursor: pointer; white-space: nowrap;
+}
+.el-mob-opt-label input[type="radio"] { accent-color: #0b5ed7; }
+
+/* ── Guardar FAB móvil ── */
+.el-save-fab {
+  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100;
+  background: linear-gradient(135deg,#07285f,#0b5ed7); color: #fff;
+  border: none; border-radius: 2rem; padding: .75rem 1.5rem;
+  font-size: .9rem; font-weight: 700; box-shadow: 0 6px 20px rgba(11,94,215,.35);
+  display: none;
+}
+@media (max-width: 991px) {
+  .el-save-fab { display: inline-flex; align-items: center; gap: .5rem; }
+  .el-table-card { display: none; }
+  .el-mob-list { display: block; }
+}
+@media (min-width: 992px) {
+  .el-save-fab { display: none; }
+  .el-mob-list { display: none; }
+}
+
+.el-footer-btn {
+  display: flex; justify-content: flex-end; align-items: center;
+  gap: .75rem; margin-top: 1rem;
+}
+</style>
+{% endblock %}
 
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2">{{ titulo_pagina }}</h1>
-        <a href="{% url 'gestion_academica:dashboard_docente' %}" class="btn btn-outline-secondary">Volver al Panel</a>
-    </div>
+<div class="container-fluid mt-3">
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="min-width: 200px;">Estudiante</th>
-                                {% for logro in logros %}
-                                    <th class="text-center" style="min-width: 150px;">{{ logro.descripcion|truncatewords:10 }}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for estudiante in estudiantes %}
-                            <tr>
-                                <td class="fw-bold">{{ estudiante.usuario.get_full_name }}</td>
-                                {% for logro in logros %}
-                                <td class="text-center">
-                                    {# --- INICIO DE LA LÓGICA CORREGIDA --- #}
-                                    {% with estudiante_evaluaciones=evaluaciones_map|get_item:estudiante.pk %}
-                                    {% with evaluacion_actual=estudiante_evaluaciones|get_item:logro.pk %}
-                                        {% for estado in estados_posibles %}
-                                        <div class="form-check form-check-inline">
-                                           <input class="form-check-input" type="radio" 
-                                                  name="eval-E{{ estudiante.pk }}-L{{ logro.pk }}" 
-                                                  id="radio-E{{ estudiante.pk }}-L{{ logro.pk }}-{{ estado.pk }}" 
-                                                  value="{{ estado.pk }}"
-                                                  {% if evaluacion_actual == estado.pk %}checked{% endif %}>
-                                           <label class="form-check-label" for="radio-E{{ estudiante.pk }}-L{{ logro.pk }}-{{ estado.pk }}">{{ estado.abreviatura }}</label>
-                                        </div>
-                                        {% endfor %}
-                                    {% endwith %}
-                                    {% endwith %}
-                                    {# --- FIN DE LA LÓGICA CORREGIDA --- #}
-                                </td>
-                                {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+  <!-- Hero -->
+  <div class="el-hero">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+      <div style="flex:1;min-width:0;">
+        <div class="el-badge"><i class="bi bi-clipboard2-check-fill me-1"></i>Evaluación Cualitativa</div>
+        <div class="el-title">{{ titulo_pagina }}</div>
+        <div class="el-meta">
+          <span><i class="bi bi-book-fill"></i>{{ curso.materia.nombre_materia }}</span>
+          <span><i class="bi bi-mortarboard-fill"></i>{{ curso.grado.nombre }}</span>
+          <span><i class="bi bi-calendar3"></i>{{ curso.periodo_academico.nombre }}</span>
+          <span><i class="bi bi-people-fill"></i>{{ estudiantes|length }} estudiantes</span>
+          <span><i class="bi bi-list-check"></i>{{ logros|length }} logros</span>
+        </div>
+      </div>
+      <a href="{% url 'gestion_academica:dashboard_docente' %}" class="el-back">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3">
+      <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if not logros %}
+  <div class="d-flex align-items-center gap-2 p-3 mb-3"
+       style="background:#fffbeb;border:1px solid #fde68a;border-radius:.75rem;color:#92400e;font-size:.85rem;">
+    <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+    <span>No hay logros configurados para esta materia en este período. Contacta al coordinador para configurarlos.</span>
+  </div>
+  {% endif %}
+
+  <form method="post" id="el-form">
+    {% csrf_token %}
+
+    {% if logros and estudiantes %}
+
+      {# ── TABLA ESCRITORIO (≥ lg) ── #}
+      <div class="el-table-card">
+        <div class="el-table-scroll">
+          <table class="el-table">
+            <thead>
+              <tr>
+                <th>Estudiante</th>
+                {% for logro in logros %}
+                <th>
+                  <div class="el-logro-hdr">{{ logro.descripcion|truncatewords:8 }}</div>
+                </th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for estudiante in estudiantes %}
+              <tr>
+                <td class="el-name">
+                  <i class="bi bi-person-circle me-1" style="color:#0b5ed7;opacity:.75;"></i>
+                  {{ estudiante.usuario.get_full_name }}
+                </td>
+                {% for logro in logros %}
+                <td>
+                  {% with estudiante_evaluaciones=evaluaciones_map|get_item:estudiante.pk %}
+                  {% with evaluacion_actual=estudiante_evaluaciones|get_item:logro.pk %}
+                  <div class="el-radio-group">
+                    {% for estado in estados_posibles %}
+                    <label class="el-radio-label">
+                      <input type="radio"
+                             name="eval-E{{ estudiante.pk }}-L{{ logro.pk }}"
+                             value="{{ estado.pk }}"
+                             {% if evaluacion_actual == estado.pk %}checked{% endif %}>
+                      {{ estado.abreviatura }}
+                    </label>
+                    {% endfor %}
+                  </div>
+                  {% endwith %}
+                  {% endwith %}
+                </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="el-footer-btn d-none d-lg-flex">
+        <a href="{% url 'gestion_academica:dashboard_docente' %}"
+           style="display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .95rem;
+                  border-radius:.55rem;font-size:.85rem;font-weight:600;
+                  border:1.5px solid #d1d5db;color:#374151;text-decoration:none;">
+          <i class="bi bi-x-circle"></i> Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary"
+                style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1.2rem;font-weight:700;">
+          <i class="bi bi-save-fill"></i> Guardar Evaluaciones
+        </button>
+      </div>
+
+      {# ── CARDS MÓVIL (< lg) ── #}
+      <div class="el-mob-list">
+        {% for estudiante in estudiantes %}
+        <div class="el-mob-card">
+          <div class="el-mob-header" onclick="toggleCard(this)">
+            <div class="el-mob-name">
+              <i class="bi bi-person-circle me-1" style="color:#0b5ed7;"></i>
+              {{ estudiante.usuario.get_full_name }}
             </div>
+            <i class="bi bi-chevron-down el-mob-chevron"></i>
+          </div>
+          <div class="el-mob-body">
+            {% for logro in logros %}
+            {% with estudiante_evaluaciones=evaluaciones_map|get_item:estudiante.pk %}
+            {% with evaluacion_actual=estudiante_evaluaciones|get_item:logro.pk %}
+            <div class="el-mob-logro">
+              <div class="el-mob-logro-txt">
+                <i class="bi bi-check2-circle me-1" style="color:#0b5ed7;"></i>
+                {{ logro.descripcion|truncatewords:15 }}
+              </div>
+              <div class="el-mob-logro-opts">
+                {% for estado in estados_posibles %}
+                <label class="el-mob-opt-label">
+                  <input type="radio"
+                         name="eval-E{{ estudiante.pk }}-L{{ logro.pk }}"
+                         value="{{ estado.pk }}"
+                         {% if evaluacion_actual == estado.pk %}checked{% endif %}>
+                  {{ estado.abreviatura }}
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+            {% endwith %}
+            {% endwith %}
+            {% endfor %}
+          </div>
         </div>
-        <div class="text-end mt-3">
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bi bi-save-fill me-2"></i>Guardar Evaluaciones
-            </button>
-        </div>
-    </form>
+        {% endfor %}
+
+        {# FAB guardar en móvil #}
+        <button type="submit" class="el-save-fab">
+          <i class="bi bi-save-fill"></i> Guardar evaluaciones
+        </button>
+      </div>
+
+    {% else %}
+    <div class="text-center py-5" style="color:#9ca3af;">
+      <i class="bi bi-clipboard2-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+      <p class="mb-0 fw-600" style="color:#374151;">No hay datos para evaluar.</p>
+      <p style="font-size:.85rem;margin-top:.4rem;">Verifica que existan logros y estudiantes configurados para este período.</p>
+    </div>
+    {% endif %}
+
+  </form>
 </div>
+{% endblock contenido %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+function toggleCard(header) {
+  header.classList.toggle('open');
+  var body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+// Abrir la primera card automáticamente en móvil
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.innerWidth < 992) {
+    var first = document.querySelector('.el-mob-header');
+    if (first) toggleCard(first);
+  }
+});
+</script>
 {% endblock %}

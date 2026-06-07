@@ -26,15 +26,24 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <h5>Información Personal</h5>
-                    <p class="mb-1"><strong>Documento:</strong> {{ aspirante.numero_documento }}</p>
+                    <p class="mb-1"><strong>Tipo de Documento:</strong> {{ aspirante.get_tipo_documento_display|default:"No especificado" }}</p>
+                    <p class="mb-1"><strong>Número de Documento:</strong> {{ aspirante.numero_documento }}</p>
                     <p class="mb-1"><strong>Fecha de Nacimiento:</strong> {{ aspirante.fecha_nacimiento|date:"d F, Y" }}</p>
+                    <p class="mb-1"><strong>Lugar de Nacimiento:</strong> {{ aspirante.lugar_nacimiento|default:"No especificado" }}</p>
+                    <p class="mb-1"><strong>Sexo:</strong> {{ aspirante.get_sexo_display|default:"No especificado" }}</p>
                     <p class="mb-1"><strong>Email de Contacto:</strong> {{ aspirante.email_contacto }}</p>
+                    <p class="mb-1"><strong>Teléfono:</strong> {{ aspirante.telefono_contacto|default:"No especificado" }}</p>
+                    <p class="mb-1"><strong>Dirección:</strong> {{ aspirante.direccion|default:"No especificado" }}</p>
                 </div>
                 <div class="col-md-6">
-                    <h5>Información de Procedencia</h5>
+                    <h5>Datos de Salud</h5>
+                    <p class="mb-1"><strong>Grupo Sanguíneo:</strong> {{ aspirante.grupo_sanguineo|default:"No especificado" }}</p>
+                    <p class="mb-1"><strong>EPS:</strong> {{ aspirante.eps|default:"No especificado" }}</p>
+                    <p class="mb-1"><strong>Discapacidad:</strong> {{ aspirante.discapacidad|default:"Ninguna" }}</p>
+                    <h5 class="mt-3">Información de Procedencia</h5>
                     <p class="mb-1"><strong>Colegio de Procedencia:</strong> {{ aspirante.colegio_procedencia|default:"No especificado" }}</p>
-                    <p class="mb-1"><strong>Municipio/Ciudad:</strong> {{ aspirante.municipio_procedencia|default:"No especificado" }}</p>
-                    <p class="mb-1"><strong>Departamento:</strong> {{ aspirante.departamento_procedencia|default:"No especificado" }}</p>
+                    <p class="mb-1"><strong>Municipio/Ciudad:</strong> {{ aspirante.municipio_ciudad|default:"No especificado" }}</p>
+                    <p class="mb-1"><strong>Departamento:</strong> {{ aspirante.departamento|default:"No especificado" }}</p>
                 </div>
             </div>
 
@@ -75,7 +84,7 @@
                 <p>Este es el enlace único y seguro para que el padre de familia pueda subir documentos y seguir el proceso. **Cópielo y envíelo por correo electrónico o WhatsApp.**</p>
                 
                 <div class="input-group">
-                    <input type="text" class="form-control" value="{{ request.scheme }}://{{ request.get_host }}{{ aspirante.get_portal_url }}" id="portal-link-input" readonly>
+                    <input type="text" class="form-control" value="{{ portal_url_absoluta }}" id="portal-link-input" readonly>
                     <button class="btn btn-outline-secondary" type="button" onclick="copiarAlPortapapeles('portal-link-input', this)" id="copy-button">
                         <i class="bi bi-clipboard"></i> Copiar
                     </button>
@@ -102,6 +111,7 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
 // Pequeña función de JavaScript para manejar la acción de copiar
 function copiarAlPortapapeles(inputId, buttonElement) {

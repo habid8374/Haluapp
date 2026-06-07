@@ -1,0 +1,59 @@
+{% extends "base_academico.html" %}
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="h4 mb-3">Catálogo e-learning</h1>
+    <p class="text-muted">Ofertas complementarias de tu institución. La matrícula la gestiona el personal.</p>
+    <div class="row g-3">
+        {% for curso in cursos %}
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="card h-100 shadow-sm">
+                {% if curso.imagen_portada %}
+                <img src="{{ curso.imagen_portada.url }}" class="card-img-top" alt="" style="height:140px;object-fit:cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h2 class="h6">{{ curso.nombre }}</h2>
+                    <p class="small text-muted">{{ curso.descripcion|truncatewords:24 }}</p>
+                    {% if curso.precio and curso.precio > 0 %}
+                    <p class="fw-semibold mb-1">${{ curso.precio }}</p>
+                    {% else %}
+                    <span class="badge bg-success">Gratuito</span>
+                    {% endif %}
+                    {% with p=curso.ctx_pago %}
+                    {% if p.inscrito and p.requiere_pago %}
+                        {% if p.acceso_pagado %}
+                        <div class="mt-2"><span class="badge bg-success">Pago al día</span></div>
+                        {% elif p.puede_pagar_online %}
+                        <div class="mt-2"><span class="badge bg-warning text-dark">Pago pendiente</span></div>
+                        {% elif p.deuda_sin_cuenta %}
+                        <div class="mt-2"><span class="badge bg-secondary">Pago: contactar administración</span></div>
+                        {% endif %}
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="card-footer bg-white border-top-0 pt-0">
+                    {% with p=curso.ctx_pago %}
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'elearning:detalle_curso' curso.id %}" class="btn btn-primary btn-sm">Ver detalle</a>
+                        {% if curso.id in inscritos_ids %}
+                            {% if p.puede_pagar_online %}
+                            <a href="{% url 'finanzas:iniciar_pago' cuenta_pk=p.cuenta_pk %}" class="btn btn-success btn-sm">
+                                Pagar en línea (Mercado Pago)
+                            </a>
+                            {% endif %}
+                            {% if p.acceso_pagado or not p.requiere_pago %}
+                            <a href="{% url 'elearning:aula_virtual' curso.id %}" class="btn btn-outline-secondary btn-sm">Ir al aula</a>
+                            {% elif p.requiere_pago %}
+                            <a href="{% url 'elearning:aula_virtual' curso.id %}" class="btn btn-outline-warning btn-sm">Estado del aula</a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted">No hay ofertas publicadas por ahora.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

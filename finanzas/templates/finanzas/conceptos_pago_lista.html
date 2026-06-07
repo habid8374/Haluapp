@@ -1,0 +1,91 @@
+{% extends 'base_finanzas.html' %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h1 class="h3 mb-0">{{ titulo_pagina }}</h1>
+            <p class="text-muted small mb-0">Agrupados por nivel de escolaridad (mismo criterio que en administración).</p>
+        </div>
+        <a href="{{ url_crear }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle-fill"></i> Nuevo concepto
+        </a>
+    </div>
+
+    {% regroup objetos by nivel_escolaridad as bloques_por_nivel %}
+    {% for bloque in bloques_por_nivel %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between flex-wrap gap-2 bg-light">
+            <h2 class="h5 mb-0">
+                {% if bloque.grouper %}
+                    <i class="bi bi-layers text-primary me-1"></i>
+                    {{ bloque.grouper.nombre }}
+                    <span class="text-muted fw-normal small">(orden {{ bloque.grouper.orden }})</span>
+                {% else %}
+                    <i class="bi bi-inboxes text-secondary me-1"></i>
+                    Sin nivel asignado
+                    <span class="text-muted fw-normal small">— otros conceptos o revisar configuración</span>
+                {% endif %}
+            </h2>
+            <span class="badge bg-secondary rounded-pill">{{ bloque.list|length }} concepto{% if bloque.list|length != 1 %}s{% endif %}</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th class="text-end">Valor</th>
+                            <th class="text-center">Uso</th>
+                            <th>PUC</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for objeto in bloque.list %}
+                        <tr>
+                            <td>
+                                <strong>{{ objeto.nombre_concepto }}</strong>
+                                {% if objeto.automatico %}
+                                    <span class="badge bg-info text-dark ms-1">Automático</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ objeto.tipo_concepto.nombre }}</td>
+                            <td class="text-end">${{ objeto.valor|floatformat:2 }}</td>
+                            <td class="text-center text-nowrap small">
+                                {% if objeto.es_pago_inscripcion %}<span class="badge bg-primary">Inscripción</span>{% endif %}
+                                {% if objeto.es_pago_matricula %}<span class="badge bg-success">Matrícula</span>{% endif %}
+                                {% if objeto.es_pago_pension %}<span class="badge bg-warning text-dark">Pensión</span>{% endif %}
+                                {% if objeto.es_solicitable_por_egresado %}<span class="badge bg-secondary">Egresado</span>{% endif %}
+                                {% if not objeto.es_pago_inscripcion and not objeto.es_pago_matricula and not objeto.es_pago_pension and not objeto.es_solicitable_por_egresado %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="small">
+                                {% if objeto.cuenta_contable %}
+                                    <code>{{ objeto.cuenta_contable.codigo }}</code> {{ objeto.cuenta_contable.nombre|truncatechars:32 }}
+                                {% else %}
+                                    <span class="text-warning">Sin PUC</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'finanzas:editar_concepto_pago' pk=objeto.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                                    <a href="{% url 'finanzas:eliminar_concepto_pago' pk=objeto.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-light border">No hay conceptos de pago registrados para su institución.</div>
+    {% endfor %}
+</div>
+{% endblock %}

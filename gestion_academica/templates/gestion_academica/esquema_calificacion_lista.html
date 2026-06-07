@@ -1,67 +1,89 @@
-{# gestion_academica/templates/gestion_academica/esquema_calificacion_lista.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
-{% block titulo %}{{ titulo_pagina|default:"Esquemas de Calificación" }}{% endblock titulo %}
+{% extends "base_academico.html" %}
+{% load static %}
+{% block titulo %}{{ titulo_pagina|default:"Esquemas de Calificación" }}{% endblock %}
 
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">{{ titulo_pagina|default:"Esquemas de Calificación" }}</h1>
-        {% if perms.gestion_academica.add_esquemacalificacion %} {# Permiso para crear esquema #}
-            <a href="{% url 'gestion_academica:crear_esquema_calificacion' %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle-fill"></i> Crear Nuevo Esquema
-            </a>
-        {% endif %}
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
+  <div style="position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.06);top:-80px;right:-40px;pointer-events:none;"></div>
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div>
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
+        <i class="bi bi-sliders me-1"></i>Evaluación Académica
+      </div>
+      <h2 class="mb-1 fw-800" style="font-size:1.4rem;">{{ titulo_pagina|default:"Esquemas de Calificación" }}</h2>
+      <p class="mb-0" style="opacity:.82;font-size:.88rem;">Define cómo se estructura y pondera la calificación final</p>
     </div>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
+    {% if perms.gestion_academica.add_esquemacalificacion %}
+    <a href="{% url 'gestion_academica:crear_esquema_calificacion' %}" class="btn btn-light btn-sm fw-600">
+      <i class="bi bi-plus-circle-fill me-1"></i>Nuevo Esquema
+    </a>
     {% endif %}
+  </div>
+</div>
 
+{% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+    <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<div class="card shadow-sm border-0" style="border-radius:14px;">
+  <div class="card-body p-0">
     {% if esquemas %}
-        <div class="table-responsive shadow-sm rounded-3">
-            <table class="table table-striped table-hover table-bordered mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Nombre del Esquema</th>
-                        <th>Descripción (Opcional)</th>
-                        <th class="text-center">Acciones</th> {# Corregido a text-center para uniformidad #}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for esquema_obj in esquemas %}
-                    <tr>
-                        <td>{{ esquema_obj.nombre }}</td>
-                        <td>{{ esquema_obj.descripcion|truncatewords:20|default:"N/A" }}</td>
-                        <td class="text-center text-nowrap"> {# text-nowrap para evitar saltos de línea en los botones #}
-                            {% if perms.gestion_academica.change_esquemacalificacion %} {# Permiso para editar #}
-                                <a href="{% url 'gestion_academica:editar_esquema_calificacion' esquema_obj.pk %}" class="btn btn-sm btn-warning me-1" title="Editar">
-                                    <i class="bi bi-pencil-fill"></i> Editar
-                                </a>
-                            {% endif %}
-                            {% if perms.gestion_academica.delete_esquemacalificacion %} {# Permiso para eliminar #}
-                                <a href="{% url 'gestion_academica:eliminar_esquema_calificacion' esquema_obj.pk %}" class="btn btn-sm btn-danger ms-1" title="Eliminar">
-                                    <i class="bi bi-trash-fill"></i> Eliminar
-                                </a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {# Incluye tu partial de paginación si aplica aquí #}
-        {% include "gestion_academica/partials/paginacion.html" %} 
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead style="background:#f5f3ff;">
+          <tr>
+            <th class="ps-4 py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #ddd6fe;">Nombre del Esquema</th>
+            <th class="py-3 d-none d-md-table-cell" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #ddd6fe;">Descripción</th>
+            <th class="py-3 text-center pe-4" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #ddd6fe;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for esquema_obj in esquemas %}
+          <tr>
+            <td class="ps-4 py-3">
+              <span class="fw-600" style="color:#111;">{{ esquema_obj.nombre }}</span>
+              <div class="d-md-none mt-1">
+                <small class="text-muted">{{ esquema_obj.descripcion|truncatewords:12|default:"Sin descripción" }}</small>
+              </div>
+            </td>
+            <td class="py-3 d-none d-md-table-cell" style="color:#6b7280;font-size:.85rem;">
+              {{ esquema_obj.descripcion|truncatewords:20|default:"N/A" }}
+            </td>
+            <td class="py-3 pe-4 text-center text-nowrap">
+              {% if perms.gestion_academica.change_esquemacalificacion %}
+              <a href="{% url 'gestion_academica:editar_esquema_calificacion' esquema_obj.pk %}" class="btn btn-sm btn-warning me-1" title="Editar">
+                <i class="bi bi-pencil-fill"></i>
+              </a>
+              {% endif %}
+              {% if perms.gestion_academica.delete_esquemacalificacion %}
+              <a href="{% url 'gestion_academica:eliminar_esquema_calificacion' esquema_obj.pk %}" class="btn btn-sm btn-danger" title="Eliminar">
+                <i class="bi bi-trash-fill"></i>
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "gestion_academica/partials/paginacion.html" %}
     {% else %}
-        <div class="alert alert-info text-center mt-3" role="alert">
-            <i class="bi bi-info-circle-fill me-2"></i> No hay esquemas de calificación registrados. ¡Puedes crear el primero!
-        </div>
+    <div class="text-center py-5" style="color:#9ca3af;">
+      <i class="bi bi-sliders" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+      <p class="mb-3">No hay esquemas de calificación registrados.</p>
+      {% if perms.gestion_academica.add_esquemacalificacion %}
+      <a href="{% url 'gestion_academica:crear_esquema_calificacion' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle-fill me-1"></i>Crear primer esquema
+      </a>
+      {% endif %}
+    </div>
     {% endif %}
+  </div>
 </div>
 {% endblock contenido %}

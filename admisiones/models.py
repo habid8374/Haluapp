@@ -3,7 +3,10 @@ from django.db import models, transaction
 from django.utils import timezone
 import uuid
 from django.urls import reverse
-from gestion_academica.models import Grado, Usuario, Estudiante # Importamos Grado para saber a cuál aspira
+from gestion_academica.models import (   # Importamos Grado para saber a cuál aspira
+    Grado, Usuario, Estudiante,
+    TIPO_DOCUMENTO_CHOICES, GRUPO_SANGUINEO_CHOICES,
+)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -48,6 +51,32 @@ class Aspirante(models.Model):
     municipio_ciudad = models.CharField(max_length=150, blank=True, null=True, verbose_name="Municipio/Ciudad")
     departamento = models.CharField(max_length=150, blank=True, null=True, verbose_name="Departamento")
     sexo = models.CharField(max_length=1, choices=[('M', 'Masculino'), ('F', 'Femenino'), ('O', 'Otro')])
+
+    # ── Campos del Observador del Estudiante ────────────────────────────────
+    tipo_documento = models.CharField(
+        max_length=2, choices=TIPO_DOCUMENTO_CHOICES,
+        blank=True, null=True, verbose_name="Tipo de Documento"
+    )
+    lugar_nacimiento = models.CharField(
+        max_length=150, blank=True, null=True, verbose_name="Lugar de Nacimiento"
+    )
+    grupo_sanguineo = models.CharField(
+        max_length=3, choices=GRUPO_SANGUINEO_CHOICES,
+        blank=True, null=True, verbose_name="Grupo Sanguíneo"
+    )
+    eps = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name="EPS / Entidad de Salud"
+    )
+    discapacidad = models.CharField(
+        max_length=255, blank=True, null=True,
+        verbose_name="Discapacidad (si aplica)",
+        help_text="Dejar en blanco si no aplica."
+    )
+    direccion = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Dirección de Residencia"
+    )
+    # ────────────────────────────────────────────────────────────────────────
+
     fecha_inscripcion = models.DateTimeField(auto_now_add=True)
     access_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     
@@ -72,6 +101,34 @@ class Aspirante(models.Model):
         related_name='aspirante_inscripcion' # Apodo único
     )
 
+    # Trazabilidad: si el aspirante vino de una importación masiva, queda enlazado
+    # al lote para poder auditar, filtrar y descargar reportes posteriores.
+    lote_importacion = models.ForeignKey(
+        'admisiones.LoteImportacionAspirantes',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='aspirantes_creados',
+        verbose_name="Lote de importación de origen",
+    )
+
+    class Meta:
+        verbose_name = "Aspirante"
+        verbose_name_plural = "Aspirantes"
+        ordering = ["-fecha_inscripcion"]
+        constraints = [
+            # SaaS multi-institución: el documento es único DENTRO de cada institución.
+            # Se aplica solo cuando hay valor no vacío para no bloquear datos legados.
+            models.UniqueConstraint(
+                fields=["institucion", "numero_documento"],
+                condition=~Q(numero_documento=""),
+                name="aspirante_unico_doc_por_institucion",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["institucion", "estado"]),
+            models.Index(fields=["institucion", "numero_documento"]),
+        ]
+
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
 
@@ -80,25 +137,29 @@ class Aspirante(models.Model):
         
     @transaction.atomic
     def procesar_inscripcion_completa(self):
-        """
-        Lógica final. Crea el Usuario y el Estudiante preliminar,
-        manejando de forma segura el caso de que un estudiante con el mismo
-        documento ya exista. VERSIÓN RESTAURADA Y CORREGIDA.
-        """
-        from .utils import crear_cuenta_cobro_inscripcion
+        """Crea perfiles (Usuario, Estudiante preliminar) y la cuenta de cobro de inscripción.
 
-        # 1. Buscamos si ya existe un estudiante con este documento en la institución.
+        Devuelve ``ResultadoInscripcion(aspirante, cobro_inscripcion)`` para que
+        las vistas e importaciones masivas puedan reportar al operador
+        problemas de configuración (por ejemplo, si falta el ``ConceptoPago``)
+        en lugar de fallar silenciosamente.
+        """
+        from .utils import (
+            crear_cuenta_cobro_inscripcion,
+            ResultadoCobroInscripcion,
+            ResultadoInscripcion,
+        )
+
+        # 1. ¿Ya existe un estudiante con este documento en la institución?
         estudiante_existente = Estudiante.objects.filter(
             institucion=self.institucion,
             documento_identidad=self.numero_documento
         ).first()
 
         if estudiante_existente:
-            # Si el estudiante ya existe, lo vinculamos a este nuevo proceso de admisión.
             estudiante_obj = estudiante_existente
             usuario_obj = estudiante_existente.usuario
         else:
-            # Si NO existe, procedemos a crear el Usuario y el Estudiante como lo hacías antes.
             primer_nombre = self.nombres.split()[0]
             base_username = unicodedata.normalize('NFKD', primer_nombre.lower()).encode('ascii', 'ignore').decode('utf-8')
             username_final = f"{base_username}@halu.com"
@@ -106,7 +167,7 @@ class Aspirante(models.Model):
             while Usuario.objects.filter(username=username_final).exists():
                 username_final = f"{base_username}{contador}@halu.com"
                 contador += 1
-            
+
             usuario_obj, _ = Usuario.objects.get_or_create(
                 username=username_final,
                 defaults={
@@ -115,39 +176,67 @@ class Aspirante(models.Model):
                     'institucion_asociada': self.institucion
                 }
             )
-            
-            # Usamos create() directamente ya que sabemos que no existe
+
             estudiante_obj = Estudiante.objects.create(
                 usuario=usuario_obj,
                 institucion=self.institucion,
                 documento_identidad=self.numero_documento,
+                tipo_documento=self.tipo_documento or None,
                 fecha_nacimiento=self.fecha_nacimiento,
                 grado_actual=self.grado_aspira,
                 sexo=self.sexo,
-                activo=False # El estudiante empieza inactivo
+                lugar_nacimiento=self.lugar_nacimiento or None,
+                grupo_sanguineo=self.grupo_sanguineo or None,
+                eps=self.eps or None,
+                discapacidad=self.discapacidad or None,
+                municipio_ciudad=self.municipio_ciudad or None,
+                departamento=self.departamento or None,
+                colegio_procedencia=self.colegio_procedencia or None,
+                direccion=self.direccion or None,
+                activo=False  # El estudiante empieza inactivo
             )
 
-        # 4. Vincula los perfiles al aspirante (esta parte no cambia)
+        # 2. Vincula perfiles al aspirante
         self.usuario = usuario_obj
         self.estudiante_creado = estudiante_obj
         self.save(update_fields=['usuario', 'estudiante_creado'])
 
-        # 5. Lógica de cobro (esta parte no cambia y ahora sí se ejecutará sin errores)
+        # 3. Lógica de cobro
         if self.requiere_pago_inscripcion:
-            cuenta_creada = crear_cuenta_cobro_inscripcion(self)
-            if cuenta_creada:
-                self.cuenta_pago_inscripcion = cuenta_creada
+            resultado_cobro = crear_cuenta_cobro_inscripcion(self)
+            if resultado_cobro.es_exito:
+                self.cuenta_pago_inscripcion = resultado_cobro.cuenta
                 self.save(update_fields=['cuenta_pago_inscripcion'])
+        else:
+            resultado_cobro = ResultadoCobroInscripcion(
+                cuenta=None,
+                motivo_falla="no_requiere",
+                mensaje="El aspirante no requiere pago de inscripción.",
+            )
+
+        return ResultadoInscripcion(
+            aspirante=self,
+            cobro_inscripcion=resultado_cobro,
+        )
 
     @transaction.atomic
     def matricular(self):
+        """Matricula al aspirante: activa el estudiante, asigna rol, genera cuentas.
+
+        Devuelve una tupla ``(estudiante, ResultadoSincronizacionCuentas)``
+        para que la vista que invoca pueda mostrar al admin un mensaje
+        accionable si no se pudieron crear las cuentas (p. ej. faltan
+        ConceptoPago de pensión configurados para el nivel).
+
+        Backward-compatible: los callers viejos que no leen el resultado
+        siguen funcionando porque el primer elemento sigue siendo el
+        estudiante.
         """
-        Contiene toda la lógica para matricular a un aspirante.
-        VERSIÓN DEFINITIVA: La creación de pensiones se maneja de forma segura
-        para no revertir la transacción principal en caso de fallo.
-        """
+        import logging
         from finanzas.models import CuentaPorCobrarEstudiante
-        import logging # Importamos logging para registrar errores
+        from finanzas.managers import ResultadoSincronizacionCuentas
+
+        log = logging.getLogger(__name__)
 
         estudiante_a_matricular = self.estudiante_creado
         if not estudiante_a_matricular:
@@ -167,22 +256,39 @@ class Aspirante(models.Model):
         # 3. Actualizamos el estado del aspirante
         self.estado = self.EstadoAdmision.MATRICULADO
         self.save(update_fields=['estado'])
-        
-        # --- INICIO DE LA CORRECCIÓN CLAVE ---
-        # 4. Intentamos crear las pensiones, pero si falla, no revertimos toda la matrícula.
+
+        # 4. Intentamos crear matrícula + 10 pensiones. Si falla, NO revertimos
+        # la matrícula: el alumno sigue activo, pero devolvemos el motivo en
+        # el resultado para que la UI lo muestre al admin.
         try:
-            cuentas_creadas = CuentaPorCobrarEstudiante.objects.sincronizar_cuentas_automaticas(estudiante_a_matricular)
-            if cuentas_creadas > 0:
-                logging.getLogger(__name__).info(f"Se generaron {cuentas_creadas} pensiones para el estudiante {estudiante_a_matricular.pk}.")
+            resultado_cuentas = (
+                CuentaPorCobrarEstudiante.objects
+                .sincronizar_cuentas_automaticas(estudiante_a_matricular)
+            )
+            if resultado_cuentas.es_exito:
+                log.info(
+                    "Sincronización OK para estudiante %s: %s",
+                    estudiante_a_matricular.pk, resultado_cuentas.resumen(),
+                )
             else:
-                logging.getLogger(__name__).warning(f"No se generaron pensiones automáticas para {estudiante_a_matricular.pk}. Revisar configuración de 'Concepto de Pago' para pensiones.")
-        except Exception as e:
-            # Si la creación de pensiones falla, solo registramos el error en los logs,
-            # pero NO lanzamos una excepción, para que la transacción principal no se revierta.
-            logging.getLogger(__name__).error(f"FALLO SECUNDARIO al sincronizar las pensiones para {estudiante_a_matricular.pk}: {e}", exc_info=True)
-        # --- FIN DE LA CORRECCIÓN CLAVE ---
-        
-        return estudiante_a_matricular
+                log.warning(
+                    "Sincronización con problemas para estudiante %s: %s",
+                    estudiante_a_matricular.pk, resultado_cuentas.resumen(),
+                )
+        except Exception as e:  # noqa: BLE001
+            log.error(
+                "FALLO SECUNDARIO al sincronizar las pensiones para %s: %s",
+                estudiante_a_matricular.pk, e, exc_info=True,
+            )
+            # Devolvemos un resultado sintético para no romper a los callers
+            # que esperan la tupla.
+            resultado_cuentas = ResultadoSincronizacionCuentas(
+                estudiante=estudiante_a_matricular,
+                motivo_falla="error_inesperado",
+                mensaje=f"Error inesperado al sincronizar cuentas: {e}",
+            )
+
+        return estudiante_a_matricular, resultado_cuentas
 
 
 class DocumentoRequerido(models.Model):
@@ -357,4 +463,143 @@ class AspiranteConDocumentos(Aspirante):
     class Meta:
         proxy = True
         verbose_name = "Revisión de Documento por Aspirante"
-        verbose_name_plural = "Revisión de Documentos por Aspirante"        
+        verbose_name_plural = "Revisión de Documentos por Aspirante"
+
+
+def _ruta_archivo_lote_importacion(instance, filename):
+    """Ruta de subida para los Excel de importación de aspirantes."""
+    fecha = (instance.fecha_creacion or timezone.now()).strftime("%Y/%m")
+    inst_id = instance.institucion_id or "sin_inst"
+    return f"admisiones/importaciones/{inst_id}/{fecha}/{filename}"
+
+
+class LoteImportacionAspirantes(models.Model):
+    """Auditoría y orquestación de una carga masiva de aspirantes desde Excel.
+
+    Cada subida del usuario crea un Lote; una tarea Celery la procesa fila a fila
+    en background, actualiza el progreso aquí y emite eventos por WebSocket. El
+    propio archivo queda persistido en MEDIA para poder reimprocesar o descargar.
+    """
+
+    class Estado(models.TextChoices):
+        PENDIENTE = "PENDIENTE", "Pendiente de procesar"
+        EN_PROCESO = "EN_PROCESO", "En proceso"
+        COMPLETADO = "COMPLETADO", "Completado"
+        FALLIDO = "FALLIDO", "Fallido"
+        CANCELADO = "CANCELADO", "Cancelado"
+
+    institucion = models.ForeignKey(
+        "finanzas.InstitucionEducativa",
+        on_delete=models.CASCADE,
+        related_name="lotes_importacion_aspirantes",
+        verbose_name="Institución",
+    )
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="lotes_importacion_aspirantes_creados",
+        verbose_name="Creado por",
+    )
+    archivo = models.FileField(
+        upload_to=_ruta_archivo_lote_importacion,
+        verbose_name="Archivo Excel",
+    )
+    nombre_original = models.CharField(max_length=255, blank=True, verbose_name="Nombre original")
+    dry_run = models.BooleanField(
+        default=False,
+        verbose_name="Modo simulación (no crea registros)",
+        help_text="Cuando está marcado, valida y reporta errores sin persistir aspirantes.",
+    )
+
+    estado = models.CharField(
+        max_length=20,
+        choices=Estado.choices,
+        default=Estado.PENDIENTE,
+        verbose_name="Estado",
+    )
+    task_id = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="ID de tarea Celery",
+        help_text="UUID de la tarea Celery que procesa este lote (necesario para revoke).",
+    )
+    cancelacion_solicitada = models.BooleanField(
+        default=False,
+        verbose_name="Cancelación solicitada",
+        help_text=(
+            "Marcado por el usuario al pedir cancelar. La tarea verifica este flag "
+            "entre filas y termina limpiamente."
+        ),
+    )
+
+    total_filas = models.PositiveIntegerField(default=0)
+    filas_procesadas = models.PositiveIntegerField(default=0)
+    filas_exitosas = models.PositiveIntegerField(default=0)
+    filas_fallidas = models.PositiveIntegerField(default=0)
+    filas_con_advertencia = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Filas con advertencia",
+        help_text=(
+            "Filas creadas correctamente pero con problemas no críticos "
+            "(p. ej. el aspirante se creó pero no se generó la cuenta de "
+            "inscripción por configuración faltante)."
+        ),
+    )
+
+    errores = models.JSONField(
+        default=list, blank=True,
+        verbose_name="Errores y advertencias por fila",
+        help_text=(
+            "Lista de diccionarios: {tipo, fila, documento, mensaje}. "
+            "tipo='error' detiene la fila; tipo='warning' permite continuar."
+        ),
+    )
+    mensaje_error_general = models.TextField(blank=True, verbose_name="Mensaje de error general")
+
+    resumen_correos = models.JSONField(
+        null=True, blank=True, default=None,
+        verbose_name="Resumen del último envío de correos",
+        help_text=(
+            "Almacena el resultado del último envío/reenvío masivo de correos: "
+            "{tipo, fecha, ok, errores_count, omitidos, total, detalle_errores[]}."
+        ),
+    )
+
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_inicio = models.DateTimeField(null=True, blank=True)
+    fecha_fin = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-fecha_creacion"]
+        verbose_name = "Lote de importación de aspirantes"
+        verbose_name_plural = "Lotes de importación de aspirantes"
+        indexes = [
+            models.Index(fields=["institucion", "-fecha_creacion"]),
+            models.Index(fields=["estado"]),
+        ]
+
+    def __str__(self):
+        return f"Lote #{self.pk} ({self.estado}) — {self.nombre_original or 'sin nombre'}"
+
+    @property
+    def progreso_porcentaje(self):
+        if not self.total_filas:
+            return 0
+        return min(100, int(round((self.filas_procesadas * 100) / self.total_filas)))
+
+    @property
+    def esta_finalizado(self):
+        return self.estado in (
+            self.Estado.COMPLETADO,
+            self.Estado.FALLIDO,
+            self.Estado.CANCELADO,
+        )
+
+    @property
+    def puede_cancelarse(self):
+        return self.estado in (self.Estado.PENDIENTE, self.Estado.EN_PROCESO)
+
+    @property
+    def puede_reintentarse(self):
+        return self.estado in (self.Estado.FALLIDO, self.Estado.CANCELADO)

@@ -13,22 +13,35 @@
         </div>
         <div class="card-body">
             <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-5">
-                    <label for="fecha_inicio" class="form-label">Fecha de Inicio:</label>
+                <div class="col-md-4 col-lg-3">
+                    <label for="fecha_inicio" class="form-label">Fecha de inicio</label>
                     <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ fecha_inicio }}" class="form-control">
                 </div>
-                <div class="col-md-5">
-                    <label for="fecha_fin" class="form-label">Fecha de Fin:</label>
+                <div class="col-md-4 col-lg-3">
+                    <label for="fecha_fin" class="form-label">Fecha de fin</label>
                     <input type="date" name="fecha_fin" id="fecha_fin" value="{{ fecha_fin }}" class="form-control">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-4 col-lg-4">
+                    <label for="id_periodo_acad" class="form-label">Periodo académico (solo ingresos)</label>
+                    <select name="periodo" id="id_periodo_acad" class="form-select">
+                        <option value="">Todos</option>
+                        {% for p in periodos_filtro %}
+                            <option value="{{ p.pk }}" {% if selected_periodo == p.pk|stringformat:"s" %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Los gastos se siguen filtrando solo por el rango de fechas.</div>
+                </div>
+                <div class="col-md-12 col-lg-2">
                     <button type="submit" class="btn btn-primary w-100">Filtrar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <h4 class="mb-3">Resumen del Período: <span class="text-muted">{{ fecha_inicio }} al {{ fecha_fin }}</span></h4>
+    <h4 class="mb-2">Resumen del periodo: <span class="text-muted">{{ fecha_inicio }} al {{ fecha_fin }}</span></h4>
+    {% if periodo_filtrado %}
+    <p class="text-muted small mb-3">Ingresos acotados al periodo académico <strong>{{ periodo_filtrado }}</strong> (según el concepto de cobro de cada pago).</p>
+    {% endif %}
     <div class="row g-4 mb-5">
         <div class="col-md-4">
             <div class="card text-center text-white bg-success shadow">

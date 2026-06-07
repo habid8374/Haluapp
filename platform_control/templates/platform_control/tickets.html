@@ -1,0 +1,79 @@
+{% extends "base_academico.html" %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+
+<div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:18px;padding:1.75rem 2rem;color:white;margin-bottom:1.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+    <div>
+        <h2 class="fw-800 mb-1" style="font-size:1.45rem;"><i class="bi bi-headset me-2"></i>{{ titulo_pagina }}</h2>
+        <p class="mb-0" style="opacity:.75;font-size:.9rem;">Tickets de soporte de todas las instituciones.</p>
+    </div>
+    <a href="{% url 'platform_control:dashboard' %}" class="btn btn-outline-light" style="border-radius:9px;">
+        <i class="bi bi-arrow-left me-1"></i> Panel Principal
+    </a>
+</div>
+
+<div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">ID Ticket</th>
+                        <th>Asunto</th>
+                        <th>Institución</th>
+                        <th>Usuario</th>
+                        <th class="text-center">Prioridad</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Última actualización</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td class="ps-3">
+                        <a href="{% url 'platform_control:ticket_detail' ticket.ticket_id %}" class="fw-700">
+                            {{ ticket.ticket_id }}
+                        </a>
+                    </td>
+                    <td>{{ ticket.titulo }}</td>
+                    <td>{{ ticket.institucion.nombre }}</td>
+                    <td>{{ ticket.usuario_reporta.get_full_name }}</td>
+                    <td class="text-center">
+                        {% if ticket.prioridad == 'URGENTE' %}
+                            <span class="badge bg-danger">{{ ticket.get_prioridad_display }}</span>
+                        {% elif ticket.prioridad == 'ALTA' %}
+                            <span class="badge bg-warning text-dark">{{ ticket.get_prioridad_display }}</span>
+                        {% else %}
+                            <span class="badge bg-info text-dark">{{ ticket.get_prioridad_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if ticket.estado == 'CERRADO' %}
+                            <span class="badge bg-secondary">{{ ticket.get_estado_display }}</span>
+                        {% elif ticket.estado == 'RESUELTO' %}
+                            <span class="badge bg-success">{{ ticket.get_estado_display }}</span>
+                        {% elif ticket.estado == 'EN_PROGRESO' %}
+                            <span class="badge bg-primary">{{ ticket.get_estado_display }}</span>
+                        {% else %}
+                            <span class="badge bg-danger">{{ ticket.get_estado_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center text-muted" style="font-size:.85rem;">{{ ticket.ultima_actualizacion|naturaltime }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <i class="bi bi-check-circle-fill fs-2 text-success"></i>
+                        <p class="mt-2 text-muted">No hay tickets pendientes.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

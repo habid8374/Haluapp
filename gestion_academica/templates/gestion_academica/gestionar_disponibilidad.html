@@ -54,12 +54,13 @@
                                 <td>{{ disp.hora_inicio|time:"h:i A" }}</td>
                                 <td>{{ disp.hora_fin|time:"h:i A" }}</td>
                                 <td class="text-end">
-                                    <form method="post" action="{% url 'gestion_academica:eliminar_disponibilidad' disp.pk %}" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este bloque horario?');">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                            <i class="bi bi-trash-fill"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            title="Eliminar"
+                                            data-bs-toggle="modal" data-bs-target="#modalEliminarDisp"
+                                            data-action="{% url 'gestion_academica:eliminar_disponibilidad' disp.pk %}"
+                                            data-label="{{ disp.get_dia_semana_display }} {{ disp.hora_inicio|time:'H:i' }}–{{ disp.hora_fin|time:'H:i' }}">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
                                 </td>
                             </tr>
                             {% empty %}
@@ -76,4 +77,44 @@
         </div>
     </div>
 </div>
+
+<!-- Modal — Confirmar eliminación de bloque horario -->
+<div class="modal fade" id="modalEliminarDisp" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Eliminar este bloque horario?</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;">
+          Bloque: <strong id="disp-label-modal"></strong>
+        </p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;">
+          <i class="bi bi-info-circle me-1"></i>Esta acción no se puede deshacer.
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form id="form-eliminar-disp" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="bi bi-trash-fill me-1"></i>Sí, eliminar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.querySelectorAll('[data-bs-target="#modalEliminarDisp"]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.getElementById('form-eliminar-disp').action = this.dataset.action;
+    document.getElementById('disp-label-modal').textContent = this.dataset.label || '';
+  });
+});
+</script>
 {% endblock %}

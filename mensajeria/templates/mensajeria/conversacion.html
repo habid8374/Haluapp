@@ -1,0 +1,317 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}Chat con {{ otro.get_full_name }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-3 d-flex flex-column" style="height: calc(100vh - 90px);">
+
+  {# ── Cabecera ── #}
+  <div class="d-flex align-items-center gap-3 mb-2 pb-2 border-bottom">
+    <a href="{% url 'mensajeria:inbox' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0"
+         style="width:40px;height:40px;font-size:1rem;">
+      {{ otro.first_name|first|upper }}{{ otro.last_name|first|upper }}
+    </div>
+    <div>
+      <strong>{{ otro.get_full_name }}</strong>
+      {% if conv.estudiante_contexto %}
+        <br><small class="text-muted">
+          <i class="bi bi-person-fill"></i>
+          {{ conv.estudiante_contexto.nombre_completo }}
+        </small>
+      {% endif %}
+    </div>
+    {# Archivar #}
+    <form action="{% url 'mensajeria:archivar' conv.pk %}" method="post" class="ms-auto">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-secondary" title="Archivar conversación">
+        <i class="bi bi-archive"></i>
+      </button>
+    </form>
+  </div>
+
+  {# ── Burbuja de mensajes ── #}
+  <div id="chat-messages" class="flex-grow-1 overflow-y-auto px-1 py-2 d-flex flex-column gap-2">
+    {% for m in mensajes %}
+      {% if m.remitente_id == request.user.pk %}
+        {# Mensaje propio → derecha #}
+        <div class="d-flex justify-content-end" data-msg-id="{{ m.pk }}">
+          <div class="bg-primary text-white rounded-3 px-3 py-2 shadow-sm" style="max-width:75%;">
+            <div style="white-space:pre-wrap;">{{ m.texto }}</div>
+            <div class="text-end mt-1" style="font-size:.7rem;opacity:.75;">
+              {{ m.enviado_en|date:"H:i" }}
+              {% if m.leido %}
+                <i class="bi bi-check2-all ms-1"></i>
+              {% else %}
+                <i class="bi bi-check2 ms-1"></i>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        {# Mensaje del otro → izquierda #}
+        <div class="d-flex justify-content-start" data-msg-id="{{ m.pk }}">
+          <div class="bg-light border rounded-3 px-3 py-2 shadow-sm" style="max-width:75%;">
+            <div style="white-space:pre-wrap;">{{ m.texto }}</div>
+            <div class="text-muted mt-1" style="font-size:.7rem;">
+              {{ m.enviado_en|date:"H:i" }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% empty %}
+      <p class="text-center text-muted my-auto">
+        Aún no hay mensajes. ¡Saluda primero!
+      </p>
+    {% endfor %}
+  </div>
+
+  {# ── Indicador "escribiendo…" ── #}
+  <div id="typing-indicator" class="text-muted small ps-2 mb-1" style="display:none;">
+    {{ otro.first_name }} está escribiendo…
+  </div>
+
+  {# ── Input de mensaje ── #}
+  <div class="border-top pt-2 pb-1">
+    <div id="ws-offline-banner" class="alert alert-warning alert-sm py-1 px-2 mb-1 d-none" role="alert">
+      <i class="bi bi-wifi-off"></i> Sin conexión en tiempo real — los mensajes se enviarán igualmente.
+    </div>
+    <form id="chat-form" class="d-flex gap-2" autocomplete="off">
+      {% csrf_token %}
+      <textarea id="chat-input" class="form-control" rows="1"
+                placeholder="Escribe un mensaje…" maxlength="2000"
+                style="resize:none;max-height:120px;"
+                aria-label="Escribe un mensaje"></textarea>
+      <button type="submit" class="btn btn-primary px-3" id="btn-enviar">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </form>
+    <div class="text-end text-muted" style="font-size:.75rem;">
+      <span id="char-count">0</span>/2000
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  'use strict';
+
+  const conversacionId = {{ conversacion_id }};
+  const miUserId       = {{ request.user.pk }};
+  const miNombre       = "{{ request.user.get_full_name|escapejs }}";
+  const wsScheme       = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const wsUrl          = `${wsScheme}://${window.location.host}/ws/mensajeria/${conversacionId}/`;
+
+  const chatMessages     = document.getElementById('chat-messages');
+  const chatForm         = document.getElementById('chat-form');
+  const chatInput        = document.getElementById('chat-input');
+  const charCount        = document.getElementById('char-count');
+  const typingIndicator  = document.getElementById('typing-indicator');
+  const offlineBanner    = document.getElementById('ws-offline-banner');
+
+  let socket         = null;
+  let wsOk           = false;
+  let reconnectDelay = 1000;
+  let pollingTimer   = null;
+  let ultimoMsgId    = 0;   // ID del último mensaje conocido (para polling incremental)
+
+  // Registrar IDs de mensajes ya renderizados (evita duplicados WS+polling)
+  const idsRendered = new Set();
+  chatMessages.querySelectorAll('[data-msg-id]').forEach(el => {
+    idsRendered.add(Number(el.dataset.msgId));
+    ultimoMsgId = Math.max(ultimoMsgId, Number(el.dataset.msgId));
+  });
+
+  // ─── Scroll al fondo ────────────────────────────────────────────────
+  function scrollBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  scrollBottom();
+
+  // ─── Crear burbuja de mensaje ────────────────────────────────────────
+  function agregarBurbuja({ id, texto, remitenteId, enviadoEn, leido = false }) {
+    if (id && idsRendered.has(id)) return null;   // ya existe
+    if (id) {
+      idsRendered.add(id);
+      ultimoMsgId = Math.max(ultimoMsgId, id);
+    }
+
+    const esMio = remitenteId === miUserId;
+    const hora  = new Date(enviadoEn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const wrap = document.createElement('div');
+    wrap.className = `d-flex justify-content-${esMio ? 'end' : 'start'}`;
+    if (id) wrap.dataset.msgId = id;
+
+    const burbuja = document.createElement('div');
+    burbuja.className = esMio
+      ? 'bg-primary text-white rounded-3 px-3 py-2 shadow-sm'
+      : 'bg-light border rounded-3 px-3 py-2 shadow-sm';
+    burbuja.style.maxWidth = '75%';
+
+    const cuerpo = document.createElement('div');
+    cuerpo.style.whiteSpace = 'pre-wrap';
+    cuerpo.textContent = texto;
+
+    const meta = document.createElement('div');
+    meta.className = esMio ? 'text-end mt-1' : 'text-muted mt-1';
+    meta.style.fontSize = '.7rem';
+    if (!esMio) meta.style.opacity = '.75';
+
+    const checkIcon = esMio ? (leido ? 'bi-check2-all' : 'bi-check2') : '';
+    meta.innerHTML = `${hora}${esMio ? ` <i class="bi ${checkIcon} ms-1"></i>` : ''}`;
+
+    burbuja.append(cuerpo, meta);
+    wrap.appendChild(burbuja);
+    chatMessages.appendChild(wrap);
+    scrollBottom();
+    return { wrap, meta, cuerpo };
+  }
+
+  // ─── Marcar ticks como leídos (doble check) ─────────────────────────
+  function marcarLeidos() {
+    chatMessages.querySelectorAll('.bi-check2').forEach(el => {
+      el.classList.replace('bi-check2', 'bi-check2-all');
+    });
+  }
+
+  // ─── Polling HTTP (fallback cuando WS no conecta) ────────────────────
+  async function pollMensajes() {
+    try {
+      const url = `{% url 'mensajeria:api_mensajes' conversacion_id %}?desde_id=${ultimoMsgId}`;
+      const resp = await fetch(url);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      (data.mensajes || []).forEach(m => {
+        agregarBurbuja({
+          id:          m.id,
+          texto:       m.texto,
+          remitenteId: m.remitente_id,
+          enviadoEn:   m.enviado_en,
+          leido:       m.leido,
+        });
+      });
+    } catch { /* silencioso */ }
+  }
+
+  function iniciarPolling() {
+    if (pollingTimer) return;
+    pollingTimer = setInterval(pollMensajes, 3000);
+  }
+
+  function detenerPolling() {
+    if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
+  }
+
+  // ─── WebSocket ───────────────────────────────────────────────────────
+  function conectar() {
+    socket = new WebSocket(wsUrl);
+
+    socket.addEventListener('open', () => {
+      wsOk = true;
+      reconnectDelay = 1000;
+      offlineBanner.classList.add('d-none');
+      detenerPolling();
+    });
+
+    socket.addEventListener('message', (ev) => {
+      const data = JSON.parse(ev.data);
+
+      if (data.tipo === 'mensaje_nuevo') {
+        agregarBurbuja({
+          id:          data.id,
+          texto:       data.texto,
+          remitenteId: data.remitente_id,
+          enviadoEn:   data.enviado_en,
+        });
+      }
+
+      if (data.tipo === 'mensajes_leidos') {
+        if (data.lector_id !== miUserId) marcarLeidos();
+      }
+    });
+
+    socket.addEventListener('close', () => {
+      wsOk = false;
+      offlineBanner.classList.remove('d-none');
+      iniciarPolling();   // ← activar polling mientras WS está caído
+      setTimeout(conectar, Math.min(reconnectDelay, 30000));
+      reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+    });
+
+    socket.addEventListener('error', () => { socket.close(); });
+  }
+
+  conectar();
+
+  // ─── Enviar mensaje ──────────────────────────────────────────────────
+  chatForm.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const texto = chatInput.value.trim();
+    if (!texto || texto.length > 2000) return;
+
+    if (wsOk && socket.readyState === WebSocket.OPEN) {
+      // WS activo: mostrar burbuja propia inmediatamente, el server hace el broadcast
+      agregarBurbuja({
+        id: null, texto, remitenteId: miUserId,
+        enviadoEn: new Date().toISOString(),
+      });
+      socket.send(JSON.stringify({ texto }));
+    } else {
+      // Fallback HTTP: el endpoint ahora también hace group_send via channel layer
+      const enviadoEn = new Date().toISOString();
+      agregarBurbuja({ id: null, texto, remitenteId: miUserId, enviadoEn });
+      try {
+        const resp = await fetch("{% url 'mensajeria:api_enviar' %}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          },
+          body: JSON.stringify({ conversacion_id: conversacionId, texto }),
+        });
+        if (resp.ok) {
+          const d = await resp.json();
+          // Registrar el ID real para que el echo WS no duplique
+          if (d.id) idsRendered.add(d.id);
+        } else {
+          chatMessages.lastElementChild?.remove();
+          alert('Error al enviar el mensaje. Intenta de nuevo.');
+        }
+      } catch {
+        chatMessages.lastElementChild?.remove();
+        alert('Sin conexión. El mensaje no pudo enviarse.');
+      }
+    }
+
+    chatInput.value = '';
+    charCount.textContent = '0';
+    chatInput.style.height = 'auto';
+  });
+
+  // ─── Auto-resize textarea ────────────────────────────────────────────
+  chatInput.addEventListener('input', () => {
+    charCount.textContent = chatInput.value.length;
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+  });
+
+  // ─── Enter envía (Shift+Enter = salto de línea) ──────────────────────
+  chatInput.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && !ev.shiftKey) {
+      ev.preventDefault();
+      chatForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    }
+  });
+
+})();
+</script>
+{% endblock %}

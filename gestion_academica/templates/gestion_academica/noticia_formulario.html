@@ -92,18 +92,5 @@
 
 {% block extrajavascript %}
 {{ block.super }}
-{# Si usas un editor de texto enriquecido como CKEditor, aquí iría el script para inicializarlo.
-    Ejemplo (necesitarías incluir la librería de CKEditor en tu base.html o aquí):
-<script src="https://cdn.ckeditor.com/ckeditor5/35.3.2/classic/ckeditor.js"></script>
-<script>
-    ClassicEditor
-        .create(document.querySelector('#{{ form.contenido.id_for_label }}'), {
-            // Configuración de CKEditor
-            toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo' ]
-        })
-        .catch(error => {
-            console.error(error);
-        });
-</script>
-#}
+{# Aquí se puede integrar CKEditor u otro editor de texto enriquecido para el campo contenido. #}
 {% endblock extrajavascript %}

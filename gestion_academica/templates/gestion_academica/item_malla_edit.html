@@ -1,0 +1,348 @@
+{% extends "base_academico.html" %}
+{% load static %}
+
+{% block titulo %}Editar Ítem de Malla{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+.edit-hero {
+  background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%);
+  border-radius: 1rem; padding: 1.6rem 2rem; color: #fff;
+  margin-bottom: 1.5rem; position: relative; overflow: hidden;
+}
+.edit-hero::before {
+  content: ''; position: absolute; width: 260px; height: 260px;
+  border-radius: 50%; background: rgba(255,255,255,.05);
+  top: -90px; right: -60px; pointer-events: none;
+}
+.edit-hero .breadcrumb-top {
+  font-size: .75rem; opacity: .75; margin-bottom: .4rem;
+  display: flex; align-items: center; gap: .35rem;
+}
+.edit-hero h1 { font-size: 1.45rem; font-weight: 800; margin: 0; font-family: 'Manrope', sans-serif; }
+
+.form-card {
+  background: #fff; border: 1px solid #dbe5f4;
+  border-radius: 1rem; overflow: hidden;
+  box-shadow: 0 2px 12px rgba(79,70,229,.07); margin-bottom: 1.5rem;
+}
+.form-card-header {
+  background: linear-gradient(90deg, #f0f4ff, #eef2ff);
+  border-bottom: 1px solid #dbe5f4;
+  padding: .75rem 1.25rem; display: flex; align-items: center; gap: .6rem;
+}
+.form-card-header .fch-icon {
+  width: 30px; height: 30px; border-radius: .4rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; background: #e0e7ff; color: #4f46e5;
+}
+.form-card-header h6 { margin: 0; font-weight: 800; font-size: .88rem; color: #0f3f90; }
+.form-card-body { padding: 1.25rem; }
+
+.nivel-pill {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .3rem .75rem; border-radius: 2rem; font-size: .73rem;
+  font-weight: 700; margin-bottom: .5rem;
+}
+.nivel-bajo     { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
+.nivel-basico   { background: #fefce8; color: #d97706; border: 1px solid #fde68a; }
+.nivel-alto     { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+.nivel-superior { background: #eef2ff; color: #4f46e5; border: 1px solid #a5b4fc; }
+
+.btn-save {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border: none; color: #fff; font-weight: 700; padding: .6rem 2rem;
+  border-radius: .55rem; font-size: .88rem; transition: opacity .2s;
+}
+.btn-save:hover { opacity: .88; color: #fff; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-3">
+
+  {# ── Hero ── #}
+  <div class="edit-hero">
+    <div class="breadcrumb-top">
+      <a href="{% url 'gestion_academica:malla_curricular_list' %}" style="color:rgba(255,255,255,.75);text-decoration:none;">
+        <i class="bi bi-journal-bookmark-fill"></i> Mallas Curriculares
+      </a>
+      <i class="bi bi-chevron-right" style="font-size:.65rem;opacity:.6;"></i>
+      <a href="{% url 'gestion_academica:malla_curricular_detalle' pk=item.malla.pk %}" style="color:rgba(255,255,255,.75);text-decoration:none;">
+        {{ item.malla.materia }} · {{ item.malla.grado }}
+      </a>
+      <i class="bi bi-chevron-right" style="font-size:.65rem;opacity:.6;"></i>
+      <span>Editar Ítem</span>
+    </div>
+    <h1><i class="bi bi-pencil-square me-2"></i>Editar Ítem de Malla Curricular</h1>
+    <div style="margin-top:.4rem;font-size:.83rem;opacity:.82;">
+      {{ item.malla.materia }} &nbsp;·&nbsp; {{ item.malla.grado }} &nbsp;·&nbsp;
+      Período {{ item.get_periodo_display }}
+    </div>
+  </div>
+
+  <form method="post" id="edit-form">
+    {% csrf_token %}
+    <div class="row g-4">
+
+      {# ── Columna izquierda ── #}
+      <div class="col-lg-8">
+
+        {# Datos generales #}
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="fch-icon"><i class="bi bi-info-circle-fill"></i></div>
+            <h6>Datos Generales del Período</h6>
+          </div>
+          <div class="form-card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold" style="font-size:.82rem;">Período Académico <span class="text-danger">*</span></label>
+                <select name="periodo" class="form-select form-select-sm" required>
+                  <option value="1" {% if item.periodo == 1 %}selected{% endif %}>1° Período</option>
+                  <option value="2" {% if item.periodo == 2 %}selected{% endif %}>2° Período</option>
+                  <option value="3" {% if item.periodo == 3 %}selected{% endif %}>3° Período</option>
+                  <option value="4" {% if item.periodo == 4 %}selected{% endif %}>4° Período</option>
+                </select>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label fw-semibold" style="font-size:.82rem;">Tiempo (semanas) <span class="text-danger">*</span></label>
+                <input type="number" name="tiempo_semanas" class="form-control form-control-sm"
+                       value="{{ item.tiempo_semanas }}" min="1" max="20" required>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label fw-semibold" style="font-size:.82rem;">Eje Temático <span class="text-danger">*</span></label>
+              <input type="text" name="eje_tematico" class="form-control form-control-sm"
+                     value="{{ item.eje_tematico }}" placeholder="Ej: Álgebra lineal — sistemas de ecuaciones" required>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label fw-semibold" style="font-size:.82rem;">Logro del Período <span class="text-danger">*</span></label>
+              <textarea name="logro" class="form-control form-control-sm" rows="3"
+                        placeholder="Describe el logro general que el estudiante debe alcanzar en este período…" required>{{ item.logro }}</textarea>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label fw-semibold" style="font-size:.82rem;">Competencias</label>
+              <textarea name="competencias" class="form-control form-control-sm" rows="2"
+                        placeholder="Competencias que se desarrollan…">{{ item.competencias|default:'' }}</textarea>
+            </div>
+
+            {% if es_bilingue %}
+            <div class="mt-3 p-3" style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-radius:.75rem;border:1px solid #bae6fd;">
+              <div style="font-size:.75rem;font-weight:700;color:#0369a1;margin-bottom:.75rem;">
+                <i class="bi bi-translate me-1"></i>Campos en {{ idioma_secundario }}
+              </div>
+              <div class="mb-2">
+                <label class="form-label fw-semibold" style="font-size:.82rem;">Eje Temático ({{ idioma_secundario }})</label>
+                <input type="text" name="eje_tematico_L2" class="form-control form-control-sm"
+                       value="{{ item.eje_tematico_L2 }}" placeholder="Ej: Linear algebra — systems of equations">
+              </div>
+              <div class="mb-2">
+                <label class="form-label fw-semibold" style="font-size:.82rem;">Logro del Período ({{ idioma_secundario }})</label>
+                <textarea name="logro_L2" class="form-control form-control-sm" rows="2"
+                          placeholder="What should the student achieve by the end of the period?">{{ item.logro_L2 }}</textarea>
+              </div>
+              <div>
+                <label class="form-label fw-semibold" style="font-size:.82rem;">Competencias ({{ idioma_secundario }})</label>
+                <textarea name="competencias_L2" class="form-control form-control-sm" rows="2"
+                          placeholder="Competencies developed…">{{ item.competencias_L2|default:'' }}</textarea>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {# EBC y DBA #}
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="fch-icon"><i class="bi bi-book-fill"></i></div>
+            <h6>Estándares y Derechos Básicos (MEN)</h6>
+          </div>
+          <div class="form-card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold" style="font-size:.82rem;">
+                  EBC — Estándares Básicos de Competencias
+                </label>
+                <textarea name="ebc" class="form-control form-control-sm" rows="4"
+                          placeholder="Estándar del MEN que aplica a este eje temático…">{{ item.ebc|default:'' }}</textarea>
+                <div class="form-text">Según los lineamientos del Ministerio de Educación Nacional.</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold" style="font-size:.82rem;">
+                  DBA — Derechos Básicos de Aprendizaje
+                </label>
+                <textarea name="dba" class="form-control form-control-sm" rows="4"
+                          placeholder="Derecho Básico de Aprendizaje que corresponde…">{{ item.dba|default:'' }}</textarea>
+                <div class="form-text">Enunciado del aprendizaje estructurante para este grado.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Indicadores de desempeño #}
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="fch-icon"><i class="bi bi-bar-chart-steps"></i></div>
+            <h6>Indicadores de Desempeño por Nivel</h6>
+          </div>
+          <div class="form-card-body">
+            <p style="font-size:.78rem;color:#64748b;margin-bottom:1rem;">
+              Define qué debe demostrar el estudiante para ubicarse en cada nivel. Los rangos de escala son:
+              <strong>Bajo</strong> 1,0–2,9 · <strong>Básico</strong> 3,0–3,9 · <strong>Alto</strong> 4,0–4,5 · <strong>Superior</strong> 4,6–5,0
+            </p>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="nivel-pill nivel-bajo"><i class="bi bi-arrow-down-circle-fill"></i> Bajo (1,0 – 2,9)</div>
+                <textarea name="indicador_bajo" class="form-control form-control-sm" rows="3"
+                          placeholder="El estudiante evidencia dificultades para…">{{ item.indicador_bajo|default:'' }}</textarea>
+              </div>
+              <div class="col-md-6">
+                <div class="nivel-pill nivel-basico"><i class="bi bi-dash-circle-fill"></i> Básico (3,0 – 3,9)</div>
+                <textarea name="indicador_basico" class="form-control form-control-sm" rows="3"
+                          placeholder="El estudiante identifica y aplica de forma básica…">{{ item.indicador_basico|default:'' }}</textarea>
+              </div>
+              <div class="col-md-6">
+                <div class="nivel-pill nivel-alto"><i class="bi bi-arrow-up-circle-fill"></i> Alto (4,0 – 4,5)</div>
+                <textarea name="indicador_alto" class="form-control form-control-sm" rows="3"
+                          placeholder="El estudiante analiza, relaciona y aplica con seguridad…">{{ item.indicador_alto|default:'' }}</textarea>
+              </div>
+              <div class="col-md-6">
+                <div class="nivel-pill nivel-superior"><i class="bi bi-star-fill"></i> Superior (4,6 – 5,0)</div>
+                <textarea name="indicador_superior" class="form-control form-control-sm" rows="3"
+                          placeholder="El estudiante supera los objetivos, profundiza y propone…">{{ item.indicador_superior|default:'' }}</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% if es_bilingue %}
+        {# Indicadores L2 #}
+        <div class="form-card">
+          <div class="form-card-header" style="background:linear-gradient(90deg,#f0f9ff,#e0f2fe);border-bottom:1px solid #bae6fd;">
+            <div class="fch-icon" style="background:#bae6fd;color:#0369a1;"><i class="bi bi-translate"></i></div>
+            <h6 style="color:#0369a1;">Indicadores de Desempeño en {{ idioma_secundario }}</h6>
+          </div>
+          <div class="form-card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="nivel-pill nivel-bajo"><i class="bi bi-arrow-down-circle-fill"></i> Bajo ({{ idioma_secundario }})</div>
+                <textarea name="indicador_bajo_L2" class="form-control form-control-sm" rows="3"
+                          placeholder="The student shows difficulty in…">{{ item.indicador_bajo_L2|default:'' }}</textarea>
+              </div>
+              <div class="col-md-6">
+                <div class="nivel-pill nivel-basico"><i class="bi bi-dash-circle-fill"></i> Básico ({{ idioma_secundario }})</div>
+                <textarea name="indicador_basico_L2" class="form-control form-control-sm" rows="3"
+                          placeholder="The student identifies and applies at a basic level…">{{ item.indicador_basico_L2|default:'' }}</textarea>
+              </div>
+              <div class="col-md-6">
+                <div class="nivel-pill nivel-alto"><i class="bi bi-arrow-up-circle-fill"></i> Alto ({{ idioma_secundario }})</div>
+                <textarea name="indicador_alto_L2" class="form-control form-control-sm" rows="3"
+                          placeholder="The student analyzes, relates and applies confidently…">{{ item.indicador_alto_L2|default:'' }}</textarea>
+              </div>
+              <div class="col-md-6">
+                <div class="nivel-pill nivel-superior"><i class="bi bi-star-fill"></i> Superior ({{ idioma_secundario }})</div>
+                <textarea name="indicador_superior_L2" class="form-control form-control-sm" rows="3"
+                          placeholder="The student exceeds objectives, deepens and proposes…">{{ item.indicador_superior_L2|default:'' }}</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>{# /col-lg-8 #}
+
+      {# ── Columna derecha ── #}
+      <div class="col-lg-4">
+
+        {# Metodología, recursos, evaluación #}
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="fch-icon"><i class="bi bi-tools"></i></div>
+            <h6>Estrategias Pedagógicas</h6>
+          </div>
+          <div class="form-card-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold" style="font-size:.82rem;">Metodología</label>
+              <textarea name="metodologia" class="form-control form-control-sm" rows="3"
+                        placeholder="Estrategias y enfoques pedagógicos a utilizar…">{{ item.metodologia|default:'' }}</textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold" style="font-size:.82rem;">Recursos y Medios</label>
+              <textarea name="recursos" class="form-control form-control-sm" rows="3"
+                        placeholder="Materiales, herramientas TIC, bibliografía…">{{ item.recursos|default:'' }}</textarea>
+            </div>
+            <div>
+              <label class="form-label fw-semibold" style="font-size:.82rem;">Criterios de Evaluación</label>
+              <textarea name="evaluacion" class="form-control form-control-sm" rows="3"
+                        placeholder="Formas e instrumentos de evaluación previstos…">{{ item.evaluacion|default:'' }}</textarea>
+            </div>
+          </div>
+        </div>
+
+        {# Acciones #}
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="fch-icon"><i class="bi bi-check2-square"></i></div>
+            <h6>Guardar cambios</h6>
+          </div>
+          <div class="form-card-body">
+            <p style="font-size:.78rem;color:#64748b;margin-bottom:1rem;">
+              Los cambios se reflejarán de inmediato en la malla curricular y serán visibles para todos los docentes de la institución.
+            </p>
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-save">
+                <i class="bi bi-floppy-fill me-1"></i> Guardar Cambios
+              </button>
+              <a href="{% url 'gestion_academica:malla_curricular_detalle' pk=item.malla.pk %}"
+                 class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-x-circle me-1"></i> Cancelar
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {# Info del ítem #}
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="fch-icon"><i class="bi bi-info-circle"></i></div>
+            <h6>Información del Ítem</h6>
+          </div>
+          <div class="form-card-body" style="font-size:.78rem;color:#475569;">
+            <div class="d-flex justify-content-between py-1 border-bottom">
+              <span class="text-muted">Malla</span>
+              <span class="fw-semibold text-end">{{ item.malla.materia }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-1 border-bottom">
+              <span class="text-muted">Grado</span>
+              <span class="fw-semibold">{{ item.malla.grado }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-1 border-bottom">
+              <span class="text-muted">Año lectivo</span>
+              <span class="fw-semibold">{{ item.malla.año_lectivo }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <span class="text-muted">Creado por</span>
+              <span class="fw-semibold">{{ item.malla.creado_por.get_full_name|default:"—" }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>{# /col-lg-4 #}
+    </div>{# /row #}
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+/* Auto-resize textareas */
+document.querySelectorAll('textarea').forEach(function(ta) {
+  ta.style.resize = 'vertical';
+});
+</script>
+{% endblock %}

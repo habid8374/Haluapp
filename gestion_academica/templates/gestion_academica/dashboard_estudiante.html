@@ -1,433 +1,759 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% load horario_filters %}
+{% load tz %}
 
 {% block titulo %}{{ titulo_pagina|default:"Mi Panel de Estudiante" }}{% endblock %}
 
-{% block extra_css %}
-    <style>
-        .schedule-widget .nav-tabs .nav-link { border: none; border-bottom: 2px solid transparent; color: #6c757d; font-weight: 500; padding: .5rem 1rem; }
-        .schedule-widget .nav-tabs .nav-link.active { color: #0d6efd; border-bottom-color: #0d6efd; background-color: transparent; }
-        .schedule-slot { display: flex; align-items: center; border: 1px solid #dee2e6; border-radius: .375rem; margin-bottom: 8px; min-height: 60px; overflow: hidden; background-color: #fff; }
-        .slot-time { display: flex; flex-direction: column; text-align: center; font-size: 0.8rem; font-weight: bold; color: white; padding: 0 5px; align-self: stretch; justify-content: center; }
-        .slot-time .start-time { background-color: #28a745; padding: 4px 0; border-top-left-radius: .3rem; }
-        .slot-time .end-time { background-color: #fd7e14; padding: 4px 0; border-bottom-left-radius: .3rem; }
-        .slot-number { font-size: 1.5rem; font-weight: 300; color: #adb5bd; padding: 0 15px; border-right: 1px solid #e9ecef; align-self: stretch; display: flex; align-items: center; }
-        .slot-content { padding: 10px 15px; font-size: 1rem; font-weight: 500; flex-grow: 1; }
-        .slot-receso { background-color: #6c757d; color: white; font-weight: bold; text-align: center; justify-content: center; }
-        .slot-receso .slot-time .start-time, .slot-receso .slot-time .end-time { background-color: #495057; }
-    </style>
-{% endblock %}
+{% block extrastyles %}
+{{ block.super }}
+<style>
+/* ═══════════════════════════════════════════════════
+   HALU PULSE — Dashboard Estudiante
+═══════════════════════════════════════════════════ */
+
+/* ── Hero ── */
+.est-hero {
+  position: relative;
+  background: linear-gradient(135deg, #0a3d8c 0%, #0b5ed7 55%, #2176ff 100%);
+  border-radius: 1.1rem;
+  padding: 2rem 2rem 2.4rem;
+  color: #fff;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.est-hero::before {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  top: -90px; right: -70px;
+  pointer-events: none;
+}
+.est-hero::after {
+  content: '';
+  position: absolute;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.045);
+  bottom: -60px; left: 35%;
+  pointer-events: none;
+}
+.est-hero .hero-badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 2rem;
+  padding: .25rem .8rem;
+  font-size: .73rem; font-weight: 700; letter-spacing: .3px;
+  margin-bottom: .8rem;
+  text-transform: uppercase;
+}
+.est-hero .hero-greeting {
+  font-size: 1.8rem; font-weight: 800;
+  line-height: 1.2; margin-bottom: .3rem;
+  font-family: 'Manrope', sans-serif;
+}
+.est-hero .hero-sub {
+  font-size: .9rem; opacity: .82; margin-bottom: 1.4rem;
+}
+.est-hero .hero-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.est-ha-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.28);
+  color: #fff; border-radius: .55rem;
+  padding: .45rem .95rem; font-size: .82rem; font-weight: 600;
+  text-decoration: none; transition: all .2s; cursor: pointer;
+}
+.est-ha-btn:hover { background: rgba(255,255,255,.26); color: #fff; transform: translateY(-1px); }
+.est-ha-btn.ha-white { background: #fff; color: #0b5ed7; border-color: transparent; }
+.est-ha-btn.ha-white:hover { background: #e8f0fe; color: #0b5ed7; }
+.est-ha-btn.ha-red { background: rgba(239,68,68,.22); border-color: rgba(239,68,68,.4); }
+.est-ha-btn.ha-red:hover { background: rgba(239,68,68,.38); }
+.est-ha-btn.opacity-50 { opacity: .5; pointer-events: none; }
+
+/* ── KPI Strip ── */
+.est-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: .85rem;
+  margin-bottom: 1.5rem;
+}
+.est-kpi {
+  background: #fff;
+  border-radius: .9rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid #dbe5f4;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+  transition: transform .2s, box-shadow .2s;
+  cursor: default;
+}
+.est-kpi:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(11,94,215,.13); }
+.est-kpi .kpi-icon {
+  width: 36px; height: 36px; border-radius: .55rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.05rem; margin-bottom: .55rem;
+}
+.est-kpi .kpi-val {
+  font-size: 1.65rem; font-weight: 800;
+  font-family: 'Manrope', sans-serif;
+  line-height: 1; margin-bottom: .15rem;
+}
+.est-kpi .kpi-lbl { font-size: .71rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+.kpi-blue  .kpi-icon { background: #eaf2ff; color: #1d4ed8; }
+.kpi-blue  .kpi-val  { color: #1d4ed8; }
+.kpi-amber .kpi-icon { background: #fefce8; color: #d97706; }
+.kpi-amber .kpi-val  { color: #d97706; }
+.kpi-red   .kpi-icon { background: #fef2f2; color: #dc2626; }
+.kpi-red   .kpi-val  { color: #dc2626; }
+.kpi-green .kpi-icon { background: #f0fdf4; color: #16a34a; }
+.kpi-green .kpi-val  { color: #16a34a; }
+
+/* ── Alert panels ── */
+.pulse-notif-panel {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #93c5fd; border-radius: .9rem;
+  padding: 1rem 1.25rem; margin-bottom: 1rem;
+}
+.pulse-notif-panel .pnp-head {
+  display: flex; align-items: center; gap: .5rem;
+  font-weight: 700; color: #1e40af; margin-bottom: .5rem; font-size: .92rem;
+}
+.pnp-item {
+  background: rgba(255,255,255,.75);
+  border-radius: .6rem; padding: .55rem .85rem;
+  margin-bottom: .4rem; font-size: .85rem;
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+}
+.pulse-mencion-panel {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 1px solid #86efac; border-radius: .9rem;
+  padding: 1rem 1.25rem; margin-bottom: 1rem;
+}
+.pulse-mencion-panel .pmp-head {
+  display: flex; align-items: center; gap: .5rem;
+  font-weight: 700; color: #15803d; margin-bottom: .5rem; font-size: .92rem;
+}
+
+/* ── Bloqueo por mora ── */
+.pulse-block-panel {
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  border: 2px solid #fca5a5; border-radius: 1rem;
+  padding: 1.5rem; margin-bottom: 1.5rem;
+}
+.pulse-block-panel .pbp-title {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: 1.1rem; font-weight: 800; color: #991b1b; margin-bottom: .75rem;
+  font-family: 'Manrope', sans-serif;
+}
+.pulse-block-stat {
+  background: #fff; border-radius: .7rem; padding: .8rem .5rem;
+  text-align: center; border: 1px solid #fca5a5;
+}
+.pulse-block-stat .pbs-val { font-size: 1.9rem; font-weight: 900; color: #dc2626; line-height: 1; font-family: 'Manrope', sans-serif; }
+.pulse-block-stat .pbs-lbl { font-size: .68rem; color: #64748b; margin-top: .25rem; font-weight: 600; text-transform: uppercase; }
+
+/* ── Cartera banner ── */
+.pulse-cartera-banner {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  border-radius: .9rem; padding: 1.1rem 1.4rem; margin-bottom: 1.5rem; border: 1px solid;
+}
+.pulse-cartera-banner.ok    { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border-color: #86efac; }
+.pulse-cartera-banner.vencida { background: linear-gradient(135deg,#fef2f2,#fee2e2); border-color: #fca5a5; }
+.pcb-icon { font-size: 2rem; flex-shrink: 0; }
+.pcb-title { font-weight: 700; font-size: .95rem; margin-bottom: .1rem; }
+.pcb-sub   { font-size: .8rem; color: #64748b; }
+
+/* ── Section headers ── */
+.pulse-sec-hdr {
+  display: flex; align-items: center; gap: .6rem;
+  margin: 1.8rem 0 .9rem;
+  padding-bottom: .55rem;
+  border-bottom: 2px solid #eaf2ff;
+}
+.pulse-sec-hdr .psh-icon {
+  width: 34px; height: 34px; border-radius: .5rem;
+  background: #eaf2ff; color: #1d4ed8;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+.pulse-sec-hdr h2 { font-size: 1.05rem; font-weight: 800; color: #0f3f90; margin: 0; }
+
+/* ── Calificaciones list ── */
+.pulse-cal-link {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .7rem .95rem; border-radius: .65rem; margin-bottom: .4rem;
+  background: #f7faff; border: 1px solid #dbe5f4;
+  text-decoration: none; color: inherit; transition: all .18s;
+}
+.pulse-cal-link:hover { background: #eaf2ff; border-color: #93c5fd; color: #0b5ed7; transform: translateX(3px); }
+.pulse-cal-link .pcl-name { font-weight: 600; font-size: .9rem; }
+.pulse-cal-badge { background: #0b5ed7; color: #fff; border-radius: 2rem; padding: .2rem .75rem; font-size: .76rem; font-weight: 700; flex-shrink: 0; }
+
+/* ── Inasistencias box ── */
+.pulse-inasist-box {
+  text-align: center; padding: 1.5rem 1rem;
+  background: #fff; border: 1px solid #dbe5f4; border-radius: .9rem;
+}
+.pulse-inasist-box .pia-num { font-size: 3.2rem; font-weight: 900; color: #d97706; line-height: 1; font-family: 'Manrope', sans-serif; }
+.pulse-inasist-box .pia-lbl { font-size: .78rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; margin: .3rem 0 1rem; }
+
+/* ── Accordion override ── */
+.accordion-button:not(.collapsed) { background: #eaf2ff; color: #0b5ed7; box-shadow: none; }
+.accordion-button { font-weight: 600; }
+.accordion-item { border-color: #dbe5f4 !important; margin-bottom: .4rem; border-radius: .65rem !important; overflow: hidden; }
+
+/* ── Elecciones ── */
+.pulse-elec-card {
+  background: #fff; border-radius: .9rem; border: 1px solid #dbe5f4;
+  box-shadow: 0 2px 8px rgba(11,94,215,.06);
+  padding: 1.1rem; transition: transform .2s, box-shadow .2s; height: 100%;
+}
+.pulse-elec-card:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(11,94,215,.12); }
+
+/* ── Horario PULSE ── */
+.pulse-horario-wrap {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: .9rem; overflow: hidden; margin-bottom: 1.5rem;
+}
+.pulse-horario-wrap .nav-tabs { border-bottom: 2px solid #eaf2ff; padding: .5rem .75rem 0; }
+.pulse-horario-wrap .nav-tabs .nav-link { border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; color: #64748b; font-weight: 600; font-size: .84rem; padding: .45rem .85rem; }
+.pulse-horario-wrap .nav-tabs .nav-link.active { color: #0b5ed7; border-bottom-color: #0b5ed7; background: transparent; }
+.pulse-sched-item {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .65rem .85rem; border-radius: .65rem; margin-bottom: .4rem;
+  background: #f7faff; border: 1px solid #dbe5f4;
+}
+.pulse-sched-time {
+  background: linear-gradient(135deg, #0b5ed7, #3b82f6);
+  color: #fff; border-radius: .4rem; padding: .3rem .55rem;
+  font-size: .68rem; font-weight: 700; text-align: center;
+  min-width: 56px; flex-shrink: 0; line-height: 1.5;
+}
+.pulse-sched-name { font-weight: 700; font-size: .88rem; color: #0f3f90; }
+.pulse-sched-aula { font-size: .75rem; color: #64748b; margin-top: .1rem; }
+
+/* ── Citas ── */
+.pulse-cita-row {
+  display: flex; align-items: flex-start; gap: .8rem;
+  padding: .9rem 1rem; border-radius: .75rem; margin-bottom: .5rem;
+  background: #fff; border: 1px solid #dbe5f4; border-left: 4px solid;
+}
+.pulse-cita-row.pendiente  { border-left-color: #f59e0b; }
+.pulse-cita-row.confirmada { border-left-color: #22c55e; }
+.pci-date { font-weight: 800; font-size: .82rem; min-width: 46px; text-align: center; flex-shrink: 0; }
+.pci-date .pci-time { font-size: .7rem; font-weight: 500; color: #64748b; margin-top: .1rem; }
+
+/* ── Noticias ── */
+.pulse-news-card {
+  border-radius: .9rem; border: 1px solid #dbe5f4; background: #fff;
+  overflow: hidden; box-shadow: 0 2px 8px rgba(11,94,215,.06);
+  transition: transform .2s, box-shadow .2s; height: 100%;
+  display: flex; flex-direction: column;
+}
+.pulse-news-card:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(11,94,215,.12); }
+.pulse-news-card img { width: 100%; height: 160px; object-fit: cover; display: block; }
+.pulse-news-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+.pulse-news-date { font-size: .71rem; color: #94a3b8; margin-bottom: .3rem; }
+.pulse-news-title { font-weight: 700; font-size: .9rem; color: #0f3f90; margin-bottom: .4rem; }
+.pulse-news-excerpt { font-size: .82rem; color: #4b5563; flex: 1; margin-bottom: .75rem; }
+
+@media (max-width: 768px) {
+  .est-hero { padding: 1.4rem 1.2rem 1.9rem; }
+  .est-hero .hero-greeting { font-size: 1.35rem; }
+  .est-kpi-strip { grid-template-columns: repeat(2, 1fr); }
+
+  /* ── Panel de notificaciones compacto en móvil ── */
+  .pulse-notif-panel {
+    padding: .65rem .85rem;
+    margin-bottom: .75rem;
+  }
+  .pulse-notif-panel .pnp-head {
+    font-size: .8rem;
+    margin-bottom: .35rem;
+    gap: .35rem;
+  }
+  .pnp-item {
+    padding: .38rem .6rem;
+    font-size: .78rem;
+    border-radius: .5rem;
+    margin-bottom: .3rem;
+    gap: .35rem;
+  }
+  .pnp-item .btn-close {
+    width: .65em; height: .65em;
+    flex-shrink: 0;
+  }
+}
+</style>
+{% endblock extrastyles %}
 
 {% block contenido %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-        <h1 class="h2 mb-0">¡Hola, {{ estudiante.usuario.first_name }}!</h1>
-        <div class="btn-group" role="group" aria-label="Menú del Estudiante">
-            <a href="{% if not estudiante_moroso and periodo_activo %}{% url 'gestion_academica:generar_boletin' estudiante_pk=estudiante.pk periodo_pk=periodo_activo.pk %}{% else %}#{% endif %}" 
-               class="btn btn-outline-primary {% if estudiante_moroso %}disabled{% endif %}"
-               target="_blank"> {# Añadimos target="_blank" para que el PDF se abra en una nueva pestaña #}
-                <i class="bi bi-file-earmark-text-fill me-1"></i> Mi Boletín
-            <a href="#seccion-horario" class="btn btn-outline-secondary"><i class="bi bi-table me-1"></i> Mi Horario</a>
-            <a href="{% if not estudiante_moroso %}#acordeonAsignaturas{% else %}#{% endif %}" class="btn btn-outline-success {% if estudiante_moroso %}disabled{% endif %}"><i class="bi bi-journals me-1"></i> Mis Asignaturas</a>
-            <a href="{% url 'gestion_academica:ver_mi_perfil' %}" class="btn btn-outline-info"><i class="bi bi-person-circle me-1"></i> Mi Perfil</a>
-        </div>
+<div class="container-fluid mt-3">
+
+  {# ══════════════════ HERO ══════════════════ #}
+  <div class="est-hero">
+    <div class="hero-badge"><i class="bi bi-mortarboard-fill"></i> Estudiante · {{ estudiante.grado_actual.nombre|default:"Sin grado asignado" }}</div>
+    <div class="hero-greeting">¡Hola, {{ estudiante.usuario.first_name|default:estudiante.usuario.username }}! 👋</div>
+    <div class="hero-sub" id="est-live-date">Cargando fecha…</div>
+    <div class="hero-actions">
+      <a href="{% if not estudiante_moroso and periodo_activo %}{% url 'gestion_academica:generar_boletin' estudiante_pk=estudiante.pk periodo_pk=periodo_activo.pk %}{% else %}#{% endif %}"
+         class="est-ha-btn ha-white {% if estudiante_moroso %}opacity-50{% endif %}"
+         {% if not estudiante_moroso and periodo_activo %}target="_blank" rel="noopener"{% endif %}>
+        <i class="bi bi-file-earmark-text-fill"></i> Mi Boletín
+      </a>
+      <a href="#seccion-horario" class="est-ha-btn"><i class="bi bi-table"></i> Mi Horario</a>
+      <a href="{% if not estudiante_moroso %}#acordeonAsignaturas{% else %}#{% endif %}"
+         class="est-ha-btn {% if estudiante_moroso %}opacity-50{% endif %}">
+        <i class="bi bi-journals"></i> Asignaturas
+      </a>
+      <a href="{% url 'gestion_academica:ver_mi_perfil' %}" class="est-ha-btn"><i class="bi bi-person-circle"></i> Perfil</a>
+      <a href="{% url 'mensajeria:nuevo' %}" class="est-ha-btn"><i class="bi bi-chat-dots-fill"></i> Mensaje</a>
+      <a href="{% url 'finanzas:mi_estado_de_cuenta' %}" class="est-ha-btn ha-red"><i class="bi bi-credit-card-fill"></i> Pagos</a>
     </div>
-    {# 1. Alerta de Notificaciones (siempre visible) #}
-    {# 1. Alerta de Notificaciones (Ahora muestra los mensajes directamente) #}
-{% if notificaciones_sin_leer %}
-    <div id="dashboard-notifications" class="alert alert-info shadow-sm" role="alert">
-        <h4 class="alert-heading"><i class="bi bi-bell-fill"></i> ¡Tienes Notificaciones Nuevas!</h4>
-        <hr>
-        <ul class="list-unstyled mb-0">
-            {% for notificacion in notificaciones_sin_leer %}
-                <li id="notification-{{ notificacion.pk }}" class="mb-2 alert alert-light p-2 rounded d-flex justify-content-between align-items-center">
-                    <span>
-                        <i class="bi bi-chat-right-text-fill me-2"></i>
-                        {{ notificacion.mensaje }}
-                        
-                        {% if notificacion.enlace %}
-                            <a href="{{ notificacion.enlace }}" class="alert-link fw-bold ms-2">
-                                Ver ahora <i class="bi bi-arrow-right-short"></i>
-                            </a>
-                        {% endif %}
-                    </span>
-                    <button type="button" class="btn-close ms-2" data-notificacion-id="{{ notificacion.pk }}" aria-label="Marcar como leída"></button>
-                </li>
-            {% endfor %}
-        </ul>
-        <div class="mt-3 text-end">
-            <a href="{% url 'gestion_academica:lista_notificaciones' %}" class="btn btn-outline-info btn-sm">
-                Ver todas mis notificaciones
-            </a>
-        </div>
+  </div>
+
+  {# ══════════════════ KPI STRIP ══════════════════ #}
+  <div class="est-kpi-strip">
+    <div class="est-kpi {% if cuentas_vencidas_count == 0 %}kpi-green{% else %}kpi-red{% endif %}">
+      <div class="kpi-icon">
+        {% if cuentas_vencidas_count == 0 %}<i class="bi bi-check-circle-fill"></i>{% else %}<i class="bi bi-wallet-fill"></i>{% endif %}
+      </div>
+      <div class="kpi-val">{% if cuentas_vencidas_count == 0 %}✓{% else %}{{ cuentas_vencidas_count }}{% endif %}</div>
+      <div class="kpi-lbl">{% if cuentas_vencidas_count == 0 %}Cartera al día{% else %}Pago(s) vencido(s){% endif %}</div>
     </div>
-{% endif %}
+    <div class="est-kpi kpi-amber">
+      <div class="kpi-icon"><i class="bi bi-person-x-fill"></i></div>
+      <div class="kpi-val">{{ inasistencias_periodo|default:"0" }}</div>
+      <div class="kpi-lbl">Inasistencias</div>
+    </div>
+    <div class="est-kpi kpi-blue">
+      <div class="kpi-icon"><i class="bi bi-collection-fill"></i></div>
+      <div class="kpi-val">{{ materias_con_calificaciones|length }}</div>
+      <div class="kpi-lbl">Materias con notas</div>
+    </div>
+    <div class="est-kpi kpi-blue">
+      <div class="kpi-icon"><i class="bi bi-bell-fill"></i></div>
+      <div class="kpi-val">{{ notificaciones_sin_leer|length }}</div>
+      <div class="kpi-lbl">Notificaciones</div>
+    </div>
+  </div>
 
-    {# 2. Alerta de Felicitaciones (siempre visible) #}
-    {% if ultimas_menciones %}
-        <div class="alert alert-success shadow-sm" role="alert">
-            <h4 class="alert-heading"><i class="bi bi-award-fill"></i> ¡Felicidades!</h4>
-            <ul class="mb-0">
-                {% for mencion in ultimas_menciones %}
-                    <li>{{ mencion.tipo }}: {{ mencion.descripcion|truncatewords:10 }} <a href="{% url 'gestion_academica:generar_mencion_pdf' mencion_pk=mencion.pk %}" target="_blank" class="alert-link ms-2">Ver Diploma</a></li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
+  {# ══════════════════ NOTIFICACIONES ══════════════════ #}
+  {% if notificaciones_sin_leer %}
+  <div class="pulse-notif-panel" id="dashboard-notifications">
+    <div class="pnp-head"><i class="bi bi-bell-fill"></i> Tienes {{ notificaciones_sin_leer|length }} notificación(es) nueva(s)</div>
+    {% for notificacion in notificaciones_sin_leer %}
+    <div class="pnp-item" id="notification-{{ notificacion.pk }}">
+      <span>
+        <i class="bi bi-chat-right-text-fill me-2 text-primary"></i>{{ notificacion.mensaje }}
+        {% if notificacion.enlace %}
+          <a href="{{ notificacion.enlace }}" class="fw-bold ms-2 text-primary">Ver ahora <i class="bi bi-arrow-right-short"></i></a>
+        {% endif %}
+      </span>
+      <button type="button" class="btn-close flex-shrink-0" data-notificacion-id="{{ notificacion.pk }}" aria-label="Marcar como leída"></button>
+    </div>
+    {% endfor %}
+    <div class="text-end mt-2">
+      <a href="{% url 'gestion_academica:lista_notificaciones' %}" class="btn btn-sm btn-outline-primary">Ver todas mis notificaciones</a>
+    </div>
+  </div>
+  {% endif %}
 
-
-    {% if ultimas_menciones and not estudiante_moroso %}
-<div class="alert alert-success shadow-sm" role="alert">
-    <h4 class="alert-heading"><i class="bi bi-award-fill"></i> ¡Felicidades, {{ estudiante.usuario.first_name }}!</h4>
-    <p>Has recibido nuevos reconocimientos por tu excelente desempeño. ¡Estamos muy orgullosos de ti!</p>
-    <hr>
-    <ul class="mb-0">
-        {% for mencion in ultimas_menciones %}
-        <li>
-            <strong>{{ mencion.tipo }}:</strong> {{ mencion.descripcion|truncatewords:10 }}
-            <a href="{% url 'gestion_academica:generar_mencion_pdf' mencion_pk=mencion.pk %}" target="_blank" class="alert-link ms-2">Ver Diploma <i class="bi bi-box-arrow-up-right"></i></a>
-        </li>
-        {% endfor %}
+  {# ══════════════════ MENCIONES ══════════════════ #}
+  {% if ultimas_menciones %}
+  <div class="pulse-mencion-panel">
+    <div class="pmp-head">
+      <i class="bi bi-award-fill"></i>
+      {% if estudiante_moroso %}Reconocimientos recientes
+      {% else %}¡Felicidades, {{ estudiante.usuario.first_name }}! 🏆{% endif %}
+    </div>
+    {% if estudiante_moroso %}<p class="small mb-2 text-muted">Al regularizar pagos podrás descargar diplomas desde aquí.</p>{% endif %}
+    <ul class="mb-0 ps-3">
+      {% for mencion in ultimas_menciones %}
+      <li class="mb-1 small">
+        <strong>{{ mencion.tipo }}:</strong> {{ mencion.descripcion|truncatewords:12 }}
+        {% if not estudiante_moroso %}
+        <a href="{% url 'gestion_academica:generar_mencion_pdf' mencion_pk=mencion.pk %}" target="_blank" rel="noopener" class="ms-2 text-success fw-bold">
+          Ver diploma <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+        {% endif %}
+      </li>
+      {% endfor %}
     </ul>
-</div>
-{% endif %}
-    
-    {% if estudiante_moroso %}
-    <div class="alert alert-danger text-center shadow-sm my-4" role="alert">
-        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Acceso Restringido</h4>
-        <p>Hemos detectado pagos vencidos en tu cuenta. Para volver a tener acceso a tus calificaciones, tareas y boletín, por favor regulariza tu situación financiera.</p>
-        <p class="mb-0">Puedes ver los detalles y realizar tu pago en la sección "Estado de Cartera".</p>
+  </div>
+  {% endif %}
+
+  {# ══════════════════ BLOQUEO POR MORA ══════════════════ #}
+  {% if portal_bloqueado_por_mora %}
+  <div class="pulse-block-panel">
+    <div class="pbp-title"><i class="bi bi-shield-lock-fill"></i> Tu portal académico está bloqueado</div>
+    <p class="small mb-3" style="color:#7f1d1d;">
+      Hemos detectado pagos vencidos. Mientras existan, <strong>no podrás acceder</strong> a deberes, calificaciones, lecciones, boletín ni el aula virtual.
+    </p>
+    <div class="row g-3 mb-3">
+      <div class="col-4"><div class="pulse-block-stat"><div class="pbs-val">{{ cuentas_vencidas_count }}</div><div class="pbs-lbl">Cuentas vencidas</div></div></div>
+      <div class="col-4"><div class="pulse-block-stat"><div class="pbs-val">{{ dias_atraso_max }}</div><div class="pbs-lbl">Días de atraso máx.</div></div></div>
+      <div class="col-4"><div class="pulse-block-stat"><div class="pbs-val">${{ saldo_total_vencido|floatformat:0 }}</div><div class="pbs-lbl">Saldo vencido</div></div></div>
+    </div>
+    {% if cuentas_vencidas_lista %}
+    <div class="table-responsive mb-3">
+      <table class="table table-sm table-bordered align-middle mb-0 bg-white rounded">
+        <thead class="table-light">
+          <tr><th>Concepto</th><th>Vencimiento</th><th class="text-end">Saldo</th></tr>
+        </thead>
+        <tbody>
+          {% for cuenta in cuentas_vencidas_lista %}
+          <tr>
+            <td>{{ cuenta.concepto_pago.nombre|default:"Concepto sin nombre" }}</td>
+            <td>{{ cuenta.fecha_vencimiento_especifica|date:"d M, Y" }}</td>
+            <td class="text-end">${{ cuenta.saldo_pendiente|floatformat:0 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
     {% endif %}
-
-    <div class="row g-4 mb-4">
-    <div class="col-12">
-        {# La lógica ahora solo depende de si hay cuentas VENCIDAS #}
-        <div class="card shadow-sm h-100 {% if cuentas_vencidas_count > 0 %}border-danger border-2{% else %}border-success border-2{% endif %}">
-            <div class="card-header {% if cuentas_vencidas_count > 0 %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
-                <i class="bi bi-wallet-fill me-2"></i>Estado de Cartera
-            </div>
-            <div class="card-body text-center d-flex flex-column justify-content-center">
-                
-                {# Caso 1: Hay cuentas VENCIDAS (ROJO) #}
-                {% if cuentas_vencidas_count > 0 %}
-                    <i class="bi bi-exclamation-triangle-fill text-danger fs-1"></i>
-                    <p class="fs-5 mt-2">Tienes <strong>{{ cuentas_vencidas_count }}</strong> pago(s) vencido(s).</p>
-                    <a href="{% url 'finanzas:mi_estado_de_cuenta' %}" class="btn btn-danger mt-auto">Ver y Pagar Urgente</a>
-                
-                {# Caso 2: NO hay vencidas (VERDE) #}
-                {% else %}
-                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
-                    <p class="fs-5 mt-2">¡Felicitaciones! Estás al día con tus pagos.</p>
-                    <a href="{% url 'finanzas:mi_estado_de_cuenta' %}" class="btn btn-outline-success mt-auto">Ver Historial de Pagos</a>
-                {% endif %}
-
-            </div>
-        </div>
+    <div class="text-center">
+      <a href="{% url 'finanzas:mi_estado_de_cuenta' %}" class="btn btn-danger px-4 py-2">
+        <i class="bi bi-credit-card-fill me-2"></i>Pagar ahora y desbloquear el portal
+      </a>
+      <p class="text-muted small mt-2 mb-0">Una vez registrado el pago, recarga esta página y el acceso se reactivará automáticamente.</p>
     </div>
-</div>
-    
-    {% if not estudiante_moroso %}
+  </div>
+  {% endif %}
 
-    
-    <div class="row g-4">
-        <div class="col-lg-8">
-             <div class="card shadow-sm h-100">
-                <div class="card-header bg-primary text-white"><i class="bi bi-collection-fill me-2"></i>Calificaciones Recientes por Asignatura</div>
-                <div class="card-body">
-                    {% if materias_con_calificaciones %}
-                        <p class="card-text text-muted">Haz clic en una asignatura para ver el detalle de tus últimas notas.</p>
-                        <div class="list-group">
-                            {% for materia, calificaciones_lista in materias_con_calificaciones.items %}
-                                <a href="{% url 'gestion_academica:detalle_calificaciones_por_materia' materia_pk=materia.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                    <strong>{{ materia.nombre_materia }}</strong>
-                                    <span class="badge bg-primary rounded-pill">{{ calificaciones_lista|length }}</span>
-                                </a>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-light text-center m-0">Aún no se han registrado calificaciones en este periodo.</div>
-                    {% endif %}
-                </div>
-             </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-warning text-dark"><i class="bi bi-person-x-fill me-2"></i>Registro de Inasistencias</div>
-                <div class="card-body text-center d-flex flex-column justify-content-center">
-                    <p class="fs-1 fw-bold mb-0">{{ inasistencias_periodo }}</p>
-                    <p class="text-muted">Inasistencias en el periodo</p>
-                    <a href="{% url 'gestion_academica:mi_historial_asistencia' %}" class="btn btn-outline-secondary mt-auto btn-sm">Ver Detalle</a>
-                </div>
-            </div>
-        </div>
+  {# ══════════════════ CARTERA BANNER ══════════════════ #}
+  <div class="pulse-cartera-banner {% if cuentas_vencidas_count > 0 %}vencida{% else %}ok{% endif %}">
+    <div class="pcb-icon">
+      {% if cuentas_vencidas_count > 0 %}<i class="bi bi-exclamation-triangle-fill text-danger"></i>
+      {% else %}<i class="bi bi-check-circle-fill text-success"></i>{% endif %}
     </div>
-    
-    <h2 id="acordeonAsignaturas" class="h3 mt-5 mb-3"><i class="bi bi-journal-richtext me-2"></i>Mis Asignaturas</h2>
-    {% if cursos_info %}
-        <div class="accordion" id="acordeonAsignaturasContainer">
-            {% for curso in cursos_info %}
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="heading-asig-{{ curso.pk }}">
-    <button class="accordion-button collapsed d-flex flex-column flex-md-row justify-content-between align-items-start gap-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-asig-{{ curso.pk }}">
-        <strong>{{ curso.materia.nombre_materia }}</strong>
-        <small class="text-muted text-end">
-            Docente: {% for docente in curso.docentes_asignados.all %}
-                {{ docente.usuario.get_full_name }}{% if not forloop.last %}, {% endif %}
-            {% empty %}No asignado{% endfor %}<br>
+    <div class="flex-grow-1">
+      <div class="pcb-title">
+        {% if cuentas_vencidas_count > 0 %}Tienes {{ cuentas_vencidas_count }} pago(s) vencido(s)
+        {% else %}¡Felicitaciones! Estás al día con tus pagos.{% endif %}
+      </div>
+      <div class="pcb-sub">Estado de cartera · Periodo activo</div>
+    </div>
+    <a href="{% url 'finanzas:mi_estado_de_cuenta' %}" class="btn btn-sm {% if cuentas_vencidas_count > 0 %}btn-danger{% else %}btn-outline-success{% endif %} flex-shrink-0">
+      {% if cuentas_vencidas_count > 0 %}Ver y Pagar Urgente{% else %}Ver Historial de Pagos{% endif %}
+    </a>
+  </div>
+
+  {# ══════════════════ SECCIÓN ACADÉMICA (solo si no moroso) ══════════════════ #}
+  {% if not estudiante_moroso %}
+
+  {# Calificaciones + Inasistencias #}
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="pulse-sec-hdr">
+        <div class="psh-icon"><i class="bi bi-collection-fill"></i></div>
+        <h2>Calificaciones por Asignatura</h2>
+      </div>
+      {% if materias_con_calificaciones %}
+        <p class="text-muted small mb-2">Haz clic en una asignatura para ver el detalle de tus últimas notas.</p>
+        {% for materia, calificaciones_lista in materias_con_calificaciones.items %}
+        <a href="{% url 'gestion_academica:detalle_calificaciones_por_materia' materia_pk=materia.pk %}" class="pulse-cal-link">
+          <span class="pcl-name">{{ materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and materia.nombre_idioma_secundario %} / {{ materia.nombre_idioma_secundario }}{% endif %}</span>
+          <span class="pulse-cal-badge">{{ calificaciones_lista|length }}</span>
+        </a>
+        {% endfor %}
+      {% else %}
+        <div class="text-center p-4 text-muted fst-italic" style="background:#f7faff;border:1px solid #dbe5f4;border-radius:.85rem;">
+          Aún no se han registrado calificaciones en este periodo.
+        </div>
+      {% endif %}
+    </div>
+    <div class="col-lg-4">
+      <div class="pulse-sec-hdr">
+        <div class="psh-icon" style="background:#fefce8;color:#d97706;"><i class="bi bi-person-x-fill"></i></div>
+        <h2>Inasistencias</h2>
+      </div>
+      <div class="pulse-inasist-box">
+        <div class="pia-num">{{ inasistencias_periodo }}</div>
+        <div class="pia-lbl">Inasistencias en el periodo</div>
+        <a href="{% url 'gestion_academica:mi_historial_asistencia' %}" class="btn btn-sm btn-outline-secondary">Ver Detalle</a>
+      </div>
+    </div>
+  </div>
+
+  {# ══════════════════ ASIGNATURAS ══════════════════ #}
+  <div class="pulse-sec-hdr" id="acordeonAsignaturas">
+    <div class="psh-icon"><i class="bi bi-journal-richtext"></i></div>
+    <h2>Mis Asignaturas</h2>
+  </div>
+  {% if cursos_info %}
+  <div class="accordion mb-4" id="acordeonAsignaturasContainer">
+    {% for curso in cursos_info %}
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="heading-asig-{{ curso.pk }}">
+        <button class="accordion-button collapsed d-flex flex-column flex-md-row justify-content-between align-items-start gap-1"
+                type="button" data-bs-toggle="collapse" data-bs-target="#collapse-asig-{{ curso.pk }}">
+          <strong>{{ curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and curso.materia.nombre_idioma_secundario %} / {{ curso.materia.nombre_idioma_secundario }}{% endif %}</strong>
+          <small class="text-muted text-end">
+            Docente: {% for docente in curso.docentes_asignados.all %}{{ docente.usuario.get_full_name }}{% if not forloop.last %}, {% endif %}{% empty %}No asignado{% endfor %}<br>
             Aula: {{ curso.aula.nombre|default:"Sin aula asignada" }}
-        </small>
-    </button>
-</h2>
-                <div id="collapse-asig-{{ curso.pk }}" class="accordion-collapse collapse" data-bs-parent="#acordeonAsignaturasContainer">
-                    <div class="accordion-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6><i class="bi bi-pencil-square text-primary"></i> Actividades de Aprendizaje</h6>
-                                <div class="list-group">
-                                    {% for deber in curso.deberes.all %}
-                                        <a href="{% url 'gestion_academica:realizar_entrega_deber' deber_pk=deber.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                            <div><i class="bi bi-journal-check me-2"></i><strong>Tarea:</strong> {{ deber.titulo }}</div>
-                                            <span class="badge bg-danger">Entrega: {{ deber.fecha_entrega|date:"d M" }}</span>
-                                        </a>
-                                    {% endfor %}
-                                    {% for actividad in curso.actividades_calificables.all %}
-                                            {% if actividad.cuestionario %}  {# CORRECTO #}
-                                                <!-- Si la actividad TIENE un cuestionario asociado -->
-                                                <a href="{% url 'cuestionarios:iniciar_cuestionario' actividad.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center list-group-item-info">
-                                                    <div><i class="bi bi-pencil-fill me-2"></i><strong>Evaluación:</strong> {{ actividad.titulo }}</div>
-                                                    <span class="badge bg-primary rounded-pill">Resolver Ahora</span>
-                                                </a>
-                                            {% else %}
-                                                <!-- Si es una actividad normal (sin cuestionario) -->
-                                                <div class="list-group-item list-group-item-light">
-                                                    <i class="bi bi-clipboard-pulse me-2"></i><strong>Actividad:</strong> {{ actividad.titulo }}
-                                                    {% if actividad.fecha_entrega_limite %}<span class="float-end text-muted small">Fecha: {{ actividad.fecha_entrega_limite|date:"d M, Y" }}</span>{% endif %}
-                                                </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                        {% if not curso.deberes.all and not curso.actividades_calificables.all %}
-                                            <div class="list-group-item">No hay actividades para este curso.</div>
-                                        {% endif %}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <h6><i class="bi bi-folder2-open text-success"></i> Material de Apoyo</h6>
-                                <div class="list-group">
-                                    {% for recurso in curso.archivos_material_apoyo_curso.all %}
-                                        <a href="{{ recurso.archivo.url }}" target="_blank" class="list-group-item list-group-item-action"><i class="bi bi-paperclip"></i> {{ recurso.nombre_archivo_descriptivo }}</a>
-                                    {% empty %}
-                                        <span class="list-group-item">No hay material de apoyo.</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-     <!-- ▼▼▼ INICIO DE LA SECCIÓN DE ELECCIONES AÑADIDA ▼▼▼ -->
-    <hr class="my-4">
-    <h2 class="h3 mb-3"><i class="bi bi-person-check-fill me-2"></i>Elecciones Escolares Activas</h2>
-    
-    <div class="row">
-        {% for eleccion in elecciones_activas %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">{{ eleccion.nombre }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">{{ eleccion.cargo }}</h6>
-                        <p class="card-text small">
-                            <strong>Finaliza el:</strong> {{ eleccion.fecha_fin|date:"d \d\e F \d\e Y \a \l\a\s h:i A" }}
-                        </p>
-                        
-                        <div class="mt-auto text-center">
-                            {% if eleccion.id in votos_emitidos_ids %}
-                                <button class="btn btn-success" disabled>
-                                    <i class="bi bi-check-circle-fill me-2"></i>Ya Votaste
-                                </button>
-                            {% elif eleccion.num_candidatos > 0 %}
-                                <a href="{% url 'gestion_academica:votar_eleccion' eleccion.id %}" class="btn btn-primary">
-                                    <i class="bi bi-box-arrow-in-right me-2"></i>Votar Ahora
-                                </a>
-                            {% else %}
-                                <button class="btn btn-secondary" disabled>Aún no hay candidatos</button>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% empty %}
-            <div class="col-12">
-                <div class="alert alert-info text-center">
-                    No hay elecciones activas en este momento.
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-
-    {% endif %}
-    <h2 class="h3 mt-5 mb-3"><i class="bi bi-calendar-week me-2"></i>Mi Horario Semanal</h2>
-<div class="card shadow-sm mb-4">
-    <div class="card-header bg-light">
-        <ul class="nav nav-tabs card-header-tabs" id="horarioTab" role="tablist">
-            {% for dia_num, dia_nombre in dias_semana %}
-                {% if dia_num < 5 %} {# Mostramos solo de Lunes a Viernes #}
-                    <li class="nav-item" role="presentation">
-                        <button 
-                            class="nav-link {% if dia_num == dia_semana_hoy %}active{% endif %}" 
-                            id="dia-{{ dia_num }}-tab" 
-                            data-bs-toggle="tab" 
-                            data-bs-target="#dia-{{ dia_num }}" 
-                            type="button" 
-                            role="tab" 
-                            aria-controls="dia-{{ dia_num }}" 
-                            aria-selected="{% if dia_num == dia_semana_hoy %}true{% else %}false{% endif %}">
-                            {{ dia_nombre }}
-                        </button>
-                    </li>
+          </small>
+        </button>
+      </h2>
+      <div id="collapse-asig-{{ curso.pk }}" class="accordion-collapse collapse" data-bs-parent="#acordeonAsignaturasContainer">
+        <div class="accordion-body bg-light">
+          <div class="row">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <h6 class="fw-bold text-primary mb-2"><i class="bi bi-pencil-square me-1"></i> Actividades de Aprendizaje</h6>
+              <div class="list-group">
+                {% for deber in curso.deberes.all %}
+                <a href="{% url 'gestion_academica:realizar_entrega_deber' deber_pk=deber.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                  <div><i class="bi bi-journal-check me-2"></i><strong>Tarea:</strong> {{ deber.titulo }}</div>
+                  <span class="badge bg-danger">Entrega: {{ deber.fecha_entrega|date:"d M" }}</span>
+                </a>
+                {% endfor %}
+                {% for actividad in curso.actividades_calificables.all %}
+                  {% if actividad.cuestionario %}
+                  <a href="{% url 'cuestionarios:iniciar_cuestionario' actividad.pk %}" class="list-group-item list-group-item-action list-group-item-info d-flex justify-content-between align-items-center">
+                    <div><i class="bi bi-pencil-fill me-2"></i><strong>Evaluación:</strong> {{ actividad.titulo }}</div>
+                    <span class="badge bg-primary rounded-pill">Resolver Ahora</span>
+                  </a>
+                  {% else %}
+                  <div class="list-group-item list-group-item-light">
+                    <i class="bi bi-clipboard-pulse me-2"></i><strong>Actividad:</strong> {{ actividad.titulo }}
+                    {% if actividad.fecha_entrega_limite %}<span class="float-end text-muted small">Fecha: {{ actividad.fecha_entrega_limite|date:"d M, Y" }}</span>{% endif %}
+                  </div>
+                  {% endif %}
+                {% endfor %}
+                {% if not curso.deberes.all and not curso.actividades_calificables.all %}
+                <div class="list-group-item text-muted fst-italic">No hay actividades para este curso.</div>
                 {% endif %}
-            {% endfor %}
-        </ul>
-    </div>
-    <div class="card-body">
-        <div class="tab-content" id="horarioTabContent">
-            {% for dia_num, dia_nombre in dias_semana %}
-                {% if dia_num < 5 %}
-                    <div 
-                        class="tab-pane fade {% if dia_num == dia_semana_hoy %}show active{% endif %}" 
-                        id="dia-{{ dia_num }}" 
-                        role="tabpanel" 
-                        aria-labelledby="dia-{{ dia_num }}-tab">
-                        
-                        <ul class="list-group list-group-flush">
-                            {% with bloques_del_dia=horario_agrupado|get_item:dia_num %}
-                                {% for bloque in bloques_del_dia %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="fw-bold">{{ bloque.curso.materia.nombre_materia }}</div>
-                                            <small class="text-muted">Aula: {{ bloque.aula.nombre|default:"N/A" }}</small>
-                                        </div>
-                                        <span class="badge bg-primary rounded-pill">{{ bloque.hora_inicio|time:"g:i A" }} - {{ bloque.hora_fin|time:"g:i A" }}</span>
-                                    </li>
-                                {% empty %}
-                                    <li class="list-group-item text-center text-muted fst-italic p-3">
-                                        No tienes clases programadas para este día.
-                                    </li>
-                                {% endfor %}
-                            {% endwith %}
-                        </ul>
-
-                    </div>
-                {% endif %}
-            {% endfor %}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6 class="fw-bold text-success mb-2"><i class="bi bi-folder2-open me-1"></i> Material de Apoyo</h6>
+              <div class="list-group">
+                {% for recurso in curso.archivos_material_apoyo_curso.all %}
+                <a href="{{ recurso.archivo.url }}" target="_blank" class="list-group-item list-group-item-action">
+                  <i class="bi bi-paperclip me-1"></i> {{ recurso.nombre_archivo_descriptivo }}
+                </a>
+                {% empty %}
+                <span class="list-group-item text-muted fst-italic">No hay material de apoyo.</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
+  {# ══════════════════ ELECCIONES ══════════════════ #}
+  <div class="pulse-sec-hdr">
+    <div class="psh-icon" style="background:#fdf4ff;color:#a21caf;"><i class="bi bi-person-check-fill"></i></div>
+    <h2>Elecciones Escolares Activas</h2>
+  </div>
+  <div class="row g-3 mb-2">
+    {% for eleccion in elecciones_activas %}
+    <div class="col-md-6 col-lg-4">
+      <div class="pulse-elec-card">
+        <h6 class="fw-bold mb-1">{{ eleccion.nombre }}</h6>
+        <p class="text-muted small mb-1">{{ eleccion.cargo }}</p>
+        <p class="small mb-3 text-muted"><i class="bi bi-clock me-1"></i>Finaliza: {{ eleccion.fecha_fin|date:"d \d\e F \d\e Y" }}</p>
+        <div class="text-center">
+          {% if eleccion.id in votos_emitidos_ids %}
+          <button class="btn btn-success btn-sm" disabled><i class="bi bi-check-circle-fill me-1"></i>Ya Votaste</button>
+          {% elif eleccion.num_candidatos > 0 %}
+          <a href="{% url 'gestion_academica:votar_eleccion' eleccion.id %}" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-in-right me-1"></i>Votar Ahora</a>
+          {% else %}
+          <button class="btn btn-secondary btn-sm" disabled>Aún no hay candidatos</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="text-center text-muted fst-italic p-3" style="background:#f7faff;border:1px solid #dbe5f4;border-radius:.85rem;">
+        No hay elecciones activas en este momento.
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 
-    <h2 class="h3 mt-5 mb-3"><i class="bi bi-newspaper me-2"></i>Últimas Noticias y Anuncios</h2>
-    <div class="row g-4">
-        {% for noticia_item in ultimas_noticias %}
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm">
-                    {% if noticia_item.imagen_destacada %}
-                        <a href="{% url 'gestion_academica:detalle_noticia' pk=noticia_item.pk %}">
-                            <img src="{{ noticia_item.imagen_destacada.url }}" class="card-img-top" alt="{{ noticia_item.titulo }}" style="height: 200px; object-fit: cover;">
-                        </a>
-                    {% endif %}
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">{{ noticia_item.titulo }}</h5>
-                        <p class="card-text text-muted small">{{ noticia_item.fecha_publicacion|date:"d M, Y" }}</p>
-                        <p class="card-text">{{ noticia_item.contenido|truncatewords:15 }}</p>
-                        <a href="{% url 'gestion_academica:detalle_noticia' pk=noticia_item.pk %}" class="btn btn-outline-primary mt-auto align-self-start">Leer Más</a>
-                    </div>
-                </div>
-            </div>
-        {% empty %}
-            <div class="col-12">
-                <div class="alert alert-light">No hay noticias recientes para mostrar.</div>
-            </div>
+  {% endif %}{# fin not estudiante_moroso #}
+
+  {# ══════════════════ HORARIO SEMANAL ══════════════════ #}
+  <div class="pulse-sec-hdr" id="seccion-horario">
+    <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar-week"></i></div>
+    <h2>Mi Horario Semanal</h2>
+  </div>
+  <div class="pulse-horario-wrap mb-4">
+    <div>
+      <ul class="nav nav-tabs" id="horarioTab" role="tablist">
+        {% for dia_num, dia_nombre in dias_semana %}
+          {% if dia_num < 5 %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link {% if dia_num == dia_semana_hoy %}active{% endif %}"
+                    id="dia-{{ dia_num }}-tab" data-bs-toggle="tab"
+                    data-bs-target="#dia-{{ dia_num }}" type="button" role="tab"
+                    aria-controls="dia-{{ dia_num }}"
+                    aria-selected="{% if dia_num == dia_semana_hoy %}true{% else %}false{% endif %}">
+              {{ dia_nombre }}
+            </button>
+          </li>
+          {% endif %}
         {% endfor %}
+      </ul>
     </div>
+    <div class="tab-content p-3" id="horarioTabContent">
+      {% for dia_num, dia_nombre in dias_semana %}
+        {% if dia_num < 5 %}
+        <div class="tab-pane fade {% if dia_num == dia_semana_hoy %}show active{% endif %}"
+             id="dia-{{ dia_num }}" role="tabpanel" aria-labelledby="dia-{{ dia_num }}-tab">
+          {% with bloques_del_dia=horario_agrupado|get_item:dia_num %}
+            {% for bloque in bloques_del_dia %}
+            <div class="pulse-sched-item">
+              <div class="pulse-sched-time">
+                {{ bloque.hora_inicio|time:"g:i A" }}<br>{{ bloque.hora_fin|time:"g:i A" }}
+              </div>
+              <div>
+                <div class="pulse-sched-name">{{ bloque.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and bloque.curso.materia.nombre_idioma_secundario %} / {{ bloque.curso.materia.nombre_idioma_secundario }}{% endif %}</div>
+                <div class="pulse-sched-aula"><i class="bi bi-door-closed me-1"></i>{{ bloque.aula.nombre|default:"Sin aula" }}</div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted fst-italic p-4">No tienes clases programadas para este día.</div>
+            {% endfor %}
+          {% endwith %}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  {# ══════════════════ CITAS ══════════════════ #}
+  {% if citas_estudiante %}
+  <div class="pulse-sec-hdr">
+    <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar2-heart-fill"></i></div>
+    <h2>Reuniones con Docentes</h2>
+  </div>
+  <div class="mb-4">
+    {% for cita in citas_estudiante %}
+    <div class="pulse-cita-row {% if cita.estado == 'PENDIENTE' %}pendiente{% else %}confirmada{% endif %}">
+      <div class="pci-date {% if cita.estado == 'PENDIENTE' %}text-warning{% else %}text-success{% endif %}">
+        {{ cita.fecha_hora_inicio|localtime|date:"d M" }}
+        <div class="pci-time">{{ cita.fecha_hora_inicio|localtime|time:"g:i A" }}</div>
+      </div>
+      <div class="flex-grow-1 overflow-hidden">
+        <div class="fw-semibold text-truncate">
+          <i class="bi bi-person-video3 me-1 text-muted"></i>Prof. {{ cita.docente.usuario.get_full_name|default:cita.docente.usuario.username }}
+        </div>
+        <small class="text-muted d-block text-truncate">{{ cita.asunto|truncatechars:100 }}</small>
+        {% if cita.enlace_virtual and cita.estado == 'CONFIRMADA' %}
+        <a href="{{ cita.enlace_virtual }}" target="_blank" rel="noopener" class="small text-primary">
+          <i class="bi bi-camera-video-fill me-1"></i>Unirse a videollamada
+        </a>
+        {% endif %}
+      </div>
+      <div class="flex-shrink-0">
+        {% if cita.estado == 'PENDIENTE' %}
+        <span class="badge bg-warning text-dark">Pendiente</span>
+        {% else %}
+        <span class="badge bg-success">Confirmada</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ══════════════════ NOTICIAS ══════════════════ #}
+  <div class="pulse-sec-hdr">
+    <div class="psh-icon" style="background:#fff7ed;color:#ea580c;"><i class="bi bi-newspaper"></i></div>
+    <h2>Últimas Noticias y Anuncios</h2>
+  </div>
+  <div class="row g-3 mb-4">
+    {% for noticia_item in ultimas_noticias %}
+    <div class="col-md-4">
+      <div class="pulse-news-card">
+        {% if noticia_item.imagen_destacada %}
+        <a href="{% url 'gestion_academica:detalle_noticia' pk=noticia_item.pk %}">
+          <img src="{{ noticia_item.imagen_destacada.url }}" alt="{{ noticia_item.titulo }}">
+        </a>
+        {% endif %}
+        <div class="pulse-news-body">
+          <div class="pulse-news-date"><i class="bi bi-calendar3 me-1"></i>{{ noticia_item.fecha_publicacion|date:"d M, Y" }}</div>
+          <div class="pulse-news-title">{{ noticia_item.titulo }}</div>
+          <div class="pulse-news-excerpt">{{ noticia_item.contenido|truncatewords:18 }}</div>
+          <a href="{% url 'gestion_academica:detalle_noticia' pk=noticia_item.pk %}" class="btn btn-sm btn-outline-primary align-self-start">Leer Más</a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="text-center text-muted fst-italic p-4" style="background:#f7faff;border:1px solid #dbe5f4;border-radius:.85rem;">
+        No hay noticias recientes para mostrar.
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 
 </div>
 {% endblock contenido %}
 
 {% block extra_js %}
+{{ block.super }}
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // --- INICIO: CÓDIGO DEL CALENDARIO (tu código original) ---
-    var calendarEl = document.getElementById('calendar');
-    if(calendarEl) {
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'es',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,listWeek'
-            },
-            events: "{% url 'gestion_academica:api_calendario_eventos' %}",
-            eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: 'short' },
-            eventClick: function(info) { if (info.event.url) { window.open(info.event.url, "_blank"); info.jsEvent.preventDefault(); } }
-        });
-        calendar.render();
-    }
-    // --- FIN: CÓDIGO DEL CALENDARIO ---
 
+  // ── Live date ──
+  function updateLiveDate() {
+    const el = document.getElementById('est-live-date');
+    if (!el) return;
+    const now = new Date();
+    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const h = now.getHours();
+    const saludo = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+    el.textContent = saludo + ' · ' + now.toLocaleDateString('es-ES', opts);
+  }
+  updateLiveDate();
+  setInterval(updateLiveDate, 60000);
 
-    // --- INICIO: CÓDIGO DE NOTIFICACIONES (el código nuevo) ---
-    const notificationContainer = document.getElementById('dashboard-notifications');
-    if (notificationContainer) {
-        
-        notificationContainer.addEventListener('click', function(event) {
-            if (event.target.classList.contains('btn-close')) {
-                const button = event.target;
-                const notificacionId = button.dataset.notificacionId;
-                const csrfToken = '{{ csrf_token }}';
-                const url = "{% url 'gestion_academica:marcar_notificacion_leida' %}";
+  // ── FullCalendar ──
+  var calendarEl = document.getElementById('calendar');
+  if (calendarEl) {
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth', locale: 'es',
+      headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
+      events: "{% url 'gestion_academica:api_calendario_eventos' %}",
+      eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: 'short' },
+      eventClick: function(info) { if (info.event.url) { window.open(info.event.url, "_blank"); info.jsEvent.preventDefault(); } }
+    });
+    calendar.render();
+  }
 
-                const listItem = document.getElementById(`notification-${notificacionId}`);
-                if (listItem) {
-                    listItem.style.display = 'none';
-                }
+  // ── Notificaciones dismiss ──
+  const notifContainer = document.getElementById('dashboard-notifications');
+  if (notifContainer) {
+    notifContainer.addEventListener('click', function(event) {
+      if (event.target.classList.contains('btn-close')) {
+        const btn = event.target;
+        const notifId = btn.dataset.notificacionId;
+        const item = document.getElementById('notification-' + notifId);
+        if (item) item.style.display = 'none';
 
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify({ notificacion_id: notificacionId })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        // Si hay un error en el servidor, volvemos a mostrar la notificación
-                        if (listItem) listItem.style.display = 'flex';
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.status !== 'success') {
-                        console.error('Error al marcar la notificación como leída:', data.message);
-                        if (listItem) listItem.style.display = 'flex';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error de red:', error);
-                    if (listItem) listItem.style.display = 'flex';
-                });
-            }
-        });
-    }
-    // --- FIN: CÓDIGO DE NOTIFICACIONES ---
+        fetch("{% url 'gestion_academica:marcar_notificacion_leida' %}", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+          body: JSON.stringify({ notificacion_id: notifId })
+        })
+        .then(r => r.json())
+        .then(data => { if (data.status !== 'success' && item) item.style.display = 'flex'; })
+        .catch(() => { if (item) item.style.display = 'flex'; });
+      }
+    });
+  }
 
 });
 </script>

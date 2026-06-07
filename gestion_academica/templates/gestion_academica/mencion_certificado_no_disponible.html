@@ -1,0 +1,23 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-warning shadow-sm">
+                <div class="card-header bg-warning bg-opacity-25">
+                    <h1 class="h4 mb-0 text-dark"><i class="bi bi-file-earmark-lock me-2"></i>{{ titulo }}</h1>
+                </div>
+                <div class="card-body">
+                    <p class="lead mb-4">{{ mensaje }}</p>
+                    <a href="{{ url_volver }}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left me-1"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,65 +1,130 @@
 {% extends "base_academico.html" %}
-{% block titulo %}Mis Categorías de Calificación{% endblock %}
+{% load static %}
+{% block titulo %}Categorías de Calificación{% endblock %}
 
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">Categorías de Calificación</h1>
-        <a href="{% url 'gestion_academica:docente_crear_tipo_actividad' %}" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Crear Nueva Categoría</a>
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#07285f 0%,#0a3d8c 42%,#0b5ed7 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
+  <div style="position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.06);top:-80px;right:-40px;pointer-events:none;"></div>
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+    <div>
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
+        <i class="bi bi-tags-fill me-1"></i>Evaluación Académica
+      </div>
+      <h2 class="mb-1 fw-800" style="font-size:1.4rem;">Categorías de Calificación</h2>
+      <p class="mb-0" style="opacity:.82;font-size:.88rem;">Tipos de actividad evaluativa definidos por la coordinación para tu institución</p>
     </div>
-    <p class="text-muted">
-        Define las categorías y su peso porcentual para cada materia. La suma total no debe exceder el 100%.
-    </p>
+    <span class="badge text-bg-light" style="font-size:.78rem;padding:.45rem .9rem;align-self:center;">
+      <i class="bi bi-lock-fill me-1 text-primary"></i>Solo lectura
+    </span>
+  </div>
+</div>
 
-    {% if porcentaje_excedido %}
-    <div class="alert alert-danger">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <strong>¡Atención!</strong> La suma de los porcentajes de tus categorías es de <strong>{{ total_porcentaje }}%</strong>, lo cual supera el 100%. Esto puede causar errores en el cálculo de la nota definitiva. Por favor, ajusta los valores.
+{% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+    <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<!-- Aviso institucional + marco legal -->
+<div class="row g-3 mb-3">
+  <div class="col-md-7">
+    <div class="d-flex align-items-start gap-2 h-100" style="background:#eaf2ff;border:1px solid #bfdbfe;border-radius:10px;padding:.85rem 1.1rem;">
+      <i class="bi bi-info-circle-fill mt-1 flex-shrink-0" style="color:#1d4ed8;font-size:1rem;"></i>
+      <div style="font-size:.84rem;color:#1e3a8a;">
+        <strong>Las categorías son configuradas por la coordinación.</strong><br>
+        Si necesitas ajustar pesos o añadir un nuevo tipo de actividad, solicítalo al coordinador académico de tu institución.
+      </div>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <a href="https://www.mineducacion.gov.co/1759/articles-187765_archivo_pdf_decreto_1290.pdf"
+       target="_blank" rel="noopener noreferrer"
+       class="d-flex align-items-start gap-2 h-100 text-decoration-none"
+       style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:.85rem 1.1rem;">
+      <i class="bi bi-patch-check-fill mt-1 flex-shrink-0" style="color:#15803d;font-size:1rem;"></i>
+      <div style="font-size:.84rem;color:#14532d;">
+        <strong>Decreto 1290 de 2009 · MEN</strong><br>
+        El sistema de evaluación y la ponderación por categorías se rige bajo este decreto del Ministerio de Educación Nacional.
+        <span style="font-size:.78rem;font-weight:700;display:block;margin-top:.3rem;">
+          <i class="bi bi-box-arrow-up-right me-1"></i>Ver decreto completo
+        </span>
+      </div>
+    </a>
+  </div>
+</div>
+
+{% if porcentaje_excedido %}
+<div class="alert alert-danger mb-3 d-flex align-items-center gap-2">
+  <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+  <span><strong>¡Atención!</strong> La suma de los porcentajes configurados es <strong>{{ total_porcentaje }}%</strong>, superando el 100%. El coordinador debe corregir estos valores.</span>
+</div>
+{% endif %}
+
+<div class="card shadow-sm border-0" style="border-radius:14px;">
+  <div class="card-body p-0">
+    {% if categorias %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead style="background:#eaf2ff;">
+          <tr>
+            <th class="ps-4 py-3" style="font-size:.78rem;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bfdbfe;">Categoría</th>
+            <th class="py-3 text-center" style="font-size:.78rem;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bfdbfe;">Peso&nbsp;(%)</th>
+            <th class="py-3 text-center d-none d-md-table-cell" style="font-size:.78rem;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bfdbfe;">Orden</th>
+            <th class="py-3 d-none d-lg-table-cell" style="font-size:.78rem;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bfdbfe;">Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in categorias %}
+          <tr>
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center gap-2">
+                <span class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                      style="width:34px;height:34px;background:#eaf2ff;color:#1d4ed8;font-size:.85rem;">
+                  <i class="bi bi-tag-fill"></i>
+                </span>
+                <div>
+                  <div class="fw-700" style="color:#0f3f90;">{{ cat.nombre }}</div>
+                  <div class="d-md-none text-muted" style="font-size:.75rem;">{{ cat.porcentaje|default:"—" }}%</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 text-center">
+              {% if cat.porcentaje %}
+              <span class="badge" style="background:#dbeafe;color:#1d4ed8;font-size:.82rem;padding:.35rem .7rem;font-weight:800;">
+                {{ cat.porcentaje }}%
+              </span>
+              {% else %}
+              <span class="text-muted" style="font-size:.82rem;">—</span>
+              {% endif %}
+            </td>
+            <td class="py-3 text-center d-none d-md-table-cell" style="color:#64748b;">{{ cat.orden }}</td>
+            <td class="py-3 d-none d-lg-table-cell" style="color:#6b7280;font-size:.85rem;">{{ cat.descripcion|default:"Sin descripción"|truncatewords:15 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot style="background:#f8faff;">
+          <tr>
+            <td class="ps-4 py-2 fw-700 text-end" colspan="1" style="font-size:.82rem;color:#374151;">Total ponderación:</td>
+            <td class="py-2 text-center fw-800 {% if porcentaje_excedido %}text-danger{% else %}text-success{% endif %}" style="font-size:.95rem;">
+              {{ total_porcentaje }}%
+            </td>
+            <td colspan="2" class="d-none d-md-table-cell"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5" style="color:#9ca3af;">
+      <i class="bi bi-tags" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+      <p class="mb-1 fw-600">No hay categorías configuradas aún.</p>
+      <p class="small mb-0">El coordinador académico debe crear las categorías antes de asignarlas a actividades.</p>
     </div>
     {% endif %}
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Nombre de la Categoría</th>
-                            <th class="text-center">Porcentaje (%)</th>
-                            <th>Creado por</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cat in categorias %}
-                        <tr>
-                            <td><strong>{{ cat.nombre }}</strong></td>
-                            <td class="text-center">{{ cat.porcentaje|default:"N/A" }}</td>
-                            <td>{{ cat.creado_por.get_full_name|default:"Sistema" }}</td>
-                            <td class="text-center">
-                                {% if cat.creado_por == user or user.is_superuser %}
-                                <a href="{% url 'gestion_academica:docente_editar_tipo_actividad' pk=cat.pk %}" class="btn btn-sm btn-warning" title="Editar"><i class="bi bi-pencil-fill"></i></a>
-                                <a href="{% url 'gestion_academica:docente_eliminar_tipo_actividad' pk=cat.pk %}" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash-fill"></i></a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="4" class="text-center">No hay categorías creadas. ¡Crea la primera!</td></tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot class="table-group-divider fw-bold">
-                        <tr>
-                            <td class="text-end">Total Porcentajes:</td>
-                            <td class="text-center 
-                                {% if porcentaje_excedido %}text-danger{% endif %}">
-                                {{ total_porcentaje }}%
-                            </td>
-                            <td colspan="2"></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
-{% endblock %}
+{% endblock contenido %}

@@ -1,0 +1,113 @@
+{% extends "base_academico.html" %}
+
+{% block contenido %}
+<div class="container-fluid py-3 px-2 px-md-3">
+    {% if bloqueo_pago %}
+    {% with p=ctx_pago %}
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="h5 mb-3">{{ curso.nombre }}</h1>
+                    <div class="alert alert-warning mb-3">
+                        <strong>Acceso al contenido bloqueado.</strong>
+                        {% if p.deuda_sin_cuenta %}
+                        No hay cuenta de cobro vinculada a tu matrícula; avisa a administración para que configuren la oferta en Finanzas.
+                        {% else %}
+                        Completa el pago de esta oferta en Finanzas. Cuando el saldo quede en cero, podrás ver materiales y rendir evaluaciones.
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2 d-sm-flex flex-sm-wrap">
+                        {% if p.puede_pagar_online %}
+                        <a href="{% url 'finanzas:iniciar_pago' cuenta_pk=p.cuenta_pk %}" class="btn btn-success btn-lg">
+                            Pagar en línea (Mercado Pago)
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'elearning:catalogo' %}" class="btn btn-outline-secondary">Volver al catálogo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+    {% else %}
+    <div class="row g-3 flex-column-reverse flex-lg-row">
+        <!-- Módulos: arriba en móvil, lateral en desktop -->
+        <div class="col-12 col-lg-4">
+            <div class="card">
+                <div class="card-header small fw-semibold">Contenido del curso</div>
+                <div class="list-group list-group-flush">
+                    {% for item in modulos_data %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <h2 class="h6 mb-0">{{ item.modulo.titulo }}</h2>
+                            {% if item.progreso.aprobado %}
+                            <span class="badge bg-success flex-shrink-0"><i class="bi bi-check"></i></span>
+                            {% endif %}
+                        </div>
+                        <div class="mt-2">
+                            {% for mat in item.modulo.materiales.all %}
+                            <div class="d-grid gap-1 my-1">
+                                {% if mat.tipo == 'PDF' %}
+                                <a href="{{ mat.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-primary text-start text-wrap">
+                                    <i class="bi bi-file-pdf"></i> {{ mat.titulo }}
+                                </a>
+                                {% elif mat.tipo == 'VIDEO' %}
+                                <button type="button" onclick="verVideo('{{ mat.enlace|escapejs }}')" class="btn btn-sm btn-outline-danger text-start text-wrap">
+                                    <i class="bi bi-youtube"></i> {{ mat.titulo }}
+                                </button>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                            {% if item.modulo.evaluacion %}
+                            <div class="d-grid gap-2 mt-2">
+                                {% if item.progreso.aprobado %}
+                                <button type="button" class="btn btn-success btn-sm" disabled>Módulo aprobado</button>
+                                {% else %}
+                                <a href="{% url 'elearning:rendir_evaluacion' item.modulo.id %}" class="btn btn-warning btn-sm text-wrap">
+                                    <i class="bi bi-pencil-square"></i> Realizar prueba
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-8">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center" id="visor-contenido" style="min-height: 280px;">
+                    <div class="text-center text-muted px-2">
+                        <i class="bi bi-play-circle display-4 d-block mb-2"></i>
+                        <p class="mb-0">Selecciona un PDF o video en la lista para verlo aquí.</p>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2 d-sm-flex">
+                        <a href="{% url 'elearning:generar_certificado' curso.id %}" class="btn btn-success flex-sm-fill">
+                            <i class="bi bi-award"></i> Descargar certificado
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function verVideo(url) {
+    var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    var match = url.match(regExp);
+    if (match && match[2].length === 11) {
+        var embedUrl = "https://www.youtube.com/embed/" + match[2];
+        var iframe = '<iframe width="100%" height="400" class="rounded" src="' + embedUrl + '" title="Video" frameborder="0" allowfullscreen></iframe>';
+        document.getElementById('visor-contenido').innerHTML = iframe;
+    } else {
+        document.getElementById('visor-contenido').innerHTML = '<div class="alert alert-danger m-3">URL de video no válida.</div>';
+    }
+}
+</script>
+{% endblock %}

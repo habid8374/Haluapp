@@ -1,86 +1,257 @@
-{# gestion_academica/templates/gestion_academica/actividad_calificar_estudiantes.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
+{% extends "base_academico.html" %}
+{% load static %}
 
-{% block titulo %}{{ titulo_pagina|default:"Calificar Actividad" }}{% endblock titulo %}
+{% block titulo %}Calificar — {{ actividad.titulo }}{% endblock titulo %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+/* ═══════════════════════════════════════════════
+   HALU PULSE — Calificar Actividad (Mobile-first)
+═══════════════════════════════════════════════ */
+
+.ac-hero {
+  background: linear-gradient(135deg, #07285f 0%, #0a3d8c 42%, #0b5ed7 100%);
+  border-radius: 1.1rem; padding: 1.6rem 2rem; color: #fff;
+  margin-bottom: 1.3rem; position: relative; overflow: hidden;
+}
+.ac-hero::before {
+  content: ''; position: absolute; width: 240px; height: 240px;
+  border-radius: 50%; background: rgba(255,255,255,.05);
+  top: -80px; right: -40px; pointer-events: none;
+}
+.ac-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
+  border-radius: 2rem; padding: .22rem .75rem;
+  font-size: .7rem; font-weight: 700; letter-spacing: .3px;
+  text-transform: uppercase; margin-bottom: .55rem;
+}
+.ac-title { font-size: 1.3rem; font-weight: 800; margin-bottom: .4rem; line-height: 1.25; }
+.ac-meta  { display: flex; flex-wrap: wrap; gap: .5rem; font-size: .82rem; opacity: .88; }
+.ac-meta span { display: inline-flex; align-items: center; gap: .3rem; }
+.ac-back {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28);
+  color: #fff; border-radius: .55rem; padding: .42rem .95rem;
+  font-size: .82rem; font-weight: 600; text-decoration: none;
+  transition: background .15s; flex-shrink: 0;
+}
+.ac-back:hover { background: rgba(255,255,255,.26); color: #fff; }
+
+/* ── Tarjeta contenedora ── */
+.ac-card {
+  background: #fff; border: 1px solid #dbe5f4; border-radius: 1rem;
+  overflow: hidden; box-shadow: 0 4px 18px rgba(11,94,215,.07);
+}
+
+/* ── TABLA ESCRITORIO (≥ md) ── */
+.ac-table { width: 100%; border-collapse: collapse; }
+.ac-table thead th {
+  background: #f4f8ff; padding: .75rem 1rem;
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .35px; color: #4b5563;
+  border-bottom: 2px solid #e0e7ff; white-space: nowrap;
+}
+.ac-table tbody tr { transition: background .12s; }
+.ac-table tbody tr:hover { background: #f7faff; }
+.ac-table tbody td {
+  padding: .75rem 1rem; border-bottom: 1px solid #f1f5f9;
+  font-size: .88rem; color: #1e293b; vertical-align: middle;
+}
+.ac-table tbody tr:last-child td { border-bottom: none; }
+.ac-name { font-weight: 700; color: #1e1b4b; }
+.ac-doc  { color: #6b7280; font-size: .8rem; }
+
+/* Badges de calificación */
+.grade-ok   { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;
+              font-weight: 700; border-radius: .4rem; padding: .18rem .55rem; font-size: .82rem; }
+.grade-none { background: #fef3c7; color: #92400e; border: 1px solid #fde68a;
+              font-weight: 600; border-radius: .4rem; padding: .18rem .55rem; font-size: .82rem; }
+
+/* Botón calificar */
+.btn-calificar {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .38rem .85rem; border-radius: .5rem; font-size: .8rem; font-weight: 600;
+  text-decoration: none; transition: filter .15s; white-space: nowrap;
+}
+.btn-calificar.nuevo  { background: linear-gradient(135deg,#16a34a,#22c55e); color:#fff; }
+.btn-calificar.editar { background: linear-gradient(135deg,#d97706,#f59e0b); color:#fff; }
+.btn-calificar:hover  { filter: brightness(1.08); }
+
+/* ── CARDS MÓVIL (< md) ── */
+.ac-mob-card {
+  border: 1px solid #e0e7ff; border-radius: .85rem;
+  padding: 1rem 1.1rem; margin-bottom: .7rem;
+  background: #fff; box-shadow: 0 2px 8px rgba(11,94,215,.05);
+}
+.ac-mob-name { font-size: .98rem; font-weight: 800; color: #1e1b4b; margin-bottom: .25rem; }
+.ac-mob-meta { font-size: .8rem; color: #6b7280; margin-bottom: .6rem; }
+.ac-mob-grade { margin-bottom: .7rem; }
+.ac-mob-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.ac-mob-actions .btn-calificar { flex: 1; justify-content: center; }
+
+/* Estado vacío */
+.ac-empty {
+  text-align: center; padding: 3.5rem 1rem; color: #9ca3af;
+}
+.ac-empty i { font-size: 2.8rem; display: block; margin-bottom: .75rem; }
+
+@media (max-width: 767px) {
+  .ac-hero { padding: 1.3rem 1.2rem; }
+  .ac-title { font-size: 1.1rem; }
+}
+</style>
+{% endblock %}
 
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h1 class="mb-0">{{ titulo_pagina|default:"Calificar Actividad" }}</h1>
-            <h5 class="text-muted mt-2">Curso: {{ actividad.curso.materia.nombre_materia }} - {{ actividad.curso.grado.nombre }} ({{ actividad.curso.periodo_academico.nombre }})</h5>
-            <p class="lead mb-0 mt-2">Actividad: <strong>{{ actividad.titulo }}</strong> | Porcentaje: <strong>{{ actividad.porcentaje_en_periodo|default:"N/A" }}%</strong></p>
+<div class="container-fluid mt-3">
+
+  <!-- Hero -->
+  <div class="ac-hero">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+      <div style="flex:1;min-width:0;">
+        <div class="ac-badge"><i class="bi bi-check2-square me-1"></i>Calificar Actividad</div>
+        <div class="ac-title">{{ actividad.titulo }}</div>
+        <div class="ac-meta">
+          <span><i class="bi bi-book-fill"></i>{{ actividad.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and actividad.curso.materia.nombre_idioma_secundario %} / {{ actividad.curso.materia.nombre_idioma_secundario }}{% endif %}</span>
+          <span><i class="bi bi-mortarboard-fill"></i>{{ actividad.curso.grado.nombre }}</span>
+          <span><i class="bi bi-calendar3"></i>{{ actividad.curso.periodo_academico.nombre }}</span>
+          {% if actividad.porcentaje_en_periodo %}
+          <span><i class="bi bi-percent"></i>{{ actividad.porcentaje_en_periodo }}% del período</span>
+          {% endif %}
+          {% if actividad.tipo_actividad %}
+          <span><i class="bi bi-tag-fill"></i>{{ actividad.tipo_actividad.nombre }}</span>
+          {% endif %}
         </div>
-        <a href="{% url 'gestion_academica:lista_actividades_calificables' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left-circle-fill"></i> Volver a Actividades
-        </a>
+      </div>
+      <a href="{% url 'gestion_academica:lista_actividades_calificables' %}" class="ac-back">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
     </div>
-    <hr>
+  </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3">
+      <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  {% endif %}
 
-    {% if estudiantes_con_calificacion %}
-        <p class="lead mt-3">Selecciona un estudiante para ingresar o editar su calificación para la actividad: <strong>{{ actividad.titulo }}</strong>.</p>
-        <div class="table-responsive shadow-sm rounded-3">
-            <table class="table table-striped table-hover table-bordered mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Estudiante</th>
-                        <th>Documento Identidad</th>
-                        <th>Grado Actual</th>
-                        <th>Calificación Actual</th>
-                        <th class="text-center">Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in estudiantes_con_calificacion %}
-                    <tr>
-                        <td>{{ item.estudiante.usuario.get_full_name|default:item.estudiante.usuario.username }}</td>
-                        <td>{{ item.estudiante.documento_identidad|default:"N/A" }}</td>
-                        <td>{{ item.estudiante.grado_actual.nombre|default:"N/A" }}</td>
-                        <td>
-                            {% if item.calificacion %}
-                                {% if item.calificacion.valor_numerico is not None %}
-                                    <strong>{{ item.calificacion.valor_numerico }}</strong>
-                                {% elif item.calificacion.valor_cualitativo %}
-                                    <strong>{{ item.calificacion.valor_cualitativo }}</strong>
-                                {% else %}
-                                    <span class="text-muted">Pendiente</span>
-                                {% endif %}
-                            {% else %}
-                                <span class="badge bg-warning text-dark">Sin Calificar</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            {% if perms.gestion_academica.puede_calificar_estudiantes %} {# Permiso para calificar #}
-                                <a href="{% url 'gestion_academica:registrar_editar_calificacion' actividad_pk=actividad.pk estudiante_pk=item.estudiante.pk %}" class="btn btn-sm {% if item.calificacion %}btn-warning{% else %}btn-success{% endif %}">
-                                    {% if item.calificacion %}
-                                        <i class="bi bi-pencil-fill"></i> Editar Calificación
-                                    {% else %}
-                                        <i class="bi bi-plus-lg"></i> Calificar
-                                    {% endif %}
-                                </a>
-                            {% else %}
-                                <span class="text-muted">Sin permiso</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+  {% if estudiantes_con_calificacion %}
+
+    {# ── TABLA ESCRITORIO (≥ md) ── #}
+    <div class="ac-card d-none d-md-block mb-4">
+      <table class="ac-table">
+        <thead>
+          <tr>
+            <th>Estudiante</th>
+            <th class="d-none d-lg-table-cell">Documento</th>
+            <th class="d-none d-lg-table-cell">Grado</th>
+            <th>Calificación</th>
+            <th class="text-center">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in estudiantes_con_calificacion %}
+          <tr>
+            <td>
+              <div class="ac-name">{{ item.estudiante.usuario.get_full_name|default:item.estudiante.usuario.username }}</div>
+            </td>
+            <td class="d-none d-lg-table-cell">
+              <span class="ac-doc">{{ item.estudiante.documento_identidad|default:"—" }}</span>
+            </td>
+            <td class="d-none d-lg-table-cell">
+              <span class="ac-doc">{{ item.estudiante.grado_actual.nombre|default:"—" }}</span>
+            </td>
+            <td>
+              {% if item.calificacion %}
+                {% if item.calificacion.valor_numerico is not None %}
+                  <span class="grade-ok"><i class="bi bi-check-circle-fill me-1"></i>{{ item.calificacion.valor_numerico }}</span>
+                {% elif item.calificacion.valor_cualitativo %}
+                  <span class="grade-ok"><i class="bi bi-check-circle-fill me-1"></i>{{ item.calificacion.valor_cualitativo }}</span>
+                {% else %}
+                  <span class="grade-none"><i class="bi bi-dash-circle me-1"></i>Pendiente</span>
+                {% endif %}
+              {% else %}
+                <span class="grade-none"><i class="bi bi-exclamation-circle me-1"></i>Sin calificar</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if perms.gestion_academica.puede_calificar_estudiantes %}
+                <a href="{% url 'gestion_academica:registrar_editar_calificacion' actividad_pk=actividad.pk estudiante_pk=item.estudiante.pk %}"
+                   class="btn-calificar {% if item.calificacion %}editar{% else %}nuevo{% endif %}">
+                  {% if item.calificacion %}
+                    <i class="bi bi-pencil-fill"></i> Editar
+                  {% else %}
+                    <i class="bi bi-plus-lg"></i> Calificar
+                  {% endif %}
+                </a>
+              {% else %}
+                <span class="ac-doc">Sin permiso</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ── CARDS MÓVIL (< md) ── #}
+    <div class="d-md-none mb-4">
+      {% for item in estudiantes_con_calificacion %}
+      <div class="ac-mob-card">
+        <div class="ac-mob-name">
+          <i class="bi bi-person-circle me-1" style="color:#0b5ed7;"></i>
+          {{ item.estudiante.usuario.get_full_name|default:item.estudiante.usuario.username }}
         </div>
-    {% else %}
-        <div class="alert alert-info text-center mt-3" role="alert">
-            <i class="bi bi-info-circle-fill me-2"></i> No hay estudiantes asignados al grado de este curso para calificar, o no se pudieron cargar los estudiantes.
+        <div class="ac-mob-meta">
+          {% if item.estudiante.documento_identidad %}
+          <i class="bi bi-card-text me-1"></i>{{ item.estudiante.documento_identidad }}
+          {% endif %}
+          {% if item.estudiante.grado_actual %}
+          &nbsp;·&nbsp;<i class="bi bi-mortarboard me-1"></i>{{ item.estudiante.grado_actual.nombre }}
+          {% endif %}
         </div>
-    {% endif %}
+        <div class="ac-mob-grade">
+          {% if item.calificacion %}
+            {% if item.calificacion.valor_numerico is not None %}
+              <span class="grade-ok"><i class="bi bi-check-circle-fill me-1"></i>{{ item.calificacion.valor_numerico }}</span>
+            {% elif item.calificacion.valor_cualitativo %}
+              <span class="grade-ok"><i class="bi bi-check-circle-fill me-1"></i>{{ item.calificacion.valor_cualitativo }}</span>
+            {% else %}
+              <span class="grade-none"><i class="bi bi-dash-circle me-1"></i>Pendiente</span>
+            {% endif %}
+          {% else %}
+            <span class="grade-none"><i class="bi bi-exclamation-circle me-1"></i>Sin calificar</span>
+          {% endif %}
+        </div>
+        <div class="ac-mob-actions">
+          {% if perms.gestion_academica.puede_calificar_estudiantes %}
+            <a href="{% url 'gestion_academica:registrar_editar_calificacion' actividad_pk=actividad.pk estudiante_pk=item.estudiante.pk %}"
+               class="btn-calificar {% if item.calificacion %}editar{% else %}nuevo{% endif %}">
+              {% if item.calificacion %}
+                <i class="bi bi-pencil-fill"></i> Editar calificación
+              {% else %}
+                <i class="bi bi-plus-lg"></i> Calificar
+              {% endif %}
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="ac-card">
+      <div class="ac-empty">
+        <i class="bi bi-people"></i>
+        <p class="mb-0 fw-600" style="color:#374151;">No hay estudiantes asignados a este curso.</p>
+        <p class="mt-1" style="font-size:.85rem;">Verifica que el grado tenga estudiantes activos registrados.</p>
+      </div>
+    </div>
+  {% endif %}
+
 </div>
 {% endblock contenido %}

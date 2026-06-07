@@ -1,0 +1,307 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HALU · Hasta pronto</title>
+  <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
+
+    .page { display: flex; height: 100vh; width: 100vw; }
+
+    /* ── Panel izquierdo — Video (igual al login) ── */
+    .school-panel {
+      flex: 0 0 55%;
+      position: relative;
+      overflow: hidden;
+      background: #0f172a;
+    }
+    .school-panel video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+    .school-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 20, 50, 0.52);
+      z-index: 2;
+    }
+    .school-brand {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      text-align: center;
+      width: 90%;
+    }
+    .school-brand img {
+      height: 72px;
+      filter: brightness(0) invert(1) drop-shadow(0 4px 16px rgba(0,0,0,.4));
+      margin-bottom: 16px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .school-brand .bn {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 6px;
+      text-shadow: 0 2px 16px rgba(0,0,0,.5);
+    }
+    .school-brand .bs {
+      font-size: .82rem;
+      color: rgba(255,255,255,.85);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      margin-top: 6px;
+      font-weight: 600;
+      text-shadow: 0 1px 8px rgba(0,0,0,.4);
+    }
+    .school-brand .tagline {
+      margin-top: 18px;
+      font-size: .92rem;
+      color: rgba(255,255,255,.8);
+      font-style: italic;
+      max-width: 260px;
+      line-height: 1.6;
+      margin-left: auto;
+      margin-right: auto;
+      text-shadow: 0 1px 8px rgba(0,0,0,.4);
+    }
+    .brand-line {
+      width: 48px; height: 3px;
+      background: linear-gradient(90deg, #60a5fa, #93c5fd);
+      border-radius: 2px;
+      margin: 10px auto 0;
+    }
+
+    /* ── Panel derecho — Despedida ── */
+    .form-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8faff;
+      padding: 2rem;
+      position: relative;
+      overflow-y: auto;
+    }
+    .form-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #1e1b4b, #1d4ed8, #3b82f6, #60a5fa, #3b82f6, #1d4ed8, #1e1b4b);
+      background-size: 300% 100%;
+      animation: blueBar 5s linear infinite;
+    }
+    @keyframes blueBar { 0%{background-position:0% 0} 100%{background-position:300% 0} }
+
+    .goodbye-box {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: riseUp .6s cubic-bezier(.22,.68,0,1.2) both;
+    }
+    @keyframes riseUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Animación del ícono de despedida */
+    .bye-icon {
+      width: 88px; height: 88px;
+      margin: 0 auto 1.5rem;
+      position: relative;
+    }
+    .bye-circle {
+      width: 88px; height: 88px;
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6, #60a5fa);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 30px rgba(29,78,216,.4);
+      animation: popIn .55s cubic-bezier(.22,.68,0,1.5) .15s both;
+    }
+    @keyframes popIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+    .bye-circle i { font-size: 2.4rem; color: #fff; }
+
+    /* Ondas alrededor del ícono */
+    .wave {
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 2px solid rgba(59,130,246,.4);
+      animation: waveOut 2s ease-out infinite;
+    }
+    .wave:nth-child(2) { inset:-16px; animation-delay:.4s; border-color:rgba(59,130,246,.25); }
+    .wave:nth-child(3) { inset:-26px; animation-delay:.8s; border-color:rgba(59,130,246,.12); }
+    @keyframes waveOut { 0%{transform:scale(.9);opacity:1} 100%{transform:scale(1.3);opacity:0} }
+
+    .goodbye-box h1 { font-size: 1.7rem; font-weight: 900; color: #1e1b4b; margin-bottom: .5rem; }
+    .goodbye-box .subtitle { font-size: .9rem; color: #64748b; line-height: 1.6; margin-bottom: 2rem; }
+
+    /* Barra de cuenta regresiva */
+    .bar-wrap { background: #dbeafe; border-radius: 20px; height: 7px; overflow: hidden; margin-bottom: .8rem; }
+    .bar-fill  { height: 100%; width: 0%; background: linear-gradient(90deg, #1d4ed8, #60a5fa); border-radius: 20px; }
+    .bar-label { font-size: .78rem; color: #94a3b8; margin-bottom: 1.8rem; }
+    .bar-label strong { color: #2563eb; }
+
+    /* Botón */
+    .btn-volver {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .85rem 2rem;
+      background: linear-gradient(135deg, #1e1b4b, #1d4ed8, #3b82f6);
+      background-size: 200% 100%;
+      border: none; border-radius: 12px;
+      color: #fff; font-size: .95rem; font-weight: 800;
+      cursor: pointer; text-decoration: none;
+      box-shadow: 0 4px 20px rgba(29,78,216,.35);
+      transition: background-position .4s, transform .15s;
+    }
+    .btn-volver:hover { background-position:100% 50%; transform:translateY(-2px); color:#fff; box-shadow: 0 8px 28px rgba(29,78,216,.45); }
+
+    /* Logo header */
+    .form-header { display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:2rem; }
+    .form-header img { height:40px; }
+    .form-header .ht { font-size:1.4rem; font-weight:900; color:#1e1b4b; letter-spacing:1px; line-height:1; }
+    .form-header .hs { font-size:.65rem; color:#3b82f6; letter-spacing:1.5px; text-transform:uppercase; font-weight:700; margin-top:2px; }
+
+    @media (max-width: 820px) {
+      html, body { overflow-x: hidden; overflow-y: auto; height: auto; }
+      .page { flex-direction: column; height: auto; min-height: 100vh; }
+
+      .school-panel { flex: 0 0 auto; height: 180px; }
+
+      /* Brand horizontal centrado en mobile */
+      .school-brand {
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        white-space: nowrap;
+        text-align: left;
+        width: auto;
+      }
+      .school-brand img { height: 44px; margin: 0; }
+      .school-brand .bn { font-size: 1.7rem; letter-spacing: 3px; }
+      .school-brand .bs { font-size: .62rem; letter-spacing: 1.5px; }
+      .school-brand .tagline { display: none; }
+      .brand-line { display: none; }
+
+      .form-panel { flex: 1; padding: 1.8rem 1.2rem 2rem; min-height: calc(100vh - 180px); }
+      .goodbye-box { max-width: 100%; }
+
+      .bye-circle { width: 72px; height: 72px; }
+      .bye-circle i { font-size: 2rem; }
+      .bye-icon { width: 72px; height: 72px; margin-bottom: 1.2rem; }
+
+      .form-header { margin-bottom: 1.3rem; }
+      .form-header img { height: 34px; }
+      .form-header .ht { font-size: 1.25rem; }
+
+      .goodbye-box h1 { font-size: 1.4rem; }
+      .goodbye-box .subtitle { font-size: .85rem; margin-bottom: 1.5rem; }
+
+      .btn-volver { padding: .9rem 1.5rem; font-size: .9rem; width: 100%; justify-content: center; }
+    }
+
+    @media (max-width: 400px) {
+      .school-panel { height: 150px; }
+      .form-panel { min-height: calc(100vh - 150px); padding: 1.4rem 1rem 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══ Panel izquierdo — Video ══ -->
+  <div class="school-panel">
+    <video autoplay muted loop playsinline>
+      <source src="{% static 'core/video/login_bg.mp4' %}" type="video/mp4">
+    </video>
+    <div class="school-brand">
+      <img src="{% static 'core/img/logo_mi_software.png' %}" alt="HALU">
+      <div class="bn">HALU</div>
+      <div class="bs">Sistema de Gestión Escolar</div>
+      <div class="brand-line"></div>
+      <div class="tagline">"Educando con tecnología, conectando comunidades"</div>
+    </div>
+  </div>
+
+  <!-- ══ Panel derecho — Despedida ══ -->
+  <div class="form-panel">
+    <div class="goodbye-box">
+
+      <div class="form-header">
+        <img src="{% static 'core/img/logo_mi_software.png' %}" alt="HALU">
+        <div>
+          <div class="ht">HALU</div>
+          <div class="hs">Plataforma Educativa</div>
+        </div>
+      </div>
+
+      <!-- Ícono animado con ondas -->
+      <div class="bye-icon">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="bye-circle">
+          <i class="bi bi-door-closed-fill"></i>
+        </div>
+      </div>
+
+      <h1>¡Hasta pronto! 👋</h1>
+      <p class="subtitle">
+        Tu sesión fue cerrada correctamente.<br>
+        Tu información está segura. ¡Te esperamos de vuelta!
+      </p>
+
+      <div class="bar-wrap">
+        <div class="bar-fill" id="bar"></div>
+      </div>
+      <p class="bar-label">Regresando al inicio en <strong id="secs">5</strong> segundos...</p>
+
+      <a href="{% url 'login' %}" class="btn-volver">
+        <i class="bi bi-door-open"></i> Volver a ingresar ya
+      </a>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const TOTAL = 5000;
+  const bar   = document.getElementById('bar');
+  const secs  = document.getElementById('secs');
+  const start = Date.now();
+  const login = "{% url 'login' %}";
+
+  function tick() {
+    const elapsed = Date.now() - start;
+    const pct     = Math.min(100, (elapsed / TOTAL) * 100);
+    const left    = Math.max(0, Math.ceil((TOTAL - elapsed) / 1000));
+
+    bar.style.width          = pct + '%';
+    bar.style.transition     = 'width .1s linear';
+    secs.textContent         = left;
+
+    if (elapsed >= TOTAL) {
+      window.location.href = login;
+    } else {
+      requestAnimationFrame(tick);
+    }
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

@@ -19,6 +19,16 @@
                     <form method="POST">
                         {% csrf_token %}
                         {{ form.as_p }}
+
+                        {# Aviso del próximo número de recibo — solo aplica a EFECTIVO #}
+                        <div id="aviso-recibo-efectivo" class="alert alert-info d-flex align-items-center gap-2 d-none" role="alert">
+                            <i class="bi bi-receipt fs-5"></i>
+                            <div>
+                                Al guardar, se asignará el <strong>Recibo No. #<span id="numero-recibo-preview">{{ proximo_recibo_efectivo|stringformat:"06d" }}</span></strong>
+                                <div class="small text-muted">El número se confirma al registrar el pago.</div>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{% url 'finanzas:historial_cuentas_estudiante' estudiante_id=cuenta.estudiante.pk %}" class="btn btn-secondary">
                                 Cancelar
@@ -33,4 +43,22 @@
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    var metodo = document.getElementById('id_metodo_pago');
+    var aviso = document.getElementById('aviso-recibo-efectivo');
+    if (!metodo || !aviso) return;
+
+    function toggleAviso() {
+        if (metodo.value === 'EFECTIVO') {
+            aviso.classList.remove('d-none');
+        } else {
+            aviso.classList.add('d-none');
+        }
+    }
+    metodo.addEventListener('change', toggleAviso);
+    toggleAviso(); // estado inicial
+})();
+</script>
 {% endblock %}

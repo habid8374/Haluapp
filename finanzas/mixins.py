@@ -1,9 +1,34 @@
 # finanzas/mixins.py
 
 import logging
+from functools import wraps
+from django.http import HttpResponseForbidden
+from django.shortcuts import render
 
-# Definir el logger para este módulo
 logger = logging.getLogger(__name__)
+
+
+def solo_institucion_privada(view_func):
+    """Bloquea el acceso a vistas de finanzas para instituciones públicas."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+        inst = getattr(request.user, 'institucion_asociada', None)
+        if inst and inst.tipo_institucion == 'publico':
+            return render(request, 'finanzas/acceso_no_disponible.html', status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
+class SoloInstitucionPrivadaMixin:
+    """Versión mixin para Clases Basadas en Vistas."""
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            inst = getattr(request.user, 'institucion_asociada', None)
+            if inst and inst.tipo_institucion == 'publico':
+                return render(request, 'finanzas/acceso_no_disponible.html', status=403)
+        return super().dispatch(request, *args, **kwargs)
 
 class InstitucionOwnedMixin:
     """

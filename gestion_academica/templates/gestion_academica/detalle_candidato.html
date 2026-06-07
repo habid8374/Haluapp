@@ -1,0 +1,313 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+/* ══════════════════════════════════════════════════════
+   HALU PULSE — DETALLE DE CANDIDATO  ·  Tema índigo
+══════════════════════════════════════════════════════ */
+:root {
+  --elec-dark:   #1e1b4b;
+  --elec-mid:    #3730a3;
+  --elec-light:  #4f46e5;
+  --elec-accent: #818cf8;
+}
+/* ── Hero candidato ──────────────────────────────── */
+.dc-hero {
+  background: linear-gradient(135deg, var(--elec-dark) 0%, var(--elec-mid) 55%, #4338ca 100%);
+  border-radius: 1rem; padding: 1.6rem 1.8rem; color: #fff;
+  position: relative; overflow: hidden; margin-bottom: 1.5rem;
+}
+.dc-hero::before {
+  content:''; position:absolute; inset:0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.dc-hero-inner { position:relative;z-index:1; display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap; }
+.dc-hero-avatar {
+  width:80px; height:80px; border-radius:50%; flex-shrink:0;
+  border:3px solid rgba(255,255,255,.35); overflow:hidden;
+  background:rgba(255,255,255,.18); display:flex; align-items:center;
+  justify-content:center; font-size:1.6rem; font-weight:800; color:#fff;
+}
+.dc-hero-avatar img { width:100%; height:100%; object-fit:cover; }
+.dc-hero-name  { font-size:1.35rem; font-weight:800; letter-spacing:-.4px; margin-bottom:.15rem; }
+.dc-hero-grade { font-size:.85rem; opacity:.8; display:flex; align-items:center; gap:.4rem; }
+.dc-position-medal { font-size:1.8rem; line-height:1; }
+.dc-hero-btn {
+  display:inline-flex; align-items:center; gap:.4rem;
+  padding:.42rem .95rem; border-radius:.6rem; font-size:.81rem; font-weight:600;
+  text-decoration:none; border:none; cursor:pointer;
+}
+.dc-hero-btn-outline { background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.3); }
+.dc-hero-btn-outline:hover { background:rgba(255,255,255,.22); color:#fff; }
+
+/* ── KPI Strip ───────────────────────────────────── */
+.dc-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: .75rem; margin-bottom: 1.5rem;
+}
+.dc-kpi {
+  background:#fff; border-radius:.75rem; padding:.9rem .85rem .7rem;
+  text-align:center; box-shadow:0 1px 6px rgba(0,0,0,.07);
+  border-top: 3px solid transparent;
+}
+.dc-kpi.indigo { border-top-color: #4f46e5; }
+.dc-kpi.violet { border-top-color: #7c3aed; }
+.dc-kpi.green  { border-top-color: #16a34a; }
+.dc-kpi.amber  { border-top-color: #d97706; }
+.dc-kpi-val   { font-size:1.65rem; font-weight:800; line-height:1; margin-bottom:.2rem; }
+.dc-kpi.indigo .dc-kpi-val { color:#3730a3; }
+.dc-kpi.violet .dc-kpi-val { color:#6d28d9; }
+.dc-kpi.green  .dc-kpi-val { color:#16a34a; }
+.dc-kpi.amber  .dc-kpi-val { color:#b45309; }
+.dc-kpi-label { font-size:.68rem; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:.5px; line-height:1.2; }
+
+/* ── Panel base ───────────────────────────────────── */
+.dc-panel {
+  background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
+  overflow:hidden; margin-bottom:1.25rem;
+}
+.dc-panel-header {
+  display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
+  padding:.85rem 1.2rem; border-bottom:1px solid #f1f5f9;
+}
+.dc-panel-title {
+  font-size:.95rem; font-weight:700; color:#1e293b;
+  display:flex; align-items:center; gap:.5rem; margin:0; flex:1;
+}
+.dc-panel-title .ico {
+  width:30px; height:30px; border-radius:.45rem; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:.85rem;
+}
+.ico-indigo { background:#e0e7ff; color:#4f46e5; }
+.ico-violet { background:#ede9fe; color:#7c3aed; }
+.ico-green  { background:#dcfce7; color:#16a34a; }
+.ico-amber  { background:#fef3c7; color:#b45309; }
+
+/* ── Propuesta ───────────────────────────────────── */
+.dc-propuesta {
+  padding:1.2rem 1.4rem;
+  font-size:.88rem; color:#374151; line-height:1.7;
+  border-left:4px solid var(--elec-light);
+  background:#fafafe; margin:1rem 1.2rem; border-radius:0 .65rem .65rem 0;
+}
+
+/* ── Análisis IA ─────────────────────────────────── */
+.dc-ia-text {
+  padding:1.2rem; font-size:.83rem; color:#475569; line-height:1.6;
+}
+.dc-ia-pending {
+  margin:1rem 1.2rem 1.2rem;
+  background:#f0f9ff; border-left:3px solid #0ea5e9; border-radius:.4rem;
+  padding:.75rem 1rem; font-size:.82rem; color:#0369a1;
+}
+
+/* ── Barras por grado ────────────────────────────── */
+.dc-grade-row {
+  display:flex; align-items:center; gap:.75rem;
+  padding:.65rem 1.2rem; border-bottom:1px solid #f8fafc;
+}
+.dc-grade-row:last-child { border-bottom:none; }
+.dc-grade-name  { font-size:.82rem; font-weight:600; color:#1e293b; min-width:100px; }
+.dc-grade-bar-bg { flex:1; background:#f1f5f9; border-radius:2rem; height:8px; overflow:hidden; }
+.dc-grade-bar   { height:100%; border-radius:2rem; background:linear-gradient(90deg,var(--elec-mid),var(--elec-accent)); transition:width .6s ease; }
+.dc-grade-count { font-size:.78rem; font-weight:700; color:#3730a3; min-width:48px; text-align:right; }
+
+/* ── Participación bar ────────────────────────────── */
+.dc-part-wrap { padding:.8rem 1.2rem 1rem; }
+.dc-part-label { font-size:.78rem; color:#64748b; margin-bottom:.4rem; display:flex; justify-content:space-between; }
+.dc-part-bg    { background:#f1f5f9; border-radius:2rem; height:12px; overflow:hidden; }
+.dc-part-fill  { height:100%; border-radius:2rem; background:linear-gradient(90deg,var(--elec-mid),var(--elec-accent)); transition:width .8s ease; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid px-2 px-md-3 pb-5" style="max-width:960px;">
+
+  <!-- ══ HERO ════════════════════════════════════════════════════════ -->
+  <div class="dc-hero">
+    <div class="dc-hero-inner">
+      <!-- Avatar -->
+      <div class="dc-hero-avatar">
+        {% if candidato.foto %}
+          <img src="{{ candidato.foto.url }}" alt="{{ candidato.estudiante.usuario.get_full_name }}">
+        {% else %}
+          {{ candidato.estudiante.usuario.first_name|slice:":1"|upper }}{{ candidato.estudiante.usuario.last_name|slice:":1"|upper }}
+        {% endif %}
+      </div>
+      <!-- Info -->
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.3rem;">
+          {% if posicion == 1 %}
+            <span class="dc-position-medal">🥇</span>
+          {% elif posicion == 2 %}
+            <span class="dc-position-medal">🥈</span>
+          {% elif posicion == 3 %}
+            <span class="dc-position-medal">🥉</span>
+          {% elif posicion %}
+            <span style="background:rgba(255,255,255,.15);border-radius:2rem;padding:.2rem .65rem;font-size:.8rem;font-weight:700;">#{{ posicion }}</span>
+          {% endif %}
+          <div class="gc-hero-badge" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:2rem;padding:.2rem .7rem;font-size:.74rem;font-weight:600;">
+            Candidato {{ posicion }} de {{ total_candidatos }}
+          </div>
+        </div>
+        <div class="dc-hero-name">{{ candidato.estudiante.usuario.get_full_name }}</div>
+        <div class="dc-hero-grade">
+          <i class="bi bi-mortarboard-fill"></i> {{ candidato.estudiante.grado_actual }}
+          &nbsp;·&nbsp;
+          <i class="bi bi-person-check-fill"></i> {{ eleccion.nombre }}
+        </div>
+      </div>
+      <!-- Botón volver -->
+      <div>
+        <a href="{% url 'gestion_academica:gestionar_candidatos' eleccion.id %}" class="dc-hero-btn dc-hero-btn-outline">
+          <i class="bi bi-arrow-left"></i> Candidatos
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ KPI STRIP ════════════════════════════════════════════════════ -->
+  <div class="dc-kpi-strip">
+    <div class="dc-kpi indigo">
+      <div class="dc-kpi-val">{{ candidato.total_votos }}</div>
+      <div class="dc-kpi-label">Votos obtenidos</div>
+    </div>
+    <div class="dc-kpi violet">
+      <div class="dc-kpi-val">#{{ posicion }}</div>
+      <div class="dc-kpi-label">Posición ranking</div>
+    </div>
+    <div class="dc-kpi green">
+      {% widthratio candidato.total_votos total_votos_eleccion 100 as pct %}
+      <div class="dc-kpi-val">{{ pct }}%</div>
+      <div class="dc-kpi-label">Del total de votos</div>
+    </div>
+    <div class="dc-kpi amber">
+      <div class="dc-kpi-val">{{ total_votos_eleccion }}</div>
+      <div class="dc-kpi-label">Total elección</div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- ─ Columna izquierda: propuesta + IA ─ -->
+    <div class="col-12 col-lg-6">
+
+      <!-- Propuesta -->
+      <div class="dc-panel">
+        <div class="dc-panel-header">
+          <h2 class="dc-panel-title">
+            <span class="ico ico-indigo"><i class="bi bi-journal-text"></i></span>
+            Propuesta de Gobierno
+          </h2>
+        </div>
+        <blockquote class="dc-propuesta">{{ candidato.propuesta|linebreaksbr }}</blockquote>
+      </div>
+
+      <!-- Análisis IA -->
+      <div class="dc-panel">
+        <div class="dc-panel-header">
+          <h2 class="dc-panel-title">
+            <span class="ico ico-violet"><i class="bi bi-robot"></i></span>
+            Análisis de Propuesta (IA)
+          </h2>
+          <a href="{% url 'gestion_academica:analizar_propuestas_ia' eleccion.id %}"
+             class="btn btn-sm"
+             style="background:#ede9fe;color:#6d28d9;border:none;font-size:.75rem;font-weight:600;border-radius:.45rem;">
+            <i class="bi bi-arrow-clockwise me-1"></i>Regenerar
+          </a>
+        </div>
+        {% if candidato.analisis_ia %}
+          <div class="dc-ia-text">{{ candidato.analisis_ia|linebreaksbr }}</div>
+        {% else %}
+          <div class="dc-ia-pending">
+            <i class="bi bi-hourglass-split me-1"></i>
+            El análisis con IA aún no se ha generado para este candidato.
+            Haz clic en <strong>Regenerar</strong> para iniciarlo.
+          </div>
+        {% endif %}
+      </div>
+
+    </div><!-- /col izquierda -->
+
+    <!-- ─ Columna derecha: votos por grado ─ -->
+    <div class="col-12 col-lg-6">
+
+      <!-- Participación general -->
+      <div class="dc-panel">
+        <div class="dc-panel-header">
+          <h2 class="dc-panel-title">
+            <span class="ico ico-green"><i class="bi bi-bar-chart-fill"></i></span>
+            Participación de la Elección
+          </h2>
+        </div>
+        <div class="dc-part-wrap">
+          <div class="dc-part-label">
+            <span>Votos emitidos sobre elegibles</span>
+            <strong>{{ total_votos_eleccion }} / {{ total_elegibles }}</strong>
+          </div>
+          <div class="dc-part-bg">
+            {% widthratio total_votos_eleccion total_elegibles 100 as part_pct %}
+            <div class="dc-part-fill" id="partFill" data-pct="{{ part_pct }}" style="width:0%;"></div>
+          </div>
+          <div style="text-align:right;font-size:.75rem;color:#64748b;margin-top:.3rem;">{{ part_pct }}% participación</div>
+        </div>
+      </div>
+
+      <!-- Votos por grado -->
+      <div class="dc-panel">
+        <div class="dc-panel-header">
+          <h2 class="dc-panel-title">
+            <span class="ico ico-amber"><i class="bi bi-diagram-3-fill"></i></span>
+            Votos por Grado
+          </h2>
+        </div>
+
+        {% if votos_por_grado %}
+          {% for vg in votos_por_grado %}
+          <div class="dc-grade-row">
+            <div class="dc-grade-name">{{ vg.votante__grado_actual__nombre|default:"Sin grado" }}</div>
+            <div class="dc-grade-bar-bg">
+              <div class="dc-grade-bar" data-votes="{{ vg.total }}" data-max="{{ votos_por_grado.0.total }}" style="width:0%;"></div>
+            </div>
+            <div class="dc-grade-count">{{ vg.total }} <span style="font-weight:400;color:#94a3b8;">voto{{ vg.total|pluralize:"s" }}</span></div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="text-align:center;padding:2rem 1rem;color:#94a3b8;">
+            <i class="bi bi-bar-chart d-block mb-2" style="font-size:1.8rem;"></i>
+            <p class="small mb-0">Este candidato aún no tiene votos registrados.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div><!-- /col derecha -->
+  </div><!-- /row -->
+
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Barra de participación
+  const partFill = document.getElementById('partFill');
+  if (partFill) {
+    requestAnimationFrame(() => {
+      partFill.style.width = (partFill.dataset.pct || 0) + '%';
+    });
+  }
+
+  // Barras por grado
+  const gradeBars = document.querySelectorAll('.dc-grade-bar');
+  const maxVotes  = gradeBars.length ? parseInt(gradeBars[0].dataset.max || '1', 10) : 1;
+  gradeBars.forEach(bar => {
+    const v = parseInt(bar.dataset.votes || '0', 10);
+    const pct = maxVotes > 0 ? Math.round((v / maxVotes) * 100) : 0;
+    requestAnimationFrame(() => { bar.style.width = pct + '%'; });
+  });
+});
+</script>
+{% endblock %}

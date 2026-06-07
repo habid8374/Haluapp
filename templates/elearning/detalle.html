@@ -1,0 +1,47 @@
+{% extends "base_academico.html" %}
+{% block contenido %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'elearning:catalogo' %}">E-learning</a></li>
+            <li class="breadcrumb-item active">{{ curso.nombre }}</li>
+        </ol>
+    </nav>
+    <h1 class="h4">{{ curso.nombre }}</h1>
+    <p class="text-muted">{{ curso.descripcion }}</p>
+    {% if curso.precio and curso.precio > 0 %}
+    <p><strong>Precio:</strong> ${{ curso.precio }}</p>
+    {% endif %}
+    {% with p=ctx_pago %}
+    {% if inscrito %}
+        {% if p.requiere_pago and not p.acceso_pagado %}
+        <div class="alert alert-warning">
+            <strong>Aula bloqueada hasta completar el pago.</strong>
+            {% if p.deuda_sin_cuenta %}
+            La institución aún no generó la cuenta en Finanzas para esta oferta; contacta a administración.
+            {% elif p.puede_pagar_online %}
+            Puedes pagar en línea con Mercado Pago y el acceso se habilitará al acreditarse el pago.
+            {% else %}
+            Revisa tu estado de cuenta en Finanzas o contacta a administración.
+            {% endif %}
+        </div>
+        <div class="d-grid gap-2 d-sm-flex flex-sm-wrap">
+            {% if p.puede_pagar_online %}
+            <a href="{% url 'finanzas:iniciar_pago' cuenta_pk=p.cuenta_pk %}" class="btn btn-success">Pagar en línea (Mercado Pago)</a>
+            {% endif %}
+            <a href="{% url 'elearning:aula_virtual' curso.id %}" class="btn btn-outline-secondary">Ver estado del aula</a>
+        </div>
+        {% else %}
+        <div class="d-grid gap-2 d-sm-flex flex-sm-wrap">
+            <a href="{% url 'elearning:aula_virtual' curso.id %}" class="btn btn-primary">Entrar al aula</a>
+        </div>
+        {% endif %}
+    {% else %}
+    <form method="post">{% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary" disabled>Matrícula por administración</button>
+    </form>
+    <p class="small text-muted mt-2">Para inscribirte, contacta a administración.</p>
+    {% endif %}
+    {% endwith %}
+</div>
+{% endblock %}

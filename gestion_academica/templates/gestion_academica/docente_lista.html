@@ -1,104 +1,209 @@
-{# gestion_academica/templates/gestion_academica/docente_lista.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
-{% block titulo %}{{ titulo_pagina|default:"Lista de Docentes" }}{% endblock titulo %} {# Usamos titulo_pagina #}
+{% extends "base_academico.html" %}
+{% load static %}
+{% block titulo %}{{ titulo_pagina|default:"Lista de Docentes" }}{% endblock %}
 
 {% block contenido %}
+<style>
+  :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
+
+  .ps-hero {
+    background: linear-gradient(135deg, var(--ps-dark) 0%, var(--ps-mid) 55%, var(--ps-light) 100%);
+    padding: 2.2rem 2rem 2rem;
+    position: relative; overflow: hidden;
+    border-radius: .85rem; margin-bottom: 1.8rem;
+  }
+  .ps-hero::before {
+    content:''; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .ps-hero-title { font-size:1.65rem; font-weight:900; color:#fff; margin:0; position:relative; z-index:1; }
+  .ps-hero-sub   { font-size:.88rem; color:rgba(255,255,255,.75); margin-top:.35rem; position:relative; z-index:1; }
+  .ps-hero-badge {
+    background:rgba(255,255,255,.15); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.25); border-radius:30px;
+    padding:.35rem .9rem; font-size:.78rem; color:#fff; font-weight:600;
+    position:relative; z-index:1;
+  }
+  .ps-btn-add {
+    background: rgba(255,255,255,.18); backdrop-filter:blur(6px);
+    border:1.5px solid rgba(255,255,255,.4); border-radius:10px;
+    color:#fff; font-weight:700; font-size:.88rem;
+    padding:.55rem 1.1rem;
+    display:inline-flex; align-items:center; gap:.4rem;
+    text-decoration:none; transition: background .18s, transform .15s;
+    position:relative; z-index:1;
+  }
+  .ps-btn-add:hover { background:rgba(255,255,255,.28); color:#fff; transform:translateY(-1px); }
+
+  /* Table card */
+  .ps-table-card { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; }
+  .ps-table { width:100%; border-collapse:collapse; }
+  .ps-table thead tr { background: linear-gradient(90deg, var(--ps-dark) 0%, var(--ps-mid) 100%); }
+  .ps-table thead th {
+    color:rgba(255,255,255,.9); font-size:.75rem; font-weight:700;
+    letter-spacing:.6px; text-transform:uppercase;
+    padding:.85rem 1rem; border:none;
+  }
+  .ps-table tbody tr { border-bottom:1px solid #f1f5f9; transition:background .12s; }
+  .ps-table tbody tr:last-child { border-bottom:none; }
+  .ps-table tbody tr:hover { background:#f8faff; }
+  .ps-table tbody td { padding:.8rem 1rem; color:#374151; font-size:.9rem; vertical-align:middle; }
+
+  /* Avatar */
+  .ps-avatar {
+    width:38px; height:38px; border-radius:50%; flex-shrink:0;
+    background: linear-gradient(135deg, var(--ps-mid), var(--ps-light));
+    display:inline-flex; align-items:center; justify-content:center;
+    color:#fff; font-size:.82rem; font-weight:700; letter-spacing:.5px;
+  }
+
+  /* Action buttons */
+  .ps-ia { display:inline-flex; align-items:center; gap:.3rem; padding:.3rem .65rem; border-radius:7px; font-size:.78rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; transition:opacity .15s, transform .12s; }
+  .ps-ia:hover { opacity:.82; transform:translateY(-1px); }
+  .ps-ia-view   { background:#dbeafe; color:#1d4ed8; }
+  .ps-ia-edit   { background:#fef3c7; color:#92400e; }
+  .ps-ia-delete { background:#fee2e2; color:#991b1b; }
+  .ps-ia-carnet { background:#ede9fe; color:#5b21b6; }
+
+  /* Pagination */
+  .ps-pag { display:flex; justify-content:center; gap:.4rem; padding:1rem 0 .5rem; flex-wrap:wrap; }
+  .ps-pag a, .ps-pag span {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:36px; height:36px; padding:0 .5rem; border-radius:8px;
+    font-size:.85rem; font-weight:600; text-decoration:none; transition:background .15s, color .15s;
+  }
+  .ps-pag a { background:#f1f5f9; color:#374151; }
+  .ps-pag a:hover { background:#e0e7ff; color:var(--ps-mid); }
+  .ps-pag a.active { background: linear-gradient(135deg, var(--ps-mid), var(--ps-light)); color:#fff; }
+  .ps-pag span.disabled { background:#f1f5f9; color:#cbd5e1; }
+
+  /* Empty */
+  .ps-empty { text-align:center; padding:3.5rem 2rem; color:#94a3b8; }
+  .ps-empty i { font-size:2.8rem; margin-bottom:.8rem; display:block; opacity:.4; }
+</style>
+
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">{{ titulo_pagina|default:"Lista de Docentes" }}</h1> {# Usamos titulo_pagina #}
-        {% if perms.gestion_academica.add_docente %} {# Permiso para crear docente #}
-            <a href="{% url 'gestion_academica:crear_docente' %}" class="btn btn-primary">
-                <i class="bi bi-person-plus-fill"></i> Registrar Nuevo Docente
-            </a>
+
+  <!-- Hero -->
+  <div class="ps-hero">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h1 class="ps-hero-title">
+          <i class="bi bi-person-badge-fill me-2" style="opacity:.85"></i>{{ titulo_pagina|default:"Lista de Docentes" }}
+        </h1>
+        <p class="ps-hero-sub">Gestión del cuerpo docente institucional</p>
+      </div>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        {% if docentes %}
+          <span class="ps-hero-badge"><i class="bi bi-person-fill me-1"></i>{{ docentes|length }} docente{{ docentes|length|pluralize:"s" }}</span>
         {% endif %}
+        {% if perms.gestion_academica.add_docente %}
+          <a href="{% url 'gestion_academica:crear_docente' %}" class="ps-btn-add">
+            <i class="bi bi-person-plus-fill"></i> Registrar Docente
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Table -->
+  {% if docentes %}
+    <div class="ps-table-card">
+      <div class="table-responsive">
+        <table class="ps-table">
+          <thead>
+            <tr>
+              <th>Docente</th>
+              <th>Usuario</th>
+              <th>Código</th>
+              <th>Especialidad</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for docente_obj in docentes %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="ps-avatar">{{ docente_obj.usuario.first_name|first|upper }}{{ docente_obj.usuario.last_name|first|upper }}</span>
+                  <div>
+                    <div style="font-weight:700;color:#1e1b4b;font-size:.9rem;line-height:1.2;">
+                      {{ docente_obj.usuario.first_name|default:"N/A" }} {{ docente_obj.usuario.last_name|default:"" }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-size:.83rem;color:#64748b;">{{ docente_obj.usuario.username }}</td>
+              <td style="font-size:.83rem;color:#64748b;">{{ docente_obj.codigo_docente|default:"N/A" }}</td>
+              <td style="font-size:.87rem;">{{ docente_obj.especialidad|default:"No asignada" }}</td>
+              <td class="text-center text-nowrap">
+                {% if perms.gestion_academica.view_docente %}
+                  <a href="{% url 'gestion_academica:detalle_docente' docente_obj.pk %}" class="ps-ia ps-ia-view me-1" title="Ver Detalles">
+                    <i class="bi bi-eye-fill"></i> Ver
+                  </a>
+                {% endif %}
+                {% if perms.gestion_academica.change_docente %}
+                  <a href="{% url 'gestion_academica:editar_docente' docente_obj.pk %}" class="ps-ia ps-ia-edit me-1" title="Editar">
+                    <i class="bi bi-pencil-fill"></i> Editar
+                  </a>
+                {% endif %}
+                {% if perms.gestion_academica.delete_docente %}
+                  <a href="{% url 'gestion_academica:eliminar_docente' docente_obj.pk %}" class="ps-ia ps-ia-delete me-1" title="Eliminar">
+                    <i class="bi bi-trash-fill"></i> Eliminar
+                  </a>
+                {% endif %}
+                {% if perms.gestion_academica.view_docente %}
+                  <a href="{% url 'gestion_academica:generar_carnet_docente' docente_obj.pk %}" target="_blank" class="ps-ia ps-ia-carnet" title="Ver Carnet">
+                    <i class="bi bi-card-image"></i> Carnet
+                  </a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+        <div class="ps-pag">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>
+          {% else %}
+            <span class="disabled"><i class="bi bi-chevron-left"></i></span>
+          {% endif %}
+          {% for i in paginator.page_range %}
+            <a href="?page={{ i }}" class="{% if page_obj.number == i %}active{% endif %}">{{ i }}</a>
+          {% endfor %}
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a>
+          {% else %}
+            <span class="disabled"><i class="bi bi-chevron-right"></i></span>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
+  {% else %}
+    <div class="ps-table-card ps-empty">
+      <i class="bi bi-person-x"></i>
+      <p class="mb-1 fw-bold" style="color:#475569;">No hay docentes registrados.</p>
+      {% if perms.gestion_academica.add_docente %}
+        <p class="mb-0" style="font-size:.88rem;">Usa el botón "Registrar Docente" para agregar el primero.</p>
+      {% endif %}
+    </div>
+  {% endif %}
 
-    {% if docentes %}
-        <div class="table-responsive shadow-sm rounded-3">
-            <table class="table table-striped table-hover table-bordered mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Nombres</th>
-                        <th>Apellidos</th>
-                        <th>Usuario (Login)</th>
-                        <th>Código</th>
-                        <th>Especialidad</th>
-                        <th class="text-center">Acciones</th> {# Corregido a text-center para uniformidad #}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for docente_obj in docentes %}
-                    <tr>
-                        <td>{{ docente_obj.usuario.first_name|default:"N/A" }}</td>
-                        <td>{{ docente_obj.usuario.last_name|default:"N/A" }}</td>
-                        <td>{{ docente_obj.usuario.username }}</td>
-                        <td>{{ docente_obj.codigo_docente|default:"N/A" }}</td>
-                        <td>{{ docente_obj.especialidad|default:"No asignada" }}</td>
-                        <td class="text-center text-nowrap">
-    {% if perms.gestion_academica.view_docente %}
-        <a href="{% url 'gestion_academica:detalle_docente' docente_obj.pk %}" class="btn btn-sm btn-info me-1" title="Ver Detalles">
-            <i class="bi bi-eye-fill"></i> Ver
-        </a>
-    {% endif %}
-
-    {% if perms.gestion_academica.change_docente %}
-        <a href="{% url 'gestion_academica:editar_docente' docente_obj.pk %}" class="btn btn-sm btn-warning me-1" title="Editar">
-            <i class="bi bi-pencil-fill"></i> Editar
-        </a>
-    {% endif %}
-
-    {% if perms.gestion_academica.delete_docente %}
-        <a href="{% url 'gestion_academica:eliminar_docente' docente_obj.pk %}" class="btn btn-sm btn-danger ms-1" title="Eliminar">
-            <i class="bi bi-trash-fill"></i> Eliminar
-        </a>
-    {% endif %}
-
-    {% if perms.gestion_academica.view_docente %}  {# Mismo permiso de lectura #}
-        <a href="{% url 'gestion_academica:generar_carnet_docente' docente_obj.pk %}" target="_blank" class="btn btn-outline-info btn-sm">
-            <i class="fas fa-id-card"></i> Ver Carnet
-        </a>
-    {% endif %}
-</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {# Paginación #}
-        {% if is_paginated %}
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
-                    {% else %}
-                        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
-                    {% endif %}
-                    {% for i in paginator.page_range %}
-                        <li class="page-item {% if page_obj.number == i %}active{% endif %}"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
-                    {% endfor %}
-                    {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
-                    {% else %}
-                        <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% endif %}
-    {% else %}
-        <div class="alert alert-info text-center mt-3" role="alert">
-            <i class="bi bi-info-circle-fill me-2"></i> No hay docentes registrados.
-        </div>
-    {% endif %}
 </div>
-{% endblock contenido %}
+{% endblock %}

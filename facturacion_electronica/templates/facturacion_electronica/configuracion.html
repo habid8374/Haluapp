@@ -1,0 +1,97 @@
+{% extends "base_finanzas.html" %}
+{% load crispy_forms_tags %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-4" style="max-width: 820px;">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h1 class="h2 mb-0"><i class="bi bi-receipt-cutoff me-2"></i>Facturación Electrónica</h1>
+        <a href="{% url 'facturacion_electronica:lista_facturas' %}" class="btn btn-outline-primary">
+            <i class="bi bi-list-ul me-1"></i> Ver facturas emitidas
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {# Estado del módulo #}
+    {% if config.activo %}
+    <div class="alert alert-success d-flex align-items-center gap-2">
+        <i class="bi bi-check-circle-fill"></i>
+        <div>Módulo <strong>ACTIVO</strong> · Ambiente: <strong>{{ config.get_ambiente_display }}</strong>
+        {% if config.operativo %}· Listo para emitir{% else %}· <span class="text-danger">Faltan credenciales o rango de numeración</span>{% endif %}</div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning d-flex align-items-start gap-2">
+        <i class="bi bi-lock-fill mt-1"></i>
+        <div>
+            <strong>Módulo inactivo.</strong> La facturación electrónica es un servicio adicional.
+            Para activarlo, contacta al administrador de la plataforma (se habilita tras el pago del adicional).
+            Puedes ir dejando configuradas tus credenciales de Factus desde ya.
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            Credenciales de <strong>Factus</strong> para: <strong>{{ config.institucion.nombre }}</strong>
+        </div>
+        <div class="card-body p-4">
+            <div class="alert alert-info" style="font-size:.9rem;">
+                <p class="mb-1"><strong>¿De dónde salen estas credenciales?</strong> Del panel de
+                <a href="https://developers.factus.com.co/" target="_blank" class="alert-link">Factus</a>
+                (Client ID, Client Secret, usuario y contraseña). El <em>rango de numeración</em> lo autoriza la DIAN.</p>
+                <p class="mb-0">Mientras pruebas, usa el ambiente <strong>Pruebas (Sandbox)</strong>.</p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form.ambiente|as_crispy_field }}
+                <div class="row">
+                    <div class="col-md-6">{{ form.client_id|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.client_secret|as_crispy_field }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">{{ form.username|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.password|as_crispy_field }}</div>
+                </div>
+                {{ form.numbering_range_id|as_crispy_field }}
+                <div class="row">
+                    <div class="col-md-6">{{ form.numbering_range_id_nota_credito|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.numbering_range_id_nota_debito|as_crispy_field }}</div>
+                </div>
+
+                <div class="form-check form-switch border rounded p-3 ps-5 mb-3" style="background:#f8fafc;">
+                    {{ form.emision_automatica }}
+                    <label class="form-check-label fw-600" for="{{ form.emision_automatica.id_for_label }}">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>{{ form.emision_automatica.label }} (Modo automático)
+                    </label>
+                    <div class="text-muted" style="font-size:.82rem;">{{ form.emision_automatica.help_text }}</div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save-fill me-1"></i> Guardar credenciales
+                    </button>
+                </div>
+            </form>
+
+            <hr class="my-4">
+
+            <form method="post" action="{% url 'facturacion_electronica:probar_conexion' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-secondary">
+                    <i class="bi bi-plug-fill me-1"></i> Probar conexión con Factus
+                </button>
+                <small class="text-muted ms-2">Verifica que las credenciales sean válidas (obtiene un token).</small>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

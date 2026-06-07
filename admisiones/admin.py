@@ -7,12 +7,13 @@ from import_export.admin import ImportExportModelAdmin
 
 # Importamos TODOS los modelos, incluyendo el nuevo Proxy Model
 from .models import (
-    Aspirante, 
-    DocumentoRequerido, 
+    Aspirante,
+    DocumentoRequerido,
     DocumentoEntregado,
     HorarioDisponible,
     CitaAgendada,
-    AspiranteConDocumentos  # <-- IMPORTANTE: Importamos el nuevo modelo proxy
+    AspiranteConDocumentos,  # <-- IMPORTANTE: Importamos el nuevo modelo proxy
+    LoteImportacionAspirantes,
 )
 
 # ==============================================================================
@@ -105,11 +106,15 @@ class AspiranteAdmin(admin.ModelAdmin):
     readonly_fields = ('access_token', 'usuario', 'estudiante_creado')
 
     fieldsets = (
-        ('Información Personal', {
-            'fields': ('nombres', 'apellidos', 'numero_documento', 'fecha_nacimiento', 'sexo')
+        ('Identificación Personal', {
+            'fields': ('nombres', 'apellidos', 'tipo_documento', 'numero_documento', 'fecha_nacimiento', 'lugar_nacimiento', 'sexo')
         }),
         ('Información de Contacto', {
-            'fields': ('email_contacto', 'telefono_contacto')
+            'fields': ('email_contacto', 'telefono_contacto', 'direccion', 'municipio_ciudad', 'departamento')
+        }),
+        ('Datos de Salud', {
+            'fields': ('grupo_sanguineo', 'eps', 'discapacidad'),
+            'classes': ('collapse',),
         }),
         ('Información Académica y de Admisión', {
             'fields': ('institucion', 'grado_aspira', 'colegio_procedencia', 'estado')
@@ -158,6 +163,25 @@ class CitaAgendadaAdmin(admin.ModelAdmin):
     list_editable = ('estado',)
     autocomplete_fields = ['aspirante', 'horario']
     readonly_fields = ('fecha_agendamiento',)
+
+
+@admin.register(LoteImportacionAspirantes)
+class LoteImportacionAspirantesAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'institucion', 'nombre_original', 'estado', 'dry_run',
+        'total_filas', 'filas_exitosas', 'filas_fallidas',
+        'creado_por', 'fecha_creacion',
+    )
+    list_filter = ('estado', 'dry_run', 'institucion')
+    search_fields = ('nombre_original', 'creado_por__username', 'creado_por__email')
+    readonly_fields = (
+        'estado', 'total_filas', 'filas_procesadas',
+        'filas_exitosas', 'filas_fallidas', 'errores',
+        'mensaje_error_general',
+        'fecha_creacion', 'fecha_inicio', 'fecha_fin',
+    )
+    ordering = ('-fecha_creacion',)
+    date_hierarchy = 'fecha_creacion'
 
   
 
