@@ -168,6 +168,84 @@ def lista_facturas(request):
 
 
 @login_required
+def factura_pdf(request, factura_id):
+    """Genera la representación gráfica propia de la factura electrónica como PDF."""
+    from django.template.loader import render_to_string
+    from django.conf import settings as _s
+    import os
+
+    institucion = _get_institucion(request)
+    factura = get_object_or_404(
+        FacturaElectronica.objects.select_related(
+            "estudiante__usuario", "estudiante__grado_actual",
+            "pago", "institucion",
+        ),
+        pk=factura_id, institucion=institucion,
+    )
+
+    enviado = factura.json_enviado or {}
+    items_raw = enviado.get("items", []) or []
+    customer = enviado.get("customer", {}) or {}
+
+    # Calcular total por ítem (price * quantity)
+    items = []
+    total = 0
+    for it in items_raw:
+        precio = float(it.get("price", 0))
+        qty = float(it.get("quantity", 1))
+        subtotal = precio * qty
+        total += subtotal
+        items.append({**it, "total": subtotal})
+
+    # Datos del adquiriente desde el JSON enviado a Factus
+    customer_name = customer.get("names") or customer.get("name") or "—"
+    customer_doc = customer.get("identification") or "—"
+    customer_doc_type = "CC"
+    doc_code = str(customer.get("identification_document_code", "13"))
+    if doc_code == "31":
+        customer_doc_type = "NIT"
+    elif doc_code == "12":
+        customer_doc_type = "TI"
+    customer_email = customer.get("email") or ""
+    customer_address = customer.get("address") or ""
+
+    # URL absoluta del logo para que WeasyPrint pueda cargarlo
+    logo_url = ""
+    if factura.institucion.logo:
+        logo_name = str(factura.institucion.logo)
+        if logo_name.startswith("http"):
+            logo_url = logo_name
+        else:
+            media_root = str(getattr(_s, "MEDIA_ROOT", ""))
+            logo_url = "file://" + os.path.join(media_root, logo_name)
+
+    html = render_to_string("facturacion_electronica/factura_pdf.html", {
+        "factura": factura,
+        "institucion": factura.institucion,
+        "logo_url": logo_url,
+        "items": items,
+        "customer_name": customer_name,
+        "customer_doc": customer_doc,
+        "customer_doc_type": customer_doc_type,
+        "customer_email": customer_email,
+        "customer_address": customer_address,
+        "total": total,
+    }, request=request)
+
+    try:
+        from weasyprint import HTML as WP_HTML
+        pdf = WP_HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+        filename = f"FEV_{factura.numero or factura.reference_code}.pdf"
+        response = HttpResponse(pdf, content_type="application/pdf")
+        response["Content-Disposition"] = f'inline; filename="{filename}"'
+        return response
+    except Exception as exc:
+        logger.error("factura_pdf WeasyPrint error: %s", exc)
+        from django.http import HttpResponse as HR
+        return HR(f"Error generando PDF: {exc}", status=500)
+
+
+@login_required
 def detalle_factura(request, factura_id):
     institucion = _get_institucion(request)
     factura = get_object_or_404(

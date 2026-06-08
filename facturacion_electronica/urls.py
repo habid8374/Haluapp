@@ -10,6 +10,7 @@ urlpatterns = [
     path("configuracion/rangos/", views.listar_rangos, name="listar_rangos"),
     path("facturas/", views.lista_facturas, name="lista_facturas"),
     path("facturas/<int:factura_id>/", views.detalle_factura, name="detalle_factura"),
+    path("facturas/<int:factura_id>/pdf/", views.factura_pdf, name="factura_pdf"),
     path("emitir/<int:pago_id>/", views.emitir_factura, name="emitir_factura"),
     path("nota-credito/<int:factura_id>/", views.emitir_nota_credito, name="emitir_nota_credito"),
     path("nota-debito/<int:factura_id>/", views.emitir_nota_debito, name="emitir_nota_debito"),

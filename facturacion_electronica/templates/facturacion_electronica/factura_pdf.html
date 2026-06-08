@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 18mm 16mm 14mm 16mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 9.5pt; color: #1e1e2e; }
+
+  /* ── HEADER ── */
+  .header { display: table; width: 100%; margin-bottom: 6px; }
+  .header-left  { display: table-cell; vertical-align: top; width: 55%; }
+  .header-right { display: table-cell; vertical-align: top; text-align: right; }
+  .brand-name { font-size: 22pt; font-weight: 900; color: #4f46e5; letter-spacing: -0.5px; }
+  .brand-sub  { font-size: 8pt; color: #6b7280; margin-bottom: 5px; }
+  .inst-name  { font-size: 10pt; font-weight: 700; color: #1e1e2e; }
+  .inst-detail { font-size: 8pt; color: #4b5563; line-height: 1.5; }
+  .doc-type-label { font-size: 7.5pt; color: #6b7280; }
+  .doc-number { font-size: 20pt; font-weight: 900; color: #1e1e2e; letter-spacing: -0.5px; }
+  .doc-meta   { font-size: 8pt; color: #4b5563; line-height: 1.6; }
+  .validated  { color: #059669; font-weight: 700; font-size: 8.5pt; }
+
+  .logo-img { max-height: 52px; max-width: 120px; margin-bottom: 5px; }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 2.5px solid #4f46e5; margin: 8px 0; }
+  .divider-thin { border: none; border-top: 1px solid #e5e7eb; margin: 6px 0; }
+
+  /* ── TWO-COL BOXES ── */
+  .boxes { display: table; width: 100%; border-collapse: separate; border-spacing: 6px 0; margin-bottom: 8px; }
+  .box  { display: table-cell; width: 50%; border: 1px solid #d1d5db; border-radius: 5px; padding: 7px 9px; vertical-align: top; }
+  .box-title { font-size: 7pt; font-weight: 700; text-transform: uppercase; color: #4f46e5; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .box-name  { font-size: 9.5pt; font-weight: 700; margin-bottom: 2px; }
+  .box-detail { font-size: 8pt; color: #4b5563; line-height: 1.55; }
+
+  /* ── ITEMS TABLE ── */
+  .section-title { font-size: 8pt; font-weight: 700; text-transform: uppercase; color: #4f46e5; letter-spacing: 0.5px; border-left: 3px solid #4f46e5; padding-left: 6px; margin-bottom: 5px; }
+  table.items { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+  table.items thead tr { background: #f3f4f6; }
+  table.items th { font-size: 7.5pt; font-weight: 700; color: #374151; padding: 4px 6px; text-align: left; border-bottom: 1px solid #d1d5db; }
+  table.items th.right, table.items td.right { text-align: right; }
+  table.items th.center, table.items td.center { text-align: center; }
+  table.items td { font-size: 8.5pt; padding: 5px 6px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+  table.items tr:last-child td { border-bottom: none; }
+  .iva-note { font-size: 7.5pt; color: #6b7280; font-style: italic; padding: 3px 0 0 4px; }
+
+  /* ── BOTTOM TWO COLUMNS ── */
+  .bottom { display: table; width: 100%; border-collapse: separate; border-spacing: 6px 0; margin: 8px 0; }
+  .bottom-left  { display: table-cell; width: 50%; border: 1px solid #d1d5db; border-radius: 5px; padding: 7px 9px; vertical-align: top; }
+  .bottom-right { display: table-cell; width: 50%; border: 1px solid #d1d5db; border-radius: 5px; padding: 7px 9px; vertical-align: top; }
+  .summary-row { display: table; width: 100%; padding: 2.5px 0; }
+  .summary-label { display: table-cell; font-size: 8.5pt; color: #4b5563; }
+  .summary-val   { display: table-cell; text-align: right; font-size: 8.5pt; color: #1e1e2e; }
+  .summary-total .summary-label,
+  .summary-total .summary-val { font-size: 10.5pt; font-weight: 800; color: #1e1e2e; padding-top: 4px; border-top: 1.5px solid #4f46e5; }
+
+  /* ── DIAN SECTION ── */
+  .dian-section { background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 5px; padding: 8px 10px; margin-top: 6px; }
+  .dian-title  { font-size: 8pt; font-weight: 700; text-transform: uppercase; color: #065f46; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .cufe-label  { font-size: 7.5pt; color: #065f46; }
+  .cufe-value  { font-size: 7pt; color: #1e1e2e; word-break: break-all; font-family: monospace; margin: 1px 0 6px 0; }
+  .dian-meta   { display: table; width: 100%; }
+  .dian-col    { display: table-cell; width: 25%; font-size: 7.5pt; vertical-align: top; }
+  .dian-col-label { color: #6b7280; }
+  .dian-col-val   { font-weight: 700; color: #065f46; }
+
+  /* ── FOOTER ── */
+  .footer { margin-top: 8px; text-align: center; font-size: 7pt; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 5px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    {% if institucion.logo %}
+      <img src="{{ logo_url }}" class="logo-img" alt="Logo">
+    {% else %}
+      <div class="brand-name">{{ institucion.nombre }}</div>
+    {% endif %}
+    <div class="brand-sub">Sistema de Gestión Escolar</div>
+    <div class="inst-name">{{ institucion.nombre }}</div>
+    <div class="inst-detail">
+      NIT: {{ institucion.nit }}{% if institucion.direccion %} | {{ institucion.direccion }}{% endif %}<br>
+      {% if institucion.telefono %}Tel: {{ institucion.telefono }}{% endif %}
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="doc-type-label">Educación · Colombia</div>
+    <div class="doc-number">{{ factura.numero }}</div>
+    <div class="doc-meta">
+      Factura electrónica de venta<br>
+      Fecha: {{ factura.fecha_creacion|date:"d \d\e M \d\e Y, g:i a" }}<br>
+      {% if factura.fecha_validacion %}
+      <span class="validated">&#10003; Validada DIAN</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- FACTURADO A + ESTUDIANTE -->
+<div class="boxes">
+  <div class="box">
+    <div class="box-title">Facturado a</div>
+    <div class="box-name">{{ customer_name }}</div>
+    <div class="box-detail">
+      {{ customer_doc_type }}: {{ customer_doc }}<br>
+      {% if customer_email %}{{ customer_email }}<br>{% endif %}
+      {% if customer_address %}{{ customer_address }}{% endif %}
+    </div>
+  </div>
+  <div class="box">
+    <div class="box-title">Estudiante beneficiario</div>
+    {% if factura.estudiante %}
+    <div class="box-name">{{ factura.estudiante.usuario.get_full_name }}</div>
+    <div class="box-detail">
+      CC: {{ factura.estudiante.documento_identidad }}<br>
+      {% if factura.estudiante.grado_actual %}Grado: {{ factura.estudiante.grado_actual }}{% endif %}
+    </div>
+    {% else %}
+    <div class="box-detail">—</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- CONCEPTOS -->
+<div class="section-title">Detalle de conceptos</div>
+<table class="items">
+  <thead>
+    <tr>
+      <th style="width:12%">Código</th>
+      <th>Descripción</th>
+      <th class="center" style="width:8%">Cant.</th>
+      <th class="right" style="width:14%">Vlr. Unit.</th>
+      <th class="right" style="width:14%">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td>{{ item.standard_code|default:"—" }}</td>
+      <td>{{ item.description }}</td>
+      <td class="center">{{ item.quantity }}</td>
+      <td class="right">${{ item.price|floatformat:0 }}</td>
+      <td class="right">${{ item.total|default:item.price|floatformat:0 }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div class="iva-note">IVA: Exento — Servicios de educación formal Art. 476 E.T. $0</div>
+
+<hr class="divider-thin">
+
+<!-- PAGO + RESUMEN -->
+<div class="bottom">
+  <div class="bottom-left">
+    <div class="box-title" style="margin-bottom:6px;">Datos del pago</div>
+    {% if factura.pago %}
+    <div class="box-detail">
+      Forma de pago: <strong>{{ factura.pago.get_metodo_pago_display|default:factura.pago.metodo_pago }}</strong><br>
+      Fecha: {{ factura.pago.fecha_pago|date:"d/m/Y" }}<br>
+      Monto: <strong>${{ factura.pago.valor_pagado|floatformat:0 }}</strong>
+    </div>
+    {% else %}
+    <div class="box-detail">—</div>
+    {% endif %}
+  </div>
+  <div class="bottom-right">
+    <div class="box-title" style="margin-bottom:6px;">Resumen factura</div>
+    <div class="summary-row"><span class="summary-label">Subtotal</span><span class="summary-val">${{ total|floatformat:0 }}</span></div>
+    <div class="summary-row"><span class="summary-label">Descuento</span><span class="summary-val">$0</span></div>
+    <div class="summary-row"><span class="summary-label">IVA (0%)</span><span class="summary-val">$0</span></div>
+    <div class="summary-row summary-total"><span class="summary-label">Total factura</span><span class="summary-val">${{ total|floatformat:0 }}</span></div>
+  </div>
+</div>
+
+<!-- DIAN -->
+<div class="dian-section">
+  <div class="dian-title">Datos de validación DIAN</div>
+  <div class="cufe-label">CUFE</div>
+  <div class="cufe-value">{{ factura.cufe }}</div>
+  <div class="dian-meta">
+    <div class="dian-col">
+      <div class="dian-col-label">Ambiente</div>
+      <div class="dian-col-val">{{ factura.get_ambiente_display|default:factura.ambiente }}</div>
+    </div>
+    <div class="dian-col">
+      <div class="dian-col-label">Tipo operación</div>
+      <div class="dian-col-val">Educación formal</div>
+    </div>
+    <div class="dian-col">
+      <div class="dian-col-label">Forma de pago</div>
+      <div class="dian-col-val">{% if factura.pago %}{{ factura.pago.get_metodo_pago_display|default:"Efectivo" }}{% else %}—{% endif %}</div>
+    </div>
+    <div class="dian-col">
+      <div class="dian-col-label">Fecha validación</div>
+      <div class="dian-col-val">{{ factura.fecha_validacion|date:"d/m/Y H:i"|default:"—" }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  Generado por Halu Plataforma Escolar &middot; Facturación electrónica procesada por Factus API &middot; PT habilitado DIAN
+</div>
+
+</body>
+</html>
