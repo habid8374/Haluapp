@@ -373,6 +373,9 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@halu.com')
 EMAIL_TIMEOUT = 15  # segundos — evita que conexiones SMTP lentas bloqueen indefinidamente
+# Brevo API (alternativa a SMTP en Railway donde los puertos SMTP están bloqueados).
+# Cuando está presente, todos los correos transaccionales se envían vía HTTPS.
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
 
 # Para correos a usuarios finales seguimos usando el SMTP por InstitucionEducativa
 # (multi-tenant), vía admisiones.utils.enviar_correo_dinamico.

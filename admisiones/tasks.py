@@ -65,6 +65,9 @@ def _se_pidio_cancelar(lote_id):
         or False
     )
 
+# Sentinel: indica que el envío se hará vía Brevo API (sin conexión SMTP real).
+_BREVO_API_ACTIVO = object()
+
 
 def _crear_conexion_smtp(institucion):
     """Devuelve una conexión SMTP abierta y reutilizable para los correos de bienvenida.
@@ -72,10 +75,13 @@ def _crear_conexion_smtp(institucion):
     Si la institución no tiene credenciales, devuelve None y la tarea simplemente
     omite el envío de correos (manteniendo el registro en BD).
 
-    La conexión se abre de forma anticipada (eager) con un timeout de 10 segundos:
-    si el servidor SMTP no responde, el error se detecta aquí una sola vez en lugar
-    de bloquearse por cada fila del lote.
+    Si BREVO_API_KEY está configurado, devuelve _BREVO_API_ACTIVO (sentinel) para
+    indicar que los correos se enviarán vía HTTP API sin necesidad de SMTP.
     """
+    from django.conf import settings as _s
+    if getattr(_s, 'BREVO_API_KEY', ''):
+        return _BREVO_API_ACTIVO
+
     if not (institucion.email_host_user and institucion.email_host_password):
         return None
     port = institucion.email_port or 587
@@ -397,12 +403,16 @@ def procesar_importacion_aspirantes_task(self, lote_id):
         # 4) SMTP reutilizable solo si NO es dry-run
         _smtp_advertencia_general = None
         if not lote.dry_run:
+            from django.conf import settings as _s
+            _brevo_activo = bool(getattr(_s, 'BREVO_API_KEY', ''))
             _tiene_credenciales_smtp = bool(
                 getattr(institucion, "email_host_user", None)
                 and getattr(institucion, "email_host_password", None)
             )
             smtp_connection = _crear_conexion_smtp(institucion)
-            if _tiene_credenciales_smtp and smtp_connection is None:
+            if _brevo_activo:
+                _smtp_advertencia_general = None  # Brevo API gestiona los correos
+            elif _tiene_credenciales_smtp and smtp_connection is None:
                 _smtp_advertencia_general = (
                     "No se pudo conectar al servidor SMTP de la institución "
                     "(timeout o credenciales incorrectas). "
@@ -633,11 +643,13 @@ def _crear_aspirante_desde_datos(datos, institucion, lote, smtp_connection):
     # devuelve como aviso para que la tarea lo muestre en la tabla de errores.
     aviso_correo = None
     if smtp_connection is not None:
+        # Si es Brevo API, enviar_correo_dinamico lo maneja sin conexión SMTP.
+        conn_param = None if smtp_connection is _BREVO_API_ACTIVO else smtp_connection
         try:
             enviado = enviar_correo_bienvenida(
                 request=None,
                 aspirante=aspirante,
-                connection=smtp_connection,
+                connection=conn_param,
             )
             if not enviado:
                 aviso_correo = (

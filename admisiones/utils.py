@@ -90,6 +90,32 @@ def _email_valido(direccion: str) -> bool:
     return bool(re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', direccion.strip()))
 
 
+def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_content):
+    """Envía correo vía Brevo HTTP API (HTTPS/443). Funciona en Railway sin restricciones SMTP."""
+    import requests as _req
+    from_email = getattr(institucion, 'email_host_user', '') or ''
+    from_name = getattr(institucion, 'nombre', '') or from_email or 'Halu Plataforma'
+    try:
+        resp = _req.post(
+            'https://api.brevo.com/v3/smtp/email',
+            headers={'api-key': api_key, 'Content-Type': 'application/json'},
+            json={
+                'sender': {'name': from_name, 'email': from_email},
+                'to': [{'email': e} for e in destinatarios],
+                'subject': asunto,
+                'htmlContent': html_content,
+            },
+            timeout=15,
+        )
+        if resp.status_code == 201:
+            return True
+        logger.error("Brevo API %s: %s", resp.status_code, resp.text[:300])
+        return False
+    except Exception as exc:
+        logger.error("Brevo API excepción: %s", exc)
+        return False
+
+
 def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, texto_plano='', connection=None):
     if not isinstance(destinatarios, list):
         destinatarios = [destinatarios]
@@ -110,6 +136,12 @@ def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, tex
     if not institucion:
         logger.error("enviar_correo_dinamico: se requiere institución.")
         return False
+
+    # Brevo API tiene prioridad — funciona en Railway donde SMTP está bloqueado
+    from django.conf import settings as _settings
+    _brevo_key = getattr(_settings, 'BREVO_API_KEY', '') or ''
+    if _brevo_key:
+        return _enviar_via_brevo_api(_brevo_key, institucion, destinatarios, asunto, html_content)
 
     if not (institucion.email_host_user and institucion.email_host_password):
         logger.warning(

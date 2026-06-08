@@ -500,15 +500,31 @@ def descargar_plantilla_importacion(request):
 @login_required
 @require_POST
 def test_smtp(request):
-    """Intenta abrir una conexión SMTP con las credenciales de la institución
-    y devuelve JSON con el resultado exacto. Útil para diagnosticar problemas
-    de envío de correos sin necesidad de hacer una importación completa.
-    """
-    from django.core.mail import get_connection
+    """Prueba la configuración de correo (Brevo API o SMTP según lo configurado)."""
+    from django.conf import settings as _s
     institucion = getattr(request.user, 'institucion_asociada', None)
     if not institucion:
         return JsonResponse({'ok': False, 'error': 'Usuario sin institución asociada.'})
 
+    # Si Brevo API está activo, verificar la clave contra la API de Brevo
+    brevo_key = getattr(_s, 'BREVO_API_KEY', '') or ''
+    if brevo_key:
+        import requests as _req
+        try:
+            resp = _req.get(
+                'https://api.brevo.com/v3/account',
+                headers={'api-key': brevo_key},
+                timeout=10,
+            )
+            if resp.status_code == 200:
+                email_cuenta = resp.json().get('email', 'OK')
+                return JsonResponse({'ok': True, 'mensaje': f'Brevo API activa ✓ — cuenta: {email_cuenta}. Los correos se envían por HTTP (sin SMTP).'})
+            return JsonResponse({'ok': False, 'error': f'Brevo API error {resp.status_code}: {resp.text[:200]}'})
+        except Exception as exc:
+            return JsonResponse({'ok': False, 'error': f'Error al conectar con Brevo API: {exc}'})
+
+    # Fallback: probar SMTP
+    from django.core.mail import get_connection
     host = getattr(institucion, 'email_host', '') or ''
     user = getattr(institucion, 'email_host_user', '') or ''
     password = getattr(institucion, 'email_host_password', '') or ''
@@ -522,15 +538,12 @@ def test_smtp(request):
     try:
         conn = get_connection(
             backend='django.core.mail.backends.smtp.EmailBackend',
-            host=host, port=port,
-            username=user, password=password,
-            use_tls=use_tls,
-            use_ssl=use_ssl,
-            timeout=10,
+            host=host, port=port, username=user, password=password,
+            use_tls=use_tls, use_ssl=use_ssl, timeout=10,
         )
         conn.open()
         conn.close()
-        return JsonResponse({'ok': True, 'mensaje': f'Conexión exitosa a {host}:{port} ({"SSL" if use_ssl else "TLS"}) con {user}.'})
+        return JsonResponse({'ok': True, 'mensaje': f'Conexión SMTP exitosa a {host}:{port} ({"SSL" if use_ssl else "TLS"}) con {user}.'})
     except Exception as exc:
         return JsonResponse({'ok': False, 'error': str(exc), 'host': host, 'port': port, 'user': user})
 
