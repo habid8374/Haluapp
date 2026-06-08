@@ -80,8 +80,8 @@ def listar_rangos(request):
     if not config:
         return JsonResponse({"ok": False, "error": "Guarda primero las credenciales de Factus."})
     try:
-        rangos = FactusClient(config).listar_rangos_numeracion()
-        return JsonResponse({"ok": True, "rangos": rangos})
+        rangos, raw = FactusClient(config).listar_rangos_numeracion()
+        return JsonResponse({"ok": True, "rangos": rangos, "_raw": raw})
     except FactusNoConfigurado as exc:
         return JsonResponse({"ok": False, "error": f"Configuración incompleta: {exc}"})
     except Exception as exc:

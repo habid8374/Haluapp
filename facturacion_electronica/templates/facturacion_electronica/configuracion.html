@@ -119,8 +119,8 @@ document.getElementById('btn-obtener-rangos').addEventListener('click', async fu
             out.innerHTML = '<div class="alert alert-danger py-2 small">' + data.error + '</div>';
             return;
         }
-        if (!data.rangos || data.rangos.length === 0) {
-            out.innerHTML = '<div class="alert alert-warning py-2 small">No se encontraron rangos. Verifica en el panel de Factus que tengas rangos de numeración activos.</div>';
+        if (!Array.isArray(data.rangos) || data.rangos.length === 0) {
+            out.innerHTML = '<div class="alert alert-warning py-2 small">No se encontraron rangos. Respuesta de Factus:<br><pre style="font-size:.75rem;max-height:120px;overflow:auto;">' + JSON.stringify(data._raw, null, 2) + '</pre></div>';
             return;
         }
         let html = '<div class="table-responsive"><table class="table table-sm table-bordered align-middle mb-0"><thead class="table-light"><tr><th>ID</th><th>Tipo</th><th>Prefijo</th><th>Desde</th><th>Hasta</th><th>Resolución DIAN</th><th></th></tr></thead><tbody>';

@@ -150,10 +150,21 @@ class FactusClient:
                 raise FactusError(
                     f"Factus no devolvió rangos ({resp.status_code}): {body.get('message') or resp.text[:200]}"
                 )
-            # Factus puede devolver {"data": [...]} o directamente [...]
+            # Devolvemos (lista_normalizada, raw) para que el caller pueda depurar
+            # Factus V2 puede devolver: lista directa, {"data": [...]},
+            # {"data": {"data": [...]}}, o {"numbering_ranges": [...]}
+            raw = body
             if isinstance(body, list):
-                return body
-            return body.get("data", body.get("numbering_ranges", []))
+                return body, raw
+            inner = body.get("data", body.get("numbering_ranges", body))
+            if isinstance(inner, list):
+                return inner, raw
+            # paginación tipo Laravel: {"data": {"current_page":1,"data":[...]}}
+            if isinstance(inner, dict):
+                nested = inner.get("data", [])
+                if isinstance(nested, list):
+                    return nested, raw
+            return [], raw
         raise FactusError("Ninguna versión de la API de Factus está disponible para esta cuenta.")
 
     def crear_factura(self, payload: dict) -> dict:
