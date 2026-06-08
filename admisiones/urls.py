@@ -48,6 +48,7 @@ urlpatterns = [
     path('aspirantes/crear/', views.crear_aspirante_manual, name='crear_aspirante_manual'),
 
     # ---- Vistas de API y Vistas Especiales ----
+    path('api/test-smtp/', views.test_smtp, name='test_smtp'),
     path('api/dashboard-data/', views.dashboard_data, name='dashboard_data'),
     path('pipeline/', views.pipeline_admisiones, name='pipeline_admisiones'),
     path('api/actualizar-estado-aspirante/', views.actualizar_estado_aspirante_api, name='actualizar_estado_aspirante_api'),

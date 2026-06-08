@@ -498,6 +498,42 @@ def descargar_plantilla_importacion(request):
 
 
 @login_required
+@require_POST
+def test_smtp(request):
+    """Intenta abrir una conexión SMTP con las credenciales de la institución
+    y devuelve JSON con el resultado exacto. Útil para diagnosticar problemas
+    de envío de correos sin necesidad de hacer una importación completa.
+    """
+    from django.core.mail import get_connection
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if not institucion:
+        return JsonResponse({'ok': False, 'error': 'Usuario sin institución asociada.'})
+
+    host = getattr(institucion, 'email_host', '') or ''
+    user = getattr(institucion, 'email_host_user', '') or ''
+    password = getattr(institucion, 'email_host_password', '') or ''
+    port = getattr(institucion, 'email_port', 587) or 587
+    use_tls = getattr(institucion, 'email_use_tls', True)
+
+    if not user or not password:
+        return JsonResponse({'ok': False, 'error': 'No hay credenciales SMTP configuradas en la institución.'})
+
+    try:
+        conn = get_connection(
+            backend='django.core.mail.backends.smtp.EmailBackend',
+            host=host, port=port,
+            username=user, password=password,
+            use_tls=use_tls,
+            timeout=10,
+        )
+        conn.open()
+        conn.close()
+        return JsonResponse({'ok': True, 'mensaje': f'Conexión exitosa a {host}:{port} con {user}.'})
+    except Exception as exc:
+        return JsonResponse({'ok': False, 'error': str(exc), 'host': host, 'port': port, 'user': user})
+
+
+@login_required
 @permission_required('admisiones.add_aspirante', raise_exception=True)
 def importar_aspirantes_excel(request):
     """
