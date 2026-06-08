@@ -346,12 +346,14 @@ def procesar_importacion_aspirantes_task(self, lote_id):
 
     smtp_connection = None
     try:
-        # 1) Leer archivo
-        archivo_path = lote.archivo.path
-        if not os.path.exists(archivo_path):
-            raise RuntimeError("El archivo del lote ya no existe en disco.")
-
-        df = pd.read_excel(archivo_path, dtype=str, keep_default_na=False)
+        # 1) Leer archivo — primero desde bytes en BD, luego desde disco como fallback
+        if lote.archivo_bytes:
+            df = pd.read_excel(io.BytesIO(bytes(lote.archivo_bytes)), dtype=str, keep_default_na=False)
+        else:
+            archivo_path = lote.archivo.path if lote.archivo else None
+            if not archivo_path or not os.path.exists(archivo_path):
+                raise RuntimeError("El archivo del lote ya no existe en disco.")
+            df = pd.read_excel(archivo_path, dtype=str, keep_default_na=False)
         df.columns = [str(col).strip().lower() for col in df.columns]
         faltantes = [c for c in COLUMNAS_OBLIGATORIAS if c not in df.columns]
         if faltantes:

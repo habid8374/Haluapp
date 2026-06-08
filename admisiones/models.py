@@ -504,6 +504,12 @@ class LoteImportacionAspirantes(models.Model):
     archivo = models.FileField(
         upload_to=_ruta_archivo_lote_importacion,
         verbose_name="Archivo Excel",
+        null=True, blank=True,
+    )
+    archivo_bytes = models.BinaryField(
+        null=True, blank=True,
+        verbose_name="Contenido del archivo (bytes)",
+        help_text="Copia en BD para que Celery pueda leerlo sin acceso al disco.",
     )
     nombre_original = models.CharField(max_length=255, blank=True, verbose_name="Nombre original")
     dry_run = models.BooleanField(

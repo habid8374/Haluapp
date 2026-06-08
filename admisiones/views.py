@@ -519,10 +519,13 @@ def importar_aspirantes_excel(request):
             archivo = form.cleaned_data['archivo_excel']
             dry_run = form.cleaned_data.get('dry_run') or False
 
+            contenido = archivo.read()
+            archivo.seek(0)
             lote = LoteImportacionAspirantes.objects.create(
                 institucion=institucion_actual,
                 creado_por=request.user,
                 archivo=archivo,
+                archivo_bytes=contenido,
                 nombre_original=archivo.name,
                 dry_run=dry_run,
             )
