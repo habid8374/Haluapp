@@ -376,6 +376,11 @@ EMAIL_TIMEOUT = 15  # segundos — evita que conexiones SMTP lentas bloqueen ind
 # Brevo API (alternativa a SMTP en Railway donde los puertos SMTP están bloqueados).
 # Cuando está presente, todos los correos transaccionales se envían vía HTTPS.
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+# Email verificado en Brevo como remitente (ej: haluplataformaescolar@gmail.com).
+# Obligatorio cuando BREVO_API_KEY está activo; debe coincidir con un remitente
+# verificado en la cuenta Brevo (NO usar el usuario SMTP de Brevo: xxxxxx@smtp-brevo.com).
+BREVO_SENDER_EMAIL = os.environ.get('BREVO_SENDER_EMAIL', '')
+BREVO_SENDER_NAME = os.environ.get('BREVO_SENDER_NAME', 'Halu Plataforma')
 
 # Para correos a usuarios finales seguimos usando el SMTP por InstitucionEducativa
 # (multi-tenant), vía admisiones.utils.enviar_correo_dinamico.

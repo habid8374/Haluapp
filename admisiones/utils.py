@@ -91,29 +91,51 @@ def _email_valido(direccion: str) -> bool:
 
 
 def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_content):
-    """Envía correo vía Brevo HTTP API (HTTPS/443). Funciona en Railway sin restricciones SMTP."""
+    """Envía correo vía Brevo HTTP API (HTTPS/443). Funciona en Railway sin restricciones SMTP.
+
+    El remitente se resuelve así (en orden):
+    1. BREVO_SENDER_EMAIL en settings (variable de entorno) — recomendado.
+    2. email_host_user de la institución — solo válido si es un email verificado en Brevo,
+       NO si es el usuario SMTP de Brevo (xxxxxx@smtp-brevo.com).
+
+    Lanza RuntimeError con el mensaje de error de Brevo si el envío falla,
+    para que el caller (tarea Celery o señal) pueda registrar el motivo real.
+    """
     import requests as _req
-    from_email = getattr(institucion, 'email_host_user', '') or ''
-    from_name = getattr(institucion, 'nombre', '') or from_email or 'Halu Plataforma'
-    try:
-        resp = _req.post(
-            'https://api.brevo.com/v3/smtp/email',
-            headers={'api-key': api_key, 'Content-Type': 'application/json'},
-            json={
-                'sender': {'name': from_name, 'email': from_email},
-                'to': [{'email': e} for e in destinatarios],
-                'subject': asunto,
-                'htmlContent': html_content,
-            },
-            timeout=15,
+    from django.conf import settings as _s
+    # BREVO_SENDER_EMAIL tiene prioridad; evita usar el usuario SMTP de Brevo como remitente
+    from_email = (
+        getattr(_s, 'BREVO_SENDER_EMAIL', '') or
+        getattr(institucion, 'email_host_user', '') or
+        ''
+    )
+    from_name = (
+        getattr(_s, 'BREVO_SENDER_NAME', '') or
+        getattr(institucion, 'nombre', '') or
+        from_email or
+        'Halu Plataforma'
+    )
+    if not from_email:
+        raise RuntimeError(
+            "No hay remitente configurado para Brevo. "
+            "Agrega BREVO_SENDER_EMAIL=tu_email_verificado a las variables de entorno."
         )
-        if resp.status_code == 201:
-            return True
-        logger.error("Brevo API %s: %s", resp.status_code, resp.text[:300])
-        return False
-    except Exception as exc:
-        logger.error("Brevo API excepción: %s", exc)
-        return False
+    resp = _req.post(
+        'https://api.brevo.com/v3/smtp/email',
+        headers={'api-key': api_key, 'Content-Type': 'application/json'},
+        json={
+            'sender': {'name': from_name, 'email': from_email},
+            'to': [{'email': e} for e in destinatarios],
+            'subject': asunto,
+            'htmlContent': html_content,
+        },
+        timeout=15,
+    )
+    if resp.status_code == 201:
+        return True
+    error_msg = f"Brevo API {resp.status_code}: {resp.text[:300]}"
+    logger.error("_enviar_via_brevo_api: %s — remitente=%s destinatarios=%s", error_msg, from_email, destinatarios)
+    raise RuntimeError(error_msg)
 
 
 def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, texto_plano='', connection=None):

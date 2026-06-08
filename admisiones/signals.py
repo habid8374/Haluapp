@@ -58,10 +58,19 @@ def gestionar_notificaciones_aspirante(sender, instance, created, **kwargs):
       - ``_omitir_correo_estado``: si True, no se envía el correo de cambio
         de estado (útil al cambiar estados en masa).
     """
+    def _safe_send(fn, aspirante_pk):
+        try:
+            fn()
+        except Exception as exc:
+            logger.error("SEÑAL: error enviando correo para aspirante %s: %s", aspirante_pk, exc, exc_info=True)
+
     if created:
         if getattr(instance, "_omitir_correo_bienvenida", False):
             return
-        _safe_on_commit(lambda: enviar_correo_bienvenida(request=None, aspirante=instance))
+        pk = instance.pk
+        _safe_on_commit(lambda: _safe_send(
+            lambda: enviar_correo_bienvenida(request=None, aspirante=instance), pk
+        ))
         return
 
     if getattr(instance, "_omitir_correo_estado", False):
@@ -71,13 +80,14 @@ def gestionar_notificaciones_aspirante(sender, instance, created, **kwargs):
     if estado_anterior == instance.estado:
         return
 
+    pk = instance.pk
     if instance.estado == Aspirante.EstadoAdmision.APROBADO_MATRICULA:
         logger.info("SEÑAL: Aspirante '%s' aprobado. Creando cobro y enviando correo...", instance)
         exito, cuenta_objeto = crear_cuenta_cobro_matricula(instance)
         if exito:
-            _safe_on_commit(
-                lambda: enviar_correo_cambio_estado(instance, cuenta_matricula=cuenta_objeto)
-            )
+            _safe_on_commit(lambda: _safe_send(
+                lambda: enviar_correo_cambio_estado(instance, cuenta_matricula=cuenta_objeto), pk
+            ))
         else:
             logger.error(
                 "SEÑAL: Fallo al crear cobro de matrícula para %s: %s",
@@ -86,7 +96,7 @@ def gestionar_notificaciones_aspirante(sender, instance, created, **kwargs):
         return
 
     logger.info("SEÑAL: Enviando correo de cambio de estado para %s.", instance.pk)
-    _safe_on_commit(lambda: enviar_correo_cambio_estado(instance))
+    _safe_on_commit(lambda: _safe_send(lambda: enviar_correo_cambio_estado(instance), pk))
 
 def _notificar_cita_post_commit(cita_pk):
     """Envía correo y notificaciones (DB + WebSocket) para una cita ya persistida.
