@@ -755,6 +755,7 @@ def reenviar_correos_bienvenida_lote(lote_id: int, user_id: int = None) -> dict:
             "tipo": "resend", "fecha": _dt.now().isoformat(),
             "ok": 0, "errores_count": 0, "omitidos": 0, "total": total,
             "detalle_errores": [], "motivo": "smtp_no_configurado",
+            "mensaje": _motivo_msg,
         }
         lote.resumen_correos = resumen
         lote.save(update_fields=["resumen_correos"])

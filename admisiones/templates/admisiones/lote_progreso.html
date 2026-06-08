@@ -138,7 +138,8 @@
                     {% if rc.motivo == 'smtp_no_configurado' %}
                     <p class="mb-0 small text-danger">
                         <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                        SMTP no configurado. Configura las credenciales de correo de la institución antes de reenviar.
+                        Sin configuración de correo.
+                        {% if rc.mensaje %}{{ rc.mensaje }}{% else %}Verifica que BREVO_API_KEY esté configurado en todos los servicios.{% endif %}
                     </p>
                     {% elif rc.motivo == 'sin_aspirantes' %}
                     <p class="mb-0 small text-muted">No hay aspirantes vinculados a este lote.</p>
@@ -347,6 +348,34 @@
 
     pollTimer = setInterval(tick, POLL_MS);
     tick();
+
+    // ── Polling secundario para resultado de reenvío de correos ───────────────
+    // Cuando se acaba de solicitar un reenvío, la URL llega con ?reenvio=1.
+    // El lote ya está COMPLETADO (finalizado), por lo que el poll principal
+    // se detiene de inmediato. Este poll secundario vigila `resumen_correos_ts`
+    // y recarga la página cuando Celery actualice el resultado.
+    (function () {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('reenvio') !== '1') return;
+        // Limpiar el parámetro de la URL sin recargar
+        history.replaceState({}, '', window.location.pathname);
+        const initTs = "{{ lote.resumen_correos.fecha|default:'' }}";
+        let tries = 0;
+        const MAX_TRIES = 60; // 120 segundos máximo
+        const reenvioTimer = setInterval(async function () {
+            tries++;
+            if (tries > MAX_TRIES) { clearInterval(reenvioTimer); return; }
+            try {
+                const res = await fetch(URL_ESTADO, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.resumen_correos_ts && data.resumen_correos_ts !== initTs) {
+                    clearInterval(reenvioTimer);
+                    location.reload();
+                }
+            } catch (e) { /* red inestable, reintentamos */ }
+        }, 2000);
+    })();
 })();
 </script>
 

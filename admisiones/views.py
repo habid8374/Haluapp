@@ -665,6 +665,7 @@ def lote_importacion_estado(request, lote_id):
         'puede_cancelarse': lote.puede_cancelarse,
         'puede_reintentarse': lote.puede_reintentarse,
         'cancelacion_solicitada': lote.cancelacion_solicitada,
+        'resumen_correos_ts': (lote.resumen_correos or {}).get('fecha', ''),
     })
 
 
@@ -802,7 +803,10 @@ def reenviar_correos_lote(request, lote_id):
         f"Reenvío de correos encolado para el lote #{lote.pk}. "
         "Recibirás una notificación cuando termine con el resultado detallado."
     )
-    return redirect('admisiones:lote_importacion_detalle', lote_id=lote.pk)
+    return redirect(
+        reverse('admisiones:lote_importacion_detalle', kwargs={'lote_id': lote.pk})
+        + '?reenvio=1'
+    )
 
 
 @login_required
