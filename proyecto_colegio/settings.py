@@ -372,6 +372,7 @@ EMAIL_USE_TLS = (os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('1', 'true'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@halu.com')
+EMAIL_TIMEOUT = 15  # segundos — evita que conexiones SMTP lentas bloqueen indefinidamente
 
 # Para correos a usuarios finales seguimos usando el SMTP por InstitucionEducativa
 # (multi-tenant), vía admisiones.utils.enviar_correo_dinamico.

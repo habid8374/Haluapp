@@ -124,7 +124,8 @@ def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, tex
                 backend='django.core.mail.backends.smtp.EmailBackend',
                 host=institucion.email_host, port=institucion.email_port,
                 username=institucion.email_host_user, password=institucion.email_host_password,
-                use_tls=institucion.email_use_tls
+                use_tls=institucion.email_use_tls,
+                timeout=15,
             )
         except Exception as e:
             logger.error(f"Fallo al crear conexión SMTP para {institucion.nombre}. Error: {e}")

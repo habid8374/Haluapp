@@ -67,25 +67,33 @@ def _se_pidio_cancelar(lote_id):
 
 
 def _crear_conexion_smtp(institucion):
-    """Devuelve una conexión SMTP reutilizable para los correos de bienvenida.
+    """Devuelve una conexión SMTP abierta y reutilizable para los correos de bienvenida.
 
     Si la institución no tiene credenciales, devuelve None y la tarea simplemente
     omite el envío de correos (manteniendo el registro en BD).
+
+    La conexión se abre de forma anticipada (eager) con un timeout de 10 segundos:
+    si el servidor SMTP no responde, el error se detecta aquí una sola vez en lugar
+    de bloquearse por cada fila del lote.
     """
     if not (institucion.email_host_user and institucion.email_host_password):
         return None
     try:
-        return get_connection(
+        conn = get_connection(
             backend='django.core.mail.backends.smtp.EmailBackend',
             host=institucion.email_host,
             port=institucion.email_port,
             username=institucion.email_host_user,
             password=institucion.email_host_password,
             use_tls=institucion.email_use_tls,
+            timeout=10,
         )
+        conn.open()  # Falla rápido: si SMTP no responde, el error ocurre aquí (1 vez).
+        return conn
     except Exception as exc:
         logger.warning(
-            "No fue posible crear conexión SMTP reutilizable para %s: %s",
+            "No fue posible abrir conexión SMTP reutilizable para %s: %s — "
+            "se omitirán los correos de bienvenida del lote.",
             getattr(institucion, "nombre", institucion), exc,
         )
         return None
