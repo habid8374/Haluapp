@@ -20,6 +20,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
+from django.db.models import Q
 from gestion_academica.models import Estudiante, Familiar, TIPO_DOCUMENTO_CHOICES
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,22 @@ def _institucion(request):
     return getattr(request.user, "institucion_asociada", None)
 
 
+def _estudiantes_para_familiares(institucion):
+    """Devuelve todos los estudiantes vinculables: activos + preliminares de admisiones.
+
+    Los estudiantes creados durante la importación de aspirantes nacen con
+    activo=False hasta que completan la matrícula. Igualmente necesitan acudientes
+    para generar las facturas electrónicas de inscripción, así que los incluimos.
+    """
+    return (
+        Estudiante.objects.filter(institucion=institucion)
+        .filter(Q(activo=True) | Q(aspirante_origen__isnull=False))
+        .select_related("usuario", "grado_actual")
+        .order_by("usuario__last_name", "usuario__first_name")
+        .distinct()
+    )
+
+
 @login_required
 def descargar_plantilla_familiares(request):
     """Genera la plantilla Excel con los estudiantes matriculados embebidos."""
@@ -47,11 +64,7 @@ def descargar_plantilla_familiares(request):
         messages.error(request, "Tu usuario no está asociado a ninguna institución.")
         return redirect("gestion_academica:inicio_academico")
 
-    estudiantes = (
-        Estudiante.objects.filter(institucion=institucion, activo=True)
-        .select_related("usuario", "grado_actual")
-        .order_by("usuario__last_name", "usuario__first_name")
-    )
+    estudiantes = _estudiantes_para_familiares(institucion)
 
     wb = Workbook()
 
@@ -135,7 +148,7 @@ def cargar_familiares(request):
 
     return render(request, "gestion_academica/carga_familiares.html", {
         "titulo_pagina": "Carga de Acudientes / Familiares",
-        "total_estudiantes": Estudiante.objects.filter(institucion=institucion, activo=True).count(),
+        "total_estudiantes": _estudiantes_para_familiares(institucion).count(),
         "total_familiares": Familiar.objects.filter(institucion=institucion).count(),
     })
 
