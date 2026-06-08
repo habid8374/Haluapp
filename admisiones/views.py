@@ -372,10 +372,9 @@ def dashboard_data(request):
             'porSexo': {'labels': [], 'data': []},
         })
 
-    # 2. El Queryset base ahora filtra por las fechas del periodo activo
+    # 2. Todos los aspirantes de la institución (el período activo es solo contexto)
     base_queryset = Aspirante.objects.filter(
         institucion=institucion_usuario,
-        fecha_inscripcion__date__range=(periodo_activo.fecha_inicio, periodo_activo.fecha_fin)
     )
 
     # --- El resto de la lógica para agregar los datos se mantiene igual ---
