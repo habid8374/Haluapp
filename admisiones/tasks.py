@@ -78,14 +78,19 @@ def _crear_conexion_smtp(institucion):
     """
     if not (institucion.email_host_user and institucion.email_host_password):
         return None
+    port = institucion.email_port or 587
+    # Puerto 465 usa SSL directo; cualquier otro usa STARTTLS (email_use_tls).
+    use_ssl = (port == 465)
+    use_tls = False if use_ssl else bool(institucion.email_use_tls)
     try:
         conn = get_connection(
             backend='django.core.mail.backends.smtp.EmailBackend',
             host=institucion.email_host,
-            port=institucion.email_port,
+            port=port,
             username=institucion.email_host_user,
             password=institucion.email_host_password,
-            use_tls=institucion.email_use_tls,
+            use_tls=use_tls,
+            use_ssl=use_ssl,
             timeout=10,
         )
         conn.open()  # Falla rápido: si SMTP no responde, el error ocurre aquí (1 vez).

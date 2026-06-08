@@ -119,12 +119,16 @@ def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, tex
         return False
 
     if connection is None:
+        _port = institucion.email_port or 587
+        _use_ssl = (_port == 465)
+        _use_tls = False if _use_ssl else bool(institucion.email_use_tls)
         try:
             connection = get_connection(
                 backend='django.core.mail.backends.smtp.EmailBackend',
-                host=institucion.email_host, port=institucion.email_port,
+                host=institucion.email_host, port=_port,
                 username=institucion.email_host_user, password=institucion.email_host_password,
-                use_tls=institucion.email_use_tls,
+                use_tls=_use_tls,
+                use_ssl=_use_ssl,
                 timeout=15,
             )
         except Exception as e:

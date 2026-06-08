@@ -513,7 +513,8 @@ def test_smtp(request):
     user = getattr(institucion, 'email_host_user', '') or ''
     password = getattr(institucion, 'email_host_password', '') or ''
     port = getattr(institucion, 'email_port', 587) or 587
-    use_tls = getattr(institucion, 'email_use_tls', True)
+    use_ssl = (port == 465)
+    use_tls = False if use_ssl else getattr(institucion, 'email_use_tls', True)
 
     if not user or not password:
         return JsonResponse({'ok': False, 'error': 'No hay credenciales SMTP configuradas en la institución.'})
@@ -524,11 +525,12 @@ def test_smtp(request):
             host=host, port=port,
             username=user, password=password,
             use_tls=use_tls,
+            use_ssl=use_ssl,
             timeout=10,
         )
         conn.open()
         conn.close()
-        return JsonResponse({'ok': True, 'mensaje': f'Conexión exitosa a {host}:{port} con {user}.'})
+        return JsonResponse({'ok': True, 'mensaje': f'Conexión exitosa a {host}:{port} ({"SSL" if use_ssl else "TLS"}) con {user}.'})
     except Exception as exc:
         return JsonResponse({'ok': False, 'error': str(exc), 'host': host, 'port': port, 'user': user})
 
