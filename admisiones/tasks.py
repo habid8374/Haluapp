@@ -390,8 +390,25 @@ def procesar_importacion_aspirantes_task(self, lote_id):
         )
 
         # 4) SMTP reutilizable solo si NO es dry-run
+        _smtp_advertencia_general = None
         if not lote.dry_run:
+            _tiene_credenciales_smtp = bool(
+                getattr(institucion, "email_host_user", None)
+                and getattr(institucion, "email_host_password", None)
+            )
             smtp_connection = _crear_conexion_smtp(institucion)
+            if _tiene_credenciales_smtp and smtp_connection is None:
+                _smtp_advertencia_general = (
+                    "No se pudo conectar al servidor SMTP de la institución "
+                    "(timeout o credenciales incorrectas). "
+                    "Los correos de bienvenida NO fueron enviados en este lote."
+                )
+            elif not _tiene_credenciales_smtp:
+                _smtp_advertencia_general = (
+                    "La institución no tiene SMTP configurado. "
+                    "Los correos de bienvenida NO fueron enviados. "
+                    "Configura el SMTP en el perfil de la institución."
+                )
 
         cancelado_por_usuario = False
 
@@ -511,6 +528,16 @@ def procesar_importacion_aspirantes_task(self, lote_id):
                 _publicar_progreso(lote)
 
         # 6) Cierre
+        # Agregar advertencia general de SMTP si aplica
+        if _smtp_advertencia_general:
+            errores.insert(0, {
+                "tipo": "warning",
+                "fila": "-",
+                "documento": "-",
+                "mensaje": _smtp_advertencia_general,
+                "error": _smtp_advertencia_general,
+            })
+
         lote.filas_exitosas = filas_exitosas
         lote.filas_fallidas = filas_fallidas
         lote.filas_con_advertencia = filas_con_advertencia
