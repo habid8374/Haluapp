@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -68,6 +69,23 @@ def probar_conexion(request):
     except FactusError as exc:
         messages.error(request, f"No se pudo conectar con Factus: {exc}")
     return redirect("facturacion_electronica:configuracion")
+
+
+@login_required
+@permission_required("finanzas.change_institucioneducativa", raise_exception=True)
+def listar_rangos(request):
+    """Devuelve los rangos de numeración DIAN disponibles en Factus como JSON."""
+    institucion = _get_institucion(request)
+    config = ConfiguracionFactus.objects.filter(institucion=institucion).first()
+    if not config:
+        return JsonResponse({"ok": False, "error": "Guarda primero las credenciales de Factus."})
+    try:
+        rangos = FactusClient(config).listar_rangos_numeracion()
+        return JsonResponse({"ok": True, "rangos": rangos})
+    except FactusNoConfigurado as exc:
+        return JsonResponse({"ok": False, "error": f"Configuración incompleta: {exc}"})
+    except Exception as exc:
+        return JsonResponse({"ok": False, "error": str(exc)})
 
 
 @login_required

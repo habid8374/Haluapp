@@ -124,6 +124,32 @@ class FactusClient:
         token = self.obtener_token(forzar=True)
         return {"ok": True, "token_preview": token[:12] + "…"}
 
+    def listar_rangos_numeracion(self) -> list[dict]:
+        """Devuelve los rangos de numeración DIAN disponibles en la cuenta Factus.
+
+        Cada ítem tiene: id, prefix, from, to, current, resolution_number, document_type.
+        """
+        url = f"{self.base_url}/v1/numbering-ranges"
+        try:
+            resp = requests.get(url, headers=self._headers(), timeout=HTTP_TIMEOUT)
+        except requests.RequestException as exc:
+            raise FactusError(f"No se pudo conectar con Factus: {exc}") from exc
+        if resp.status_code in (401, 403):
+            self.obtener_token(forzar=True)
+            try:
+                resp = requests.get(url, headers=self._headers(), timeout=HTTP_TIMEOUT)
+            except requests.RequestException as exc:
+                raise FactusError(f"No se pudo conectar con Factus: {exc}") from exc
+        body = _safe_json(resp)
+        if resp.status_code != 200:
+            raise FactusError(
+                f"Factus no devolvió rangos ({resp.status_code}): {body.get('message') or resp.text[:200]}"
+            )
+        # Factus puede devolver {"data": [...]} o directamente [...]
+        if isinstance(body, list):
+            return body
+        return body.get("data", body.get("numbering_ranges", []))
+
     def crear_factura(self, payload: dict) -> dict:
         """Crea y valida la factura ante la DIAN. Lanza FactusError si falla."""
         return self._post_documento(ENDPOINT_FACTURA, payload, "factura")
