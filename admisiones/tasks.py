@@ -738,6 +738,19 @@ def reenviar_correos_bienvenida_lote(lote_id: int, user_id: int = None) -> dict:
 
     smtp = _crear_conexion_smtp(institucion)
     if smtp is None:
+        from django.conf import settings as _s
+        _brevo_key_en_este_servicio = getattr(_s, 'BREVO_API_KEY', '') or ''
+        if not _brevo_key_en_este_servicio:
+            _motivo_msg = (
+                "BREVO_API_KEY no está configurado en el servicio Celery (worker). "
+                "Ve a Railway → servicio sunny-forgiveness → Variables y agrega "
+                "BREVO_API_KEY con la misma clave que usaste en el servicio principal."
+            )
+        else:
+            _motivo_msg = (
+                "No se pudo abrir conexión SMTP (el puerto puede estar bloqueado). "
+                "Verifica las credenciales SMTP de la institución."
+            )
         resumen = {
             "tipo": "resend", "fecha": _dt.now().isoformat(),
             "ok": 0, "errores_count": 0, "omitidos": 0, "total": total,
@@ -747,14 +760,14 @@ def reenviar_correos_bienvenida_lote(lote_id: int, user_id: int = None) -> dict:
         lote.save(update_fields=["resumen_correos"])
         _notificar(
             notify_uid,
-            "Reenvío de correos — sin SMTP",
-            f"La institución no tiene credenciales SMTP configuradas. "
-            f"Configúralas en el panel de administración para poder enviar correos.",
+            "Reenvío de correos — sin configuración de correo",
+            _motivo_msg,
             "warning",
         )
         logger.warning(
-            "reenviar_correos: institución %s sin SMTP configurado.",
+            "reenviar_correos: institución %s sin SMTP/Brevo configurado. BREVO_API_KEY presente: %s",
             getattr(institucion, "nombre", institucion),
+            bool(_brevo_key_en_este_servicio),
         )
         return resumen
 
