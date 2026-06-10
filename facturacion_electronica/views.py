@@ -207,17 +207,22 @@ def factura_pdf(request, factura_id):
     customer_email = customer.get("email") or ""
     customer_address = customer.get("address") or ""
 
-    # Logo incrustado como data URI: se lee directo del storage (S3/R2 o disco),
-    # sin depender de que /media/ sea servible por URL (no lo es con DEBUG=False).
+    # Logo del COLEGIO: el mismo que usa la plataforma (ConfiguracionInstitucion),
+    # con fallback al logo de InstitucionEducativa. Se incrusta como data URI
+    # leyendo directo del storage (no depende de que /media/ sea servible).
+    config_inst = getattr(factura.institucion, "configuracioninstitucion", None)
+    logo_field = (config_inst.logo if config_inst and config_inst.logo else None) or (
+        factura.institucion.logo if factura.institucion.logo else None
+    )
     logo_url = ""
     logo_error = ""
-    if factura.institucion.logo:
+    if logo_field:
         try:
             import base64
             import mimetypes
-            with factura.institucion.logo.open("rb") as f:
+            with logo_field.open("rb") as f:
                 logo_bytes = f.read()
-            mime = mimetypes.guess_type(factura.institucion.logo.name)[0] or "image/png"
+            mime = mimetypes.guess_type(logo_field.name)[0] or "image/png"
             logo_url = f"data:{mime};base64,{base64.b64encode(logo_bytes).decode()}"
         except Exception as exc:
             logo_error = f"{type(exc).__name__}: {exc}"
@@ -228,9 +233,10 @@ def factura_pdf(request, factura_id):
     # Modo diagnóstico: /pdf/?debug=1 muestra por qué no carga el logo
     if request.GET.get("debug"):
         from django.core.files.storage import default_storage
-        logo_field = factura.institucion.logo
         info = [
-            f"logo (BD): {logo_field.name if logo_field else '(vacío)'}",
+            f"logo ConfiguracionInstitucion: {config_inst.logo.name if config_inst and config_inst.logo else '(vacío)'}",
+            f"logo InstitucionEducativa: {factura.institucion.logo.name if factura.institucion.logo else '(vacío)'}",
+            f"logo elegido: {logo_field.name if logo_field else '(ninguno)'}",
             f"storage: {type(default_storage).__name__}",
             f"existe en storage: {default_storage.exists(logo_field.name) if logo_field else 'N/A'}",
             f"logo cargado para el PDF: {'SÍ (' + str(len(logo_url)) + ' chars base64)' if logo_url else 'NO'}",
