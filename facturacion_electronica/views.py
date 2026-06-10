@@ -210,6 +210,7 @@ def factura_pdf(request, factura_id):
     # Logo incrustado como data URI: se lee directo del storage (S3/R2 o disco),
     # sin depender de que /media/ sea servible por URL (no lo es con DEBUG=False).
     logo_url = ""
+    logo_error = ""
     if factura.institucion.logo:
         try:
             import base64
@@ -219,7 +220,23 @@ def factura_pdf(request, factura_id):
             mime = mimetypes.guess_type(factura.institucion.logo.name)[0] or "image/png"
             logo_url = f"data:{mime};base64,{base64.b64encode(logo_bytes).decode()}"
         except Exception as exc:
+            logo_error = f"{type(exc).__name__}: {exc}"
             logger.warning("factura_pdf: no se pudo leer el logo: %s", exc)
+    else:
+        logo_error = "La institución no tiene logo configurado en la base de datos."
+
+    # Modo diagnóstico: /pdf/?debug=1 muestra por qué no carga el logo
+    if request.GET.get("debug"):
+        from django.core.files.storage import default_storage
+        logo_field = factura.institucion.logo
+        info = [
+            f"logo (BD): {logo_field.name if logo_field else '(vacío)'}",
+            f"storage: {type(default_storage).__name__}",
+            f"existe en storage: {default_storage.exists(logo_field.name) if logo_field else 'N/A'}",
+            f"logo cargado para el PDF: {'SÍ (' + str(len(logo_url)) + ' chars base64)' if logo_url else 'NO'}",
+            f"error: {logo_error or '(ninguno)'}",
+        ]
+        return HttpResponse("\n".join(info), content_type="text/plain; charset=utf-8")
 
     try:
         html = render_to_string("facturacion_electronica/factura_pdf.html", {
