@@ -25,9 +25,12 @@
     display: table-cell; vertical-align: middle; text-align: right;
     padding: 10px 14px; background: #fff;
   }
-  .logo-img { max-height: 50px; max-width: 110px; margin-bottom: 5px; display: block; }
-  .inst-name  { font-size: 11pt; font-weight: 900; color: var(--indigo); margin-bottom: 2px; }
-  .inst-detail { font-size: 7.5pt; color: #4b5563; line-height: 1.6; }
+  .header-left-inner { display: table; width: 100%; }
+  .logo-cell { display: table-cell; width: 80px; vertical-align: middle; padding-right: 12px; }
+  .logo-img  { max-height: 72px; max-width: 80px; display: block; }
+  .inst-cell { display: table-cell; vertical-align: middle; }
+  .inst-name  { font-size: 11.5pt; font-weight: 900; color: var(--indigo); margin-bottom: 3px; }
+  .inst-detail { font-size: 7.5pt; color: #4b5563; line-height: 1.7; }
 
   .doc-label  { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray); margin-bottom: 2px; }
   .doc-number { font-size: 22pt; font-weight: 900; color: #1a1a2e; letter-spacing: -0.5px; line-height: 1; }
@@ -92,13 +95,21 @@
 <!-- ══ ENCABEZADO ══ -->
 <div class="header-wrapper">
   <div class="header-left">
-    {% if logo_url %}
-      <img src="{{ logo_url }}" class="logo-img" alt="Logo">
-    {% endif %}
-    <div class="inst-name">{{ institucion.nombre }}</div>
-    <div class="inst-detail">
-      NIT: {{ institucion.nit }}{% if institucion.direccion %} &nbsp;|&nbsp; {{ institucion.direccion }}{% endif %}<br>
-      {% if institucion.telefono %}Tel: {{ institucion.telefono }}&nbsp;&nbsp;{% endif %}{% if institucion.email_contacto %}{{ institucion.email_contacto }}{% endif %}
+    <div class="header-left-inner">
+      {% if logo_url %}
+      <div class="logo-cell">
+        <img src="{{ logo_url }}" class="logo-img" alt="Logo">
+      </div>
+      {% endif %}
+      <div class="inst-cell">
+        <div class="inst-name">{{ institucion.nombre }}</div>
+        <div class="inst-detail">
+          NIT: {{ institucion.nit }}<br>
+          {% if institucion.direccion %}{{ institucion.direccion }}<br>{% endif %}
+          {% if institucion.telefono %}Tel: {{ institucion.telefono }}<br>{% endif %}
+          {% if institucion.email_contacto %}{{ institucion.email_contacto }}{% endif %}
+        </div>
+      </div>
     </div>
   </div>
   <div class="header-right">
