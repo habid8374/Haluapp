@@ -141,7 +141,7 @@
     {% for item in items %}
     <tr>
       <td>{{ item.standard_code|default:"—" }}</td>
-      <td>{{ item.description }}</td>
+      <td>{{ item.name|default:item.description }}</td>
       <td class="center">{{ item.quantity }}</td>
       <td class="right">${{ item.price|floatformat:0 }}</td>
       <td class="right">${{ item.total|default:item.price|floatformat:0 }}</td>

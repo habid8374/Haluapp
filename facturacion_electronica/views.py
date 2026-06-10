@@ -171,8 +171,6 @@ def lista_facturas(request):
 def factura_pdf(request, factura_id):
     """Genera la representación gráfica propia de la factura electrónica como PDF."""
     from django.template.loader import render_to_string
-    from django.conf import settings as _s
-    import os
 
     institucion = _get_institucion(request)
     factura = get_object_or_404(
@@ -209,15 +207,16 @@ def factura_pdf(request, factura_id):
     customer_email = customer.get("email") or ""
     customer_address = customer.get("address") or ""
 
-    # URL absoluta del logo para que WeasyPrint pueda cargarlo
+    # URL absoluta del logo — usa .url para que Django resuelva S3/R2 o local
     logo_url = ""
     if factura.institucion.logo:
-        logo_name = str(factura.institucion.logo)
-        if logo_name.startswith("http"):
-            logo_url = logo_name
-        else:
-            media_root = str(getattr(_s, "MEDIA_ROOT", ""))
-            logo_url = "file://" + os.path.join(media_root, logo_name)
+        try:
+            logo_url = factura.institucion.logo.url
+            # WeasyPrint necesita URL absoluta; si es relativa la convertimos
+            if logo_url.startswith("/"):
+                logo_url = request.build_absolute_uri(logo_url)
+        except Exception:
+            pass
 
     html = render_to_string("facturacion_electronica/factura_pdf.html", {
         "factura": factura,
