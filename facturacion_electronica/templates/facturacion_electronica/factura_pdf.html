@@ -25,10 +25,10 @@
     display: table-cell; vertical-align: middle; text-align: right;
     padding: 10px 14px; background: #fff;
   }
-  .header-left-inner { display: table; width: 100%; }
-  .logo-cell { display: table-cell; width: 80px; vertical-align: middle; padding-right: 12px; }
-  .logo-img  { max-height: 72px; max-width: 80px; display: block; }
-  .inst-cell { display: table-cell; vertical-align: middle; }
+  .header-left-inner { overflow: hidden; }
+  .logo-float { float: left; margin-right: 12px; }
+  .logo-img   { max-height: 72px; max-width: 80px; display: block; }
+  .inst-cell  { overflow: hidden; }
   .inst-name  { font-size: 11.5pt; font-weight: 900; color: var(--indigo); margin-bottom: 3px; }
   .inst-detail { font-size: 7.5pt; color: #4b5563; line-height: 1.7; }
 
@@ -97,7 +97,7 @@
   <div class="header-left">
     <div class="header-left-inner">
       {% if logo_url %}
-      <div class="logo-cell">
+      <div class="logo-float">
         <img src="{{ logo_url }}" class="logo-img" alt="Logo">
       </div>
       {% endif %}
