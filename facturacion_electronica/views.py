@@ -218,20 +218,20 @@ def factura_pdf(request, factura_id):
         except Exception:
             pass
 
-    html = render_to_string("facturacion_electronica/factura_pdf.html", {
-        "factura": factura,
-        "institucion": factura.institucion,
-        "logo_url": logo_url,
-        "items": items,
-        "customer_name": customer_name,
-        "customer_doc": customer_doc,
-        "customer_doc_type": customer_doc_type,
-        "customer_email": customer_email,
-        "customer_address": customer_address,
-        "total": total,
-    }, request=request)
-
     try:
+        html = render_to_string("facturacion_electronica/factura_pdf.html", {
+            "factura": factura,
+            "institucion": factura.institucion,
+            "logo_url": logo_url,
+            "items": items,
+            "customer_name": customer_name,
+            "customer_doc": customer_doc,
+            "customer_doc_type": customer_doc_type,
+            "customer_email": customer_email,
+            "customer_address": customer_address,
+            "total": total,
+        }, request=request)
+
         from weasyprint import HTML as WP_HTML
         pdf = WP_HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
         filename = f"FEV_{factura.numero or factura.reference_code}.pdf"
@@ -239,9 +239,8 @@ def factura_pdf(request, factura_id):
         response["Content-Disposition"] = f'inline; filename="{filename}"'
         return response
     except Exception as exc:
-        logger.error("factura_pdf WeasyPrint error: %s", exc)
-        from django.http import HttpResponse as HR
-        return HR(f"Error generando PDF: {exc}", status=500)
+        logger.error("factura_pdf error: %s", exc, exc_info=True)
+        return HttpResponse(f"Error generando PDF: {exc}", status=500)
 
 
 @login_required
