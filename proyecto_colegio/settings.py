@@ -315,7 +315,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles_collected' # Usando pathlib.Path
 _AWS_BUCKET = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 
 if _AWS_BUCKET:
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    # Django 5.x: DEFAULT_FILE_STORAGE ya no existe; el storage se define en STORAGES.
+    STORAGES = {
+        "default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
     AWS_STORAGE_BUCKET_NAME = _AWS_BUCKET
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
