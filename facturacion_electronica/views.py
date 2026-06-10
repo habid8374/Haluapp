@@ -207,16 +207,19 @@ def factura_pdf(request, factura_id):
     customer_email = customer.get("email") or ""
     customer_address = customer.get("address") or ""
 
-    # URL absoluta del logo — usa .url para que Django resuelva S3/R2 o local
+    # Logo incrustado como data URI: se lee directo del storage (S3/R2 o disco),
+    # sin depender de que /media/ sea servible por URL (no lo es con DEBUG=False).
     logo_url = ""
     if factura.institucion.logo:
         try:
-            logo_url = factura.institucion.logo.url
-            # WeasyPrint necesita URL absoluta; si es relativa la convertimos
-            if logo_url.startswith("/"):
-                logo_url = request.build_absolute_uri(logo_url)
-        except Exception:
-            pass
+            import base64
+            import mimetypes
+            with factura.institucion.logo.open("rb") as f:
+                logo_bytes = f.read()
+            mime = mimetypes.guess_type(factura.institucion.logo.name)[0] or "image/png"
+            logo_url = f"data:{mime};base64,{base64.b64encode(logo_bytes).decode()}"
+        except Exception as exc:
+            logger.warning("factura_pdf: no se pudo leer el logo: %s", exc)
 
     try:
         html = render_to_string("facturacion_electronica/factura_pdf.html", {
