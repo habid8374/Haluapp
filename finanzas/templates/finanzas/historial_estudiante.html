@@ -80,8 +80,7 @@
                                                                     <span class="badge bg-success" title="Factura electrónica validada por la DIAN">
                                                                         <i class="bi bi-patch-check-fill"></i> FE {{ pago.fe_validada.numero }}
                                                                     </span>
-                                                                    {% if pago.fe_validada.url_pdf %}<a href="{{ pago.fe_validada.url_pdf }}" target="_blank" class="small ms-1">PDF</a>{% endif %}
-                                                                    {% if pago.fe_validada.qr %}<a href="{{ pago.fe_validada.qr }}" target="_blank" class="small ms-1">Ver en DIAN</a>{% endif %}
+                                                                    {% if pago.fe_validada.qr %}<a href="{{ pago.fe_validada.qr }}" target="_blank" class="small ms-1"><i class="bi bi-qr-code"></i> DIAN</a>{% endif %}
                                                                 </div>
                                                                 {% endif %}
                                                             </div>
