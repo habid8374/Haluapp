@@ -9764,11 +9764,13 @@ def importar_docentes_excel(request):
             wb = load_workbook(filename=request.FILES['file'])
             sheet = wb.active
             errores = []
+            creados = 0
+            correos_enviados = 0
+            sin_correo = []
             institucion = get_current_institution(request.user)
 
             for i, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
                 try:
-                    # Se espera SOLO 8 columnas:
                     username, first_name, last_name, email, doc_id, cod_doc, especialidad, rol = row
 
                     if not username or not doc_id:
@@ -9784,18 +9786,49 @@ def importar_docentes_excel(request):
                     })
 
                     if creado:
-                        # TODO: Reemplazar este mecanismo temporal por un flujo seguro de activacion/reset antes de produccion final.
+                        creados += 1
                         temp_password = get_random_string(
-                            length=20,
-                            allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+',
+                            length=16,
+                            allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
                         )
                         user.set_password(temp_password)
                         user.save()
-                        messages.warning(
-                            request,
-                            f"Fila {i}: contrasena temporal para docente '{username}': {temp_password}. "
-                            "Compártela por un canal seguro y solicita cambio inmediato."
-                        )
+
+                        nombre_docente = f"{first_name or ''} {last_name or ''}".strip() or username
+                        if email:
+                            try:
+                                from admisiones.utils import enviar_correo_dinamico
+                                html = f"""
+                                <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+                                  <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:28px 32px;text-align:center;">
+                                    <h2 style="color:#fff;margin:0;font-size:22px;">Bienvenido/a a {institucion.nombre}</h2>
+                                    <p style="color:#c7d2fe;margin:6px 0 0;">Tu cuenta docente ha sido creada</p>
+                                  </div>
+                                  <div style="padding:28px 32px;background:#fff;">
+                                    <p style="color:#374151;">Hola <strong>{nombre_docente}</strong>,</p>
+                                    <p style="color:#374151;">Tu cuenta en <strong>Halu Plataforma Escolar</strong> está lista. Estas son tus credenciales de acceso:</p>
+                                    <div style="background:#f3f4f6;border-radius:8px;padding:16px 20px;margin:20px 0;">
+                                      <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">USUARIO</p>
+                                      <p style="margin:0 0 16px;font-size:18px;font-weight:700;color:#1f2937;letter-spacing:1px;">{username}</p>
+                                      <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">CONTRASEÑA TEMPORAL</p>
+                                      <p style="margin:0;font-size:18px;font-weight:700;color:#4f46e5;letter-spacing:2px;">{temp_password}</p>
+                                    </div>
+                                    <p style="color:#ef4444;font-size:13px;">⚠️ Por seguridad, cambia tu contraseña la primera vez que inicies sesión.</p>
+                                    <p style="color:#6b7280;font-size:12px;margin-top:24px;">Si tienes preguntas, contacta al administrador de tu institución.</p>
+                                  </div>
+                                </div>
+                                """
+                                enviar_correo_dinamico(
+                                    institucion=institucion,
+                                    asunto=f"Bienvenido/a a {institucion.nombre} — Tus credenciales de acceso",
+                                    destinatarios=[email],
+                                    html_content=html,
+                                )
+                                correos_enviados += 1
+                            except Exception as email_exc:
+                                sin_correo.append(f"{username} ({email_exc})")
+                        else:
+                            sin_correo.append(f"{username} (sin correo registrado)")
 
                     Docente.objects.get_or_create(usuario=user, defaults={
                         "documento_identidad": doc_id,
@@ -9804,17 +9837,29 @@ def importar_docentes_excel(request):
                         "institucion": institucion
                     })
 
-                    # Ya no se maneja asignación de grado ni periodo aquí
-
                 except Exception as e:
                     errores.append(f"Fila {i}: {str(e)}")
 
+            # ── Resumen ──
+            if creados:
+                if correos_enviados == creados:
+                    messages.success(request, f"✅ {creados} docente(s) creado(s). Se enviaron las credenciales por correo a cada uno.")
+                elif correos_enviados > 0:
+                    messages.success(request, f"✅ {creados} docente(s) creado(s). Correos enviados: {correos_enviados}.")
+                    for u in sin_correo:
+                        messages.warning(request, f"No se pudo enviar correo a: {u}")
+                else:
+                    messages.warning(request, f"{creados} docente(s) creado(s), pero no se pudo enviar ningún correo.")
+                    for u in sin_correo:
+                        messages.warning(request, f"Sin correo: {u}")
+            elif not errores:
+                messages.info(request, "No se crearon docentes nuevos (ya existían todos los usuarios del archivo).")
+
             if errores:
-                messages.warning(request, "Carga completada con errores:")
+                messages.warning(request, f"Se encontraron {len(errores)} error(es) en el archivo:")
                 for e in errores:
                     messages.warning(request, e)
-            else:
-                messages.success(request, "Todos los docentes fueron cargados correctamente.")
+
             return redirect('gestion_academica:lista_docentes')
     else:
         form = UploadFileForm()
