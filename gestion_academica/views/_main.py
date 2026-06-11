@@ -9771,7 +9771,11 @@ def importar_docentes_excel(request):
 
             for i, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
                 try:
-                    username, first_name, last_name, email, doc_id, cod_doc, especialidad, rol = row
+                    # Tomar solo las primeras 8 columnas (ignorar extras como contraseñas de carga anterior)
+                    row8 = list(row)[:8]
+                    if len(row8) < 8:
+                        row8 += [None] * (8 - len(row8))
+                    username, first_name, last_name, email, doc_id, cod_doc, especialidad, rol = row8
 
                     if not username or not doc_id:
                         errores.append(f"Fila {i}: Falta username o documento.")
