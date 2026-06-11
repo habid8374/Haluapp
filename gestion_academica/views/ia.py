@@ -432,7 +432,8 @@ Orienta al acudiente sobre cómo usar la plataforma para hacer seguimiento a sus
         else:
             instrucciones_sistema = f"Eres HALU, el asistente virtual amigable de la plataforma escolar en '{institucion.nombre}'. Responde en español de forma amigable y ayuda al usuario a navegar la plataforma."
 
-        model_kwargs = {'model_name': 'gemini-2.5-flash'}
+        # gemini-2.0-flash: 200 req/día free tier (vs 20 de 2.5-flash)
+        model_kwargs = {'model_name': 'gemini-2.0-flash'}
         if tools_disponibles:
             model_kwargs['tools'] = list(tools_disponibles.values())
 
@@ -507,7 +508,12 @@ Orienta al acudiente sobre cómo usar la plataforma para hacer seguimiento a sus
 
     except Exception as e:
         logger.error(f"Error inesperado en asistente_halu_api: {e}", exc_info=True)
-        return JsonResponse({'respuesta': f"Ocurrió un error interno en la IA: {str(e)}. Por favor, avisa a soporte."}, status=500)
+        err_str = str(e)
+        if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower():
+            msg = "El asistente HALU alcanzó el límite de solicitudes de la API de IA por hoy. Por favor intenta más tarde o contacta al administrador para activar un plan de mayor capacidad en Google AI Studio."
+        else:
+            msg = "Ocurrió un error al conectar con el asistente de IA. Por favor intenta de nuevo en unos segundos."
+        return JsonResponse({'respuesta': msg}, status=500)
 
 
 def _primera_function_call(response):
