@@ -522,7 +522,7 @@
         {% endif %}
         {% if perms.gestion_academica.view_descriptorlogro %}
           <li class="nav-item item-color-5">
-            <a class="nav-link" href="/admin/gestion_academica/descriptorlogro/">
+            <a class="nav-link" href="{% url 'gestion_academica:coordinador_lista_descriptores' %}">
               <i class="bi bi-patch-check-fill"></i> Descriptores
             </a>
           </li>
