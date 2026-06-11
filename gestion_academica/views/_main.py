@@ -1444,9 +1444,12 @@ class TipoActividadCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
         return form
 
     def form_valid(self, form):
-        if self.request.user.is_superuser and not form.instance.institucion_id:
-            messages.error(self.request, "Como superusuario, debes seleccionar una institución para el tipo de actividad.")
-            return self.form_invalid(form)
+        if self.request.user.is_superuser:
+            institucion = form.cleaned_data.get('institucion')
+            if not institucion:
+                messages.error(self.request, "Debes seleccionar una institución.")
+                return self.form_invalid(form)
+            form.instance.institucion = institucion
         messages.success(self.request, f"Tipo de actividad '{form.cleaned_data['nombre']}' creado exitosamente.")
         return super().form_valid(form)
 

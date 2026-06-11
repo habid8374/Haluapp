@@ -456,7 +456,6 @@ class EsquemaCalificacionForm(forms.ModelForm):
 class TipoActividadForm(forms.ModelForm):
     class Meta:
         model = TipoActividad
-        # Añadimos todos los campos que el docente debe poder editar
         fields = ['nombre', 'descripcion', 'porcentaje']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
@@ -469,11 +468,16 @@ class TipoActividadForm(forms.ModelForm):
             'porcentaje': 'Porcentaje sobre la nota final (%)',
         }
 
-    # El método __init__ no es necesario para este formulario, 
-    # ya que no depende de filtros complejos. Lo mantenemos simple y robusto.
     def __init__(self, *args, **kwargs):
-        kwargs.pop('request', None)
+        request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        if request and request.user.is_superuser:
+            self.fields['institucion'] = forms.ModelChoiceField(
+                queryset=InstitucionEducativa.objects.all().order_by('nombre'),
+                label='Institución',
+                widget=forms.Select(attrs={'class': 'form-select'}),
+                required=True,
+            )
 
 
 class ActividadCalificableForm(forms.ModelForm):
