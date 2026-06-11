@@ -161,6 +161,7 @@ class Logro(models.Model):
     
     descripcion = models.TextField(verbose_name="Descripción del Logro")
     orden = models.PositiveIntegerField(default=0, help_text="Orden en que aparecerá en el boletín")
+    grado = models.ForeignKey('Grado', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Grado", related_name='logros')
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE)
 
     class Meta:
@@ -222,6 +223,7 @@ class LogroPreescolar(models.Model):
     )
     descripcion = models.TextField(verbose_name="Descripción del Logro")
     orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición dentro de la materia.")
+    grado = models.ForeignKey('Grado', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Grado", related_name='logros_preescolar')
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE)
 
     class Meta:
@@ -601,11 +603,20 @@ class DescriptorLogro(models.Model):
     )
 
     dimension = models.ForeignKey(
-        DimensionDesarrollo, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        DimensionDesarrollo,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
         related_name='logros'
+    )
+
+    grado = models.ForeignKey(
+        'Grado',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Grado",
+        related_name='descriptores_logro'
     )
 
     class Meta:
