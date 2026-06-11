@@ -2466,7 +2466,11 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
         grado=estudiante_actual.grado_actual, periodo_academico=periodo
     ).select_related('materia').prefetch_related(
         'materia__areaacademica_set',
-        Prefetch('materia__descriptores', queryset=DescriptorLogro.objects.filter(periodo_academico=periodo), to_attr='descriptores_del_periodo')
+        Prefetch('materia__descriptores', queryset=DescriptorLogro.objects.filter(
+            periodo_academico=periodo,
+        ).filter(
+            Q(grado=estudiante_actual.grado_actual) | Q(grado__isnull=True)
+        ), to_attr='descriptores_del_periodo')
     )
     
     # 5. Procesa los datos para agruparlos por área y calcular promedios

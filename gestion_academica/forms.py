@@ -868,15 +868,17 @@ class ObservacionBoletinForm(forms.ModelForm):
 class DescriptorLogroForm(forms.ModelForm):
     class Meta:
         model = DescriptorLogro
-        fields = ['materia', 'periodo_academico', 'descripcion']
+        fields = ['materia', 'periodo_academico', 'grado', 'descripcion']
         widgets = {
             'materia': forms.Select(attrs={'class': 'form-select'}),
             'periodo_academico': forms.Select(attrs={'class': 'form-select'}),
+            'grado': forms.Select(attrs={'class': 'form-select'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
         labels = {
             'materia': 'Asignatura a la que pertenece el logro',
             'periodo_academico': 'Periodo académico de aplicación',
+            'grado': 'Grado (opcional — deja en blanco para aplicar a todos)',
             'descripcion': 'Texto del logro o descriptor',
         }
 
@@ -887,14 +889,15 @@ class DescriptorLogroForm(forms.ModelForm):
         if request and hasattr(request.user, 'docente'):
             docente = request.user.docente
             institucion = request.user.institucion_asociada
-            
-            # Filtra las materias para mostrar solo las que el docente enseña
+
             cursos_docente = Curso.objects.filter(docentes_asignados=docente, periodo_academico__activo=True)
             materias_ids = cursos_docente.values_list('materia_id', flat=True).distinct()
             self.fields['materia'].queryset = Materia.objects.filter(pk__in=materias_ids)
-
-            # Filtra para mostrar solo el periodo activo
-            self.fields['periodo_academico'].queryset = PeriodoAcademico.objects.filter(activo=True, institucion=institucion)        
+            self.fields['periodo_academico'].queryset = PeriodoAcademico.objects.filter(activo=True, institucion=institucion)
+            self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
+        elif request:
+            institucion = request.user.institucion_asociada
+            self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
 
 class AnotacionObservadorForm(forms.ModelForm):
     class Meta:
@@ -1247,22 +1250,24 @@ class AreaAcademicaForm(forms.ModelForm):
 class LogroForm(forms.ModelForm):
     class Meta:
         model = Logro
-        fields = ['materia', 'periodo', 'descripcion', 'orden']
+        fields = ['materia', 'periodo', 'grado', 'descripcion', 'orden']
         widgets = {
             'descripcion': forms.Textarea(attrs={'rows': 3}),
+            'grado': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'grado': 'Grado (opcional — deja en blanco para aplicar a todos)',
         }
 
     def __init__(self, *args, **kwargs):
-        # Extraemos el usuario que se pasará desde la vista
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
         if user and hasattr(user, 'institucion_asociada'):
             institucion = user.institucion_asociada
-            # Filtramos el campo 'materia' para mostrar solo las de la institución
             self.fields['materia'].queryset = Materia.objects.filter(institucion=institucion)
-            # Filtramos el campo 'periodo' para mostrar solo los de la institución
             self.fields['periodo'].queryset = PeriodoAcademico.objects.filter(institucion=institucion, activo=True)
+            self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
 
 
 class DimensionDesarrolloForm(forms.ModelForm):
@@ -1303,10 +1308,14 @@ class LogroPreescolarForm(forms.ModelForm):
     Formulario dedicado EXCLUSIVAMENTE para los Logros de Preescolar.
     """
     class Meta:
-        model = LogroPreescolar  # <-- CORRECCIÓN PRINCIPAL
-        fields = ['dimension', 'materia', 'periodo', 'descripcion', 'orden']
+        model = LogroPreescolar
+        fields = ['dimension', 'materia', 'periodo', 'grado', 'descripcion', 'orden']
         widgets = {
             'descripcion': forms.Textarea(attrs={'rows': 3}),
+            'grado': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'grado': 'Grado (opcional — deja en blanco para aplicar a todos)',
         }
 
     def __init__(self, *args, **kwargs):
@@ -1315,10 +1324,10 @@ class LogroPreescolarForm(forms.ModelForm):
 
         if user and hasattr(user, 'institucion_asociada'):
             institucion = user.institucion_asociada
-            # Filtra los desplegables para mostrar solo opciones relevantes
             self.fields['dimension'].queryset = DimensionDesarrollo.objects.filter(institucion=institucion)
             self.fields['materia'].queryset = Materia.objects.filter(institucion=institucion)
-            self.fields['periodo'].queryset = PeriodoAcademico.objects.filter(institucion=institucion, activo=True)        
+            self.fields['periodo'].queryset = PeriodoAcademico.objects.filter(institucion=institucion, activo=True)
+            self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
 
 class TicketSoporteForm(forms.ModelForm):
     class Meta:
