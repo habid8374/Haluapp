@@ -1429,17 +1429,25 @@ class TipoActividadCreateView(LoginRequiredMixin, PermissionRequiredMixin, Creat
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['request'] = self.request 
+        kwargs['request'] = self.request
         return kwargs
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Inyectar la institución en la instancia antes de is_valid() para que
+        # Django pueda validar unique_together('nombre', 'institucion') en el form
+        # y mostrar el error en pantalla en vez de un IntegrityError 500.
+        if not self.request.user.is_superuser:
+            institucion = getattr(self.request.user, 'institucion_asociada', None)
+            if institucion:
+                form.instance.institucion = institucion
+        return form
+
     def form_valid(self, form):
-        if not self.request.user.is_superuser and hasattr(self.request.user, 'institucion_asociada') and self.request.user.institucion_asociada:
-            form.instance.institucion = self.request.user.institucion_asociada
-        elif self.request.user.is_superuser and not form.instance.institucion:
+        if self.request.user.is_superuser and not form.instance.institucion_id:
             messages.error(self.request, "Como superusuario, debes seleccionar una institución para el tipo de actividad.")
             return self.form_invalid(form)
-
-        messages.success(self.request, f"Tipo de actividad '{form.cleaned_data['nombre']}' creado exitosamente.") # CORRECCIÓN: self.request usado para messages
+        messages.success(self.request, f"Tipo de actividad '{form.cleaned_data['nombre']}' creado exitosamente.")
         return super().form_valid(form)
 
 class TipoActividadUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
