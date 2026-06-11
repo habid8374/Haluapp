@@ -9765,13 +9765,14 @@ def importar_docentes_excel(request):
             sheet = wb.active
             errores = []
             creados = 0
-            correos_enviados = 0
+            con_email = 0
             sin_correo = []
+            nuevos_para_correo = []   # [{nombre, username, email, password}]
             institucion = get_current_institution(request.user)
 
             for i, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
                 try:
-                    # Tomar solo las primeras 8 columnas (ignorar extras como contraseñas de carga anterior)
+                    # Tomar solo las primeras 8 columnas (ignorar extras)
                     row8 = list(row)[:8]
                     if len(row8) < 8:
                         row8 += [None] * (8 - len(row8))
@@ -9800,39 +9801,15 @@ def importar_docentes_excel(request):
 
                         nombre_docente = f"{first_name or ''} {last_name or ''}".strip() or username
                         if email:
-                            try:
-                                from admisiones.utils import enviar_correo_dinamico
-                                html = f"""
-                                <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
-                                  <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:28px 32px;text-align:center;">
-                                    <h2 style="color:#fff;margin:0;font-size:22px;">Bienvenido/a a {institucion.nombre}</h2>
-                                    <p style="color:#c7d2fe;margin:6px 0 0;">Tu cuenta docente ha sido creada</p>
-                                  </div>
-                                  <div style="padding:28px 32px;background:#fff;">
-                                    <p style="color:#374151;">Hola <strong>{nombre_docente}</strong>,</p>
-                                    <p style="color:#374151;">Tu cuenta en <strong>Halu Plataforma Escolar</strong> está lista. Estas son tus credenciales de acceso:</p>
-                                    <div style="background:#f3f4f6;border-radius:8px;padding:16px 20px;margin:20px 0;">
-                                      <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">USUARIO</p>
-                                      <p style="margin:0 0 16px;font-size:18px;font-weight:700;color:#1f2937;letter-spacing:1px;">{username}</p>
-                                      <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">CONTRASEÑA TEMPORAL</p>
-                                      <p style="margin:0;font-size:18px;font-weight:700;color:#4f46e5;letter-spacing:2px;">{temp_password}</p>
-                                    </div>
-                                    <p style="color:#ef4444;font-size:13px;">⚠️ Por seguridad, cambia tu contraseña la primera vez que inicies sesión.</p>
-                                    <p style="color:#6b7280;font-size:12px;margin-top:24px;">Si tienes preguntas, contacta al administrador de tu institución.</p>
-                                  </div>
-                                </div>
-                                """
-                                enviar_correo_dinamico(
-                                    institucion=institucion,
-                                    asunto=f"Bienvenido/a a {institucion.nombre} — Tus credenciales de acceso",
-                                    destinatarios=[email],
-                                    html_content=html,
-                                )
-                                correos_enviados += 1
-                            except Exception as email_exc:
-                                sin_correo.append(f"{username} ({email_exc})")
+                            con_email += 1
+                            nuevos_para_correo.append({
+                                "nombre": nombre_docente,
+                                "username": username,
+                                "email": email,
+                                "password": temp_password,
+                            })
                         else:
-                            sin_correo.append(f"{username} (sin correo registrado)")
+                            sin_correo.append(username)
 
                     Docente.objects.get_or_create(usuario=user, defaults={
                         "documento_identidad": doc_id,
@@ -9844,18 +9821,23 @@ def importar_docentes_excel(request):
                 except Exception as e:
                     errores.append(f"Fila {i}: {str(e)}")
 
+            # ── Encolar envío de correos en background (no bloquea la respuesta) ──
+            if nuevos_para_correo:
+                from gestion_academica.tasks import enviar_credenciales_docentes
+                enviar_credenciales_docentes.delay(nuevos_para_correo, institucion.pk)
+
             # ── Resumen ──
             if creados:
-                if correos_enviados == creados:
-                    messages.success(request, f"✅ {creados} docente(s) creado(s). Se enviaron las credenciales por correo a cada uno.")
-                elif correos_enviados > 0:
-                    messages.success(request, f"✅ {creados} docente(s) creado(s). Correos enviados: {correos_enviados}.")
-                    for u in sin_correo:
-                        messages.warning(request, f"No se pudo enviar correo a: {u}")
+                if con_email:
+                    messages.success(
+                        request,
+                        f"✅ {creados} docente(s) creado(s). "
+                        f"Se están enviando las credenciales por correo a {con_email} docente(s)."
+                    )
                 else:
-                    messages.warning(request, f"{creados} docente(s) creado(s), pero no se pudo enviar ningún correo.")
-                    for u in sin_correo:
-                        messages.warning(request, f"Sin correo: {u}")
+                    messages.warning(request, f"{creados} docente(s) creado(s), pero ninguno tiene correo registrado en el archivo.")
+                for u in sin_correo:
+                    messages.warning(request, f"Sin correo en el archivo: {u}")
             elif not errores:
                 messages.info(request, "No se crearon docentes nuevos (ya existían todos los usuarios del archivo).")
 

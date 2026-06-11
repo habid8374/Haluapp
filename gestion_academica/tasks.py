@@ -40,6 +40,67 @@ logger = logging.getLogger(__name__)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+#  TAREA CELERY: Enviar credenciales a docentes nuevos
+# ──────────────────────────────────────────────────────────────────────────────
+
+@shared_task(name="gestion_academica.enviar_credenciales_docentes")
+def enviar_credenciales_docentes(docentes_data: list, institucion_id: int):
+    """Envía correo de bienvenida con usuario y contraseña a cada docente nuevo.
+
+    ``docentes_data``: lista de dicts con keys: nombre, username, email, password.
+    """
+    from finanzas.models import InstitucionEducativa
+    from admisiones.utils import enviar_correo_dinamico
+
+    try:
+        institucion = InstitucionEducativa.objects.get(pk=institucion_id)
+    except InstitucionEducativa.DoesNotExist:
+        logger.error("enviar_credenciales_docentes: institución %s no existe", institucion_id)
+        return
+
+    enviados = 0
+    for d in docentes_data:
+        email = d.get("email")
+        if not email:
+            continue
+        nombre = d.get("nombre") or d.get("username")
+        username = d.get("username")
+        password = d.get("password")
+        html = f"""
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+          <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:28px 32px;text-align:center;">
+            <h2 style="color:#fff;margin:0;font-size:22px;">Bienvenido/a a {institucion.nombre}</h2>
+            <p style="color:#c7d2fe;margin:6px 0 0;">Tu cuenta docente ha sido creada</p>
+          </div>
+          <div style="padding:28px 32px;background:#fff;">
+            <p style="color:#374151;">Hola <strong>{nombre}</strong>,</p>
+            <p style="color:#374151;">Tu cuenta en <strong>Halu Plataforma Escolar</strong> está lista. Estas son tus credenciales de acceso:</p>
+            <div style="background:#f3f4f6;border-radius:8px;padding:16px 20px;margin:20px 0;">
+              <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">USUARIO</p>
+              <p style="margin:0 0 16px;font-size:18px;font-weight:700;color:#1f2937;letter-spacing:1px;">{username}</p>
+              <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">CONTRASEÑA TEMPORAL</p>
+              <p style="margin:0;font-size:18px;font-weight:700;color:#4f46e5;letter-spacing:2px;">{password}</p>
+            </div>
+            <p style="color:#ef4444;font-size:13px;">⚠️ Por seguridad, cambia tu contraseña la primera vez que inicies sesión.</p>
+            <p style="color:#6b7280;font-size:12px;margin-top:24px;">Si tienes preguntas, contacta al administrador de tu institución.</p>
+          </div>
+        </div>
+        """
+        try:
+            enviar_correo_dinamico(
+                institucion=institucion,
+                asunto=f"Bienvenido/a a {institucion.nombre} — Tus credenciales de acceso",
+                destinatarios=[email],
+                html_content=html,
+            )
+            enviados += 1
+        except Exception as exc:
+            logger.warning("enviar_credenciales_docentes: fallo para %s: %s", email, exc)
+
+    logger.info("enviar_credenciales_docentes: %d/%d correos enviados (inst=%s)", enviados, len(docentes_data), institucion_id)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 #  TAREA CELERY: Calcular Corte Preventivo
 # ──────────────────────────────────────────────────────────────────────────────
 
