@@ -487,33 +487,24 @@ class AreaAcademicaAdmin(admin.ModelAdmin):
 
 @admin.register(DescriptorLogro)
 class DescriptorLogroAdmin(admin.ModelAdmin):
-    list_display = ('descripcion_corta', 'materia', 'periodo_academico', 'creado_por', 'institucion')
-    
+    list_display = ('descripcion_corta', 'grado', 'materia', 'periodo_academico', 'creado_por', 'institucion')
     search_fields = ('descripcion', 'materia__nombre_materia', 'creado_por__username', 'institucion__nombre')
-    
-    # --- FILTRO CORREGIDO: Eliminamos 'materia__area' ---
-    list_filter = ('institucion', 'periodo_academico', 'creado_por')
-    
-    autocomplete_fields = ['materia', 'periodo_academico', 'creado_por', 'institucion']
+    list_filter = ('institucion', 'grado', 'periodo_academico', 'materia')
+    ordering = ('institucion', 'grado__nombre', 'materia__nombre_materia', 'periodo_academico__nombre')
+    autocomplete_fields = ['grado', 'materia', 'periodo_academico', 'creado_por', 'institucion']
     list_per_page = 20
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if not request.user.is_superuser:
-            try:
-                return qs.filter(institucion=request.user.docente.institucion)
-            except AttributeError:
-                return qs.none()
+            inst = getattr(request.user, 'institucion_asociada', None)
+            return qs.filter(institucion=inst) if inst else qs.none()
         return qs
 
     @admin.display(description='Descripción')
     def descripcion_corta(self, obj):
-        return str(obj.descripcion)[:70] + '...' if len(str(obj.descripcion)) > 70 else str(obj.descripcion)
-
-    # Opcional: una función para mostrar una descripción corta en la lista
-    @admin.display(description='Descripción')
-    def descripcion_corta(self, obj):
-        return str(obj.descripcion)[:70] + '...' if len(str(obj.descripcion)) > 70 else str(obj.descripcion)
+        texto = str(obj.descripcion)
+        return texto[:70] + '...' if len(texto) > 70 else texto
 
 @admin.register(Aula)
 class AulaAdmin(admin.ModelAdmin):
@@ -709,29 +700,24 @@ class DimensionDesarrolloAdmin(admin.ModelAdmin):
 
 @admin.register(LogroPreescolar)
 class LogroPreescolarAdmin(admin.ModelAdmin):
-    """
-    Configuración del Admin para el nuevo modelo de Logros de Preescolar.
-    """
-    list_display = ('descripcion_corta', 'dimension', 'materia', 'periodo', 'institucion')
-    list_filter = ('institucion', 'periodo', 'dimension', 'materia')
+    list_display = ('descripcion_corta', 'grado', 'dimension', 'materia', 'periodo', 'orden', 'institucion')
+    list_filter = ('institucion', 'grado', 'periodo', 'dimension', 'materia')
     search_fields = ('descripcion', 'materia__nombre_materia', 'dimension__nombre')
-    ordering = ('dimension__orden', 'materia__nombre_materia', 'orden')
-    
-    # Campos que usarán un buscador para facilitar la selección
-    autocomplete_fields = ['dimension', 'materia', 'periodo', 'institucion']
-    
+    ordering = ('institucion', 'grado__nombre', 'dimension__orden', 'materia__nombre_materia', 'orden')
+    autocomplete_fields = ['grado', 'dimension', 'materia', 'periodo', 'institucion']
     list_per_page = 20
 
     def get_queryset(self, request):
-        # Filtra automáticamente por la institución del usuario si no es superadmin
         qs = super().get_queryset(request)
         if not request.user.is_superuser:
-            return qs.filter(institucion=request.user.institucion_asociada)
-        return
+            inst = getattr(request.user, 'institucion_asociada', None)
+            return qs.filter(institucion=inst) if inst else qs.none()
+        return qs
 
     @admin.display(description='Descripción del Logro')
     def descripcion_corta(self, obj):
-        return str(obj.descripcion)[:80] + '...' if len(str(obj.descripcion)) > 80 else str(obj.descripcion)
+        texto = str(obj.descripcion)
+        return texto[:80] + '...' if len(texto) > 80 else texto
 
 
 @admin.register(EvaluacionLogroPreescolar)
