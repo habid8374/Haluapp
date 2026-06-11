@@ -483,11 +483,15 @@
           </div>
           <div class="col-md-3">
             <label class="form-label fw-semibold" style="font-size:.78rem;">DBA (Derecho Básico)</label>
-            <textarea name="dba" class="form-control form-control-sm" rows="2" placeholder="Ej: DBA N.° 3 — Comprende que las fracciones expresan la relación todo-parte (Grado 4°, Matemáticas)&#10;Solo para Lenguaje, Matemáticas, Ciencias, Sociales e Inglés."></textarea>
+            <textarea id="campo-dba-inline" name="dba" class="form-control form-control-sm" rows="2" placeholder="Ej: DBA N.° 3 — Comprende que las fracciones expresan la relación todo-parte (Grado 4°, Matemáticas)&#10;Solo para Lenguaje, Matemáticas, Ciencias, Sociales e Inglés."></textarea>
+            <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-1" style="font-size:.72rem;"
+                    data-bs-toggle="modal" data-bs-target="#modalDBABiblioteca">
+              <i class="bi bi-search me-1"></i>Explorar DBA del MEN
+            </button>
           </div>
           <div class="col-12">
             <label class="form-label fw-semibold" style="font-size:.78rem;"><i class="bi bi-list-check me-1 text-primary"></i>Evidencias de Aprendizaje del DBA</label>
-            <textarea name="evidencias_dba" class="form-control form-control-sm" rows="2" placeholder="3-5 acciones observables del DBA. Estas son la base para los indicadores Bajo/Básico/Alto/Superior."></textarea>
+            <textarea id="campo-evidencias-dba-inline" name="evidencias_dba" class="form-control form-control-sm" rows="2" placeholder="3-5 acciones observables del DBA. Estas son la base para los indicadores Bajo/Básico/Alto/Superior."></textarea>
           </div>
           <div class="col-md-3">
             <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-bajo">Bajo</span> Indicador</label>
@@ -581,6 +585,72 @@
 
 </div>
 
+{# ── Modal Biblioteca DBA MEN ── #}
+<div class="modal fade" id="modalDBABiblioteca" tabindex="-1" aria-labelledby="modalDBATituloDetalle">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content" style="border-radius:14px;border:none;">
+      <div class="modal-header" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:14px 14px 0 0;">
+        <h5 class="modal-title fw-bold" id="modalDBATituloDetalle">
+          <i class="bi bi-book-fill me-2"></i>Biblioteca de DBA Oficiales — MEN Colombia
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-3">
+        <p class="text-muted" style="font-size:.8rem;">
+          Selecciona el área y el grado para ver los DBA oficiales publicados por el Ministerio de Educación Nacional.
+          Al hacer clic en un DBA, se autocompleta el campo en el formulario.
+        </p>
+        <div class="row g-2 mb-3">
+          <div class="col-md-5">
+            <select id="dba-filtro-area-inline" class="form-select form-select-sm">
+              <option value="">— Selecciona área —</option>
+              <option value="matematicas">Matemáticas</option>
+              <option value="lenguaje">Lenguaje</option>
+              <option value="ciencias_naturales">Ciencias Naturales</option>
+              <option value="ciencias_sociales">Ciencias Sociales</option>
+              <option value="ingles">Inglés</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <select id="dba-filtro-grado-inline" class="form-select form-select-sm">
+              <option value="">— Selecciona grado —</option>
+              <option value="transicion">Transición</option>
+              <option value="1">Grado 1°</option>
+              <option value="2">Grado 2°</option>
+              <option value="3">Grado 3°</option>
+              <option value="4">Grado 4°</option>
+              <option value="5">Grado 5°</option>
+              <option value="6">Grado 6°</option>
+              <option value="7">Grado 7°</option>
+              <option value="8">Grado 8°</option>
+              <option value="9">Grado 9°</option>
+              <option value="10">Grado 10°</option>
+              <option value="11">Grado 11°</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button type="button" id="btn-buscar-dba-inline" class="btn btn-primary btn-sm w-100">
+              <i class="bi bi-search me-1"></i>Buscar
+            </button>
+          </div>
+        </div>
+        <div id="dba-resultados-inline">
+          <div class="text-center text-muted py-4" style="font-size:.85rem;">
+            <i class="bi bi-book" style="font-size:2rem;opacity:.3;display:block;margin-bottom:.5rem;"></i>
+            Selecciona área y grado para ver los DBA disponibles.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <small class="text-muted me-auto" style="font-size:.72rem;">
+          <i class="bi bi-info-circle me-1"></i>Solo Lenguaje, Matemáticas, Ciencias Naturales, Ciencias Sociales e Inglés tienen DBA oficiales del MEN (V.2, 2016).
+        </small>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {# ── Modal eliminación ── #}
 <div class="modal fade" id="modalEliminarItem" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
@@ -618,6 +688,64 @@
 
 {% block extra_js %}{{ block.super }}
 <script>
+(function () {
+  const API_URL = "{% url 'gestion_academica:dba_predefinido_api' %}";
+
+  function renderDBAInline(dbaList) {
+    const cont = document.getElementById('dba-resultados-inline');
+    if (!dbaList.length) {
+      cont.innerHTML = '<div class="alert alert-warning" style="font-size:.82rem;"><i class="bi bi-exclamation-circle me-1"></i>No se encontraron DBA para esta combinación. Esta área puede no tener DBA oficiales del MEN, o aún no están cargados en el sistema.</div>';
+      return;
+    }
+    cont.innerHTML = dbaList.map(function (d) {
+      const ev = d.evidencias ? `<div style="margin-top:.4rem;font-size:.75rem;color:#059669;white-space:pre-line;padding:.3rem .6rem;background:#f0fdf4;border-radius:6px;">${d.evidencias}</div>` : '';
+      return `
+        <div class="card border-0 shadow-sm mb-2" style="border-radius:10px;cursor:pointer;transition:box-shadow .15s;"
+             onmouseover="this.style.boxShadow='0 0 0 2px #7c3aed'" onmouseout="this.style.boxShadow=''"
+             onclick="seleccionarDBAInline(${JSON.stringify(d.enunciado)}, ${JSON.stringify(d.evidencias)})">
+          <div class="card-body py-2 px-3">
+            <div style="font-size:.7rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.4px;">
+              DBA N.°${d.numero} · ${d.area_label} · ${d.grado_label} · ${d.version}
+            </div>
+            <div style="font-size:.85rem;color:#1e293b;margin-top:.2rem;">${d.enunciado}</div>
+            ${ev}
+            <div style="font-size:.7rem;color:#4f46e5;margin-top:.4rem;font-weight:600;">
+              <i class="bi bi-cursor-fill me-1"></i>Clic para usar este DBA
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var btnBuscar = document.getElementById('btn-buscar-dba-inline');
+    if (btnBuscar) {
+      btnBuscar.addEventListener('click', function () {
+        const area  = document.getElementById('dba-filtro-area-inline').value;
+        const grado = document.getElementById('dba-filtro-grado-inline').value;
+        if (!area || !grado) return;
+        const cont = document.getElementById('dba-resultados-inline');
+        cont.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Buscando…</div>';
+        fetch(`${API_URL}?area=${area}&grado=${grado}`)
+          .then(r => r.json())
+          .then(data => renderDBAInline(data.dba))
+          .catch(() => {
+            cont.innerHTML = '<div class="alert alert-danger" style="font-size:.82rem;">Error al consultar el catálogo de DBA.</div>';
+          });
+      });
+    }
+  });
+
+  window.seleccionarDBAInline = function (enunciado, evidencias) {
+    var campoDba = document.getElementById('campo-dba-inline');
+    var campoEv  = document.getElementById('campo-evidencias-dba-inline');
+    if (campoDba) campoDba.value = enunciado;
+    if (campoEv && evidencias) campoEv.value = evidencias;
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalDBABiblioteca'));
+    if (modal) modal.hide();
+  };
+})();
+
 function showPeriodo(num, btn) {
   document.querySelectorAll('.mc-period-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.mc-period-tab').forEach(b => b.classList.remove('active'));
