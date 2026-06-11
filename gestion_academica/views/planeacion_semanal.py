@@ -176,6 +176,15 @@ def malla_curricular_detalle(request, pk):
     auto_print = request.GET.get('print') == '1'
     es_bilingue = getattr(institucion, 'es_bilingue', False)
     idioma_secundario = getattr(institucion, 'get_idioma_secundario_display', lambda: '')()
+
+    escala_qs = list(EscalaValorativa.objects.filter(institucion=institucion).order_by('-nota_maxima'))
+    niveles = {
+        'superior': escala_qs[0] if len(escala_qs) > 0 else None,
+        'alto':     escala_qs[1] if len(escala_qs) > 1 else None,
+        'basico':   escala_qs[2] if len(escala_qs) > 2 else None,
+        'bajo':     escala_qs[3] if len(escala_qs) > 3 else None,
+    }
+
     context = {
         'titulo_pagina': f'Malla Curricular · {malla.materia} · {malla.grado}',
         'malla': malla,
@@ -184,6 +193,7 @@ def malla_curricular_detalle(request, pk):
         'auto_print': auto_print,
         'es_bilingue': es_bilingue,
         'idioma_secundario': idioma_secundario,
+        'niveles': niveles,
     }
     return render(request, 'gestion_academica/malla_curricular_detalle.html', context)
 
