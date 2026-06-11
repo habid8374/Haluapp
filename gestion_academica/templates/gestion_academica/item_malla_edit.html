@@ -162,22 +162,42 @@
             <h6>Estándares y Derechos Básicos (MEN)</h6>
           </div>
           <div class="form-card-body">
+            <div class="alert alert-info d-flex gap-2 align-items-start py-2 px-3 mb-3" style="font-size:.78rem;border-radius:8px;">
+              <i class="bi bi-info-circle-fill mt-1 flex-shrink-0" style="color:#0369a1;"></i>
+              <span>
+                Solo <strong>Lenguaje, Matemáticas, Ciencias Naturales, Ciencias Sociales e Inglés</strong> tienen DBA oficiales del MEN.
+                Para otras áreas (Ed. Física, Artes, Tecnología, Ética…) el campo DBA puede dejarse vacío.
+                <a href="https://www.colombiaaprende.edu.co/contenidos/coleccion/derechos-basicos-de-aprendizaje" target="_blank" rel="noopener" class="ms-1">Ver DBA oficiales →</a>
+              </span>
+            </div>
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label fw-semibold" style="font-size:.82rem;">
                   EBC — Estándares Básicos de Competencias
                 </label>
-                <textarea name="ebc" class="form-control form-control-sm" rows="4"
-                          placeholder="Estándar del MEN que aplica a este eje temático…">{{ item.ebc|default:'' }}</textarea>
-                <div class="form-text">Según los lineamientos del Ministerio de Educación Nacional.</div>
+                <textarea name="ebc" class="form-control form-control-sm" rows="3"
+                          placeholder="Ej: Uso la argumentación y la explicación para convencer o informar (ciclo 4-5, Lenguaje)">{{ item.ebc|default:'' }}</textarea>
+                <div class="form-text">Referente por ciclo de grados (1-3, 4-5, 6-7, 8-9, 10-11).</div>
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-semibold" style="font-size:.82rem;">
                   DBA — Derechos Básicos de Aprendizaje
                 </label>
-                <textarea name="dba" class="form-control form-control-sm" rows="4"
-                          placeholder="Derecho Básico de Aprendizaje que corresponde…">{{ item.dba|default:'' }}</textarea>
-                <div class="form-text">Enunciado del aprendizaje estructurante para este grado.</div>
+                <textarea name="dba" class="form-control form-control-sm" rows="3"
+                          placeholder="Ej: DBA N.° 3 — Comprende que las fracciones pueden expresar la relación entre el todo y sus partes (Grado 4°, Matemáticas)">{{ item.dba|default:'' }}</textarea>
+                <div class="form-text">Enunciado estructurante anual por grado individual. Copia del documento oficial del MEN.</div>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold" style="font-size:.82rem;">
+                  <i class="bi bi-list-check me-1 text-primary"></i>Evidencias de Aprendizaje del DBA
+                </label>
+                <textarea name="evidencias_dba" class="form-control form-control-sm" rows="3"
+                          placeholder="Escribe las 3-5 evidencias observables del DBA. Ej:&#10;• Propone ejemplos de cantidades que se relacionan según una fracción dada.&#10;• Utiliza fracciones para expresar la relación del todo con sus partes.&#10;• Realiza mediciones y establece equivalencias entre diferentes tamaños.">{{ item.evidencias_dba|default:'' }}</textarea>
+                <div class="form-text">
+                  <i class="bi bi-arrow-right-short text-primary"></i>
+                  <strong>Estas evidencias son la fuente directa de tus indicadores de desempeño</strong> (Bajo / Básico / Alto / Superior).
+                  Cada indicador debe reflejar con qué nivel de complejidad el estudiante cumple estas evidencias.
+                </div>
               </div>
             </div>
           </div>

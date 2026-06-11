@@ -300,9 +300,10 @@ def item_malla_add(request, pk):
         periodo      = request.POST.get('periodo')
         eje          = request.POST.get('eje_tematico', '').strip()
         logro        = request.POST.get('logro', '').strip()
-        ebc          = request.POST.get('ebc', '').strip()
-        dba          = request.POST.get('dba', '').strip()
-        competencias = request.POST.get('competencias', '').strip()
+        ebc           = request.POST.get('ebc', '').strip()
+        dba           = request.POST.get('dba', '').strip()
+        evidencias_dba = request.POST.get('evidencias_dba', '').strip()
+        competencias  = request.POST.get('competencias', '').strip()
         ind_bajo     = request.POST.get('indicador_bajo', '').strip()
         ind_basico   = request.POST.get('indicador_basico', '').strip()
         ind_alto     = request.POST.get('indicador_alto', '').strip()
@@ -325,6 +326,7 @@ def item_malla_add(request, pk):
                 malla=malla, periodo=periodo,
                 eje_tematico=eje, logro=logro,
                 ebc=ebc or None, dba=dba or None,
+                evidencias_dba=evidencias_dba or None,
                 competencias=competencias or None,
                 indicador_bajo=ind_bajo or None,
                 indicador_basico=ind_basico or None,
@@ -362,6 +364,7 @@ def item_malla_edit(request, item_pk):
         item.logro           = request.POST.get('logro', item.logro).strip()
         item.ebc             = request.POST.get('ebc', '').strip() or None
         item.dba             = request.POST.get('dba', '').strip() or None
+        item.evidencias_dba  = request.POST.get('evidencias_dba', '').strip() or None
         item.competencias    = request.POST.get('competencias', '').strip() or None
         item.indicador_bajo     = request.POST.get('indicador_bajo', '').strip() or None
         item.indicador_basico   = request.POST.get('indicador_basico', '').strip() or None

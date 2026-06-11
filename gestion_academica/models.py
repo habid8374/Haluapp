@@ -2205,6 +2205,11 @@ class ItemMalla(models.Model):
         blank=True, null=True,
         verbose_name="Derechos Básicos de Aprendizaje (DBA)",
     )
+    evidencias_dba = models.TextField(
+        blank=True, null=True,
+        verbose_name="Evidencias de Aprendizaje del DBA",
+        help_text="Las 3-5 acciones observables del DBA que evidencian su logro. Sirven de base para los indicadores de desempeño.",
+    )
     # Competencias y logro
     competencias = models.TextField(
         blank=True, null=True, verbose_name="Competencias",

@@ -391,6 +391,7 @@
               <td>
                 {% if item.ebc %}<div><span style="font-size:.68rem;font-weight:700;color:#4f46e5;">EBC:</span> {{ item.ebc }}</div>{% endif %}
                 {% if item.dba %}<div style="margin-top:.2rem;"><span style="font-size:.68rem;font-weight:700;color:#7c3aed;">DBA:</span> {{ item.dba }}</div>{% endif %}
+                {% if item.evidencias_dba %}<div style="margin-top:.25rem;padding:.2rem .4rem;background:#f0fdf4;border-radius:4px;font-size:.7rem;color:#15803d;"><i class="bi bi-list-check" style="font-size:.65rem;"></i> {{ item.evidencias_dba|linebreaksbr }}</div>{% endif %}
                 {% if not item.ebc and not item.dba %}—{% endif %}
               </td>
               <td>
@@ -482,7 +483,11 @@
           </div>
           <div class="col-md-3">
             <label class="form-label fw-semibold" style="font-size:.78rem;">DBA (Derecho Básico)</label>
-            <textarea name="dba" class="form-control form-control-sm" rows="2" placeholder="Derecho básico de aprendizaje…"></textarea>
+            <textarea name="dba" class="form-control form-control-sm" rows="2" placeholder="Ej: DBA N.° 3 — Comprende que las fracciones expresan la relación todo-parte (Grado 4°, Matemáticas)&#10;Solo para Lenguaje, Matemáticas, Ciencias, Sociales e Inglés."></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold" style="font-size:.78rem;"><i class="bi bi-list-check me-1 text-primary"></i>Evidencias de Aprendizaje del DBA</label>
+            <textarea name="evidencias_dba" class="form-control form-control-sm" rows="2" placeholder="3-5 acciones observables del DBA. Estas son la base para los indicadores Bajo/Básico/Alto/Superior."></textarea>
           </div>
           <div class="col-md-3">
             <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-bajo">Bajo</span> Indicador</label>
