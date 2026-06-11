@@ -25,6 +25,7 @@ from ..models import (
     DBAPredefinido,
     Deber,
     Docente,
+    EscalaValorativa,
     Grado,
     ItemMalla,
     ItemPlanSemanal,
@@ -388,12 +389,22 @@ def item_malla_edit(request, item_pk):
         return redirect('gestion_academica:malla_curricular_detalle', pk=item.malla_id)
 
     inst = _get_institucion(request)
+    # Escala valorativa de la institución (orden descendente = superior primero)
+    escala_qs = list(EscalaValorativa.objects.filter(institucion=inst).order_by('-nota_maxima'))
+    # Asignar a cada posición (superior/alto/basico/bajo) el nivel institucional
+    niveles = {
+        'superior': escala_qs[0] if len(escala_qs) > 0 else None,
+        'alto':     escala_qs[1] if len(escala_qs) > 1 else None,
+        'basico':   escala_qs[2] if len(escala_qs) > 2 else None,
+        'bajo':     escala_qs[3] if len(escala_qs) > 3 else None,
+    }
     context = {
         'titulo_pagina': 'Editar Ítem de Malla',
         'item': item,
         'malla': item.malla,
         'es_bilingue': getattr(inst, 'es_bilingue', False),
         'idioma_secundario': getattr(inst, 'get_idioma_secundario_display', lambda: '')(),
+        'niveles': niveles,
     }
     return render(request, 'gestion_academica/item_malla_edit.html', context)
 

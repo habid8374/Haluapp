@@ -17,9 +17,9 @@
 }
 .edit-hero .breadcrumb-top {
   font-size: .75rem; opacity: .75; margin-bottom: .4rem;
-  display: flex; align-items: center; gap: .35rem;
+  display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;
 }
-.edit-hero h1 { font-size: 1.45rem; font-weight: 800; margin: 0; font-family: 'Manrope', sans-serif; }
+.edit-hero h1 { font-size: 1.25rem; font-weight: 800; margin: 0; font-family: 'Manrope', sans-serif; }
 
 .form-card {
   background: #fff; border: 1px solid #dbe5f4;
@@ -30,14 +30,15 @@
   background: linear-gradient(90deg, #f0f4ff, #eef2ff);
   border-bottom: 1px solid #dbe5f4;
   padding: .75rem 1.25rem; display: flex; align-items: center; gap: .6rem;
+  flex-wrap: wrap;
 }
 .form-card-header .fch-icon {
   width: 30px; height: 30px; border-radius: .4rem;
   display: flex; align-items: center; justify-content: center;
-  font-size: .85rem; background: #e0e7ff; color: #4f46e5;
+  font-size: .85rem; background: #e0e7ff; color: #4f46e5; flex-shrink: 0;
 }
 .form-card-header h6 { margin: 0; font-weight: 800; font-size: .88rem; color: #0f3f90; }
-.form-card-body { padding: 1.25rem; }
+.form-card-body { padding: 1rem; }
 
 .nivel-pill {
   display: inline-flex; align-items: center; gap: .4rem;
@@ -55,6 +56,17 @@
   border-radius: .55rem; font-size: .88rem; transition: opacity .2s;
 }
 .btn-save:hover { opacity: .88; color: #fff; }
+
+/* Mobile */
+@media (max-width: 576px) {
+  .edit-hero { padding: 1.1rem 1rem; }
+  .edit-hero h1 { font-size: 1rem; }
+  .form-card-body { padding: .75rem; }
+  .btn-save { width: 100%; }
+  #modalDBABiblioteca .modal-dialog { margin: .5rem; }
+  .dba-explorar-btn { width: 100%; margin-top: .5rem; }
+  .form-label { font-size: .8rem !important; }
+}
 </style>
 {% endblock %}
 
@@ -189,7 +201,7 @@
                 </div>
                 <div class="d-flex align-items-center gap-2 mt-1">
                   <div class="form-text mb-0">Enunciado estructurante anual por grado individual.</div>
-                  <button type="button" class="btn btn-outline-primary btn-sm ms-auto" style="font-size:.72rem;white-space:nowrap;"
+                  <button type="button" class="btn btn-outline-primary btn-sm ms-auto dba-explorar-btn" style="font-size:.72rem;white-space:nowrap;"
                           data-bs-toggle="modal" data-bs-target="#modalDBABiblioteca">
                     <i class="bi bi-search me-1"></i>Explorar DBA del MEN
                   </button>
@@ -216,30 +228,71 @@
           <div class="form-card-header">
             <div class="fch-icon"><i class="bi bi-bar-chart-steps"></i></div>
             <h6>Indicadores de Desempeño por Nivel</h6>
+            {% if niveles.superior %}
+              <span class="ms-auto" style="font-size:.7rem;color:#64748b;">
+                <i class="bi bi-check-circle-fill text-success me-1"></i>Usando escala de tu institución
+              </span>
+            {% endif %}
           </div>
           <div class="form-card-body">
+            {% if niveles.superior %}
+            <div class="alert alert-success d-flex gap-2 align-items-start py-2 px-3 mb-3" style="font-size:.76rem;border-radius:8px;">
+              <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
+              <span>Los niveles usan la <strong>escala valorativa configurada en tu institución</strong>.
+              El texto de cada indicador describe qué debe demostrar el estudiante para alcanzar ese nivel.</span>
+            </div>
+            {% else %}
             <p style="font-size:.78rem;color:#64748b;margin-bottom:1rem;">
-              Define qué debe demostrar el estudiante para ubicarse en cada nivel. Los rangos de escala son:
+              Define qué debe demostrar el estudiante para ubicarse en cada nivel.
               <strong>Bajo</strong> 1,0–2,9 · <strong>Básico</strong> 3,0–3,9 · <strong>Alto</strong> 4,0–4,5 · <strong>Superior</strong> 4,6–5,0
             </p>
+            {% endif %}
             <div class="row g-3">
-              <div class="col-md-6">
-                <div class="nivel-pill nivel-bajo"><i class="bi bi-arrow-down-circle-fill"></i> Bajo (1,0 – 2,9)</div>
+              <div class="col-12 col-md-6">
+                {% if niveles.bajo %}
+                  <div class="nivel-pill nivel-bajo">
+                    <i class="bi bi-arrow-down-circle-fill"></i>
+                    {{ niveles.bajo.nombre_desempeno }} ({{ niveles.bajo.nota_minima }}–{{ niveles.bajo.nota_maxima }})
+                  </div>
+                {% else %}
+                  <div class="nivel-pill nivel-bajo"><i class="bi bi-arrow-down-circle-fill"></i> Bajo (1,0 – 2,9)</div>
+                {% endif %}
                 <textarea name="indicador_bajo" class="form-control form-control-sm" rows="3"
                           placeholder="El estudiante evidencia dificultades para…">{{ item.indicador_bajo|default:'' }}</textarea>
               </div>
-              <div class="col-md-6">
-                <div class="nivel-pill nivel-basico"><i class="bi bi-dash-circle-fill"></i> Básico (3,0 – 3,9)</div>
+              <div class="col-12 col-md-6">
+                {% if niveles.basico %}
+                  <div class="nivel-pill nivel-basico">
+                    <i class="bi bi-dash-circle-fill"></i>
+                    {{ niveles.basico.nombre_desempeno }} ({{ niveles.basico.nota_minima }}–{{ niveles.basico.nota_maxima }})
+                  </div>
+                {% else %}
+                  <div class="nivel-pill nivel-basico"><i class="bi bi-dash-circle-fill"></i> Básico (3,0 – 3,9)</div>
+                {% endif %}
                 <textarea name="indicador_basico" class="form-control form-control-sm" rows="3"
                           placeholder="El estudiante identifica y aplica de forma básica…">{{ item.indicador_basico|default:'' }}</textarea>
               </div>
-              <div class="col-md-6">
-                <div class="nivel-pill nivel-alto"><i class="bi bi-arrow-up-circle-fill"></i> Alto (4,0 – 4,5)</div>
+              <div class="col-12 col-md-6">
+                {% if niveles.alto %}
+                  <div class="nivel-pill nivel-alto">
+                    <i class="bi bi-arrow-up-circle-fill"></i>
+                    {{ niveles.alto.nombre_desempeno }} ({{ niveles.alto.nota_minima }}–{{ niveles.alto.nota_maxima }})
+                  </div>
+                {% else %}
+                  <div class="nivel-pill nivel-alto"><i class="bi bi-arrow-up-circle-fill"></i> Alto (4,0 – 4,5)</div>
+                {% endif %}
                 <textarea name="indicador_alto" class="form-control form-control-sm" rows="3"
                           placeholder="El estudiante analiza, relaciona y aplica con seguridad…">{{ item.indicador_alto|default:'' }}</textarea>
               </div>
-              <div class="col-md-6">
-                <div class="nivel-pill nivel-superior"><i class="bi bi-star-fill"></i> Superior (4,6 – 5,0)</div>
+              <div class="col-12 col-md-6">
+                {% if niveles.superior %}
+                  <div class="nivel-pill nivel-superior">
+                    <i class="bi bi-star-fill"></i>
+                    {{ niveles.superior.nombre_desempeno }} ({{ niveles.superior.nota_minima }}–{{ niveles.superior.nota_maxima }})
+                  </div>
+                {% else %}
+                  <div class="nivel-pill nivel-superior"><i class="bi bi-star-fill"></i> Superior (4,6 – 5,0)</div>
+                {% endif %}
                 <textarea name="indicador_superior" class="form-control form-control-sm" rows="3"
                           placeholder="El estudiante supera los objetivos, profundiza y propone…">{{ item.indicador_superior|default:'' }}</textarea>
               </div>
