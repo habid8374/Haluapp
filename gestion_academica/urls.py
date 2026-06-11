@@ -363,6 +363,11 @@ urlpatterns = [
     path('logros/crear/', views.LogroCreateView.as_view(), name='logro_crear'),
     path('logros/<int:pk>/editar/', views.LogroUpdateView.as_view(), name='logro_editar'),
     path('logros/<int:pk>/eliminar/', views.LogroDeleteView.as_view(), name='logro_eliminar'),
+    # --- Descriptores de Logro (coordinador) ---
+    path('descriptores/', views.CoordinadorDescriptorListView.as_view(), name='coordinador_lista_descriptores'),
+    path('descriptores/crear/', views.CoordinadorDescriptorCreateView.as_view(), name='coordinador_crear_descriptor'),
+    path('descriptores/<int:pk>/editar/', views.CoordinadorDescriptorUpdateView.as_view(), name='coordinador_editar_descriptor'),
+    path('descriptores/<int:pk>/eliminar/', views.CoordinadorDescriptorDeleteView.as_view(), name='coordinador_eliminar_descriptor'),
     path('boletin-descriptivo/<int:estudiante_pk>/<int:periodo_pk>/', views.boletin_descriptivo_preescolar_pdf, name='boletin_descriptivo_preescolar'),
     path('generar-boletin/<int:estudiante_pk>/<int:periodo_pk>/', views.generar_boletin_dispatcher, name='generar_boletin'),
   

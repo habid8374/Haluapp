@@ -1,0 +1,54 @@
+{% extends 'base_academico.html' %}
+
+{% block titulo %}{{ titulo_formulario }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .form-label { font-weight: 600; font-size: .88rem; }
+  select.form-select, textarea.form-control { border-radius: 8px; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:1.6rem 2rem;color:#fff;margin-bottom:1.5rem;">
+  <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.3rem;">
+    <i class="bi bi-journal-text me-1"></i>Descriptores de Logro
+  </div>
+  <h2 class="mb-0 fw-bold" style="font-size:1.25rem;">{{ titulo_formulario }}</h2>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius:14px;">
+  <div class="card-body p-4">
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-3">
+      {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label">
+          {{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}<small class="text-muted">{{ field.help_text }}</small>{% endif %}
+        {% for error in field.errors %}
+        <div class="text-danger mt-1" style="font-size:.8rem;"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <div class="d-flex gap-2 justify-content-end mt-3">
+        <a href="{% url 'gestion_academica:coordinador_lista_descriptores' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-x-circle me-1"></i>Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-circle-fill me-1"></i>Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

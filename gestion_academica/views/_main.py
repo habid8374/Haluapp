@@ -11132,7 +11132,109 @@ class LogroDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
         context['titulo_pagina'] = "Confirmar Eliminación de Logro"
         context['mensaje_confirmacion'] = f"¿Estás seguro de que deseas eliminar este logro?"
         context['url_cancelar'] = reverse_lazy('gestion_academica:logro_lista')
-        return context       
+        return context
+
+
+# ─── Descriptores de Logro — Coordinador ─────────────────────────────────────
+
+class CoordinadorDescriptorListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = DescriptorLogro
+    template_name = 'gestion_academica/coordinador_descriptor_lista.html'
+    context_object_name = 'descriptores'
+    permission_required = 'gestion_academica.view_descriptorlogro'
+
+    def get_queryset(self):
+        institucion = self.request.user.institucion_asociada
+        return DescriptorLogro.objects.filter(institucion=institucion).select_related(
+            'materia', 'periodo_academico', 'grado', 'creado_por'
+        ).order_by('grado__nombre', 'materia__nombre_materia', 'periodo_academico__nombre')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from collections import defaultdict
+        grupos = defaultdict(lambda: defaultdict(list))
+        sin_grado = defaultdict(list)
+        for desc in context['descriptores']:
+            grado_key = desc.grado.nombre if desc.grado else None
+            mat_key = desc.materia.nombre_materia
+            if grado_key:
+                grupos[grado_key][mat_key].append(desc)
+            else:
+                sin_grado[mat_key].append(desc)
+        descriptores_por_grado = [
+            (grado, dict(sorted(materias.items())), sum(len(v) for v in materias.values()))
+            for grado, materias in sorted(grupos.items())
+        ]
+        if sin_grado:
+            m = dict(sorted(sin_grado.items()))
+            descriptores_por_grado.append(('Sin grado asignado', m, sum(len(v) for v in m.values())))
+        context['descriptores_por_grado'] = descriptores_por_grado
+        return context
+
+
+class CoordinadorDescriptorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = DescriptorLogro
+    form_class = DescriptorLogroForm
+    template_name = 'gestion_academica/coordinador_descriptor_formulario.html'
+    success_url = reverse_lazy('gestion_academica:coordinador_lista_descriptores')
+    permission_required = 'gestion_academica.add_descriptorlogro'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.institucion = self.request.user.institucion_asociada
+        form.instance.creado_por = self.request.user
+        messages.success(self.request, "Descriptor de logro creado correctamente.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_formulario'] = "Crear Descriptor de Logro"
+        return context
+
+
+class CoordinadorDescriptorUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = DescriptorLogro
+    form_class = DescriptorLogroForm
+    template_name = 'gestion_academica/coordinador_descriptor_formulario.html'
+    success_url = reverse_lazy('gestion_academica:coordinador_lista_descriptores')
+    permission_required = 'gestion_academica.change_descriptorlogro'
+
+    def get_queryset(self):
+        return DescriptorLogro.objects.filter(institucion=self.request.user.institucion_asociada)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def form_valid(self, form):
+        messages.success(self.request, "Descriptor de logro actualizado correctamente.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_formulario'] = "Editar Descriptor de Logro"
+        return context
+
+
+class CoordinadorDescriptorDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = DescriptorLogro
+    template_name = 'gestion_academica/coordinador_descriptor_confirmar_eliminar.html'
+    success_url = reverse_lazy('gestion_academica:coordinador_lista_descriptores')
+    permission_required = 'gestion_academica.delete_descriptorlogro'
+    context_object_name = 'descriptor'
+
+    def get_queryset(self):
+        return DescriptorLogro.objects.filter(institucion=self.request.user.institucion_asociada)
+
+    def form_valid(self, form):
+        messages.success(self.request, "Descriptor eliminado correctamente.")
+        return super().form_valid(form)
+
 
 @login_required
 def boletin_descriptivo_preescolar_pdf(request, estudiante_pk, periodo_pk):

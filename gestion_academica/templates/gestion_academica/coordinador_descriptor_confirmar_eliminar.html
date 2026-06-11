@@ -1,0 +1,31 @@
+{% extends 'base_academico.html' %}
+
+{% block titulo %}Eliminar Descriptor{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center mt-4">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm" style="border-radius:14px;">
+      <div class="card-body p-4 text-center">
+        <div style="width:64px;height:64px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.8rem;"></i>
+        </div>
+        <h4 class="fw-bold mb-2">¿Eliminar este descriptor?</h4>
+        <p class="text-muted" style="font-size:.9rem;">{{ descriptor.descripcion|truncatechars:120 }}</p>
+        <p class="text-danger" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>Esta acción no se puede deshacer.</p>
+        <div class="d-flex gap-2 justify-content-center mt-3">
+          <a href="{% url 'gestion_academica:coordinador_lista_descriptores' %}" class="btn btn-outline-secondary">
+            Cancelar
+          </a>
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-trash-fill me-1"></i>Sí, eliminar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -891,17 +891,21 @@ class DescriptorLogroForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if request and hasattr(request.user, 'docente'):
+            # Docente: solo sus materias asignadas
             docente = request.user.docente
             institucion = request.user.institucion_asociada
-
             cursos_docente = Curso.objects.filter(docentes_asignados=docente, periodo_academico__activo=True)
             materias_ids = cursos_docente.values_list('materia_id', flat=True).distinct()
             self.fields['materia'].queryset = Materia.objects.filter(pk__in=materias_ids)
             self.fields['periodo_academico'].queryset = PeriodoAcademico.objects.filter(activo=True, institucion=institucion)
             self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
         elif request:
-            institucion = request.user.institucion_asociada
-            self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
+            # Coordinador u otro rol: todas las materias/periodos/grados de la institución
+            institucion = getattr(request.user, 'institucion_asociada', None)
+            if institucion:
+                self.fields['materia'].queryset = Materia.objects.filter(institucion=institucion)
+                self.fields['periodo_academico'].queryset = PeriodoAcademico.objects.filter(institucion=institucion)
+                self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
 
 class AnotacionObservadorForm(forms.ModelForm):
     class Meta:
