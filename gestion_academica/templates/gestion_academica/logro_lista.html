@@ -1,45 +1,218 @@
 {% extends 'base_academico.html' %}
-{% load crispy_forms_tags %}
+{% load gestion_academica_filters %}
+
+{% block titulo %}Logros de Aprendizaje{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .grado-accordion .accordion-button {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: .97rem;
+    border-radius: 10px !important;
+  }
+  .grado-accordion .accordion-button.collapsed {
+    background: #f5f3ff;
+    color: #4f46e5;
+  }
+  .grado-accordion .accordion-button::after {
+    filter: invert(1) brightness(2);
+  }
+  .grado-accordion .accordion-button.collapsed::after {
+    filter: none;
+  }
+  .grado-accordion .accordion-item {
+    border: none;
+    border-radius: 12px !important;
+    overflow: hidden;
+    margin-bottom: .8rem;
+    box-shadow: 0 2px 8px rgba(79,70,229,.10);
+  }
+  .materia-card {
+    border-left: 4px solid #7c3aed;
+    border-radius: 8px;
+    background: #fafafa;
+    margin-bottom: .75rem;
+    overflow: hidden;
+  }
+  .materia-header {
+    background: #ede9fe;
+    padding: .5rem 1rem;
+    font-weight: 700;
+    font-size: .82rem;
+    color: #4f46e5;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .logro-row {
+    border-bottom: 1px solid #f0eeff;
+    padding: .55rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    font-size: .87rem;
+  }
+  .logro-row:last-child { border-bottom: none; }
+  .logro-desc { flex: 1; color: #374151; line-height: 1.45; }
+  .logro-meta { white-space: nowrap; font-size: .75rem; color: #6b7280; }
+  .badge-grado { font-size: .7rem; font-weight: 700; border-radius: 20px; padding: .25em .75em; }
+  .btn-accion { font-size: .75rem; padding: .2rem .55rem; border-radius: 6px; }
+  .contador-badge {
+    background: rgba(255,255,255,.25);
+    color: #fff;
+    border-radius: 20px;
+    padding: .15em .7em;
+    font-size: .75rem;
+    font-weight: 600;
+    margin-left: .5rem;
+  }
+  .collapsed .contador-badge {
+    background: #ede9fe;
+    color: #4f46e5;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+  }
+</style>
+{% endblock %}
 
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>{{ titulo_pagina }}</h3>
-        <a href="{% url 'gestion_academica:logro_crear' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Añadir Nuevo Logro
-        </a>
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
+  <div style="position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.06);top:-80px;right:-40px;pointer-events:none;"></div>
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.3rem;">
+        <i class="bi bi-award-fill me-1"></i>Gestión Académica
+      </div>
+      <h2 class="mb-1 fw-bold" style="font-size:1.35rem;">{{ titulo_pagina }}</h2>
+      <p class="mb-0" style="opacity:.82;font-size:.84rem;">Organizados por grado y asignatura</p>
     </div>
-
-    <div class="card">
-        <div class="card-body">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Descripción</th>
-                        <th>Materia</th>
-                        <th>Periodo</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for logro in logros %}
-                    <tr>
-                        <td>{{ logro.descripcion }}</td>
-                        <td>{{ logro.materia.nombre_materia }}</td>
-                        <td>{{ logro.periodo.nombre }}</td>
-                        <td>
-                            <a href="{% url 'gestion_academica:logro_editar' logro.pk %}" class="btn btn-sm btn-warning">Editar</a>
-                            <a href="{% url 'gestion_academica:logro_eliminar' logro.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center">No has creado ningún logro todavía.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <a href="{% url 'gestion_academica:logro_crear' %}" class="btn btn-light fw-bold" style="border-radius:10px;color:#4f46e5;">
+      <i class="bi bi-plus-circle-fill me-1"></i> Nuevo Logro
+    </a>
+  </div>
 </div>
+
+<!-- Acordeón por grado -->
+{% if logros_por_grado %}
+<div class="accordion grado-accordion" id="acordeonGrados">
+  {% for grado_nombre, materias, total in logros_por_grado %}
+  {% with grado_id=forloop.counter %}
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="heading-{{ grado_id }}">
+      <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapse-{{ grado_id }}"
+              aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+              aria-controls="collapse-{{ grado_id }}">
+        <i class="bi bi-mortarboard-fill me-2"></i>
+        {{ grado_nombre }}
+        <span class="contador-badge">{{ total }} logro{{ total|pluralize }}</span>
+      </button>
+    </h2>
+    <div id="collapse-{{ grado_id }}"
+         class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+         aria-labelledby="heading-{{ grado_id }}"
+         data-bs-parent="#acordeonGrados">
+      <div class="accordion-body pt-3 pb-2">
+        {% for materia_nombre, logros_mat in materias.items %}
+        <div class="materia-card">
+          <div class="materia-header">
+            <i class="bi bi-book-fill me-1"></i>{{ materia_nombre }}
+            <span class="ms-2 fw-normal" style="opacity:.75;">— {{ logros_mat|length }} logro{{ logros_mat|length|pluralize }}</span>
+          </div>
+          {% for logro in logros_mat %}
+          <div class="logro-row">
+            <div class="logro-desc">
+              <span style="color:#6d28d9;font-weight:600;margin-right:.4rem;">{{ forloop.counter }}.</span>
+              {{ logro.descripcion }}
+            </div>
+            <div class="d-flex flex-column align-items-end gap-1">
+              <span class="logro-meta">
+                <i class="bi bi-calendar3 me-1"></i>{{ logro.periodo.nombre }}
+              </span>
+              <div class="d-flex gap-1">
+                <a href="{% url 'gestion_academica:logro_editar' logro.pk %}"
+                   class="btn btn-outline-primary btn-accion" title="Editar">
+                  <i class="bi bi-pencil-fill"></i>
+                </a>
+                <button type="button"
+                        class="btn btn-outline-danger btn-accion btn-eliminar-logro"
+                        data-action="{% url 'gestion_academica:logro_eliminar' logro.pk %}"
+                        data-nombre="{{ logro.descripcion|truncatechars:60 }}"
+                        data-bs-toggle="modal" data-bs-target="#modalEliminarLogro"
+                        title="Eliminar">
+                  <i class="bi bi-trash-fill"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="card border-0 shadow-sm" style="border-radius:14px;">
+  <div class="card-body empty-state">
+    <i class="bi bi-award" style="font-size:3rem;opacity:.3;display:block;margin-bottom:1rem;"></i>
+    <h5 class="fw-bold text-muted">No hay logros creados</h5>
+    <p class="text-muted" style="font-size:.88rem;">Crea el primer logro usando el botón de arriba.</p>
+    <a href="{% url 'gestion_academica:logro_crear' %}" class="btn btn-primary mt-1">
+      <i class="bi bi-plus-circle-fill me-1"></i> Crear primer logro
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<!-- Modal eliminar -->
+<div class="modal fade" id="modalEliminarLogro" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:14px;border:none;">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Eliminar este logro?</h5>
+        <p id="modal-logro-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;">
+          <i class="bi bi-info-circle me-1"></i>Esta acción no se puede deshacer.
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form id="form-eliminar-logro" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm">
+            <i class="bi bi-trash-fill me-1"></i>Sí, eliminar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('.btn-eliminar-logro').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-eliminar-logro').action = this.dataset.action;
+    document.getElementById('modal-logro-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
 {% endblock %}

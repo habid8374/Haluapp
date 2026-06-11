@@ -11031,14 +11031,40 @@ class LogroListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = LogroPreescolar
     template_name = 'gestion_academica/logro_lista.html'
     context_object_name = 'logros'
-    permission_required = 'gestion_academica.view_logropreescolar' # <-- CORREGIDO
+    permission_required = 'gestion_academica.view_logropreescolar'
 
     def get_queryset(self):
-        return get_filtered_queryset(self.model, self.request.user).select_related('materia', 'periodo').order_by('-periodo__año_escolar', 'materia__nombre_materia')
+        return get_filtered_queryset(self.model, self.request.user).select_related(
+            'materia', 'periodo', 'grado', 'dimension'
+        ).order_by('grado__nombre', 'materia__nombre_materia', 'periodo__nombre', 'orden')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = "Mis Logros de Aprendizaje (Preescolar)"
+        context['titulo_pagina'] = "Logros de Aprendizaje (Preescolar)"
+
+        # Agrupar: grado → materia → [logros]
+        from collections import defaultdict
+        grupos = defaultdict(lambda: defaultdict(list))
+        sin_grado = defaultdict(list)
+
+        for logro in context['logros']:
+            grado_key = logro.grado.nombre if logro.grado else None
+            mat_key = logro.materia.nombre_materia
+            if grado_key:
+                grupos[grado_key][mat_key].append(logro)
+            else:
+                sin_grado[mat_key].append(logro)
+
+        # Convertir a lista ordenada de (grado_nombre, {materia: [logros]}, total)
+        logros_por_grado = [
+            (grado, dict(sorted(materias.items())), sum(len(v) for v in materias.values()))
+            for grado, materias in sorted(grupos.items())
+        ]
+        if sin_grado:
+            materias_sin = dict(sorted(sin_grado.items()))
+            logros_por_grado.append(('Sin grado asignado', materias_sin, sum(len(v) for v in materias_sin.values())))
+
+        context['logros_por_grado'] = logros_por_grado
         return context
 
 class LogroCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
