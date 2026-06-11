@@ -81,7 +81,7 @@ logger = logging.getLogger(__name__)
 def asistente_halu_api(request):
     """
     API para el asistente HALU, con uso de herramientas y manejo
-    seguro de múltiples instituciones. VERSIÓN FINAL.
+    seguro de múltiples instituciones.
     """
     if request.method != 'POST':
         return JsonResponse({'error': 'Esta vista solo acepta peticiones POST.'}, status=405)
@@ -89,8 +89,8 @@ def asistente_halu_api(request):
     try:
         data = json.loads(request.body)
         pregunta = data.get('pregunta', '').strip()
-        historial_previo = data.get('historial', []) # 2. HISTORIAL: Recibimos la memoria de la conversación enviada por el frontend
-        
+        historial_previo = data.get('historial', [])
+
         if not pregunta:
             return JsonResponse({'respuesta': 'Por favor, escribe una pregunta.'})
 
@@ -125,6 +125,8 @@ def asistente_halu_api(request):
             Estás trabajando para un directivo de la institución '{institucion.nombre}'.
             El ID de esta institución es {institucion.id}, úsalo silenciosamente si una herramienta lo requiere.
             Tienes acceso a datos globales de la institución. Responde de manera profesional, proactiva y amigable.
+            Cuando el usuario pida un resumen financiero, usa SOLO la herramienta obtener_resumen_financiero_estudiantes
+            y presenta el resultado directamente sin llamar más herramientas.
             """
         elif hasattr(user, 'rol') and user.rol == 'docente':
             tools_disponibles = {
@@ -145,7 +147,7 @@ def asistente_halu_api(request):
             instrucciones_sistema = f"""
             Eres HALU, un tutor virtual y compañero de estudio.
             Hablas con el estudiante {user.get_full_name()} de la institución '{institucion.nombre}'.
-            Tu objetivo es motivarlo, recordarle sus tareas, explicarle conceptos y darle resúmenes de sus notas de forma amigable y alentadora.
+            Tu objetivo es motivarlo, recordarle sus tareas, explicarle conceptos y darle resúmenes de sus notas de forma amigable.
             No hagas su tarea, guíalo para que aprenda.
             """
         elif hasattr(user, 'rol') and user.rol == 'familiar':
@@ -159,70 +161,69 @@ def asistente_halu_api(request):
             """
         else:
             instrucciones_sistema = f"Eres HALU, el asistente virtual amigable de la plataforma escolar en '{institucion.nombre}'."
-        
-        # Quitamos system_instruction de los parámetros para evitar crash en versiones antiguas de la librería
+
         model_kwargs = {'model_name': 'gemini-2.5-flash'}
         if tools_disponibles:
             model_kwargs['tools'] = list(tools_disponibles.values())
-            
+
         model = genai.GenerativeModel(**model_kwargs)
-        
         chat = model.start_chat(history=historial_previo)
-        
-        # Inyectamos la instrucción al principio de forma manual si es el primer mensaje
+
         mensaje_enviar = pregunta
         if not historial_previo:
             mensaje_enviar = f"{instrucciones_sistema}\n\nPregunta del usuario: {pregunta}"
-            
+
         response = chat.send_message(mensaje_enviar)
-        
-        # Verificación segura de Tool Calls para evitar IndexError o AttributeError
-        part = response.candidates[0].content.parts[0] if response.candidates and response.candidates[0].content.parts else None
-        
-        while part and hasattr(part, 'function_call') and part.function_call:
-            function_call = part.function_call
-            tool_name = function_call.name
-            
-            # Extracción segura de argumentos (el objeto de Google no siempre soporta .items())
+
+        # Loop de herramientas — máx. 6 iteraciones para evitar bucles infinitos
+        for _ in range(6):
+            fc_part = _primera_function_call(response)
+            if not fc_part:
+                break
+
+            tool_name = fc_part.function_call.name
             tool_args = {}
-            if hasattr(function_call, 'args'):
-                for key in function_call.args:
-                    tool_args[key] = function_call.args[key]
-            
-            if tool_name in tools_disponibles:
-                tool_function = tools_disponibles[tool_name]
+            if hasattr(fc_part.function_call, 'args'):
+                for key in fc_part.function_call.args:
+                    tool_args[key] = fc_part.function_call.args[key]
 
-                if 'institucion_id' in tool_function.__code__.co_varnames and 'institucion_id' not in tool_args:
-                    tool_args['institucion_id'] = institucion.id
-                if 'docente_usuario_id' in tool_function.__code__.co_varnames and 'docente_usuario_id' not in tool_args:
-                    tool_args['docente_usuario_id'] = request.user.id
-                if 'estudiante_usuario_id' in tool_function.__code__.co_varnames and 'estudiante_usuario_id' not in tool_args:
-                    tool_args['estudiante_usuario_id'] = request.user.id
-                if 'familiar_usuario_id' in tool_function.__code__.co_varnames and 'familiar_usuario_id' not in tool_args:
-                    tool_args['familiar_usuario_id'] = request.user.id
+            if tool_name not in tools_disponibles:
+                break
 
-                try:
-                    tool_response = tool_function(**tool_args)
-                except Exception as e:
-                    tool_response = f"Ocurrió un error al buscar los datos: {str(e)}"
-                
-                # Usamos glm.Part que es el estándar oficial más robusto para evitar errores 500
-                response = chat.send_message(
-                    glm.Part(
-                        function_response=glm.FunctionResponse(
-                            name=tool_name,
-                            response={'resultado': str(tool_response)}
-                        )
+            tool_function = tools_disponibles[tool_name]
+            co_vars = tool_function.__code__.co_varnames
+            if 'institucion_id' in co_vars and 'institucion_id' not in tool_args:
+                tool_args['institucion_id'] = institucion.id
+            if 'docente_usuario_id' in co_vars and 'docente_usuario_id' not in tool_args:
+                tool_args['docente_usuario_id'] = request.user.id
+            if 'estudiante_usuario_id' in co_vars and 'estudiante_usuario_id' not in tool_args:
+                tool_args['estudiante_usuario_id'] = request.user.id
+            if 'familiar_usuario_id' in co_vars and 'familiar_usuario_id' not in tool_args:
+                tool_args['familiar_usuario_id'] = request.user.id
+
+            try:
+                tool_result = tool_function(**tool_args)
+            except Exception as e:
+                tool_result = f"Error al obtener datos: {str(e)}"
+
+            response = chat.send_message(
+                glm.Part(
+                    function_response=glm.FunctionResponse(
+                        name=tool_name,
+                        response={'resultado': str(tool_result)}
                     )
                 )
-                part = response.candidates[0].content.parts[0] if response.candidates and response.candidates[0].content.parts else None
-            else:
-                break 
+            )
 
-        if not response.text:
-            response = chat.send_message("Ok, ahora dame un resumen amigable con los resultados obtenidos de la base de datos.")
+        # Extraer texto de forma segura (response.text falla si hay function_call parts)
+        texto_final = _extraer_texto(response)
+        if not texto_final:
+            response = chat.send_message(
+                "Por favor, presenta los resultados obtenidos en un texto claro y amigable para el usuario."
+            )
+            texto_final = _extraer_texto(response) or "No pude generar una respuesta. Por favor intenta reformular tu pregunta."
 
-        # Extraemos el historial seguro (solo texto) para la memoria del frontend
+        # Historial: solo partes de texto para el frontend
         nuevo_historial = []
         for message in chat.history:
             textos = [p.text for p in message.parts if hasattr(p, 'text') and p.text]
@@ -232,11 +233,38 @@ def asistente_halu_api(request):
                     "parts": [{"text": "\n".join(textos)}]
                 })
 
-        return JsonResponse({'respuesta': response.text, 'historial': nuevo_historial})
+        return JsonResponse({'respuesta': texto_final, 'historial': nuevo_historial})
 
     except Exception as e:
         logger.error(f"Error inesperado en asistente_halu_api: {e}", exc_info=True)
         return JsonResponse({'respuesta': f"Ocurrió un error interno en la IA: {str(e)}. Por favor, avisa a soporte."}, status=500)
+
+
+def _primera_function_call(response):
+    """Devuelve el primer part con function_call en la respuesta, o None."""
+    try:
+        if not response.candidates:
+            return None
+        for part in response.candidates[0].content.parts:
+            if hasattr(part, 'function_call') and part.function_call and part.function_call.name:
+                return part
+    except Exception:
+        pass
+    return None
+
+
+def _extraer_texto(response):
+    """Extrae texto de la respuesta de Gemini sin fallar si hay function_call parts."""
+    try:
+        if not response.candidates:
+            return None
+        texts = [
+            p.text for p in response.candidates[0].content.parts
+            if hasattr(p, 'text') and p.text
+        ]
+        return '\n'.join(texts) if texts else None
+    except Exception:
+        return None
 
 @login_required
 def redirigir_a_libro_de_notas(request, curso_pk):
