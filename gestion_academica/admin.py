@@ -24,6 +24,7 @@ from .models import (
     CasoConvivencia, InvolucradoCaso, AccionCaso,
     ConfiguracionCortePreventivo, CortePreventivo,
     ResultadoCorteEstudiante, DetalleMateriaCortePrev,
+    DBAPredefinido,
 )
 from import_export import resources
 
@@ -973,3 +974,14 @@ class DetalleMateriaCortePrevAdmin(admin.ModelAdmin):
     readonly_fields = ('promedio_materia', 'nivel_desempeno', 'en_riesgo',
                        'actividades_registradas', 'actividades_calificadas',
                        'actividades_pendientes')     
+
+@admin.register(DBAPredefinido)
+class DBAPredefinidoAdmin(admin.ModelAdmin):
+    list_display  = ('numero', 'area', 'grado', 'enunciado_corto', 'version_men')
+    list_filter   = ('area', 'grado', 'version_men')
+    search_fields = ('enunciado', 'evidencias')
+    ordering      = ('area', 'grado', 'numero')
+
+    def enunciado_corto(self, obj):
+        return obj.enunciado[:80] + '…' if len(obj.enunciado) > 80 else obj.enunciado
+    enunciado_corto.short_description = 'Enunciado'

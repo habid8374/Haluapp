@@ -2210,8 +2210,7 @@ class ItemMalla(models.Model):
         verbose_name="Evidencias de Aprendizaje del DBA",
         help_text="Las 3-5 acciones observables del DBA que evidencian su logro. Sirven de base para los indicadores de desempeño.",
     )
-    # Competencias y logro
-    competencias = models.TextField(
+    # Competencias y logro    competencias = models.TextField(
         blank=True, null=True, verbose_name="Competencias",
     )
     logro = models.TextField(
@@ -2523,3 +2522,52 @@ class DetalleMateriaCortePrev(models.Model):
 
     def __str__(self):
         return f"{self.curso.materia.nombre_materia} — {self.resultado_estudiante.estudiante}"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DBA PREDEFINIDOS — Biblioteca oficial MEN (global, sin institución)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class DBAPredefinido(models.Model):
+    """
+    Catálogo global de DBA oficiales publicados por el MEN de Colombia.
+    No pertenece a ninguna institución — es compartido por toda la plataforma.
+    Solo 5 áreas tienen DBA oficiales: Lenguaje, Matemáticas, Ciencias Naturales,
+    Ciencias Sociales e Inglés (documentos V.2, 2016).
+    """
+    AREA_CHOICES = [
+        ('matematicas',       'Matemáticas'),
+        ('lenguaje',          'Lenguaje'),
+        ('ciencias_naturales','Ciencias Naturales'),
+        ('ciencias_sociales', 'Ciencias Sociales'),
+        ('ingles',            'Inglés'),
+    ]
+    GRADO_CHOICES = [
+        ('transicion', 'Transición'),
+        ('1',  'Grado 1°'),
+        ('2',  'Grado 2°'),
+        ('3',  'Grado 3°'),
+        ('4',  'Grado 4°'),
+        ('5',  'Grado 5°'),
+        ('6',  'Grado 6°'),
+        ('7',  'Grado 7°'),
+        ('8',  'Grado 8°'),
+        ('9',  'Grado 9°'),
+        ('10', 'Grado 10°'),
+        ('11', 'Grado 11°'),
+    ]
+
+    area        = models.CharField(max_length=30, choices=AREA_CHOICES, verbose_name="Área")
+    grado       = models.CharField(max_length=15, choices=GRADO_CHOICES, verbose_name="Grado")
+    numero      = models.PositiveSmallIntegerField(verbose_name="N° DBA")
+    enunciado   = models.TextField(verbose_name="Enunciado del DBA")
+    evidencias  = models.TextField(blank=True, verbose_name="Evidencias de Aprendizaje")
+    version_men = models.CharField(max_length=10, default='V.2', verbose_name="Versión MEN")
+
+    class Meta:
+        verbose_name        = "DBA Predefinido (MEN)"
+        verbose_name_plural = "DBA Predefinidos (MEN)"
+        ordering            = ['area', 'grado', 'numero']
+        unique_together     = [('area', 'grado', 'numero')]
+
+    def __str__(self):
+        return f"DBA N.°{self.numero} — {self.get_area_display()} {self.get_grado_display()}"

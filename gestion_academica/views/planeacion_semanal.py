@@ -22,6 +22,7 @@ from django.views.decorators.http import require_POST
 from ..models import (
     ActividadCalificable,
     Curso,
+    DBAPredefinido,
     Deber,
     Docente,
     Grado,
@@ -971,3 +972,37 @@ def revisar_plan_semanal(request, pk):
         'puede_revisar': plan.estado == PlanSemanal.Estado.ENVIADO,
     }
     return render(request, 'gestion_academica/revisar_plan_semanal.html', context)
+
+
+# ---------------------------------------------------------------------------
+# API — Biblioteca de DBA predefinidos (MEN)
+# ---------------------------------------------------------------------------
+
+@login_required
+def dba_predefinido_api(request):
+    """
+    Devuelve los DBA oficiales del MEN filtrados por área y grado.
+    GET /academico/api/dba/?area=matematicas&grado=4
+    """
+    area  = request.GET.get('area', '').strip()
+    grado = request.GET.get('grado', '').strip()
+
+    qs = DBAPredefinido.objects.all()
+    if area:
+        qs = qs.filter(area=area)
+    if grado:
+        qs = qs.filter(grado=grado)
+
+    data = [
+        {
+            'id':          d.id,
+            'numero':      d.numero,
+            'enunciado':   d.enunciado,
+            'evidencias':  d.evidencias,
+            'area_label':  d.get_area_display(),
+            'grado_label': d.get_grado_display(),
+            'version':     d.version_men,
+        }
+        for d in qs.order_by('numero')
+    ]
+    return JsonResponse({'dba': data})

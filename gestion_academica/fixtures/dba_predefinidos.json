@@ -1,0 +1,674 @@
+[
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 1,
+    "fields": {
+      "area": "matematicas",
+      "grado": "1",
+      "numero": 1,
+      "version_men": "V.2",
+      "enunciado": "Cuenta y representa colecciones de objetos y cantidades con números hasta el 99.",
+      "evidencias": "• Cuenta colecciones de hasta 99 objetos agrupando de a diez.\n• Lee y escribe números hasta el 99.\n• Ordena números hasta el 99 de menor a mayor y viceversa.\n• Ubica números en la recta numérica."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 2,
+    "fields": {
+      "area": "matematicas",
+      "grado": "1",
+      "numero": 2,
+      "version_men": "V.2",
+      "enunciado": "Resuelve y formula situaciones de adición y sustracción (sin transformación) con números naturales.",
+      "evidencias": "• Identifica el valor de un conjunto al agregar o quitar elementos.\n• Resuelve situaciones de juntar o separar cantidades usando material concreto.\n• Inventa y narra situaciones que modelen una adición o sustracción.\n• Comprende el resultado de una operación de adición o sustracción."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 3,
+    "fields": {
+      "area": "matematicas",
+      "grado": "1",
+      "numero": 3,
+      "version_men": "V.2",
+      "enunciado": "Interpreta el valor posicional de las cifras en el sistema de numeración decimal para comprender y comparar cantidades.",
+      "evidencias": "• Agrupa objetos en unidades y decenas.\n• Identifica unidades y decenas en un número de dos cifras.\n• Descompone números de dos cifras en decenas y unidades.\n• Compara cantidades usando los términos mayor, menor e igual."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 4,
+    "fields": {
+      "area": "matematicas",
+      "grado": "1",
+      "numero": 4,
+      "version_men": "V.2",
+      "enunciado": "Reconoce y describe regularidades y patrones en secuencias con figuras y con números.",
+      "evidencias": "• Identifica el elemento que se repite en un patrón.\n• Continúa una secuencia de figuras o números.\n• Crea y describe su propio patrón.\n• Justifica la regla de formación de una secuencia."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 5,
+    "fields": {
+      "area": "matematicas",
+      "grado": "1",
+      "numero": 5,
+      "version_men": "V.2",
+      "enunciado": "Describe y clasifica figuras planas y cuerpos sólidos de acuerdo con sus características.",
+      "evidencias": "• Nombra figuras planas: cuadrado, rectángulo, triángulo y círculo.\n• Compara figuras planas señalando semejanzas y diferencias (lados, vértices).\n• Reconoce y nombra cuerpos sólidos del entorno.\n• Clasifica objetos según sus características geométricas."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 6,
+    "fields": {
+      "area": "matematicas",
+      "grado": "1",
+      "numero": 6,
+      "version_men": "V.2",
+      "enunciado": "Interpreta el espacio circundante usando términos de posición, orientación y desplazamiento.",
+      "evidencias": "• Usa términos: arriba, abajo, adelante, atrás, derecha, izquierda.\n• Describe la posición de objetos con respecto a sí mismo.\n• Sigue instrucciones para desplazarse en un espacio dado.\n• Ubica objetos en cuadrículas sencillas."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 7,
+    "fields": {
+      "area": "matematicas",
+      "grado": "1",
+      "numero": 7,
+      "version_men": "V.2",
+      "enunciado": "Lee e interpreta información presentada en tablas sencillas y pictogramas.",
+      "evidencias": "• Recoge datos del entorno y los organiza en tablas.\n• Lee pictogramas con escala uno a uno.\n• Responde preguntas sobre la información representada.\n• Formula preguntas que puedan responderse con una tabla o pictograma."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 8,
+    "fields": {
+      "area": "matematicas",
+      "grado": "2",
+      "numero": 1,
+      "version_men": "V.2",
+      "enunciado": "Comprende el sistema de numeración decimal y lee, escribe y ordena números hasta el 999.",
+      "evidencias": "• Lee y escribe números hasta el 999.\n• Establece el valor posicional de centenas, decenas y unidades.\n• Compara y ordena números hasta el 999.\n• Descompone números de tres cifras de distintas formas."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 9,
+    "fields": {
+      "area": "matematicas",
+      "grado": "2",
+      "numero": 2,
+      "version_men": "V.2",
+      "enunciado": "Resuelve y formula situaciones de adición y sustracción con reagrupación.",
+      "evidencias": "• Resuelve adiciones con llevada hasta centenas.\n• Resuelve sustracciones con préstamo hasta centenas.\n• Verifica resultados usando la operación inversa.\n• Formula problemas que requieran adición o sustracción."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 10,
+    "fields": {
+      "area": "matematicas",
+      "grado": "2",
+      "numero": 3,
+      "version_men": "V.2",
+      "enunciado": "Resuelve y formula situaciones de multiplicación como adición repetida.",
+      "evidencias": "• Interpreta la multiplicación como suma repetida de igual valor.\n• Construye y usa la tabla de multiplicar del 2 al 5.\n• Resuelve situaciones cotidianas que impliquen multiplicación.\n• Representa multiplicaciones con arreglos rectangulares."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 11,
+    "fields": {
+      "area": "matematicas",
+      "grado": "2",
+      "numero": 4,
+      "version_men": "V.2",
+      "enunciado": "Usa fracciones sencillas (mitad, tercio, cuarto) para describir partes de un todo o de una colección.",
+      "evidencias": "• Divide regiones en partes iguales (mitades, tercios, cuartos).\n• Representa fracciones sencillas con material concreto y gráfico.\n• Identifica la fracción que corresponde a una parte sombreada.\n• Compara fracciones con el mismo denominador."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 12,
+    "fields": {
+      "area": "matematicas",
+      "grado": "2",
+      "numero": 5,
+      "version_men": "V.2",
+      "enunciado": "Realiza mediciones de longitud, masa y capacidad usando unidades no convencionales y convencionales.",
+      "evidencias": "• Mide longitudes con unidades no convencionales (pasos, palmos).\n• Compara longitudes, masas y capacidades directamente.\n• Reconoce el metro, el kilogramo y el litro como unidades convencionales.\n• Estima medidas de objetos del entorno."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 13,
+    "fields": {
+      "area": "matematicas",
+      "grado": "2",
+      "numero": 6,
+      "version_men": "V.2",
+      "enunciado": "Lee e interpreta datos en tablas de frecuencia y gráficos de barras.",
+      "evidencias": "• Organiza datos en tablas de frecuencia.\n• Construye gráficas de barras a partir de una tabla.\n• Responde preguntas sobre información en gráficas de barras.\n• Compara datos usando la información de una gráfica."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 14,
+    "fields": {
+      "area": "matematicas",
+      "grado": "3",
+      "numero": 1,
+      "version_men": "V.2",
+      "enunciado": "Comprende y usa el sistema de numeración decimal hasta el 9.999.",
+      "evidencias": "• Lee, escribe y ordena números hasta el 9.999.\n• Identifica el valor posicional de cada cifra (unidades de mil, centenas, decenas, unidades).\n• Descompone números hasta el 9.999 de formas equivalentes.\n• Ubica números en la recta numérica."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 15,
+    "fields": {
+      "area": "matematicas",
+      "grado": "3",
+      "numero": 2,
+      "version_men": "V.2",
+      "enunciado": "Resuelve y formula situaciones que involucran las cuatro operaciones básicas.",
+      "evidencias": "• Resuelve adiciones y sustracciones hasta el 9.999.\n• Aplica las tablas de multiplicar del 1 al 10 en situaciones cotidianas.\n• Realiza divisiones exactas con divisores de un dígito.\n• Formula y resuelve problemas con una o dos operaciones."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 16,
+    "fields": {
+      "area": "matematicas",
+      "grado": "3",
+      "numero": 3,
+      "version_men": "V.2",
+      "enunciado": "Usa las fracciones para describir situaciones de medición y división equitativa.",
+      "evidencias": "• Reconoce fracciones como partes de un entero y como cociente.\n• Compara y ordena fracciones con el mismo denominador.\n• Suma fracciones homogéneas en contextos cotidianos.\n• Representa fracciones en la recta numérica."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 17,
+    "fields": {
+      "area": "matematicas",
+      "grado": "3",
+      "numero": 4,
+      "version_men": "V.2",
+      "enunciado": "Reconoce y describe figuras geométricas bidimensionales y tridimensionales.",
+      "evidencias": "• Identifica y clasifica polígonos por número de lados.\n• Reconoce ángulos rectos, agudos y obtusos en figuras planas.\n• Describe sólidos geométricos por número de caras, vértices y aristas.\n• Construye figuras geométricas con regla y compás."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 18,
+    "fields": {
+      "area": "matematicas",
+      "grado": "3",
+      "numero": 5,
+      "version_men": "V.2",
+      "enunciado": "Mide longitudes, perímetros y áreas usando unidades del Sistema Internacional.",
+      "evidencias": "• Usa el metro, centímetro y milímetro para medir longitudes.\n• Calcula el perímetro de figuras poligonales.\n• Calcula áreas de cuadrados y rectángulos.\n• Convierte entre unidades de longitud (m, cm, mm)."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 19,
+    "fields": {
+      "area": "matematicas",
+      "grado": "3",
+      "numero": 6,
+      "version_men": "V.2",
+      "enunciado": "Interpreta y usa gráficas estadísticas para tomar decisiones.",
+      "evidencias": "• Lee e interpreta pictogramas y gráficas de barras con distintas escalas.\n• Calcula el promedio aritmético de un conjunto de datos.\n• Formula y responde preguntas con base en gráficas.\n• Organiza datos en diagramas de barras y los interpreta."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 20,
+    "fields": {
+      "area": "matematicas",
+      "grado": "4",
+      "numero": 1,
+      "version_men": "V.2",
+      "enunciado": "Comprende y usa los números naturales hasta el 999.999 en diferentes contextos.",
+      "evidencias": "• Lee, escribe y ordena números hasta el 999.999.\n• Identifica el valor posicional hasta las centenas de mil.\n• Redondea y aproxima números.\n• Aplica propiedades de las operaciones (conmutativa, asociativa)."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 21,
+    "fields": {
+      "area": "matematicas",
+      "grado": "4",
+      "numero": 2,
+      "version_men": "V.2",
+      "enunciado": "Resuelve y formula situaciones que involucran multiplicación y división de números naturales.",
+      "evidencias": "• Multiplica números de dos y tres cifras.\n• Divide números naturales con divisores de dos cifras.\n• Interpreta el residuo en una división.\n• Formula situaciones que requieran multiplicación o división."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 22,
+    "fields": {
+      "area": "matematicas",
+      "grado": "4",
+      "numero": 3,
+      "version_men": "V.2",
+      "enunciado": "Comprende las fracciones como relación parte-todo y como operador.",
+      "evidencias": "• Propone ejemplos de cantidades que se relacionan según una fracción dada.\n• Utiliza fracciones para expresar la relación del todo con sus partes.\n• Realiza mediciones con objetos de diferente tamaño y establece equivalencias.\n• Compara y ordena fracciones con distinto denominador."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 23,
+    "fields": {
+      "area": "matematicas",
+      "grado": "4",
+      "numero": 4,
+      "version_men": "V.2",
+      "enunciado": "Reconoce y clasifica ángulos y figuras planas, calcula áreas y perímetros.",
+      "evidencias": "• Clasifica ángulos (recto, agudo, obtuso, llano).\n• Traza y clasifica triángulos y cuadriláteros.\n• Calcula el área de triángulos y paralelogramos.\n• Reconoce la relación entre el perímetro y el área de figuras planas."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 24,
+    "fields": {
+      "area": "matematicas",
+      "grado": "4",
+      "numero": 5,
+      "version_men": "V.2",
+      "enunciado": "Usa los sistemas de medida para resolver problemas que involucren longitud, área, volumen, masa y tiempo.",
+      "evidencias": "• Convierte entre unidades de longitud (km, m, cm, mm).\n• Mide y estima masas (kg, g) y capacidades (L, mL).\n• Lee y usa el reloj analógico y digital.\n• Calcula duración de eventos usando unidades de tiempo."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 25,
+    "fields": {
+      "area": "matematicas",
+      "grado": "4",
+      "numero": 6,
+      "version_men": "V.2",
+      "enunciado": "Interpreta y representa información estadística para tomar decisiones.",
+      "evidencias": "• Organiza datos en tablas de frecuencia.\n• Construye gráficas de barras, pictogramas y diagramas circulares.\n• Calcula la moda y el promedio de un conjunto de datos.\n• Usa la información estadística para hacer predicciones sencillas."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 26,
+    "fields": {
+      "area": "matematicas",
+      "grado": "5",
+      "numero": 1,
+      "version_men": "V.2",
+      "enunciado": "Usa números enteros, fraccionarios y decimales para resolver situaciones del contexto.",
+      "evidencias": "• Opera con fracciones homogéneas y heterogéneas.\n• Convierte fracciones a decimales y viceversa.\n• Compara y ordena decimales hasta las centésimas.\n• Resuelve situaciones que involucren números negativos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 27,
+    "fields": {
+      "area": "matematicas",
+      "grado": "5",
+      "numero": 2,
+      "version_men": "V.2",
+      "enunciado": "Resuelve y formula situaciones que involucran operaciones con fracciones y decimales.",
+      "evidencias": "• Suma y resta fracciones con distinto denominador.\n• Multiplica fracciones y decimales.\n• Formula y resuelve problemas con fracciones en contextos cotidianos.\n• Divide fracciones sencillas."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 28,
+    "fields": {
+      "area": "matematicas",
+      "grado": "5",
+      "numero": 3,
+      "version_men": "V.2",
+      "enunciado": "Reconoce el concepto de proporcionalidad y lo aplica para solucionar situaciones cotidianas.",
+      "evidencias": "• Identifica razones y proporciones en situaciones concretas.\n• Resuelve problemas de regla de tres simple.\n• Calcula porcentajes básicos (10%, 25%, 50%).\n• Interpreta tablas de proporcionalidad directa."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 29,
+    "fields": {
+      "area": "matematicas",
+      "grado": "5",
+      "numero": 4,
+      "version_men": "V.2",
+      "enunciado": "Describe e interpreta propiedades de figuras planas y sólidos geométricos.",
+      "evidencias": "• Clasifica polígonos regulares e irregulares.\n• Calcula área y perímetro de polígonos compuestos.\n• Identifica ejes de simetría en figuras planas.\n• Construye figuras con instrumentos geométricos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 30,
+    "fields": {
+      "area": "matematicas",
+      "grado": "5",
+      "numero": 5,
+      "version_men": "V.2",
+      "enunciado": "Recolecta, organiza y analiza datos estadísticos para hacer inferencias.",
+      "evidencias": "• Diseña y aplica encuestas sencillas.\n• Organiza datos en tablas de frecuencia relativa.\n• Interpreta gráficas de barras, lineales y circulares.\n• Calcula media, mediana y moda."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 31,
+    "fields": {
+      "area": "matematicas",
+      "grado": "5",
+      "numero": 6,
+      "version_men": "V.2",
+      "enunciado": "Describe e interpreta conceptos básicos de probabilidad en situaciones cotidianas.",
+      "evidencias": "• Identifica eventos seguros, imposibles y probables.\n• Asigna probabilidades a eventos simples.\n• Realiza experimentos aleatorios y registra resultados.\n• Compara la probabilidad teórica con la frecuencia experimental."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 101,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "1",
+      "numero": 1,
+      "version_men": "V.2",
+      "enunciado": "Comprende textos literarios y no literarios, y produce textos orales y escritos cortos.",
+      "evidencias": "• Lee en voz alta textos cortos con fluidez y entonación adecuadas.\n• Narra oralmente situaciones cotidianas con coherencia.\n• Escribe palabras y frases sencillas de manera legible.\n• Responde preguntas sobre textos escuchados o leídos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 102,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "1",
+      "numero": 2,
+      "version_men": "V.2",
+      "enunciado": "Identifica y usa las correspondencias entre letras y sonidos del español.",
+      "evidencias": "• Reconoce y diferencia vocales y consonantes.\n• Lee palabras descodificando sílabas directas e inversas.\n• Escribe palabras escuchadas respetando su grafía.\n• Diferencia palabras con dígrafos y combinaciones consonánticas sencillas."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 103,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "1",
+      "numero": 3,
+      "version_men": "V.2",
+      "enunciado": "Reconoce la función de los textos que circulan en su entorno y los usa con propósitos comunicativos.",
+      "evidencias": "• Identifica el propósito de diferentes tipos de texto (carta, aviso, cuento).\n• Señala la función de textos presentes en su entorno (señales, etiquetas).\n• Produce textos sencillos con una intención comunicativa clara.\n• Comparte sus producciones con compañeros y familia."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 104,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "1",
+      "numero": 4,
+      "version_men": "V.2",
+      "enunciado": "Comprende la estructura básica de textos narrativos cortos.",
+      "evidencias": "• Identifica personajes, lugar y tiempo en narraciones sencillas.\n• Ordena secuencias de eventos de un cuento.\n• Distingue inicio, nudo y desenlace en relatos cortos.\n• Reconoce palabras que indican orden en una narración (primero, luego, después)."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 105,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "1",
+      "numero": 5,
+      "version_men": "V.2",
+      "enunciado": "Interpreta y produce imágenes, dibujos y textos icónico-verbales.",
+      "evidencias": "• Describe lo que ve en una imagen con palabras propias.\n• Asocia imágenes con su texto escrito correspondiente.\n• Crea secuencias de imágenes para contar una historia.\n• Produce textos breves acompañados de dibujos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 106,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "2",
+      "numero": 1,
+      "version_men": "V.2",
+      "enunciado": "Lee con fluidez y comprende textos narrativos y descriptivos sencillos.",
+      "evidencias": "• Lee en voz alta textos adecuados para su nivel con expresión.\n• Identifica la idea principal de un texto.\n• Describe personajes, lugares y eventos de un texto leído.\n• Responde preguntas literales e inferenciales básicas."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 107,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "2",
+      "numero": 2,
+      "version_men": "V.2",
+      "enunciado": "Produce textos escritos coherentes con intención comunicativa.",
+      "evidencias": "• Escribe oraciones y párrafos sencillos con coherencia.\n• Usa mayúsculas al inicio y punto al final.\n• Revisa y corrige sus escritos con ayuda del docente.\n• Escribe textos propios para comunicar experiencias."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 108,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "2",
+      "numero": 3,
+      "version_men": "V.2",
+      "enunciado": "Reconoce y usa reglas ortográficas básicas del español.",
+      "evidencias": "• Escribe correctamente palabras con mp, mb, nv.\n• Usa la coma en enumeraciones.\n• Reconoce el uso de la h inicial y la rr.\n• Aplica reglas del uso de b/v en palabras frecuentes."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 109,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "2",
+      "numero": 4,
+      "version_men": "V.2",
+      "enunciado": "Comprende el significado de palabras y las usa en contextos comunicativos.",
+      "evidencias": "• Deduce el significado de palabras desconocidas por el contexto.\n• Identifica sinónimos y antónimos de palabras básicas.\n• Usa el diccionario para buscar el significado de palabras.\n• Amplía su vocabulario con palabras de textos leídos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 110,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "2",
+      "numero": 5,
+      "version_men": "V.2",
+      "enunciado": "Participa en intercambios comunicativos orales respetando turnos y normas de la conversación.",
+      "evidencias": "• Escucha con atención a sus compañeros y docente.\n• Espera su turno para hablar.\n• Expresa sus ideas de forma clara y ordenada.\n• Formula preguntas para clarificar lo que no entiende."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 111,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "3",
+      "numero": 1,
+      "version_men": "V.2",
+      "enunciado": "Lee y comprende textos de diferente tipo reconociendo su estructura y propósito.",
+      "evidencias": "• Identifica la estructura de textos narrativos, descriptivos e informativos.\n• Deduce el tema central y las ideas secundarias de un texto.\n• Distingue información explícita e implícita en textos.\n• Relaciona textos leídos con situaciones de su entorno."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 112,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "3",
+      "numero": 2,
+      "version_men": "V.2",
+      "enunciado": "Produce textos escritos con estructura clara, coherencia y cohesión.",
+      "evidencias": "• Escribe textos con inicio, desarrollo y cierre.\n• Usa conectores para unir ideas (primero, luego, finalmente).\n• Revisa sus escritos verificando coherencia y ortografía.\n• Escribe con propósito claro: narrar, describir, informar."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 113,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "3",
+      "numero": 3,
+      "version_men": "V.2",
+      "enunciado": "Reconoce y usa categorías gramaticales básicas: sustantivos, verbos, adjetivos.",
+      "evidencias": "• Identifica sustantivos, verbos y adjetivos en oraciones.\n• Usa adjetivos para enriquecer sus descripciones.\n• Conjuga verbos en presente, pasado y futuro.\n• Forma oraciones con sujeto y predicado."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 114,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "3",
+      "numero": 4,
+      "version_men": "V.2",
+      "enunciado": "Comprende y produce textos literarios reconociendo sus características.",
+      "evidencias": "• Lee poemas, cuentos y fábulas identificando sus características.\n• Reconoce la rima, el ritmo y el lenguaje figurado en poesías.\n• Crea sus propios textos literarios cortos.\n• Compara personajes y situaciones entre distintas obras."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 115,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "3",
+      "numero": 5,
+      "version_men": "V.2",
+      "enunciado": "Usa la información de textos no literarios (noticias, recetas, instructivos) con propósitos comunicativos.",
+      "evidencias": "• Identifica la estructura de textos informativos e instructivos.\n• Sigue instrucciones escritas para realizar una tarea.\n• Extrae información específica de una noticia o artículo.\n• Produce textos informativos sencillos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 116,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "4",
+      "numero": 1,
+      "version_men": "V.2",
+      "enunciado": "Lee comprensivamente textos de distinto tipo y nivel de complejidad.",
+      "evidencias": "• Identifica la estructura de textos expositivos, argumentativos y narrativos.\n• Infiere el significado de palabras desconocidas por contexto.\n• Establece relaciones de causa-efecto en textos leídos.\n• Formula hipótesis sobre el contenido de un texto."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 117,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "4",
+      "numero": 2,
+      "version_men": "V.2",
+      "enunciado": "Produce textos escritos con intención comunicativa clara y estructura pertinente.",
+      "evidencias": "• Planea sus textos antes de escribirlos (esquema, borrador).\n• Usa recursos de cohesión: pronombres, conectores, sinónimos.\n• Reescribe sus textos incorporando sugerencias de revisión.\n• Produce textos narrativos, descriptivos e informativos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 118,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "4",
+      "numero": 3,
+      "version_men": "V.2",
+      "enunciado": "Usa la argumentación y la explicación para convencer e informar.",
+      "evidencias": "• Expone opiniones apoyándose en razones y ejemplos.\n• Identifica argumentos en textos orales y escritos.\n• Escribe párrafos con tesis, argumentos y conclusión.\n• Diferencia hechos de opiniones en textos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 119,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "4",
+      "numero": 4,
+      "version_men": "V.2",
+      "enunciado": "Reconoce y analiza elementos de la literatura colombiana y latinoamericana.",
+      "evidencias": "• Lee obras de autores colombianos y latinoamericanos.\n• Identifica el contexto histórico y cultural de textos literarios.\n• Reconoce figuras literarias: metáfora, comparación, hipérbole.\n• Produce textos literarios con recursos estilísticos propios."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 120,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "4",
+      "numero": 5,
+      "version_men": "V.2",
+      "enunciado": "Reconoce y aplica normas ortográficas y gramaticales para mejorar sus producciones escritas.",
+      "evidencias": "• Aplica reglas de acentuación: palabras agudas, graves y esdrújulas.\n• Usa signos de puntuación: coma, punto y coma, dos puntos.\n• Reconoce tiempos verbales compuestos.\n• Corrige sus textos identificando errores de ortografía y puntuación."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 121,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "5",
+      "numero": 1,
+      "version_men": "V.2",
+      "enunciado": "Lee comprensivamente textos literarios y no literarios, haciendo inferencias y valoraciones críticas.",
+      "evidencias": "• Interpreta el significado de frases metafóricas e irónicos en textos.\n• Evalúa la pertinencia y veracidad de la información en textos informativos.\n• Relaciona textos con su contexto de producción.\n• Formula juicios de valor sobre los textos leídos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 122,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "5",
+      "numero": 2,
+      "version_men": "V.2",
+      "enunciado": "Produce textos escritos de distintos tipos con estructura, coherencia y recursos estilísticos adecuados.",
+      "evidencias": "• Produce textos con párrafos bien estructurados (idea principal y desarrollo).\n• Usa el lenguaje figurado de manera intencional.\n• Revisa y corrige sus textos de manera autónoma.\n• Produce textos para diferentes destinatarios y propósitos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 123,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "5",
+      "numero": 3,
+      "version_men": "V.2",
+      "enunciado": "Comprende y produce textos argumentativos reconociendo la tesis, los argumentos y la conclusión.",
+      "evidencias": "• Identifica la tesis y los argumentos en un texto argumentativo.\n• Diferencia argumentos de ejemplos y anécdotas.\n• Produce textos argumentativos con estructura clara.\n• Rebate argumentos usando contraargumentos."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 124,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "5",
+      "numero": 4,
+      "version_men": "V.2",
+      "enunciado": "Usa el lenguaje oral de forma eficiente en situaciones comunicativas formales e informales.",
+      "evidencias": "• Participa en debates y exposiciones de forma ordenada.\n• Adapta su registro (formal/informal) según el contexto.\n• Usa recursos paralingüísticos (tono, postura, gestos) en presentaciones.\n• Escucha activamente y toma notas de lo que escucha."
+    }
+  },
+  {
+    "model": "gestion_academica.dbapredefinido",
+    "pk": 125,
+    "fields": {
+      "area": "lenguaje",
+      "grado": "5",
+      "numero": 5,
+      "version_men": "V.2",
+      "enunciado": "Reconoce y aplica conceptos gramaticales complejos para enriquecer sus producciones.",
+      "evidencias": "• Identifica y usa pronombres relativos y demostrativos.\n• Reconoce oraciones simples y compuestas.\n• Usa correctamente la tilde diacrítica.\n• Aplica normas de puntuación en textos propios."
+    }
+  }
+]

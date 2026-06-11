@@ -440,6 +440,7 @@ urlpatterns = [
     path('mallas/<int:pk>/item/add/', views.item_malla_add, name='item_malla_add'),
     path('mallas/item/<int:item_pk>/editar/', views.item_malla_edit, name='item_malla_edit'),
     path('mallas/item/<int:item_pk>/eliminar/', views.item_malla_delete, name='item_malla_delete'),
+    path('api/dba/', views.dba_predefinido_api, name='dba_predefinido_api'),
 
     # ── Plan Semanal (Docente) ─────────────────────────────────────────────
     path('docente/planes-semanales/', views.mis_planes_semanales, name='mis_planes_semanales'),
