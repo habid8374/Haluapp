@@ -127,7 +127,12 @@ class EntregaRecurso3D(models.Model):
     )
 
     class Meta:
-        unique_together = ('recurso', 'estudiante', 'institucion')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recurso', 'estudiante', 'institucion'],
+                name='unique_entrega_por_recurso_estudiante_institucion',
+            ),
+        ]
         verbose_name = 'Entrega de Recurso 3D'
         verbose_name_plural = 'Entregas de Recursos 3D'
         ordering = ['-fecha_inicio']

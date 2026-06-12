@@ -34,8 +34,8 @@ class RegistroAuditoria(models.Model):
         verbose_name = "Registro de Auditoría"
         verbose_name_plural = "Registros de Auditoría"
         indexes = [
-            models.Index(fields=['institucion', 'fecha']),
-            models.Index(fields=['modelo', 'objeto_id']),
+            models.Index(fields=['institucion', 'fecha'], name='auditoria_r_institu_idx'),
+            models.Index(fields=['modelo', 'objeto_id'], name='auditoria_r_modelo_idx'),
         ]
 
     def __str__(self):
