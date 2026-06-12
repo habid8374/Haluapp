@@ -573,14 +573,30 @@ if SENTRY_DSN:
     )
 CELERY_TASK_ACKS_LATE = True
 
-# --- CACHÉ (memoria local, sin Redis requerido en desarrollo) ---
-# En producción (KVM 4) se puede activar django_redis.cache.RedisCache
-# apuntando a redis://127.0.0.1:6379/2 — ver PRODUCCION_GUIA.md
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+# --- CACHÉ ---
+# Producción: Redis (db 2) — django_ratelimit exige un cache compartido.
+# Desarrollo (sin REDIS_URL): memoria local.
+_REDIS_URL = os.environ.get('REDIS_URL', '')
+if _REDIS_URL:
+    # REDIS_URL puede traer un número de db (ej. .../3 para channels);
+    # el caché usa siempre la db 2.
+    _base, _sep, _db = _REDIS_URL.rpartition('/')
+    _cache_url = f"{_base}/2" if _db.isdigit() else f"{_REDIS_URL}/2"
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": _cache_url,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
 
 # --- SESIONES EN BASE DE DATOS (predeterminado Django, sin Redis) ---
 # En producción cambiar a cache backend cuando Redis esté activo
