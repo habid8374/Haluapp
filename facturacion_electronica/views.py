@@ -244,11 +244,26 @@ def factura_pdf(request, factura_id):
         ]
         return HttpResponse("\n".join(info), content_type="text/plain; charset=utf-8")
 
+    # QR de verificación DIAN — generado como imagen PNG base64
+    qr_b64 = ""
+    if factura.qr:
+        try:
+            import base64
+            import io
+            import qrcode
+            qr_img = qrcode.make(factura.qr)
+            buf = io.BytesIO()
+            qr_img.save(buf, format="PNG")
+            qr_b64 = base64.b64encode(buf.getvalue()).decode()
+        except Exception as exc:
+            logger.warning("factura_pdf: no se pudo generar QR: %s", exc)
+
     try:
         html = render_to_string("facturacion_electronica/factura_pdf.html", {
             "factura": factura,
             "institucion": factura.institucion,
             "logo_url": logo_url,
+            "qr_b64": qr_b64,
             "items": items,
             "customer_name": customer_name,
             "customer_doc": customer_doc,

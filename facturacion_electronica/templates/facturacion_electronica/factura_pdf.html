@@ -77,6 +77,11 @@
 
   /* ── DIAN ── */
   .dian { background: var(--green-light); border: 1.5px solid #6ee7b7; border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; }
+  .dian-inner { display: table; width: 100%; }
+  .dian-data  { display: table-cell; vertical-align: top; }
+  .dian-qr    { display: table-cell; vertical-align: top; text-align: right; width: 88px; padding-left: 8px; }
+  .dian-qr img { width: 80px; height: 80px; display: block; }
+  .dian-qr-label { font-size: 6pt; color: #065f46; text-align: center; margin-top: 2px; }
   .dian-title { font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #065f46; letter-spacing: 0.5px; margin-bottom: 5px; }
   .cufe-label { font-size: 7pt; color: #065f46; margin-bottom: 1px; }
   .cufe-val   { font-size: 6.5pt; color: #1a1a2e; word-break: break-all; font-family: monospace; margin-bottom: 6px; }
@@ -210,26 +215,36 @@
 
 <!-- ══ DIAN ══ -->
 <div class="dian">
-  <div class="dian-title">&#128275; Validación electrónica DIAN</div>
-  <div class="cufe-label">CUFE / CUDE</div>
-  <div class="cufe-val">{{ factura.cufe|default:"—" }}</div>
-  <div class="dian-cols">
-    <div class="dian-col">
-      <div class="dian-col-label">Ambiente</div>
-      <div class="dian-col-val">{{ factura.get_ambiente_display|default:factura.ambiente }}</div>
+  <div class="dian-inner">
+    <div class="dian-data">
+      <div class="dian-title">&#128275; Validación electrónica DIAN</div>
+      <div class="cufe-label">CUFE / CUDE</div>
+      <div class="cufe-val">{{ factura.cufe|default:"—" }}</div>
+      <div class="dian-cols">
+        <div class="dian-col">
+          <div class="dian-col-label">Ambiente</div>
+          <div class="dian-col-val">{{ factura.get_ambiente_display|default:factura.ambiente }}</div>
+        </div>
+        <div class="dian-col">
+          <div class="dian-col-label">Tipo operación</div>
+          <div class="dian-col-val">Educación formal</div>
+        </div>
+        <div class="dian-col">
+          <div class="dian-col-label">Forma de pago</div>
+          <div class="dian-col-val">{% if factura.pago %}{{ factura.pago.get_metodo_pago_display|default:"Efectivo" }}{% else %}Crédito{% endif %}</div>
+        </div>
+        <div class="dian-col">
+          <div class="dian-col-label">Fecha validación</div>
+          <div class="dian-col-val">{{ factura.fecha_validacion|date:"d/m/Y H:i"|default:"—" }}</div>
+        </div>
+      </div>
     </div>
-    <div class="dian-col">
-      <div class="dian-col-label">Tipo operación</div>
-      <div class="dian-col-val">Educación formal</div>
+    {% if qr_b64 %}
+    <div class="dian-qr">
+      <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR DIAN">
+      <div class="dian-qr-label">Verificar en DIAN</div>
     </div>
-    <div class="dian-col">
-      <div class="dian-col-label">Forma de pago</div>
-      <div class="dian-col-val">{% if factura.pago %}{{ factura.pago.get_metodo_pago_display|default:"Efectivo" }}{% else %}Crédito{% endif %}</div>
-    </div>
-    <div class="dian-col">
-      <div class="dian-col-label">Fecha validación</div>
-      <div class="dian-col-val">{{ factura.fecha_validacion|date:"d/m/Y H:i"|default:"—" }}</div>
-    </div>
+    {% endif %}
   </div>
 </div>
 
