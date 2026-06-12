@@ -8,5 +8,8 @@ class GestionAcademicaConfig(AppConfig):
     verbose_name = "Módulo de Gestión Académica"
 
     def ready(self):
-        # Esta es la única línea que necesitas para registrar las señales.
+        # Registra las señales del módulo.
         import gestion_academica.signals
+        # Conecta el signal de PagoRegistrado (app finanzas) una vez que
+        # todos los modelos están cargados.
+        gestion_academica.signals._connect_pago_signal()

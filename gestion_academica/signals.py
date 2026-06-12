@@ -561,12 +561,17 @@ def notificar_docente_nueva_cita_reunion(sender, instance, created, **kwargs):
 # Señales de notificación por correo (tareas Celery)
 # ---------------------------------------------------------------------------
 
-def _conectar_signal_pago():
-    """Registra el receptor post_save de PagoRegistrado de forma diferida
-    para evitar importaciones circulares (finanzas importa gestion_academica)."""
+def _connect_pago_signal():
+    """Conecta el signal post_save de PagoRegistrado.
+
+    Se llama desde apps.py → ready() una vez que todas las apps están cargadas,
+    evitando cualquier problema de importación circular.
+    """
     from finanzas.models import PagoRegistrado
     from django.db.models.signals import post_save as _post_save
 
+    @_post_save.connect(sender=PagoRegistrado,
+                        dispatch_uid="gestion_academica_correo_pago_recibido")
     def _enviar_correo_pago_recibido(sender, instance, created, **kwargs):
         """Encola correo de confirmación de pago al acudiente cuando se crea un pago nuevo."""
         if not created:
@@ -578,26 +583,6 @@ def _conectar_signal_pago():
         transaction.on_commit(
             lambda pk=pago_pk: notificar_pago_recibido.delay(pk)
         )
-
-    _post_save.connect(_enviar_correo_pago_recibido, sender=PagoRegistrado,
-                       dispatch_uid="gestion_academica_correo_pago_recibido")
-
-
-# Diferimos la conexión hasta que Django haya cargado todas las apps.
-# Usamos on_commit de AppConfig.ready() no está disponible aquí, así que
-# aprovechamos el mismo patrón de conexión tardía que usa el proyecto:
-# la función se llama desde apps.py → ready().
-# Para no romper el flujo actual, conectamos usando Apps.app_configs.
-from django.db.models.signals import post_migrate
-from django.apps import apps as _dj_apps
-
-def _ready_hook(sender, **kwargs):
-    try:
-        _conectar_signal_pago()
-    except Exception as _exc:  # noqa: BLE001
-        logger.warning("No se pudo conectar signal pago: %s", _exc)
-
-post_migrate.connect(_ready_hook, dispatch_uid="gestion_academica_pago_signal_ready")
 
 
 @receiver(post_save, sender=RegistroAsistencia)
