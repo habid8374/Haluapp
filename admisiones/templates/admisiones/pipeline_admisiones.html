@@ -256,6 +256,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ── Llamada API ── */
   function actualizarEstado(aspiranteId, nuevoEstado, onError) {
+    if (!csrftoken) {
+      showError('Error de sesión: recarga la página (F5) e intenta de nuevo.');
+      if (onError) onError();
+      return;
+    }
     fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },

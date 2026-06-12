@@ -32,7 +32,7 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 import traceback
 from django.http import Http404
 from openpyxl import Workbook
@@ -948,6 +948,7 @@ def revertir_matriculacion(request, aspirante_id):
 
     return redirect('admisiones:lista_aspirantes')
 
+@ensure_csrf_cookie
 @login_required
 @permission_required('admisiones.view_aspirante', raise_exception=True)
 def pipeline_admisiones(request):
@@ -1015,9 +1016,14 @@ def actualizar_estado_aspirante_api(request):
 
         return JsonResponse({'status': 'success', 'message': f'Aspirante movido a {aspirante.get_estado_display()}'})
 
+    except Http404:
+        return JsonResponse({'status': 'error', 'message': 'Aspirante no encontrado.'}, status=404)
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    
+        import traceback
+        logger.error("actualizar_estado_aspirante_api error: %s\n%s", e, traceback.format_exc())
+        msg = str(e) or type(e).__name__
+        return JsonResponse({'status': 'error', 'message': msg}, status=500)
+
 # =========================================================================
 # INICIO: VISTAS NUEVAS PARA MERCADO PAGO
 # =========================================================================
