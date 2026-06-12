@@ -171,7 +171,10 @@ class Command(BaseCommand):
     def _subir_s3(self, destino, bucket):
         try:
             import boto3
-            s3 = boto3.client('s3')
+            # AWS_S3_ENDPOINT_URL permite usar proveedores compatibles con S3
+            # (Cloudflare R2, MinIO, etc.). Sin ella, usa AWS estándar.
+            endpoint = os.environ.get('AWS_S3_ENDPOINT_URL', '') or None
+            s3 = boto3.client('s3', endpoint_url=endpoint)
             for archivo in sorted(destino.glob('halu_backup_*'))[-1:]:  # solo el último
                 key = f'backups/{archivo.name}'
                 s3.upload_file(str(archivo), bucket, key)
