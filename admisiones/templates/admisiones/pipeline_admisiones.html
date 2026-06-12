@@ -261,7 +261,13 @@ document.addEventListener('DOMContentLoaded', function () {
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
       body: JSON.stringify({ aspirante_id: aspiranteId, nuevo_estado: nuevoEstado })
     })
-    .then(r => r.ok ? r.json() : r.json().then(e => { throw new Error(e.message || 'Error del servidor'); }))
+    .then(r => {
+      if (r.ok) return r.json();
+      return r.text().then(t => {
+        try { const e = JSON.parse(t); throw new Error(e.message || 'Error del servidor'); }
+        catch(_) { throw new Error('Error ' + r.status + ': ' + r.statusText); }
+      });
+    })
     .then(data => { if (data.status !== 'success') throw new Error(data.message); })
     .catch(err => { showError(err.message); if (onError) onError(); });
   }

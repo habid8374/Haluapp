@@ -989,7 +989,6 @@ def pipeline_admisiones(request):
 
 @require_POST
 @login_required
-@permission_required('admisiones.change_aspirante', raise_exception=True)
 def actualizar_estado_aspirante_api(request):
     """
     Endpoint de API para actualizar el estado de un aspirante.
@@ -1000,19 +999,19 @@ def actualizar_estado_aspirante_api(request):
         aspirante_id = data.get('aspirante_id')
         nuevo_estado = data.get('nuevo_estado')
 
-        # Validamos que el nuevo estado sea válido
         if nuevo_estado not in Aspirante.EstadoAdmision.values:
             return JsonResponse({'status': 'error', 'message': 'Estado no válido.'}, status=400)
 
-        aspirante = get_object_or_404(Aspirante, pk=aspirante_id, institucion=request.user.institucion_asociada)
-        
-        # Guardamos el estado anterior para la lógica de señales
+        _inst = getattr(request.user, 'institucion_asociada', None)
+        if request.user.is_superuser:
+            aspirante = get_object_or_404(Aspirante, pk=aspirante_id)
+        else:
+            aspirante = get_object_or_404(Aspirante, pk=aspirante_id, institucion=_inst)
+
         estado_anterior = aspirante.estado
-        
         if estado_anterior != nuevo_estado:
             aspirante.estado = nuevo_estado
-            aspirante.save(update_fields=['estado']) # Actualiza solo el campo de estado
-            # La señal post_save se disparará aquí y enviará el correo de cambio de estado.
+            aspirante.save(update_fields=['estado'])
 
         return JsonResponse({'status': 'success', 'message': f'Aspirante movido a {aspirante.get_estado_display()}'})
 
