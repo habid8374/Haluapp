@@ -771,7 +771,10 @@ def registrar_pago(request, cuenta_id):
 @login_required
 @permission_required('finanzas.change_pagoregistrado', raise_exception=True)
 def editar_pago(request, pago_id):
-    pago = get_object_or_404(PagoRegistrado, id=pago_id) # La seguridad se debe añadir aquí
+    if request.user.is_superuser:
+        pago = get_object_or_404(PagoRegistrado, id=pago_id)
+    else:
+        pago = get_object_or_404(PagoRegistrado, id=pago_id, institucion=request.user.institucion_asociada)
     
     if request.method == 'POST':
         form = PagoForm(request.POST, instance=pago, cuenta=pago.cuenta)

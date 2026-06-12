@@ -214,7 +214,10 @@ def crear_aspirante_manual(request):
 @login_required
 @permission_required('admisiones.change_aspirante', raise_exception=True)
 def admitir_aspirante(request, aspirante_id):
-    aspirante = get_object_or_404(Aspirante, pk=aspirante_id)
+    if request.user.is_superuser:
+        aspirante = get_object_or_404(Aspirante, pk=aspirante_id)
+    else:
+        aspirante = get_object_or_404(Aspirante, pk=aspirante_id, institucion=request.user.institucion_asociada)
     grado_aspirado = aspirante.grado_aspira
     nivel_escolaridad = getattr(grado_aspirado, 'nivel_escolaridad', None)
 

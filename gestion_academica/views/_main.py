@@ -9138,9 +9138,12 @@ def api_supervisar_citas(request):
     if not user.is_staff: return Response({'error': 'Acceso denegado.'}, status=403)
 
     user_inst = getattr(user, 'institucion_asociada', None)
-    citas = CitaReunion.objects.all()
-    if user_inst:
-        citas = citas.filter(docente__institucion=user_inst)
+    if user.is_superuser:
+        citas = CitaReunion.objects.all()
+    elif user_inst:
+        citas = CitaReunion.objects.filter(docente__institucion=user_inst)
+    else:
+        citas = CitaReunion.objects.none()
         
     data = [{
         'id': c.id, 
@@ -9198,9 +9201,12 @@ def api_supervisar_citas(request):
     user = request.user
     if not user.is_staff: return Response({'error': 'Acceso denegado.'}, status=403)
     user_inst = getattr(user, 'institucion_asociada', None)
-    citas = CitaReunion.objects.all()
-    if user_inst:
-        citas = citas.filter(docente__institucion=user_inst)
+    if user.is_superuser:
+        citas = CitaReunion.objects.all()
+    elif user_inst:
+        citas = CitaReunion.objects.filter(docente__institucion=user_inst)
+    else:
+        citas = CitaReunion.objects.none()
         
     data = [{
         'id': c.id, 
@@ -11365,8 +11371,10 @@ def reporte_rendimiento_estudiante(request):
     Vista MEJORADA para generar reportes de rendimiento.
     Distingue entre evaluación Cuantitativa (con gráfica) y Cualitativa.
     """
-    grados = Grado.objects.all()
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    grados = Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)
+    periodos = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).order_by('-año_escolar', '-fecha_inicio')
     
     grado_id = request.GET.get('grado')
     estudiante_id = request.GET.get('estudiante')
@@ -11378,11 +11386,15 @@ def reporte_rendimiento_estudiante(request):
     contexto_reporte = {}
 
     if grado_id:
-        estudiantes_del_grado = Estudiante.objects.filter(grado_actual__id=grado_id).select_related('usuario').order_by('usuario__last_name')
+        _qs = Estudiante.objects.filter(grado_actual__id=grado_id)
+        if not _sup and _inst:
+            _qs = _qs.filter(institucion=_inst)
+        estudiantes_del_grado = _qs.select_related('usuario').order_by('usuario__last_name')
 
     if estudiante_id and periodo_id:
-        estudiante_seleccionado = get_object_or_404(Estudiante.objects.select_related('grado_actual'), pk=estudiante_id)
-        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        estudiante_seleccionado = get_object_or_404(Estudiante.objects.select_related('grado_actual'), pk=estudiante_id, **_kw)
+        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id, **_kw)
         
         # --- LÓGICA DE SELECCIÓN DE REPORTE ---
         if estudiante_seleccionado.grado_actual.tipo_evaluacion == 'CUALITATIVO':
@@ -11466,8 +11478,10 @@ def reporte_acumulado_periodo(request):
     Muestra el rendimiento de un estudiante a lo largo de todos los periodos de un año.
     Distingue entre reportes cuantitativos y cualitativos, AMBOS CON GRÁFICOS.
     """
-    grados = Grado.objects.all()
-    años_escolares = PeriodoAcademico.objects.values_list('año_escolar', flat=True).distinct().order_by('-año_escolar')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    grados = Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)
+    años_escolares = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).values_list('año_escolar', flat=True).distinct().order_by('-año_escolar')
 
     grado_id = request.GET.get('grado')
     estudiante_id = request.GET.get('estudiante')
@@ -11480,10 +11494,14 @@ def reporte_acumulado_periodo(request):
     reporte_data = {}
 
     if grado_id:
-        estudiantes_del_grado = Estudiante.objects.filter(grado_actual__id=grado_id).select_related('usuario').order_by('usuario__last_name')
+        _qs = Estudiante.objects.filter(grado_actual__id=grado_id)
+        if not _sup and _inst:
+            _qs = _qs.filter(institucion=_inst)
+        estudiantes_del_grado = _qs.select_related('usuario').order_by('usuario__last_name')
 
     if estudiante_id:
-        estudiante_seleccionado = get_object_or_404(Estudiante.objects.select_related('grado_actual'), pk=estudiante_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        estudiante_seleccionado = get_object_or_404(Estudiante.objects.select_related('grado_actual'), pk=estudiante_id, **_kw)
         periodos_del_año = PeriodoAcademico.objects.filter(año_escolar=año_seleccionado, institucion=estudiante_seleccionado.institucion).order_by('fecha_inicio')
         periodos_header = [p.nombre for p in periodos_del_año]
 
@@ -11574,8 +11592,10 @@ def reporte_promedio_general_grado(request):
     general para un periodo específico. Incluye una gráfica comparativa.
     Solo funciona para grados con evaluación CUANTITATIVA.
     """
-    grados = Grado.objects.filter(tipo_evaluacion='CUANTITATIVO') # Solo mostramos grados cuantitativos
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    grados = (Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)).filter(tipo_evaluacion='CUANTITATIVO')
+    periodos = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).order_by('-año_escolar', '-fecha_inicio')
 
     grado_id = request.GET.get('grado')
     periodo_id = request.GET.get('periodo')
@@ -11587,10 +11607,11 @@ def reporte_promedio_general_grado(request):
     chart_data = []
 
     if grado_id and periodo_id:
-        grado_seleccionado = get_object_or_404(Grado, pk=grado_id)
-        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        grado_seleccionado = get_object_or_404(Grado, pk=grado_id, **_kw)
+        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id, **_kw)
         
-        estudiantes_del_grado = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True)
+        estudiantes_del_grado = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True, **_kw)
         
         # Calculamos el promedio para cada estudiante
         for estudiante in estudiantes_del_grado:
@@ -11639,7 +11660,9 @@ def reporte_estudiante_dashboard(request):
     Muestra un dashboard consolidado con toda la información relevante de un
     único estudiante, adaptado para evaluación cuantitativa y cualitativa.
     """
-    grados = Grado.objects.all()
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    grados = Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)
     estudiantes_del_grado = Estudiante.objects.none()
     
     grado_id = request.GET.get('grado')
@@ -11649,10 +11672,14 @@ def reporte_estudiante_dashboard(request):
     estudiante_seleccionado = None
 
     if grado_id:
-        estudiantes_del_grado = Estudiante.objects.filter(grado_actual__id=grado_id).select_related('usuario').order_by('usuario__last_name')
+        _qs = Estudiante.objects.filter(grado_actual__id=grado_id)
+        if not _sup and _inst:
+            _qs = _qs.filter(institucion=_inst)
+        estudiantes_del_grado = _qs.select_related('usuario').order_by('usuario__last_name')
 
     if estudiante_id:
-        estudiante_seleccionado = get_object_or_404(Estudiante.objects.select_related('grado_actual', 'institucion'), pk=estudiante_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        estudiante_seleccionado = get_object_or_404(Estudiante.objects.select_related('grado_actual', 'institucion'), pk=estudiante_id, **_kw)
         institucion = estudiante_seleccionado.institucion
         periodo_activo = PeriodoAcademico.objects.filter(institucion=institucion, activo=True).first()
         
@@ -11753,8 +11780,10 @@ def reporte_rendimiento_por_grado(request):
     para un grado y periodo específicos. Incluye gráficos para ambos casos.
     VERSIÓN CORREGIDA PARA PREESCOLAR.
     """
-    grados = Grado.objects.all().order_by('orden', 'nombre')
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    grados = (Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)).order_by('orden', 'nombre')
+    periodos = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).order_by('-año_escolar', '-fecha_inicio')
 
     grado_id = request.GET.get('grado')
     periodo_id = request.GET.get('periodo')
@@ -11764,8 +11793,9 @@ def reporte_rendimiento_por_grado(request):
     periodo_seleccionado = None
 
     if grado_id and periodo_id:
-        grado_seleccionado = get_object_or_404(Grado, pk=grado_id)
-        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        grado_seleccionado = get_object_or_404(Grado, pk=grado_id, **_kw)
+        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id, **_kw)
         
         if grado_seleccionado.tipo_evaluacion == 'CUALITATIVO':
             # --- LÓGICA MEJORADA PARA REPORTE CUALITATIVO POR GRADO ---
@@ -11835,8 +11865,10 @@ def reporte_promedio_por_area(request):
     Muestra el promedio por Área (cuantitativo) o un resumen de logros por
     Dimensión (cualitativo). VERSIÓN CORREGIDA PARA INCLUIR PREESCOLAR.
     """
-    grados = Grado.objects.all().order_by('orden', 'nombre')
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    grados = (Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)).order_by('orden', 'nombre')
+    periodos = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).order_by('-año_escolar', '-fecha_inicio')
 
     grado_id = request.GET.get('grado')
     periodo_id = request.GET.get('periodo')
@@ -11846,8 +11878,9 @@ def reporte_promedio_por_area(request):
     periodo_seleccionado = None
 
     if grado_id and periodo_id:
-        grado_seleccionado = get_object_or_404(Grado, pk=grado_id)
-        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        grado_seleccionado = get_object_or_404(Grado, pk=grado_id, **_kw)
+        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id, **_kw)
         institucion = grado_seleccionado.institucion
 
         if grado_seleccionado.tipo_evaluacion == 'CUALITATIVO':
@@ -11916,8 +11949,10 @@ def reporte_final_reprobacion(request):
     Genera un informe de fin de año con los estudiantes que reprobaron una o
     más materias. Se adapta a evaluaciones cuantitativas y cualitativas.
     """
-    grados = Grado.objects.all().order_by('orden', 'nombre')
-    años_escolares = PeriodoAcademico.objects.values_list('año_escolar', flat=True).distinct().order_by('-año_escolar')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    grados = (Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)).order_by('orden', 'nombre')
+    años_escolares = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).values_list('año_escolar', flat=True).distinct().order_by('-año_escolar')
     
     grado_id = request.GET.get('grado')
     año_seleccionado_str = request.GET.get('año')
@@ -11927,8 +11962,9 @@ def reporte_final_reprobacion(request):
     grado_seleccionado = None
 
     if grado_id:
-        grado_seleccionado = get_object_or_404(Grado, pk=grado_id)
-        estudiantes_del_grado = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        grado_seleccionado = get_object_or_404(Grado, pk=grado_id, **_kw)
+        estudiantes_del_grado = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True, **_kw)
         periodos_del_año = PeriodoAcademico.objects.filter(año_escolar=año_seleccionado, institucion=grado_seleccionado.institucion)
         
         estudiantes_reprobados = defaultdict(list)
@@ -12001,8 +12037,10 @@ def reporte_consolidado_materia(request):
     Muestra una planilla de notas detallada (consolidado).
     VERSIÓN FINAL: Asegura que el gráfico cualitativo siempre se muestre.
     """
-    grados = Grado.objects.all().order_by('orden', 'nombre')
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    grados = (Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)).order_by('orden', 'nombre')
+    periodos = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).order_by('-año_escolar', '-fecha_inicio')
     materias_del_grado = Materia.objects.none()
 
     grado_id = request.GET.get('grado')
@@ -12015,7 +12053,8 @@ def reporte_consolidado_materia(request):
     materia_seleccionada = None
 
     if grado_id:
-        grado_seleccionado = get_object_or_404(Grado, pk=grado_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        grado_seleccionado = get_object_or_404(Grado, pk=grado_id, **_kw)
         materias_del_grado = Materia.objects.filter(cursos__grado=grado_seleccionado).distinct().order_by('nombre_materia')
     if periodo_id:
         periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
@@ -12105,9 +12144,10 @@ def reporte_consolidado_areas(request):
     Muestra un consolidado por Área (cuantitativo) o por Dimensión (cualitativo).
     VERSIÓN CORREGIDA Y DEFINITIVA PARA INCLUIR PREESCOLAR.
     """
-    # CORRECCIÓN: Quitamos el filtro inicial para mostrar TODOS los grados
-    grados = Grado.objects.all().order_by('orden', 'nombre')
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    grados = (Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)).order_by('orden', 'nombre')
+    periodos = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).order_by('-año_escolar', '-fecha_inicio')
 
     grado_id = request.GET.get('grado')
     periodo_id = request.GET.get('periodo')
@@ -12117,10 +12157,11 @@ def reporte_consolidado_areas(request):
     periodo_seleccionado = None
 
     if grado_id and periodo_id:
-        grado_seleccionado = get_object_or_404(Grado, pk=grado_id)
-        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        grado_seleccionado = get_object_or_404(Grado, pk=grado_id, **_kw)
+        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id, **_kw)
         institucion = grado_seleccionado.institucion
-        estudiantes = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True).select_related('usuario')
+        estudiantes = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True, **_kw).select_related('usuario')
 
         if grado_seleccionado.tipo_evaluacion == 'CUALITATIVO':
             # --- LÓGICA PARA CONSOLIDADO CUALITATIVO POR DIMENSIÓN ---
@@ -12201,7 +12242,9 @@ def reporte_ranking_institucion(request):
     Vista que INICIA la tarea de Celery para el ranking y muestra
     una página para esperar y ver los resultados.
     """
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    periodos = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).order_by('-año_escolar', '-fecha_inicio')
     periodo_id = request.GET.get('periodo')
     task_id = None
 
@@ -12225,9 +12268,11 @@ def reporte_promedio_cualitativo(request):
     Genera un resumen estadístico y un gráfico de pastel con la distribución
     de los desempeños cualitativos para un grado de preescolar en un periodo.
     """
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
     # Filtramos para que en el selector solo aparezcan grados cualitativos
-    grados = Grado.objects.filter(tipo_evaluacion='CUALITATIVO').order_by('orden', 'nombre')
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    grados = (Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)).filter(tipo_evaluacion='CUALITATIVO').order_by('orden', 'nombre')
+    periodos = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).order_by('-año_escolar', '-fecha_inicio')
 
     grado_id = request.GET.get('grado')
     periodo_id = request.GET.get('periodo')
@@ -12237,18 +12282,19 @@ def reporte_promedio_cualitativo(request):
     periodo_seleccionado = None
 
     if grado_id and periodo_id:
-        grado_seleccionado = get_object_or_404(Grado, pk=grado_id)
-        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        grado_seleccionado = get_object_or_404(Grado, pk=grado_id, **_kw)
+        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id, **_kw)
         institucion = grado_seleccionado.institucion
 
         # 1. Obtenemos todas las escalas posibles de la institución para usarlas como base
         escala_completa = EscalaCualitativa.objects.filter(institucion=institucion).order_by('orden')
-        
+
         # 2. Inicializamos el contador con todas las escalas en cero
         conteo_desempenos = OrderedDict((escala.nombre_escala, 0) for escala in escala_completa)
 
         # 3. Buscamos todas las evaluaciones existentes para ese grado y periodo
-        estudiantes = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True)
+        estudiantes = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True, **_kw)
         evaluaciones = EvaluacionLogroPreescolar.objects.filter(
             estudiante__in=estudiantes,
             logro__periodo=periodo_seleccionado
@@ -12295,9 +12341,11 @@ def reporte_promedio_por_materia(request):
     Muestra el rendimiento promedio de una materia específica a través de
     todos los grados en los que se imparte durante un periodo.
     """
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
     # Para los filtros, mostramos todas las materias y periodos de la institución
-    materias = Materia.objects.all().order_by('nombre_materia')
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    materias = (Materia.objects.all() if _sup else Materia.objects.filter(institucion=_inst)).order_by('nombre_materia')
+    periodos = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).order_by('-año_escolar', '-fecha_inicio')
 
     materia_id = request.GET.get('materia')
     periodo_id = request.GET.get('periodo')
@@ -12307,8 +12355,9 @@ def reporte_promedio_por_materia(request):
     periodo_seleccionado = None
 
     if materia_id and periodo_id:
-        materia_seleccionada = get_object_or_404(Materia, pk=materia_id)
-        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        materia_seleccionada = get_object_or_404(Materia, pk=materia_id, **_kw)
+        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id, **_kw)
         
         # 1. Encontramos todos los cursos de esa materia en ese periodo
         cursos_de_la_materia = Curso.objects.filter(
@@ -12359,9 +12408,11 @@ def cuadro_honor_grado(request):
     Muestra un ranking de estudiantes DENTRO de un grado específico.
     VERSIÓN CORREGIDA: Muestra todos los grados y maneja la selección.
     """
-    # CORRECCIÓN: Quitamos el filtro para mostrar TODOS los grados
-    grados = Grado.objects.all().order_by('orden', 'nombre')
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    # Se muestran solo los grados de la institución
+    grados = (Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)).order_by('orden', 'nombre')
+    periodos = (PeriodoAcademico.objects.all() if _sup else PeriodoAcademico.objects.filter(institucion=_inst)).order_by('-año_escolar', '-fecha_inicio')
 
     grado_id = request.GET.get('grado')
     periodo_id = request.GET.get('periodo')
@@ -12374,12 +12425,13 @@ def cuadro_honor_grado(request):
     reporte_no_aplica = False
 
     if grado_id and periodo_id:
-        grado_seleccionado = get_object_or_404(Grado, pk=grado_id)
-        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        grado_seleccionado = get_object_or_404(Grado, pk=grado_id, **_kw)
+        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id, **_kw)
         
         # VERIFICAMOS EL TIPO DE EVALUACIÓN DESPUÉS DE SELECCIONAR
         if grado_seleccionado.tipo_evaluacion == 'CUANTITATIVO':
-            estudiantes_del_grado = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True)
+            estudiantes_del_grado = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True, **_kw)
             
             for estudiante in estudiantes_del_grado:
                 cursos = Curso.objects.filter(grado=estudiante.grado_actual, periodo_academico=periodo_seleccionado)
@@ -12549,7 +12601,9 @@ def reporte_incidencias_estudiante(request):
     Muestra un historial detallado de todas las anotaciones en el observador
     para un estudiante específico, con un gráfico resumen.
     """
-    grados = Grado.objects.all().order_by('orden', 'nombre')
+    _inst = getattr(request.user, 'institucion_asociada', None)
+    _sup  = request.user.is_superuser
+    grados = (Grado.objects.all() if _sup else Grado.objects.filter(institucion=_inst)).order_by('orden', 'nombre')
     estudiantes_del_grado = Estudiante.objects.none()
 
     grado_id = request.GET.get('grado')
@@ -12559,10 +12613,14 @@ def reporte_incidencias_estudiante(request):
     estudiante_seleccionado = None
 
     if grado_id:
-        estudiantes_del_grado = Estudiante.objects.filter(grado_actual__id=grado_id).select_related('usuario').order_by('usuario__last_name')
+        _qs = Estudiante.objects.filter(grado_actual__id=grado_id)
+        if not _sup and _inst:
+            _qs = _qs.filter(institucion=_inst)
+        estudiantes_del_grado = _qs.select_related('usuario').order_by('usuario__last_name')
 
     if estudiante_id:
-        estudiante_seleccionado = get_object_or_404(Estudiante, pk=estudiante_id)
+        _kw = {'institucion': _inst} if not _sup and _inst else {}
+        estudiante_seleccionado = get_object_or_404(Estudiante, pk=estudiante_id, **_kw)
         
         # Obtenemos todas las anotaciones del estudiante
         anotaciones = AnotacionObservador.objects.filter(
@@ -12597,8 +12655,9 @@ def reporte_consolidado_convivencia(request):
     Muestra un consolidado de todas las anotaciones de convivencia (Halu Sentinel)
     clasificadas por la IA para toda la institución o un grado específico.
     """
-    grados = Grado.objects.all().order_by('orden', 'nombre')
-    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio')
+    _sup  = request.user.is_superuser
+    grados = Grado.objects.all().order_by('orden', 'nombre') if _sup else Grado.objects.filter(institucion=request.user.institucion_asociada).order_by('orden', 'nombre')
+    periodos = PeriodoAcademico.objects.all().order_by('-año_escolar', '-fecha_inicio') if _sup else PeriodoAcademico.objects.filter(institucion=request.user.institucion_asociada).order_by('-año_escolar', '-fecha_inicio')
 
     grado_id = request.GET.get('grado')
     periodo_id = request.GET.get('periodo')
