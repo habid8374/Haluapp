@@ -256,7 +256,8 @@ class EstudianteForm(forms.ModelForm):
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
     def clean_documento_identidad(self):
         return (self.cleaned_data.get('documento_identidad') or '').strip()
@@ -297,7 +298,8 @@ class DocenteForm(forms.ModelForm):
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class MateriaForm(forms.ModelForm):
@@ -331,7 +333,8 @@ class MateriaForm(forms.ModelForm):
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class PeriodoAcademicoForm(forms.ModelForm):
@@ -362,7 +365,8 @@ class PeriodoAcademicoForm(forms.ModelForm):
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class CursoForm(forms.ModelForm):
@@ -395,7 +399,8 @@ class CursoForm(forms.ModelForm):
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class DirectorCursoForm(forms.ModelForm):
@@ -425,7 +430,8 @@ class DirectorCursoForm(forms.ModelForm):
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class EsquemaCalificacionForm(forms.ModelForm):
@@ -450,7 +456,8 @@ class EsquemaCalificacionForm(forms.ModelForm):
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class TipoActividadForm(forms.ModelForm):
@@ -559,7 +566,8 @@ class CalificacionForm(forms.ModelForm):
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class DeberForm(forms.ModelForm):
@@ -677,7 +685,8 @@ class PlanCurricularForm(forms.ModelForm):
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class MencionReconocimientoForm(forms.ModelForm):
@@ -824,7 +833,8 @@ class NoticiaForm(forms.ModelForm):
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
 class LeccionDiariaForm(forms.ModelForm):
     class Meta:
@@ -1225,7 +1235,8 @@ class AulaForm(forms.ModelForm):
             # Si el usuario no es superadmin, pre-seleccionamos y bloqueamos su institución
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True
+                self.fields['institucion'].disabled = True
+                self.fields['institucion'].widget = forms.HiddenInput()
 
 class AreaAcademicaForm(forms.ModelForm):
     materias = forms.ModelMultipleChoiceField(
@@ -1248,7 +1259,8 @@ class AreaAcademicaForm(forms.ModelForm):
 
         if request and not request.user.is_superuser:
             self.fields['institucion'].initial = request.user.institucion_asociada
-            self.fields['institucion'].widget.attrs['disabled'] = True
+            self.fields['institucion'].disabled = True
+            self.fields['institucion'].widget = forms.HiddenInput()
             self.fields['materias'].queryset = Materia.objects.filter(
                 institucion=request.user.institucion_asociada
             )

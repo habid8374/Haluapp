@@ -2,8 +2,9 @@
 from django.contrib import admin
 # Importamos el modelo InstitucionEducativa como cadena de texto en los modelos
 # pero aquí en admin.py necesitamos importarlo directamente para registrarlo
-from finanzas.models import InstitucionEducativa 
+from finanzas.models import InstitucionEducativa
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from proyecto_colegio.admin_mixins import InstitucionScopedAdminMixin
 from import_export.admin import ImportExportModelAdmin
 from django.db.models import Q
 from django.urls import path
@@ -36,11 +37,13 @@ except admin.sites.NotRegistered:
 # --- Clases ModelAdmin (personalización para el panel de administración) ---
 
 @admin.register(Usuario)
-class UsuarioAdmin(BaseUserAdmin):
+class UsuarioAdmin(InstitucionScopedAdminMixin, BaseUserAdmin):
     """
     Configuración personalizada para el modelo Usuario en el panel de administración.
     VERSIÓN ACTUALIZADA: Incluye el campo para el ID del calendario de Google.
     """
+    institucion_lookup = 'institucion_asociada'
+
     # --- INICIO DE LA CORRECCIÓN CLAVE ---
     # Añadimos la nueva sección "Conexiones Externas" a tus fieldsets existentes.
     fieldsets = BaseUserAdmin.fieldsets + (
@@ -53,8 +56,30 @@ class UsuarioAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'rol')
     list_filter = BaseUserAdmin.list_filter + ('rol', 'institucion_asociada')
 
+    def get_queryset(self, request):
+        """Además del filtro por institución del mixin, un usuario staff
+        de un colegio NUNCA debe ver superusuarios de la plataforma."""
+        qs = super().get_queryset(request)
+        if not request.user.is_superuser:
+            qs = qs.exclude(is_superuser=True)
+        return qs
+
+    def get_readonly_fields(self, request, obj=None):
+        ro = list(super().get_readonly_fields(request, obj))
+        if not request.user.is_superuser:
+            for campo in ('is_staff', 'is_superuser', 'groups', 'user_permissions', 'rol'):
+                if campo not in ro:
+                    ro.append(campo)
+        return ro
+
+    def save_model(self, request, obj, form, change):
+        """Un no-superusuario jamás puede crear/guardar un superusuario."""
+        if not request.user.is_superuser:
+            obj.is_superuser = False
+        super().save_model(request, obj, form, change)
+
 @admin.register(NivelEscolaridad)
-class NivelEscolaridadAdmin(admin.ModelAdmin):
+class NivelEscolaridadAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     # ✅ Se añade el nuevo campo a la lista
     list_display = ('nombre', 'institucion', 'orden', 'valor_inscripcion_estandar', 'valor_matricula_estandar', 'valor_pension_estandar')
     list_filter = ('institucion',)
@@ -62,7 +87,7 @@ class NivelEscolaridadAdmin(admin.ModelAdmin):
     ordering = ('orden',)    
 
 @admin.register(Grado)
-class GradoAdmin(admin.ModelAdmin):
+class GradoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'nivel_escolaridad', 'institucion', 'orden', 'tipo_evaluacion')
     search_fields = ('nombre', 'nivel_escolaridad__nombre') 
     list_filter = ('institucion', 'tipo_evaluacion', 'nivel_escolaridad')
@@ -80,13 +105,13 @@ class GradoAdmin(admin.ModelAdmin):
     )
 
 @admin.register(EscalaCualitativa)
-class EscalaCualitativaAdmin(admin.ModelAdmin):
+class EscalaCualitativaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre_escala', 'abreviatura', 'institucion', 'orden')
     list_filter = ('institucion',)
     search_fields = ('nombre_escala', 'abreviatura')
     
 @admin.register(Estudiante)
-class EstudianteAdmin(admin.ModelAdmin):
+class EstudianteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('usuario_nombre', 'codigo_estudiante', 'grado_actual', 'sexo', 'institucion',  'activo') # <-- 'sexo' añadido para vista rápida
     search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name', 'codigo_estudiante', 'documento_identidad')
     list_filter = ('grado_actual', 'institucion', 'sexo', 'departamento') # <-- 'sexo' y 'departamento' añadidos como filtros
@@ -147,7 +172,7 @@ class RegistroAsistenciaResource(resources.ModelResource):
         export_order = fields   
 
 @admin.register(RegistroAsistencia)
-class RegistroAsistenciaAdmin(ImportExportModelAdmin):
+class RegistroAsistenciaAdmin(InstitucionScopedAdminMixin, ImportExportModelAdmin):
     resource_class = RegistroAsistenciaResource
     list_display = ('fecha', 'estudiante', 'curso', 'aula', 'estado', 'registrado_por')
     list_filter = ('fecha_solo', 'estado', 'curso__grado', 'curso', 'aula')
@@ -159,16 +184,8 @@ class RegistroAsistenciaAdmin(ImportExportModelAdmin):
     date_hierarchy = 'fecha_solo'
     autocomplete_fields = ['estudiante', 'curso', 'registrado_por']
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        if getattr(request.user, 'institucion_asociada', None):
-            return qs.filter(institucion=request.user.institucion_asociada)
-        return qs.none()
-    
 @admin.register(Docente)
-class DocenteAdmin(admin.ModelAdmin):
+class DocenteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = (
         'usuario_nombre',
         'codigo_docente',
@@ -201,7 +218,7 @@ class DocenteAdmin(admin.ModelAdmin):
     usuario_nombre.short_description = 'Nombre del Docente'
 
 @admin.register(Familiar)
-class FamiliarAdmin(admin.ModelAdmin):
+class FamiliarAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     # Definimos las columnas que queremos mostrar
     list_display = ('usuario_nombre', 'email_contacto', 'parentesco', 'telefono')
     search_fields = ('usuario__first_name', 'usuario__last_name', 'usuario__email', 'telefono')
@@ -255,7 +272,7 @@ class MateriaInline(admin.TabularInline):
 
 
 @admin.register(Materia)
-class MateriaAdmin(admin.ModelAdmin):
+class MateriaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     # La vista de Materia ahora es más simple porque no se preocupa por el área.
     list_display = ('nombre_materia', 'codigo_materia', 'institucion')
     search_fields = ('nombre_materia', 'codigo_materia')
@@ -264,7 +281,7 @@ class MateriaAdmin(admin.ModelAdmin):
     raw_id_fields = ('institucion',)
 
 @admin.register(PeriodoAcademico)
-class PeriodoAcademicoAdmin(admin.ModelAdmin):
+class PeriodoAcademicoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'año_escolar', 'fecha_inicio', 'fecha_fin', 'activo', 'institucion')
     search_fields = ('nombre', 'año_escolar')
     list_filter = ('activo', 'año_escolar', 'institucion')
@@ -272,7 +289,7 @@ class PeriodoAcademicoAdmin(admin.ModelAdmin):
     raw_id_fields = ('institucion',)
 
 @admin.register(Curso)
-class CursoAdmin(admin.ModelAdmin):
+class CursoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('materia', 'grado', 'periodo_academico', 'institucion')
     search_fields = ('materia__nombre_materia', 'grado__nombre', 'periodo_academico__nombre')
     list_filter = ('periodo_academico', 'grado', 'materia', 'institucion')
@@ -281,7 +298,7 @@ class CursoAdmin(admin.ModelAdmin):
     raw_id_fields = ('materia', 'grado', 'periodo_academico', 'institucion')
 
 @admin.register(DirectorCurso)
-class DirectorCursoAdmin(admin.ModelAdmin):
+class DirectorCursoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('docente', 'grado', 'periodo_academico', 'institucion')
     search_fields = ('docente__usuario__first_name', 'docente__usuario__last_name', 'grado__nombre')
     list_filter = ('periodo_academico', 'grado', 'institucion')
@@ -289,7 +306,7 @@ class DirectorCursoAdmin(admin.ModelAdmin):
     raw_id_fields = ('docente', 'grado', 'periodo_academico', 'institucion')
 
 @admin.register(EsquemaCalificacion)
-class EsquemaCalificacionAdmin(admin.ModelAdmin):
+class EsquemaCalificacionAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'institucion')
     search_fields = ('nombre',)
     list_filter = ('institucion',)
@@ -297,7 +314,7 @@ class EsquemaCalificacionAdmin(admin.ModelAdmin):
     raw_id_fields = ('institucion',)
 
 @admin.register(TipoActividad)
-class TipoActividadAdmin(admin.ModelAdmin):
+class TipoActividadAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     # ✅ Se añade 'orden' a la lista de columnas a mostrar
     list_display = ('nombre', 'porcentaje', 'orden', 'institucion')
     
@@ -311,14 +328,14 @@ class TipoActividadAdmin(admin.ModelAdmin):
     raw_id_fields = ('institucion',)
     
 @admin.register(ActividadCalificable)
-class ActividadCalificableAdmin(admin.ModelAdmin):
+class ActividadCalificableAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     search_fields = ('titulo', 'curso__materia__nombre_materia', 'curso__grado__nombre')
     list_filter = ('curso__periodo_academico', 'curso__grado', 'tipo_actividad', 'institucion')
     ordering = ('institucion', 'curso__periodo_academico', 'curso__grado', 'curso__materia', '-fecha_publicacion')
     raw_id_fields = ('curso', 'tipo_actividad', 'institucion')
 
 @admin.register(Calificacion)
-class CalificacionAdmin(admin.ModelAdmin):
+class CalificacionAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('estudiante', 'actividad_calificable', 'valor_numerico', 'valor_cualitativo', 'fecha_registro', 'registrada_por', 'institucion')
     search_fields = ('estudiante__usuario__username', 'actividad_calificable__titulo')
     list_filter = ('actividad_calificable__curso__periodo_academico', 'actividad_calificable__curso__grado', 'registrada_por', 'institucion')
@@ -326,7 +343,7 @@ class CalificacionAdmin(admin.ModelAdmin):
     raw_id_fields = ('estudiante', 'actividad_calificable', 'registrada_por', 'institucion')
 
 @admin.register(PlanCurricular)
-class PlanCurricularAdmin(admin.ModelAdmin):
+class PlanCurricularAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'grado_asociado', 'materia_asociada', 'periodo_academico_asociado', 'fecha_publicacion', 'creado_por', 'institucion')
     search_fields = ('nombre', 'grado_asociado__nombre', 'materia_asociada__nombre_materia')
     list_filter = ('grado_asociado', 'materia_asociada', 'periodo_academico_asociado', 'institucion')
@@ -334,7 +351,7 @@ class PlanCurricularAdmin(admin.ModelAdmin):
     raw_id_fields = ('grado_asociado', 'materia_asociada', 'periodo_academico_asociado', 'creado_por', 'institucion')
 
 @admin.register(Deber)
-class DeberAdmin(admin.ModelAdmin):
+class DeberAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('titulo', 'curso', 'fecha_asignacion', 'fecha_entrega', 'institucion')
     search_fields = ('titulo', 'curso__materia__nombre_materia', 'curso__grado__nombre')
     list_filter = ('curso__periodo_academico', 'curso__grado', 'institucion')
@@ -342,7 +359,7 @@ class DeberAdmin(admin.ModelAdmin):
     raw_id_fields = ('curso', 'institucion')
 
 @admin.register(EntregaDeber)
-class EntregaDeberAdmin(admin.ModelAdmin):
+class EntregaDeberAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('deber', 'estudiante', 'fecha_entrega_real', 'calificacion_obtenida', 'institucion')
     search_fields = ('deber__titulo', 'estudiante__usuario__username')
     list_filter = ('deber__curso__periodo_academico', 'deber__curso__grado', 'institucion')
@@ -350,7 +367,7 @@ class EntregaDeberAdmin(admin.ModelAdmin):
     raw_id_fields = ('deber', 'estudiante', 'institucion')
 
 @admin.register(MencionReconocimiento)
-class MencionReconocimientoAdmin(admin.ModelAdmin):
+class MencionReconocimientoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('estudiante', 'tipo', 'fecha_otorgamiento', 'otorgado_por', 'institucion')
     search_fields = ('estudiante__usuario__username', 'tipo', 'descripcion')
     list_filter = ('tipo', 'fecha_otorgamiento', 'institucion')
@@ -358,7 +375,7 @@ class MencionReconocimientoAdmin(admin.ModelAdmin):
     raw_id_fields = ('estudiante', 'curso', 'periodo', 'otorgado_por', 'institucion')
 
 @admin.register(ArchivoPlanAcademico)
-class ArchivoPlanAcademicoAdmin(admin.ModelAdmin):
+class ArchivoPlanAcademicoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre_archivo_descriptivo', 'tipo_documento', 'curso_asociado', 'materia_asociada', 'fecha_subida', 'subido_por', 'institucion')
     search_fields = ('nombre_archivo_descriptivo', 'tipo_documento', 'curso_asociado__materia__nombre_materia')
     list_filter = ('tipo_documento', 'curso_asociado__periodo_academico', 'institucion')
@@ -366,13 +383,14 @@ class ArchivoPlanAcademicoAdmin(admin.ModelAdmin):
     raw_id_fields = ('curso_asociado', 'materia_asociada', 'subido_por', 'institucion')
 
 @admin.register(ConfiguracionInstitucion)
-class ConfiguracionInstitucionAdmin(admin.ModelAdmin):
+class ConfiguracionInstitucionAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    institucion_lookup = 'institucion_principal'
     list_display = ('institucion_principal', 'nombre_institucion', 'lema_institucion', 'telefono_contacto', 'email_contacto')
     search_fields = ('institucion_principal__nombre', 'nombre_institucion', 'lema_institucion')
     raw_id_fields = ('institucion_principal',) # Siempre usa raw_id_fields para OneToOneField que es primary_key
 
 @admin.register(EnlaceVideollamada)
-class EnlaceVideollamadaAdmin(admin.ModelAdmin):
+class EnlaceVideollamadaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     """
     Personalización del panel de admin para los enlaces de videollamada.
     """
@@ -390,7 +408,7 @@ class EnlaceVideollamadaAdmin(admin.ModelAdmin):
         return False # Otros usuarios no pueden añadir
 
 @admin.register(Noticia)
-class NoticiaAdmin(admin.ModelAdmin):
+class NoticiaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('titulo', 'tipo', 'banner_activo', 'audiencia', 'fecha_expiracion_banner', 'fecha_publicacion', 'institucion')
     search_fields = ('titulo', 'contenido')
     list_filter = ('tipo', 'mostrar_banner', 'audiencia', 'fecha_publicacion', 'institucion')
@@ -431,7 +449,7 @@ class NoticiaAdmin(admin.ModelAdmin):
         self.message_user(request, f'{queryset.count()} banner(s) desactivado(s).')
 
 @admin.register(AreaAcademica)
-class AreaAcademicaAdmin(admin.ModelAdmin):
+class AreaAcademicaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'institucion')
     search_fields = ('nombre',)
     list_filter = ('institucion',)
@@ -487,7 +505,7 @@ class AreaAcademicaAdmin(admin.ModelAdmin):
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 @admin.register(DescriptorLogro)
-class DescriptorLogroAdmin(admin.ModelAdmin):
+class DescriptorLogroAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('descripcion_corta', 'grado', 'materia', 'periodo_academico', 'creado_por', 'institucion')
     search_fields = ('descripcion', 'materia__nombre_materia', 'creado_por__username', 'institucion__nombre')
     list_filter = ('institucion', 'grado', 'periodo_academico', 'materia')
@@ -495,27 +513,20 @@ class DescriptorLogroAdmin(admin.ModelAdmin):
     autocomplete_fields = ['grado', 'materia', 'periodo_academico', 'creado_por', 'institucion']
     list_per_page = 20
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if not request.user.is_superuser:
-            inst = getattr(request.user, 'institucion_asociada', None)
-            return qs.filter(institucion=inst) if inst else qs.none()
-        return qs
-
     @admin.display(description='Descripción')
     def descripcion_corta(self, obj):
         texto = str(obj.descripcion)
         return texto[:70] + '...' if len(texto) > 70 else texto
 
 @admin.register(Aula)
-class AulaAdmin(admin.ModelAdmin):
+class AulaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'capacidad', 'institucion')
     list_filter = ('institucion',)
     search_fields = ('nombre',)
     ordering = ('nombre',)
 
 @admin.register(BloqueHorario)
-class BloqueHorarioAdmin(admin.ModelAdmin):
+class BloqueHorarioAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('curso', 'dia_semana', 'hora_inicio', 'hora_fin', 'aula')
     list_filter = ('dia_semana', 'curso__grado', 'curso__materia', 'aula')
     autocomplete_fields = ['curso', 'aula'] 
@@ -530,7 +541,7 @@ class OpcionInline(admin.TabularInline):
     fields = ('texto', 'es_correcta')
 
 @admin.register(Pregunta)
-class PreguntaAdmin(admin.ModelAdmin):
+class PreguntaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     """
     Panel de administración para el modelo Pregunta.
     """
@@ -543,7 +554,7 @@ class PreguntaAdmin(admin.ModelAdmin):
     autocomplete_fields = ['actividad']  
 
 @admin.register(IntentoActividad)
-class IntentoActividadAdmin(admin.ModelAdmin):
+class IntentoActividadAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('estudiante', 'actividad', 'estado', 'inicio', 'fin', 'puntaje_obtenido')
     list_filter = ('estado', 'actividad__curso__materia', 'institucion')
     search_fields = ('estudiante__usuario__username', 'actividad__titulo')
@@ -555,7 +566,7 @@ class EscalaValorativaInline(admin.TabularInline):
     ordering = ('orden',)   
 
 @admin.register(LeccionDiaria)
-class LeccionDiariaAdmin(admin.ModelAdmin):
+class LeccionDiariaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     """
     Personaliza la vista del admin para las Lecciones Diarias.
     """
@@ -577,18 +588,18 @@ class LeccionDiariaAdmin(admin.ModelAdmin):
     )  
 
 @admin.register(AnalisisRiesgo)
-class AnalisisRiesgoAdmin(admin.ModelAdmin):
+class AnalisisRiesgoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('fecha_analisis', 'periodo_academico', 'resumen')
     list_filter = ('periodo_academico',)
 
 @admin.register(PrediccionRiesgoEstudiante)
-class PrediccionRiesgoEstudianteAdmin(admin.ModelAdmin):
+class PrediccionRiesgoEstudianteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('estudiante', 'materia', 'nivel_riesgo', 'analisis')
     list_filter = ('nivel_riesgo', 'materia', 'analisis__periodo_academico')
     search_fields = ('estudiante__usuario__first_name', 'estudiante__usuario__last_name')   
 
 @admin.register(Notificacion)
-class NotificacionAdmin(admin.ModelAdmin):
+class NotificacionAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('destinatario', 'mensaje', 'leido', 'fecha_creacion', 'institucion')
     list_filter = ('leido', 'fecha_creacion', 'institucion')
     search_fields = ('destinatario__username', 'destinatario__first_name', 'destinatario__last_name', 'mensaje')
@@ -596,13 +607,6 @@ class NotificacionAdmin(admin.ModelAdmin):
     ordering = ('-fecha_creacion',)
     list_per_page = 30
     actions = ['marcar_como_leidas']
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        inst = getattr(request.user, 'institucion_asociada', None)
-        return qs.filter(institucion=inst) if inst else qs.none()
 
     def has_delete_permission(self, request, obj=None):
         """Solo superusuario o administrador puede eliminar notificaciones."""
@@ -616,7 +620,7 @@ class NotificacionAdmin(admin.ModelAdmin):
         self.message_user(request, f'{updated} notificación(es) marcada(s) como leída(s).')
 
 @admin.register(AnotacionObservador)
-class AnotacionObservadorAdmin(admin.ModelAdmin):
+class AnotacionObservadorAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('fecha_hora', 'estudiante', 'tipo', 'descripcion_corta', 'registrado_por', 'sentimiento_detectado', 'requiere_revision')
     list_filter = ('requiere_revision', 'tipo', 'fecha_hora', 'estudiante__grado_actual')
     search_fields = ('estudiante__usuario__first_name', 'estudiante__usuario__last_name', 'descripcion')
@@ -641,18 +645,19 @@ class AnotacionObservadorAdmin(admin.ModelAdmin):
         return getattr(request.user, 'rol', '') == 'administrador'
 
 @admin.register(DisponibilidadDocente)
-class DisponibilidadDocenteAdmin(admin.ModelAdmin):
+class DisponibilidadDocenteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('docente', 'get_dia_semana_display', 'hora_inicio', 'hora_fin')
     list_filter = ('docente', 'dia_semana')
 
 @admin.register(CitaReunion)
-class CitaReunionAdmin(admin.ModelAdmin):
+class CitaReunionAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('fecha_hora_inicio', 'docente', 'familiar', 'estudiante', 'estado')
     list_filter = ('estado', 'docente', 'familiar')
     search_fields = ('asunto', 'estudiante__usuario__last_name')   
 
 @admin.register(Egresado)
-class EgresadoAdmin(admin.ModelAdmin):
+class EgresadoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    institucion_lookup = 'estudiante__institucion'
     list_display = ('__str__', 'año_graduacion', 'fecha_egreso', 'estado')
     list_filter = ('año_graduacion', 'estado')
     search_fields = (
@@ -665,7 +670,8 @@ class EgresadoAdmin(admin.ModelAdmin):
 
 
 @admin.register(ArchivoHistorico)
-class ArchivoHistoricoAdmin(admin.ModelAdmin):
+class ArchivoHistoricoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    institucion_lookup = 'egresado__estudiante__institucion'
     list_display = ('__str__', 'año_academico', 'fecha_generacion')
     list_filter = ('año_academico', 'tipo_documento')
     search_fields = (
@@ -675,7 +681,8 @@ class ArchivoHistoricoAdmin(admin.ModelAdmin):
     autocomplete_fields = ('egresado',)  
 
 @admin.register(SolicitudDocumento)
-class SolicitudDocumentoAdmin(admin.ModelAdmin):
+class SolicitudDocumentoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    institucion_lookup = 'egresado__estudiante__institucion'
     list_display = ('__str__', 'estado', 'fecha_solicitud', 'fecha_actualizacion')
     list_filter = ('estado',)
     list_editable = ('estado',)
@@ -686,7 +693,7 @@ class SolicitudDocumentoAdmin(admin.ModelAdmin):
 
 
 @admin.register(DimensionDesarrollo)
-class DimensionDesarrolloAdmin(admin.ModelAdmin):
+class DimensionDesarrolloAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'institucion', 'orden')
     list_filter = ('institucion',)
     search_fields = ('nombre',)
@@ -700,20 +707,13 @@ class DimensionDesarrolloAdmin(admin.ModelAdmin):
     # --- FIN DE LA MODIFICACIÓN ---
 
 @admin.register(LogroPreescolar)
-class LogroPreescolarAdmin(admin.ModelAdmin):
+class LogroPreescolarAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('descripcion_corta', 'grado', 'dimension', 'materia', 'periodo', 'orden', 'institucion')
     list_filter = ('institucion', 'grado', 'periodo', 'dimension', 'materia')
     search_fields = ('descripcion', 'materia__nombre_materia', 'dimension__nombre')
     ordering = ('institucion', 'grado__nombre', 'dimension__orden', 'materia__nombre_materia', 'orden')
     autocomplete_fields = ['grado', 'dimension', 'materia', 'periodo', 'institucion']
     list_per_page = 20
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if not request.user.is_superuser:
-            inst = getattr(request.user, 'institucion_asociada', None)
-            return qs.filter(institucion=inst) if inst else qs.none()
-        return qs
 
     @admin.display(description='Descripción del Logro')
     def descripcion_corta(self, obj):
@@ -722,7 +722,7 @@ class LogroPreescolarAdmin(admin.ModelAdmin):
 
 
 @admin.register(EvaluacionLogroPreescolar)
-class EvaluacionLogroPreescolarAdmin(admin.ModelAdmin):
+class EvaluacionLogroPreescolarAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     """
     Configuración del Admin para ver las evaluaciones de logros (principalmente para depuración).
     """
@@ -730,12 +730,6 @@ class EvaluacionLogroPreescolarAdmin(admin.ModelAdmin):
     list_filter = ('institucion', 'estado', 'logro__dimension')
     search_fields = ('estudiante__usuario__username', 'logro__descripcion')
     autocomplete_fields = ['estudiante', 'logro', 'estado', 'registrado_por']
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if not request.user.is_superuser:
-            return qs.filter(institucion=request.user.institucion_asociada)
-        return qs    
 
 # ─── Halu Sentinel Admin ──────────────────────────────────────────────────────
 
@@ -755,7 +749,7 @@ class AccionCasoInline(admin.StackedInline):
 
 
 @admin.register(CasoConvivencia)
-class CasoConvivenciaAdmin(admin.ModelAdmin):
+class CasoConvivenciaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('radicado', 'tipo_situacion', 'estado', 'anotacion_origen',
                     'responsable', 'fecha_apertura', 'fecha_limite', 'institucion')
     list_filter = ('tipo_situacion', 'estado', 'institucion')
@@ -782,13 +776,6 @@ class CasoConvivenciaAdmin(admin.ModelAdmin):
         }),
     )
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        inst = getattr(request.user, 'institucion_asociada', None)
-        return qs.filter(institucion=inst) if inst else qs.none()
-
     def has_delete_permission(self, request, obj=None):
         """
         Solo el superusuario o el administrador de la institución
@@ -800,7 +787,8 @@ class CasoConvivenciaAdmin(admin.ModelAdmin):
 
 
 @admin.register(AccionCaso)
-class AccionCasoAdmin(admin.ModelAdmin):
+class AccionCasoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    institucion_lookup = 'caso__institucion'
     list_display = ('caso', 'tipo_accion', 'ejecutado_por', 'fecha')
     list_filter = ('tipo_accion', 'caso__tipo_situacion', 'caso__estado')
     search_fields = ('caso__radicado', 'descripcion')
@@ -843,7 +831,7 @@ class DetalleClaseInline(admin.TabularInline):
         return False
 
 @admin.register(PlaneacionClase)
-class PlaneacionClaseAdmin(admin.ModelAdmin):
+class PlaneacionClaseAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('id', 'titulo', 'curso', 'docente', 'estado_generacion', 'ultima_actualizacion')
     list_filter = ('estado_generacion', 'institucion', 'metodologia')
     search_fields = ('titulo', 'docente__usuario__first_name', 'docente__usuario__last_name', 'curso__materia__nombre_materia')
@@ -875,7 +863,7 @@ class PlaneacionClaseAdmin(admin.ModelAdmin):
 # ══════════════════════════════════════════════════════════════════════════════
 
 @admin.register(ConfiguracionCortePreventivo)
-class ConfiguracionCortePreventivoAdmin(admin.ModelAdmin):
+class ConfiguracionCortePreventivoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('institucion', 'umbral_riesgo_bajo', 'umbral_riesgo_medio',
                     'porcentaje_inasistencia_alerta', 'permitir_descarga_familiar')
     list_filter  = ('institucion',)
@@ -912,7 +900,7 @@ class ResultadoCorteInline(admin.TabularInline):
 
 
 @admin.register(CortePreventivo)
-class CortePreventivoAdmin(admin.ModelAdmin):
+class CortePreventivoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display  = ('nombre_corte', 'institucion', 'grado', 'periodo_academico',
                      'fecha_corte', 'estado', 'total_estudiantes_evaluados',
                      'total_en_riesgo', 'generado_por')
@@ -948,7 +936,7 @@ class DetalleMateriaInline(admin.TabularInline):
 
 
 @admin.register(ResultadoCorteEstudiante)
-class ResultadoCorteEstudianteAdmin(admin.ModelAdmin):
+class ResultadoCorteEstudianteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display  = ('estudiante', 'corte', 'promedio_general', 'nivel_riesgo',
                      'porcentaje_asistencia', 'materias_en_riesgo_count',
                      'requiere_citacion_padres', 'notificacion_enviada')
@@ -964,7 +952,7 @@ class ResultadoCorteEstudianteAdmin(admin.ModelAdmin):
 
 
 @admin.register(DetalleMateriaCortePrev)
-class DetalleMateriaCortePrevAdmin(admin.ModelAdmin):
+class DetalleMateriaCortePrevAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display  = ('resultado_estudiante', 'curso', 'promedio_materia',
                      'nivel_desempeno', 'en_riesgo', 'actividades_registradas',
                      'actividades_calificadas', 'actividades_pendientes')

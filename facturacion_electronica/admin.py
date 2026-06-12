@@ -1,19 +1,27 @@
 from django.contrib import admin
 
+from proyecto_colegio.admin_mixins import InstitucionScopedAdminMixin
+
 from .models import ConfiguracionFactus, FacturaElectronica
 
 
 @admin.register(ConfiguracionFactus)
-class ConfiguracionFactusAdmin(admin.ModelAdmin):
+class ConfiguracionFactusAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ("institucion", "ambiente", "activo", "facturas_emitidas", "fecha_actualizacion")
     list_filter = ("activo", "ambiente")
     search_fields = ("institucion__nombre",)
     # 'activo' editable solo desde aquí (propietario) — es el interruptor del adicional.
     readonly_fields = ("facturas_emitidas", "fecha_creacion", "fecha_actualizacion")
 
+    def get_readonly_fields(self, request, obj=None):
+        ro = list(super().get_readonly_fields(request, obj))
+        if not request.user.is_superuser:
+            ro.append("activo")
+        return ro
+
 
 @admin.register(FacturaElectronica)
-class FacturaElectronicaAdmin(admin.ModelAdmin):
+class FacturaElectronicaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ("reference_code", "institucion", "estado", "numero", "fecha_creacion")
     list_filter = ("estado", "ambiente", "institucion")
     search_fields = ("reference_code", "numero", "cufe")

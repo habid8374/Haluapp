@@ -586,6 +586,11 @@ class TipoConceptoPagoCreateView(LoginRequiredMixin, PermissionRequiredMixin, Cr
     success_url = reverse_lazy('finanzas:lista_tipos_concepto_pago')
     permission_required = 'finanzas.add_tipoconceptopago'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_valid(self, form):
         if not self.request.user.is_superuser:
             form.instance.institucion = self.request.user.institucion_asociada
@@ -606,6 +611,11 @@ class TipoConceptoPagoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, In
     template_name = 'finanzas/formulario_generico.html'
     success_url = reverse_lazy('finanzas:lista_tipos_concepto_pago')
     permission_required = 'finanzas.change_tipoconceptopago'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1310,11 +1320,16 @@ class CuentaPorCobrarEstudianteCreateView(LoginRequiredMixin, PermissionRequired
     success_url = reverse_lazy('finanzas:lista_cuentas_por_cobrar')
     permission_required = 'finanzas.add_cuentaporcobrarestudiante'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["titulo_pagina"] = "Crear Cuenta por Cobrar"
         return context
-    
+
     def form_valid(self, form):
         if not self.request.user.is_superuser:
             form.instance.institucion = self.request.user.institucion_asociada
@@ -1333,6 +1348,11 @@ class CuentaPorCobrarEstudianteUpdateView(LoginRequiredMixin, PermissionRequired
     template_name = 'finanzas/formulario_generico.html'
     success_url = reverse_lazy('finanzas:lista_cuentas_por_cobrar')
     permission_required = 'finanzas.change_cuentaporcobrarestudiante'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

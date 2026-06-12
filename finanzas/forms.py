@@ -83,9 +83,15 @@ class TipoConceptoPagoForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        # Asegúrate de que el queryset de institución sea el correcto
-        self.fields['institucion'].queryset = InstitucionEducativa.objects.all().order_by('nombre')
+        user = getattr(request, 'user', None)
+        if user is not None and user.is_superuser:
+            self.fields['institucion'].queryset = InstitucionEducativa.objects.all().order_by('nombre')
+        else:
+            # Los usuarios de colegio nunca eligen institución: la inyecta la
+            # vista desde request.user.institucion_asociada (form_valid).
+            self.fields.pop('institucion', None)
 
 
 class ConceptoPagoForm(forms.ModelForm):
@@ -241,34 +247,40 @@ class CuentaPorCobrarEstudianteForm(forms.ModelForm):
         
 
     def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        self.fields['estudiante'].queryset = Estudiante.objects.select_related('usuario').order_by('usuario__last_name', 'usuario__first_name')
-        
-        # Si es un nuevo formulario (no una instancia existente), establece la fecha inicial
-        if not self.instance.pk:
-            self.fields['fecha_vencimiento_especifica'].initial = datetime.date.today() + datetime.timedelta(days=30)
-        
-        self.fields['institucion'].queryset = InstitucionEducativa.objects.all().order_by('nombre')
+        user = getattr(request, 'user', None)
+        institucion = getattr(user, 'institucion_asociada', None) if user else None
 
-        # Si el usuario actual no es superusuario, filtra las opciones de institución
-        if 'request' in kwargs and not kwargs['request'].user.is_superuser:
-            if hasattr(kwargs['request'].user, 'institucion_asociada') and kwargs['request'].user.institucion_asociada:
-                self.fields['institucion'].queryset = InstitucionEducativa.objects.filter(pk=kwargs['request'].user.institucion_asociada.pk)
-                self.fields['institucion'].initial = kwargs['request'].user.institucion_asociada
-                self.fields['institucion'].widget.attrs['disabled'] = True # Deshabilita el campo
+        # La institución nunca se elige en el formulario: la inyecta la vista
+        # desde request.user.institucion_asociada en form_valid.
+        self.fields.pop('institucion', None)
+
+        # En edición, la institución de referencia es la de la cuenta existente.
+        if self.instance.pk and self.instance.institucion_id:
+            institucion = self.instance.institucion
+
+        estudiantes = Estudiante.objects.select_related('usuario').order_by(
+            'usuario__last_name', 'usuario__first_name'
+        )
+        conceptos = ConceptoPago.objects.all()
+        if user is None or not user.is_superuser:
+            if institucion is not None:
+                estudiantes = estudiantes.filter(institucion=institucion)
+                conceptos = conceptos.filter(institucion=institucion)
             else:
-                self.fields['institucion'].queryset = InstitucionEducativa.objects.none()
-        
-        # Filtra los conceptos de pago por institución si la instancia ya tiene una institución
-        if self.instance and self.instance.institucion:
-            self.fields['concepto_pago'].queryset = _conceptos_pago_orden_por_nivel(
-                ConceptoPago.objects.filter(institucion=self.instance.institucion)
-            )
-        # O si el formulario se inicializa con una institución a través del request
-        elif 'request' in kwargs and hasattr(kwargs['request'].user, 'institucion_asociada') and kwargs['request'].user.institucion_asociada:
-            self.fields['concepto_pago'].queryset = _conceptos_pago_orden_por_nivel(
-                ConceptoPago.objects.filter(institucion=kwargs['request'].user.institucion_asociada)
-            )
+                estudiantes = estudiantes.none()
+                conceptos = conceptos.none()
+        elif institucion is not None:
+            conceptos = conceptos.filter(institucion=institucion)
+
+        if 'estudiante' in self.fields:
+            self.fields['estudiante'].queryset = estudiantes
+        self.fields['concepto_pago'].queryset = _conceptos_pago_orden_por_nivel(conceptos)
+
+        # Si es un nuevo formulario (no una instancia existente), establece la fecha inicial
+        if not self.instance.pk and 'fecha_vencimiento_especifica' in self.fields:
+            self.fields['fecha_vencimiento_especifica'].initial = datetime.date.today() + datetime.timedelta(days=30)
 
 
     def clean(self):

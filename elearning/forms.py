@@ -59,6 +59,15 @@ class CursoForm(forms.ModelForm):
             )
         return data
 
+    def save(self, commit=True):
+        # Seguro multi-institución: aunque la vista olvide asignarla, un
+        # usuario de colegio nunca puede guardar un curso de otra institución.
+        if self.user is not None and not self.user.is_superuser:
+            inst = getattr(self.user, "institucion_asociada", None)
+            if inst is not None:
+                self.instance.institucion = inst
+        return super().save(commit=commit)
+
 
 class ModuloForm(forms.ModelForm):
     class Meta:

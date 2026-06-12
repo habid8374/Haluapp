@@ -5,6 +5,8 @@ from django.urls import reverse
 from django.utils.html import format_html
 from import_export.admin import ImportExportModelAdmin
 
+from proyecto_colegio.admin_mixins import InstitucionScopedAdminMixin
+
 # Importamos TODOS los modelos, incluyendo el nuevo Proxy Model
 from .models import (
     Aspirante,
@@ -21,7 +23,7 @@ from .models import (
 # Esta será tu nueva entrada para revisar documentos.
 # ==============================================================================
 @admin.register(AspiranteConDocumentos)
-class RevisionDocumentosAdmin(admin.ModelAdmin):
+class RevisionDocumentosAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     # Usamos los campos del modelo Aspirante para mostrar la lista
     list_display = (
         'nombres', 
@@ -37,8 +39,10 @@ class RevisionDocumentosAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """
         La clave: solo mostramos aspirantes que tengan al menos un documento entregado.
+        (super() aplica el aislamiento por institución del mixin.)
         """
-        return Aspirante.objects.filter(documentos_entregados__isnull=False).distinct()
+        qs = super().get_queryset(request)
+        return qs.filter(documentos_entregados__isnull=False).distinct()
 
     @admin.display(description='Revisar Documentos')
     def ver_documentos_link(self, obj):
@@ -60,7 +64,7 @@ class RevisionDocumentosAdmin(admin.ModelAdmin):
 # Esta vista ahora solo se usará al hacer clic en el enlace de arriba.
 # ==============================================================================
 @admin.register(DocumentoEntregado)
-class DocumentoEntregadoAdmin(admin.ModelAdmin):
+class DocumentoEntregadoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = (
         'aspirante', 
         'documento_requerido', 
@@ -86,7 +90,7 @@ class DocumentoEntregadoAdmin(admin.ModelAdmin):
 # Mantenemos tu admin original para gestionar TODOS los aspirantes.
 # ==============================================================================
 @admin.register(Aspirante)
-class AspiranteAdmin(admin.ModelAdmin):
+class AspiranteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     """
     Configuración del panel de administración para el modelo Aspirante.
     CORREGIDO: Se añadió el enlace al portal del postulante.
@@ -143,20 +147,20 @@ class AspiranteAdmin(admin.ModelAdmin):
 # REGISTRO DE TUS OTROS MODELOS (los mantenemos como estaban)
 # ==============================================================================
 @admin.register(DocumentoRequerido)
-class DocumentoRequeridoAdmin(admin.ModelAdmin):
+class DocumentoRequeridoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'descripcion', 'es_obligatorio')
     list_editable = ('es_obligatorio',)
     search_fields = ('nombre', 'descripcion')
 
 @admin.register(HorarioDisponible)
-class HorarioDisponibleAdmin(admin.ModelAdmin):
+class HorarioDisponibleAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('tipo_cita', 'fecha_hora_inicio', 'duracion_minutos', 'entrevistador', 'cupos_disponibles', 'cupos_ocupados', 'esta_disponible')
     list_filter = ('tipo_cita', 'entrevistador', 'fecha_hora_inicio')
     search_fields = ('tipo_cita', 'entrevistador__username')
     autocomplete_fields = ['entrevistador']
 
 @admin.register(CitaAgendada)
-class CitaAgendadaAdmin(admin.ModelAdmin):
+class CitaAgendadaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('aspirante', 'horario', 'estado', 'fecha_agendamiento')
     list_filter = ('estado', 'horario__tipo_cita', 'horario__fecha_hora_inicio')
     search_fields = ('aspirante__nombres', 'aspirante__apellidos', 'horario__tipo_cita')
@@ -166,7 +170,7 @@ class CitaAgendadaAdmin(admin.ModelAdmin):
 
 
 @admin.register(LoteImportacionAspirantes)
-class LoteImportacionAspirantesAdmin(admin.ModelAdmin):
+class LoteImportacionAspirantesAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = (
         'id', 'institucion', 'nombre_original', 'estado', 'dry_run',
         'total_filas', 'filas_exitosas', 'filas_fallidas',

@@ -1,6 +1,11 @@
 # finanzas/admin.py
 from django.contrib import admin
 from django.contrib.auth.models import Permission
+
+from proyecto_colegio.admin_mixins import (
+    InstitucionScopedAdminMixin,
+    SuperuserOnlyAdminMixin,
+)
 # Importa los modelos desde tu aplicación finanzas
 from .models import (
     InstitucionEducativa,
@@ -29,7 +34,7 @@ class EscalaValorativaInline(admin.TabularInline):
     ordering = ('orden',)
     fields = ('nombre_desempeno', 'abreviatura', 'nota_minima', 'nota_maxima', 'orden')
 
-class InstitucionEducativaAdmin(admin.ModelAdmin):
+class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
     # ¡¡¡AQUÍ ESTÁ LA LÍNEA CORREGIDA!!!
     list_display = ('nombre', 'nit', 'telefono', 'correo_electronico', 'activa') 
     list_filter = ('activa',) # Para poder filtrar por instituciones activas o bloqueadas
@@ -86,13 +91,13 @@ class InstitucionEducativaAdmin(admin.ModelAdmin):
     #def has_add_permission(self, request):
         #return not InstitucionEducativa.objects.exists()
 
-class TipoConceptoPagoAdmin(admin.ModelAdmin):
+class TipoConceptoPagoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'descripcion', 'institucion')
     search_fields = ('nombre',)
     list_filter = ('institucion',)
 
 @admin.register(ConceptoPago)
-class ConceptoPagoAdmin(admin.ModelAdmin):
+class ConceptoPagoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     # ✅ Se elimina 'tipo_de_cobro' de la lista
     list_display = (
         'nombre_concepto',
@@ -152,13 +157,13 @@ class ConceptoPagoAdmin(admin.ModelAdmin):
         })
     )
 
-class CuentaPorCobrarEstudianteAdmin(admin.ModelAdmin):
+class CuentaPorCobrarEstudianteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('numero_documento', 'estudiante', 'concepto_pago', 'monto_asignado', 'monto_pagado_actual', 'saldo_pendiente', 'fecha_vencimiento_especifica', 'estado', 'institucion')
     search_fields = ('estudiante__usuario__username', 'estudiante__codigo_estudiante', 'concepto_pago__nombre_concepto')
     list_filter = ('estado', 'concepto_pago__tipo_concepto', 'fecha_vencimiento_especifica', 'institucion')
     readonly_fields = ('fecha_creacion', 'ultima_modificacion', 'monto_pagado_actual', 'saldo_pendiente')
 
-class PagoRegistradoAdmin(admin.ModelAdmin):
+class PagoRegistradoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('numero_documento', 'estudiante', 'cuenta', 'fecha_pago', 'valor_pagado', 'metodo_pago', 'registrado_por', 'institucion')
     search_fields = ('estudiante__usuario__username', 'cuenta__concepto_pago__nombre_concepto', 'referencia_transaccion') 
     list_filter = ('metodo_pago', 'fecha_pago', 'institucion')
@@ -166,39 +171,39 @@ class PagoRegistradoAdmin(admin.ModelAdmin):
     readonly_fields = ('fecha_registro_sistema',)
 
 @admin.register(Gasto)
-class GastoAdmin(admin.ModelAdmin):
+class GastoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('numero_documento', 'descripcion', 'monto', 'fecha_gasto', 'categoria', 'institucion')
     list_filter = ('institucion', 'categoria', 'fecha_gasto')
     search_fields = ('descripcion', 'proveedor__nombre')
     autocomplete_fields = ('categoria', 'proveedor')    
 
 @admin.register(CategoriaGasto)
-class CategoriaGastoAdmin(admin.ModelAdmin):
+class CategoriaGastoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'cuenta_contable', 'institucion')
     search_fields = ('nombre',)
     list_filter = ('institucion',)
     autocomplete_fields = ['cuenta_contable'] 
 
 @admin.register(CuentaContable)
-class CuentaContableAdmin(admin.ModelAdmin):
+class CuentaContableAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('codigo', 'nombre', 'tipo')
     search_fields = ('codigo', 'nombre')
     list_filter = ('tipo',)    
 
 @admin.register(ConsecutivoDocumento)
-class ConsecutivoDocumentoAdmin(admin.ModelAdmin):
+class ConsecutivoDocumentoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('institucion', 'tipo_documento', 'siguiente_numero')
     list_filter = ('institucion', 'tipo_documento')
 
 @admin.register(Proveedor)
-class ProveedorAdmin(admin.ModelAdmin):
+class ProveedorAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'nit_o_cedula', 'institucion')
     search_fields = ('nombre', 'nit_o_cedula')
     list_filter = ('institucion',)
 
 
 @admin.register(AuditoriaExportacionContable)
-class AuditoriaExportacionContableAdmin(admin.ModelAdmin):
+class AuditoriaExportacionContableAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = (
         "creado",
         "institucion",
@@ -232,7 +237,7 @@ class AuditoriaExportacionContableAdmin(admin.ModelAdmin):
 
 
 @admin.register(WebhookEventoMercadoPago)
-class WebhookEventoMercadoPagoAdmin(admin.ModelAdmin):
+class WebhookEventoMercadoPagoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = (
         "fecha_recepcion", "institucion", "tipo", "data_id",
         "firma_valida", "estado_http_devuelto", "procesado_ok",
@@ -253,7 +258,7 @@ class WebhookEventoMercadoPagoAdmin(admin.ModelAdmin):
 
 
 @admin.register(LlamadaMercadoPago)
-class LlamadaMercadoPagoAdmin(admin.ModelAdmin):
+class LlamadaMercadoPagoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = (
         "fecha", "institucion", "accion", "intento",
         "estado_http", "exito", "latencia_ms",
@@ -278,7 +283,14 @@ admin.site.register(InstitucionEducativa, InstitucionEducativaAdmin)
 admin.site.register(TipoConceptoPago, TipoConceptoPagoAdmin)
 admin.site.register(CuentaPorCobrarEstudiante, CuentaPorCobrarEstudianteAdmin)
 admin.site.register(PagoRegistrado, PagoRegistradoAdmin)
-admin.site.register(Permission)
+
+
+class PermissionAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
+    """Modelo global de Django sin institución: solo el superusuario."""
+    pass
+
+
+admin.site.register(Permission, PermissionAdmin)
 
 
 # --- EjecucionHealthCheck (auditoría del dashboard de mantenimiento) ---
@@ -286,7 +298,7 @@ from .models import EjecucionHealthCheck
 
 
 @admin.register(EjecucionHealthCheck)
-class EjecucionHealthCheckAdmin(admin.ModelAdmin):
+class EjecucionHealthCheckAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
         "id", "iniciado_at", "iniciado_por", "institucion_filtro",
         "estado", "errores_count", "warnings_count", "pasos_completados",
