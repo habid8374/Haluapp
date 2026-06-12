@@ -555,3 +555,35 @@ def notificar_docente_nueva_cita_reunion(sender, instance, created, **kwargs):
 
     cita_pk = instance.pk
     transaction.on_commit(lambda pk=cita_pk: _notificar_docente_cita_reunion_academica(pk))
+
+
+# ---------------------------------------------------------------------------
+# Señales de notificación por correo (tareas Celery)
+# ---------------------------------------------------------------------------
+
+@receiver(post_save, sender='finanzas.PagoRegistrado')
+def enviar_correo_pago_recibido(sender, instance, created, **kwargs):
+    """Encola correo de confirmación de pago al acudiente cuando se crea un pago nuevo."""
+    if not created:
+        return
+    from django.db import transaction
+    from gestion_academica.tasks_notificaciones import notificar_pago_recibido
+
+    pago_pk = instance.pk
+    transaction.on_commit(
+        lambda pk=pago_pk: notificar_pago_recibido.delay(pk)
+    )
+
+
+@receiver(post_save, sender=RegistroAsistencia)
+def enviar_correo_inasistencia(sender, instance, created, **kwargs):
+    """Encola correo a acudientes cuando el estudiante falta o llega tarde."""
+    if instance.estado not in ("AUSENTE", "TARDANZA"):
+        return
+    from django.db import transaction
+    from gestion_academica.tasks_notificaciones import notificar_inasistencia
+
+    registro_pk = instance.pk
+    transaction.on_commit(
+        lambda pk=registro_pk: notificar_inasistencia.delay(pk)
+    )

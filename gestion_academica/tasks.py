@@ -1036,3 +1036,19 @@ def marcar_casos_convivencia_vencidos():
         actualizados += 1
 
     return f"Sentinel: {actualizados} casos marcados como VENCIDOS."
+
+
+@shared_task(name='gestion_academica.tasks.ejecutar_backup_database', bind=True, max_retries=2)
+def ejecutar_backup_database(self):
+    """Tarea Celery que ejecuta el management command de backup diario."""
+    from django.core.management import call_command
+    from io import StringIO
+    out = StringIO()
+    try:
+        call_command('backup_database', stdout=out, stderr=out)
+        resultado = out.getvalue()
+        logger.info("Backup automático completado: %s", resultado)
+        return resultado
+    except Exception as exc:
+        logger.error("Error en backup automático: %s", exc, exc_info=True)
+        raise self.retry(exc=exc, countdown=300)  # reintenta en 5 min

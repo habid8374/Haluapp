@@ -1,0 +1,261 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}Historial de Auditoría{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .badge-crear   { background: #d1fae5; color: #065f46; }
+  .badge-editar  { background: #dbeafe; color: #1e40af; }
+  .badge-eliminar{ background: #fee2e2; color: #991b1b; }
+  .badge-modelo  { background: #ede9fe; color: #5b21b6; }
+
+  .auditoria-badge {
+    display: inline-block;
+    padding: .25em .65em;
+    border-radius: 99px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+  }
+
+  .tabla-auditoria td { vertical-align: middle; font-size: .85rem; }
+  .tabla-auditoria th { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
+
+  .filtros-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.2rem 1.5rem;
+    box-shadow: 0 1px 8px rgba(79,70,229,.08);
+    margin-bottom: 1.4rem;
+  }
+
+  .val-json {
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: .75rem;
+    color: #6b7280;
+  }
+
+  .pagination .page-link { border-radius: 8px; margin: 0 2px; }
+  .pagination .page-item.active .page-link {
+    background: #4f46e5;
+    border-color: #4f46e5;
+  }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<!-- Hero Banner -->
+<div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border-radius: 18px; padding: 2rem; color: white; margin-bottom: 1.5rem;">
+  <div class="d-flex align-items-center gap-3">
+    <div style="width:54px;height:54px;background:rgba(255,255,255,.18);border-radius:14px;
+                display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+      <i class="bi bi-shield-lock-fill"></i>
+    </div>
+    <div>
+      <h2 class="mb-0 fw-700" style="font-size:1.5rem;">Auditoría de Cambios</h2>
+      <p class="mb-0 opacity-75" style="font-size:.9rem;">
+        Historial de quién cambió qué nota, pago o matrícula, cuándo y desde qué valor
+      </p>
+    </div>
+    <div class="ms-auto text-end d-none d-md-block">
+      <div style="font-size:2rem;font-weight:800;line-height:1;">{{ total_registros }}</div>
+      <div style="font-size:.75rem;opacity:.8;">registros encontrados</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="filtros-card">
+  <form method="get" class="row g-3 align-items-end">
+    <div class="col-12 col-md-2">
+      <label class="form-label fw-600" style="font-size:.8rem;">Modelo</label>
+      <select name="modelo" class="form-select form-select-sm">
+        <option value="">Todos</option>
+        {% for m in modelos_disponibles %}
+          <option value="{{ m }}" {% if modelo_filtro == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-12 col-md-2">
+      <label class="form-label fw-600" style="font-size:.8rem;">Acción</label>
+      <select name="accion" class="form-select form-select-sm">
+        <option value="">Todas</option>
+        {% for codigo, etiqueta in acciones_disponibles %}
+          <option value="{{ codigo }}" {% if accion_filtro == codigo %}selected{% endif %}>{{ etiqueta }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-12 col-md-2">
+      <label class="form-label fw-600" style="font-size:.8rem;">Desde</label>
+      <input type="date" name="fecha_desde" class="form-control form-control-sm"
+             value="{{ fecha_desde }}">
+    </div>
+
+    <div class="col-12 col-md-2">
+      <label class="form-label fw-600" style="font-size:.8rem;">Hasta</label>
+      <input type="date" name="fecha_hasta" class="form-control form-control-sm"
+             value="{{ fecha_hasta }}">
+    </div>
+
+    <div class="col-12 col-md-3">
+      <label class="form-label fw-600" style="font-size:.8rem;">Usuario (email)</label>
+      <input type="text" name="usuario" class="form-control form-control-sm"
+             placeholder="Buscar por email..." value="{{ usuario_filtro }}">
+    </div>
+
+    <div class="col-12 col-md-1 d-flex gap-2">
+      <button type="submit" class="btn btn-sm btn-primary w-100"
+              style="background:#4f46e5;border-color:#4f46e5;border-radius:8px;">
+        <i class="bi bi-search"></i>
+      </button>
+      <a href="{% url 'auditoria:historial' %}" class="btn btn-sm btn-outline-secondary w-100"
+         style="border-radius:8px;" title="Limpiar filtros">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Tabla -->
+<div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden;">
+  <div class="table-responsive">
+    <table class="table tabla-auditoria mb-0">
+      <thead style="background:#f8f7ff;">
+        <tr>
+          <th class="ps-3">Fecha</th>
+          <th>Acción</th>
+          <th>Modelo</th>
+          <th>ID Obj.</th>
+          <th>Usuario</th>
+          <th>Descripción</th>
+          <th>Valor anterior</th>
+          <th>Valor nuevo</th>
+          <th>IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for registro in page_obj %}
+        <tr>
+          <td class="ps-3 text-nowrap" style="color:#6b7280;">
+            {{ registro.fecha|date:"d/m/Y" }}<br>
+            <span style="font-size:.72rem;">{{ registro.fecha|time:"H:i:s" }}</span>
+          </td>
+
+          <td>
+            {% if registro.accion == 'CREAR' %}
+              <span class="auditoria-badge badge-crear"><i class="bi bi-plus-lg me-1"></i>Crear</span>
+            {% elif registro.accion == 'EDITAR' %}
+              <span class="auditoria-badge badge-editar"><i class="bi bi-pencil me-1"></i>Editar</span>
+            {% else %}
+              <span class="auditoria-badge badge-eliminar"><i class="bi bi-trash me-1"></i>Eliminar</span>
+            {% endif %}
+          </td>
+
+          <td>
+            <span class="auditoria-badge badge-modelo">{{ registro.modelo }}</span>
+          </td>
+
+          <td style="color:#9ca3af;">{{ registro.objeto_id }}</td>
+
+          <td>
+            {% if registro.usuario %}
+              <span style="font-size:.82rem;">
+                {{ registro.usuario.get_full_name|default:registro.usuario.email }}
+              </span>
+              <br>
+              <span style="font-size:.7rem;color:#9ca3af;">{{ registro.usuario.email }}</span>
+            {% else %}
+              <span class="text-muted" style="font-size:.8rem;">Sistema</span>
+            {% endif %}
+          </td>
+
+          <td style="max-width:320px;">{{ registro.descripcion }}</td>
+
+          <td>
+            {% if registro.valor_anterior %}
+              <span class="val-json" title="{{ registro.valor_anterior }}">
+                {{ registro.valor_anterior }}
+              </span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+
+          <td>
+            {% if registro.valor_nuevo %}
+              <span class="val-json" title="{{ registro.valor_nuevo }}">
+                {{ registro.valor_nuevo }}
+              </span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+
+          <td style="color:#9ca3af;font-size:.75rem;">{{ registro.ip_address|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" class="text-center py-5 text-muted">
+            <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+            No se encontraron registros con los filtros aplicados.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Paginación -->
+{% if page_obj.has_other_pages %}
+<nav class="mt-4 d-flex justify-content-center">
+  <ul class="pagination pagination-sm">
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+          <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+// Tooltip para los valores JSON truncados
+document.querySelectorAll('.val-json').forEach(function(el) {
+  el.style.cursor = 'help';
+});
+</script>
+{% endblock %}

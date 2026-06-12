@@ -1,0 +1,389 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}Aprovisionar Nuevo Colegio — Panel de Control{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .step-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,.18); color: #fff;
+    font-weight: 700; font-size: .9rem; flex-shrink: 0;
+  }
+  .nivel-check { cursor: pointer; }
+  .nivel-check input[type="checkbox"] { width: 1.1rem; height: 1.1rem; cursor: pointer; }
+  .nivel-card {
+    border: 2px solid #e2e8f0; border-radius: 12px; padding: 1rem 1.25rem;
+    transition: border-color .2s, background .2s; cursor: pointer;
+  }
+  .nivel-card:has(input:checked) {
+    border-color: #4f46e5; background: #eef2ff;
+  }
+  .result-item {
+    display: flex; align-items: flex-start; gap: .75rem;
+    padding: .6rem 0; border-bottom: 1px solid #f1f5f9;
+  }
+  .result-item:last-child { border-bottom: none; }
+  .result-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-size: .8rem;
+  }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<!-- Hero Banner -->
+<div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+            border-radius: 18px; padding: 1.75rem 2rem; color: white;
+            margin-bottom: 1.75rem; display: flex; justify-content: space-between;
+            align-items: center; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <div style="display:inline-flex; align-items:center; gap:.6rem;
+                background:rgba(255,255,255,.08); border-radius:20px;
+                padding:.3rem .9rem; font-size:.78rem; margin-bottom:.6rem;">
+      <i class="bi bi-shield-lock-fill" style="color:#94a3b8;"></i> Super-Admin
+    </div>
+    <h2 class="fw-800 mb-1" style="font-size:1.45rem;">
+      <i class="bi bi-building-add me-2"></i>Aprovisionar Nuevo Colegio
+    </h2>
+    <p class="mb-0" style="opacity:.75; font-size:.9rem;">
+      Crea la institución con niveles, grados y períodos en un solo paso.
+    </p>
+  </div>
+  <a href="{% url 'platform_control:dashboard' %}" class="btn btn-outline-light" style="border-radius:9px;">
+    <i class="bi bi-arrow-left me-1"></i> Panel Principal
+  </a>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert"
+         style="border-radius:10px;">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+
+{% if resultado %}
+  <!-- ========================= PASO 2: Resumen ========================= -->
+  <div class="card" style="border-radius:16px; border:none; box-shadow:0 4px 24px rgba(0,0,0,.08);">
+    <div class="card-body p-4">
+
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="width:48px;height:48px;border-radius:50%;background:#dcfce7;
+                    display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-check-circle-fill" style="color:#16a34a;font-size:1.5rem;"></i>
+        </div>
+        <div>
+          <h4 class="fw-700 mb-0">Colegio aprovisionado exitosamente</h4>
+          <p class="text-muted mb-0" style="font-size:.88rem;">
+            Todo se creó correctamente. Revisa el resumen a continuación.
+          </p>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+
+        <!-- Institución -->
+        <div class="col-md-6">
+          <div style="background:#f8fafc;border-radius:12px;padding:1.25rem 1.5rem;
+                      border:1px solid #e2e8f0;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <i class="bi bi-building-fill text-primary"></i>
+              <span class="fw-700" style="font-size:.9rem;">Institución</span>
+            </div>
+            <div class="result-item">
+              <div class="result-icon" style="background:#dbeafe;">
+                <i class="bi bi-building" style="color:#1d4ed8;"></i>
+              </div>
+              <div>
+                <div class="fw-600">{{ resultado.institucion.nombre }}</div>
+                <div class="text-muted" style="font-size:.8rem;">NIT: {{ resultado.institucion.nit }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Credenciales admin -->
+        <div class="col-md-6">
+          <div style="background:#fefce8;border-radius:12px;padding:1.25rem 1.5rem;
+                      border:1px solid #fef08a;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <i class="bi bi-person-badge-fill text-warning"></i>
+              <span class="fw-700" style="font-size:.9rem;">Administrador creado</span>
+            </div>
+            <div class="result-item">
+              <div class="result-icon" style="background:#fef9c3;">
+                <i class="bi bi-person-fill" style="color:#b45309;"></i>
+              </div>
+              <div>
+                <div class="fw-600">{{ resultado.admin_username }}</div>
+                <div class="text-muted" style="font-size:.8rem;">Email: {{ resultado.admin_email }}</div>
+              </div>
+            </div>
+            <div class="mt-3 p-2" style="background:#fff;border-radius:8px;border:1px solid #fde68a;">
+              <div style="font-size:.75rem;color:#92400e;font-weight:600;text-transform:uppercase;
+                          letter-spacing:.5px;margin-bottom:4px;">Contraseña temporal</div>
+              <code style="font-size:1rem;color:#1f2937;letter-spacing:2px;">{{ resultado.admin_password }}</code>
+            </div>
+            <p class="text-warning mb-0 mt-2" style="font-size:.75rem;">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i>
+              Comparte estas credenciales de forma segura. El admin debe cambiar su contraseña al ingresar.
+            </p>
+          </div>
+        </div>
+
+        <!-- Niveles y Grados -->
+        <div class="col-md-6">
+          <div style="background:#f0fdf4;border-radius:12px;padding:1.25rem 1.5rem;
+                      border:1px solid #bbf7d0;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <i class="bi bi-diagram-3-fill text-success"></i>
+              <span class="fw-700" style="font-size:.9rem;">Niveles y Grados ({{ resultado.grados|length }})</span>
+            </div>
+            {% for nivel, grados_nivel in resultado.niveles_grados.items %}
+              <div class="result-item">
+                <div class="result-icon" style="background:#dcfce7;">
+                  <i class="bi bi-check" style="color:#16a34a;"></i>
+                </div>
+                <div>
+                  <div class="fw-600" style="font-size:.88rem;">{{ nivel }}</div>
+                  <div class="text-muted" style="font-size:.78rem;">
+                    {% for g in grados_nivel %}{{ g.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Períodos -->
+        <div class="col-md-6">
+          <div style="background:#f5f3ff;border-radius:12px;padding:1.25rem 1.5rem;
+                      border:1px solid #ddd6fe;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <i class="bi bi-calendar3 text-purple" style="color:#7c3aed;"></i>
+              <span class="fw-700" style="font-size:.9rem;">Períodos Académicos {{ resultado.anio }}</span>
+            </div>
+            {% for p in resultado.periodos %}
+              <div class="result-item">
+                <div class="result-icon" style="background:#ede9fe;">
+                  <i class="bi bi-calendar-check" style="color:#7c3aed;"></i>
+                </div>
+                <div>
+                  <div class="fw-600" style="font-size:.88rem;">{{ p.nombre }}</div>
+                  <div class="text-muted" style="font-size:.78rem;">
+                    {{ p.fecha_inicio|date:"d M" }} — {{ p.fecha_fin|date:"d M Y" }}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'platform_control:dashboard' %}" class="btn btn-primary fw-600"
+           style="border-radius:9px; background:linear-gradient(135deg,#4f46e5,#7c3aed); border:none;">
+          <i class="bi bi-speedometer2 me-1"></i> Ir al Panel Principal
+        </a>
+        <a href="{% url 'platform_control:onboarding_nuevo_colegio' %}" class="btn btn-outline-secondary fw-600"
+           style="border-radius:9px;">
+          <i class="bi bi-plus-circle me-1"></i> Aprovisionar otro colegio
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+{% else %}
+  <!-- ========================= PASO 1: Formulario ========================= -->
+  <div class="card" style="border-radius:16px; border:none; box-shadow:0 4px 24px rgba(0,0,0,.08);">
+    <div class="card-body p-4">
+
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="step-badge" style="background:#4f46e5; width:36px; height:36px;">1</div>
+        <div>
+          <h5 class="fw-700 mb-0">Datos de la institución</h5>
+          <p class="text-muted mb-0" style="font-size:.84rem;">
+            Completa los datos básicos y selecciona los niveles educativos.
+          </p>
+        </div>
+      </div>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" style="border-radius:8px;">
+            {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="row g-3 mb-4">
+
+          <div class="col-md-8">
+            <label class="form-label fw-600" for="id_nombre">
+              Nombre de la Institución <span class="text-danger">*</span>
+            </label>
+            <input type="text" name="nombre" id="id_nombre" class="form-control{% if form.nombre.errors %} is-invalid{% endif %}"
+                   value="{{ form.nombre.value|default:'' }}"
+                   placeholder="Ej: Colegio San José de la Salle"
+                   style="border-radius:8px;" required>
+            {% if form.nombre.errors %}
+              <div class="invalid-feedback">{{ form.nombre.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-600" for="id_nit">
+              NIT <span class="text-danger">*</span>
+            </label>
+            <input type="text" name="nit" id="id_nit" class="form-control{% if form.nit.errors %} is-invalid{% endif %}"
+                   value="{{ form.nit.value|default:'' }}"
+                   placeholder="Ej: 900123456-7"
+                   style="border-radius:8px;" required>
+            {% if form.nit.errors %}
+              <div class="invalid-feedback">{{ form.nit.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-600" for="id_direccion">Dirección</label>
+            <input type="text" name="direccion" id="id_direccion"
+                   class="form-control{% if form.direccion.errors %} is-invalid{% endif %}"
+                   value="{{ form.direccion.value|default:'' }}"
+                   placeholder="Ej: Calle 10 # 5-23, Barrio Centro"
+                   style="border-radius:8px;">
+            {% if form.direccion.errors %}
+              <div class="invalid-feedback">{{ form.direccion.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-600" for="id_telefono">Teléfono</label>
+            <input type="text" name="telefono" id="id_telefono"
+                   class="form-control{% if form.telefono.errors %} is-invalid{% endif %}"
+                   value="{{ form.telefono.value|default:'' }}"
+                   placeholder="Ej: 310 456 7890"
+                   style="border-radius:8px;">
+            {% if form.telefono.errors %}
+              <div class="invalid-feedback">{{ form.telefono.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-600" for="id_correo_electronico">Correo electrónico de contacto</label>
+            <input type="email" name="correo_electronico" id="id_correo_electronico"
+                   class="form-control{% if form.correo_electronico.errors %} is-invalid{% endif %}"
+                   value="{{ form.correo_electronico.value|default:'' }}"
+                   placeholder="Ej: info@colegio.edu.co"
+                   style="border-radius:8px;">
+            {% if form.correo_electronico.errors %}
+              <div class="invalid-feedback">{{ form.correo_electronico.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-600" for="id_admin_email">
+              Email del administrador <span class="text-danger">*</span>
+            </label>
+            <input type="email" name="admin_email" id="id_admin_email"
+                   class="form-control{% if form.admin_email.errors %} is-invalid{% endif %}"
+                   value="{{ form.admin_email.value|default:'' }}"
+                   placeholder="Ej: admin@colegio.edu.co"
+                   style="border-radius:8px;" required>
+            <div class="form-text">Se creará un usuario <em>admin_institucion</em> con este correo.</div>
+            {% if form.admin_email.errors %}
+              <div class="invalid-feedback">{{ form.admin_email.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <!-- Niveles educativos -->
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="step-badge" style="background:#7c3aed; width:30px; height:30px; font-size:.8rem;">2</div>
+            <label class="fw-700 mb-0">
+              Niveles educativos <span class="text-danger">*</span>
+            </label>
+          </div>
+          <p class="text-muted mb-3" style="font-size:.85rem;">
+            Selecciona los niveles que ofrece el colegio. Se crearán los grados estándar colombianos automáticamente.
+          </p>
+
+          {% if form.niveles.errors %}
+            <div class="alert alert-danger py-2" style="border-radius:8px; font-size:.85rem;">
+              {{ form.niveles.errors.0 }}
+            </div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-sm-6 col-lg-3">
+              <label class="nivel-card w-100 d-block">
+                <input type="checkbox" name="niveles" value="preescolar"
+                       class="me-2"
+                       {% if 'preescolar' in form.niveles.value|default:'' %}checked{% endif %}>
+                <i class="bi bi-stars text-warning me-1"></i>
+                <span class="fw-600">Preescolar</span>
+                <div class="text-muted mt-1" style="font-size:.78rem;">Pre-jardín, Jardín, Transición</div>
+              </label>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <label class="nivel-card w-100 d-block">
+                <input type="checkbox" name="niveles" value="primaria"
+                       class="me-2"
+                       {% if 'primaria' in form.niveles.value|default:'' %}checked{% endif %}>
+                <i class="bi bi-book text-primary me-1"></i>
+                <span class="fw-600">Primaria</span>
+                <div class="text-muted mt-1" style="font-size:.78rem;">Grados 1° al 5°</div>
+              </label>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <label class="nivel-card w-100 d-block">
+                <input type="checkbox" name="niveles" value="secundaria"
+                       class="me-2"
+                       {% if 'secundaria' in form.niveles.value|default:'' %}checked{% endif %}>
+                <i class="bi bi-mortarboard text-success me-1"></i>
+                <span class="fw-600">Secundaria</span>
+                <div class="text-muted mt-1" style="font-size:.78rem;">Grados 6° al 9°</div>
+              </label>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+              <label class="nivel-card w-100 d-block">
+                <input type="checkbox" name="niveles" value="media"
+                       class="me-2"
+                       {% if 'media' in form.niveles.value|default:'' %}checked{% endif %}>
+                <i class="bi bi-award text-danger me-1"></i>
+                <span class="fw-600">Media</span>
+                <div class="text-muted mt-1" style="font-size:.78rem;">Grados 10° y 11°</div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <hr style="border-color:#e2e8f0; margin:1.5rem 0;">
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{% url 'platform_control:dashboard' %}" class="btn btn-outline-secondary"
+             style="border-radius:9px;">
+            Cancelar
+          </a>
+          <button type="submit" class="btn btn-primary fw-700"
+                  style="border-radius:9px; background:linear-gradient(135deg,#4f46e5,#7c3aed); border:none; padding:.6rem 1.75rem;">
+            <i class="bi bi-rocket-takeoff-fill me-1"></i>
+            Aprovisionar Colegio
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

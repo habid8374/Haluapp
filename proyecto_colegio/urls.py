@@ -63,6 +63,8 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('cuestionarios/', include('cuestionarios.urls', namespace='cuestionarios')),
     path('mensajeria/', include('mensajeria.urls', namespace='mensajeria')),
+    path('auditoria/', include('auditoria.urls', namespace='auditoria')),
+    path('2fa/', include('autenticacion_2fa.urls', namespace='2fa')),
 ]
 
 # --- 2. CONFIGURACIÓN PARA ARCHIVOS EN DESARROLLO ---

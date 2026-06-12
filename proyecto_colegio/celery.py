@@ -9,6 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'proyecto_colegio.settings')
 # Esto es más robusto que el autodiscover puro.
 app = Celery('proyecto_colegio', include=[
     'gestion_academica.tasks',
+    'gestion_academica.tasks_notificaciones',
     'admisiones.tasks',
     'finanzas.tasks',
 ])

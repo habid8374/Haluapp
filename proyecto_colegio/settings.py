@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     'recursos_educativos.apps.RecursosEducativosConfig',
     'platform_control.apps.PlatformControlConfig',
     'facturacion_electronica.apps.FacturacionElectronicaConfig',
+    'auditoria.apps.AuditoriaConfig',
+    'autenticacion_2fa.apps.Autenticacion2faConfig',
 
 
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)
@@ -126,12 +128,13 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'auditoria.middleware.AuditoriaMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'proyecto_colegio.middleware.InstitucionActivaMiddleware', # <-- AÑADE ESTA LÍNEA AQUÍ
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    
-    
+    'autenticacion_2fa.middleware.Verificacion2FAMiddleware',
+
     # --- MIDDLEWARE PARA REGISTRO INICIAL ---
     # Si quieres que el sistema SIEMPRE redirija a registro_inicial si no hay usuarios,
     # descomenta esta línea después de crear el archivo proyecto_colegio/middleware.py
@@ -542,6 +545,32 @@ except ValueError:
 CELERY_WORKER_PREFETCH_MULTIPLIER = int(
     os.environ.get('CELERY_WORKER_PREFETCH_MULTIPLIER', '1')
 )
+
+# Tareas programadas (Celery Beat)
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    # Backup diario a las 2:00 AM hora Colombia
+    'backup-diario': {
+        'task': 'gestion_academica.tasks.ejecutar_backup_database',
+        'schedule': crontab(hour=2, minute=0),
+    },
+}
+
+# ── SENTRY — monitoreo de errores en producción ───────────────────────────────
+SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
+        traces_sample_rate=0.1,       # 10 % de requests trackeados (performance)
+        send_default_pii=False,        # No enviar datos personales a Sentry
+        environment='production' if not DEBUG else 'development',
+        release=os.environ.get('GIT_COMMIT', 'unknown'),
+    )
 CELERY_TASK_ACKS_LATE = True
 
 # --- CACHÉ (memoria local, sin Redis requerido en desarrollo) ---

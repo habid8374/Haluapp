@@ -75,3 +75,9 @@ weasyprint==68.1
 bleach==6.2.0
 python-magic==0.4.27
 django-ratelimit==4.1.0
+
+# --- Monitoreo de errores ---
+sentry-sdk[django]==2.29.1
+
+# --- Autenticación de dos factores (2FA / TOTP) ---
+pyotp==2.9.0
