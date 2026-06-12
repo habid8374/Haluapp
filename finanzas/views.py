@@ -707,58 +707,10 @@ def registrar_pago(request, cuenta_id):
                 messages.warning(request, "El pago se registró, pero hubo un error al actualizar el estado del aspirante.")
             # --- FIN DE LA LÓGICA DE SINCRONIZACIÓN ---
 
-            # --- INICIO DE LA LÓGICA DE ENVÍO DE CORREO CORREGIDA ---
-            try:
-                institucion = pago.institucion
-                
-                # 1. Creamos una conexión SMTP dinámica con las credenciales de la institución
-                connection = get_connection(
-                    host=institucion.email_host,
-                    port=institucion.email_port,
-                    username=institucion.email_host_user,
-                    password=institucion.email_host_password,
-                    use_tls=institucion.email_use_tls
-                )
-
-                # El resto de la lógica para generar el PDF se mantiene igual
-                domain = f'{request.scheme}://{request.get_host()}'
-                template_path = 'finanzas/emails/recibo_pago.html'
-                template = get_template(template_path)
-                context = {'pago': pago, 'institucion': institucion, 'domain': domain}
-                html = template.render(context)
-                
-                pdf_buffer = BytesIO()
-                pisa_status = pisa.CreatePDF(html, dest=pdf_buffer, link_callback=link_callback)
-                if pisa_status.err:
-                    raise Exception(f"Error al generar el PDF: {pisa_status.err}")
-                pdf_buffer.seek(0)
-                
-                email_acudiente = getattr(pago.estudiante, 'email_acudiente', None)
-                email_destinatario = email_acudiente or pago.estudiante.usuario.email
-                
-                if email_destinatario:
-                    asunto = f"Recibo de Pago - {institucion.nombre}"
-                    remitente = f'"{institucion.nombre}" <{institucion.email_host_user}>'
-                    
-                    # 2. Creamos el objeto EmailMessage y le pasamos la conexión que creamos
-                    email = EmailMessage(
-                        asunto,
-                        html, # El cuerpo principal ahora es el HTML
-                        remitente,
-                        [email_destinatario],
-                        connection=connection # <-- Usamos la conexión dinámica
-                    )
-                    email.content_subtype = "html"
-                    email.attach(f'Recibo_Pago_{pago.id}.pdf', pdf_buffer.getvalue(), 'application/pdf')
-                    email.send()
-                    
-                    messages.success(request, f"Pago de ${pago.valor_pagado} registrado y recibo enviado por correo.")
-                else:
-                    messages.warning(request, "Pago registrado, pero no se pudo notificar (sin email de destinatario).")
-
-            except Exception as e:
-                logger.error(f"Error al enviar correo de recibo: {e}", exc_info=True)
-                messages.warning(request, f"Pago registrado, pero ocurrió un error al enviar la notificación: {e}")
+            # Enviar recibo por correo en segundo plano (Celery) para evitar timeout SMTP
+            from gestion_academica.tasks_notificaciones import notificar_recibo_pago_manual
+            transaction.on_commit(lambda pk=pago.pk: notificar_recibo_pago_manual.delay(pk))
+            messages.success(request, f"Pago de ${pago.valor_pagado} registrado. El recibo llegará por correo en unos minutos.")
 
             return redirect('finanzas:historial_cuentas_estudiante', estudiante_id=cuenta.estudiante.pk)
     else:

@@ -305,9 +305,15 @@ def emitir_factura(request, pago_id):
         messages.error(request, f"No se pudo emitir la factura electrónica: {exc}")
         return redirect("finanzas:historial_cuentas_estudiante", estudiante_id=pago.estudiante_id)
 
+    # Notificar al estudiante y familiares por correo
+    from django.db import transaction as _tx
+    from facturacion_electronica.tasks import _notificar_factura
+    _tx.on_commit(lambda fid=factura.pk: _notificar_factura(fid))
+
     messages.success(
         request,
-        f"✅ Factura electrónica emitida y validada (No. {factura.numero or factura.reference_code}).",
+        f"✅ Factura electrónica emitida y validada (No. {factura.numero or factura.reference_code}). "
+        f"Se notificará por correo al acudiente.",
     )
     return redirect("finanzas:historial_cuentas_estudiante", estudiante_id=pago.estudiante_id)
 

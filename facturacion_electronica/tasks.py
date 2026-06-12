@@ -6,6 +6,15 @@ from celery import shared_task
 logger = logging.getLogger(__name__)
 
 
+def _notificar_factura(factura_id: int) -> None:
+    """Encola el correo de notificación de factura (helper para evitar importación circular)."""
+    try:
+        from gestion_academica.tasks_notificaciones import notificar_factura_electronica
+        notificar_factura_electronica.delay(factura_id)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("_notificar_factura: no se pudo encolar correo para factura %s: %s", factura_id, exc)
+
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=120)
 def emitir_factura_async(self, pago_id: int):
     """Emite la factura electrónica de un pago en segundo plano.
@@ -24,6 +33,11 @@ def emitir_factura_async(self, pago_id: int):
 
     try:
         factura = emitir_para_pago(pago)
+        # Notificar al estudiante y familiares una vez validada
+        from django.db import transaction
+        transaction.on_commit(
+            lambda fid=factura.pk: _notificar_factura(fid)
+        )
         return {"ok": True, "factura_id": factura.pk, "numero": factura.numero}
     except FactusNoConfigurado as exc:
         logger.info("emitir_factura_async: módulo no operativo para pago %s: %s", pago_id, exc)
@@ -45,6 +59,10 @@ def emitir_factura_cuenta_async(self, cuenta_id: int):
         return {"ok": False, "motivo": "cuenta_inexistente"}
     try:
         factura = emitir_para_cuenta(cuenta)
+        from django.db import transaction
+        transaction.on_commit(
+            lambda fid=factura.pk: _notificar_factura(fid)
+        )
         return {"ok": True, "factura_id": factura.pk, "numero": factura.numero}
     except FactusNoConfigurado as exc:
         logger.info("emitir_factura_cuenta_async: módulo no operativo cuenta %s: %s", cuenta_id, exc)

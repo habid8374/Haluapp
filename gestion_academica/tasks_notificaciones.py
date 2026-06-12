@@ -6,6 +6,8 @@ Tareas:
   - notificar_pago_recibido(pago_id)
   - notificar_inasistencia(registro_asistencia_id)
   - notificar_boletin_disponible(estudiante_id, periodo_id)
+  - notificar_factura_electronica(factura_id)
+  - notificar_recibo_pago_manual(pago_id)
 """
 from __future__ import annotations
 
@@ -601,5 +603,348 @@ def notificar_boletin_disponible(self, estudiante_id: int, periodo_id: int) -> N
         logger.error(
             "notificar_boletin_disponible: error enviando correo: %s",
             exc, exc_info=True,
+        )
+        raise self.retry(exc=exc)
+
+
+# ---------------------------------------------------------------------------
+# Helpers de plantillas — factura electrónica y recibo manual
+# ---------------------------------------------------------------------------
+
+def _html_factura(institucion_nombre: str, estudiante_nombre: str,
+                  numero: str, concepto: str, valor: str,
+                  fecha: str, url_pdf: str, cufe: str) -> str:
+    boton_pdf = (
+        f"""<a href="{url_pdf}"
+               style="display:inline-block;background:linear-gradient(135deg,#4f46e5,#7c3aed);
+                      color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;
+                      padding:11px 28px;border-radius:8px;letter-spacing:.3px;margin-top:8px;">
+              Ver / Descargar Factura
+            </a>"""
+        if url_pdf else
+        "<p style='color:#6b7280;font-size:13px;margin:0;'>El PDF estará disponible próximamente en la plataforma.</p>"
+    )
+    cufe_fila = (
+        f"""<tr>
+              <td style="color:#6b7280;font-size:11px;text-transform:uppercase;
+                         letter-spacing:.6px;padding-bottom:2px;padding-top:12px;">CUFE / CUDE</td>
+            </tr>
+            <tr>
+              <td style="color:#374151;font-size:11px;font-family:monospace;
+                         word-break:break-all;">{cufe}</td>
+            </tr>"""
+        if cufe else ""
+    )
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0"
+             style="background:#ffffff;border-radius:16px;overflow:hidden;
+                    box-shadow:0 4px 24px rgba(0,0,0,.10);max-width:560px;width:100%;">
+        <tr>
+          <td style="background:linear-gradient(135deg,#1e40af 0%,#1d4ed8 100%);
+                     padding:32px 36px;text-align:center;">
+            <div style="display:inline-block;background:rgba(255,255,255,.18);
+                        border-radius:50%;width:56px;height:56px;line-height:56px;
+                        font-size:26px;margin-bottom:12px;">&#128196;</div>
+            <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">
+              Factura Electrónica Disponible
+            </h1>
+            <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">
+              {institucion_nombre}
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px 36px;">
+            <p style="color:#374151;font-size:15px;margin:0 0 20px;">
+              Estimado/a acudiente o representante de <strong>{estudiante_nombre}</strong>,
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;
+                          margin-bottom:24px;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Número de Factura</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#1e40af;font-size:20px;font-weight:800;
+                                 padding-bottom:14px;">{numero}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Concepto</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#111827;font-size:16px;font-weight:700;
+                                 padding-bottom:14px;">{concepto}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Valor</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#1e40af;font-size:24px;font-weight:800;
+                                 padding-bottom:14px;">{valor}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Fecha</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#374151;font-size:15px;font-weight:600;">{fecha}</td>
+                    </tr>
+                    {cufe_fila}
+                  </table>
+                </td>
+              </tr>
+            </table>
+            <div style="text-align:center;margin-bottom:24px;">
+              {boton_pdf}
+            </div>
+            <p style="color:#6b7280;font-size:13px;margin:0;">
+              Esta factura fue generada y validada ante la DIAN por
+              <strong>{institucion_nombre}</strong>.
+              Consérvela como soporte de pago. Si tiene alguna duda, comuníquese
+              con la administración del colegio.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f8fafc;padding:18px 36px;text-align:center;
+                     border-top:1px solid #e2e8f0;">
+            <p style="color:#94a3b8;font-size:12px;margin:0;">
+              Mensaje automático de <strong>Halu Plataforma Escolar</strong>.
+              No responda a este correo.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+
+
+# ---------------------------------------------------------------------------
+# Tarea 4: Factura electrónica validada
+# ---------------------------------------------------------------------------
+
+@shared_task(
+    name="gestion_academica.notificar_factura_electronica",
+    bind=True,
+    max_retries=3,
+    default_retry_delay=120,
+)
+def notificar_factura_electronica(self, factura_id: int) -> None:
+    """Envía la factura electrónica por correo al estudiante y sus familiares."""
+    from facturacion_electronica.models import FacturaElectronica
+    from admisiones.utils import enviar_correo_dinamico
+
+    try:
+        factura = (
+            FacturaElectronica.objects
+            .select_related(
+                "estudiante__usuario",
+                "estudiante__institucion",
+                "pago__cuenta__concepto_pago",
+                "cuenta__concepto_pago",
+                "institucion",
+            )
+            .get(pk=factura_id)
+        )
+    except FacturaElectronica.DoesNotExist:
+        logger.warning("notificar_factura_electronica: factura %s no encontrada.", factura_id)
+        return
+
+    if factura.estado != FacturaElectronica.Estado.VALIDADA:
+        logger.info(
+            "notificar_factura_electronica: factura %s no está VALIDADA (estado=%s), se omite.",
+            factura_id, factura.estado,
+        )
+        return
+
+    estudiante = factura.estudiante
+    institucion = factura.institucion
+
+    estudiante_nombre = (
+        estudiante.usuario.get_full_name() or estudiante.usuario.username
+        if hasattr(estudiante, "usuario") and estudiante.usuario
+        else f"Estudiante #{estudiante.pk}"
+    )
+
+    # Concepto: viene del pago o de la cuenta directamente
+    concepto = "Servicio educativo"
+    if factura.pago and hasattr(factura.pago, "cuenta") and factura.pago.cuenta:
+        concepto = getattr(factura.pago.cuenta.concepto_pago, "nombre_concepto", concepto)
+    elif factura.cuenta:
+        concepto = getattr(factura.cuenta.concepto_pago, "nombre_concepto", concepto)
+
+    # Valor: del pago si existe, sino del monto de la cuenta
+    valor = "—"
+    if factura.pago and factura.pago.valor_pagado:
+        valor = f"${factura.pago.valor_pagado:,.2f}"
+    elif factura.cuenta and factura.cuenta.monto_asignado:
+        valor = f"${factura.cuenta.monto_asignado:,.2f}"
+
+    fecha_str = factura.fecha_emision.strftime("%d/%m/%Y") if factura.fecha_emision else "—"
+
+    # Destinatarios: estudiante + todos los familiares con email
+    destinatarios = []
+    if estudiante.usuario and estudiante.usuario.email:
+        destinatarios.append(estudiante.usuario.email)
+
+    familiares_emails = list(
+        estudiante.familiares
+        .select_related("usuario")
+        .exclude(usuario__email="")
+        .exclude(usuario__email__isnull=True)
+        .values_list("usuario__email", flat=True)
+    )
+    destinatarios.extend(familiares_emails)
+    destinatarios = list(dict.fromkeys(destinatarios))  # deduplicar
+
+    if not destinatarios:
+        logger.info(
+            "notificar_factura_electronica: factura %s sin destinatarios con email.", factura_id
+        )
+        return
+
+    html = _html_factura(
+        institucion_nombre=institucion.nombre,
+        estudiante_nombre=estudiante_nombre,
+        numero=factura.numero or "—",
+        concepto=concepto,
+        valor=valor,
+        fecha=fecha_str,
+        url_pdf=factura.url_pdf or "",
+        cufe=factura.cufe or "",
+    )
+
+    try:
+        enviar_correo_dinamico(
+            institucion=institucion,
+            asunto=f"Factura Electrónica {factura.numero} — {institucion.nombre}",
+            destinatarios=destinatarios,
+            html_content=html,
+        )
+        logger.info(
+            "notificar_factura_electronica: correo enviado factura %s a %s destinatario(s).",
+            factura_id, len(destinatarios),
+        )
+    except Exception as exc:
+        logger.error(
+            "notificar_factura_electronica: error enviando correo factura %s: %s",
+            factura_id, exc, exc_info=True,
+        )
+        raise self.retry(exc=exc)
+
+
+# ---------------------------------------------------------------------------
+# Tarea 5: Recibo de pago manual (reemplaza el envío síncrono de la vista)
+# ---------------------------------------------------------------------------
+
+@shared_task(
+    name="gestion_academica.notificar_recibo_pago_manual",
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,
+)
+def notificar_recibo_pago_manual(self, pago_id: int) -> None:
+    """Genera el PDF del recibo y lo envía por correo en segundo plano.
+
+    Reemplaza el envío síncrono en la vista registrar_pago que causaba
+    timeout cuando el servidor SMTP tardaba en responder.
+    """
+    from finanzas.models import PagoRegistrado
+    from django.template.loader import get_template
+    from io import BytesIO
+    from xhtml2pdf import pisa
+    from django.core.mail import EmailMessage
+
+    try:
+        pago = (
+            PagoRegistrado.objects
+            .select_related(
+                "estudiante__usuario",
+                "cuenta__concepto_pago",
+                "institucion",
+            )
+            .get(pk=pago_id)
+        )
+    except PagoRegistrado.DoesNotExist:
+        logger.warning("notificar_recibo_pago_manual: pago %s no encontrado.", pago_id)
+        return
+
+    institucion = pago.institucion
+    if not institucion.email_host_user or not institucion.email_host_password:
+        logger.info(
+            "notificar_recibo_pago_manual: institución %s sin SMTP configurado.",
+            institucion.pk,
+        )
+        return
+
+    # Destinatarios: acudiente + email del estudiante (igual que antes)
+    email_acudiente = None
+    if pago.estudiante:
+        # Primer familiar con email
+        familiar = (
+            pago.estudiante.familiares
+            .select_related("usuario")
+            .exclude(usuario__email="")
+            .exclude(usuario__email__isnull=True)
+            .first()
+        )
+        if familiar:
+            email_acudiente = familiar.usuario.email
+
+    email_estudiante = (
+        pago.estudiante.usuario.email
+        if pago.estudiante and pago.estudiante.usuario
+        else None
+    )
+    email_destinatario = email_acudiente or email_estudiante
+    if not email_destinatario:
+        logger.info("notificar_recibo_pago_manual: pago %s sin email destinatario.", pago_id)
+        return
+
+    try:
+        template = get_template("finanzas/emails/recibo_pago.html")
+        html = template.render({"pago": pago, "institucion": institucion, "domain": "https://app.haluplataform.com"})
+
+        pdf_buffer = BytesIO()
+        pisa.CreatePDF(html, dest=pdf_buffer)
+        pdf_buffer.seek(0)
+
+        from django.core.mail import get_connection
+        connection = get_connection(
+            backend="django.core.mail.backends.smtp.EmailBackend",
+            host=institucion.email_host,
+            port=institucion.email_port,
+            username=institucion.email_host_user,
+            password=institucion.email_host_password.decrypt() if hasattr(institucion.email_host_password, 'decrypt') else institucion.email_host_password,
+            use_tls=institucion.email_use_tls,
+        )
+        remitente = f'"{institucion.nombre}" <{institucion.email_host_user}>'
+        email = EmailMessage(
+            f"Recibo de Pago — {institucion.nombre}",
+            html,
+            remitente,
+            [email_destinatario],
+            connection=connection,
+        )
+        email.content_subtype = "html"
+        email.attach(f"Recibo_Pago_{pago.pk}.pdf", pdf_buffer.getvalue(), "application/pdf")
+        email.send()
+        logger.info("notificar_recibo_pago_manual: recibo enviado pago %s a %s.", pago_id, email_destinatario)
+    except Exception as exc:
+        logger.error(
+            "notificar_recibo_pago_manual: error pago %s: %s", pago_id, exc, exc_info=True
         )
         raise self.retry(exc=exc)
