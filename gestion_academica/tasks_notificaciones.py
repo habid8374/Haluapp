@@ -793,7 +793,8 @@ def notificar_factura_electronica(self, factura_id: int) -> None:
     elif factura.cuenta and factura.cuenta.monto_asignado:
         valor = f"${factura.cuenta.monto_asignado:,.2f}"
 
-    fecha_str = factura.fecha_emision.strftime("%d/%m/%Y") if factura.fecha_emision else "—"
+    _fecha_doc = factura.fecha_validacion or factura.fecha_creacion
+    fecha_str = _fecha_doc.strftime("%d/%m/%Y") if _fecha_doc else "—"
 
     # Destinatarios: estudiante + todos los familiares con email
     destinatarios = []
