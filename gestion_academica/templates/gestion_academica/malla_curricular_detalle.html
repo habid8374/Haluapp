@@ -395,17 +395,57 @@
                 {% if not item.ebc and not item.dba %}—{% endif %}
               </td>
               <td>
-                {% if item.indicador_bajo %}<div><span class="nivel-bajo">{% if niveles.bajo %}{{ niveles.bajo.nombre_desempeno }}{% else %}Bajo{% endif %}</span> {{ item.indicador_bajo }}</div>{% endif %}
-                {% if item.indicador_basico %}<div><span class="nivel-basico">{% if niveles.basico %}{{ niveles.basico.nombre_desempeno }}{% else %}Básico{% endif %}</span> {{ item.indicador_basico }}</div>{% endif %}
-                {% if item.indicador_alto %}<div><span class="nivel-alto">{% if niveles.alto %}{{ niveles.alto.nombre_desempeno }}{% else %}Alto{% endif %}</span> {{ item.indicador_alto }}</div>{% endif %}
-                {% if item.indicador_superior %}<div><span class="nivel-superior">{% if niveles.superior %}{{ niveles.superior.nombre_desempeno }}{% else %}Superior{% endif %}</span> {{ item.indicador_superior }}</div>{% endif %}
+                {% if item.indicador_bajo %}
+                <div style="margin-bottom:.35rem;">
+                  <span class="nivel-bajo">{% if niveles.bajo %}{{ niveles.bajo.nombre_desempeno }}{% else %}Bajo{% endif %}{% if niveles.bajo %} <span style="opacity:.75;font-weight:500;">({{ niveles.bajo.nota_minima }}–{{ niveles.bajo.nota_maxima }})</span>{% endif %}</span>
+                  <div style="font-size:.78rem;color:#374151;margin-top:.15rem;">{{ item.indicador_bajo }}</div>
+                </div>
+                {% endif %}
+                {% if item.indicador_basico %}
+                <div style="margin-bottom:.35rem;">
+                  <span class="nivel-basico">{% if niveles.basico %}{{ niveles.basico.nombre_desempeno }}{% else %}Básico{% endif %}{% if niveles.basico %} <span style="opacity:.75;font-weight:500;">({{ niveles.basico.nota_minima }}–{{ niveles.basico.nota_maxima }})</span>{% endif %}</span>
+                  <div style="font-size:.78rem;color:#374151;margin-top:.15rem;">{{ item.indicador_basico }}</div>
+                </div>
+                {% endif %}
+                {% if item.indicador_alto %}
+                <div style="margin-bottom:.35rem;">
+                  <span class="nivel-alto">{% if niveles.alto %}{{ niveles.alto.nombre_desempeno }}{% else %}Alto{% endif %}{% if niveles.alto %} <span style="opacity:.75;font-weight:500;">({{ niveles.alto.nota_minima }}–{{ niveles.alto.nota_maxima }})</span>{% endif %}</span>
+                  <div style="font-size:.78rem;color:#374151;margin-top:.15rem;">{{ item.indicador_alto }}</div>
+                </div>
+                {% endif %}
+                {% if item.indicador_superior %}
+                <div style="margin-bottom:.35rem;">
+                  <span class="nivel-superior">{% if niveles.superior %}{{ niveles.superior.nombre_desempeno }}{% else %}Superior{% endif %}{% if niveles.superior %} <span style="opacity:.75;font-weight:500;">({{ niveles.superior.nota_minima }}–{{ niveles.superior.nota_maxima }})</span>{% endif %}</span>
+                  <div style="font-size:.78rem;color:#374151;margin-top:.15rem;">{{ item.indicador_superior }}</div>
+                </div>
+                {% endif %}
                 {% if not item.indicador_bajo and not item.indicador_basico and not item.indicador_alto and not item.indicador_superior %}—{% endif %}
                 {% if es_bilingue and item.indicador_bajo_L2 or item.indicador_basico_L2 or item.indicador_alto_L2 or item.indicador_superior_L2 %}
                 <div style="margin-top:.4rem;padding-top:.4rem;border-top:1px dashed #bae6fd;">
-                  {% if item.indicador_bajo_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-bajo">{% if niveles.bajo %}{{ niveles.bajo.nombre_desempeno }}{% else %}Bajo{% endif %}</span> {{ item.indicador_bajo_L2 }}</div>{% endif %}
-                  {% if item.indicador_basico_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-basico">{% if niveles.basico %}{{ niveles.basico.nombre_desempeno }}{% else %}Básico{% endif %}</span> {{ item.indicador_basico_L2 }}</div>{% endif %}
-                  {% if item.indicador_alto_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-alto">{% if niveles.alto %}{{ niveles.alto.nombre_desempeno }}{% else %}Alto{% endif %}</span> {{ item.indicador_alto_L2 }}</div>{% endif %}
-                  {% if item.indicador_superior_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-superior">{% if niveles.superior %}{{ niveles.superior.nombre_desempeno }}{% else %}Superior{% endif %}</span> {{ item.indicador_superior_L2 }}</div>{% endif %}
+                  {% if item.indicador_bajo_L2 %}
+                  <div style="font-size:.75rem;color:#0369a1;margin-bottom:.25rem;">
+                    <span class="nivel-bajo">{% if niveles.bajo %}{{ niveles.bajo.nombre_desempeno }}{% else %}Bajo{% endif %}{% if niveles.bajo %} ({{ niveles.bajo.nota_minima }}–{{ niveles.bajo.nota_maxima }}){% endif %}</span>
+                    <div style="margin-top:.1rem;">{{ item.indicador_bajo_L2 }}</div>
+                  </div>
+                  {% endif %}
+                  {% if item.indicador_basico_L2 %}
+                  <div style="font-size:.75rem;color:#0369a1;margin-bottom:.25rem;">
+                    <span class="nivel-basico">{% if niveles.basico %}{{ niveles.basico.nombre_desempeno }}{% else %}Básico{% endif %}{% if niveles.basico %} ({{ niveles.basico.nota_minima }}–{{ niveles.basico.nota_maxima }}){% endif %}</span>
+                    <div style="margin-top:.1rem;">{{ item.indicador_basico_L2 }}</div>
+                  </div>
+                  {% endif %}
+                  {% if item.indicador_alto_L2 %}
+                  <div style="font-size:.75rem;color:#0369a1;margin-bottom:.25rem;">
+                    <span class="nivel-alto">{% if niveles.alto %}{{ niveles.alto.nombre_desempeno }}{% else %}Alto{% endif %}{% if niveles.alto %} ({{ niveles.alto.nota_minima }}–{{ niveles.alto.nota_maxima }}){% endif %}</span>
+                    <div style="margin-top:.1rem;">{{ item.indicador_alto_L2 }}</div>
+                  </div>
+                  {% endif %}
+                  {% if item.indicador_superior_L2 %}
+                  <div style="font-size:.75rem;color:#0369a1;margin-bottom:.25rem;">
+                    <span class="nivel-superior">{% if niveles.superior %}{{ niveles.superior.nombre_desempeno }}{% else %}Superior{% endif %}{% if niveles.superior %} ({{ niveles.superior.nota_minima }}–{{ niveles.superior.nota_maxima }}){% endif %}</span>
+                    <div style="margin-top:.1rem;">{{ item.indicador_superior_L2 }}</div>
+                  </div>
+                  {% endif %}
                 </div>
                 {% endif %}
               </td>
