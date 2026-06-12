@@ -4,8 +4,9 @@ from django.views.generic.base import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
 from allauth.account.views import LoginView
+from django_ratelimit.decorators import ratelimit
 
-from django.contrib.auth import views as auth_views # <-- Importante importar las vistas de auth
+from django.contrib.auth import views as auth_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -30,8 +31,8 @@ urlpatterns = [
     # ======================================================= #
     # 1. Definimos explícitamente la URL /login/ que tú quieres.
     #    Asegúrate de que la plantilla esté en 'templates/registration/login.html'
-    path('login/', LoginView.as_view(
-        template_name='registration/login.html' # <-- CORRECCIÓN CLAVE AQUÍ
+    path('login/', ratelimit(key='ip', rate='10/m', method='POST', block=True)(
+        LoginView.as_view(template_name='registration/login.html')
     ), name='login'),
     
     

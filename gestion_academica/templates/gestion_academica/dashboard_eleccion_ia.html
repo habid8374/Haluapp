@@ -363,11 +363,13 @@
 
 {% block body_end %}
 {{ block.super }}
+{{ labels|json_script:"chart-labels-data" }}
+{{ votos|json_script:"chart-votos-data" }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const labels = {{ labels|safe }};
-  const votos  = {{ votos|safe }};
+  const labels = JSON.parse(document.getElementById('chart-labels-data').textContent);
+  const votos  = JSON.parse(document.getElementById('chart-votos-data').textContent);
   const maxV   = Math.max(...votos, 1);
 
   /* ── Estado elección ──────────────────────────────── */

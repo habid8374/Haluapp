@@ -99,6 +99,8 @@
 </div>
 
 {% if reporte_data.chart_labels %}
+{{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
+{{ reporte_data.chart_datasets|json_script:"chart-datasets-data" }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('acumuladoChart').getContext('2d');
@@ -127,8 +129,8 @@
         new Chart(ctx, {
             type: chartType,
             data: {
-                labels: {{ reporte_data.chart_labels|safe }},
-                datasets: {{ reporte_data.chart_datasets|safe }}
+                labels: JSON.parse(document.getElementById('chart-labels-data').textContent),
+                datasets: JSON.parse(document.getElementById('chart-datasets-data').textContent)
             },
             options: chartOptions
         });

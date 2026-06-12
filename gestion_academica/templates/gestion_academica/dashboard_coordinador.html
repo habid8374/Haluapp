@@ -865,7 +865,7 @@
 
 {% block extra_js %}
 {{ block.super }}
-<script type="application/json" id="coord-api-cursos-cfg">{{ api_cursos_por_grado_json|safe }}</script>
+{{ api_cursos_por_grado_json|json_script:"coord-api-cursos-cfg" }}
 <script>
 /* Fecha en vivo en el hero */
 (function () {

@@ -79,16 +79,18 @@
 </div>
 
 {% if chart_data %}
+{{ chart_labels|json_script:"chart-labels-data" }}
+{{ chart_data|json_script:"chart-data-data" }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('rankingChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: {{ chart_labels|safe }},
+                labels: JSON.parse(document.getElementById('chart-labels-data').textContent),
                 datasets: [{
                     label: 'Promedio General',
-                    data: {{ chart_data|safe }},
+                    data: JSON.parse(document.getElementById('chart-data-data').textContent),
                     backgroundColor: 'rgba(75, 192, 192, 0.6)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1

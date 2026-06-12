@@ -106,6 +106,10 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% if reporte_data.chart_data %}
+{{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
+{{ reporte_data.chart_data|json_script:"chart-data-data" }}
+{% endif %}
 <script>
     {% if reporte_data.chart_data %}
     document.addEventListener('DOMContentLoaded', function () {
@@ -113,10 +117,10 @@
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: {{ reporte_data.chart_labels|safe }},
+                labels: JSON.parse(document.getElementById('chart-labels-data').textContent),
                 datasets: [{
                     label: 'Registros de Asistencia',
-                    data: {{ reporte_data.chart_data|safe }},
+                    data: JSON.parse(document.getElementById('chart-data-data').textContent),
                     backgroundColor: [
                         'rgba(25, 135, 84, 0.7)',
                         'rgba(220, 53, 69, 0.7)',

@@ -85,9 +85,10 @@
 </div>
 
 {% if reporte_data.chart_labels %}
+{{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
+{{ reporte_data.chart_data|json_script:"chart-data-data" }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // ... (el script se mantiene igual, no necesita cambios)
         const ctx = document.getElementById('reporteChart').getContext('2d');
         let chartType = 'bar';
         let chartOptions = {
@@ -109,10 +110,10 @@
         new Chart(ctx, {
             type: chartType,
             data: {
-                labels: {{ reporte_data.chart_labels|safe }},
+                labels: JSON.parse(document.getElementById('chart-labels-data').textContent),
                 datasets: [{
                     label: 'Resultados',
-                    data: {{ reporte_data.chart_data|safe }},
+                    data: JSON.parse(document.getElementById('chart-data-data').textContent),
                     backgroundColor: [
                         'rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)',
                         'rgba(255, 99, 132, 0.6)', 'rgba(153, 102, 255, 0.6)',

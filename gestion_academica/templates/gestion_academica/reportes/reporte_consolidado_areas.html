@@ -58,18 +58,22 @@
 </div>
 
 {% if reporte_data.chart_labels %}
+{{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
+{{ reporte_data.chart_datasets|json_script:"chart-datasets-data" }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('areasChart').getContext('2d');
         let chartType = 'bar';
         let chartOptions = { plugins: { title: { display: true, text: 'Nº de Estudiantes por Nivel de Desempeño en cada Área' } }, responsive: true, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } } } };
-        
+
         if ("{{ reporte_data.tipo_reporte }}" === "CUALITATIVO") {
             chartType = 'pie';
             chartOptions = { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Distribución General de Logros Evaluados' } } };
         }
 
-        new Chart(ctx, { type: chartType, data: { labels: {{ reporte_data.chart_labels|safe }}, datasets: {{ reporte_data.chart_datasets|safe }} }, options: chartOptions });
+        const _labels   = JSON.parse(document.getElementById('chart-labels-data').textContent);
+        const _datasets = JSON.parse(document.getElementById('chart-datasets-data').textContent);
+        new Chart(ctx, { type: chartType, data: { labels: _labels, datasets: _datasets }, options: chartOptions });
     });
 </script>
 {% endif %}

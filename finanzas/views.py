@@ -1210,10 +1210,31 @@ def _find_payment_institution(payment_id):
 def finanzas_mercadopago_webhook(request):
     """
     Webhook para FINANZAS. Procesa pagos de estudiantes (pensiones, etc.).
+    La firma HMAC se verifica ANTES de parsear o procesar el cuerpo del request.
     """
     if request.method != 'POST':
         return HttpResponse("Método no permitido", status=405)
 
+    # ── 1. VERIFICAR FIRMA PRIMERO — antes de hacer cualquier otra cosa ───────
+    # Extraemos institution_id de la URL (?institucion_id=N) para obtener el secret.
+    institucion_id_raw = (request.GET.get("institucion_id") or "").strip()
+    if institucion_id_raw.isdigit():
+        try:
+            _inst_para_firma = InstitucionEducativa.objects.get(pk=int(institucion_id_raw))
+            _secret = institucion_mp_webhook_secret(_inst_para_firma)
+            _data_id = resolve_notification_data_id(request, request.GET.get("data_id", ""))
+            if not verify_mercadopago_webhook_signature(
+                _secret,
+                data_id=_data_id,
+                x_request_id=request.META.get("HTTP_X_REQUEST_ID"),
+                x_signature_header=request.META.get("HTTP_X_SIGNATURE"),
+            ):
+                logger.warning("Webhook Finanzas: firma inválida para institución %s.", institucion_id_raw)
+                return HttpResponse("Firma webhook invalida", status=401)
+        except InstitucionEducativa.DoesNotExist:
+            pass  # Validación de institución se repite más abajo con mejor contexto
+
+    # ── 2. Parsear el cuerpo solo si la firma pasó ────────────────────────────
     try:
         body = json.loads(request.body)
         if body.get("type") != "payment":
@@ -1229,7 +1250,7 @@ def finanzas_mercadopago_webhook(request):
         if not payment_info:
             logger.error(f"Webhook Finanzas: No se pudo encontrar el pago {payment_id} en ninguna institución.")
             return HttpResponse("Pago no encontrado", status=404)
-        
+
         if payment_info.get('status') == 'approved':
             external_ref = payment_info.get('external_reference')
 
@@ -1247,16 +1268,6 @@ def finanzas_mercadopago_webhook(request):
                     f"detectada={getattr(institucion_del_pago, 'pk', None)} referencia={institucion_id}"
                 )
                 return HttpResponse("Institucion inconsistente", status=400)
-
-            secret = institucion_mp_webhook_secret(institucion_del_pago)
-            data_id = resolve_notification_data_id(request, str(payment_id))
-            if not verify_mercadopago_webhook_signature(
-                secret,
-                data_id=data_id,
-                x_request_id=request.META.get("HTTP_X_REQUEST_ID"),
-                x_signature_header=request.META.get("HTTP_X_SIGNATURE"),
-            ):
-                return HttpResponse("Firma webhook invalida", status=403)
 
             if PagoRegistrado.objects.filter(referencia_transaccion=str(payment_id)).exists():
                 logger.info(f"Webhook Finanzas: pago {payment_id} ya registrado (idempotencia).")

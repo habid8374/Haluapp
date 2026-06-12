@@ -33,6 +33,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django_ratelimit.decorators import ratelimit
 import traceback
 from django.http import Http404
 from openpyxl import Workbook
@@ -68,42 +69,48 @@ logger = logging.getLogger(__name__)
 
 
 # --- Validación de archivos subidos al portal del postulante ---
-# Tipos MIME y extensiones aceptados para los documentos de admisión.
 DOCUMENTO_ASPIRANTE_MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 DOCUMENTO_ASPIRANTE_EXTENSIONES = {
     "pdf", "jpg", "jpeg", "png", "webp", "doc", "docx",
 }
-DOCUMENTO_ASPIRANTE_MIME = {
+# Tipos MIME REALES (verificados por magic bytes, no por el navegador)
+DOCUMENTO_ASPIRANTE_MIME_REALES = {
     "application/pdf",
     "image/jpeg",
     "image/png",
     "image/webp",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/octet-stream",  # algunos navegadores no detectan MIME; validamos por extensión también
 }
 
 
 def _validar_archivo_documento(archivo):
-    """Devuelve (ok, mensaje_error) para un archivo subido por un postulante.
-
-    Reglas:
-    - Tamaño máximo 10 MB.
-    - Extensión en lista blanca (PDF, imagen, Word).
-    - Content-type del request en lista blanca o ``application/octet-stream``
-      (fallback común cuando el navegador no detecta el tipo).
-    """
+    """Valida extensión, tamaño y tipo MIME real (magic bytes) del archivo."""
     if archivo is None:
         return False, "No se recibió ningún archivo."
     if archivo.size > DOCUMENTO_ASPIRANTE_MAX_BYTES:
         return False, "El archivo supera el tamaño máximo permitido (10 MB)."
+
     nombre = (archivo.name or "").lower()
     extension = nombre.rsplit(".", 1)[-1] if "." in nombre else ""
     if extension not in DOCUMENTO_ASPIRANTE_EXTENSIONES:
         return False, "Formato no permitido. Usa PDF, imagen (JPG/PNG/WEBP) o Word (DOC/DOCX)."
-    content_type = (getattr(archivo, "content_type", "") or "").lower()
-    if content_type and content_type not in DOCUMENTO_ASPIRANTE_MIME:
-        return False, "El tipo de archivo no coincide con los formatos permitidos."
+
+    # Verificar el tipo real del archivo leyendo sus magic bytes (no confiar en el navegador)
+    try:
+        import magic as _magic
+        archivo.seek(0)
+        header = archivo.read(2048)
+        archivo.seek(0)
+        mime_real = _magic.from_buffer(header, mime=True)
+        if mime_real not in DOCUMENTO_ASPIRANTE_MIME_REALES:
+            return False, f"El contenido del archivo no corresponde al formato declarado. Tipo detectado: {mime_real}."
+    except ImportError:
+        # python-magic no instalado: caer al chequeo de Content-Type del navegador como fallback
+        content_type = (getattr(archivo, "content_type", "") or "").lower()
+        valid_mime_fallback = DOCUMENTO_ASPIRANTE_MIME_REALES | {"application/octet-stream"}
+        if content_type and content_type not in valid_mime_fallback:
+            return False, "El tipo de archivo no coincide con los formatos permitidos."
     return True, ""
 
 
@@ -212,6 +219,7 @@ def crear_aspirante_manual(request):
     return render(request, 'admisiones/formulario_aspirante_manual.html', context)
 
 @login_required
+@require_POST
 @permission_required('admisiones.change_aspirante', raise_exception=True)
 def admitir_aspirante(request, aspirante_id):
     if request.user.is_superuser:
@@ -904,6 +912,7 @@ def exportar_matriculados_excel(request):
 
 
 @login_required
+@require_POST
 @permission_required('admisiones.change_aspirante', raise_exception=True)
 @transaction.atomic
 def revertir_matriculacion(request, aspirante_id):
@@ -990,6 +999,7 @@ def pipeline_admisiones(request):
 
 @require_POST
 @login_required
+@ratelimit(key='user', rate='120/m', block=True)
 def actualizar_estado_aspirante_api(request):
     """
     Endpoint de API para actualizar el estado de un aspirante.
@@ -1172,6 +1182,7 @@ def pago_respuesta_mp(request):
 
 
 
+@ratelimit(key='ip', rate='10/m', method='POST', block=True)
 def subir_documento(request, token, doc_req_id):
     aspirante = get_object_or_404(Aspirante, access_token=token)
 
@@ -1214,6 +1225,7 @@ def subir_documento(request, token, doc_req_id):
 
     return redirect('admisiones:portal_postulante_pagado', token=token)
 
+@ratelimit(key='ip', rate='30/m', method='ALL', block=True)
 def vista_agendamiento(request, token):
     """ Muestra los horarios de citas disponibles para la institución del aspirante. """
     aspirante = get_object_or_404(Aspirante, access_token=token)
@@ -1234,6 +1246,7 @@ def vista_agendamiento(request, token):
     context = {'aspirante': aspirante, 'horarios_disponibles': horarios, 'titulo_pagina': "Agendar Cita de Admisión"}
     return render(request, 'admisiones/agendar_cita.html', context)
 
+@ratelimit(key='ip', rate='15/m', method='POST', block=True)
 def confirmar_agendamiento(request, token, horario_id):
     aspirante = get_object_or_404(Aspirante, access_token=token)
     horario = get_object_or_404(HorarioDisponible, pk=horario_id, institucion=aspirante.institucion)
@@ -1526,6 +1539,7 @@ def mercadopago_webhook(request):
     return HttpResponse(status=200)
 
 @require_POST
+@ratelimit(key='ip', rate='10/m', method='POST', block=True)
 def cancelar_cita(request, token):
     """Permite al aspirante cancelar su cita.
 
@@ -1551,6 +1565,7 @@ def cancelar_cita(request, token):
 
     return redirect('admisiones:portal_postulante_pagado', token=token)
 
+@ratelimit(key='ip', rate='60/m', method='ALL', block=True)
 def portal_postulante_pagado(request, token):
     """
     Muestra los siguientes pasos después de que el aspirante ha pagado,
@@ -1578,6 +1593,7 @@ def portal_postulante_pagado(request, token):
     return render(request, 'admisiones/portal_postulante_pagado.html', context)
 
 
+@ratelimit(key='ip', rate='60/m', method='ALL', block=True)
 def portal_postulante(request, token):
     """
     Portal único y seguro para el aspirante.
@@ -1634,6 +1650,7 @@ def portal_postulante(request, token):
     return render(request, 'admisiones/portal_postulante.html', context)
 
 @login_required
+@require_POST
 @permission_required('admisiones.change_aspirante', raise_exception=True)
 def matricular_aspirante(request, aspirante_id):
     """
@@ -1793,6 +1810,7 @@ def lista_aspirantes_por_grado(request, grado_id):
     }
     return render(request, 'admisiones/lista_aspirantes_por_grado.html', context)          
 
+@ratelimit(key='ip', rate='30/m', method='ALL', block=True)
 def pago_procesando(request):
     """
     Página intermedia que verifica el estado del pago y redirige al destino correcto.
@@ -1844,6 +1862,7 @@ def pago_procesando(request):
     return render(request, 'admisiones/pago_procesando.html', context)
 
 
+@ratelimit(key='ip', rate='30/m', method='ALL', block=True)
 def verificar_estado_pago(request, cuenta_id):
     """
     Endpoint AJAX que devuelve el estado de una cuenta de un aspirante.

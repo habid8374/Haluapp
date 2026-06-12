@@ -1,5 +1,5 @@
 {% extends 'base_academico.html' %}
-
+{% load gestion_academica_filters %}
 {% block contenido %}
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -11,7 +11,7 @@
                 <div class="card-body">
                     <p class="fs-5">¿Estás seguro de que quieres eliminar la siguiente pregunta?</p>
                     <blockquote class="blockquote">
-                        <p>{{ pregunta.enunciado|safe }}</p>
+                        <p>{{ pregunta.enunciado|safe_html }}</p>
                     </blockquote>
                     <p class="text-danger"><strong>¡Atención!</strong> Esta acción no se puede deshacer. Se eliminarán también todas las opciones de respuesta asociadas.</p>
                     <form method="post">

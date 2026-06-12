@@ -129,16 +129,18 @@
 </div>
 
 {% if contexto_reporte.tipo_reporte == 'CUANTITATIVO' and contexto_reporte.chart_data %}
+{{ contexto_reporte.chart_labels|json_script:"chart-labels-data" }}
+{{ contexto_reporte.chart_data|json_script:"chart-data-data" }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('rendimientoChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: {{ contexto_reporte.chart_labels|safe }},
+                labels: JSON.parse(document.getElementById('chart-labels-data').textContent),
                 datasets: [{
                     label: 'Nota Final',
-                    data: {{ contexto_reporte.chart_data|safe }},
+                    data: JSON.parse(document.getElementById('chart-data-data').textContent),
                     backgroundColor: 'rgba(54, 162, 235, 0.6)',
                     borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 1

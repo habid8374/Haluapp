@@ -6600,13 +6600,13 @@ def dashboard_coordinador_view(request):
         'total_votantes_elegibles': total_votantes_elegibles,
         'eleccion_activa': eleccion_activa,
         'porcentaje_participacion': porcentaje_participacion,
-        'api_cursos_por_grado_json': json.dumps({
+        'api_cursos_por_grado_json': {
             'pattern': reverse(
                 'gestion_academica:api_get_cursos_por_grado',
                 kwargs={'grado_id': _ph_grado_api},
             ),
             'ph': str(_ph_grado_api),
-        }),
+        },
         'planes_pendientes_count': planes_pendientes_count,
     }
     

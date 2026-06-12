@@ -1,5 +1,5 @@
 {% extends "base_academico.html" %}
-
+{% load gestion_academica_filters %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
 {% block contenido %}
@@ -46,7 +46,7 @@
             {% with pregunta=item.pregunta respuesta=item.respuesta_estudiante %}
                 <div class="card mb-3">
                     <div class="card-header d-flex justify-content-between">
-                        <strong>{{ forloop.counter }}. {{ pregunta.enunciado|safe }}</strong>
+                        <strong>{{ forloop.counter }}. {{ pregunta.enunciado|safe_html }}</strong>
                         <span>Puntaje: {{ respuesta.puntaje_obtenido|default:0|floatformat:2 }} / {{ pregunta.puntaje }}</span>
                     </div>
                     <div class="card-body">

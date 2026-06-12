@@ -61,6 +61,7 @@ INSTALLED_APPS = [
 
 
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)
+    'django_ratelimit',
     'corsheaders',  # Para permitir CORS desde la app móvil
     'import_export',
     'crispy_forms',
@@ -459,10 +460,26 @@ CORS_ALLOWED_HEADERS = [
 ]
 
 # ── A02 / A05: Clave de cifrado para campos sensibles en BD ──────────────────
-# Genera una con: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 FERNET_KEY = os.environ.get('FERNET_KEY', '')
+if not DEBUG and not FERNET_KEY:
+    import sys
+    print("ERROR CRÍTICO: FERNET_KEY no está configurada en las variables de entorno.", file=sys.stderr)
+    sys.exit(1)
 
-# ── A05: Headers de seguridad HTTP (solo en producción) ──────────────────────
+# ── A05: Límites de tamaño para uploads y campos de formulario ───────────────
+FILE_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024   # 15 MB (archivos en memoria)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5  * 1024 * 1024   # 5 MB  (campos de formulario)
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 300               # máx 300 campos en un POST
+
+# ── A05: Rate limiting ────────────────────────────────────────────────────────
+RATELIMIT_USE_CACHE = 'default'
+RATELIMIT_FAIL_OPEN = False  # Si el cache falla, bloquea (más seguro que dejar pasar)
+
+# ── A05: Headers de seguridad — algunos aplican siempre, otros solo en producción
+X_FRAME_OPTIONS             = 'DENY'       # Evita clickjacking en cualquier entorno
+SECURE_CONTENT_TYPE_NOSNIFF = True         # Evita MIME-sniffing
+SECURE_BROWSER_XSS_FILTER   = True
+
 if not DEBUG:
     SECURE_SSL_REDIRECT            = True   # Redirige HTTP → HTTPS
     SESSION_COOKIE_SECURE          = True   # Cookie de sesión solo por HTTPS
@@ -471,9 +488,6 @@ if not DEBUG:
     SECURE_HSTS_SECONDS            = 31536000  # 1 año de HSTS
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD            = True
-    SECURE_CONTENT_TYPE_NOSNIFF    = True   # Evita MIME-sniffing
-    SECURE_BROWSER_XSS_FILTER      = True
-    X_FRAME_OPTIONS                = 'DENY' # Evita clickjacking
 
 # ── A09: Logs con ruta segura y rotación ─────────────────────────────────────
 LOGS_DIR = BASE_DIR / 'logs'

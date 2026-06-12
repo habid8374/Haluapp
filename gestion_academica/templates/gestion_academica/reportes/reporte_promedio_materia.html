@@ -82,16 +82,18 @@
 </div>
 
 {% if reporte_data.chart_labels %}
+{{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
+{{ reporte_data.chart_data|json_script:"chart-data-data" }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('promedioMateriaChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: {{ reporte_data.chart_labels|safe }},
+                labels: JSON.parse(document.getElementById('chart-labels-data').textContent),
                 datasets: [{
                     label: 'Promedio General',
-                    data: {{ reporte_data.chart_data|safe }},
+                    data: JSON.parse(document.getElementById('chart-data-data').textContent),
                     backgroundColor: 'rgba(153, 102, 255, 0.6)',
                     borderColor: 'rgba(153, 102, 255, 1)',
                     borderWidth: 1

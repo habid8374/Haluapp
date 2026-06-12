@@ -1,5 +1,5 @@
 {% extends "base_academico.html" %}
-{% load static %}
+{% load static gestion_academica_filters %}
 
 {% block titulo %}{{ noticia.titulo|default:"Detalle de Noticia" }}{% endblock titulo %}
 
@@ -47,7 +47,7 @@
             {% endif %}
             
             <section class="mb-5 fs-5 noticia-contenido">
-                {{ noticia.contenido|safe }}
+                {{ noticia.contenido|safe_html }}
             </section>
         </article>
         <hr class="mt-4">

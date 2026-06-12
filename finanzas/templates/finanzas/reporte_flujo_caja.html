@@ -91,18 +91,20 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ chart_labels|json_script:"chart-labels-data" }}
+{{ chart_saldos|json_script:"chart-saldos-data" }}
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('flujoCajaChart').getContext('2d');
-        
+
         const flujoCajaChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: {{ chart_labels|safe }},
+                labels: JSON.parse(document.getElementById('chart-labels-data').textContent),
                 datasets: [{
                     label: 'Saldo de Caja ($)',
-                    data: {{ chart_saldos|safe }},
+                    data: JSON.parse(document.getElementById('chart-saldos-data').textContent),
                     fill: true,
                     backgroundColor: 'rgba(13, 110, 253, 0.2)',
                     borderColor: 'rgba(13, 110, 253, 1)',

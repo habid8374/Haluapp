@@ -112,6 +112,8 @@
 </div>
 
 {% if reporte_data.chart_labels %}
+{{ reporte_data.chart_datasets|json_script:"chart-datasets-data" }}
+{{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('reporteChart').getContext('2d');
@@ -122,11 +124,11 @@
             chartType = 'pie';
             chartOptions = { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Distribución Total de Logros' } } };
         }
-        
-        const chartData = {{ reporte_data.chart_datasets|safe|default:'[]' }};
+
+        const chartData = JSON.parse(document.getElementById('chart-datasets-data').textContent);
         const datasets = Array.isArray(chartData) ? chartData : [{ label: 'Resultados', data: chartData, backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)','rgba(255, 99, 132, 0.6)','rgba(153, 102, 255, 0.6)'] }];
 
-        new Chart(ctx, { type: chartType, data: { labels: {{ reporte_data.chart_labels|safe }}, datasets: datasets }, options: chartOptions });
+        new Chart(ctx, { type: chartType, data: { labels: JSON.parse(document.getElementById('chart-labels-data').textContent), datasets: datasets }, options: chartOptions });
     });
 </script>
 {% endif %}

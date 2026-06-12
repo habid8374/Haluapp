@@ -218,6 +218,8 @@
 {% endblock %}
 
 {% block extra_js %}{{ block.super }}
+{{ chart_labels|json_script:"chart-labels-data" }}
+{{ chart_data|json_script:"chart-data-data" }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -225,10 +227,10 @@ document.addEventListener('DOMContentLoaded', function () {
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: {{ chart_labels|safe }},
+            labels: JSON.parse(document.getElementById('chart-labels-data').textContent),
             datasets: [{
                 label: 'Ingresos ($)',
-                data: {{ chart_data|safe }},
+                data: JSON.parse(document.getElementById('chart-data-data').textContent),
                 backgroundColor: 'rgba(22,163,74,.75)',
                 borderColor: 'rgba(22,163,74,1)',
                 borderWidth: 1,

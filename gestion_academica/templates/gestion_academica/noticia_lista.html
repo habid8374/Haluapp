@@ -1,6 +1,6 @@
 {# gestion_academica/templates/gestion_academica/noticia_lista.html #}
 {% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %}
+{% load static gestion_academica_filters %}
 
 {% block titulo %}{{ titulo_pagina|default:"Noticias y Anuncios" }}{% endblock titulo %}
 
@@ -72,7 +72,7 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ noticia_item.titulo }}</h5>
                         {# Truncar el contenido a HTML, asegurándose de que sea seguro (usar autoescape off si el contenido es HTML puro y confiable) #}
-                        <p class="card-text">{{ noticia_item.contenido|truncatewords_html:30|safe }}</p> 
+                        <p class="card-text">{{ noticia_item.contenido|safe_html|truncatewords:30 }}</p>
                         <a href="{% url 'gestion_academica:detalle_noticia' noticia_item.pk %}" class="btn btn-primary btn-sm">Leer Más <i class="bi bi-arrow-right-short"></i></a>
                     </div>
                     <div class="card-footer text-muted">

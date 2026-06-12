@@ -86,26 +86,29 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ chart_labels|json_script:"chart-labels-data" }}
+{{ chart_ingresos|json_script:"chart-ingresos-data" }}
+{{ chart_gastos|json_script:"chart-gastos-data" }}
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('estadoResultadosChart').getContext('2d');
-        
+
         const estadoResultadosChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: {{ chart_labels|safe }},
+                labels: JSON.parse(document.getElementById('chart-labels-data').textContent),
                 datasets: [
                     {
                         label: 'Ingresos ($)',
-                        data: {{ chart_ingresos|safe }},
+                        data: JSON.parse(document.getElementById('chart-ingresos-data').textContent),
                         backgroundColor: 'rgba(25, 135, 84, 0.6)',
                         borderColor: 'rgba(25, 135, 84, 1)',
                         borderWidth: 1
                     },
                     {
                         label: 'Gastos ($)',
-                        data: {{ chart_gastos|safe }},
+                        data: JSON.parse(document.getElementById('chart-gastos-data').textContent),
                         backgroundColor: 'rgba(220, 53, 69, 0.6)',
                         borderColor: 'rgba(220, 53, 69, 1)',
                         borderWidth: 1

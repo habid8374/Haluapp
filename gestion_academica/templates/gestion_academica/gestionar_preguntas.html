@@ -1,5 +1,5 @@
 {% extends "base_academico.html" %}
-{% load static %}
+{% load static gestion_academica_filters %}
 {# --- INICIO DE LA CORRECCIÓN: Añadimos la carga de las etiquetas de Crispy Forms --- #}
 {% load crispy_forms_tags %}
 {# --- FIN DE LA CORRECCIÓN --- #}
@@ -32,7 +32,7 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div>
                                     <strong>Pregunta {{ forloop.counter }}:</strong> 
-                                    <span class="ms-2">{{ pregunta.enunciado|safe|truncatewords:15 }}</span>
+                                    <span class="ms-2">{{ pregunta.enunciado|safe_html|truncatewords:15 }}</span>
                                     <small class="badge bg-secondary rounded-pill ms-2">{{ pregunta.get_tipo_display }}</small>
                                 </div>
                                 <div class="btn-group">
