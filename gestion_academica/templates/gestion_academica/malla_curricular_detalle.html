@@ -881,16 +881,15 @@
     el.style.background = n.bg;
     setTimeout(function () { el.style.background = ''; }, 800);
   }
-  window.pegarEnCampoInline = pegarInline;
 
   var sugerenciasIL = {};
 
   function renderLineaIL(texto, sugerido) {
+    var safe = texto.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     var btns = Object.keys(NIVELES_IL).map(function (k) {
       var n = NIVELES_IL[k];
       var activo = sugerido === k;
-      return '<button type="button"' +
-        ' onclick="pegarEnCampoInline(' + JSON.stringify(texto) + ',\'' + k + '\')"' +
+      return '<button type="button" class="bridge-btn-inline" data-nivel="' + k + '" data-texto="' + safe + '"' +
         ' style="font-size:.59rem;padding:.1rem .32rem;border-radius:.3rem;border:1px solid ' + n.color + ';' +
         'background:' + (activo ? n.color : 'transparent') + ';color:' + (activo ? '#fff' : n.color) + ';' +
         'font-weight:700;cursor:pointer;white-space:nowrap;">' + n.label + '</button>';
@@ -918,6 +917,15 @@
     if (campoEv) {
       campoEv.addEventListener('input', function () { sugerenciasIL = {}; updateBridgeIL(); });
       updateBridgeIL();
+    }
+
+    var bridgeList = document.getElementById('bridge-list-inline');
+    if (bridgeList) {
+      bridgeList.addEventListener('click', function (e) {
+        var btn = e.target.closest('.bridge-btn-inline');
+        if (!btn) return;
+        pegarInline(btn.dataset.texto, btn.dataset.nivel);
+      });
     }
 
     var btnSug = document.getElementById('btn-sugerir-dist-inline');
