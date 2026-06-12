@@ -228,6 +228,12 @@
           <div class="form-card-header">
             <div class="fch-icon"><i class="bi bi-bar-chart-steps"></i></div>
             <h6>Indicadores de Desempeño por Nivel</h6>
+            <button type="button" id="btn-generar-indicadores-edit"
+                    class="btn btn-sm ms-auto"
+                    style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:.72rem;font-weight:600;border:none;white-space:nowrap;">
+              <i class="bi bi-stars me-1"></i>Generar con IA
+              <span id="spinner-indicadores-edit" class="spinner-border spinner-border-sm ms-1 d-none"></span>
+            </button>
             {% if niveles.superior %}
               <span class="ms-auto" style="font-size:.7rem;color:#64748b;">
                 <i class="bi bi-check-circle-fill text-success me-1"></i>Usando escala de tu institución
@@ -257,7 +263,7 @@
                 {% else %}
                   <div class="nivel-pill nivel-bajo"><i class="bi bi-arrow-down-circle-fill"></i> Bajo (1,0 – 2,9)</div>
                 {% endif %}
-                <textarea name="indicador_bajo" class="form-control form-control-sm" rows="3"
+                <textarea id="edit-ind-bajo" name="indicador_bajo" class="form-control form-control-sm" rows="3"
                           placeholder="El estudiante evidencia dificultades para…">{{ item.indicador_bajo|default:'' }}</textarea>
               </div>
               <div class="col-12 col-md-6">
@@ -269,7 +275,7 @@
                 {% else %}
                   <div class="nivel-pill nivel-basico"><i class="bi bi-dash-circle-fill"></i> Básico (3,0 – 3,9)</div>
                 {% endif %}
-                <textarea name="indicador_basico" class="form-control form-control-sm" rows="3"
+                <textarea id="edit-ind-basico" name="indicador_basico" class="form-control form-control-sm" rows="3"
                           placeholder="El estudiante identifica y aplica de forma básica…">{{ item.indicador_basico|default:'' }}</textarea>
               </div>
               <div class="col-12 col-md-6">
@@ -281,7 +287,7 @@
                 {% else %}
                   <div class="nivel-pill nivel-alto"><i class="bi bi-arrow-up-circle-fill"></i> Alto (4,0 – 4,5)</div>
                 {% endif %}
-                <textarea name="indicador_alto" class="form-control form-control-sm" rows="3"
+                <textarea id="edit-ind-alto" name="indicador_alto" class="form-control form-control-sm" rows="3"
                           placeholder="El estudiante analiza, relaciona y aplica con seguridad…">{{ item.indicador_alto|default:'' }}</textarea>
               </div>
               <div class="col-12 col-md-6">
@@ -293,7 +299,7 @@
                 {% else %}
                   <div class="nivel-pill nivel-superior"><i class="bi bi-star-fill"></i> Superior (4,6 – 5,0)</div>
                 {% endif %}
-                <textarea name="indicador_superior" class="form-control form-control-sm" rows="3"
+                <textarea id="edit-ind-superior" name="indicador_superior" class="form-control form-control-sm" rows="3"
                           placeholder="El estudiante supera los objetivos, profundiza y propone…">{{ item.indicador_superior|default:'' }}</textarea>
               </div>
             </div>
@@ -542,6 +548,79 @@ document.querySelectorAll('textarea').forEach(function(ta) {
     const modal = bootstrap.Modal.getInstance(document.getElementById('modalDBABiblioteca'));
     if (modal) modal.hide();
   };
+})();
+
+// ── Generar indicadores con IA (página editar ítem) ──
+(function () {
+  const API_URL = "{% url 'gestion_academica:generar_indicadores_ia' %}";
+  const CSRF    = "{{ csrf_token }}";
+  const MATERIA = "{{ item.malla.materia.nombre_materia|default:'' }}";
+  const GRADO   = "{{ item.malla.grado.nombre|default:'' }}";
+
+  var errorDiv = null;
+
+  document.getElementById('btn-generar-indicadores-edit').addEventListener('click', function () {
+    var dba        = (document.getElementById('campo-dba') || {}).value || '';
+    var evidencias = (document.getElementById('campo-evidencias-dba') || {}).value || '';
+
+    if (!dba.trim() && !evidencias.trim()) {
+      if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.className = 'text-danger mt-1';
+        errorDiv.style.fontSize = '.75rem';
+        this.parentNode.appendChild(errorDiv);
+      }
+      errorDiv.textContent = 'Completa el DBA o las evidencias antes de generar.';
+      return;
+    }
+    if (errorDiv) errorDiv.textContent = '';
+
+    var spinner = document.getElementById('spinner-indicadores-edit');
+    var btn = this;
+    spinner.classList.remove('d-none');
+    btn.disabled = true;
+
+    fetch(API_URL, {
+      method: 'POST',
+      body: new URLSearchParams({
+        csrfmiddlewaretoken: CSRF,
+        dba:        dba,
+        evidencias: evidencias,
+        materia:    MATERIA,
+        grado:      GRADO,
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        if (!errorDiv) {
+          errorDiv = document.createElement('div');
+          errorDiv.className = 'text-danger mt-1';
+          errorDiv.style.fontSize = '.75rem';
+          btn.parentNode.appendChild(errorDiv);
+        }
+        errorDiv.textContent = data.error;
+      } else {
+        if (data.bajo)     document.getElementById('edit-ind-bajo').value     = data.bajo;
+        if (data.basico)   document.getElementById('edit-ind-basico').value   = data.basico;
+        if (data.alto)     document.getElementById('edit-ind-alto').value     = data.alto;
+        if (data.superior) document.getElementById('edit-ind-superior').value = data.superior;
+      }
+    })
+    .catch(() => {
+      if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.className = 'text-danger mt-1';
+        errorDiv.style.fontSize = '.75rem';
+        btn.parentNode.appendChild(errorDiv);
+      }
+      errorDiv.textContent = 'Error de conexión. Intenta de nuevo.';
+    })
+    .finally(() => {
+      spinner.classList.add('d-none');
+      btn.disabled = false;
+    });
+  });
 })();
 </script>
 {% endblock %}

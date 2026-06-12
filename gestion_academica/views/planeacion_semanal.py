@@ -1027,3 +1027,103 @@ def dba_predefinido_api(request):
         for d in qs.order_by('numero')
     ]
     return JsonResponse({'dba': data})
+
+
+# ---------------------------------------------------------------------------
+
+@login_required
+@require_POST
+def generar_indicadores_ia(request):
+    """
+    Genera los 4 indicadores de desempeño con Gemini a partir del DBA,
+    evidencias de aprendizaje y la escala valorativa de la institución.
+    POST /academico/api/generar-indicadores/
+    """
+    import json as _json
+    import google.generativeai as genai
+    from finanzas.institucion_credentials import google_api_key as _get_api_key
+
+    institucion = _get_institucion(request)
+    if not institucion:
+        return JsonResponse({'error': 'Institución no encontrada.'}, status=400)
+
+    dba        = request.POST.get('dba', '').strip()
+    evidencias = request.POST.get('evidencias', '').strip()
+    materia    = request.POST.get('materia', '').strip()
+    grado      = request.POST.get('grado', '').strip()
+
+    if not dba and not evidencias:
+        return JsonResponse(
+            {'error': 'Ingresa el DBA o las evidencias antes de generar indicadores con IA.'},
+            status=400,
+        )
+
+    escala_qs = list(EscalaValorativa.objects.filter(institucion=institucion).order_by('-nota_maxima'))
+    niv = {
+        'superior': escala_qs[0] if len(escala_qs) > 0 else None,
+        'alto':     escala_qs[1] if len(escala_qs) > 1 else None,
+        'basico':   escala_qs[2] if len(escala_qs) > 2 else None,
+        'bajo':     escala_qs[3] if len(escala_qs) > 3 else None,
+    }
+
+    def _niv_str(obj, nombre_fb, min_fb, max_fb):
+        if obj:
+            return f"{obj.nombre_desempeno} ({obj.nota_minima}–{obj.nota_maxima})"
+        return f"{nombre_fb} ({min_fb}–{max_fb})"
+
+    api_key = _get_api_key(institucion)
+    if not api_key:
+        return JsonResponse(
+            {'error': 'La institución no tiene configurada la clave de API de Google (Gemini).'},
+            status=500,
+        )
+
+    prompt = f"""Eres un experto en currículo escolar colombiano (Ley 115, Decreto 1290, MEN).
+
+Genera 4 indicadores de desempeño para un ítem de malla curricular, uno por cada nivel de la escala valorativa de la institución. Reglas:
+- Concretos y observables (el docente puede verificarlos en el aula)
+- Progresivos: cada nivel exige mayor autonomía y profundidad cognitiva que el anterior
+- Redactados en tercera persona: "El estudiante..."
+- Coherentes con el DBA y sus evidencias
+- Máximo 2 oraciones por indicador
+
+Datos del ítem:
+- Materia: {materia or 'No especificada'}
+- Grado: {grado or 'No especificado'}
+- DBA: {dba or 'No especificado'}
+- Evidencias de aprendizaje: {evidencias or 'No especificadas'}
+
+Escala valorativa de la institución:
+- Nivel más bajo: {_niv_str(niv['bajo'], 'Bajo', '1,0', '2,9')}
+- Nivel básico: {_niv_str(niv['basico'], 'Básico', '3,0', '3,9')}
+- Nivel alto: {_niv_str(niv['alto'], 'Alto', '4,0', '4,5')}
+- Nivel superior: {_niv_str(niv['superior'], 'Superior', '4,6', '5,0')}
+
+Responde ÚNICAMENTE con JSON válido, sin markdown ni explicaciones:
+{{"bajo": "...", "basico": "...", "alto": "...", "superior": "..."}}"""
+
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        if text.startswith('```'):
+            text = text.split('```')[1]
+            if text.startswith('json'):
+                text = text[4:]
+            text = text.strip()
+        data = _json.loads(text)
+        return JsonResponse({
+            'bajo':     data.get('bajo', ''),
+            'basico':   data.get('basico', ''),
+            'alto':     data.get('alto', ''),
+            'superior': data.get('superior', ''),
+        })
+    except Exception as e:
+        err = str(e)
+        if '429' in err or 'quota' in err.lower() or 'rate' in err.lower():
+            return JsonResponse(
+                {'error': 'El asistente HALU alcanzó el límite de solicitudes. Intenta en unos minutos.'},
+                status=429,
+            )
+        return JsonResponse({'error': 'Error al generar con IA. Intenta de nuevo.'}, status=500)
