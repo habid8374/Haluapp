@@ -195,6 +195,7 @@
                 <label class="form-label fw-semibold" style="font-size:.82rem;">
                   DBA — Derechos Básicos de Aprendizaje
                 </label>
+                <div id="chip-area-dba-edit" style="display:none;font-size:.72rem;border-radius:.4rem;padding:.2rem .6rem;margin-bottom:.35rem;"></div>
                 <div class="d-flex gap-2 align-items-start">
                   <textarea id="campo-dba" name="dba" class="form-control form-control-sm" rows="3"
                             placeholder="Ej: DBA N.° 3 — Comprende que las fracciones pueden expresar la relación entre el todo y sus partes (Grado 4°, Matemáticas)">{{ item.dba|default:'' }}</textarea>
@@ -403,8 +404,12 @@
             <p style="font-size:.78rem;color:#64748b;margin-bottom:1rem;">
               Los cambios se reflejarán de inmediato en la malla curricular y serán visibles para todos los docentes de la institución.
             </p>
+            <div id="validacion-dba-warn" style="display:none;background:#fffbeb;border:1px solid #fde68a;border-radius:.5rem;padding:.55rem .75rem;font-size:.75rem;color:#92400e;margin-bottom:.75rem;">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i>
+              <span id="validacion-dba-msg"></span>
+            </div>
             <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-save">
+              <button type="submit" class="btn btn-save" id="btn-guardar-item">
                 <i class="bi bi-floppy-fill me-1"></i> Guardar Cambios
               </button>
               <a href="{% url 'gestion_academica:malla_curricular_detalle' pk=item.malla.pk %}"
@@ -518,6 +523,67 @@
 document.querySelectorAll('textarea').forEach(function(ta) {
   ta.style.resize = 'vertical';
 });
+
+// ── Fase 4: Detección de área DBA + auto-contexto modal ──
+(function () {
+  var MATERIA_N = "{{ item.malla.materia.nombre_materia|default:''|escapejs }}";
+  var GRADO_N   = "{{ item.malla.grado.nombre|default:''|escapejs }}";
+
+  var AREA_MAP = [
+    { area: 'matematicas',        re: /matem/i },
+    { area: 'lenguaje',           re: /lenguaje|espa[nñ]|castell|comunicaci|liter|lectura|escrit/i },
+    { area: 'ciencias_naturales', re: /ciencias?\s*nat|biol|qu[ií]m|f[ií]sic/i },
+    { area: 'ciencias_sociales',  re: /ciencias?\s*soc|histor|geogr|sociol|democr|c[aá]tedr/i },
+    { area: 'ingles',             re: /ingl[eé]|english/i },
+  ];
+  var AREAS_LABEL = {
+    matematicas: 'Matemáticas', lenguaje: 'Lenguaje',
+    ciencias_naturales: 'Ciencias Naturales', ciencias_sociales: 'Ciencias Sociales', ingles: 'Inglés'
+  };
+
+  function detectarArea(n) {
+    for (var i = 0; i < AREA_MAP.length; i++) { if (AREA_MAP[i].re.test(n)) return AREA_MAP[i].area; }
+    return null;
+  }
+  function detectarGrado(n) {
+    if (/transici/i.test(n)) return 'transicion';
+    var m = n.match(/(\d+)/); if (m) { var g = parseInt(m[1]); if (g >= 1 && g <= 11) return String(g); }
+    return null;
+  }
+
+  var areaDetectada  = detectarArea(MATERIA_N);
+  var gradoDetectado = detectarGrado(GRADO_N);
+
+  // Chip informativo junto al campo DBA
+  var chip = document.getElementById('chip-area-dba-edit');
+  if (chip) {
+    if (areaDetectada) {
+      chip.innerHTML = '<i class="bi bi-patch-check-fill me-1"></i>Área con DBA oficiales del MEN — <strong>' + AREAS_LABEL[areaDetectada] + '</strong>';
+      chip.style.cssText += 'display:inline-flex;align-items:center;background:#f0fdf4;border:1px solid #86efac;color:#15803d;';
+    } else {
+      chip.innerHTML = '<i class="bi bi-info-circle me-1"></i><strong>' + MATERIA_N + '</strong> no tiene DBA oficiales del MEN. ' +
+        'Puedes dejar el campo vacío o definir aprendizajes institucionales propios.';
+      chip.style.cssText += 'display:block;background:#fffbeb;border:1px solid #fde68a;color:#92400e;';
+    }
+  }
+
+  // Auto-contextualizar el modal al abrirse
+  var modalEl = document.getElementById('modalDBABiblioteca');
+  if (modalEl && areaDetectada) {
+    modalEl.addEventListener('show.bs.modal', function () {
+      var selArea  = document.getElementById('dba-filtro-area');
+      var selGrado = document.getElementById('dba-filtro-grado');
+      if (selArea  && !selArea.value)  selArea.value  = areaDetectada;
+      if (selGrado && !selGrado.value && gradoDetectado) selGrado.value = gradoDetectado;
+      if (selArea.value && selGrado && selGrado.value) {
+        setTimeout(function () {
+          var btn = document.getElementById('btn-buscar-dba');
+          if (btn) btn.click();
+        }, 120);
+      }
+    });
+  }
+})();
 
 // ── Fase 3: Bridge interactivo Evidencias → Indicadores ──
 (function () {
@@ -741,5 +807,28 @@ document.querySelectorAll('textarea').forEach(function(ta) {
     });
   });
 })();
+
+// Fase 4: Validación al guardar
+document.getElementById('edit-form').addEventListener('submit', function () {
+  var dba = (document.getElementById('campo-dba') || {}).value || '';
+  var ev  = (document.getElementById('campo-evidencias-dba') || {}).value || '';
+  var MATERIA_V = "{{ item.malla.materia.nombre_materia|default:''|escapejs }}";
+  var MAP = [
+    /matem/i, /lenguaje|espa[nñ]|castell/i, /ciencias?\s*nat|biol|qu[ií]m|f[ií]sic/i,
+    /ciencias?\s*soc|histor|geogr/i, /ingl[eé]|english/i
+  ];
+  var tieneAreaOficial = MAP.some(function (re) { return re.test(MATERIA_V); });
+  var msgs = [];
+  if (dba && !dba.match(/DBA\s*N[°.º]/i) && tieneAreaOficial)
+    msgs.push('El DBA no sigue el formato del MEN ("DBA N.° X — ..."). Considera usar el catálogo.');
+  if (dba && !ev && tieneAreaOficial)
+    msgs.push('Tienes DBA pero sin Evidencias de Aprendizaje — completa ese campo para poder generar indicadores.');
+  var warn = document.getElementById('validacion-dba-warn');
+  var msg  = document.getElementById('validacion-dba-msg');
+  if (warn && msg) {
+    if (msgs.length) { warn.style.display = 'block'; msg.textContent = msgs.join(' · '); }
+    else             { warn.style.display = 'none'; }
+  }
+});
 </script>
 {% endblock %}

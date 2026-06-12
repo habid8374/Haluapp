@@ -173,6 +173,11 @@ def malla_curricular_detalle(request, pk):
     for item in items_qs:
         por_periodo.setdefault(item.periodo, []).append(item)
 
+    # Cobertura DBA
+    total_items = items_qs.count()
+    items_con_dba = items_qs.exclude(dba='').exclude(dba__isnull=True).count()
+    cobertura_dba = round(items_con_dba / total_items * 100) if total_items else 0
+
     auto_print = request.GET.get('print') == '1'
     es_bilingue = getattr(institucion, 'es_bilingue', False)
     idioma_secundario = getattr(institucion, 'get_idioma_secundario_display', lambda: '')()
@@ -194,6 +199,9 @@ def malla_curricular_detalle(request, pk):
         'es_bilingue': es_bilingue,
         'idioma_secundario': idioma_secundario,
         'niveles': niveles,
+        'total_items': total_items,
+        'items_con_dba': items_con_dba,
+        'cobertura_dba': cobertura_dba,
     }
     return render(request, 'gestion_academica/malla_curricular_detalle.html', context)
 
