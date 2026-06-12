@@ -79,7 +79,7 @@
 .mc-grade-head {
   display: flex; align-items: center; gap: .75rem;
   padding: .95rem 1.3rem; cursor: pointer; user-select: none;
-  transition: background .15s;
+  transition: background .15s; flex-wrap: wrap;
 }
 .mc-grade-head:hover { background: #fafafe; }
 .mc-grade-icon {
@@ -191,8 +191,59 @@
   .mc-hero { padding: 1.3rem 1.2rem 1.7rem; }
   .mc-hero h1 { font-size: 1.2rem; }
   .mc-progress-wrap { display: none; }
-  .mc-materias-table thead th:nth-child(3),
+}
+
+/* ── Tabla → cards en móvil ── */
+@media (max-width: 576px) {
+  .mc-materias-table thead { display: none; }
+  .mc-materias-table,
+  .mc-materias-table tbody { display: block; }
+
+  .mc-materias-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: .7rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    gap: .35rem;
+  }
+  .mc-materias-table tbody tr:last-child { border-bottom: none; }
+  .mc-materias-table tbody tr:hover td { background: transparent; }
+
+  .mc-materias-table tbody td {
+    display: block;
+    padding: 0;
+    border: none;
+    font-size: .8rem;
+  }
+
+  /* Materia: fila completa arriba */
+  .mc-materias-table tbody td:nth-child(1) {
+    width: 100%;
+    margin-bottom: .1rem;
+  }
+  .materia-name { font-size: .85rem; }
+
+  /* Ítems badge: izquierda abajo */
+  .mc-materias-table tbody td:nth-child(2) { flex: 1; }
+
+  /* Fecha: oculta */
   .mc-materias-table tbody td:nth-child(3) { display: none; }
+
+  /* Acción: derecha abajo, no se corta */
+  .mc-materias-table tbody td:nth-child(4) { flex-shrink: 0; }
+
+  /* Botones en fila de acciones más compactos */
+  .mc-materias-table tbody td:nth-child(4) .d-flex { flex-wrap: nowrap; gap: .2rem; }
+  .mc-materias-table tbody td:nth-child(4) .mc-btn-sm {
+    padding: .28rem .55rem;
+    font-size: .71rem;
+  }
+
+  /* Botón "Crear malla" ancho completo en su celda */
+  .mc-materias-table tbody td:nth-child(4) .mc-btn-new {
+    padding: .35rem .8rem;
+  }
 }
 </style>
 {% endblock %}
