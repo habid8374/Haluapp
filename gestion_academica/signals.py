@@ -571,8 +571,13 @@ def _connect_pago_signal():
     from django.db.models.signals import post_save as _post_save
 
     def _enviar_correo_pago_recibido(sender, instance, created, **kwargs):
-        """Encola correo de confirmación de pago al acudiente cuando se crea un pago nuevo."""
-        if not created:
+        """Encola correo de confirmación al acudiente para pagos online (Mercado Pago).
+
+        Los pagos manuales NO se notifican aquí: la vista registrar_pago ya
+        envía el recibo con PDF adjunto usando el SMTP de la institución;
+        notificarlos también por esta vía duplicaría el correo.
+        """
+        if not created or instance.metodo_pago != 'MERCADO_PAGO':
             return
         from django.db import transaction
         from gestion_academica.tasks_notificaciones import notificar_pago_recibido
