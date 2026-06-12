@@ -442,6 +442,7 @@ urlpatterns = [
     path('mallas/item/<int:item_pk>/eliminar/', views.item_malla_delete, name='item_malla_delete'),
     path('api/dba/', views.dba_predefinido_api, name='dba_predefinido_api'),
     path('api/generar-indicadores/', views.generar_indicadores_ia, name='generar_indicadores_ia'),
+    path('api/sugerir-distribucion/', views.sugerir_distribucion_ia, name='sugerir_distribucion_ia'),
 
     # ── Plan Semanal (Docente) ─────────────────────────────────────────────
     path('docente/planes-semanales/', views.mis_planes_semanales, name='mis_planes_semanales'),

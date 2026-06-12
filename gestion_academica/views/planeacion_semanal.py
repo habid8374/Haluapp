@@ -1127,3 +1127,100 @@ Responde ÚNICAMENTE con JSON válido, sin markdown ni explicaciones:
                 status=429,
             )
         return JsonResponse({'error': 'Error al generar con IA. Intenta de nuevo.'}, status=500)
+
+
+# ---------------------------------------------------------------------------
+
+@login_required
+@require_POST
+def sugerir_distribucion_ia(request):
+    """
+    Clasifica cada evidencia del DBA en un nivel de desempeño usando Gemini.
+    POST /academico/api/sugerir-distribucion/
+    Body: evidencias (texto multilinea), materia, grado
+    Returns: [{"texto": "...", "nivel": "bajo|basico|alto|superior"}, ...]
+    """
+    import json as _json
+    import google.generativeai as genai
+    from finanzas.institucion_credentials import google_api_key as _get_api_key
+
+    institucion = _get_institucion(request)
+    if not institucion:
+        return JsonResponse({'error': 'Institución no encontrada.'}, status=400)
+
+    evidencias_raw = request.POST.get('evidencias', '').strip()
+    materia        = request.POST.get('materia', '').strip()
+    grado          = request.POST.get('grado', '').strip()
+
+    if not evidencias_raw:
+        return JsonResponse({'error': 'Sin evidencias para clasificar.'}, status=400)
+
+    lineas = [l.lstrip('•-* ').strip() for l in evidencias_raw.splitlines() if l.strip()]
+    if not lineas:
+        return JsonResponse({'error': 'Sin evidencias para clasificar.'}, status=400)
+
+    escala_qs = list(EscalaValorativa.objects.filter(institucion=institucion).order_by('-nota_maxima'))
+    niv = {
+        'superior': escala_qs[0] if len(escala_qs) > 0 else None,
+        'alto':     escala_qs[1] if len(escala_qs) > 1 else None,
+        'basico':   escala_qs[2] if len(escala_qs) > 2 else None,
+        'bajo':     escala_qs[3] if len(escala_qs) > 3 else None,
+    }
+
+    def _nstr(obj, nombre_fb, min_fb, max_fb):
+        if obj:
+            return f"{obj.nombre_desempeno} ({obj.nota_minima}–{obj.nota_maxima})"
+        return f"{nombre_fb} ({min_fb}–{max_fb})"
+
+    api_key = _get_api_key(institucion)
+    if not api_key:
+        return JsonResponse({'error': 'La institución no tiene configurada la clave de API de Google.'}, status=500)
+
+    lista_num = '\n'.join(f'{i+1}. {l}' for i, l in enumerate(lineas))
+
+    prompt = f"""Eres un experto en currículo escolar colombiano y Taxonomía de Bloom.
+
+Clasifica cada evidencia de aprendizaje en uno de estos 4 niveles de desempeño, según la complejidad cognitiva que exige (de menor a mayor):
+- bajo: reconocer, identificar, nombrar, señalar (con apoyo)
+- basico: comprender, aplicar, resolver situaciones concretas
+- alto: analizar, relacionar, argumentar, aplicar en contextos nuevos
+- superior: evaluar, crear, proponer, diseñar, transferir a situaciones complejas
+
+Materia: {materia or 'No especificada'}
+Grado: {grado or 'No especificado'}
+
+Escala de la institución:
+- bajo: {_nstr(niv['bajo'], 'Bajo', '1,0', '2,9')}
+- basico: {_nstr(niv['basico'], 'Básico', '3,0', '3,9')}
+- alto: {_nstr(niv['alto'], 'Alto', '4,0', '4,5')}
+- superior: {_nstr(niv['superior'], 'Superior', '4,6', '5,0')}
+
+Evidencias a clasificar:
+{lista_num}
+
+Responde ÚNICAMENTE con JSON válido, sin markdown:
+[{{"indice": 0, "nivel": "basico"}}, ...]
+El campo "indice" es 0-based. Usa solo los valores: "bajo", "basico", "alto", "superior"."""
+
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        if text.startswith('```'):
+            text = text.split('```')[1]
+            if text.startswith('json'):
+                text = text[4:]
+            text = text.strip()
+        clasificaciones = _json.loads(text)
+        resultado = [{'texto': lineas[c['indice']], 'nivel': c['nivel']}
+                     for c in clasificaciones if 0 <= c['indice'] < len(lineas)]
+        return JsonResponse({'sugerencias': resultado})
+    except Exception as e:
+        err = str(e)
+        if '429' in err or 'quota' in err.lower() or 'rate' in err.lower():
+            return JsonResponse(
+                {'error': 'El asistente HALU alcanzó el límite de solicitudes. Intenta en unos minutos.'},
+                status=429,
+            )
+        return JsonResponse({'error': 'Error al clasificar con IA. Intenta de nuevo.'}, status=500)

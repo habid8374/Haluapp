@@ -557,7 +557,14 @@
             <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:8px;padding:.6rem .85rem;margin-bottom:.3rem;">
               <div style="font-size:.68rem;font-weight:700;color:#15803d;margin-bottom:.35rem;"><i class="bi bi-list-check me-1"></i>Evidencias del DBA — base para los indicadores</div>
               <div id="bridge-list-inline" style="font-size:.77rem;color:#166534;line-height:1.6;"></div>
-              <div style="font-size:.68rem;color:#15803d;margin-top:.4rem;opacity:.85;"><i class="bi bi-lightbulb-fill me-1"></i>Define el nivel de complejidad de cada indicador basándote en estas evidencias ↓</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;margin-top:.35rem;padding-top:.35rem;border-top:1px dashed #86efac;">
+                <span style="font-size:.68rem;color:#15803d;"><i class="bi bi-hand-index-fill me-1"></i>Clic en un nivel para pegar la evidencia en ese indicador</span>
+                <button type="button" id="btn-sugerir-dist-inline"
+                        style="font-size:.65rem;padding:.18rem .5rem;border-radius:.4rem;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.25rem;">
+                  <i class="bi bi-stars"></i>Sugerir con IA
+                  <span id="spinner-sugerir-inline" class="spinner-border spinner-border-sm d-none" style="width:.65rem;height:.65rem;"></span>
+                </button>
+              </div>
             </div>
           </div>
           <div class="col-12">
@@ -840,7 +847,10 @@
         var campoDba = document.getElementById('campo-dba-inline');
         var campoEv  = document.getElementById('campo-evidencias-dba-inline');
         if (campoDba) campoDba.value = body.dataset.enunciado;
-        if (campoEv && body.dataset.evidencias) campoEv.value = body.dataset.evidencias;
+        if (campoEv && body.dataset.evidencias) {
+          campoEv.value = body.dataset.evidencias;
+          if (window._updateBridgeIL) window._updateBridgeIL();
+        }
         const modal = bootstrap.Modal.getInstance(document.getElementById('modalDBABiblioteca'));
         if (modal) modal.hide();
       });
@@ -848,28 +858,94 @@
   });
 })();
 
-// ── Fase 3: Bridge dinámico Evidencias → Indicadores (inline) ──
+// ── Fase 3: Bridge interactivo Evidencias → Indicadores (inline) ──
 (function () {
-  document.addEventListener('DOMContentLoaded', function () {
+  const CSRF_DI  = "{{ csrf_token }}";
+  const API_DI   = "{% url 'gestion_academica:sugerir_distribucion_ia' %}";
+  const MAT_IL   = "{{ malla.materia.nombre_materia|default:'' }}";
+  const GRAD_IL  = "{{ malla.grado.nombre|default:'' }}";
+
+  const NIVELES_IL = {
+    bajo:     { label: '{% if niveles.bajo %}{{ niveles.bajo.nombre_desempeno }}{% else %}Bajo{% endif %}',       campo: 'ind-bajo-inline',     color: '#dc2626', bg: '#fef2f2' },
+    basico:   { label: '{% if niveles.basico %}{{ niveles.basico.nombre_desempeno }}{% else %}Básico{% endif %}', campo: 'ind-basico-inline',   color: '#d97706', bg: '#fefce8' },
+    alto:     { label: '{% if niveles.alto %}{{ niveles.alto.nombre_desempeno }}{% else %}Alto{% endif %}',       campo: 'ind-alto-inline',     color: '#1d4ed8', bg: '#dbeafe' },
+    superior: { label: '{% if niveles.superior %}{{ niveles.superior.nombre_desempeno }}{% else %}Superior{% endif %}', campo: 'ind-superior-inline', color: '#15803d', bg: '#dcfce7' },
+  };
+
+  function pegarInline(texto, nivel) {
+    var n = NIVELES_IL[nivel];
+    var el = document.getElementById(n.campo);
+    if (!el) return;
+    el.value = el.value ? el.value + '\n' + texto : texto;
+    el.style.transition = 'background .3s';
+    el.style.background = n.bg;
+    setTimeout(function () { el.style.background = ''; }, 800);
+  }
+  window.pegarEnCampoInline = pegarInline;
+
+  var sugerenciasIL = {};
+
+  function renderLineaIL(texto, sugerido) {
+    var btns = Object.keys(NIVELES_IL).map(function (k) {
+      var n = NIVELES_IL[k];
+      var activo = sugerido === k;
+      return '<button type="button"' +
+        ' onclick="pegarEnCampoInline(' + JSON.stringify(texto) + ',\'' + k + '\')"' +
+        ' style="font-size:.59rem;padding:.1rem .32rem;border-radius:.3rem;border:1px solid ' + n.color + ';' +
+        'background:' + (activo ? n.color : 'transparent') + ';color:' + (activo ? '#fff' : n.color) + ';' +
+        'font-weight:700;cursor:pointer;white-space:nowrap;">' + n.label + '</button>';
+    }).join('');
+    return '<div style="display:flex;gap:.35rem;align-items:flex-start;padding:.2rem 0;flex-wrap:wrap;">' +
+      '<span style="color:#16a34a;font-weight:700;flex-shrink:0;margin-top:.12rem;">•</span>' +
+      '<span style="flex:1;min-width:0;font-size:.77rem;">' + texto + '</span>' +
+      '<div style="display:flex;gap:.2rem;flex-wrap:wrap;">' + btns + '</div></div>';
+  }
+
+  function updateBridgeIL() {
     var campoEv = document.getElementById('campo-evidencias-dba-inline');
     var bridge  = document.getElementById('bridge-inline');
     var list    = document.getElementById('bridge-list-inline');
     if (!campoEv || !bridge || !list) return;
+    var lines = campoEv.value.trim().split('\n').map(function (l) { return l.replace(/^[\s•\-*]+/, '').trim(); }).filter(Boolean);
+    if (!lines.length) { bridge.style.display = 'none'; return; }
+    list.innerHTML = lines.map(function (l) { return renderLineaIL(l, sugerenciasIL[l]); }).join('');
+    bridge.style.display = 'block';
+  }
+  window._updateBridgeIL = updateBridgeIL;
 
-    function updateBridge() {
-      var lines = campoEv.value.trim().split('\n').map(function (l) { return l.replace(/^[\s•\-*]+/, '').trim(); }).filter(Boolean);
-      if (lines.length) {
-        list.innerHTML = lines.map(function (l) {
-          return '<div style="display:flex;gap:.35rem;align-items:flex-start;padding:.08rem 0;"><span style="color:#16a34a;font-weight:700;flex-shrink:0;">•</span><span>' + l + '</span></div>';
-        }).join('');
-        bridge.style.display = 'block';
-      } else {
-        bridge.style.display = 'none';
-      }
+  document.addEventListener('DOMContentLoaded', function () {
+    var campoEv = document.getElementById('campo-evidencias-dba-inline');
+    if (campoEv) {
+      campoEv.addEventListener('input', function () { sugerenciasIL = {}; updateBridgeIL(); });
+      updateBridgeIL();
     }
 
-    campoEv.addEventListener('input', updateBridge);
-    updateBridge();
+    var btnSug = document.getElementById('btn-sugerir-dist-inline');
+    if (btnSug) {
+      btnSug.addEventListener('click', function () {
+        var ev = (document.getElementById('campo-evidencias-dba-inline') || {}).value || '';
+        if (!ev.trim()) return;
+        var sp = document.getElementById('spinner-sugerir-inline');
+        if (sp) sp.classList.remove('d-none');
+        btnSug.disabled = true;
+        fetch(API_DI, {
+          method: 'POST',
+          body: new URLSearchParams({ csrfmiddlewaretoken: CSRF_DI, evidencias: ev, materia: MAT_IL, grado: GRAD_IL })
+        }).then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.sugerencias) {
+              sugerenciasIL = {};
+              data.sugerencias.forEach(function (s) { sugerenciasIL[s.texto] = s.nivel; });
+              updateBridgeIL();
+            }
+          })
+          .catch(function () {})
+          .finally(function () {
+            if (sp) sp.classList.add('d-none');
+            btnSug.disabled = false;
+          });
+      });
+    }
   });
 })();
 

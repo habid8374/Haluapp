@@ -235,9 +235,13 @@
               <i class="bi bi-list-check me-1"></i>Evidencias del DBA — úsalas como base para redactar los indicadores
             </div>
             <div id="bridge-list-edit" style="font-size:.8rem;color:#166534;line-height:1.6;"></div>
-            <div style="font-size:.71rem;color:#15803d;margin-top:.55rem;padding-top:.5rem;border-top:1px dashed #86efac;">
-              <i class="bi bi-lightbulb-fill me-1"></i>
-              Cada evidencia describe <strong>qué hace el estudiante</strong>. Usa eso para definir el nivel de complejidad de cada indicador ↓
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-top:.55rem;padding-top:.5rem;border-top:1px dashed #86efac;">
+              <span style="font-size:.71rem;color:#15803d;"><i class="bi bi-hand-index-fill me-1"></i>Clic en un nivel para pegar la evidencia en ese indicador</span>
+              <button type="button" id="btn-sugerir-dist-edit"
+                      style="font-size:.68rem;padding:.2rem .6rem;border-radius:.4rem;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.3rem;">
+                <i class="bi bi-stars"></i>Sugerir con IA
+                <span id="spinner-sugerir-edit" class="spinner-border spinner-border-sm d-none" style="width:.7rem;height:.7rem;"></span>
+              </button>
             </div>
           </div>
         </div>
@@ -515,26 +519,95 @@ document.querySelectorAll('textarea').forEach(function(ta) {
   ta.style.resize = 'vertical';
 });
 
-// ── Fase 3: Bridge dinámico Evidencias → Indicadores ──
+// ── Fase 3: Bridge interactivo Evidencias → Indicadores ──
 (function () {
+  const CSRF_DIST   = "{{ csrf_token }}";
+  const API_DIST    = "{% url 'gestion_academica:sugerir_distribucion_ia' %}";
+  const MATERIA_ED  = "{{ item.malla.materia.nombre_materia|default:'' }}";
+  const GRADO_ED    = "{{ item.malla.grado.nombre|default:'' }}";
+
+  const NIVELES = {
+    bajo:     { label: '{% if niveles.bajo %}{{ niveles.bajo.nombre_desempeno }}{% else %}Bajo{% endif %}',     campo: 'edit-ind-bajo',     color: '#dc2626', bg: '#fef2f2' },
+    basico:   { label: '{% if niveles.basico %}{{ niveles.basico.nombre_desempeno }}{% else %}Básico{% endif %}', campo: 'edit-ind-basico',   color: '#d97706', bg: '#fefce8' },
+    alto:     { label: '{% if niveles.alto %}{{ niveles.alto.nombre_desempeno }}{% else %}Alto{% endif %}',     campo: 'edit-ind-alto',     color: '#1d4ed8', bg: '#dbeafe' },
+    superior: { label: '{% if niveles.superior %}{{ niveles.superior.nombre_desempeno }}{% else %}Superior{% endif %}', campo: 'edit-ind-superior', color: '#15803d', bg: '#dcfce7' },
+  };
+
   var campoEv = document.getElementById('campo-evidencias-dba');
   var bridge  = document.getElementById('bridge-edit');
   var list    = document.getElementById('bridge-list-edit');
   if (!campoEv || !bridge || !list) return;
 
-  function updateBridge() {
-    var lines = campoEv.value.trim().split('\n').map(l => l.replace(/^[\s•\-*]+/, '').trim()).filter(Boolean);
-    if (lines.length) {
-      list.innerHTML = lines.map(function (l) {
-        return '<div style="display:flex;gap:.4rem;align-items:flex-start;padding:.1rem 0;"><span style="color:#16a34a;font-weight:700;flex-shrink:0;">•</span><span>' + l + '</span></div>';
-      }).join('');
-      bridge.style.display = 'block';
-    } else {
-      bridge.style.display = 'none';
-    }
+  function pegarEnCampo(texto, nivel) {
+    var el = document.getElementById(NIVELES[nivel].campo);
+    if (!el) return;
+    el.value = el.value ? el.value + '\n' + texto : texto;
+    el.style.transition = 'background .3s';
+    el.style.background = NIVELES[nivel].bg;
+    setTimeout(function () { el.style.background = ''; }, 800);
   }
 
-  campoEv.addEventListener('input', updateBridge);
+  function renderLinea(texto, sugerido) {
+    var btns = Object.keys(NIVELES).map(function (k) {
+      var n = NIVELES[k];
+      var activo = sugerido === k;
+      return `<button type="button"
+        onclick="pegarEnCampoEdit(${JSON.stringify(texto)}, '${k}')"
+        style="font-size:.6rem;padding:.12rem .38rem;border-radius:.3rem;border:1px solid ${n.color};
+               background:${activo ? n.color : 'transparent'};color:${activo ? '#fff' : n.color};
+               font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s;"
+        onmouseover="this.style.background='${n.color}';this.style.color='#fff';"
+        onmouseout="this.style.background='${sugerido === k ? n.color : 'transparent'}';this.style.color='${activo ? '#fff' : n.color}';">
+        ${n.label}
+      </button>`;
+    }).join('');
+    return `<div style="display:flex;gap:.4rem;align-items:flex-start;padding:.25rem 0;flex-wrap:wrap;">
+      <span style="color:#16a34a;font-weight:700;flex-shrink:0;margin-top:.15rem;">•</span>
+      <span style="flex:1;min-width:0;font-size:.78rem;">${texto}</span>
+      <div style="display:flex;gap:.25rem;flex-wrap:wrap;">${btns}</div>
+    </div>`;
+  }
+
+  window.pegarEnCampoEdit = pegarEnCampo;
+
+  var sugerencias = {};
+
+  function updateBridge() {
+    var lines = campoEv.value.trim().split('\n').map(function (l) { return l.replace(/^[\s•\-*]+/, '').trim(); }).filter(Boolean);
+    if (!lines.length) { bridge.style.display = 'none'; return; }
+    list.innerHTML = lines.map(function (l) { return renderLinea(l, sugerencias[l]); }).join('');
+    bridge.style.display = 'block';
+  }
+
+  // Botón Sugerir con IA
+  var btnSugerir = document.getElementById('btn-sugerir-dist-edit');
+  if (btnSugerir) {
+    btnSugerir.addEventListener('click', function () {
+      var ev = campoEv.value.trim();
+      if (!ev) return;
+      var sp = document.getElementById('spinner-sugerir-edit');
+      if (sp) sp.classList.remove('d-none');
+      btnSugerir.disabled = true;
+      fetch(API_DIST, {
+        method: 'POST',
+        body: new URLSearchParams({ csrfmiddlewaretoken: CSRF_DIST, evidencias: ev, materia: MATERIA_ED, grado: GRADO_ED })
+      }).then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.sugerencias) {
+            sugerencias = {};
+            data.sugerencias.forEach(function (s) { sugerencias[s.texto] = s.nivel; });
+            updateBridge();
+          }
+        })
+        .catch(function () {})
+        .finally(function () {
+          if (sp) sp.classList.add('d-none');
+          btnSugerir.disabled = false;
+        });
+    });
+  }
+
+  campoEv.addEventListener('input', function () { sugerencias = {}; updateBridge(); });
   updateBridge();
 })();
 
@@ -573,7 +646,11 @@ document.querySelectorAll('textarea').forEach(function(ta) {
     if (!body) return;
     document.getElementById('campo-dba').value = body.dataset.enunciado;
     const ev = body.dataset.evidencias;
-    if (ev) document.getElementById('campo-evidencias-dba').value = ev;
+    if (ev) {
+      var campoEv = document.getElementById('campo-evidencias-dba');
+      campoEv.value = ev;
+      campoEv.dispatchEvent(new Event('input'));
+    }
     const modal = bootstrap.Modal.getInstance(document.getElementById('modalDBABiblioteca'));
     if (modal) modal.hide();
   });
