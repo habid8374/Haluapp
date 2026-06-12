@@ -30,6 +30,9 @@
                     
                     {{ form.nombre|as_crispy_field }}
                     {{ form.nivel_escolaridad|as_crispy_field }}
+                    {% if user.is_superuser and form.institucion %}
+                        {{ form.institucion|as_crispy_field }}
+                    {% endif %}
 
                 </fieldset>
             </div>
@@ -47,8 +50,8 @@
             </div>
         </div>
 
-        {# Campo oculto para la institución, si es necesario #}
-        {% if form.institucion %}
+        {# Campo oculto para la institución (usuarios de colegio) #}
+        {% if form.institucion and not user.is_superuser %}
             {{ form.institucion }}
         {% endif %}
 
