@@ -402,10 +402,10 @@
                 {% if not item.indicador_bajo and not item.indicador_basico and not item.indicador_alto and not item.indicador_superior %}—{% endif %}
                 {% if es_bilingue and item.indicador_bajo_L2 or item.indicador_basico_L2 or item.indicador_alto_L2 or item.indicador_superior_L2 %}
                 <div style="margin-top:.4rem;padding-top:.4rem;border-top:1px dashed #bae6fd;">
-                  {% if item.indicador_bajo_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-bajo">Low</span> {{ item.indicador_bajo_L2 }}</div>{% endif %}
-                  {% if item.indicador_basico_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-basico">Basic</span> {{ item.indicador_basico_L2 }}</div>{% endif %}
-                  {% if item.indicador_alto_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-alto">High</span> {{ item.indicador_alto_L2 }}</div>{% endif %}
-                  {% if item.indicador_superior_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-superior">Superior</span> {{ item.indicador_superior_L2 }}</div>{% endif %}
+                  {% if item.indicador_bajo_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-bajo">{% if niveles.bajo %}{{ niveles.bajo.nombre_desempeno }}{% else %}Bajo{% endif %}</span> {{ item.indicador_bajo_L2 }}</div>{% endif %}
+                  {% if item.indicador_basico_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-basico">{% if niveles.basico %}{{ niveles.basico.nombre_desempeno }}{% else %}Básico{% endif %}</span> {{ item.indicador_basico_L2 }}</div>{% endif %}
+                  {% if item.indicador_alto_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-alto">{% if niveles.alto %}{{ niveles.alto.nombre_desempeno }}{% else %}Alto{% endif %}</span> {{ item.indicador_alto_L2 }}</div>{% endif %}
+                  {% if item.indicador_superior_L2 %}<div style="font-size:.75rem;color:#0369a1;"><span class="nivel-superior">{% if niveles.superior %}{{ niveles.superior.nombre_desempeno }}{% else %}Superior{% endif %}</span> {{ item.indicador_superior_L2 }}</div>{% endif %}
                 </div>
                 {% endif %}
               </td>
@@ -523,19 +523,27 @@
           </div>
           {% if es_bilingue %}
           <div class="col-md-3">
-            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-bajo">Bajo</span> ({{ idioma_secundario }})</label>
+            <label class="form-label fw-semibold" style="font-size:.78rem;">
+              <span class="nivel-bajo">{% if niveles.bajo %}{{ niveles.bajo.nombre_desempeno }}{% else %}Bajo{% endif %}</span> ({{ idioma_secundario }})
+            </label>
             <textarea name="indicador_bajo_L2" class="form-control form-control-sm" rows="2" placeholder="Low performance indicator…"></textarea>
           </div>
           <div class="col-md-3">
-            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-basico">Básico</span> ({{ idioma_secundario }})</label>
+            <label class="form-label fw-semibold" style="font-size:.78rem;">
+              <span class="nivel-basico">{% if niveles.basico %}{{ niveles.basico.nombre_desempeno }}{% else %}Básico{% endif %}</span> ({{ idioma_secundario }})
+            </label>
             <textarea name="indicador_basico_L2" class="form-control form-control-sm" rows="2" placeholder="Basic performance indicator…"></textarea>
           </div>
           <div class="col-md-3">
-            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-alto">Alto</span> ({{ idioma_secundario }})</label>
+            <label class="form-label fw-semibold" style="font-size:.78rem;">
+              <span class="nivel-alto">{% if niveles.alto %}{{ niveles.alto.nombre_desempeno }}{% else %}Alto{% endif %}</span> ({{ idioma_secundario }})
+            </label>
             <textarea name="indicador_alto_L2" class="form-control form-control-sm" rows="2" placeholder="High performance indicator…"></textarea>
           </div>
           <div class="col-md-3">
-            <label class="form-label fw-semibold" style="font-size:.78rem;"><span class="nivel-superior">Superior</span> ({{ idioma_secundario }})</label>
+            <label class="form-label fw-semibold" style="font-size:.78rem;">
+              <span class="nivel-superior">{% if niveles.superior %}{{ niveles.superior.nombre_desempeno }}{% else %}Superior{% endif %}</span> ({{ idioma_secundario }})
+            </label>
             <textarea name="indicador_superior_L2" class="form-control form-control-sm" rows="2" placeholder="Superior performance indicator…"></textarea>
           </div>
           {% endif %}
