@@ -763,16 +763,17 @@
   function renderDBAInline(dbaList) {
     const cont = document.getElementById('dba-resultados-inline');
     if (!dbaList.length) {
-      cont.innerHTML = '<div class="alert alert-warning" style="font-size:.82rem;"><i class="bi bi-exclamation-circle me-1"></i>No se encontraron DBA para esta combinación. Esta área puede no tener DBA oficiales del MEN, o aún no están cargados en el sistema.</div>';
+      cont.innerHTML = '<div class="alert alert-warning" style="font-size:.82rem;"><i class="bi bi-exclamation-circle me-1"></i>No se encontraron DBA para esta combinación.</div>';
       return;
     }
     cont.innerHTML = dbaList.map(function (d) {
       const ev = d.evidencias ? `<div style="margin-top:.4rem;font-size:.75rem;color:#059669;white-space:pre-line;padding:.3rem .6rem;background:#f0fdf4;border-radius:6px;">${d.evidencias}</div>` : '';
       return `
         <div class="card border-0 shadow-sm mb-2" style="border-radius:10px;cursor:pointer;transition:box-shadow .15s;"
-             onmouseover="this.style.boxShadow='0 0 0 2px #7c3aed'" onmouseout="this.style.boxShadow=''"
-             onclick="seleccionarDBAInline(${JSON.stringify(d.enunciado)}, ${JSON.stringify(d.evidencias)})">
-          <div class="card-body py-2 px-3">
+             onmouseover="this.style.boxShadow='0 0 0 2px #7c3aed'" onmouseout="this.style.boxShadow=''">
+          <div class="card-body py-2 px-3"
+               data-enunciado="${d.enunciado.replace(/"/g,'&quot;')}"
+               data-evidencias="${(d.evidencias||'').replace(/"/g,'&quot;')}">
             <div style="font-size:.7rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.4px;">
               DBA N.°${d.numero} · ${d.area_label} · ${d.grado_label} · ${d.version}
             </div>
@@ -803,16 +804,21 @@
           });
       });
     }
-  });
 
-  window.seleccionarDBAInline = function (enunciado, evidencias) {
-    var campoDba = document.getElementById('campo-dba-inline');
-    var campoEv  = document.getElementById('campo-evidencias-dba-inline');
-    if (campoDba) campoDba.value = enunciado;
-    if (campoEv && evidencias) campoEv.value = evidencias;
-    const modal = bootstrap.Modal.getInstance(document.getElementById('modalDBABiblioteca'));
-    if (modal) modal.hide();
-  };
+    var resDBA = document.getElementById('dba-resultados-inline');
+    if (resDBA) {
+      resDBA.addEventListener('click', function (e) {
+        const body = e.target.closest('[data-enunciado]');
+        if (!body) return;
+        var campoDba = document.getElementById('campo-dba-inline');
+        var campoEv  = document.getElementById('campo-evidencias-dba-inline');
+        if (campoDba) campoDba.value = body.dataset.enunciado;
+        if (campoEv && body.dataset.evidencias) campoEv.value = body.dataset.evidencias;
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalDBABiblioteca'));
+        if (modal) modal.hide();
+      });
+    }
+  });
 })();
 
 // ── Generar indicadores con IA (formulario inline) ──

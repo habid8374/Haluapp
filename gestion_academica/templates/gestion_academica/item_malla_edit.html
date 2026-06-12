@@ -502,16 +502,17 @@ document.querySelectorAll('textarea').forEach(function(ta) {
   function renderDBA(dbaList) {
     const cont = document.getElementById('dba-resultados');
     if (!dbaList.length) {
-      cont.innerHTML = '<div class="alert alert-warning" style="font-size:.82rem;"><i class="bi bi-exclamation-circle me-1"></i>No se encontraron DBA para esta combinación. Esta área puede no tener DBA oficiales del MEN, o aún no están cargados en el sistema.</div>';
+      cont.innerHTML = '<div class="alert alert-warning" style="font-size:.82rem;"><i class="bi bi-exclamation-circle me-1"></i>No se encontraron DBA para esta combinación.</div>';
       return;
     }
     cont.innerHTML = dbaList.map(function (d) {
       const ev = d.evidencias ? `<div style="margin-top:.4rem;font-size:.75rem;color:#059669;white-space:pre-line;padding:.3rem .6rem;background:#f0fdf4;border-radius:6px;">${d.evidencias}</div>` : '';
       return `
-        <div class="card border-0 shadow-sm mb-2" style="border-radius:10px;cursor:pointer;transition:box-shadow .15s;"
-             onmouseover="this.style.boxShadow='0 0 0 2px #7c3aed'" onmouseout="this.style.boxShadow=''"
-             onclick="seleccionarDBA(${JSON.stringify(d.enunciado)}, ${JSON.stringify(d.evidencias)})">
-          <div class="card-body py-2 px-3">
+        <div class="dba-card card border-0 shadow-sm mb-2" style="border-radius:10px;cursor:pointer;transition:box-shadow .15s;"
+             onmouseover="this.style.boxShadow='0 0 0 2px #7c3aed'" onmouseout="this.style.boxShadow=''">
+          <div class="card-body py-2 px-3"
+               data-enunciado="${d.enunciado.replace(/"/g,'&quot;')}"
+               data-evidencias="${(d.evidencias||'').replace(/"/g,'&quot;')}">
             <div style="font-size:.7rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.4px;">
               DBA N.°${d.numero} · ${d.area_label} · ${d.grado_label} · ${d.version}
             </div>
@@ -525,13 +526,20 @@ document.querySelectorAll('textarea').forEach(function(ta) {
     }).join('');
   }
 
+  document.getElementById('dba-resultados').addEventListener('click', function (e) {
+    const body = e.target.closest('[data-enunciado]');
+    if (!body) return;
+    document.getElementById('campo-dba').value = body.dataset.enunciado;
+    const ev = body.dataset.evidencias;
+    if (ev) document.getElementById('campo-evidencias-dba').value = ev;
+    const modal = bootstrap.Modal.getInstance(document.getElementById('modalDBABiblioteca'));
+    if (modal) modal.hide();
+  });
+
   document.getElementById('btn-buscar-dba').addEventListener('click', function () {
     const area  = document.getElementById('dba-filtro-area').value;
     const grado = document.getElementById('dba-filtro-grado').value;
-    if (!area || !grado) {
-      alert('Selecciona área y grado primero.');
-      return;
-    }
+    if (!area || !grado) return;
     const cont = document.getElementById('dba-resultados');
     cont.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Buscando…</div>';
     fetch(`${API_URL}?area=${area}&grado=${grado}`)
@@ -541,13 +549,6 @@ document.querySelectorAll('textarea').forEach(function(ta) {
         cont.innerHTML = '<div class="alert alert-danger" style="font-size:.82rem;">Error al consultar el catálogo de DBA.</div>';
       });
   });
-
-  window.seleccionarDBA = function (enunciado, evidencias) {
-    document.getElementById('campo-dba').value = enunciado;
-    if (evidencias) document.getElementById('campo-evidencias-dba').value = evidencias;
-    const modal = bootstrap.Modal.getInstance(document.getElementById('modalDBABiblioteca'));
-    if (modal) modal.hide();
-  };
 })();
 
 // ── Generar indicadores con IA (página editar ítem) ──
