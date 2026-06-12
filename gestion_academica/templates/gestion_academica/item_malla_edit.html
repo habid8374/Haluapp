@@ -223,6 +223,25 @@
           </div>
         </div>
 
+        {# ── Bridge: Evidencias → Indicadores ── #}
+        <div id="bridge-edit" style="display:none;margin-bottom:1rem;">
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;">
+            <div style="flex:1;height:1px;background:linear-gradient(90deg,#86efac,#4ade80);"></div>
+            <span style="font-size:.68rem;font-weight:700;color:#15803d;white-space:nowrap;"><i class="bi bi-arrow-down-circle-fill me-1"></i>EVIDENCIAS → INDICADORES</span>
+            <div style="flex:1;height:1px;background:linear-gradient(90deg,#4ade80,#86efac);"></div>
+          </div>
+          <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:10px;padding:.8rem 1rem;">
+            <div style="font-size:.72rem;font-weight:700;color:#15803d;margin-bottom:.5rem;">
+              <i class="bi bi-list-check me-1"></i>Evidencias del DBA — úsalas como base para redactar los indicadores
+            </div>
+            <div id="bridge-list-edit" style="font-size:.8rem;color:#166534;line-height:1.6;"></div>
+            <div style="font-size:.71rem;color:#15803d;margin-top:.55rem;padding-top:.5rem;border-top:1px dashed #86efac;">
+              <i class="bi bi-lightbulb-fill me-1"></i>
+              Cada evidencia describe <strong>qué hace el estudiante</strong>. Usa eso para definir el nivel de complejidad de cada indicador ↓
+            </div>
+          </div>
+        </div>
+
         {# Indicadores de desempeño #}
         <div class="form-card">
           <div class="form-card-header">
@@ -495,6 +514,29 @@
 document.querySelectorAll('textarea').forEach(function(ta) {
   ta.style.resize = 'vertical';
 });
+
+// ── Fase 3: Bridge dinámico Evidencias → Indicadores ──
+(function () {
+  var campoEv = document.getElementById('campo-evidencias-dba');
+  var bridge  = document.getElementById('bridge-edit');
+  var list    = document.getElementById('bridge-list-edit');
+  if (!campoEv || !bridge || !list) return;
+
+  function updateBridge() {
+    var lines = campoEv.value.trim().split('\n').map(l => l.replace(/^[\s•\-*]+/, '').trim()).filter(Boolean);
+    if (lines.length) {
+      list.innerHTML = lines.map(function (l) {
+        return '<div style="display:flex;gap:.4rem;align-items:flex-start;padding:.1rem 0;"><span style="color:#16a34a;font-weight:700;flex-shrink:0;">•</span><span>' + l + '</span></div>';
+      }).join('');
+      bridge.style.display = 'block';
+    } else {
+      bridge.style.display = 'none';
+    }
+  }
+
+  campoEv.addEventListener('input', updateBridge);
+  updateBridge();
+})();
 
 (function () {
   const API_URL = "{% url 'gestion_academica:dba_predefinido_api' %}";

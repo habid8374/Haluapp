@@ -391,7 +391,22 @@
               <td>
                 {% if item.ebc %}<div><span style="font-size:.68rem;font-weight:700;color:#4f46e5;">EBC:</span> {{ item.ebc }}</div>{% endif %}
                 {% if item.dba %}<div style="margin-top:.2rem;"><span style="font-size:.68rem;font-weight:700;color:#7c3aed;">DBA:</span> {{ item.dba }}</div>{% endif %}
-                {% if item.evidencias_dba %}<div style="margin-top:.25rem;padding:.2rem .4rem;background:#f0fdf4;border-radius:4px;font-size:.7rem;color:#15803d;"><i class="bi bi-list-check" style="font-size:.65rem;"></i> {{ item.evidencias_dba|linebreaksbr }}</div>{% endif %}
+                {% if item.evidencias_dba %}
+                <div style="margin-top:.4rem;border-top:1px dashed #c4b5fd;padding-top:.35rem;">
+                  <div style="font-size:.62rem;font-weight:700;color:#15803d;margin-bottom:.25rem;display:flex;align-items:center;gap:.3rem;">
+                    <i class="bi bi-arrow-down-short" style="font-size:.75rem;"></i>Evidencias de aprendizaje
+                  </div>
+                  <div style="background:#f0fdf4;border-radius:5px;padding:.3rem .5rem;">
+                    {% for linea in item.evidencias_dba|linebreaksbr|striptags|truncatechars:300 %}{% endfor %}
+                    <div style="font-size:.7rem;color:#166534;line-height:1.55;white-space:pre-line;">{{ item.evidencias_dba }}</div>
+                  </div>
+                  {% if item.indicador_bajo or item.indicador_basico or item.indicador_alto or item.indicador_superior %}
+                  <div style="font-size:.62rem;font-weight:700;color:#7c3aed;margin-top:.25rem;display:flex;align-items:center;gap:.3rem;">
+                    <i class="bi bi-arrow-down-short" style="font-size:.75rem;"></i>Indicadores de desempeño →
+                  </div>
+                  {% endif %}
+                </div>
+                {% endif %}
                 {% if not item.ebc and not item.dba %}—{% endif %}
               </td>
               <td>
@@ -532,6 +547,18 @@
           <div class="col-12">
             <label class="form-label fw-semibold" style="font-size:.78rem;"><i class="bi bi-list-check me-1 text-primary"></i>Evidencias de Aprendizaje del DBA</label>
             <textarea id="campo-evidencias-dba-inline" name="evidencias_dba" class="form-control form-control-sm" rows="2" placeholder="3-5 acciones observables del DBA. Estas son la base para los indicadores Bajo/Básico/Alto/Superior."></textarea>
+          </div>
+          <div id="bridge-inline" class="col-12" style="display:none;">
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;">
+              <div style="flex:1;height:1px;background:linear-gradient(90deg,#86efac,#4ade80);"></div>
+              <span style="font-size:.65rem;font-weight:700;color:#15803d;white-space:nowrap;"><i class="bi bi-arrow-down-circle-fill me-1"></i>EVIDENCIAS → INDICADORES</span>
+              <div style="flex:1;height:1px;background:linear-gradient(90deg,#4ade80,#86efac);"></div>
+            </div>
+            <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:8px;padding:.6rem .85rem;margin-bottom:.3rem;">
+              <div style="font-size:.68rem;font-weight:700;color:#15803d;margin-bottom:.35rem;"><i class="bi bi-list-check me-1"></i>Evidencias del DBA — base para los indicadores</div>
+              <div id="bridge-list-inline" style="font-size:.77rem;color:#166534;line-height:1.6;"></div>
+              <div style="font-size:.68rem;color:#15803d;margin-top:.4rem;opacity:.85;"><i class="bi bi-lightbulb-fill me-1"></i>Define el nivel de complejidad de cada indicador basándote en estas evidencias ↓</div>
+            </div>
           </div>
           <div class="col-12">
             <button type="button" id="btn-generar-indicadores-inline"
@@ -818,6 +845,31 @@
         if (modal) modal.hide();
       });
     }
+  });
+})();
+
+// ── Fase 3: Bridge dinámico Evidencias → Indicadores (inline) ──
+(function () {
+  document.addEventListener('DOMContentLoaded', function () {
+    var campoEv = document.getElementById('campo-evidencias-dba-inline');
+    var bridge  = document.getElementById('bridge-inline');
+    var list    = document.getElementById('bridge-list-inline');
+    if (!campoEv || !bridge || !list) return;
+
+    function updateBridge() {
+      var lines = campoEv.value.trim().split('\n').map(function (l) { return l.replace(/^[\s•\-*]+/, '').trim(); }).filter(Boolean);
+      if (lines.length) {
+        list.innerHTML = lines.map(function (l) {
+          return '<div style="display:flex;gap:.35rem;align-items:flex-start;padding:.08rem 0;"><span style="color:#16a34a;font-weight:700;flex-shrink:0;">•</span><span>' + l + '</span></div>';
+        }).join('');
+        bridge.style.display = 'block';
+      } else {
+        bridge.style.display = 'none';
+      }
+    }
+
+    campoEv.addEventListener('input', updateBridge);
+    updateBridge();
   });
 })();
 
