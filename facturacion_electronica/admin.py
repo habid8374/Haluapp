@@ -13,12 +13,6 @@ class ConfiguracionFactusAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     # 'activo' editable solo desde aquí (propietario) — es el interruptor del adicional.
     readonly_fields = ("facturas_emitidas", "fecha_creacion", "fecha_actualizacion")
 
-    def get_readonly_fields(self, request, obj=None):
-        ro = list(super().get_readonly_fields(request, obj))
-        if not request.user.is_superuser:
-            ro.append("activo")
-        return ro
-
 
 @admin.register(FacturaElectronica)
 class FacturaElectronicaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):

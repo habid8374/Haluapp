@@ -257,7 +257,6 @@ class EstudianteForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
     def clean_documento_identidad(self):
         return (self.cleaned_data.get('documento_identidad') or '').strip()
@@ -299,7 +298,6 @@ class DocenteForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class MateriaForm(forms.ModelForm):
@@ -334,7 +332,6 @@ class MateriaForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class PeriodoAcademicoForm(forms.ModelForm):
@@ -366,7 +363,6 @@ class PeriodoAcademicoForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class CursoForm(forms.ModelForm):
@@ -400,7 +396,6 @@ class CursoForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class DirectorCursoForm(forms.ModelForm):
@@ -431,7 +426,6 @@ class DirectorCursoForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class EsquemaCalificacionForm(forms.ModelForm):
@@ -457,7 +451,6 @@ class EsquemaCalificacionForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class TipoActividadForm(forms.ModelForm):
@@ -567,7 +560,6 @@ class CalificacionForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class DeberForm(forms.ModelForm):
@@ -686,7 +678,6 @@ class PlanCurricularForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
 
 class MencionReconocimientoForm(forms.ModelForm):
@@ -834,7 +825,6 @@ class NoticiaForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
 class LeccionDiariaForm(forms.ModelForm):
     class Meta:
@@ -1236,7 +1226,6 @@ class AulaForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
-                self.fields['institucion'].widget = forms.HiddenInput()
 
 class AreaAcademicaForm(forms.ModelForm):
     materias = forms.ModelMultipleChoiceField(
