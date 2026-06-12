@@ -307,6 +307,29 @@ def detalle_factura(request, factura_id):
 
 
 @login_required
+@permission_required("finanzas.change_institucioneducativa", raise_exception=True)
+@require_POST
+def reenviar_correo_factura(request, factura_id):
+    """Reenvía el correo de notificación de la factura electrónica al estudiante y familiares."""
+    institucion = _get_institucion(request)
+    factura = get_object_or_404(FacturaElectronica, pk=factura_id, institucion=institucion)
+
+    if factura.estado != FacturaElectronica.Estado.VALIDADA:
+        messages.warning(request, "Solo se puede reenviar el correo de facturas validadas por la DIAN.")
+        return redirect("facturacion_electronica:detalle_factura", factura_id=factura_id)
+
+    try:
+        from gestion_academica.tasks_notificaciones import notificar_factura_electronica
+        notificar_factura_electronica.delay(factura.pk)
+        messages.success(request, "Correo de factura electrónica encolado. Llegará en unos segundos.")
+    except Exception as exc:
+        logger.error("reenviar_correo_factura: error al encolar tarea: %s", exc)
+        messages.error(request, f"No se pudo encolar el correo: {exc}")
+
+    return redirect("facturacion_electronica:detalle_factura", factura_id=factura_id)
+
+
+@login_required
 @permission_required("finanzas.add_pagoregistrado", raise_exception=True)
 @require_POST
 def emitir_factura(request, pago_id):

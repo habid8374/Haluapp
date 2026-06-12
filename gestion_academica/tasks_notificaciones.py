@@ -613,16 +613,25 @@ def notificar_boletin_disponible(self, estudiante_id: int, periodo_id: int) -> N
 
 def _html_factura(institucion_nombre: str, estudiante_nombre: str,
                   numero: str, concepto: str, valor: str,
-                  fecha: str, url_pdf: str, cufe: str) -> str:
+                  fecha: str, url_halu_pdf: str, cufe: str,
+                  url_factus_pdf: str = "") -> str:
     boton_pdf = (
-        f"""<a href="{url_pdf}"
+        f"""<a href="{url_halu_pdf}"
                style="display:inline-block;background:linear-gradient(135deg,#4f46e5,#7c3aed);
                       color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;
                       padding:11px 28px;border-radius:8px;letter-spacing:.3px;margin-top:8px;">
-              Ver / Descargar Factura
+              Ver PDF Halu
             </a>"""
-        if url_pdf else
+        if url_halu_pdf else
         "<p style='color:#6b7280;font-size:13px;margin:0;'>El PDF estará disponible próximamente en la plataforma.</p>"
+    )
+    link_factus = (
+        f"""<p style="text-align:center;margin:10px 0 0;">
+              <a href="{url_factus_pdf}" style="color:#dc2626;font-size:12px;">
+                También disponible: PDF oficial DIAN (Factus)
+              </a>
+            </p>"""
+        if url_factus_pdf else ""
     )
     cufe_fila = (
         f"""<tr>
@@ -707,6 +716,7 @@ def _html_factura(institucion_nombre: str, estudiante_nombre: str,
             </table>
             <div style="text-align:center;margin-bottom:24px;">
               {boton_pdf}
+              {link_factus}
             </div>
             <p style="color:#6b7280;font-size:13px;margin:0;">
               Esta factura fue generada y validada ante la DIAN por
@@ -745,7 +755,8 @@ def _html_factura(institucion_nombre: str, estudiante_nombre: str,
 def notificar_factura_electronica(self, factura_id: int) -> None:
     """Envía la factura electrónica por correo al estudiante y sus familiares."""
     from facturacion_electronica.models import FacturaElectronica
-    from admisiones.utils import enviar_correo_dinamico
+    from admisiones.utils import enviar_correo_dinamico, build_absolute_site_uri
+    from django.urls import reverse
 
     try:
         factura = (
@@ -817,6 +828,14 @@ def notificar_factura_electronica(self, factura_id: int) -> None:
         )
         return
 
+    # URL del PDF propio de Halu (accesible con login); se construye sin request
+    try:
+        url_halu_pdf = build_absolute_site_uri(
+            reverse("facturacion_electronica:factura_pdf", args=[factura.pk])
+        )
+    except Exception:
+        url_halu_pdf = ""
+
     html = _html_factura(
         institucion_nombre=institucion.nombre,
         estudiante_nombre=estudiante_nombre,
@@ -824,8 +843,9 @@ def notificar_factura_electronica(self, factura_id: int) -> None:
         concepto=concepto,
         valor=valor,
         fecha=fecha_str,
-        url_pdf=factura.url_pdf or "",
+        url_halu_pdf=url_halu_pdf,
         cufe=factura.cufe or "",
+        url_factus_pdf=factura.url_pdf or "",
     )
 
     try:

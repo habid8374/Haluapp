@@ -46,6 +46,13 @@
                  style="border:1.5px solid #4f46e5;color:#4f46e5;background:#eef2ff;">
                 <i class="bi bi-file-earmark-text-fill me-1"></i>PDF Halu
               </a>
+              <form method="post" action="{% url 'facturacion_electronica:reenviar_correo_factura' factura.pk %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm fw-semibold"
+                        style="border:1.5px solid #0891b2;color:#0891b2;background:#ecfeff;">
+                  <i class="bi bi-envelope-arrow-up-fill me-1"></i>Reenviar correo
+                </button>
+              </form>
             {% endif %}
             {% if factura.url_pdf %}
               <a href="{{ factura.url_pdf }}" target="_blank" class="btn btn-sm btn-outline-danger fw-semibold">
