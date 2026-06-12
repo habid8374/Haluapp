@@ -570,8 +570,6 @@ def _connect_pago_signal():
     from finanzas.models import PagoRegistrado
     from django.db.models.signals import post_save as _post_save
 
-    @_post_save.connect(sender=PagoRegistrado,
-                        dispatch_uid="gestion_academica_correo_pago_recibido")
     def _enviar_correo_pago_recibido(sender, instance, created, **kwargs):
         """Encola correo de confirmación de pago al acudiente cuando se crea un pago nuevo."""
         if not created:
@@ -583,6 +581,12 @@ def _connect_pago_signal():
         transaction.on_commit(
             lambda pk=pago_pk: notificar_pago_recibido.delay(pk)
         )
+
+    # weak=False: el receptor es una función local; sin esto el recolector
+    # de basura lo eliminaría al salir de esta función.
+    _post_save.connect(_enviar_correo_pago_recibido, sender=PagoRegistrado,
+                       weak=False,
+                       dispatch_uid="gestion_academica_correo_pago_recibido")
 
 
 @receiver(post_save, sender=RegistroAsistencia)
