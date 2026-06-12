@@ -1,177 +1,295 @@
 {% extends "base_admisiones.html" %}
 
-{% block extrastyles %}
+{% block extrastyles %}{{ block.super }}
 <style>
-    .pipeline-board {
-        display: flex;
-        overflow-x: auto;
-        padding-bottom: 1rem;
-        gap: 1.5rem; /* Espacio entre columnas */
-    }
-    .pipeline-column {
-        flex: 0 0 320px; /* Ancho fijo para las columnas, no se encogen */
-        background-color: #f4f5f7;
-        border-radius: 8px;
-        display: flex;
-        flex-direction: column;
-    }
-    .pipeline-column-header {
-        padding: 10px 15px;
-        font-weight: bold;
-        border-bottom: 2px solid #e0e0e0;
-        background-color: #e9ecef;
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
-    }
-    .pipeline-cards {
-        min-height: 200px; /* Para que se pueda soltar aunque la columna esté vacía */
-        padding: 10px;
-        flex-grow: 1; /* La lista de tarjetas crece para llenar el espacio */
-        transition: background-color 0.2s ease-in-out;
-    }
-    .aspirante-card {
-        background-color: white;
-        border-radius: 5px;
-        box-shadow: 0 1px 2px rgba(9,30,66,.15);
-        padding: 12px;
-        margin-bottom: 10px;
-        cursor: grab;
-        border-left: 4px solid #0d6efd; /* Un pequeño detalle de color */
-    }
-    .aspirante-card:hover {
-        background-color: #f8f9fa;
-        box-shadow: 0 2px 4px rgba(9,30,66,.20);
-    }
-    .sortable-ghost { /* Estilo para el fantasma mientras se arrastra */
-        opacity: 0.4;
-        background-color: #cce5ff;
-        border: 2px dashed #0d6efd;
-    }
-    .sortable-drag {
-        cursor: grabbing; /* Cambia el cursor cuando se está arrastrando */
-    }
+/* ══ KANBAN DESKTOP ══════════════════════════════════════════════ */
+.pipeline-board {
+  display: flex;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.pipeline-column {
+  flex: 0 0 280px;
+  background: #f4f5f7;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 160px);
+}
+.pipeline-column-header {
+  padding: 10px 14px;
+  font-weight: 700;
+  font-size: .82rem;
+  border-bottom: 2px solid #e0e0e0;
+  background: #e9ecef;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+.pipeline-cards {
+  min-height: 120px;
+  padding: 8px;
+  flex-grow: 1;
+  overflow-y: auto;
+  transition: background .2s;
+}
+.pipeline-cards.drag-over { background: #dbeafe; }
+
+.aspirante-card {
+  background: #fff;
+  border-radius: 7px;
+  box-shadow: 0 1px 3px rgba(9,30,66,.15);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: grab;
+  border-left: 4px solid #1358c8;
+  transition: box-shadow .15s, transform .15s;
+}
+.aspirante-card:hover {
+  box-shadow: 0 3px 8px rgba(9,30,66,.22);
+  transform: translateY(-1px);
+}
+.aspirante-card a { color: #0f172a; font-size: .83rem; font-weight: 700; }
+.aspirante-card .card-sub { font-size: .72rem; color: #64748b; margin-top: 3px; }
+.sortable-ghost { opacity: .4; background: #cce5ff; border: 2px dashed #0d6efd; }
+.sortable-drag   { cursor: grabbing; }
+
+/* ══ MOBILE: tabs + lista vertical ════════════════════════════════ */
+@media (max-width: 767.98px) {
+  .pipeline-board { display: none; }
+
+  .pipeline-mobile { display: block; }
+
+  .pmob-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: .35rem;
+    padding: .4rem .1rem .6rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .pmob-tabs::-webkit-scrollbar { display: none; }
+  .pmob-tab {
+    flex-shrink: 0;
+    padding: .35rem .85rem;
+    border-radius: 2rem;
+    font-size: .78rem;
+    font-weight: 700;
+    border: 1.5px solid #cbd5e1;
+    background: #f8faff;
+    color: #475569;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .15s;
+  }
+  .pmob-tab.active {
+    background: #1358c8;
+    color: #fff;
+    border-color: #1358c8;
+  }
+  .pmob-panel { display: none; }
+  .pmob-panel.active { display: block; }
+
+  .pmob-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(9,30,66,.1);
+    padding: .7rem 1rem;
+    margin-bottom: .6rem;
+    border-left: 4px solid #1358c8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+  }
+  .pmob-card a { font-size: .85rem; font-weight: 700; color: #0f172a; }
+  .pmob-card .pmob-sub { font-size: .72rem; color: #64748b; margin-top: 2px; }
+  .pmob-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #94a3b8;
+    font-size: .82rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .pipeline-mobile { display: none; }
+  .pipeline-board   { display: flex; }
+}
+
+/* Toast de error */
+#pipeline-toast-wrap {
+  position: fixed;
+  bottom: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  min-width: 280px;
+}
 </style>
 {% endblock %}
 
 {% block contenido %}
-<div class="container-fluid">
-    <h1 class="h2 mb-4"><i class="bi bi-kanban-fill me-2"></i>{{ titulo_pagina }}</h1>
+<div class="container-fluid px-3 px-md-4">
+  <div class="d-flex align-items-center gap-2 mb-3 mt-1">
+    <h1 class="h5 mb-0 fw-800"><i class="bi bi-kanban-fill me-2 text-primary"></i>{{ titulo_pagina }}</h1>
+    <span class="badge bg-primary rounded-pill ms-1">
+      {% with total=0 %}{{ pipeline.values|length }} etapas{% endwith %}
+    </span>
+  </div>
 
-    <div class="pipeline-board">
-        {% for estado, data in pipeline.items %}
-        <div class="pipeline-column">
-            <div class="pipeline-column-header">
-                {{ data.label }} <span class="badge bg-primary rounded-pill">{{ data.aspirantes|length }}</span>
-            </div>
-            <!-- El data-estado es crucial para saber a qué columna se movió -->
-            <div class="pipeline-cards list-group" id="columna-{{ estado }}" data-estado="{{ estado }}">
-                {% for aspirante in data.aspirantes %}
-                <!-- El data-id es crucial para saber qué aspirante se movió -->
-                <div class="aspirante-card list-group-item" data-id="{{ aspirante.pk }}">
-                    <a href="{% url 'admisiones:detalle_aspirante' aspirante.pk %}" class="text-decoration-none text-dark">
-                        <strong>{{ aspirante.apellidos }}, {{ aspirante.nombres }}</strong>
-                    </a>
-                    <div class="text-muted small mt-1">
-                        <i class="bi bi-award-fill text-secondary"></i> Grado: {{ aspirante.grado_aspira.nombre|default:"N/A" }}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+  {# ── DESKTOP: Kanban clásico ── #}
+  <div class="pipeline-board">
+    {% for estado, data in pipeline.items %}
+    <div class="pipeline-column">
+      <div class="pipeline-column-header">
+        <span>{{ data.label }}</span>
+        <span class="badge bg-primary rounded-pill">{{ data.aspirantes|length }}</span>
+      </div>
+      <div class="pipeline-cards" id="columna-{{ estado }}" data-estado="{{ estado }}">
+        {% for aspirante in data.aspirantes %}
+        <div class="aspirante-card" data-id="{{ aspirante.pk }}">
+          <a href="{% url 'admisiones:detalle_aspirante' aspirante.pk %}">
+            {{ aspirante.apellidos }}, {{ aspirante.nombres }}
+          </a>
+          <div class="card-sub">
+            <i class="bi bi-award-fill me-1"></i>{{ aspirante.grado_aspira.nombre|default:"N/A" }}
+          </div>
         </div>
         {% endfor %}
+      </div>
     </div>
+    {% endfor %}
+  </div>
+
+  {# ── MÓVIL: Tabs + lista vertical ── #}
+  <div class="pipeline-mobile">
+    <div class="pmob-tabs" id="pmob-tabs">
+      {% for estado, data in pipeline.items %}
+      <button class="pmob-tab {% if forloop.first %}active{% endif %}"
+              data-target="pmob-panel-{{ estado }}">
+        {{ data.label }}
+        <span style="background:rgba(255,255,255,.3);border-radius:999px;padding:0 .4rem;font-size:.7rem;margin-left:.25rem;">
+          {{ data.aspirantes|length }}
+        </span>
+      </button>
+      {% endfor %}
+    </div>
+
+    {% for estado, data in pipeline.items %}
+    <div class="pmob-panel {% if forloop.first %}active{% endif %}"
+         id="pmob-panel-{{ estado }}"
+         data-estado="{{ estado }}">
+      {% if data.aspirantes %}
+        {% for aspirante in data.aspirantes %}
+        <div class="pmob-card" data-id="{{ aspirante.pk }}">
+          <div>
+            <a href="{% url 'admisiones:detalle_aspirante' aspirante.pk %}">
+              {{ aspirante.apellidos }}, {{ aspirante.nombres }}
+            </a>
+            <div class="pmob-sub">
+              <i class="bi bi-award-fill me-1"></i>{{ aspirante.grado_aspira.nombre|default:"N/A" }}
+            </div>
+          </div>
+          <a href="{% url 'admisiones:detalle_aspirante' aspirante.pk %}"
+             class="btn btn-sm btn-outline-primary" style="font-size:.72rem;flex-shrink:0;">
+            <i class="bi bi-eye-fill"></i>
+          </a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="pmob-empty">
+          <i class="bi bi-inbox display-6 d-block mb-2 opacity-40"></i>
+          Sin aspirantes en esta etapa
+        </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{# ── Toast de error (reemplaza alert()) ── #}
+<div id="pipeline-toast-wrap">
+  <div id="pipeline-toast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="pipeline-toast-msg" style="font-size:.84rem;">
+        Error al actualizar el estado.
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
 </div>
 {% endblock contenido %}
 
 {% block extra_js %}
 {{ block.super }}
-<!-- Incluimos SortableJS desde un CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Función estándar de Django para obtener el token CSRF de las cookies
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                // ¿El nombre de la cookie coincide con lo que buscamos?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* ── CSRF ── */
+  function getCookie(name) {
+    let v = null;
+    if (document.cookie) {
+      document.cookie.split(';').forEach(c => {
+        c = c.trim();
+        if (c.startsWith(name + '=')) v = decodeURIComponent(c.slice(name.length + 1));
+      });
     }
-    const csrftoken = getCookie('csrftoken');
+    return v;
+  }
+  const csrftoken = getCookie('csrftoken');
+  const API_URL   = "{% url 'admisiones:actualizar_estado_aspirante_api' %}";
 
-    // Obtenemos todas las columnas del tablero
-    const columns = document.querySelectorAll('.pipeline-cards');
+  /* ── Toast de error ── */
+  const toastEl  = document.getElementById('pipeline-toast');
+  const toastMsg = document.getElementById('pipeline-toast-msg');
+  function showError(msg) {
+    toastMsg.textContent = msg || 'Error al actualizar el estado.';
+    bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 4000 }).show();
+  }
 
-    columns.forEach(column => {
-        new Sortable(column, {
-            group: 'pipeline', // Permite mover tarjetas entre columnas del mismo grupo
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            dragClass: 'sortable-drag',
-            onEnd: function (evt) {
-                // evt.to: la columna de destino
-                // evt.item: el elemento HTML que se movió
+  /* ── Llamada API ── */
+  function actualizarEstado(aspiranteId, nuevoEstado, onError) {
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+      body: JSON.stringify({ aspirante_id: aspiranteId, nuevo_estado: nuevoEstado })
+    })
+    .then(r => r.ok ? r.json() : r.json().then(e => { throw new Error(e.message || 'Error del servidor'); }))
+    .then(data => { if (data.status !== 'success') throw new Error(data.message); })
+    .catch(err => { showError(err.message); if (onError) onError(); });
+  }
 
-                const aspiranteId = evt.item.dataset.id;
-                const nuevoEstado = evt.to.dataset.estado;
-                
-                console.log(`Moviendo aspirante ID: ${aspiranteId} a estado: ${nuevoEstado}`);
-
-                // Hacemos la llamada a nuestra API para actualizar la BD
-                fetch("{% url 'admisiones:actualizar_estado_aspirante_api' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        // ¡AQUÍ ESTÁ LA MODIFICACIÓN CLAVE!
-                        // Incluimos el token CSRF que Django necesita para peticiones POST seguras.
-                        'X-CSRFToken': csrftoken 
-                    },
-                    body: JSON.stringify({
-                        aspirante_id: aspiranteId,
-                        nuevo_estado: nuevoEstado
-                    })
-                })
-                .then(response => {
-                    // Verificamos si la respuesta del servidor fue exitosa (código 2xx)
-                    if (!response.ok) {
-                        // Si no lo fue, intentamos leer el mensaje de error del servidor y lo lanzamos como un error
-                        return response.json().then(err => { throw new Error(err.message || 'Error desconocido del servidor.') });
-                    }
-                    // Si fue exitosa, pasamos los datos JSON al siguiente .then()
-                    return response.json();
-                })
-                .then(data => {
-                    if(data.status === 'success') {
-                        console.log('¡Éxito! Estado actualizado en el servidor:', data.message);
-                        // Opcional: podrías mostrar una pequeña notificación de éxito aquí.
-                    } else {
-                        // Este caso es por si el servidor responde con 200 OK pero con un status de error en el JSON
-                        throw new Error(data.message);
-                    }
-                })
-                .catch(error => {
-                    // Este bloque .catch() captura errores de red (como el que tuviste)
-                    // o los errores que lanzamos manualmente en el .then() de arriba.
-                    console.error('Error al actualizar:', error);
-                    
-                    // ¡Importante! Si la actualización falla, devolvemos la tarjeta a su columna original
-                    // para que la interfaz se mantenga consistente con la base de datos.
-                    evt.from.appendChild(evt.item);
-                    
-                    alert('Error: ' + error.message);
-                });
-            }
+  /* ── DESKTOP: SortableJS ── */
+  document.querySelectorAll('.pipeline-cards').forEach(col => {
+    new Sortable(col, {
+      group: 'pipeline',
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      dragClass: 'sortable-drag',
+      onEnd(evt) {
+        actualizarEstado(evt.item.dataset.id, evt.to.dataset.estado, () => {
+          evt.from.appendChild(evt.item);
         });
+      }
     });
+  });
+
+  /* ── MÓVIL: tabs ── */
+  document.querySelectorAll('.pmob-tab').forEach(tab => {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.pmob-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.pmob-panel').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById(this.dataset.target).classList.add('active');
+    });
+  });
 });
 </script>
 {% endblock %}
