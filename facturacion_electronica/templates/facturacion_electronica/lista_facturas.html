@@ -205,8 +205,20 @@
                   <td class="text-center pe-3">
                     <div class="btn-group btn-group-sm">
                       <a href="{% url 'facturacion_electronica:detalle_factura' f.pk %}" class="btn btn-outline-primary" title="Ver detalle"><i class="bi bi-eye"></i></a>
-                      {% if f.url_pdf %}<a href="{{ f.url_pdf }}" target="_blank" class="btn btn-outline-danger" title="PDF DIAN"><i class="bi bi-file-earmark-pdf"></i></a>{% endif %}
-                      {% if f.qr %}<a href="{{ f.qr }}" target="_blank" class="btn btn-outline-secondary" title="Ver en DIAN"><i class="bi bi-qr-code"></i></a>{% endif %}
+                      {% if f.estado == 'VALIDADA' %}
+                        <a href="{% url 'facturacion_electronica:factura_pdf' f.pk %}" target="_blank"
+                           class="btn btn-outline-indigo fw-semibold" title="PDF Halu (representación gráfica propia)"
+                           style="border-color:#4f46e5;color:#4f46e5;">
+                          <i class="bi bi-file-earmark-text-fill me-1"></i>PDF Halu
+                        </a>
+                      {% endif %}
+                      {% if f.url_pdf %}
+                        <a href="{{ f.url_pdf }}" target="_blank"
+                           class="btn btn-outline-danger fw-semibold" title="PDF oficial DIAN (Factus)">
+                          <i class="bi bi-file-earmark-pdf-fill me-1"></i>PDF DIAN
+                        </a>
+                      {% endif %}
+                      {% if f.qr %}<a href="{{ f.qr }}" target="_blank" class="btn btn-outline-secondary" title="Verificar en DIAN"><i class="bi bi-qr-code"></i></a>{% endif %}
                       {% if f.estado == 'VALIDADA' and f.tipo == 'FACTURA' and modulo_activo %}
                         <button type="button" class="btn btn-outline-info" title="Nota Crédito"
                                 data-bs-toggle="modal" data-bs-target="#modalNota"
