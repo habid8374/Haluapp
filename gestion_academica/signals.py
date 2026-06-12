@@ -561,18 +561,43 @@ def notificar_docente_nueva_cita_reunion(sender, instance, created, **kwargs):
 # Señales de notificación por correo (tareas Celery)
 # ---------------------------------------------------------------------------
 
-@receiver(post_save, sender='finanzas.PagoRegistrado')
-def enviar_correo_pago_recibido(sender, instance, created, **kwargs):
-    """Encola correo de confirmación de pago al acudiente cuando se crea un pago nuevo."""
-    if not created:
-        return
-    from django.db import transaction
-    from gestion_academica.tasks_notificaciones import notificar_pago_recibido
+def _conectar_signal_pago():
+    """Registra el receptor post_save de PagoRegistrado de forma diferida
+    para evitar importaciones circulares (finanzas importa gestion_academica)."""
+    from finanzas.models import PagoRegistrado
+    from django.db.models.signals import post_save as _post_save
 
-    pago_pk = instance.pk
-    transaction.on_commit(
-        lambda pk=pago_pk: notificar_pago_recibido.delay(pk)
-    )
+    def _enviar_correo_pago_recibido(sender, instance, created, **kwargs):
+        """Encola correo de confirmación de pago al acudiente cuando se crea un pago nuevo."""
+        if not created:
+            return
+        from django.db import transaction
+        from gestion_academica.tasks_notificaciones import notificar_pago_recibido
+
+        pago_pk = instance.pk
+        transaction.on_commit(
+            lambda pk=pago_pk: notificar_pago_recibido.delay(pk)
+        )
+
+    _post_save.connect(_enviar_correo_pago_recibido, sender=PagoRegistrado,
+                       dispatch_uid="gestion_academica_correo_pago_recibido")
+
+
+# Diferimos la conexión hasta que Django haya cargado todas las apps.
+# Usamos on_commit de AppConfig.ready() no está disponible aquí, así que
+# aprovechamos el mismo patrón de conexión tardía que usa el proyecto:
+# la función se llama desde apps.py → ready().
+# Para no romper el flujo actual, conectamos usando Apps.app_configs.
+from django.db.models.signals import post_migrate
+from django.apps import apps as _dj_apps
+
+def _ready_hook(sender, **kwargs):
+    try:
+        _conectar_signal_pago()
+    except Exception as _exc:  # noqa: BLE001
+        logger.warning("No se pudo conectar signal pago: %s", _exc)
+
+post_migrate.connect(_ready_hook, dispatch_uid="gestion_academica_pago_signal_ready")
 
 
 @receiver(post_save, sender=RegistroAsistencia)

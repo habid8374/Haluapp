@@ -15,4 +15,5 @@ urlpatterns = [
     path("mantenimiento/ejecutar/",             views.mantenimiento_ejecutar,     name="mantenimiento_ejecutar"),
     path("mantenimiento/<int:pk>/",             views.mantenimiento_detalle,      name="mantenimiento_detalle"),
     path("mantenimiento/<int:pk>/estado/",      views.mantenimiento_estado_api,   name="mantenimiento_estado_api"),
+    path("nuevo-colegio/",                       views.onboarding_nuevo_colegio,   name="onboarding_nuevo_colegio"),
 ]

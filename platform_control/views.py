@@ -312,3 +312,265 @@ def mantenimiento_estado_api(request, pk):
         "eventos": ejecucion.eventos or [],
         "error_excepcion": ejecucion.error_excepcion,
     })
+
+
+# ---------------------------------------------------------------------------
+# Onboarding de nuevo colegio
+# ---------------------------------------------------------------------------
+
+class _OnboardingForm:
+    """Formulario ligero sin Django forms para el onboarding."""
+
+    def __init__(self, data=None):
+        self.data = data or {}
+        self.errors: dict[str, str] = {}
+        self.non_field_errors: list[str] = []
+        self._cleaned: dict = {}
+
+    # Atributos compatibles con el template (acceso via form.field.value / form.field.errors)
+    class _Field:
+        def __init__(self, value, errors):
+            self._value = value
+            self.errors = errors
+
+        def value(self):
+            return self._value
+
+    def __getattr__(self, name):
+        if name.startswith("_") or name in ("data", "errors", "non_field_errors"):
+            raise AttributeError(name)
+        return self._Field(
+            value=self.data.get(name, ""),
+            errors=[self.errors.get(name)] if name in self.errors else [],
+        )
+
+    def is_valid(self) -> bool:
+        d = self.data
+        nombre = (d.get("nombre") or "").strip()
+        nit = (d.get("nit") or "").strip()
+        admin_email = (d.get("admin_email") or "").strip()
+        niveles = d.getlist("niveles") if hasattr(d, "getlist") else d.get("niveles", [])
+
+        if not nombre:
+            self.errors["nombre"] = "Este campo es obligatorio."
+        if not nit:
+            self.errors["nit"] = "Este campo es obligatorio."
+        if not admin_email:
+            self.errors["admin_email"] = "Este campo es obligatorio."
+        elif "@" not in admin_email:
+            self.errors["admin_email"] = "Ingresa un email válido."
+        if not niveles:
+            self.errors["niveles"] = "Selecciona al menos un nivel educativo."
+
+        self._cleaned = {
+            "nombre": nombre,
+            "nit": nit,
+            "direccion": (d.get("direccion") or "").strip(),
+            "telefono": (d.get("telefono") or "").strip(),
+            "correo_electronico": (d.get("correo_electronico") or "").strip(),
+            "admin_email": admin_email,
+            "niveles": niveles if isinstance(niveles, list) else [niveles],
+        }
+        return not self.errors
+
+    @property
+    def cleaned_data(self):
+        return self._cleaned
+
+
+def _aprovisionar_colegio(cleaned: dict) -> dict:
+    """Crea la institución con toda su estructura y devuelve un dict con el resumen."""
+    import random
+    import string
+    from datetime import date
+
+    from django.contrib.auth.hashers import make_password
+
+    from finanzas.models import InstitucionEducativa
+    from gestion_academica.models import (
+        Grado, NivelEscolaridad, PeriodoAcademico, Usuario,
+    )
+
+    # ── Grados estándar por nivel ─────────────────────────────────────────
+    GRADOS_POR_NIVEL = {
+        "preescolar": [
+            ("Pre-jardín", 0),
+            ("Jardín", 1),
+            ("Transición", 2),
+        ],
+        "primaria": [
+            ("Primero", 1),
+            ("Segundo", 2),
+            ("Tercero", 3),
+            ("Cuarto", 4),
+            ("Quinto", 5),
+        ],
+        "secundaria": [
+            ("Sexto", 6),
+            ("Séptimo", 7),
+            ("Octavo", 8),
+            ("Noveno", 9),
+        ],
+        "media": [
+            ("Décimo", 10),
+            ("Undécimo", 11),
+        ],
+    }
+
+    NOMBRE_NIVEL = {
+        "preescolar": "Preescolar",
+        "primaria": "Primaria",
+        "secundaria": "Secundaria",
+        "media": "Media",
+    }
+
+    ORDEN_NIVEL = {
+        "preescolar": 1,
+        "primaria": 2,
+        "secundaria": 3,
+        "media": 4,
+    }
+
+    # ── 1. Crear institución ──────────────────────────────────────────────
+    institucion = InstitucionEducativa.objects.create(
+        nombre=cleaned["nombre"],
+        nit=cleaned["nit"],
+        direccion=cleaned["direccion"] or None,
+        telefono=cleaned["telefono"] or None,
+        correo_electronico=cleaned["correo_electronico"] or None,
+    )
+
+    # ── 2. Crear niveles y grados ─────────────────────────────────────────
+    niveles_grados: dict[str, list] = {}
+    todos_grados: list = []
+
+    for clave in cleaned["niveles"]:
+        clave = clave.lower()
+        if clave not in GRADOS_POR_NIVEL:
+            continue
+        nombre_nivel = NOMBRE_NIVEL[clave]
+        orden_nivel = ORDEN_NIVEL[clave]
+
+        nivel_obj, _ = NivelEscolaridad.objects.get_or_create(
+            nombre=nombre_nivel,
+            institucion=institucion,
+            defaults={"orden": orden_nivel},
+        )
+
+        grados_nivel: list = []
+        for nombre_grado, orden_grado in GRADOS_POR_NIVEL[clave]:
+            grado_obj, _ = Grado.objects.get_or_create(
+                nombre=nombre_grado,
+                institucion=institucion,
+                defaults={
+                    "nivel_escolaridad": nivel_obj,
+                    "orden": orden_grado,
+                },
+            )
+            grados_nivel.append(grado_obj)
+            todos_grados.append(grado_obj)
+
+        niveles_grados[nombre_nivel] = grados_nivel
+
+    # ── 3. Crear períodos académicos del año actual ───────────────────────
+    anio = date.today().year
+    PERIODOS = [
+        ("Período 1", date(anio, 1, 14),  date(anio, 3, 28)),
+        ("Período 2", date(anio, 4, 1),   date(anio, 6, 20)),
+        ("Período 3", date(anio, 7, 14),  date(anio, 9, 26)),
+        ("Período 4", date(anio, 9, 29),  date(anio, 11, 28)),
+    ]
+
+    periodos_creados = []
+    for idx, (nombre_p, fecha_inicio, fecha_fin) in enumerate(PERIODOS, start=1):
+        p, _ = PeriodoAcademico.objects.get_or_create(
+            nombre=nombre_p,
+            año_escolar=anio,
+            institucion=institucion,
+            defaults={
+                "fecha_inicio": fecha_inicio,
+                "fecha_fin": fecha_fin,
+                "activo": (idx == 1),
+            },
+        )
+        periodos_creados.append(p)
+
+    # ── 4. Crear usuario admin_institucion ────────────────────────────────
+    admin_email = cleaned["admin_email"]
+    base_username = admin_email.split("@")[0].replace(".", "_").replace("+", "_")
+    username = base_username
+    suffix = 1
+    while Usuario.objects.filter(username=username).exists():
+        username = f"{base_username}_{suffix}"
+        suffix += 1
+
+    temp_password = (
+        "".join(random.choices(string.ascii_uppercase, k=3))
+        + "".join(random.choices(string.digits, k=4))
+        + "".join(random.choices(string.ascii_lowercase, k=3))
+    )
+
+    admin_user = Usuario.objects.create(
+        username=username,
+        email=admin_email,
+        rol="administrador",
+        institucion_asociada=institucion,
+        password=make_password(temp_password),
+        is_staff=True,
+    )
+
+    return {
+        "institucion": institucion,
+        "niveles_grados": niveles_grados,
+        "grados": todos_grados,
+        "periodos": periodos_creados,
+        "admin_username": admin_user.username,
+        "admin_email": admin_user.email,
+        "admin_password": temp_password,
+        "anio": anio,
+    }
+
+
+@_superadmin_required
+def onboarding_nuevo_colegio(request):
+    resultado = None
+
+    if request.method == "POST":
+        form = _OnboardingForm(request.POST)
+        if form.is_valid():
+            try:
+                resultado = _aprovisionar_colegio(form.cleaned_data)
+                messages.success(
+                    request,
+                    f"Colegio «{resultado['institucion'].nombre}» aprovisionado correctamente.",
+                )
+                # Renderizamos directamente el resumen (no redirect-after-POST)
+                # para que el contexto con la contraseña temporal esté disponible
+                # en el template sin necesidad de sesión temporal.
+                return render(
+                    request,
+                    "platform_control/onboarding_colegio.html",
+                    {
+                        "titulo_pagina": "Colegio aprovisionado",
+                        "resultado": resultado,
+                        "form": _OnboardingForm(),
+                    },
+                )
+            except Exception as exc:
+                logger.exception("onboarding_nuevo_colegio: error aprovisionando: %s", exc)
+                messages.error(
+                    request,
+                    f"Error al aprovisionar el colegio: {exc}",
+                )
+    else:
+        form = _OnboardingForm()
+
+    return render(
+        request,
+        "platform_control/onboarding_colegio.html",
+        {
+            "titulo_pagina": "Aprovisionar Nuevo Colegio",
+            "form": form,
+            "resultado": resultado,
+        },
+    )
