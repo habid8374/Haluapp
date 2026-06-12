@@ -264,11 +264,12 @@ document.addEventListener('DOMContentLoaded', function () {
     .then(r => {
       if (r.ok) return r.json();
       return r.text().then(t => {
-        try { const e = JSON.parse(t); throw new Error(e.message || 'Error del servidor'); }
-        catch(_) { throw new Error('Error ' + r.status + ': ' + r.statusText); }
+        let msg = 'Error ' + r.status + ' del servidor';
+        try { const e = JSON.parse(t); if (e.message) msg = e.message; } catch (_) {}
+        throw new Error(msg);
       });
     })
-    .then(data => { if (data.status !== 'success') throw new Error(data.message); })
+    .then(data => { if (data.status !== 'success') throw new Error(data.message || 'Error del servidor'); })
     .catch(err => { showError(err.message); if (onError) onError(); });
   }
 
