@@ -809,21 +809,23 @@
 <script>
 (function () {
   const API_URL = "{% url 'gestion_academica:dba_predefinido_api' %}";
+  var dbaCacheIL = {};
 
   function renderDBAInline(dbaList) {
     const cont = document.getElementById('dba-resultados-inline');
+    dbaCacheIL = {};
     if (!dbaList.length) {
       cont.innerHTML = '<div class="alert alert-warning" style="font-size:.82rem;"><i class="bi bi-exclamation-circle me-1"></i>No se encontraron DBA para esta combinación.</div>';
       return;
     }
-    cont.innerHTML = dbaList.map(function (d) {
+    dbaList.forEach(function (d, i) { dbaCacheIL[i] = d; });
+    cont.innerHTML = dbaList.map(function (d, i) {
       const ev = d.evidencias ? `<div style="margin-top:.4rem;font-size:.75rem;color:#059669;white-space:pre-line;padding:.3rem .6rem;background:#f0fdf4;border-radius:6px;">${d.evidencias}</div>` : '';
       return `
         <div class="card border-0 shadow-sm mb-2" style="border-radius:10px;cursor:pointer;transition:box-shadow .15s;"
+             data-dba-idx="${i}"
              onmouseover="this.style.boxShadow='0 0 0 2px #7c3aed'" onmouseout="this.style.boxShadow=''">
-          <div class="card-body py-2 px-3"
-               data-enunciado="${d.enunciado.replace(/"/g,'&quot;')}"
-               data-evidencias="${(d.evidencias||'').replace(/"/g,'&quot;')}">
+          <div class="card-body py-2 px-3">
             <div style="font-size:.7rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.4px;">
               DBA N.°${d.numero} · ${d.area_label} · ${d.grado_label} · ${d.version}
             </div>
@@ -858,13 +860,15 @@
     var resDBA = document.getElementById('dba-resultados-inline');
     if (resDBA) {
       resDBA.addEventListener('click', function (e) {
-        const body = e.target.closest('[data-enunciado]');
-        if (!body) return;
+        const card = e.target.closest('[data-dba-idx]');
+        if (!card) return;
+        const d = dbaCacheIL[parseInt(card.dataset.dbaIdx, 10)];
+        if (!d) return;
         var campoDba = document.getElementById('campo-dba-inline');
         var campoEv  = document.getElementById('campo-evidencias-dba-inline');
-        if (campoDba) campoDba.value = body.dataset.enunciado;
-        if (campoEv && body.dataset.evidencias) {
-          campoEv.value = body.dataset.evidencias;
+        if (campoDba) campoDba.value = d.enunciado;
+        if (campoEv && d.evidencias) {
+          campoEv.value = d.evidencias;
           if (window._updateBridgeIL) window._updateBridgeIL();
         }
         const modal = bootstrap.Modal.getInstance(document.getElementById('modalDBABiblioteca'));
