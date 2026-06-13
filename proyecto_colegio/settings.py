@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'auditoria.apps.AuditoriaConfig',
     'autenticacion_2fa.apps.Autenticacion2faConfig',
     'simulacros.apps.SimulacrosConfig',
+    'piar.apps.PiarConfig',
 
 
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)

@@ -1,0 +1,73 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-3" style="max-width:700px;">
+
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.25rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.2rem;"><i class="bi bi-pencil-square me-2"></i>{{ titulo_pagina }}</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.85rem;">PIAR {{ piar.año_lectivo }} · {{ piar.estudiante.usuario.get_full_name }}</p>
+  </div>
+
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-bold">Área / Materia</label>
+            <select name="materia_id" class="form-select form-select-sm">
+              <option value="">— Ajuste general —</option>
+              {% for m in materias %}
+              <option value="{{ m.pk }}" {% if ajuste.materia_id == m.pk %}selected{% endif %}>{{ m.nombre_materia }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-bold">Período *</label>
+            <select name="periodo" class="form-select form-select-sm" required>
+              {% for val, label in periodos %}
+              <option value="{{ val }}" {% if ajuste.periodo == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-bold">Logro ajustado *</label>
+            <textarea name="logro_ajustado" class="form-control form-control-sm" rows="4" required>{{ ajuste.logro_ajustado }}</textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-bold">Estrategias flexibles *</label>
+            <textarea name="estrategias_flexibles" class="form-control form-control-sm" rows="4" required>{{ ajuste.estrategias_flexibles }}</textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-bold">Ajuste evaluativo *</label>
+            <textarea name="ajuste_evaluativo" class="form-control form-control-sm" rows="4" required>{{ ajuste.ajuste_evaluativo }}</textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-bold">Recursos de apoyo</label>
+            <input type="text" name="recursos_apoyo" class="form-control form-control-sm" value="{{ ajuste.recursos_apoyo }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-bold">Seguimiento y observaciones</label>
+            <textarea name="seguimiento" class="form-control form-control-sm" rows="3">{{ ajuste.seguimiento }}</textarea>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="alcanzado" id="alcanzado" {% if ajuste.alcanzado %}checked{% endif %}>
+              <label class="form-check-label small" for="alcanzado">Meta alcanzada</label>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex gap-2 justify-content-end mt-3">
+          <a href="{% url 'piar:detalle_piar' piar.pk %}" class="btn btn-outline-secondary btn-sm">Cancelar</a>
+          <button type="submit" class="btn btn-primary btn-sm fw-bold"><i class="bi bi-save me-1"></i>Guardar ajuste</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

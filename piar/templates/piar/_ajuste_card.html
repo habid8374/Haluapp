@@ -1,0 +1,56 @@
+<div class="ajuste-card">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+    <div class="d-flex gap-2 flex-wrap">
+      {% if ajuste.materia %}
+      <span class="badge" style="background:#eef2ff;color:#4f46e5;font-size:.72rem;">{{ ajuste.materia.nombre_materia }}</span>
+      {% else %}
+      <span class="badge bg-light text-muted" style="font-size:.72rem;">Ajuste general</span>
+      {% endif %}
+      <button type="button" class="btn btn-sm toggle-alcanzado {% if ajuste.alcanzado %}btn-success{% else %}btn-outline-secondary{% endif %}"
+              style="font-size:.72rem;padding:.15rem .5rem;"
+              data-url="{% url 'piar:actualizar_seguimiento' piar.pk ajuste.pk %}"
+              data-alcanzado="{{ ajuste.alcanzado|yesno:'true,false' }}">
+        <i class="bi {% if ajuste.alcanzado %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-1"></i>
+        <span>{% if ajuste.alcanzado %}Alcanzado{% else %}Pendiente{% endif %}</span>
+      </button>
+    </div>
+    <div class="d-flex gap-1">
+      <a href="{% url 'piar:editar_ajuste' piar.pk ajuste.pk %}" class="btn btn-sm btn-outline-secondary" style="padding:.15rem .5rem;" title="Editar">
+        <i class="bi bi-pencil" style="font-size:.75rem;"></i>
+      </a>
+      <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-ajuste"
+              style="padding:.15rem .5rem;" title="Eliminar"
+              data-action="{% url 'piar:eliminar_ajuste' piar.pk ajuste.pk %}"
+              data-bs-toggle="modal" data-bs-target="#modalEliminarAjuste">
+        <i class="bi bi-trash" style="font-size:.75rem;"></i>
+      </button>
+    </div>
+  </div>
+  <div class="row g-2" style="font-size:.82rem;">
+    <div class="col-md-4">
+      <p class="mb-1 fw-bold text-primary" style="font-size:.72rem;text-transform:uppercase;">Logro ajustado</p>
+      <p class="mb-0 text-muted">{{ ajuste.logro_ajustado }}</p>
+    </div>
+    <div class="col-md-4">
+      <p class="mb-1 fw-bold text-primary" style="font-size:.72rem;text-transform:uppercase;">Estrategias</p>
+      <p class="mb-0 text-muted">{{ ajuste.estrategias_flexibles }}</p>
+    </div>
+    <div class="col-md-4">
+      <p class="mb-1 fw-bold text-primary" style="font-size:.72rem;text-transform:uppercase;">Ajuste evaluativo</p>
+      <p class="mb-0 text-muted">{{ ajuste.ajuste_evaluativo }}</p>
+    </div>
+    {% if ajuste.recursos_apoyo %}
+    <div class="col-12">
+      <p class="mb-1 fw-bold text-muted" style="font-size:.72rem;text-transform:uppercase;">Recursos</p>
+      <p class="mb-0 text-muted">{{ ajuste.recursos_apoyo }}</p>
+    </div>
+    {% endif %}
+    {% if ajuste.seguimiento %}
+    <div class="col-12 mt-1">
+      <div class="p-2 rounded" style="background:#f8fafc;border-left:3px solid #4f46e5;">
+        <p class="mb-0 text-muted" style="font-size:.8rem;"><i class="bi bi-chat-left-text me-1 text-primary"></i>{{ ajuste.seguimiento }}</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>

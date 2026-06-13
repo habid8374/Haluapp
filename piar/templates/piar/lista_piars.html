@@ -1,0 +1,148 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .estado-badge-BORRADOR { background:#f1f5f9; color:#475569; }
+  .estado-badge-ACTIVO   { background:#dcfce7; color:#16a34a; }
+  .estado-badge-CERRADO  { background:#fee2e2; color:#dc2626; }
+  .condicion-badge { background:#eff6ff; color:#1d4ed8; font-size:.7rem; border-radius:20px; padding:.2em .7em; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-3">
+
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h2 class="fw-bold mb-1" style="font-size:1.4rem;"><i class="bi bi-person-hearts me-2"></i>PIARs — Planes de Ajustes Razonables</h2>
+        <p class="mb-0" style="opacity:.85;font-size:.9rem;">Decreto 1421 de 2017 · Inclusión educativa y ajustes razonables · {{ piars|length }} plan(es)</p>
+      </div>
+      {% if request.user.rol == 'coordinador' or request.user.rol == 'admin_institucion' or request.user.is_superuser %}
+      <a href="{% url 'piar:crear_piar' %}" class="btn btn-warning fw-bold">
+        <i class="bi bi-plus-circle-fill me-1"></i>Nuevo PIAR
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <!-- FILTROS -->
+  <form method="get" class="row g-2 mb-3 p-3" style="background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+    <div class="col-md-3">
+      <select name="año" class="form-select form-select-sm">
+        <option value="">Todos los años</option>
+        {% for a in años %}<option value="{{ a }}" {% if filtros.año == a|stringformat:"s" %}selected{% endif %}>{{ a }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="estado" class="form-select form-select-sm">
+        <option value="">Todos los estados</option>
+        {% for val, label in estados %}<option value="{{ val }}" {% if filtros.estado == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="grado_id" class="form-select form-select-sm">
+        <option value="">Todos los grados</option>
+        {% for g in grados %}<option value="{{ g.pk }}" {% if filtros.grado_id == g.pk|stringformat:"s" %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 d-flex gap-1">
+      <button type="submit" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-search me-1"></i>Filtrar</button>
+      <a href="{% url 'piar:lista_piars' %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+    </div>
+  </form>
+
+  <!-- LISTA -->
+  <div class="vstack gap-2">
+    {% for piar in piars %}
+    <div class="card shadow-sm" style="border-radius:12px;border:1.5px solid #e2e8f0;">
+      <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+              <span class="fw-bold" style="font-size:.95rem;">{{ piar.estudiante.usuario.get_full_name }}</span>
+              {% if piar.grado %}<span class="badge bg-light text-dark" style="font-size:.72rem;">{{ piar.grado.nombre }}</span>{% endif %}
+              <span class="badge rounded-pill estado-badge-{{ piar.estado }}" style="font-size:.72rem;">{{ piar.get_estado_display }}</span>
+              <span class="condicion-badge">{{ piar.get_condicion_display }}</span>
+            </div>
+            <div class="d-flex gap-3 flex-wrap" style="font-size:.8rem;color:#64748b;">
+              <span><i class="bi bi-calendar me-1"></i>Año {{ piar.año_lectivo }}</span>
+              <span><i class="bi bi-pencil-fill me-1"></i>{{ piar.fecha_elaboracion|date:"d/m/Y" }}</span>
+              {% if piar.docente_lider %}<span><i class="bi bi-person-badge me-1"></i>{{ piar.docente_lider.get_full_name }}</span>{% endif %}
+              <span><i class="bi bi-card-list me-1"></i>{{ piar.ajustes.count }} ajuste(s)</span>
+            </div>
+          </div>
+          <div class="d-flex gap-1 align-items-center">
+            <a href="{% url 'piar:detalle_piar' piar.pk %}" class="btn btn-sm btn-outline-primary fw-bold">
+              <i class="bi bi-eye me-1"></i>Ver
+            </a>
+            {% if request.user.rol == 'coordinador' or request.user.rol == 'admin_institucion' or request.user.is_superuser %}
+            <a href="{% url 'piar:editar_piar' piar.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-piar"
+                    data-action="{% url 'piar:eliminar_piar' piar.pk %}"
+                    data-nombre="{{ piar.estudiante.usuario.get_full_name }} ({{ piar.año_lectivo }})"
+                    data-bs-toggle="modal" data-bs-target="#modalEliminarPiar">
+              <i class="bi bi-trash"></i>
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-person-hearts" style="font-size:3rem;opacity:.3;"></i>
+      <p class="mt-2">No hay PIARs registrados con estos filtros.</p>
+      {% if request.user.rol == 'coordinador' or request.user.rol == 'admin_institucion' or request.user.is_superuser %}
+      <a href="{% url 'piar:crear_piar' %}" class="btn btn-primary mt-1"><i class="bi bi-plus-circle me-1"></i>Crear primer PIAR</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- MODAL ELIMINAR -->
+<div class="modal fade" id="modalEliminarPiar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Eliminar este PIAR?</h5>
+        <p id="modal-piar-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>Se eliminarán también todos los ajustes asociados. Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form id="form-eliminar-piar" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>Sí, eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('.btn-eliminar-piar').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.getElementById('form-eliminar-piar').action = this.dataset.action;
+    document.getElementById('modal-piar-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
+{% endblock %}

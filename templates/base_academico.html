@@ -650,6 +650,12 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link sub-item {% if 'piar' in request.path %}active{% endif %}"
+                 href="{% url 'piar:lista_piars' %}">
+                <i class="bi bi-person-hearts"></i> PIARs / Inclusión
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}">
                 <i class="bi bi-pencil-square"></i> Libro de Notas
               </a>
@@ -744,6 +750,12 @@
         <a class="nav-link {% if 'mallas' in request.path %}active{% endif %}"
            href="{% url 'gestion_academica:malla_curricular_list' %}">
           <i class="bi bi-journal-bookmark-fill"></i> Mallas Curriculares
+        </a>
+      </li>
+      <li class="nav-item item-color-3">
+        <a class="nav-link {% if 'piar' in request.path %}active{% endif %}"
+           href="{% url 'piar:lista_piars' %}">
+          <i class="bi bi-person-hearts"></i> PIARs / Inclusión
         </a>
       </li>
       <li class="nav-item item-color-5">

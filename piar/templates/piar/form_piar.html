@@ -1,0 +1,154 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container mt-3" style="max-width:900px;">
+
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem;color:#fff;margin-bottom:1.5rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.35rem;"><i class="bi bi-person-hearts me-2"></i>{{ titulo_pagina }}</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.88rem;">Decreto 1421 de 2017 · Plan Individual de Ajustes Razonables</p>
+  </div>
+
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Sección 1: Datos básicos -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold" style="background:#f8fafc;font-size:.9rem;">
+        <i class="bi bi-person-fill me-2 text-primary"></i>1. Datos del Estudiante y Condición
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          {% if not piar %}
+          <div class="col-md-8">
+            <label class="form-label small fw-bold">Estudiante <span class="text-danger">*</span></label>
+            <select name="estudiante" class="form-select" required>
+              <option value="">— Selecciona un estudiante —</option>
+              {% for e in estudiantes %}
+              <option value="{{ e.pk }}">{{ e.usuario.get_full_name }}{% if e.grado_actual %} ({{ e.grado_actual.nombre }}){% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          <div class="col-md-4">
+            <label class="form-label small fw-bold">Año lectivo <span class="text-danger">*</span></label>
+            <input type="number" name="año_lectivo" class="form-control" value="{{ piar.año_lectivo|default:año_actual }}" min="2020" max="2040" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-bold">Grado</label>
+            <select name="grado" class="form-select">
+              <option value="">— Automático (desde el estudiante) —</option>
+              {% for g in grados %}
+              <option value="{{ g.pk }}" {% if piar and piar.grado_id == g.pk %}selected{% endif %}>{{ g.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-bold">Tipo de condición <span class="text-danger">*</span></label>
+            <select name="condicion" class="form-select" required>
+              {% for val, label in condiciones %}
+              <option value="{{ val }}" {% if piar and piar.condicion == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-bold">Descripción diagnóstica</label>
+            <textarea name="condicion_descripcion" class="form-control form-control-sm" rows="2" placeholder="Diagnóstico médico o psicopedagógico, código CIE-10 si aplica...">{{ piar.condicion_descripcion|default:'' }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 2: Caracterización pedagógica -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold" style="background:#f8fafc;font-size:.9rem;">
+        <i class="bi bi-lightbulb-fill me-2 text-warning"></i>2. Caracterización Pedagógica
+      </div>
+      <div class="card-body row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Fortalezas del estudiante <span class="text-danger">*</span></label>
+          <textarea name="fortalezas" class="form-control form-control-sm" rows="4" placeholder="Habilidades, intereses, destrezas que el estudiante posee..." required>{{ piar.fortalezas|default:'' }}</textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Barreras de aprendizaje <span class="text-danger">*</span></label>
+          <textarea name="barreras" class="form-control form-control-sm" rows="4" placeholder="Obstáculos físicos, comunicativos, actitudinales..." required>{{ piar.barreras|default:'' }}</textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Apoyos requeridos <span class="text-danger">*</span></label>
+          <textarea name="apoyos" class="form-control form-control-sm" rows="4" placeholder="Materiales, tecnologías, personas de apoyo..." required>{{ piar.apoyos|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 3: Compromisos -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold" style="background:#f8fafc;font-size:.9rem;">
+        <i class="bi bi-handshake-fill me-2 text-success"></i>3. Compromisos y Acuerdos
+      </div>
+      <div class="card-body row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Compromisos de la familia</label>
+          <textarea name="compromisos_familia" class="form-control form-control-sm" rows="4" placeholder="Qué se compromete a hacer la familia...">{{ piar.compromisos_familia|default:'' }}</textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Compromisos de los docentes</label>
+          <textarea name="compromisos_docentes" class="form-control form-control-sm" rows="4" placeholder="Ajustes que realizarán los docentes...">{{ piar.compromisos_docentes|default:'' }}</textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Compromisos de la institución</label>
+          <textarea name="compromisos_institucion" class="form-control form-control-sm" rows="4" placeholder="Recursos y apoyos que proveerá la institución...">{{ piar.compromisos_institucion|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección 4: Gestión -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold" style="background:#f8fafc;font-size:.9rem;">
+        <i class="bi bi-gear-fill me-2 text-secondary"></i>4. Gestión del Plan
+      </div>
+      <div class="card-body row g-3">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Docente líder</label>
+          <select name="docente_lider" class="form-select form-select-sm">
+            <option value="">— Sin asignar —</option>
+            {% for d in docentes %}
+            <option value="{{ d.pk }}" {% if piar and piar.docente_lider_id == d.pk %}selected{% endif %}>{{ d.get_full_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Fecha de elaboración <span class="text-danger">*</span></label>
+          <input type="date" name="fecha_elaboracion" class="form-control form-control-sm" value="{{ piar.fecha_elaboracion|date:'Y-m-d'|default:'' }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Próxima revisión</label>
+          <input type="date" name="fecha_revision" class="form-control form-control-sm" value="{{ piar.fecha_revision|date:'Y-m-d'|default:'' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Estado</label>
+          <select name="estado" class="form-select form-select-sm">
+            {% for val, label in estados %}
+            <option value="{{ val }}" {% if piar and piar.estado == val %}selected{% elif not piar and val == 'BORRADOR' %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label small fw-bold">Observaciones generales</label>
+          <textarea name="observaciones_generales" class="form-control form-control-sm" rows="2">{{ piar.observaciones_generales|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end mt-3 mb-4">
+      <a href="{% url 'piar:lista_piars' %}" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary fw-bold">
+        <i class="bi bi-save me-1"></i>{% if piar %}Guardar cambios{% else %}Crear PIAR{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

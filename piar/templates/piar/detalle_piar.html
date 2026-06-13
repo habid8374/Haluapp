@@ -1,0 +1,260 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .estado-badge-BORRADOR { background:#f1f5f9; color:#475569; }
+  .estado-badge-ACTIVO   { background:#dcfce7; color:#16a34a; }
+  .estado-badge-CERRADO  { background:#fee2e2; color:#dc2626; }
+  .ajuste-card { border:1px solid #e2e8f0; border-radius:10px; padding:1rem; margin-bottom:.75rem; background:#fff; }
+  .periodo-header { background:linear-gradient(90deg,#1e3a5f,#1d4ed8); color:#fff; border-radius:8px 8px 0 0; padding:.5rem 1rem; font-size:.88rem; font-weight:700; }
+  .periodo-body { border:1px solid #bfdbfe; border-top:0; border-radius:0 0 8px 8px; padding:1rem; }
+  .toggle-alcanzado { cursor:pointer; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-3">
+
+  <!-- CABECERA -->
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+          <h2 class="fw-bold mb-0" style="font-size:1.3rem;"><i class="bi bi-person-hearts me-2"></i>{{ piar.estudiante.usuario.get_full_name }}</h2>
+          <span class="badge rounded-pill estado-badge-{{ piar.estado }}">{{ piar.get_estado_display }}</span>
+        </div>
+        <div class="d-flex gap-3 flex-wrap" style="font-size:.85rem;opacity:.9;">
+          {% if piar.grado %}<span><i class="bi bi-mortarboard me-1"></i>{{ piar.grado.nombre }}</span>{% endif %}
+          <span><i class="bi bi-calendar me-1"></i>Año {{ piar.año_lectivo }}</span>
+          <span><i class="bi bi-heart-pulse me-1"></i>{{ piar.get_condicion_display }}</span>
+          {% if piar.docente_lider %}<span><i class="bi bi-person-badge me-1"></i>{{ piar.docente_lider.get_full_name }}</span>{% endif %}
+          {% if piar.fecha_revision %}<span><i class="bi bi-arrow-clockwise me-1"></i>Revisión: {{ piar.fecha_revision|date:"d/m/Y" }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        {% if request.user.rol == 'coordinador' or request.user.rol == 'admin_institucion' or request.user.is_superuser %}
+        <a href="{% url 'piar:editar_piar' piar.pk %}" class="btn btn-warning btn-sm fw-bold">
+          <i class="bi bi-pencil me-1"></i>Editar PIAR
+        </a>
+        {% endif %}
+        <a href="{% url 'piar:lista_piars' %}" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <div class="row g-3">
+
+    <!-- COLUMNA IZQUIERDA: Caracterización -->
+    <div class="col-lg-4">
+      <div class="accordion" id="accordionCaracterizacion">
+
+        <div class="accordion-item border-0 shadow-sm mb-2" style="border-radius:10px!important;overflow:hidden;">
+          <h2 class="accordion-header">
+            <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFortalezas" style="font-size:.88rem;">
+              <i class="bi bi-star-fill text-warning me-2"></i>Fortalezas
+            </button>
+          </h2>
+          <div id="collapseFortalezas" class="accordion-collapse collapse show" data-bs-parent="#accordionCaracterizacion">
+            <div class="accordion-body" style="font-size:.85rem;white-space:pre-wrap;">{{ piar.fortalezas }}</div>
+          </div>
+        </div>
+
+        <div class="accordion-item border-0 shadow-sm mb-2" style="border-radius:10px!important;overflow:hidden;">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBarreras" style="font-size:.88rem;">
+              <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Barreras
+            </button>
+          </h2>
+          <div id="collapseBarreras" class="accordion-collapse collapse" data-bs-parent="#accordionCaracterizacion">
+            <div class="accordion-body" style="font-size:.85rem;white-space:pre-wrap;">{{ piar.barreras }}</div>
+          </div>
+        </div>
+
+        <div class="accordion-item border-0 shadow-sm mb-2" style="border-radius:10px!important;overflow:hidden;">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseApoyos" style="font-size:.88rem;">
+              <i class="bi bi-tools text-info me-2"></i>Apoyos requeridos
+            </button>
+          </h2>
+          <div id="collapseApoyos" class="accordion-collapse collapse" data-bs-parent="#accordionCaracterizacion">
+            <div class="accordion-body" style="font-size:.85rem;white-space:pre-wrap;">{{ piar.apoyos }}</div>
+          </div>
+        </div>
+
+        {% if piar.compromisos_familia or piar.compromisos_docentes or piar.compromisos_institucion %}
+        <div class="accordion-item border-0 shadow-sm mb-2" style="border-radius:10px!important;overflow:hidden;">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCompromisos" style="font-size:.88rem;">
+              <i class="bi bi-handshake-fill text-success me-2"></i>Compromisos
+            </button>
+          </h2>
+          <div id="collapseCompromisos" class="accordion-collapse collapse">
+            <div class="accordion-body" style="font-size:.82rem;">
+              {% if piar.compromisos_familia %}<p class="mb-2"><strong>Familia:</strong><br>{{ piar.compromisos_familia }}</p>{% endif %}
+              {% if piar.compromisos_docentes %}<p class="mb-2"><strong>Docentes:</strong><br>{{ piar.compromisos_docentes }}</p>{% endif %}
+              {% if piar.compromisos_institucion %}<p class="mb-0"><strong>Institución:</strong><br>{{ piar.compromisos_institucion }}</p>{% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if piar.condicion_descripcion %}
+        <div class="card shadow-sm p-3" style="font-size:.82rem;border-radius:10px;">
+          <p class="fw-bold mb-1 text-muted" style="font-size:.75rem;text-transform:uppercase;">Descripción diagnóstica</p>
+          <p class="mb-0" style="white-space:pre-wrap;">{{ piar.condicion_descripcion }}</p>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: Ajustes por período -->
+    <div class="col-lg-8">
+      <h5 class="fw-bold mb-3"><i class="bi bi-card-list me-1 text-primary"></i>Ajustes Curriculares por Período</h5>
+
+      {% for periodo_num in "1234" %}
+      {% with periodo_int=periodo_num|add:0 ajustes_periodo=ajustes_por_periodo|default:'' %}
+      {% with p_ajustes=ajustes_por_periodo %}
+      <div class="mb-3">
+        <div class="periodo-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-bookmark-fill me-1"></i>Período {{ periodo_num }}</span>
+          <button class="btn btn-sm btn-outline-light fw-bold" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#addAjuste{{ periodo_num }}">
+            <i class="bi bi-plus-circle me-1"></i>Agregar ajuste
+          </button>
+        </div>
+        <div class="periodo-body">
+
+          <!-- Formulario inline para agregar ajuste -->
+          <div class="collapse mb-3" id="addAjuste{{ periodo_num }}">
+            <div class="card border-primary" style="border-radius:8px;">
+              <div class="card-body" style="background:#f0f4ff;">
+                <form method="post" action="{% url 'piar:crear_ajuste' piar.pk %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="periodo" value="{{ periodo_num }}">
+                  <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                      <label class="form-label small fw-bold mb-1">Área / Materia</label>
+                      <select name="materia_id" class="form-select form-select-sm">
+                        <option value="">— Ajuste general —</option>
+                        {% for m in materias %}<option value="{{ m.pk }}">{{ m.nombre_materia }}</option>{% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row g-2 mb-2">
+                    <div class="col-md-4">
+                      <label class="form-label small fw-bold mb-1">Logro ajustado *</label>
+                      <textarea name="logro_ajustado" class="form-control form-control-sm" rows="3" required placeholder="Meta de aprendizaje adaptada..."></textarea>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label small fw-bold mb-1">Estrategias flexibles *</label>
+                      <textarea name="estrategias_flexibles" class="form-control form-control-sm" rows="3" required placeholder="Cómo se enseñará diferente..."></textarea>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label small fw-bold mb-1">Ajuste evaluativo *</label>
+                      <textarea name="ajuste_evaluativo" class="form-control form-control-sm" rows="3" required placeholder="Cómo se evaluará diferente..."></textarea>
+                    </div>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label small fw-bold mb-1">Recursos de apoyo</label>
+                    <input type="text" name="recursos_apoyo" class="form-control form-control-sm" placeholder="Materiales, tecnología, personas de apoyo...">
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold"><i class="bi bi-save me-1"></i>Guardar ajuste</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#addAjuste{{ periodo_num }}">Cancelar</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista de ajustes del período -->
+          {% if periodo_num == "1" %}{% for ajuste in ajustes_por_periodo.1 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">Sin ajustes registrados.</p>{% endfor %}
+          {% elif periodo_num == "2" %}{% for ajuste in ajustes_por_periodo.2 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">Sin ajustes registrados.</p>{% endfor %}
+          {% elif periodo_num == "3" %}{% for ajuste in ajustes_por_periodo.3 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">Sin ajustes registrados.</p>{% endfor %}
+          {% elif periodo_num == "4" %}{% for ajuste in ajustes_por_periodo.4 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">Sin ajustes registrados.</p>{% endfor %}
+          {% endif %}
+
+        </div>
+      </div>
+      {% endwith %}
+      {% endwith %}
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL ELIMINAR AJUSTE -->
+<div class="modal fade" id="modalEliminarAjuste" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Eliminar este ajuste?</h5>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form id="form-eliminar-ajuste" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>Sí, eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+// Conectar botones de eliminar ajuste
+document.querySelectorAll('.btn-eliminar-ajuste').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.getElementById('form-eliminar-ajuste').action = this.dataset.action;
+  });
+});
+
+// Toggle alcanzado AJAX
+document.querySelectorAll('.toggle-alcanzado').forEach(el => {
+  el.addEventListener('click', function() {
+    const url = this.dataset.url;
+    const actual = this.dataset.alcanzado === 'true';
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'alcanzado=' + (!actual ? 'true' : 'false'),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        this.dataset.alcanzado = data.alcanzado ? 'true' : 'false';
+        const icon = this.querySelector('i');
+        const span = this.querySelector('span');
+        if (data.alcanzado) {
+          this.classList.replace('btn-outline-secondary','btn-success');
+          icon.className = 'bi bi-check-circle-fill me-1';
+          span.textContent = 'Alcanzado';
+        } else {
+          this.classList.replace('btn-success','btn-outline-secondary');
+          icon.className = 'bi bi-circle me-1';
+          span.textContent = 'Pendiente';
+        }
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

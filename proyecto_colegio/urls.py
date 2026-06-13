@@ -66,6 +66,7 @@ urlpatterns = [
     path('auditoria/', include('auditoria.urls', namespace='auditoria')),
     path('2fa/', include('autenticacion_2fa.urls', namespace='2fa')),
     path('simulacros/', include('simulacros.urls', namespace='simulacros')),
+    path('piar/', include('piar.urls', namespace='piar')),
 ]
 
 # --- 2. CONFIGURACIÓN PARA ARCHIVOS EN DESARROLLO ---
