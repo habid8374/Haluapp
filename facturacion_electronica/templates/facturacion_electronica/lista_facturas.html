@@ -232,6 +232,15 @@
                         </button>
                       {% endif %}
                     </div>
+                    {% if f.estado == 'VALIDADA' %}
+                    <form method="post" action="{% url 'facturacion_electronica:reenviar_correo_factura' f.pk %}" class="d-inline ms-1">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm" title="Reenviar correo al estudiante/familiar"
+                              style="border:1px solid #0891b2;color:#0891b2;background:transparent;">
+                        <i class="bi bi-envelope-arrow-up"></i>
+                      </button>
+                    </form>
+                    {% endif %}
                   </td>
                 </tr>
               {% endfor %}
