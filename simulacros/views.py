@@ -148,7 +148,19 @@ def _guardar_pregunta(request, pregunta_existente):
             creado_por=request.user,
         )
 
+    # A03 — validar que imagen_url solo permita http/https
+    from urllib.parse import urlparse
+    imagen_url = (p.get('imagen_url') or '').strip()
+    if imagen_url:
+        parsed_img = urlparse(imagen_url)
+        if parsed_img.scheme not in ('http', 'https'):
+            messages.error(request, "La URL de imagen debe comenzar con http:// o https://")
+            return redirect(request.path)
+    else:
+        imagen_url = ''
+
     pregunta_existente.enunciado        = enunciado
+    pregunta_existente.imagen_url       = imagen_url
     pregunta_existente.grado_nivel      = p.get('grado_nivel', BancoPregunta.GradoNivel.GRADO_11)
     pregunta_existente.area             = p.get('area', BancoPregunta.Area.MATEMATICAS)
     pregunta_existente.competencia      = (p.get('competencia') or '').strip()
@@ -208,6 +220,22 @@ def importar_preguntas(request):
         messages.error(request, "Selecciona un archivo Excel (.xlsx).")
         return redirect('simulacros:importar_preguntas')
 
+    # A08 — validación de tipo, extensión y tamaño antes de procesar
+    ALLOWED_CONTENT_TYPES = {
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/octet-stream',  # algunos navegadores envían este tipo para .xlsx
+    }
+    MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
+    if not archivo.name.lower().endswith('.xlsx'):
+        messages.error(request, "Solo se aceptan archivos Excel con extensión .xlsx")
+        return redirect('simulacros:importar_preguntas')
+    if archivo.content_type not in ALLOWED_CONTENT_TYPES:
+        messages.error(request, "Tipo de archivo no permitido. Sube un archivo .xlsx válido.")
+        return redirect('simulacros:importar_preguntas')
+    if archivo.size > MAX_UPLOAD_BYTES:
+        messages.error(request, "El archivo supera el límite de 5 MB.")
+        return redirect('simulacros:importar_preguntas')
+
     try:
         import openpyxl
         wb = openpyxl.load_workbook(archivo)
@@ -249,7 +277,8 @@ def importar_preguntas(request):
                     )
                 creadas += 1
             except Exception as exc:
-                errores.append(f"Fila {i}: {exc}")
+                logger.warning("importar_preguntas fila %s: %s", i, exc)
+                errores.append(f"Fila {i}: datos incorrectos o incompletos.")
 
         if creadas:
             messages.success(request, f"✅ {creadas} pregunta(s) importada(s) correctamente.")
@@ -258,7 +287,8 @@ def importar_preguntas(request):
                 messages.warning(request, e)
 
     except Exception as exc:
-        messages.error(request, f"Error al leer el archivo: {exc}")
+        logger.error("importar_preguntas error leyendo archivo: %s", exc, exc_info=True)
+        messages.error(request, "El archivo no pudo procesarse. Verifica que sea un .xlsx válido.")
 
     return redirect('simulacros:banco_preguntas')
 
@@ -366,10 +396,17 @@ Reglas:
                 raw = raw[4:]
         preguntas_data = json.loads(raw)
 
+        # M5 — validar estructura básica antes de enviar al cliente
+        if not isinstance(preguntas_data, list) or not preguntas_data:
+            raise ValueError("La IA no devolvió una lista de preguntas válida.")
+        for p in preguntas_data:
+            if not isinstance(p, dict) or not p.get('enunciado') or not isinstance(p.get('opciones'), dict):
+                raise ValueError("Estructura de pregunta inválida en la respuesta de la IA.")
+
         return JsonResponse({'ok': True, 'preguntas': preguntas_data, 'grado': grado, 'area': area, 'dificultad': dificultad})
     except Exception as exc:
         logger.error("generar_preguntas_ia error: %s", exc, exc_info=True)
-        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+        return JsonResponse({'ok': False, 'error': 'Error al generar preguntas. Intenta de nuevo.'}, status=500)
 
 
 @login_required
@@ -383,39 +420,60 @@ def guardar_preguntas_ia(request):
     try:
         data = json.loads(request.body)
         preguntas_raw = data.get('preguntas', [])
-        grado = data.get('grado', 'GRADO_11')
-        area  = data.get('area', 'MATEMATICAS')
-        dificultad = data.get('dificultad', 'MEDIO')
-        creadas = 0
+        if not isinstance(preguntas_raw, list) or not preguntas_raw:
+            return JsonResponse({'ok': False, 'error': 'Datos inválidos.'}, status=400)
 
-        for p in preguntas_raw:
+        # A02/A08 — validar valores de grado/area/dificultad contra choices permitidos
+        grado_validos = {v for v, _ in BancoPregunta.GradoNivel.choices}
+        area_validas  = {v for v, _ in BancoPregunta.Area.choices}
+        dif_validas   = {v for v, _ in BancoPregunta.Dificultad.choices}
+
+        grado      = data.get('grado', 'GRADO_11')
+        area       = data.get('area', 'MATEMATICAS')
+        dificultad = data.get('dificultad', 'MEDIO')
+
+        if grado not in grado_validos or area not in area_validas or dificultad not in dif_validas:
+            return JsonResponse({'ok': False, 'error': 'Parámetros inválidos.'}, status=400)
+
+        creadas = 0
+        for p in preguntas_raw[:10]:  # máximo 10 preguntas por llamada
+            enunciado = str(p.get('enunciado', '')).strip()[:5000]
+            if not enunciado:
+                continue
+            opciones = p.get('opciones', {})
+            if not isinstance(opciones, dict):
+                continue
+            correcta = str(p.get('correcta', 'A')).strip().upper()
+            if correcta not in 'ABCD':
+                correcta = 'A'
+
             pregunta = BancoPregunta.objects.create(
                 institucion=institucion,
                 es_publica=False,
-                enunciado=p['enunciado'],
+                enunciado=enunciado,
                 grado_nivel=grado,
                 area=area,
-                competencia=p.get('competencia', ''),
-                componente=p.get('componente', ''),
+                competencia=str(p.get('competencia', ''))[:120],
+                componente=str(p.get('componente', ''))[:120],
                 nivel_dificultad=dificultad,
-                explicacion=p.get('explicacion', ''),
+                explicacion=str(p.get('explicacion', ''))[:2000],
                 fuente='Generada con IA (Gemini)',
                 creado_por=request.user,
             )
-            opciones = p.get('opciones', {})
-            correcta = p.get('correcta', 'A')
             for letra in 'ABCD':
+                texto_opcion = str(opciones.get(letra, '')).strip()[:2000]
                 OpcionPregunta.objects.create(
                     pregunta=pregunta,
                     letra=letra,
-                    texto=opciones.get(letra, ''),
+                    texto=texto_opcion or f'Opción {letra}',
                     es_correcta=(letra == correcta),
                 )
             creadas += 1
 
         return JsonResponse({'ok': True, 'creadas': creadas})
     except Exception as exc:
-        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+        logger.error("guardar_preguntas_ia error: %s", exc, exc_info=True)
+        return JsonResponse({'ok': False, 'error': 'Error al guardar preguntas.'}, status=500)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -700,7 +758,8 @@ def resultado_intento(request, pk):
     if not estudiante and not _es_docente_o_coordinador(request.user):
         return redirect('gestion_academica:inicio_academico')
 
-    intento = get_object_or_404(IntentoSimulacro, pk=pk)
+    institucion = _get_institucion(request)
+    intento = get_object_or_404(IntentoSimulacro, pk=pk, institucion=institucion)
 
     # Verificar acceso: el estudiante solo ve su propio intento
     if _es_estudiante(request.user) and (not estudiante or intento.estudiante != estudiante):

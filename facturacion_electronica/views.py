@@ -230,8 +230,9 @@ def factura_pdf(request, factura_id):
     else:
         logo_error = "La institución no tiene logo configurado en la base de datos."
 
-    # Modo diagnóstico: /pdf/?debug=1 muestra por qué no carga el logo
-    if request.GET.get("debug"):
+    # Modo diagnóstico: solo en DEBUG y para superusuarios (A05 — info disclosure)
+    from django.conf import settings as _settings
+    if request.GET.get("debug") and _settings.DEBUG and request.user.is_superuser:
         from django.core.files.storage import default_storage
         info = [
             f"logo ConfiguracionInstitucion: {config_inst.logo.name if config_inst and config_inst.logo else '(vacío)'}",
@@ -324,7 +325,7 @@ def reenviar_correo_factura(request, factura_id):
         messages.success(request, "Correo de factura electrónica encolado. Llegará en unos segundos.")
     except Exception as exc:
         logger.error("reenviar_correo_factura: error al encolar tarea: %s", exc)
-        messages.error(request, f"No se pudo encolar el correo: {exc}")
+        messages.error(request, "No se pudo encolar el correo. Verifica que el servicio de tareas esté activo.")
 
     return redirect("facturacion_electronica:detalle_factura", factura_id=factura_id)
 

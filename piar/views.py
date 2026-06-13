@@ -366,6 +366,9 @@ def editar_ajuste(request, piar_pk, ajuste_pk):
 @login_required
 @require_POST
 def eliminar_ajuste(request, piar_pk, ajuste_pk):
+    if not _es_docente_o_superior(request.user):  # A07 — verificar rol antes de eliminar
+        messages.error(request, 'No tienes permiso para eliminar ajustes.')
+        return redirect('piar:lista_piars')
     institucion = _get_institucion(request)
     piar = get_object_or_404(PIAR, pk=piar_pk, institucion=institucion)
     ajuste = get_object_or_404(AjustePIAR, pk=ajuste_pk, piar=piar)

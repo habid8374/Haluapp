@@ -52,7 +52,8 @@ class BancoPregunta(models.Model):
     competencia       = models.CharField(max_length=120, blank=True, verbose_name="Competencia")
     componente        = models.CharField(max_length=120, blank=True, verbose_name="Componente")
     enunciado         = models.TextField(verbose_name="Enunciado")
-    imagen_url        = models.URLField(blank=True, verbose_name="URL imagen (opcional)")
+    imagen_url        = models.URLField(blank=True, verbose_name="URL imagen (opcional)",
+                          help_text="Solo URLs http:// o https://")
     nivel_dificultad  = models.CharField(max_length=10, choices=Dificultad.choices, default=Dificultad.MEDIO, verbose_name="Dificultad")
     explicacion       = models.TextField(blank=True, verbose_name="Explicación de la respuesta")
     fuente            = models.CharField(max_length=200, blank=True, verbose_name="Fuente", help_text="Ej: ICFES Saber 11 2019-1")
