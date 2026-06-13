@@ -5,8 +5,8 @@
 <div class="container mt-3" style="max-width:700px;">
 
   <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.25rem;color:#fff;margin-bottom:1.25rem;">
-    <h2 class="fw-bold mb-1" style="font-size:1.2rem;"><i class="bi bi-pencil-square me-2"></i>{{ titulo_pagina }}</h2>
-    <p class="mb-0" style="opacity:.85;font-size:.85rem;">PIAR {{ piar.año_lectivo }} · {{ piar.estudiante.usuario.get_full_name }}</p>
+    <h2 class="fw-bold mb-1" style="font-size:1.2rem;color:#fff;"><i class="bi bi-pencil-square me-2"></i>{{ titulo_pagina }}</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.85rem;color:#fff;">PIAR {{ piar.año_lectivo }} · {{ piar.estudiante.usuario.get_full_name }}</p>
   </div>
 
   {% if messages %}{% for m in messages %}
