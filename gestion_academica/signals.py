@@ -594,6 +594,31 @@ def _connect_pago_signal():
                        dispatch_uid="gestion_academica_correo_pago_recibido")
 
 
+ROL_GRUPO_MAP = {
+    'docente': 'docentes',
+    'estudiante': 'estudiantes',
+    'coordinador': 'coordinadores',
+    'familiar': 'familiares',
+}
+
+
+@receiver(post_save, sender=Usuario)
+def sincronizar_usuario_a_grupo_por_rol(sender, instance, **kwargs):
+    """Auto-assigns users to their role-based Django Group on every save."""
+    from django.contrib.auth.models import Group
+
+    rol = getattr(instance, 'rol', None) or ''
+    group_name = ROL_GRUPO_MAP.get(rol)
+    if not group_name:
+        return
+    try:
+        group = Group.objects.get(name=group_name)
+    except Group.DoesNotExist:
+        return
+    if not instance.groups.filter(pk=group.pk).exists():
+        instance.groups.add(group)
+
+
 @receiver(post_save, sender=RegistroAsistencia)
 def enviar_correo_inasistencia(sender, instance, created, **kwargs):
     """Encola correo a acudientes cuando el estudiante falta o llega tarde."""
