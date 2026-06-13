@@ -24,12 +24,12 @@ def _get_institucion(request):
 
 
 def _es_docente_o_coordinador(user):
-    cargo = getattr(user, 'cargo', '') or ''
-    return cargo in ('docente', 'coordinador', 'admin_institucion') or user.is_superuser
+    rol = getattr(user, 'rol', '') or ''
+    return rol in ('docente', 'coordinador', 'admin_institucion') or user.is_superuser
 
 
 def _es_estudiante(user):
-    return (getattr(user, 'cargo', '') or '') == 'estudiante'
+    return (getattr(user, 'rol', '') or '') == 'estudiante'
 
 
 # ──────────────────────────────────────────────────────────────────────────────
