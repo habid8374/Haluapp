@@ -1,0 +1,305 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .pregunta-card { border:1px solid #e2e8f0; border-radius:12px; padding:1rem 1.25rem; margin-bottom:.75rem; background:#fff; transition:box-shadow .15s; }
+  .pregunta-card:hover { box-shadow:0 2px 12px rgba(79,70,229,.12); border-color:#a5b4fc; }
+  .badge-grado { background:#eef2ff; color:#4f46e5; font-size:.72rem; font-weight:700; border-radius:20px; padding:.2em .6em; }
+  .badge-area  { background:#f0fdf4; color:#16a34a; font-size:.72rem; font-weight:700; border-radius:20px; padding:.2em .6em; }
+  .badge-publica { background:#fff7ed; color:#c2410c; font-size:.72rem; border-radius:20px; padding:.2em .6em; }
+  .opcion-correcta { color:#16a34a; font-weight:700; }
+  .ia-panel { background:linear-gradient(135deg,#f5f3ff,#ede9fe); border:1px solid #c4b5fd; border-radius:14px; padding:1.25rem; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-3">
+
+  <!-- HERO -->
+  <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h2 class="fw-bold mb-1" style="font-size:1.4rem;"><i class="bi bi-bank me-2"></i>Banco de Preguntas Saber</h2>
+        <p class="mb-0" style="opacity:.85;font-size:.9rem;">{{ total }} pregunta(s) disponibles · Preguntas ICFES oficiales + las de tu institución</p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'simulacros:crear_pregunta' %}" class="btn btn-light fw-bold" style="color:#4f46e5;">
+          <i class="bi bi-plus-circle-fill me-1"></i>Nueva pregunta
+        </a>
+        <button class="btn btn-warning fw-bold" data-bs-toggle="modal" data-bs-target="#modalIA">
+          <i class="bi bi-stars me-1"></i>Generar con IA
+        </button>
+        <a href="{% url 'simulacros:importar_preguntas' %}" class="btn btn-success fw-bold">
+          <i class="bi bi-file-earmark-excel-fill me-1"></i>Importar Excel
+        </a>
+        <a href="{% url 'simulacros:lista_simulacros' %}" class="btn btn-outline-light fw-bold">
+          <i class="bi bi-play-circle me-1"></i>Mis Simulacros
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <!-- FILTROS -->
+  <form method="get" class="row g-2 mb-3 p-3" style="background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+    <div class="col-md-3">
+      <select name="grado" class="form-select form-select-sm">
+        <option value="">Todos los grados</option>
+        {% for val, label in grados %}<option value="{{ val }}" {% if filtros.grado == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="area" class="form-select form-select-sm">
+        <option value="">Todas las áreas</option>
+        {% for val, label in areas %}<option value="{{ val }}" {% if filtros.area == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <input type="text" name="q" class="form-control form-control-sm" placeholder="Buscar en enunciado..." value="{{ filtros.q }}">
+    </div>
+    <div class="col-md-1 d-flex align-items-center">
+      <div class="form-check mb-0">
+        <input class="form-check-input" type="checkbox" name="solo_mias" id="solo_mias" value="1" {% if filtros.solo_mias %}checked{% endif %}>
+        <label class="form-check-label small" for="solo_mias">Solo mías</label>
+      </div>
+    </div>
+    <div class="col-md-2 d-flex gap-1">
+      <button type="submit" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-search me-1"></i>Filtrar</button>
+      <a href="{% url 'simulacros:banco_preguntas' %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+    </div>
+  </form>
+
+  <!-- LISTA DE PREGUNTAS -->
+  {% for pregunta in preguntas %}
+  <div class="pregunta-card">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div style="flex:1;min-width:0;">
+        <div class="d-flex gap-2 flex-wrap mb-1">
+          <span class="badge-grado">{{ pregunta.get_grado_nivel_display }}</span>
+          <span class="badge-area">{{ pregunta.get_area_display }}</span>
+          {% if pregunta.competencia %}<span class="badge bg-light text-secondary" style="font-size:.7rem;">{{ pregunta.competencia }}</span>{% endif %}
+          {% if pregunta.es_publica %}<span class="badge-publica"><i class="bi bi-globe me-1"></i>Pública ICFES</span>{% endif %}
+          <span class="badge bg-light text-muted" style="font-size:.7rem;">{{ pregunta.get_nivel_dificultad_display }}</span>
+        </div>
+        <p class="mb-2" style="font-size:.9rem;color:#1e293b;">{{ pregunta.enunciado }}</p>
+        <div class="row g-1">
+          {% for opcion in pregunta.opciones.all %}
+          <div class="col-md-6">
+            <span class="{% if opcion.es_correcta %}opcion-correcta{% else %}text-muted{% endif %}" style="font-size:.82rem;">
+              {% if opcion.es_correcta %}<i class="bi bi-check-circle-fill me-1"></i>{% else %}<span class="me-1" style="opacity:.4;">●</span>{% endif %}
+              <strong>{{ opcion.letra }}.</strong> {{ opcion.texto }}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+        {% if pregunta.fuente %}<p class="mt-1 mb-0" style="font-size:.72rem;color:#94a3b8;"><i class="bi bi-bookmark me-1"></i>{{ pregunta.fuente }}</p>{% endif %}
+      </div>
+      {% if not pregunta.es_publica %}
+      <div class="d-flex gap-1">
+        <a href="{% url 'simulacros:editar_pregunta' pregunta.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+        <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-pregunta" title="Eliminar"
+                data-action="{% url 'simulacros:eliminar_pregunta' pregunta.pk %}"
+                data-nombre="{{ pregunta.enunciado|truncatechars:60 }}"
+                data-bs-toggle="modal" data-bs-target="#modalEliminarPregunta">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-inbox" style="font-size:3rem;opacity:.3;"></i>
+    <p class="mt-2">No hay preguntas con esos filtros.</p>
+    <a href="{% url 'simulacros:crear_pregunta' %}" class="btn btn-primary mt-1"><i class="bi bi-plus-circle me-1"></i>Agregar primera pregunta</a>
+  </div>
+  {% endfor %}
+
+  <!-- PAGINACIÓN -->
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-3"><ul class="pagination pagination-sm justify-content-center">
+    {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&grado={{ filtros.grado }}&area={{ filtros.area }}&q={{ filtros.q }}">‹</a></li>{% endif %}
+    <li class="page-item disabled"><span class="page-link">Pág. {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&grado={{ filtros.grado }}&area={{ filtros.area }}&q={{ filtros.q }}">›</a></li>{% endif %}
+  </ul></nav>
+  {% endif %}
+
+</div>
+
+<!-- MODAL ELIMINAR PREGUNTA -->
+<div class="modal fade" id="modalEliminarPregunta" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Eliminar esta pregunta?</h5>
+        <p id="modal-pregunta-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form id="form-eliminar-pregunta" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>Sí, eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GENERAR CON IA -->
+<div class="modal fade" id="modalIA" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;">
+        <h5 class="modal-title fw-bold"><i class="bi bi-stars me-2"></i>Generar preguntas con IA (Gemini)</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 mb-3">
+          <div class="col-md-3">
+            <label class="form-label small fw-bold">Prueba / Grado</label>
+            <select id="ia-grado" class="form-select form-select-sm">
+              {% for val, label in grados %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold">Área</label>
+            <select id="ia-area" class="form-select form-select-sm">
+              {% for val, label in areas %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold">Cantidad</label>
+            <select id="ia-cantidad" class="form-select form-select-sm">
+              <option value="3">3 preguntas</option>
+              <option value="5" selected>5 preguntas</option>
+              <option value="10">10 preguntas</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small fw-bold">Dificultad</label>
+            <select id="ia-dificultad" class="form-select form-select-sm">
+              <option value="BASICO">Básico</option>
+              <option value="MEDIO" selected>Medio</option>
+              <option value="ALTO">Alto</option>
+            </select>
+          </div>
+        </div>
+        <button id="btn-generar-ia" class="btn btn-primary w-100 fw-bold">
+          <i class="bi bi-magic me-1"></i>Generar preguntas
+        </button>
+        <div id="ia-loading" class="text-center mt-3" style="display:none;">
+          <div class="spinner-border text-primary"></div>
+          <p class="mt-2 text-muted">Generando preguntas con Gemini…</p>
+        </div>
+        <div id="ia-resultado" class="mt-3"></div>
+      </div>
+      <div class="modal-footer" id="ia-footer" style="display:none;">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button id="btn-guardar-ia" class="btn btn-success fw-bold"><i class="bi bi-save me-1"></i>Guardar en el banco</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+let preguntasGeneradas = null;
+let metaIA = {};
+
+document.getElementById('btn-generar-ia').addEventListener('click', function() {
+  const grado = document.getElementById('ia-grado').value;
+  const area  = document.getElementById('ia-area').value;
+  const cantidad = document.getElementById('ia-cantidad').value;
+  const dificultad = document.getElementById('ia-dificultad').value;
+
+  document.getElementById('ia-loading').style.display = 'block';
+  document.getElementById('ia-resultado').innerHTML = '';
+  document.getElementById('ia-footer').style.display = 'none';
+  this.disabled = true;
+
+  const form = new FormData();
+  form.append('grado', grado);
+  form.append('area', area);
+  form.append('cantidad', cantidad);
+  form.append('dificultad', dificultad);
+  form.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+  fetch('{% url "simulacros:generar_ia" %}', { method: 'POST', body: form })
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('ia-loading').style.display = 'none';
+      document.getElementById('btn-generar-ia').disabled = false;
+
+      if (!data.ok) {
+        document.getElementById('ia-resultado').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+        return;
+      }
+      preguntasGeneradas = data.preguntas;
+      metaIA = { grado: data.grado, area: data.area, dificultad: data.dificultad };
+
+      let html = '<div class="vstack gap-3">';
+      data.preguntas.forEach((p, i) => {
+        html += `<div class="border rounded p-3" style="background:#f8fafc;">
+          <p class="fw-bold mb-2" style="font-size:.88rem;">${i+1}. ${p.enunciado}</p>
+          ${Object.entries(p.opciones).map(([l,t]) =>
+            `<div class="${l===p.correcta?'text-success fw-bold':'text-muted'}" style="font-size:.82rem;">
+              ${l===p.correcta?'✅':'○'} <strong>${l}.</strong> ${t}
+             </div>`
+          ).join('')}
+          <small class="text-muted mt-1 d-block">${p.competencia || ''} ${p.componente ? '· '+p.componente : ''}</small>
+        </div>`;
+      });
+      html += '</div>';
+      document.getElementById('ia-resultado').innerHTML = html;
+      document.getElementById('ia-footer').style.display = 'flex';
+    })
+    .catch(e => {
+      document.getElementById('ia-loading').style.display = 'none';
+      document.getElementById('btn-generar-ia').disabled = false;
+      document.getElementById('ia-resultado').innerHTML = `<div class="alert alert-danger">${e}</div>`;
+    });
+});
+
+document.getElementById('btn-guardar-ia').addEventListener('click', function() {
+  if (!preguntasGeneradas) return;
+  this.disabled = true;
+  this.textContent = 'Guardando…';
+
+  fetch('{% url "simulacros:guardar_ia" %}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+    body: JSON.stringify({ preguntas: preguntasGeneradas, ...metaIA }),
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        location.reload();
+      } else {
+        document.getElementById('ia-resultado').innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-1"></i>${data.error}</div>`;
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-save me-1"></i>Guardar en el banco';
+      }
+    });
+});
+
+// Conectar botones de eliminar al modal
+document.querySelectorAll('.btn-eliminar-pregunta').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.getElementById('form-eliminar-pregunta').action = this.dataset.action;
+    document.getElementById('modal-pregunta-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
+{% endblock %}

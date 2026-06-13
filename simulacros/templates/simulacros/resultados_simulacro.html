@@ -1,0 +1,108 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-3">
+
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h2 class="fw-bold mb-1" style="font-size:1.3rem;"><i class="bi bi-bar-chart-line-fill me-2"></i>{{ simulacro.titulo }}</h2>
+        <p class="mb-0" style="opacity:.85;font-size:.88rem;">{{ simulacro.get_grado_nivel_display }} · {{ simulacro.total_preguntas }} preguntas · {{ simulacro.tiempo_minutos }} min</p>
+      </div>
+      <a href="{% url 'simulacros:lista_simulacros' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="card text-center shadow-sm py-2">
+        <div class="fw-800" style="font-size:2rem;color:#4f46e5;">{{ intentos|length }}</div>
+        <div class="text-muted small">Intentos</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center shadow-sm py-2">
+        <div class="fw-800" style="font-size:2rem;color:#16a34a;">{% if puntaje_promedio %}{{ puntaje_promedio|floatformat:1 }}%{% else %}—{% endif %}</div>
+        <div class="text-muted small">Puntaje promedio</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center shadow-sm py-2">
+        <div class="fw-800" style="font-size:2rem;color:#0891b2;">{{ simulacro.total_preguntas }}</div>
+        <div class="text-muted small">Preguntas</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center shadow-sm py-2">
+        <div class="fw-800" style="font-size:2rem;color:#d97706;">{{ simulacro.get_estado_display }}</div>
+        <div class="text-muted small">Estado</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Tabla de estudiantes -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">Resultados por estudiante</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0" style="font-size:.85rem;">
+            <thead class="table-light"><tr><th class="ps-3">Estudiante</th><th class="text-end">Puntaje</th><th class="text-end pe-3">Estado</th></tr></thead>
+            <tbody>
+              {% for intento in intentos %}
+              <tr>
+                <td class="ps-3">{{ intento.estudiante.usuario.get_full_name }}</td>
+                <td class="text-end fw-bold {% if intento.puntaje >= 70 %}text-success{% elif intento.puntaje >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                  {{ intento.puntaje|floatformat:1 }}%
+                </td>
+                <td class="text-end pe-3">
+                  {% if intento.completado %}<span class="badge bg-success">Completado</span>
+                  {% else %}<span class="badge bg-warning text-dark">En progreso</span>{% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-center text-muted py-3">Ningún estudiante ha presentado el simulacro aún.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Análisis por pregunta -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">Análisis por pregunta</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0" style="font-size:.83rem;">
+            <thead class="table-light"><tr><th class="ps-3">#</th><th>Pregunta</th><th class="text-end pe-3">Aciertos</th></tr></thead>
+            <tbody>
+              {% for s in stats_preguntas %}
+              <tr>
+                <td class="ps-3 text-muted">{{ s.orden }}</td>
+                <td>
+                  <div style="font-size:.78rem;">{{ s.pregunta.enunciado|truncatechars:60 }}</div>
+                  <div class="progress mt-1" style="height:4px;">
+                    <div class="progress-bar {% if s.pct >= 70 %}bg-success{% elif s.pct >= 40 %}bg-warning{% else %}bg-danger{% endif %}"
+                         style="width:{{ s.pct }}%;"></div>
+                  </div>
+                </td>
+                <td class="text-end pe-3 fw-bold {% if s.pct >= 70 %}text-success{% elif s.pct >= 40 %}text-warning{% else %}text-danger{% endif %}">
+                  {{ s.pct }}%
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-center text-muted py-2">Sin datos aún.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .pregunta-selector { border:1.5px solid #e2e8f0; border-radius:10px; padding:.75rem 1rem; cursor:pointer; transition:all .15s; user-select:none; }
+  .pregunta-selector:hover { border-color:#a5b4fc; background:#f5f3ff; }
+  .pregunta-selector.seleccionada { border-color:#4f46e5; background:#eef2ff; }
+  .pregunta-selector.seleccionada .check-icon { display:inline-block !important; }
+  .check-icon { display:none; color:#4f46e5; }
+  .filtro-banco { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:.75rem; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-3">
+
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem;color:#fff;margin-bottom:1.5rem;">
+    <h2 class="fw-bold mb-0" style="font-size:1.3rem;"><i class="bi bi-pencil-square me-2"></i>{{ titulo_pagina }}</h2>
+  </div>
+
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <form method="post" id="form-simulacro">
+    {% csrf_token %}
+    <div class="row g-3">
+
+      <!-- COLUMNA IZQUIERDA: Datos del simulacro -->
+      <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header fw-bold">Datos del simulacro</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Título *</label>
+              <input type="text" name="titulo" class="form-control form-control-sm" required value="{{ simulacro.titulo|default:'' }}" placeholder="Ej: Simulacro Saber 11 — Matemáticas">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Dirigido a *</label>
+              <select name="grado_nivel" class="form-select form-select-sm" id="sel-grado">
+                {% for val, label in grados %}
+                <option value="{{ val }}" {% if simulacro.grado_nivel == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Tiempo límite (minutos)</label>
+              <input type="number" name="tiempo_minutos" class="form-control form-control-sm" value="{{ simulacro.tiempo_minutos|default:60 }}" min="5" max="300">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Disponible desde *</label>
+              <input type="datetime-local" name="fecha_inicio" class="form-control form-control-sm" required
+                     value="{% if simulacro.fecha_inicio %}{{ simulacro.fecha_inicio|date:'Y-m-d\TH:i' }}{% endif %}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Cierra el *</label>
+              <input type="datetime-local" name="fecha_cierre" class="form-control form-control-sm" required
+                     value="{% if simulacro.fecha_cierre %}{{ simulacro.fecha_cierre|date:'Y-m-d\TH:i' }}{% endif %}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Instrucciones <span class="fw-normal text-muted">(opcional)</span></label>
+              <textarea name="descripcion" class="form-control form-control-sm" rows="3" placeholder="Instrucciones generales para el estudiante…">{{ simulacro.descripcion|default:'' }}</textarea>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="mostrar_respuestas" id="chk-resp"
+                     {% if not simulacro or simulacro.mostrar_respuestas %}checked{% endif %}>
+              <label class="form-check-label small" for="chk-resp">Mostrar respuestas al finalizar</label>
+            </div>
+          </div>
+          <div class="card-footer d-flex gap-2 justify-content-end">
+            <a href="{% url 'simulacros:lista_simulacros' %}" class="btn btn-outline-secondary btn-sm">Cancelar</a>
+            <button type="submit" class="btn btn-primary fw-bold btn-sm">
+              <i class="bi bi-save me-1"></i>{{ accion }} simulacro
+              <span id="contador-sel" class="badge bg-warning text-dark ms-1">0</span> preguntas
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: Selector de preguntas del banco -->
+      <div class="col-md-8">
+        <div class="card shadow-sm">
+          <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-bank me-1"></i>Selecciona preguntas del banco</span>
+            <span id="label-sel" class="badge bg-primary">0 seleccionadas</span>
+          </div>
+          <div class="card-body">
+            <!-- Filtros del banco -->
+            <div class="filtro-banco mb-3 row g-2">
+              <div class="col-md-4">
+                <select id="fil-grado" class="form-select form-select-sm">
+                  <option value="">Todos los grados</option>
+                  {% for val, label in grados %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <select id="fil-area" class="form-select form-select-sm">
+                  <option value="">Todas las áreas</option>
+                  {% for val, label in areas %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <input type="text" id="fil-texto" class="form-control form-control-sm" placeholder="Buscar en enunciado…">
+              </div>
+            </div>
+
+            <div id="lista-banco" style="max-height:520px;overflow-y:auto;" class="vstack gap-2">
+              {% for pregunta in preguntas_banco %}
+              <div class="pregunta-selector {% if pregunta.pk in seleccionadas %}seleccionada{% endif %}"
+                   data-pk="{{ pregunta.pk }}"
+                   data-grado="{{ pregunta.grado_nivel }}"
+                   data-area="{{ pregunta.area }}"
+                   data-texto="{{ pregunta.enunciado|lower }}">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div style="flex:1;min-width:0;">
+                    <div class="d-flex gap-1 flex-wrap mb-1">
+                      <span class="badge" style="background:#eef2ff;color:#4f46e5;font-size:.7rem;">{{ pregunta.get_grado_nivel_display }}</span>
+                      <span class="badge" style="background:#f0fdf4;color:#16a34a;font-size:.7rem;">{{ pregunta.get_area_display }}</span>
+                      {% if pregunta.es_publica %}<span class="badge bg-warning text-dark" style="font-size:.68rem;">ICFES</span>{% endif %}
+                    </div>
+                    <p class="mb-0 small" style="color:#1e293b;">{{ pregunta.enunciado|truncatechars:120 }}</p>
+                  </div>
+                  <i class="bi bi-check-circle-fill check-icon ms-2" style="font-size:1.1rem;flex-shrink:0;"></i>
+                </div>
+                <!-- input oculto que se activa/desactiva -->
+                <input type="checkbox" name="preguntas" value="{{ pregunta.pk }}"
+                       class="d-none pregunta-check"
+                       {% if pregunta.pk in seleccionadas %}checked{% endif %}>
+              </div>
+              {% empty %}
+              <p class="text-muted text-center py-3">No hay preguntas en el banco aún. <a href="{% url 'simulacros:banco_preguntas' %}">Agregar preguntas →</a></p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+function actualizarContador() {
+  const n = document.querySelectorAll('.pregunta-selector.seleccionada').length;
+  document.getElementById('contador-sel').textContent = n;
+  document.getElementById('label-sel').textContent = n + ' seleccionada(s)';
+}
+
+document.querySelectorAll('.pregunta-selector').forEach(el => {
+  el.addEventListener('click', () => {
+    el.classList.toggle('seleccionada');
+    const chk = el.querySelector('.pregunta-check');
+    chk.checked = el.classList.contains('seleccionada');
+    actualizarContador();
+  });
+});
+
+// Filtros
+function filtrarBanco() {
+  const grado = document.getElementById('fil-grado').value;
+  const area  = document.getElementById('fil-area').value;
+  const texto = document.getElementById('fil-texto').value.toLowerCase();
+
+  document.querySelectorAll('.pregunta-selector').forEach(el => {
+    const ok = (!grado || el.dataset.grado === grado)
+            && (!area  || el.dataset.area  === area)
+            && (!texto || el.dataset.texto.includes(texto));
+    el.style.display = ok ? '' : 'none';
+  });
+}
+
+['fil-grado','fil-area','fil-texto'].forEach(id =>
+  document.getElementById(id).addEventListener('input', filtrarBanco)
+);
+
+actualizarContador();
+</script>
+{% endblock %}

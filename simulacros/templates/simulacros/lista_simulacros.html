@@ -1,0 +1,130 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .sim-card { border:1px solid #e2e8f0; border-radius:14px; padding:1.25rem; background:#fff; transition:box-shadow .15s; }
+  .sim-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); }
+  .estado-badge-BORRADOR  { background:#f1f5f9;color:#475569; }
+  .estado-badge-PUBLICADO { background:#dcfce7;color:#16a34a; }
+  .estado-badge-CERRADO   { background:#fee2e2;color:#dc2626; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-3">
+
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h2 class="fw-bold mb-1" style="font-size:1.4rem;"><i class="bi bi-play-circle-fill me-2"></i>Simulacros Saber</h2>
+        <p class="mb-0" style="opacity:.85;font-size:.9rem;">Crea y gestiona simulacros para tus estudiantes</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'simulacros:banco_preguntas' %}" class="btn btn-outline-light fw-bold">
+          <i class="bi bi-bank me-1"></i>Banco de Preguntas
+        </a>
+        <a href="{% url 'simulacros:crear_simulacro' %}" class="btn btn-warning fw-bold">
+          <i class="bi bi-plus-circle-fill me-1"></i>Nuevo Simulacro
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <div class="vstack gap-3">
+    {% for s in simulacros %}
+    <div class="sim-card">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <h5 class="mb-0 fw-bold">{{ s.titulo }}</h5>
+            <span class="badge rounded-pill estado-badge-{{ s.estado }}" style="font-size:.75rem;">{{ s.get_estado_display }}</span>
+            <span class="badge bg-light text-dark" style="font-size:.72rem;">{{ s.get_grado_nivel_display }}</span>
+          </div>
+          <div class="d-flex gap-3 flex-wrap" style="font-size:.82rem;color:#64748b;">
+            <span><i class="bi bi-question-circle me-1"></i>{{ s.num_preguntas }} pregunta(s)</span>
+            <span><i class="bi bi-people me-1"></i>{{ s.num_intentos }} intento(s)</span>
+            <span><i class="bi bi-clock me-1"></i>{{ s.tiempo_minutos }} min</span>
+            <span><i class="bi bi-calendar me-1"></i>{{ s.fecha_inicio|date:"d/m/Y H:i" }} → {{ s.fecha_cierre|date:"d/m/Y H:i" }}</span>
+          </div>
+          {% if s.descripcion %}<p class="mt-1 mb-0 text-muted" style="font-size:.82rem;">{{ s.descripcion|truncatechars:120 }}</p>{% endif %}
+        </div>
+        <div class="d-flex gap-1 flex-wrap align-items-center">
+          <a href="{% url 'simulacros:resultados_simulacro' s.pk %}" class="btn btn-sm btn-outline-primary" title="Ver resultados">
+            <i class="bi bi-bar-chart-line"></i>
+          </a>
+          <a href="{% url 'simulacros:editar_simulacro' s.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar">
+            <i class="bi bi-pencil"></i>
+          </a>
+          {% if s.estado == 'BORRADOR' %}
+          <form method="post" action="{% url 'simulacros:cambiar_estado' s.pk %}" class="d-inline">
+            {% csrf_token %}<input type="hidden" name="estado" value="PUBLICADO">
+            <button class="btn btn-sm btn-success fw-bold" title="Publicar"><i class="bi bi-send me-1"></i>Publicar</button>
+          </form>
+          {% elif s.estado == 'PUBLICADO' %}
+          <form method="post" action="{% url 'simulacros:cambiar_estado' s.pk %}" class="d-inline">
+            {% csrf_token %}<input type="hidden" name="estado" value="CERRADO">
+            <button class="btn btn-sm btn-outline-danger fw-bold" title="Cerrar"><i class="bi bi-lock me-1"></i>Cerrar</button>
+          </form>
+          {% endif %}
+          <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-sim" title="Eliminar"
+                  data-action="{% url 'simulacros:eliminar_simulacro' s.pk %}"
+                  data-nombre="{{ s.titulo }}"
+                  data-bs-toggle="modal" data-bs-target="#modalEliminarSim">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-play-circle" style="font-size:3rem;opacity:.3;"></i>
+      <p class="mt-2">Aún no has creado ningún simulacro.</p>
+      <a href="{% url 'simulacros:crear_simulacro' %}" class="btn btn-primary mt-1"><i class="bi bi-plus-circle me-1"></i>Crear primer simulacro</a>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- MODAL ELIMINAR SIMULACRO -->
+<div class="modal fade" id="modalEliminarSim" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">¿Eliminar este simulacro?</h5>
+        <p id="modal-sim-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>Se eliminarán también todos los intentos y respuestas asociadas.</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form id="form-eliminar-sim" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>Sí, eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('.btn-eliminar-sim').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.getElementById('form-eliminar-sim').action = this.dataset.action;
+    document.getElementById('modal-sim-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
+{% endblock %}

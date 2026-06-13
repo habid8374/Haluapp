@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'facturacion_electronica.apps.FacturacionElectronicaConfig',
     'auditoria.apps.AuditoriaConfig',
     'autenticacion_2fa.apps.Autenticacion2faConfig',
+    'simulacros.apps.SimulacrosConfig',
 
 
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)
