@@ -441,11 +441,11 @@ SIMPLE_JWT = {
 }
 
 # --- CONFIGURACIÓN DE CORS PARA APP MÓVIL ---
+_cors_extra = os.environ.get('CORS_EXTRA_ORIGINS', '')
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8081',
     'http://127.0.0.1:8081',
-    'http://72.60.27.222', # ¡Ajustado a tu IP!
-]
+] + [o.strip() for o in _cors_extra.split(',') if o.strip()]
 
 CORS_ALLOW_ALL_ORIGINS = False  # Solo para desarrollo, cambiar en producción
 
@@ -481,16 +481,25 @@ RATELIMIT_USE_CACHE = 'default'
 RATELIMIT_FAIL_OPEN = False  # Si el cache falla, bloquea (más seguro que dejar pasar)
 
 # ── A05: Headers de seguridad — algunos aplican siempre, otros solo en producción
-X_FRAME_OPTIONS             = 'DENY'       # Evita clickjacking en cualquier entorno
-SECURE_CONTENT_TYPE_NOSNIFF = True         # Evita MIME-sniffing
+X_FRAME_OPTIONS             = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER   = True
+SECURE_REFERRER_POLICY      = 'same-origin'
+SESSION_COOKIE_AGE          = 60 * 60 * 24 * 7   # 7 días
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT            = True   # Redirige HTTP → HTTPS
-    SESSION_COOKIE_SECURE          = True   # Cookie de sesión solo por HTTPS
-    CSRF_COOKIE_SECURE             = True   # Cookie CSRF solo por HTTPS
-    SESSION_COOKIE_HTTPONLY        = True   # JS no puede leer la cookie de sesión
-    SECURE_HSTS_SECONDS            = 31536000  # 1 año de HSTS
+    SECURE_SSL_REDIRECT            = True
+    SESSION_COOKIE_SECURE          = True
+    CSRF_COOKIE_SECURE             = True
+    SESSION_COOKIE_HTTPONLY        = True
+    SECURE_HSTS_SECONDS            = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD            = True
 

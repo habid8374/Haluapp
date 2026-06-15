@@ -22,6 +22,7 @@ from django.utils.crypto import get_random_string
 from django.core.mail import EmailMessage, EmailMultiAlternatives, get_connection
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import never_cache
+from django_ratelimit.decorators import ratelimit
 import os
 from gestion_academica.utils import registrar_inasistencias_docentes
 import openpyxl
@@ -10550,14 +10551,13 @@ def evaluar_logros_curso(request, curso_pk):
     }
     return render(request, 'gestion_academica/evaluar_logros_curso.html', context)
 
+@login_required
 def generar_boletin_descriptivo_pdf(request, estudiante_pk, periodo_pk):
-    estudiante = get_object_or_404(Estudiante, pk=estudiante_pk)
-    periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk)
+    institucion = request.user.institucion_asociada
+    estudiante = get_object_or_404(Estudiante, pk=estudiante_pk, institucion=institucion)
+    periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk, institucion=institucion)
 
-    # Lógica de seguridad (puedes adaptarla de tus otras vistas de boletín)
-    # ...
-
-    cursos = Curso.objects.filter(grado=estudiante.grado_actual, periodo_academico=periodo).select_related('materia')
+    cursos = Curso.objects.filter(grado=estudiante.grado_actual, periodo_academico=periodo, institucion=institucion).select_related('materia')
     
     materias_con_logros = []
     for curso in cursos:
@@ -10679,6 +10679,7 @@ class LogroDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
      
 @require_POST
 @login_required
+@ratelimit(key='user', rate='30/h', method='POST', block=True)
 def asistente_halu_api(request):
     """
     API para el asistente HALU, con uso de herramientas y manejo

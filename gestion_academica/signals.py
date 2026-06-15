@@ -17,9 +17,14 @@ from .models import Calificacion, ArchivoPlanAcademico, Notificacion, AnotacionO
 from finanzas.models import InstitucionEducativa
 from finanzas.institucion_credentials import google_api_key as get_inst_google_api_key
 
+import bleach
 import logging
 
 logger = logging.getLogger(__name__)
+
+def _sanitize_ai(text: str) -> str:
+    """Elimina etiquetas HTML/JS del texto generado por IA antes de persistirlo."""
+    return bleach.clean(str(text or ''), tags=[], strip=True).strip()
 
 
 @receiver(post_save, sender=Calificacion)
@@ -58,9 +63,9 @@ def sugerir_material_de_refuerzo(sender, instance, created, **kwargs):
             "El tono debe ser alentador, nunca regañes."
         )
         response = model.generate_content(prompt)
-        consejo_ia = response.text
+        consejo_ia = _sanitize_ai(response.text)
     except Exception as e:
-        print(f"ERROR al generar consejo de IA: {e}")
+        logger.error("Error al generar consejo de IA: %s", e)
         consejo_ia = "Te recomendamos fuertemente repasar los temas de la actividad y consultar con tu docente. ¡Tú puedes mejorar!"
 
     # 2. Buscar material de refuerzo (lógica que ya teníamos)
@@ -102,7 +107,7 @@ def analizar_observacion_convivencia(sender, instance, created, **kwargs):
     try:
         api_key = get_inst_google_api_key(anotacion.institucion)
         if not api_key:
-            print("ADVERTENCIA: la institución no tiene google_api_key. No se puede analizar la observación.")
+            logger.warning("Institución %s sin google_api_key; se omite análisis de observación.", anotacion.institucion_id)
             return
 
         genai.configure(api_key=api_key)
@@ -129,8 +134,8 @@ def analizar_observacion_convivencia(sender, instance, created, **kwargs):
         
         # Actualizamos los campos de la anotación
         anotacion.tipo_situacion_ia = tipo_situacion
-        anotacion.analisis_ia = ai_data.get('resumen', 'No se generó resumen.')
-        anotacion.acciones_protocolo_ia = ai_data.get('protocolo_sugerido', 'No se sugirieron acciones.')
+        anotacion.analisis_ia = _sanitize_ai(ai_data.get('resumen', 'No se generó resumen.'))
+        anotacion.acciones_protocolo_ia = _sanitize_ai(ai_data.get('protocolo_sugerido', 'No se sugirieron acciones.'))
         anotacion.requiere_revision = ai_data.get('requiere_revision', False)
         
         if tipo_situacion in ['TIPO II', 'TIPO III']:
@@ -224,7 +229,7 @@ def analizar_observacion_convivencia(sender, instance, created, **kwargs):
             transaction.on_commit(_crear_caso)
 
     except Exception as e:
-        print(f"ERROR CRÍTICO en el signal de Halu Sentinel: {e}")
+        logger.error("ERROR CRÍTICO en el signal de Halu Sentinel: %s", e, exc_info=True)
 
 @receiver(post_save, sender=Candidato)
 def analizar_propuesta_candidato(sender, instance, created, **kwargs):
@@ -234,7 +239,7 @@ def analizar_propuesta_candidato(sender, instance, created, **kwargs):
     try:
         api_key = get_inst_google_api_key(instance.eleccion.institucion)
         if not api_key:
-            print("ADVERTENCIA: institución sin google_api_key; se omite análisis de propuesta.")
+            logger.warning("Institución sin google_api_key; se omite análisis de propuesta candidato %s.", instance.pk)
             return
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-2.5-flash')
@@ -249,13 +254,13 @@ def analizar_propuesta_candidato(sender, instance, created, **kwargs):
         )
 
         response = model.generate_content(prompt)
-        texto_respuesta = response.text.strip()
+        texto_respuesta = _sanitize_ai(response.text)
 
         instance.analisis_ia = texto_respuesta
         instance.save(update_fields=['analisis_ia'])
 
     except Exception as e:
-        print(f"Error con Gemini analizando propuesta: {e}")
+        logger.error("Error con Gemini analizando propuesta candidato %s: %s", instance.pk, e)
 
 @receiver(pre_save, sender=SolicitudDocumento)
 def gestionar_notificacion_documento_listo(sender, instance, **kwargs):

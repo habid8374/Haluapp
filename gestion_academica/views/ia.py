@@ -1209,46 +1209,18 @@ def detalle_leccion(request, leccion_pk):
     curso = leccion.curso
     user = request.user
 
-    # --- DEPURACIÓN ---
-    print("======== DETALLE LECCIÓN DEBUG ========")
-    print("Usuario:", user.username)
-    print("Es superusuario:", user.is_superuser)
-    print("Rol:", getattr(user, 'rol', 'No definido'))
-    print("Curso:", curso)
-    print("Curso.grado:", curso.grado)
-
-    if hasattr(user, 'estudiante'):
-        print("Usuario tiene perfil estudiante.")
-        print("Estudiante.grado_actual:", user.estudiante.grado_actual)
-    else:
-        print("Usuario NO tiene perfil estudiante.")
-
-    if hasattr(user, 'docente'):
-        print("Usuario tiene perfil docente.")
-    else:
-        print("Usuario NO tiene perfil docente.")
-
     # --- LÓGICA DE PERMISOS ---
     tiene_permiso = False
 
     if user.is_superuser:
         tiene_permiso = True
-        print("Permiso concedido: Superusuario.")
     elif getattr(user, 'rol', None) == 'docente':
         tiene_permiso = True
-        print("Permiso concedido: Rol docente.")
     elif getattr(user, 'rol', None) == 'estudiante' and hasattr(user, 'estudiante'):
-        if user.estudiante.grado_actual == curso.grado:
-            tiene_permiso = True
-            print("Permiso concedido: Estudiante del mismo grado.")
-        else:
-            print("Permiso denegado: Estudiante de otro grado.")
-    else:
-        print("Permiso denegado: No cumple ninguna condición.")
+        tiene_permiso = (user.estudiante.grado_actual == curso.grado)
 
     if not tiene_permiso:
         messages.error(request, "No tienes permiso para acceder a esta lección.")
-        print("Redirigiendo a 'inicio_academico'")
         return redirect('gestion_academica:inicio_academico')
 
     # --- FORMULARIO ---

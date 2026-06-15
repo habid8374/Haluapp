@@ -28,3 +28,4 @@ staticfiles_collected/
 Thumbs.db
 .vscode/
 .idea/.claude/worktrees/
+django-insecure

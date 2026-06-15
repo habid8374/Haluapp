@@ -10,6 +10,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 
 from .models import (
     BancoPregunta, IntentoSimulacro, OpcionPregunta,
@@ -148,14 +149,23 @@ def _guardar_pregunta(request, pregunta_existente):
             creado_por=request.user,
         )
 
-    # A03 — validar que imagen_url solo permita http/https
+    # Validar imagen_url: solo http/https y sin IPs privadas/internas (SSRF)
     from urllib.parse import urlparse
+    import ipaddress
     imagen_url = (p.get('imagen_url') or '').strip()
     if imagen_url:
         parsed_img = urlparse(imagen_url)
         if parsed_img.scheme not in ('http', 'https'):
             messages.error(request, "La URL de imagen debe comenzar con http:// o https://")
             return redirect(request.path)
+        hostname = parsed_img.hostname or ''
+        try:
+            ip = ipaddress.ip_address(hostname)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                messages.error(request, "La URL de imagen no puede apuntar a una dirección IP interna.")
+                return redirect(request.path)
+        except ValueError:
+            pass  # Es un nombre de dominio, no una IP — permitido
     else:
         imagen_url = ''
 
@@ -346,6 +356,7 @@ def descargar_plantilla_excel(request):
 
 @login_required
 @require_POST
+@ratelimit(key='user', rate='10/h', method='POST', block=True)
 def generar_preguntas_ia(request):
     if not _es_docente_o_coordinador(request.user):
         return JsonResponse({'ok': False, 'error': 'Sin permiso.'}, status=403)
@@ -383,9 +394,13 @@ Reglas:
 
     try:
         import google.generativeai as genai
-        from django.conf import settings as dj_settings
-        genai.configure(api_key=dj_settings.GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        from finanzas.institucion_credentials import google_api_key as get_google_api_key
+        institucion = getattr(request.user, 'institucion_asociada', None)
+        _api_key = get_google_api_key(institucion) if institucion else None
+        if not _api_key:
+            return JsonResponse({'ok': False, 'error': 'La institución no tiene Google API Key configurada.'}, status=400)
+        genai.configure(api_key=_api_key)
+        model = genai.GenerativeModel('gemini-2.5-flash')
         resp = model.generate_content(prompt)
         raw = resp.text.strip()
 
@@ -411,6 +426,7 @@ Reglas:
 
 @login_required
 @require_POST
+@ratelimit(key='user', rate='20/h', method='POST', block=True)
 def guardar_preguntas_ia(request):
     """Guarda en el banco las preguntas generadas por IA tras revisión del docente."""
     if not _es_docente_o_coordinador(request.user):
