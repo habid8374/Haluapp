@@ -84,3 +84,6 @@ sentry-sdk[django]==2.29.1
 
 # --- Autenticación de dos factores (2FA / TOTP) ---
 pyotp==2.9.0
+
+# --- Hashing de contraseñas ---
+argon2-cffi==23.1.0
