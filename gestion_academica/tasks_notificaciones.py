@@ -964,3 +964,198 @@ def notificar_recibo_pago_manual(self, pago_id: int) -> None:
             "notificar_recibo_pago_manual: error pago %s: %s", pago_id, exc, exc_info=True
         )
         raise self.retry(exc=exc)
+
+
+# ---------------------------------------------------------------------------
+# Notificación por correo a familiares — nueva tarea o actividad del docente
+# ---------------------------------------------------------------------------
+
+def _html_nueva_tarea(
+    institucion_nombre: str,
+    grado_nombre: str,
+    materia_nombre: str,
+    tipo_label: str,
+    titulo: str,
+    fecha_entrega_str: str,
+) -> str:
+    fecha_fila = (
+        f"""<tr>
+              <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                         letter-spacing:.6px;padding-bottom:4px;">Fecha límite de entrega</td>
+            </tr>
+            <tr>
+              <td style="color:#374151;font-size:15px;font-weight:600;
+                         padding-bottom:16px;">{fecha_entrega_str}</td>
+            </tr>"""
+        if fecha_entrega_str else ""
+    )
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0"
+             style="background:#ffffff;border-radius:16px;overflow:hidden;
+                    box-shadow:0 4px 24px rgba(0,0,0,.10);max-width:560px;width:100%;">
+        <tr>
+          <td style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);
+                     padding:32px 36px;text-align:center;">
+            <div style="display:inline-block;background:rgba(255,255,255,.18);
+                        border-radius:50%;width:56px;height:56px;line-height:56px;
+                        font-size:28px;margin-bottom:12px;">&#128218;</div>
+            <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">
+              Nueva {tipo_label}
+            </h1>
+            <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:14px;">
+              {institucion_nombre}
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px 36px;">
+            <p style="color:#374151;font-size:15px;margin:0 0 16px;">
+              Estimado/a acudiente,
+            </p>
+            <p style="color:#374151;font-size:15px;margin:0 0 24px;">
+              El docente de <strong>{materia_nombre}</strong> ({grado_nombre}) ha publicado
+              una nueva <strong>{tipo_label}</strong> para su acudido/a.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;
+                          margin-bottom:24px;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Tipo</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#4f46e5;font-size:13px;font-weight:700;
+                                 padding-bottom:16px;">{tipo_label.upper()}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Título</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#111827;font-size:17px;font-weight:700;
+                                 padding-bottom:16px;">{titulo}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Materia · Grado</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#374151;font-size:15px;font-weight:600;
+                                 padding-bottom:16px;">{materia_nombre} · {grado_nombre}</td>
+                    </tr>
+                    {fecha_fila}
+                  </table>
+                </td>
+              </tr>
+            </table>
+            <p style="color:#6b7280;font-size:13px;margin:0;">
+              Ingrese al portal de la institución para ver los detalles completos.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f8fafc;padding:20px 36px;text-align:center;
+                     border-top:1px solid #e2e8f0;">
+            <p style="color:#94a3b8;font-size:12px;margin:0;">
+              Este es un correo automático de {institucion_nombre} — HALU Plataforma Educativa
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+
+
+@shared_task(
+    name="gestion_academica.notificar_nueva_tarea_familiares",
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,
+)
+def notificar_nueva_tarea_familiares(
+    self,
+    curso_id: int,
+    institucion_id: int,
+    titulo: str,
+    tipo: str,
+    fecha_entrega_str: str,
+) -> None:
+    """Envía correo a los acudientes del grado cuando el docente publica un deber o actividad."""
+    from gestion_academica.models import Curso, Estudiante, Familiar
+    from finanzas.models import InstitucionEducativa
+    from admisiones.utils import enviar_correo_dinamico
+
+    try:
+        curso = Curso.objects.select_related('materia', 'grado').get(pk=curso_id)
+        institucion = InstitucionEducativa.objects.get(pk=institucion_id)
+    except Exception as exc:
+        logger.warning("notificar_nueva_tarea_familiares: curso/inst no encontrado. %s", exc)
+        return
+
+    tipo_label = "Tarea / Deber" if tipo == "deber" else "Actividad calificable"
+    materia_nombre = curso.materia.nombre_materia
+    grado_nombre = curso.grado.nombre
+
+    # Estudiantes activos del grado
+    estudiantes = Estudiante.objects.filter(
+        grado_actual=curso.grado,
+        institucion=institucion,
+        activo=True,
+    )
+    if not estudiantes.exists():
+        return
+
+    # Emails únicos de familiares (evitar duplicados si tienen varios hijos en el grado)
+    emails = list(
+        Familiar.objects.filter(
+            estudiantes_asociados__in=estudiantes,
+            institucion=institucion,
+        )
+        .exclude(usuario__email="")
+        .exclude(usuario__email__isnull=True)
+        .values_list("usuario__email", flat=True)
+        .distinct()
+    )
+
+    if not emails:
+        logger.info(
+            "notificar_nueva_tarea_familiares: no hay familiares con email en curso %s.", curso_id
+        )
+        return
+
+    html = _html_nueva_tarea(
+        institucion_nombre=institucion.nombre,
+        grado_nombre=grado_nombre,
+        materia_nombre=materia_nombre,
+        tipo_label=tipo_label,
+        titulo=titulo,
+        fecha_entrega_str=fecha_entrega_str,
+    )
+    asunto = f"Nueva {tipo_label}: {titulo} — {materia_nombre} ({grado_nombre})"
+
+    try:
+        enviar_correo_dinamico(
+            institucion=institucion,
+            asunto=asunto,
+            destinatarios=emails,
+            html_content=html,
+        )
+        logger.info(
+            "notificar_nueva_tarea_familiares: correo enviado curso %s a %d destinatario(s).",
+            curso_id, len(emails),
+        )
+    except Exception as exc:
+        logger.error(
+            "notificar_nueva_tarea_familiares: error curso %s: %s", curso_id, exc, exc_info=True
+        )
+        raise self.retry(exc=exc)

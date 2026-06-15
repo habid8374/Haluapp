@@ -702,13 +702,19 @@ def notificar_familiares_nuevo_deber(sender, instance, created, **kwargs):
     if not created:
         return
     from django.db import transaction
+    from gestion_academica.tasks_notificaciones import notificar_nueva_tarea_familiares
     fecha_str = instance.fecha_entrega.strftime('%d/%m/%Y') if instance.fecha_entrega else ""
     curso_pk = instance.curso_id
     inst_pk = instance.institucion_id
     titulo = instance.titulo
-    transaction.on_commit(
-        lambda: _notificar_familiares_nueva_tarea(curso_pk, inst_pk, titulo, "deber", fecha_str)
-    )
+
+    def _on_commit():
+        # Notificación in-app + WebSocket
+        _notificar_familiares_nueva_tarea(curso_pk, inst_pk, titulo, "deber", fecha_str)
+        # Correo por Celery
+        notificar_nueva_tarea_familiares.delay(curso_pk, inst_pk, titulo, "deber", fecha_str)
+
+    transaction.on_commit(_on_commit)
 
 
 @receiver(post_save, sender=ActividadCalificable)
@@ -717,6 +723,7 @@ def notificar_familiares_nueva_actividad(sender, instance, created, **kwargs):
     if not created:
         return
     from django.db import transaction
+    from gestion_academica.tasks_notificaciones import notificar_nueva_tarea_familiares
     fecha_str = (
         instance.fecha_entrega_limite.strftime('%d/%m/%Y')
         if instance.fecha_entrega_limite else ""
@@ -724,6 +731,11 @@ def notificar_familiares_nueva_actividad(sender, instance, created, **kwargs):
     curso_pk = instance.curso_id
     inst_pk = instance.institucion_id
     titulo = instance.titulo
-    transaction.on_commit(
-        lambda: _notificar_familiares_nueva_tarea(curso_pk, inst_pk, titulo, "actividad", fecha_str)
-    )
+
+    def _on_commit():
+        # Notificación in-app + WebSocket
+        _notificar_familiares_nueva_tarea(curso_pk, inst_pk, titulo, "actividad", fecha_str)
+        # Correo por Celery
+        notificar_nueva_tarea_familiares.delay(curso_pk, inst_pk, titulo, "actividad", fecha_str)
+
+    transaction.on_commit(_on_commit)
