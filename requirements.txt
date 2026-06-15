@@ -63,6 +63,9 @@ qrcode==8.2
 num2words==0.5.14
 asgiref==3.9.1
 google-genai
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
 xhtml2pdf==0.2.17
 numpy
 pandas
