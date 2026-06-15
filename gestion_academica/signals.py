@@ -14,7 +14,7 @@ import json
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, get_connection
 
-from .models import Calificacion, ArchivoPlanAcademico, Notificacion, AnotacionObservador, Usuario, Candidato, TicketSoporte, RegistroAsistencia, Curso, NivelEscolaridad, Familiar, CitaReunion, CasoConvivencia, InvolucradoCaso
+from .models import Calificacion, ArchivoPlanAcademico, Notificacion, AnotacionObservador, Usuario, Candidato, TicketSoporte, RegistroAsistencia, Curso, NivelEscolaridad, Familiar, CitaReunion, CasoConvivencia, InvolucradoCaso, Estudiante, Deber, ActividadCalificable
 from finanzas.models import InstitucionEducativa
 from finanzas.institucion_credentials import google_api_key as get_inst_google_api_key
 
@@ -618,4 +618,112 @@ def enviar_correo_inasistencia(sender, instance, created, **kwargs):
     registro_pk = instance.pk
     transaction.on_commit(
         lambda pk=registro_pk: notificar_inasistencia.delay(pk)
+    )
+
+
+# ---------------------------------------------------------------------------
+# Notificación a familiares cuando un docente crea un deber o actividad
+# ---------------------------------------------------------------------------
+
+def _notificar_familiares_nueva_tarea(curso_pk, institucion_pk, titulo, tipo, fecha_entrega_str):
+    """
+    Ejecutado en on_commit: busca los familiares del grado del curso
+    y les crea una Notificacion + push WebSocket en tiempo real.
+    """
+    try:
+        from .models import Curso as _Curso, Estudiante as _Est, Familiar as _Fam, Notificacion as _Notif
+        from finanzas.models import InstitucionEducativa as _Inst
+
+        curso = _Curso.objects.select_related('materia', 'grado').get(pk=curso_pk)
+        institucion = _Inst.objects.get(pk=institucion_pk)
+
+        estudiantes = _Est.objects.filter(
+            grado_actual=curso.grado,
+            institucion=institucion,
+            activo=True
+        )
+        if not estudiantes.exists():
+            return
+
+        familiares = _Fam.objects.filter(
+            estudiantes_asociados__in=estudiantes,
+            institucion=institucion,
+        ).select_related('usuario').distinct()
+
+        if not familiares.exists():
+            return
+
+        tipo_label = "Tarea/Deber" if tipo == "deber" else "Actividad calificable"
+        materia = curso.materia.nombre_materia
+        grado = curso.grado.nombre
+        fecha_str = f" · Entrega: {fecha_entrega_str}" if fecha_entrega_str else ""
+        mensaje = f"Nueva {tipo_label} en {materia} ({grado}): \"{titulo}\"{fecha_str}"
+
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        channel_layer = get_channel_layer()
+
+        bulk = []
+        for familiar in familiares:
+            usuario = familiar.usuario
+            bulk.append(_Notif(
+                destinatario=usuario,
+                mensaje=mensaje,
+                enlace="",
+                institucion=institucion,
+            ))
+            try:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{usuario.pk}",
+                    {
+                        "type": "send_notification",
+                        "kind": "nueva_actividad_docente",
+                        "title": f"Nueva {tipo_label} — {materia}",
+                        "message": mensaje,
+                        "url": "",
+                        "severity": "info",
+                    }
+                )
+            except Exception:
+                pass
+
+        _Notif.objects.bulk_create(bulk)
+        logger.info(
+            "Notificadas %d familias por nueva %s '%s' en curso %s",
+            len(bulk), tipo_label, titulo, curso_pk
+        )
+    except Exception:
+        logger.exception("Error al notificar familiares por nueva tarea (curso=%s)", curso_pk)
+
+
+@receiver(post_save, sender=Deber)
+def notificar_familiares_nuevo_deber(sender, instance, created, **kwargs):
+    """Avisa a los acudientes cuando el docente publica un deber."""
+    if not created:
+        return
+    from django.db import transaction
+    fecha_str = instance.fecha_entrega.strftime('%d/%m/%Y') if instance.fecha_entrega else ""
+    curso_pk = instance.curso_id
+    inst_pk = instance.institucion_id
+    titulo = instance.titulo
+    transaction.on_commit(
+        lambda: _notificar_familiares_nueva_tarea(curso_pk, inst_pk, titulo, "deber", fecha_str)
+    )
+
+
+@receiver(post_save, sender=ActividadCalificable)
+def notificar_familiares_nueva_actividad(sender, instance, created, **kwargs):
+    """Avisa a los acudientes cuando el docente crea una actividad calificable."""
+    if not created:
+        return
+    from django.db import transaction
+    fecha_str = (
+        instance.fecha_entrega_limite.strftime('%d/%m/%Y')
+        if instance.fecha_entrega_limite else ""
+    )
+    curso_pk = instance.curso_id
+    inst_pk = instance.institucion_id
+    titulo = instance.titulo
+    transaction.on_commit(
+        lambda: _notificar_familiares_nueva_tarea(curso_pk, inst_pk, titulo, "actividad", fecha_str)
     )
