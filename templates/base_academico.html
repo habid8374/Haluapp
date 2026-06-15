@@ -573,19 +573,11 @@
           <i class="bi bi-shield-lock-fill"></i> Seguridad (2FA)
         </a>
       </li>
-      {% if user.is_superuser %}
-        <li class="nav-item item-color-7">
-          <a class="nav-link" href="{% url 'platform_control:tickets' %}">
-            <i class="bi bi-headset"></i> Gestión de Soporte
-          </a>
-        </li>
-      {% else %}
-        <li class="nav-item item-color-7">
-          <a class="nav-link {% if 'ayuda-soporte' in request.path %}active{% endif %}" href="{% url 'gestion_academica:ayuda_soporte' %}">
-            <i class="bi bi-headset"></i> Soporte HALU
-          </a>
-        </li>
-      {% endif %}
+      <li class="nav-item item-color-7">
+        <a class="nav-link {% if 'ayuda-soporte' in request.path %}active{% endif %}" href="{% url 'gestion_academica:ayuda_soporte' %}">
+          <i class="bi bi-headset"></i> Soporte HALU
+        </a>
+      </li>
 
     {% endif %}{# end is_staff #}
 
