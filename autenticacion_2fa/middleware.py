@@ -41,8 +41,8 @@ class Verificacion2FAMiddleware:
             if request.path.startswith(ruta):
                 return False
         # Solo roles obligatorios
-        cargo = getattr(user, 'cargo', None)
-        if cargo not in _ROLES_OBLIGATORIOS:
+        rol = getattr(user, 'rol', None)
+        if rol not in _ROLES_OBLIGATORIOS:
             return False
         # Solo si tiene dispositivo TOTP confirmado
         try:
