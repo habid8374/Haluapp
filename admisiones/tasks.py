@@ -79,7 +79,13 @@ def _crear_conexion_smtp(institucion):
     indicar que los correos se enviarán vía HTTP API sin necesidad de SMTP.
     """
     from django.conf import settings as _s
-    if getattr(_s, 'BREVO_API_KEY', ''):
+    # Clave Brevo por institución tiene prioridad; fallback al env global
+    _brevo_key = (
+        getattr(institucion, 'brevo_api_key', '') or
+        getattr(_s, 'BREVO_API_KEY', '') or
+        ''
+    )
+    if _brevo_key:
         return _BREVO_API_ACTIVO
 
     if not (institucion.email_host_user and institucion.email_host_password):
@@ -404,7 +410,10 @@ def procesar_importacion_aspirantes_task(self, lote_id):
         _smtp_advertencia_general = None
         if not lote.dry_run:
             from django.conf import settings as _s
-            _brevo_activo = bool(getattr(_s, 'BREVO_API_KEY', ''))
+            _brevo_activo = bool(
+                getattr(institucion, 'brevo_api_key', '') or
+                getattr(_s, 'BREVO_API_KEY', '')
+            )
             _tiene_credenciales_smtp = bool(
                 getattr(institucion, "email_host_user", None)
                 and getattr(institucion, "email_host_password", None)
@@ -739,12 +748,15 @@ def reenviar_correos_bienvenida_lote(lote_id: int, user_id: int = None) -> dict:
     smtp = _crear_conexion_smtp(institucion)
     if smtp is None:
         from django.conf import settings as _s
-        _brevo_key_en_este_servicio = getattr(_s, 'BREVO_API_KEY', '') or ''
+        _brevo_key_en_este_servicio = (
+            getattr(institucion, 'brevo_api_key', '') or
+            getattr(_s, 'BREVO_API_KEY', '') or
+            ''
+        )
         if not _brevo_key_en_este_servicio:
             _motivo_msg = (
-                "BREVO_API_KEY no está configurado en el servicio Celery (worker). "
-                "Ve a Railway → servicio sunny-forgiveness → Variables y agrega "
-                "BREVO_API_KEY con la misma clave que usaste en el servicio principal."
+                "Brevo API Key no está configurada en esta institución ni en las variables de entorno. "
+                "Configura el campo 'Brevo API Key' en el panel de administración de la institución."
             )
         else:
             _motivo_msg = (

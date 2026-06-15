@@ -903,10 +903,18 @@ def notificar_recibo_pago_manual(self, pago_id: int) -> None:
         logger.warning("notificar_recibo_pago_manual: pago %s no encontrado.", pago_id)
         return
 
+    from admisiones.utils import enviar_correo_dinamico as _enviar_correo
+    from django.conf import settings as _s
+
     institucion = pago.institucion
-    if not institucion.email_host_user or not institucion.email_host_password:
+    _tiene_brevo = bool(
+        getattr(institucion, 'brevo_api_key', '') or
+        getattr(_s, 'BREVO_API_KEY', '')
+    )
+    _tiene_smtp = bool(institucion.email_host_user and institucion.email_host_password)
+    if not _tiene_brevo and not _tiene_smtp:
         logger.info(
-            "notificar_recibo_pago_manual: institución %s sin SMTP configurado.",
+            "notificar_recibo_pago_manual: institución %s sin canal de correo configurado.",
             institucion.pk,
         )
         return
@@ -941,28 +949,15 @@ def notificar_recibo_pago_manual(self, pago_id: int) -> None:
 
         pdf_buffer = BytesIO()
         pisa.CreatePDF(html, dest=pdf_buffer)
-        pdf_buffer.seek(0)
+        pdf_bytes = pdf_buffer.getvalue()
 
-        from django.core.mail import get_connection
-        connection = get_connection(
-            backend="django.core.mail.backends.smtp.EmailBackend",
-            host=institucion.email_host,
-            port=institucion.email_port,
-            username=institucion.email_host_user,
-            password=institucion.email_host_password.decrypt() if hasattr(institucion.email_host_password, 'decrypt') else institucion.email_host_password,
-            use_tls=institucion.email_use_tls,
+        _enviar_correo(
+            institucion=institucion,
+            asunto=f"Recibo de Pago — {institucion.nombre}",
+            destinatarios=[email_destinatario],
+            html_content=html,
+            attachments=[(f"Recibo_Pago_{pago.pk}.pdf", pdf_bytes, "application/pdf")],
         )
-        remitente = f'"{institucion.nombre}" <{institucion.email_host_user}>'
-        email = EmailMessage(
-            f"Recibo de Pago — {institucion.nombre}",
-            html,
-            remitente,
-            [email_destinatario],
-            connection=connection,
-        )
-        email.content_subtype = "html"
-        email.attach(f"Recibo_Pago_{pago.pk}.pdf", pdf_buffer.getvalue(), "application/pdf")
-        email.send()
         logger.info("notificar_recibo_pago_manual: recibo enviado pago %s a %s.", pago_id, email_destinatario)
     except Exception as exc:
         logger.error(

@@ -90,45 +90,54 @@ def _email_valido(direccion: str) -> bool:
     return bool(re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', direccion.strip()))
 
 
-def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_content):
+def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_content, attachments=None):
     """Envía correo vía Brevo HTTP API (HTTPS/443). Funciona en Railway sin restricciones SMTP.
 
-    El remitente se resuelve así (en orden):
-    1. BREVO_SENDER_EMAIL en settings (variable de entorno) — recomendado.
-    2. email_host_user de la institución — solo válido si es un email verificado en Brevo,
-       NO si es el usuario SMTP de Brevo (xxxxxx@smtp-brevo.com).
+    El remitente se resuelve así (en orden de prioridad):
+    1. brevo_sender_email de la institución (campo por institución)
+    2. email_host_user de la institución (si es un email verificado en Brevo)
+    3. BREVO_SENDER_EMAIL en settings (variable de entorno global — fallback)
 
-    Lanza RuntimeError con el mensaje de error de Brevo si el envío falla,
-    para que el caller (tarea Celery o señal) pueda registrar el motivo real.
+    attachments: lista opcional de tuplas (nombre_archivo, bytes_content, mimetype)
+
+    Lanza RuntimeError con el mensaje de error de Brevo si el envío falla.
     """
+    import base64
     import requests as _req
     from django.conf import settings as _s
-    # BREVO_SENDER_EMAIL tiene prioridad; evita usar el usuario SMTP de Brevo como remitente
+    # Resolución del remitente: institución tiene prioridad sobre settings global
     from_email = (
-        getattr(_s, 'BREVO_SENDER_EMAIL', '') or
+        getattr(institucion, 'brevo_sender_email', '') or
         getattr(institucion, 'email_host_user', '') or
+        getattr(_s, 'BREVO_SENDER_EMAIL', '') or
         ''
     )
     from_name = (
-        getattr(_s, 'BREVO_SENDER_NAME', '') or
+        getattr(institucion, 'brevo_sender_name', '') or
         getattr(institucion, 'nombre', '') or
-        from_email or
+        getattr(_s, 'BREVO_SENDER_NAME', '') or
         'Halu Plataforma'
     )
     if not from_email:
         raise RuntimeError(
             "No hay remitente configurado para Brevo. "
-            "Agrega BREVO_SENDER_EMAIL=tu_email_verificado a las variables de entorno."
+            "Configura el campo 'Email Remitente Brevo' en la institución."
         )
+    payload = {
+        'sender': {'name': from_name, 'email': from_email},
+        'to': [{'email': e} for e in destinatarios],
+        'subject': asunto,
+        'htmlContent': html_content,
+    }
+    if attachments:
+        payload['attachment'] = [
+            {'name': fname, 'content': base64.b64encode(content).decode('utf-8')}
+            for fname, content, _mime in attachments
+        ]
     resp = _req.post(
         'https://api.brevo.com/v3/smtp/email',
         headers={'api-key': api_key, 'Content-Type': 'application/json'},
-        json={
-            'sender': {'name': from_name, 'email': from_email},
-            'to': [{'email': e} for e in destinatarios],
-            'subject': asunto,
-            'htmlContent': html_content,
-        },
+        json=payload,
         timeout=15,
     )
     if resp.status_code == 201:
@@ -138,7 +147,12 @@ def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_cont
     raise RuntimeError(error_msg)
 
 
-def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, texto_plano='', connection=None):
+def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, texto_plano='', connection=None, attachments=None):
+    """Envía un correo usando Brevo API (prioridad) o SMTP (fallback).
+
+    attachments: lista opcional de tuplas (nombre_archivo, bytes_content, mimetype)
+                 Compatibles con Brevo API (base64) y SMTP (attach directo).
+    """
     if not isinstance(destinatarios, list):
         destinatarios = [destinatarios]
 
@@ -159,11 +173,15 @@ def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, tex
         logger.error("enviar_correo_dinamico: se requiere institución.")
         return False
 
-    # Brevo API tiene prioridad — funciona en Railway donde SMTP está bloqueado
+    # Brevo API tiene prioridad — clave por institución, con fallback al env global
     from django.conf import settings as _settings
-    _brevo_key = getattr(_settings, 'BREVO_API_KEY', '') or ''
+    _brevo_key = (
+        getattr(institucion, 'brevo_api_key', '') or
+        getattr(_settings, 'BREVO_API_KEY', '') or
+        ''
+    )
     if _brevo_key:
-        return _enviar_via_brevo_api(_brevo_key, institucion, destinatarios, asunto, html_content)
+        return _enviar_via_brevo_api(_brevo_key, institucion, destinatarios, asunto, html_content, attachments=attachments)
 
     if not (institucion.email_host_user and institucion.email_host_password):
         logger.warning(
@@ -200,6 +218,9 @@ def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, tex
             connection=connection
         )
         msg.attach_alternative(html_content, "text/html")
+        if attachments:
+            for fname, content, mimetype in attachments:
+                msg.attach(fname, content, mimetype)
         msg.send(fail_silently=False)
         return True
     except Exception as e:

@@ -105,6 +105,28 @@ class InstitucionEducativa(models.Model):
         verbose_name="Google API Key (Gemini)",
         help_text="Clave de la API de Google AI / Gemini para esta institución (obligatoria para funciones de IA).",
     )
+    # ---- Brevo API (prioridad sobre SMTP) ----
+    brevo_api_key = EncryptedCharField(
+        blank=True,
+        null=True,
+        verbose_name="Brevo API Key",
+        help_text="Clave API de Brevo para correos transaccionales. Tiene prioridad sobre SMTP si está configurada.",
+    )
+    brevo_sender_email = models.EmailField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Email Remitente Brevo",
+        help_text="Email verificado en Brevo desde el que se envían los correos. Ej: notificaciones@micolegio.com",
+    )
+    brevo_sender_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="Nombre Remitente Brevo",
+        help_text="Nombre que aparece como remitente. Ej: 'Colegio San José'. Si no se configura, se usa el nombre de la institución.",
+    )
+    # ---- SMTP (fallback si Brevo no está configurado) ----
     email_host_user = models.EmailField(max_length=255, blank=True, null=True, verbose_name="Correo para Envío de Notificaciones (SMTP User)", help_text="Ej: notificaciones@micolegio.com")
     email_host_password = EncryptedCharField(blank=True, null=True, verbose_name="Contraseña de Aplicación (SMTP Password)", help_text="¡IMPORTANTE! Usa una contraseña de aplicación generada, no tu contraseña principal.")
     email_host = models.CharField(max_length=255, blank=True, null=True, verbose_name="Servidor SMTP", default="smtp.gmail.com")

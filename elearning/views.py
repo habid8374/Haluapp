@@ -565,42 +565,29 @@ def registrar_estudiante_curso(request):
                     messages.warning(request, err_fc)
 
                 inst = institucion_actual
-                if inst.email_host_user and inst.email_host_password:
-                    try:
-                        connection = get_connection(
-                            host=inst.email_host or "smtp.gmail.com",
-                            port=inst.email_port or 587,
-                            username=inst.email_host_user,
-                            password=inst.email_host_password,
-                            use_tls=inst.email_use_tls,
-                        )
-                        send_mail(
-                            f"Acceso a {inst.nombre}",
-                            (
-                                f"Hola {first_name},\n\n"
-                                f"Usuario: {username}\n"
-                                f"Contraseña temporal: {temp_password}\n\n"
-                                "Cambia tu contraseña al iniciar sesión.\n"
-                            ),
-                            f"{inst.nombre} <{inst.email_host_user}>",
-                            [email],
-                            connection=connection,
-                            fail_silently=False,
-                        )
-                    except Exception as mail_exc:
-                        logging.getLogger(__name__).error(
-                            "No se pudo enviar correo con credenciales e-learning: %s", mail_exc
-                        )
-                        messages.warning(
-                            request,
-                            "Usuario creado; no se pudo enviar el correo con la contraseña. "
-                            "Restablezca la contraseña desde administración o Finanzas (SMTP).",
-                        )
-                else:
+                try:
+                    from admisiones.utils import enviar_correo_dinamico as _enviar
+                    html_creds = (
+                        f"<p>Hola {first_name},</p>"
+                        f"<p>Tu acceso a <strong>{inst.nombre}</strong>:</p>"
+                        f"<ul><li><strong>Usuario:</strong> {username}</li>"
+                        f"<li><strong>Contraseña temporal:</strong> {temp_password}</li></ul>"
+                        "<p>Cambia tu contraseña al iniciar sesión.</p>"
+                    )
+                    _enviar(
+                        institucion=inst,
+                        asunto=f"Acceso a {inst.nombre}",
+                        destinatarios=[email],
+                        html_content=html_creds,
+                    )
+                except Exception as mail_exc:
+                    logging.getLogger(__name__).error(
+                        "No se pudo enviar correo con credenciales e-learning: %s", mail_exc
+                    )
                     messages.warning(
                         request,
-                        "Configure SMTP en la institución para enviar la contraseña por correo; "
-                        "de lo contrario, restablezca la contraseña del usuario desde administración.",
+                        "Usuario creado; no se pudo enviar el correo con la contraseña. "
+                        "Restablezca la contraseña desde administración o Finanzas.",
                     )
                 
             messages.success(request, f"Estudiante {first_name} {last_name} registrado y matriculado exitosamente.")

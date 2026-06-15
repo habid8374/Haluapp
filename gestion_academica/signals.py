@@ -306,42 +306,25 @@ def notificar_nuevo_ticket_a_superadmin(sender, instance, created, **kwargs):
         
         # --- INICIO DE LA LÓGICA DE ENVÍO MULTI-INSTITUCIÓN ---
         try:
-            # Verificamos que el correo de soporte global esté configurado
             if not settings.SOFTWARE_CONTACT_EMAIL:
                 logger.error("No se puede enviar notificación de ticket: SOFTWARE_CONTACT_EMAIL no está definido en settings.py.")
                 return
 
-            # Verificamos que la institución tenga credenciales de correo
-            if not (institucion.email_host_user and institucion.email_host_password):
-                logger.warning(f"No se pudo enviar notificación para el ticket {ticket.ticket_id} porque la institución '{institucion.nombre}' no tiene credenciales de correo configuradas.")
-                return
-
-            # Creamos una conexión SMTP dinámica con las credenciales de la institución
-            connection = get_connection(
-                host=institucion.email_host,
-                port=institucion.email_port,
-                username=institucion.email_host_user,
-                password=institucion.email_host_password,
-                use_tls=institucion.email_use_tls
+            from admisiones.utils import enviar_correo_dinamico as _enviar_correo
+            ok = _enviar_correo(
+                institucion=institucion,
+                asunto=asunto,
+                destinatarios=[settings.SOFTWARE_CONTACT_EMAIL],
+                html_content=mensaje_html,
             )
-            
-            remitente = f'"{institucion.nombre} (Plataforma HALU)" <{institucion.email_host_user}>'
-            
-            email = EmailMessage(
-                subject=asunto,
-                body=mensaje_html,
-                from_email=remitente,
-                to=[settings.SOFTWARE_CONTACT_EMAIL], # Envía al correo de soporte global
-                connection=connection # Usa la conexión dinámica
-            )
-            email.content_subtype = "html"
-            email.send(fail_silently=False)
-            logger.info(f"Notificación para el ticket {ticket.ticket_id} enviada exitosamente a {settings.SOFTWARE_CONTACT_EMAIL}.")
+            if ok:
+                logger.info("Notificación para el ticket %s enviada a %s.", ticket.ticket_id, settings.SOFTWARE_CONTACT_EMAIL)
+            else:
+                logger.warning("No se pudo enviar notificación para ticket %s (sin canal de correo configurado en %s).", ticket.ticket_id, institucion.nombre)
 
         except Exception as e:
-            logger.error(f"FALLO CRÍTICO al enviar notificación por correo para el ticket {ticket.ticket_id}: {e}", exc_info=True)
-        # --- FIN DE LA LÓGICA DE ENVÍO ---  
-        #     
+            logger.error("FALLO CRÍTICO al enviar notificación por correo para el ticket %s: %s", ticket.ticket_id, e, exc_info=True)
+        # --- FIN DE LA LÓGICA DE ENVÍO ---
         # 
 @receiver(post_save, sender=RegistroAsistencia)
 def crear_registros_asistencia_por_clase(sender, instance, created, **kwargs):

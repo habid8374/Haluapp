@@ -1,9 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.core.mail import send_mail, get_connection
-from django.conf import settings
 from django.urls import reverse
 from django.contrib.sites.models import Site
+from django.conf import settings
 import logging
 
 from .models import InscripcionCurso
@@ -38,13 +37,6 @@ def notificar_inscripcion_curso(sender, instance, created, **kwargs):
     if not email_destino:
         return
 
-    if not (institucion.email_host_user and institucion.email_host_password):
-        logger.warning(
-            "notificar_inscripcion_curso: SMTP no configurado para %s; no se envía correo.",
-            institucion,
-        )
-        return
-
     try:
         path = reverse("elearning:aula_virtual", args=[curso.id])
         url_curso = _absolute_site_url(path)
@@ -52,30 +44,20 @@ def notificar_inscripcion_curso(sender, instance, created, **kwargs):
         url_curso = "#"
 
     asunto = f"Acceso a oferta e-learning: {curso.nombre}"
-    mensaje = (
-        f"Hola {estudiante.usuario.first_name},\n\n"
-        f"Has sido matriculado en la oferta «{curso.nombre}».\n\n"
-        f"Enlace al aula: {url_curso}\n\n"
-        "¡Muchos éxitos!"
+    html_content = (
+        f"<p>Hola {estudiante.usuario.first_name},</p>"
+        f"<p>Has sido matriculado en la oferta <strong>{curso.nombre}</strong>.</p>"
+        f"<p><a href='{url_curso}'>Ir al aula virtual</a></p>"
+        "<p>¡Muchos éxitos!</p>"
     )
-
-    connection = get_connection(
-        host=institucion.email_host or "smtp.gmail.com",
-        port=institucion.email_port or 587,
-        username=institucion.email_host_user,
-        password=institucion.email_host_password,
-        use_tls=institucion.email_use_tls,
-    )
-    from_email = f"{institucion.nombre} <{institucion.email_host_user}>"
 
     try:
-        send_mail(
-            asunto,
-            mensaje,
-            from_email,
-            [email_destino],
-            connection=connection,
-            fail_silently=False,
+        from admisiones.utils import enviar_correo_dinamico
+        enviar_correo_dinamico(
+            institucion=institucion,
+            asunto=asunto,
+            destinatarios=[email_destino],
+            html_content=html_content,
         )
     except Exception as e:
         logger.error("Error enviando correo e-learning: %s", e)
