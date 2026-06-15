@@ -70,9 +70,13 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
                 'mp_webhook_secret',
             )
         }),
-        ('Configuración de Envío de Correo (SMTP)', {
+        ('Configuración de Envío de Correo', {
             'classes': ('collapse',),
-            'fields': ('email_host_user', 'email_host_password', 'email_host', 'email_port', 'email_use_tls')
+            'description': 'Brevo API tiene prioridad sobre SMTP si se configura. SMTP es el canal de respaldo.',
+            'fields': (
+                'brevo_api_key', 'brevo_sender_email', 'brevo_sender_name',
+                'email_host_user', 'email_host_password', 'email_host', 'email_port', 'email_use_tls',
+            )
         }),
         # --- AÑADE ESTE NUEVO FIELDSET ---
         ('Integraciones Externas', {

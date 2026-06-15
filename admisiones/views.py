@@ -517,8 +517,12 @@ def test_smtp(request):
     if not institucion:
         return JsonResponse({'ok': False, 'error': 'Usuario sin institución asociada.'})
 
-    # Si Brevo API está activo, verificar la clave contra la API de Brevo
-    brevo_key = getattr(_s, 'BREVO_API_KEY', '') or ''
+    # Brevo API: clave por institución tiene prioridad sobre env global
+    brevo_key = (
+        getattr(institucion, 'brevo_api_key', '') or
+        getattr(_s, 'BREVO_API_KEY', '') or
+        ''
+    )
     if brevo_key:
         import requests as _req
         try:
@@ -556,7 +560,9 @@ def test_smtp(request):
         conn.close()
         return JsonResponse({'ok': True, 'mensaje': f'Conexión SMTP exitosa a {host}:{port} ({"SSL" if use_ssl else "TLS"}) con {user}.'})
     except Exception as exc:
-        return JsonResponse({'ok': False, 'error': str(exc), 'host': host, 'port': port, 'user': user})
+        # No exponer host/user en la respuesta de error (evitar data leakage)
+        logger.warning("test_smtp: fallo SMTP para institución %s: %s", getattr(institucion, 'nombre', ''), exc)
+        return JsonResponse({'ok': False, 'error': 'No se pudo conectar al servidor SMTP. Verifica las credenciales en el panel de administración.'})
 
 
 @login_required

@@ -2554,7 +2554,10 @@ def facturacion_masiva(request):
         .order_by('-fecha_creacion')[:40]
     )
 
-    smtp_ok = bool(institucion.email_host_user and institucion.email_host_password)
+    smtp_ok = bool(
+        getattr(institucion, 'brevo_api_key', None) or
+        (institucion.email_host_user and institucion.email_host_password)
+    )
 
     # ¿Módulo de facturación electrónica operativo? (para mostrar la opción)
     fe_operativo = False
