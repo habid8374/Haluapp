@@ -2890,6 +2890,11 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
         if es_coordinador and not request.user.is_superuser:
             messages.warning(request, "Los coordinadores pueden consultar el libro de notas pero no modificar calificaciones.")
             return redirect('gestion_academica:docente_libro_de_notas_por_curso', curso_pk=curso.pk)
+        # Bloqueo de notas: si el período activo tiene notas cerradas, solo superusuario puede editar
+        _periodo_activo = PeriodoAcademico.objects.filter(institucion=curso.institucion, activo=True).first()
+        if _periodo_activo and _periodo_activo.notas_cerradas and not request.user.is_superuser:
+            messages.error(request, f"Las notas del {_periodo_activo.nombre} están cerradas. No se pueden modificar calificaciones.")
+            return redirect('gestion_academica:docente_libro_de_notas_por_curso', curso_pk=curso.pk)
         with transaction.atomic():
             calificaciones_a_actualizar = []
             calificaciones_a_crear_temp = []
@@ -13774,3 +13779,61 @@ class GenerarCorreoAcudienteIAView(APIView):
         except Exception as e:
             logger.exception("GenerarCorreoIA error: %s", e)
             return Response({'status': 'error', 'message': f"Error al contactar la IA: {e}"}, status=500)
+
+# ---------------------------------------------------------------------------
+# Cierre de período y emisión masiva de boletines
+# ---------------------------------------------------------------------------
+@login_required
+@require_POST
+def cerrar_periodo_y_notificar(request, periodo_pk):
+    """Cierra las notas del período y envía boletines por correo a todos los estudiantes."""
+    institucion = request.user.institucion_asociada
+    if not institucion:
+        messages.error(request, "Tu usuario no está asociado a ninguna institución.")
+        return redirect('gestion_academica:lista_periodos')
+
+    rol = getattr(request.user, 'rol', '') or ''
+    if rol not in ('coordinador', 'admin_institucion') and not request.user.is_superuser:
+        messages.error(request, "Solo el coordinador o administrador puede cerrar el período.")
+        return redirect('gestion_academica:lista_periodos')
+
+    periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk, institucion=institucion)
+
+    if periodo.notas_cerradas:
+        messages.warning(request, f"Las notas del {periodo.nombre} ya están cerradas.")
+        return redirect('gestion_academica:lista_periodos')
+
+    from django.utils import timezone as _tz
+    periodo.notas_cerradas = True
+    periodo.fecha_cierre_notas = _tz.now()
+    periodo.save(update_fields=['notas_cerradas', 'fecha_cierre_notas'])
+
+    # Encolar correos para todos los estudiantes activos de la institución
+    from gestion_academica.tasks_notificaciones import notificar_boletin_disponible
+    estudiantes = Estudiante.objects.filter(institucion=institucion, activo=True).values_list('id', flat=True)
+    total = 0
+    for est_id in estudiantes:
+        notificar_boletin_disponible.delay(est_id, periodo.pk)
+        total += 1
+
+    messages.success(
+        request,
+        f"✅ Notas del {periodo.nombre} cerradas. Se enviaron {total} notificaciones de boletín a los acudientes."
+    )
+    return redirect('gestion_academica:lista_periodos')
+
+
+@login_required
+@require_POST
+def reabrir_periodo_notas(request, periodo_pk):
+    """Reabre las notas de un período (solo superusuario)."""
+    if not request.user.is_superuser:
+        messages.error(request, "Solo el superusuario puede reabrir un período cerrado.")
+        return redirect('gestion_academica:lista_periodos')
+    institucion = request.user.institucion_asociada
+    periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk, institucion=institucion)
+    periodo.notas_cerradas = False
+    periodo.fecha_cierre_notas = None
+    periodo.save(update_fields=['notas_cerradas', 'fecha_cierre_notas'])
+    messages.success(request, f"Notas del {periodo.nombre} reabiertas correctamente.")
+    return redirect('gestion_academica:lista_periodos')

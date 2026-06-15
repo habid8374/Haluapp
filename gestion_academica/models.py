@@ -639,12 +639,14 @@ class PeriodoAcademico(models.Model):
     año_escolar = models.PositiveIntegerField(verbose_name="Año Escolar", default=datetime.date.today().year)
     activo = models.BooleanField(default=False, verbose_name="¿Es el periodo activo actual?")
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
+    notas_cerradas = models.BooleanField(default=False, verbose_name="Notas cerradas")
+    fecha_cierre_notas = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de cierre de notas")
 
     class Meta:
         verbose_name = "Periodo Académico"
         verbose_name_plural = "Periodos Académicos"
         ordering = ['-año_escolar', '-fecha_inicio']
-        unique_together = ('nombre', 'año_escolar', 'institucion',) 
+        unique_together = ('nombre', 'año_escolar', 'institucion',)
 
     def __str__(self):
         return f"{self.nombre} ({self.año_escolar})"
