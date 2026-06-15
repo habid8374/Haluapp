@@ -3,6 +3,7 @@ from django.urls import path, include, reverse_lazy, re_path
 from django.views.generic.base import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
 from allauth.account.views import LoginView
 from django_ratelimit.decorators import ratelimit
 
@@ -23,7 +24,11 @@ admin.site.site_title = "Portal de Administración HALU"
 admin.site.index_title = "Bienvenido al Portal de Administración de HALU"
 admin.site.site_url = reverse_lazy('gestion_academica:inicio_academico')
 
+def health_check(request):
+    return JsonResponse({"status": "ok"})
+
 urlpatterns = [
+    path('health/', health_check, name='health_check'),
     path('admin/', admin.site.urls),
            
     # ======================================================= #

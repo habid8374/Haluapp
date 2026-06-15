@@ -6510,6 +6510,8 @@ def dashboard_coordinador_view(request):
     Muestra el panel principal para Coordinadores y Administradores.
     VERSIÓN ACTUALIZADA: Incluye un reporte de cursos filtrado por grado.
     """
+    import logging as _logging
+    _log = _logging.getLogger(__name__)
     user = request.user
     user_inst = getattr(user, 'institucion_asociada', None)
 
@@ -6612,8 +6614,12 @@ def dashboard_coordinador_view(request):
         },
         'planes_pendientes_count': planes_pendientes_count,
     }
-    
-    return render(request, 'gestion_academica/dashboard_coordinador.html', context)
+
+    try:
+        return render(request, 'gestion_academica/dashboard_coordinador.html', context)
+    except Exception as _e:
+        _log.exception("Error al renderizar dashboard_coordinador: %s", _e)
+        raise
 
 @login_required
 def get_cursos_por_grado_partial(request, grado_id):
