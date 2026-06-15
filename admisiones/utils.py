@@ -90,7 +90,7 @@ def _email_valido(direccion: str) -> bool:
     return bool(re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', direccion.strip()))
 
 
-def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_content):
+def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_content, attachments=None):
     """Envía correo vía Brevo HTTP API (HTTPS/443). Funciona en Railway sin restricciones SMTP.
 
     El remitente se resuelve así (en orden de prioridad):
@@ -98,8 +98,11 @@ def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_cont
     2. email_host_user de la institución (si es un email verificado en Brevo)
     3. BREVO_SENDER_EMAIL en settings (variable de entorno global — fallback)
 
+    attachments: lista opcional de tuplas (nombre_archivo, bytes_content, mimetype)
+
     Lanza RuntimeError con el mensaje de error de Brevo si el envío falla.
     """
+    import base64
     import requests as _req
     from django.conf import settings as _s
     # Resolución del remitente: institución tiene prioridad sobre settings global
@@ -120,15 +123,21 @@ def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_cont
             "No hay remitente configurado para Brevo. "
             "Configura el campo 'Email Remitente Brevo' en la institución."
         )
+    payload = {
+        'sender': {'name': from_name, 'email': from_email},
+        'to': [{'email': e} for e in destinatarios],
+        'subject': asunto,
+        'htmlContent': html_content,
+    }
+    if attachments:
+        payload['attachment'] = [
+            {'name': fname, 'content': base64.b64encode(content).decode('utf-8')}
+            for fname, content, _mime in attachments
+        ]
     resp = _req.post(
         'https://api.brevo.com/v3/smtp/email',
         headers={'api-key': api_key, 'Content-Type': 'application/json'},
-        json={
-            'sender': {'name': from_name, 'email': from_email},
-            'to': [{'email': e} for e in destinatarios],
-            'subject': asunto,
-            'htmlContent': html_content,
-        },
+        json=payload,
         timeout=15,
     )
     if resp.status_code == 201:
@@ -138,7 +147,12 @@ def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_cont
     raise RuntimeError(error_msg)
 
 
-def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, texto_plano='', connection=None):
+def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, texto_plano='', connection=None, attachments=None):
+    """Envía un correo usando Brevo API (prioridad) o SMTP (fallback).
+
+    attachments: lista opcional de tuplas (nombre_archivo, bytes_content, mimetype)
+                 Compatibles con Brevo API (base64) y SMTP (attach directo).
+    """
     if not isinstance(destinatarios, list):
         destinatarios = [destinatarios]
 
@@ -167,7 +181,7 @@ def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, tex
         ''
     )
     if _brevo_key:
-        return _enviar_via_brevo_api(_brevo_key, institucion, destinatarios, asunto, html_content)
+        return _enviar_via_brevo_api(_brevo_key, institucion, destinatarios, asunto, html_content, attachments=attachments)
 
     if not (institucion.email_host_user and institucion.email_host_password):
         logger.warning(
@@ -204,6 +218,9 @@ def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, tex
             connection=connection
         )
         msg.attach_alternative(html_content, "text/html")
+        if attachments:
+            for fname, content, mimetype in attachments:
+                msg.attach(fname, content, mimetype)
         msg.send(fail_silently=False)
         return True
     except Exception as e:

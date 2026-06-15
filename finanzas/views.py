@@ -761,17 +761,14 @@ def editar_pago(request, pago_id):
                     
                     if email_destinatario:
                         inst = pago.institucion
-                        remitente = f'"{inst.nombre}" <{inst.email_host_user}>'
-                        corr_conn = get_connection(
-                            backend='django.core.mail.backends.smtp.EmailBackend',
-                            host=inst.email_host, port=inst.email_port,
-                            username=inst.email_host_user, password=inst.email_host_password,
-                            use_tls=inst.email_use_tls,
+                        from admisiones.utils import enviar_correo_dinamico as _enviar
+                        _enviar(
+                            institucion=inst,
+                            asunto=asunto,
+                            destinatarios=[email_destinatario],
+                            html_content=cuerpo_html,
+                            attachments=[(f'Recibo_Corregido_{pago.id}.pdf', pdf_buffer.getvalue(), 'application/pdf')],
                         )
-                        email = EmailMessage(asunto, cuerpo_html, remitente, [email_destinatario], connection=corr_conn)
-                        email.content_subtype = "html"
-                        email.attach(f'Recibo_Corregido_{pago.id}.pdf', pdf_buffer.getvalue(), 'application/pdf')
-                        email.send()
                         messages.success(request, "Pago actualizado y notificación enviada.")
                     else:
                         messages.warning(request, "Pago actualizado, pero no se pudo notificar (sin email).")

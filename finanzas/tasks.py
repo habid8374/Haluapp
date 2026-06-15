@@ -154,16 +154,25 @@ def _link_callback_pdf(uri, rel):
 def enviar_avisos_cobro_masivo_task(self, cuenta_ids: list, institucion_id: int, portal_url: str, domain: str):
     """Envía avisos de cobro con PDF adjunto a acudientes/estudiantes tras una facturación masiva.
 
-    Reutiliza una única conexión SMTP para todo el lote.
+    Usa Brevo API si está configurada en la institución (o como fallback global).
+    En modo SMTP reutiliza una única conexión para todo el lote.
     """
     from xhtml2pdf import pisa
     from finanzas.models import CuentaPorCobrarEstudiante, InstitucionEducativa
+    from admisiones.utils import enviar_correo_dinamico as _enviar
 
     institucion = InstitucionEducativa.objects.get(pk=institucion_id)
 
-    if not (institucion.email_host_user and institucion.email_host_password):
+    _brevo_key = (
+        getattr(institucion, 'brevo_api_key', '') or
+        getattr(settings, 'BREVO_API_KEY', '') or
+        ''
+    )
+    _tiene_smtp = bool(institucion.email_host_user and institucion.email_host_password)
+
+    if not _brevo_key and not _tiene_smtp:
         logger.warning(
-            "enviar_avisos_cobro_masivo_task: SMTP no configurado para institución %s — no se envían correos.",
+            "enviar_avisos_cobro_masivo_task: sin canal de correo configurado para institución %s.",
             institucion_id,
         )
         return {"enviados": 0, "sin_email": len(cuenta_ids), "errores": 0}
@@ -182,21 +191,23 @@ def enviar_avisos_cobro_masivo_task(self, cuenta_ids: list, institucion_id: int,
     enviados = 0
     sin_email = 0
     errores = 0
-    remitente = f"{institucion.nombre} <{institucion.email_host_user}>"
 
-    try:
-        connection = get_connection(
-            backend="django.core.mail.backends.smtp.EmailBackend",
-            host=institucion.email_host,
-            port=institucion.email_port,
-            username=institucion.email_host_user,
-            password=institucion.email_host_password,
-            use_tls=institucion.email_use_tls,
-        )
-        connection.open()
-    except Exception as exc:
-        logger.error("enviar_avisos_cobro_masivo_task: no se pudo abrir SMTP para institución %s: %s", institucion_id, exc)
-        raise self.retry(exc=exc)
+    # Abrir conexión SMTP reutilizable solo si no se usa Brevo
+    connection = None
+    if not _brevo_key and _tiene_smtp:
+        try:
+            connection = get_connection(
+                backend="django.core.mail.backends.smtp.EmailBackend",
+                host=institucion.email_host,
+                port=institucion.email_port,
+                username=institucion.email_host_user,
+                password=institucion.email_host_password,
+                use_tls=institucion.email_use_tls,
+            )
+            connection.open()
+        except Exception as exc:
+            logger.error("enviar_avisos_cobro_masivo_task: no se pudo abrir SMTP para institución %s: %s", institucion_id, exc)
+            raise self.retry(exc=exc)
 
     for cuenta in cuentas:
         # Determinar destinatario: preferir acudiente, luego estudiante
@@ -227,17 +238,8 @@ def enviar_avisos_cobro_masivo_task(self, cuenta_ids: list, institucion_id: int,
             html_email = render_to_string("finanzas/emails/aviso_cobro_masivo.html", ctx)
             asunto = f"Aviso de Cobro: {cuenta.concepto_pago.nombre_concepto} — {institucion.nombre}"
 
-            msg = EmailMultiAlternatives(
-                subject=asunto,
-                body="Por favor visualice este mensaje en un cliente que soporte HTML.",
-                from_email=remitente,
-                to=[email_dest],
-                connection=connection,
-            )
-            msg.attach_alternative(html_email, "text/html")
-
-            # Adjuntar PDF DIAN si existe factura electrónica validada para esta cuenta
-            fe_pdf_adjunto = False
+            # Construir adjunto: PDF DIAN (si existe factura validada) o volante interno
+            adjuntos: list[tuple] = []
             try:
                 from facturacion_electronica.models import FacturaElectronica
                 fe = (
@@ -249,18 +251,13 @@ def enviar_avisos_cobro_masivo_task(self, cuenta_ids: list, institucion_id: int,
                 if fe and fe.url_pdf:
                     import urllib.request as _ur
                     pdf_dian = _ur.urlopen(fe.url_pdf, timeout=12).read()
-                    nombre_fe = f"Factura_DIAN_{fe.numero or cuenta.pk}.pdf"
-                    msg.attach(nombre_fe, pdf_dian, "application/pdf")
-                    fe_pdf_adjunto = True
+                    adjuntos.append((f"Factura_DIAN_{fe.numero or cuenta.pk}.pdf", pdf_dian, "application/pdf"))
                     ctx["factura_electronica_url"] = fe.url_pdf
                     ctx["factura_numero"] = fe.numero
             except Exception as _exc_fe:
-                logger.warning(
-                    "No se pudo obtener PDF DIAN para cuenta %s: %s", cuenta.pk, _exc_fe
-                )
+                logger.warning("No se pudo obtener PDF DIAN para cuenta %s: %s", cuenta.pk, _exc_fe)
 
-            if not fe_pdf_adjunto:
-                # Fallback: adjuntar la Orden de Pago interna
+            if not adjuntos:
                 from finanzas.pdf_helpers import generar_qr_base64, valor_en_letras
                 pdf_ctx = {
                     **ctx,
@@ -274,13 +271,16 @@ def enviar_avisos_cobro_masivo_task(self, cuenta_ids: list, institucion_id: int,
                 pdf_buffer = BytesIO()
                 pisa_status = pisa.CreatePDF(pdf_html, dest=pdf_buffer, link_callback=_link_callback_pdf)
                 if not pisa_status.err:
-                    msg.attach(
-                        f"Aviso_Cobro_{cuenta.pk}.pdf",
-                        pdf_buffer.getvalue(),
-                        "application/pdf",
-                    )
+                    adjuntos.append((f"Aviso_Cobro_{cuenta.pk}.pdf", pdf_buffer.getvalue(), "application/pdf"))
 
-            msg.send()
+            _enviar(
+                institucion=institucion,
+                asunto=asunto,
+                destinatarios=[email_dest],
+                html_content=html_email,
+                connection=connection,
+                attachments=adjuntos or None,
+            )
             enviados += 1
 
         except Exception as exc:
@@ -290,10 +290,11 @@ def enviar_avisos_cobro_masivo_task(self, cuenta_ids: list, institucion_id: int,
             )
             errores += 1
 
-    try:
-        connection.close()
-    except Exception:
-        pass
+    if connection is not None:
+        try:
+            connection.close()
+        except Exception:
+            pass
 
     logger.info(
         "enviar_avisos_cobro_masivo_task [inst=%s]: enviados=%s sin_email=%s errores=%s",
