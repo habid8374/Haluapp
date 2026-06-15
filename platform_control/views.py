@@ -574,3 +574,68 @@ def onboarding_nuevo_colegio(request):
             "resultado": resultado,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Backups
+# ---------------------------------------------------------------------------
+
+@_superadmin_required
+def backup_view(request):
+    """Lista los backups en R2/S3 y permite generar uno manual."""
+    import os
+    import boto3
+    from botocore.exceptions import BotoCoreError, ClientError
+
+    bucket = os.environ.get("AWS_STORAGE_BUCKET_NAME", "")
+    endpoint = os.environ.get("AWS_S3_ENDPOINT_URL") or None
+    backups = []
+    s3_error = None
+
+    if bucket:
+        try:
+            s3 = boto3.client(
+                "s3",
+                endpoint_url=endpoint,
+                aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+                aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+                region_name=os.environ.get("AWS_S3_REGION_NAME", "auto"),
+            )
+            result = s3.list_objects_v2(Bucket=bucket, Prefix="backups/")
+            for obj in result.get("Contents", []):
+                key = obj["Key"]
+                if key == "backups/":
+                    continue
+                backups.append({
+                    "nombre": key.replace("backups/", ""),
+                    "key": key,
+                    "fecha": obj["LastModified"],
+                    "tamano_kb": round(obj["Size"] / 1024, 1),
+                })
+            backups.sort(key=lambda x: x["fecha"], reverse=True)
+        except (BotoCoreError, ClientError) as e:
+            s3_error = str(e)
+            logger.warning("Error listando backups en R2: %s", e)
+    else:
+        s3_error = "AWS_STORAGE_BUCKET_NAME no configurado."
+
+    return render(request, "platform_control/backup.html", {
+        "titulo_pagina": "Copias de Seguridad",
+        "backups": backups,
+        "s3_error": s3_error,
+        "bucket": bucket,
+    })
+
+
+@_superadmin_required
+@require_POST
+def backup_ejecutar(request):
+    """Dispara la tarea Celery de backup manualmente."""
+    try:
+        from gestion_academica.tasks import ejecutar_backup_database
+        task = ejecutar_backup_database.delay()
+        messages.success(request, f"✅ Backup iniciado en segundo plano (task id: {task.id}). Revisa R2 en unos minutos.")
+    except Exception as e:
+        logger.error("Error al lanzar tarea de backup: %s", e)
+        messages.error(request, f"No se pudo iniciar el backup: {e}")
+    return redirect("platform_control:backup")

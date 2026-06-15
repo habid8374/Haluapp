@@ -16,4 +16,6 @@ urlpatterns = [
     path("mantenimiento/<int:pk>/",             views.mantenimiento_detalle,      name="mantenimiento_detalle"),
     path("mantenimiento/<int:pk>/estado/",      views.mantenimiento_estado_api,   name="mantenimiento_estado_api"),
     path("nuevo-colegio/",                       views.onboarding_nuevo_colegio,   name="onboarding_nuevo_colegio"),
+    path("backups/",                             views.backup_view,                name="backup"),
+    path("backups/ejecutar/",                    views.backup_ejecutar,            name="backup_ejecutar"),
 ]
