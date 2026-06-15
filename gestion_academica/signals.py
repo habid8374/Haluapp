@@ -5,7 +5,8 @@ from django.dispatch import receiver
 from django.urls import reverse
 from decimal import Decimal
 from django.db.models.signals import pre_save
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from django.conf import settings
 from .utils import enviar_correo_documento_listo
 from .models import SolicitudDocumento
@@ -52,9 +53,8 @@ def sugerir_material_de_refuerzo(sender, instance, created, **kwargs):
         api_key = get_inst_google_api_key(institucion)
         if not api_key:
             raise ValueError("Institución sin google_api_key")
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        
+        client = genai.Client(api_key=api_key)
+
         prompt = (
             f"Actúa como un tutor amigable y positivo llamado HALU. Un estudiante de '{estudiante.grado_actual}' "
             f"obtuvo una calificación baja de '{calificacion.valor_numerico}' en la materia de '{actividad.curso.materia.nombre_materia}' "
@@ -62,7 +62,7 @@ def sugerir_material_de_refuerzo(sender, instance, created, **kwargs):
             "Genera un consejo corto en español (máximo 150 palabras) con 2 o 3 pasos de estudio concretos y accionables. "
             "El tono debe ser alentador, nunca regañes."
         )
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
         consejo_ia = _sanitize_ai(response.text)
     except Exception as e:
         logger.error("Error al generar consejo de IA: %s", e)
@@ -110,11 +110,8 @@ def analizar_observacion_convivencia(sender, instance, created, **kwargs):
             logger.warning("Institución %s sin google_api_key; se omite análisis de observación.", anotacion.institucion_id)
             return
 
-        genai.configure(api_key=api_key)
-        
-        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
-        model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
-        
+        client = genai.Client(api_key=api_key)
+
         prompt = f"""
         Actúa como un experto en la Ley 1620 de Colombia. Analiza la siguiente anotación y responde ÚNICAMENTE con un objeto JSON válido que siga esta estructura:
         {{
@@ -127,7 +124,11 @@ def analizar_observacion_convivencia(sender, instance, created, **kwargs):
         Anotación: "{texto_a_analizar}"
         """
 
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(response_mime_type="application/json")
+        )
         ai_data = json.loads(response.text)
         
         tipo_situacion = ai_data.get('tipo_situacion', 'NINGUNO').upper()
@@ -241,8 +242,7 @@ def analizar_propuesta_candidato(sender, instance, created, **kwargs):
         if not api_key:
             logger.warning("Institución sin google_api_key; se omite análisis de propuesta candidato %s.", instance.pk)
             return
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        client = genai.Client(api_key=api_key)
 
         prompt = (
             f"Eres un asesor electoral. Analiza esta propuesta de candidatura:\n\n"
@@ -253,7 +253,7 @@ def analizar_propuesta_candidato(sender, instance, created, **kwargs):
             "3. Nivel de claridad: Alto, Medio, Bajo"
         )
 
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
         texto_respuesta = _sanitize_ai(response.text)
 
         instance.analisis_ia = texto_respuesta

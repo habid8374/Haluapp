@@ -7,7 +7,8 @@ from django.utils import timezone
 from decimal import Decimal
 import json
 from .models import PlaneacionClase, DetalleClase
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from django.db import transaction
 from django.urls import reverse
 from allauth.socialaccount.models import SocialToken
@@ -542,9 +543,7 @@ def generar_contenido_planeacion_task(self, planeacion_id):
         if not api_key:
             raise Exception("La institución no tiene configurada google_api_key (Gemini).")
 
-        genai.configure(api_key=api_key)
-        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
-        model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
+        client = genai.Client(api_key=api_key)
 
         prompt = f"""
         Actúa como un experto pedagogo. Crea una planeación de clases detallada basada en la siguiente información.
