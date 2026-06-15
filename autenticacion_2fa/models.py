@@ -27,13 +27,10 @@ class DispositivoTOTP(models.Model):
 
     @classmethod
     def crear_para(cls, usuario):
-        secret = pyotp.random_base32()
-        disp, _ = cls.objects.get_or_create(usuario=usuario, defaults={'secret': secret})
-        if disp.confirmado:
-            return disp
-        disp.secret = secret
-        disp.save()
-        return disp
+        disp = cls.objects.filter(usuario=usuario).first()
+        if disp:
+            return disp  # conserva el secreto existente (confirmado o pendiente)
+        return cls.objects.create(usuario=usuario, secret=pyotp.random_base32())
 
     def verificar(self, codigo):
         totp = pyotp.TOTP(self.secret)

@@ -59,6 +59,18 @@ def verificar_2fa(request):
 
 
 @login_required
+def resetear_2fa(request):
+    """Elimina el dispositivo TOTP pendiente para generar un QR nuevo."""
+    try:
+        disp = request.user.dispositivo_totp
+        if not disp.confirmado:
+            disp.delete()
+    except Exception:
+        pass
+    return redirect(reverse('2fa:configurar'))
+
+
+@login_required
 def desactivar_2fa(request):
     """Desactiva el 2FA del usuario (requiere confirmación)."""
     if request.method == 'POST':

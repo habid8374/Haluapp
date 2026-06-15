@@ -7,4 +7,5 @@ urlpatterns = [
     path('configurar/', views.configurar_2fa, name='configurar'),
     path('verificar/', views.verificar_2fa, name='verificar'),
     path('desactivar/', views.desactivar_2fa, name='desactivar'),
+    path('resetear/', views.resetear_2fa, name='resetear'),
 ]

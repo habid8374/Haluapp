@@ -26,10 +26,15 @@
       <div class="text-center my-3">
         <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR 2FA" class="img-fluid rounded-3" style="max-width:220px;border:4px solid #e0e7ff;">
       </div>
+      <div class="text-center mb-3">
+        <a href="{% url '2fa:resetear' %}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-clockwise me-1"></i>Generar nuevo QR
+        </a>
+      </div>
 
       <hr>
 
-      <h5 class="fw-bold mb-3"><i class="bi bi-key me-2 text-primary"></i>Paso 2 — Confirma con el código</h5>
+      <h5 class="fw-bold mb-3"><i class="bi bi-key me-2 text-primary"></i>Paso 2 — Ingresa el código de la app</h5>
       {% if messages %}
         {% for msg in messages %}
           <div class="alert alert-{{ msg.tags }} py-2 small">{{ msg }}</div>
@@ -41,7 +46,8 @@
           <label class="form-label fw-semibold">Código de 6 dígitos</label>
           <input type="text" name="codigo" class="form-control form-control-lg text-center fw-bold"
                  inputmode="numeric" autocomplete="one-time-code"
-                 maxlength="6" placeholder="000000" autofocus>
+                 maxlength="6" placeholder="Ej: 482901" autofocus>
+          <div class="form-text">El código cambia cada 30 segundos en tu app autenticadora.</div>
         </div>
         <button type="submit" class="btn btn-primary w-100">
           <i class="bi bi-check-circle me-1"></i>Activar 2FA
