@@ -13,7 +13,8 @@ from django.utils import timezone
 import json
 import logging
 from django.views.generic import DetailView
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from google.api_core import exceptions as google_exceptions
 
 from finanzas.institucion_credentials import google_api_key as institucion_google_api_key
@@ -627,10 +628,12 @@ class GenerarPreguntasIAView(APIView):
             """
             logger.debug("GenerarPreguntasIA prompt (primeros 120 chars): %s...", prompt[:120])
 
-            genai.configure(api_key=api_key)
-            generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
-            model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
-            response = model.generate_content(prompt)
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json")
+            )
 
             logger.debug("GenerarPreguntasIA respuesta IA longitud=%s", len(response.text or ""))
 
@@ -724,10 +727,12 @@ class SugerirCalificacionIAView(APIView):
             """
 
             # --- Llamada a la API de Google ---
-            genai.configure(api_key=api_key)
-            generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
-            model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
-            response = model.generate_content(prompt)
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json")
+            )
 
             json_text = response.text.strip().replace("```json", "").replace("```", "")
             sugerencia = json.loads(json_text)

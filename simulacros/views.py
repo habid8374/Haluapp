@@ -393,15 +393,14 @@ Reglas:
 """
 
     try:
-        import google.generativeai as genai
+        from google import genai
         from finanzas.institucion_credentials import google_api_key as get_google_api_key
         institucion = getattr(request.user, 'institucion_asociada', None)
         _api_key = get_google_api_key(institucion) if institucion else None
         if not _api_key:
             return JsonResponse({'ok': False, 'error': 'La institución no tiene Google API Key configurada.'}, status=400)
-        genai.configure(api_key=_api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        resp = model.generate_content(prompt)
+        _client = genai.Client(api_key=_api_key)
+        resp = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
         raw = resp.text.strip()
 
         # Limpiar posible markdown

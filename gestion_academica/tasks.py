@@ -574,7 +574,7 @@ def generar_contenido_planeacion_task(self, planeacion_id):
         Asegúrate de que la lista "clases" contenga exactamente {planeacion.duracion_clases} objetos.
         """
 
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
 
         # Tu lógica de limpieza es excelente, la mantenemos
         raw_text = response.text.strip() if hasattr(response, "text") and response.text else ""
@@ -652,8 +652,7 @@ def analizar_propuesta_candidato_task(self, candidato_id):
         if not api_key:
             raise Exception("La institución no tiene configurada google_api_key (Gemini).")
 
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-pro')
+        _client = genai.Client(api_key=api_key)
 
         prompt = f"""
         Actúa como un asesor político estudiantil y analista de discursos.
@@ -673,8 +672,8 @@ def analizar_propuesta_candidato_task(self, candidato_id):
         La respuesta debe ser solo el texto del análisis, sin títulos ni formato adicional.
         """
 
-        response = model.generate_content(prompt)
-        
+        response = _client.models.generate_content(model='gemini-2.5-pro', contents=prompt)
+
         if not response.parts:
             feedback = getattr(response, 'prompt_feedback', 'Razón desconocida.')
             raise Exception(f"La IA no generó contenido. Feedback: {feedback}")
@@ -710,9 +709,7 @@ def analizar_comportamiento_task(user_id):
         api_key = get_inst_google_api_key(institucion)
         if not api_key:
             raise ValueError("Institución sin google_api_key (Gemini).")
-        genai.configure(api_key=api_key)
-        generation_config = genai.types.GenerationConfig(response_mime_type="application/json")
-        model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
+        _client_comportamiento = genai.Client(api_key=api_key)
     except Exception as e:
         print(f"Error CRÍTICO al configurar la API de Google: {e}")
         # Notificamos al usuario del error de configuración
@@ -754,7 +751,11 @@ def analizar_comportamiento_task(user_id):
         """
 
         try:
-            response = model.generate_content(prompt)
+            response = _client_comportamiento.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json")
+            )
             json_text = response.text.strip().replace("```json", "").replace("```", "")
             analisis_data = json.loads(json_text)
 
@@ -843,10 +844,9 @@ def generar_propuesta_horario_task(periodo_pk, institucion_id, grado_pk): # <-- 
         if not api_key:
             return {'status': 'FAILURE', 'error': 'La institución no tiene configurada google_api_key (Gemini).'}
 
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content(prompt)
-        
+        _client = genai.Client(api_key=api_key)
+        response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+
         json_text = response.text
         match = re.search(r'\[.*\]', json_text, re.DOTALL)
         if not match:
@@ -917,8 +917,7 @@ def analizar_plagio_tarea_task(entrega_id):
         if not api_key:
             return f"No se puede analizar plagio: la institución no tiene google_api_key (Gemini)."
 
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        _client = genai.Client(api_key=api_key)
 
         for otra_entrega in otras_entregas:
             texto_comparar = extract_text_from_file(otra_entrega.archivo_adjunto_estudiante)
@@ -941,10 +940,10 @@ def analizar_plagio_tarea_task(entrega_id):
             ---
             """
             
-            response = model.generate_content(prompt)
+            response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
             json_text = response.text.strip().replace("```json", "").replace("```", "")
             resultado = json.loads(json_text)
-            
+
             similitud_actual = resultado.get('porcentaje_similitud', 0)
             if similitud_actual > mayor_similitud:
                 mayor_similitud = similitud_actual

@@ -1048,7 +1048,7 @@ def generar_indicadores_ia(request):
     POST /academico/api/generar-indicadores/
     """
     import json as _json
-    import google.generativeai as genai
+    from google import genai
     from finanzas.institucion_credentials import google_api_key as _get_api_key
 
     institucion = _get_institucion(request)
@@ -1111,9 +1111,8 @@ Responde ÚNICAMENTE con JSON válido, sin markdown ni explicaciones:
 {{"bajo": "...", "basico": "...", "alto": "...", "superior": "..."}}"""
 
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash')
-        response = model.generate_content(prompt)
+        _client = genai.Client(api_key=api_key)
+        response = _client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
         text = response.text.strip()
         if text.startswith('```'):
             text = text.split('```')[1]
@@ -1149,7 +1148,7 @@ def sugerir_distribucion_ia(request):
     Returns: [{"texto": "...", "nivel": "bajo|basico|alto|superior"}, ...]
     """
     import json as _json
-    import google.generativeai as genai
+    from google import genai
     from finanzas.institucion_credentials import google_api_key as _get_api_key
 
     institucion = _get_institucion(request)
@@ -1211,9 +1210,8 @@ Responde ÚNICAMENTE con JSON válido, sin markdown:
 El campo "indice" es 0-based. Usa solo los valores: "bajo", "basico", "alto", "superior"."""
 
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash')
-        response = model.generate_content(prompt)
+        _client = genai.Client(api_key=api_key)
+        response = _client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
         text = response.text.strip()
         if text.startswith('```'):
             text = text.split('```')[1]

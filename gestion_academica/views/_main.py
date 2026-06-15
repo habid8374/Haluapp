@@ -78,9 +78,9 @@ from datetime import timedelta
 import json
 from django.core.management import call_command
 from io import StringIO
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from utils.mensajes import mensaje_exito, mensaje_error, mostrar_mensaje
-import google.generativeai as genai
 from admisiones.models import Aspirante
 from gestion_academica.decorators import requiere_pagos_al_dia, EstaAlDiaPermission
 from ..utils import (
@@ -188,7 +188,6 @@ logger = logging.getLogger(__name__)
 # Para cálculos en vistas
 from django.db.models import Sum, Avg, F, ExpressionWrapper, DecimalField
 
-import google.ai.generativelanguage as glm
 
 
 
@@ -2934,12 +2933,10 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
         if calificaciones_ids_para_revisar:
             api_key = institucion_google_api_key(curso.institucion)
             ia_disponible = False
-            model = None
+            _gemini_client = None
             if api_key:
                 try:
-                    genai.configure(api_key=api_key)
-                    # Usamos el modelo estable actual: gemini-2.5-flash
-                    model = genai.GenerativeModel('gemini-2.5-flash')
+                    _gemini_client = genai.Client(api_key=api_key)
                     ia_disponible = True
                 except Exception as e:
                     print(f"--- ERROR FATAL DE IA: No se pudo configurar la API de Google: {e} ---")
@@ -2964,7 +2961,7 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
                         )
                         
                         try:
-                            response = model.generate_content(prompt)
+                            response = _gemini_client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
                             consejo_generado = response.text
                             
                             Notificacion.objects.create(
@@ -10707,7 +10704,7 @@ def asistente_halu_api(request):
                 status=500,
             )
 
-        genai.configure(api_key=api_key)
+        client = genai.Client(api_key=api_key)
 
         tools_disponibles = {}
         instrucciones_sistema = ""
@@ -10765,14 +10762,8 @@ def asistente_halu_api(request):
         else:
             instrucciones_sistema = f"Eres HALU, el asistente virtual amigable de la plataforma escolar en '{institucion.nombre}'."
         
-        # Quitamos system_instruction de los parámetros para evitar crash en versiones antiguas de la librería
-        model_kwargs = {'model_name': 'gemini-2.5-flash'}
-        if tools_disponibles:
-            model_kwargs['tools'] = list(tools_disponibles.values())
-            
-        model = genai.GenerativeModel(**model_kwargs)
-        
-        chat = model.start_chat(history=historial_previo)
+        _chat_config = types.GenerateContentConfig(tools=list(tools_disponibles.values())) if tools_disponibles else None
+        chat = client.chats.create(model='gemini-2.5-flash', config=_chat_config, history=historial_previo)
         
         # Inyectamos la instrucción al principio de forma manual si es el primer mensaje
         mensaje_enviar = pregunta
@@ -10811,10 +10802,9 @@ def asistente_halu_api(request):
                 except Exception as e:
                     tool_response = f"Ocurrió un error al buscar los datos: {str(e)}"
                 
-                # Usamos glm.Part que es el estándar oficial más robusto para evitar errores 500
                 response = chat.send_message(
-                    glm.Part(
-                        function_response=glm.FunctionResponse(
+                    types.Part(
+                        function_response=types.FunctionResponse(
                             name=tool_name,
                             response={'resultado': str(tool_response)}
                         )
@@ -13587,14 +13577,9 @@ class GenerarResumenEstudianteIAView(APIView):
                     {'status': 'error', 'message': 'La institución no tiene configurada la API key de Google (Gemini).'},
                     status=500,
                 )
-            genai.configure(api_key=api_key)
-            
-            # --- CORRECCIÓN: De GenerativaModel a GenerativeModel ---
-            model = genai.GenerativeModel('gemini-2.5-flash')
-            # --- FIN DE LA CORRECCIÓN ---
-            
-            response = model.generate_content(prompt) # El prompt se construye con la lógica anterior
-            
+            _client = genai.Client(api_key=api_key)
+            response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+
             return Response({'status': 'success', 'resumen': response.text})
         except Exception as e:
             return Response({'status': 'error', 'message': f"Error al contactar la IA: {e}"}, status=500)
@@ -13783,9 +13768,8 @@ class GenerarCorreoAcudienteIAView(APIView):
                     {'status': 'error', 'message': 'La institución no tiene configurada la API key de Google (Gemini).'},
                     status=500,
                 )
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-2.5-flash')
-            response = model.generate_content(prompt)
+            _client = genai.Client(api_key=api_key)
+            response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
             return Response({'status': 'success', 'correo': response.text})
         except Exception as e:
             logger.exception("GenerarCorreoIA error: %s", e)

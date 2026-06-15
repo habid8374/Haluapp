@@ -26,8 +26,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from celery.result import AsyncResult
 import json
-import google.generativeai as genai
-import google.ai.generativelanguage as glm
+from google import genai
+from google.genai import types
 import logging
 
 from ..models import (
@@ -105,7 +105,7 @@ def asistente_halu_api(request):
                 status=500,
             )
 
-        genai.configure(api_key=api_key)
+        client = genai.Client(api_key=api_key)
 
         tools_disponibles = {}
         instrucciones_sistema = ""
@@ -433,12 +433,8 @@ Orienta al acudiente sobre cómo usar la plataforma para hacer seguimiento a sus
             instrucciones_sistema = f"Eres HALU, el asistente virtual amigable de la plataforma escolar en '{institucion.nombre}'. Responde en español de forma amigable y ayuda al usuario a navegar la plataforma."
 
         # gemini-2.0-flash: 200 req/día free tier (vs 20 de 2.5-flash)
-        model_kwargs = {'model_name': 'gemini-2.0-flash'}
-        if tools_disponibles:
-            model_kwargs['tools'] = list(tools_disponibles.values())
-
-        model = genai.GenerativeModel(**model_kwargs)
-        chat = model.start_chat(history=historial_previo)
+        _chat_config = types.GenerateContentConfig(tools=list(tools_disponibles.values())) if tools_disponibles else None
+        chat = client.chats.create(model='gemini-2.0-flash', config=_chat_config, history=historial_previo)
 
         mensaje_enviar = pregunta
         if not historial_previo:
@@ -478,8 +474,8 @@ Orienta al acudiente sobre cómo usar la plataforma para hacer seguimiento a sus
                 tool_result = f"Error al obtener datos: {str(e)}"
 
             response = chat.send_message(
-                glm.Part(
-                    function_response=glm.FunctionResponse(
+                types.Part(
+                    function_response=types.FunctionResponse(
                         name=tool_name,
                         response={'resultado': str(tool_result)}
                     )
@@ -1680,14 +1676,9 @@ class GenerarResumenEstudianteIAView(APIView):
                     {'status': 'error', 'message': 'La institución no tiene configurada la API key de Google (Gemini).'},
                     status=500,
                 )
-            genai.configure(api_key=api_key)
-            
-            # --- CORRECCIÓN: De GenerativaModel a GenerativeModel ---
-            model = genai.GenerativeModel('gemini-2.5-flash')
-            # --- FIN DE LA CORRECCIÓN ---
-            
-            response = model.generate_content(prompt) # El prompt se construye con la lógica anterior
-            
+            _client = genai.Client(api_key=api_key)
+            response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+
             return Response({'status': 'success', 'resumen': response.text})
         except Exception as e:
             return Response({'status': 'error', 'message': f"Error al contactar la IA: {e}"}, status=500)
@@ -1716,8 +1707,7 @@ def api_sugerir_nombre_idioma(request):
         if not api_key:
             return JsonResponse({'error': 'La institución no tiene configurada la API key de Google (Gemini).'}, status=500)
 
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        _client = genai.Client(api_key=api_key)
 
         prompt = (
             f"Eres un experto en nomenclatura educativa. "
@@ -1726,7 +1716,7 @@ def api_sugerir_nombre_idioma(request):
             f"Responde ÚNICAMENTE con el nombre traducido, sin explicaciones ni puntuación extra.\n\n"
             f"Materia en español: {nombre_es}"
         )
-        response = model.generate_content(prompt)
+        response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
         nombre_sugerido = response.text.strip().strip('"').strip("'")
         return JsonResponse({'nombre_sugerido': nombre_sugerido})
 
@@ -1759,8 +1749,7 @@ def api_sugerir_nombres_idioma_masivo(request):
         if not api_key:
             return JsonResponse({'error': 'La institución no tiene configurada la API key de Google (Gemini).'}, status=500)
 
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        _client = genai.Client(api_key=api_key)
 
         lista = '\n'.join([f'- {m.pk}: {m.nombre_materia}' for m in materias])
         prompt = (
@@ -1769,7 +1758,7 @@ def api_sugerir_nombres_idioma_masivo(request):
             f"Responde ÚNICAMENTE en formato JSON: {{\"<pk>\": \"<nombre traducido>\", ...}}. Sin texto adicional.\n\n"
             f"Materias:\n{lista}"
         )
-        response = model.generate_content(prompt)
+        response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
         texto = response.text.strip()
         # Limpiar posibles bloques de código markdown
         if texto.startswith('```'):
