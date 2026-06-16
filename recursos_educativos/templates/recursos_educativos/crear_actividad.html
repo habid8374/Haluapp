@@ -93,6 +93,25 @@
                   placeholder="Instrucciones para los estudiantes...">{{ post_data.descripcion|default:'' }}</textarea>
       </div>
 
+      <!-- Categoría / Tipo de actividad -->
+      <div class="mb-4">
+        <label class="ps-label" for="tipo_actividad">Categoría <span>*</span></label>
+        <select name="tipo_actividad" id="tipo_actividad" class="ps-input" {% if tipos_actividad %}required{% endif %}>
+          <option value="">— Selecciona una categoría —</option>
+          {% for tipo in tipos_actividad %}
+            <option value="{{ tipo.pk }}"
+              {% if post_data.tipo_actividad == tipo.pk|stringformat:"s" %}selected{% endif %}>
+              {{ tipo.nombre }}{% if tipo.porcentaje %} ({{ tipo.porcentaje }}%){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+        {% if not tipos_actividad %}
+          <p class="mt-1" style="font-size:.8rem;color:#ef4444;">
+            No hay categorías configuradas. Crea una en <strong>Tipos de Actividad</strong> primero.
+          </p>
+        {% endif %}
+      </div>
+
       <!-- Modo del recurso 3D -->
       <div class="mb-4">
         <label class="ps-label" for="modo">Modo de la actividad <span>*</span></label>

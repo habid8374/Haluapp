@@ -154,14 +154,19 @@ def crear_recurso_3d(request):
             institucion=institucion,
         ).select_related('materia', 'grado')
 
+    tipos_actividad = TipoActividad.objects.filter(
+        institucion=institucion,
+    ).order_by('orden', 'nombre')
+
     if request.method == 'POST':
         # ── Validación básica ──────────────────────────────────────
-        curso_id       = request.POST.get('curso')
-        titulo         = request.POST.get('titulo', '').strip()
-        descripcion    = request.POST.get('descripcion', '').strip()
-        modo           = request.POST.get('modo', RecursoEducativo3D.MODO_AMBOS)
-        valor_maximo   = request.POST.get('valor_maximo', '5.00')
-        fecha_limite_raw = request.POST.get('fecha_entrega_limite') or ''
+        curso_id          = request.POST.get('curso')
+        titulo            = request.POST.get('titulo', '').strip()
+        descripcion       = request.POST.get('descripcion', '').strip()
+        modo              = request.POST.get('modo', RecursoEducativo3D.MODO_AMBOS)
+        valor_maximo      = request.POST.get('valor_maximo', '5.00')
+        fecha_limite_raw  = request.POST.get('fecha_entrega_limite') or ''
+        tipo_actividad_id = request.POST.get('tipo_actividad')
 
         errores = []
         if not curso_id:
@@ -192,6 +197,7 @@ def crear_recurso_3d(request):
             return render(request, 'recursos_educativos/crear_actividad.html', {
                 'cursos': cursos,
                 'modos': RecursoEducativo3D.MODO_CHOICES,
+                'tipos_actividad': tipos_actividad,
                 'titulo_pagina': 'Crear Recurso 3D',
                 'post_data': request.POST,
             })
@@ -203,9 +209,16 @@ def crear_recurso_3d(request):
             messages.error(request, 'Curso no válido.')
             return redirect('recursos_educativos:crear')
 
-        # ── Crear ActividadCalificable + RecursoEducativo3D ───────
-        tipo = _get_tipo_recurso_3d(institucion)
+        # ── Resolver tipo de actividad ────────────────────────────
+        tipo = None
+        if tipo_actividad_id:
+            tipo = TipoActividad.objects.filter(
+                pk=tipo_actividad_id, institucion=institucion,
+            ).first()
+        if tipo is None:
+            tipo = _get_tipo_recurso_3d(institucion)
 
+        # ── Crear ActividadCalificable + RecursoEducativo3D ───────
         actividad = ActividadCalificable.objects.create(
             curso=curso,
             tipo_actividad=tipo,
@@ -253,9 +266,14 @@ def crear_recurso_3d(request):
         return redirect('recursos_educativos:lista')
 
     # ── GET ────────────────────────────────────────────────────────
+    tipos_actividad = TipoActividad.objects.filter(
+        institucion=institucion,
+    ).order_by('orden', 'nombre')
+
     return render(request, 'recursos_educativos/crear_actividad.html', {
         'cursos': cursos,
         'modos': RecursoEducativo3D.MODO_CHOICES,
+        'tipos_actividad': tipos_actividad,
         'titulo_pagina': 'Crear Recurso 3D',
         'post_data': {},
     })
