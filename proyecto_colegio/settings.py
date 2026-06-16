@@ -623,13 +623,23 @@ SESSION_ENGINE = "django.contrib.sessions.backends.db"
 ASGI_APPLICATION = 'proyecto_colegio.asgi.application'
 
 # db 0 → broker Celery | db 1 → results Celery | db 2 → caché+sesiones | db 3 → channel layer
+# Usa REDIS_URL si está; si no, toma CELERY_BROKER_URL (mismo Redis, db 3); último recurso: localhost
+_channel_redis_base = (
+    os.environ.get('REDIS_URL', '')
+    or os.environ.get('CELERY_BROKER_URL', '')
+    or 'redis://127.0.0.1:6379'
+)
+# Forzar db 3 para channels
+_channel_redis_base_clean = _channel_redis_base.rstrip('/').rsplit('/', 1)[0] if _channel_redis_base.rsplit('/', 1)[-1].isdigit() else _channel_redis_base.rstrip('/')
+_channel_redis_url = f"{_channel_redis_base_clean}/3"
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/3')],
-            "capacity": 1500,       # mensajes en cola por grupo antes de descartar
-            "expiry":   60,         # segundos que vive un mensaje no consumido
+            "hosts": [_channel_redis_url],
+            "capacity": 1500,
+            "expiry":   60,
         },
     },
 }
