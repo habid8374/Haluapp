@@ -662,12 +662,19 @@ def backup_view(request):
 @_superadmin_required
 @require_POST
 def backup_ejecutar(request):
-    """Dispara la tarea Celery de backup manualmente."""
+    """Ejecuta el backup directamente (síncrono) y también encola en Celery si está disponible."""
+    from django.core.management import call_command
+    from io import StringIO
+
+    out = StringIO()
     try:
-        from gestion_academica.tasks import ejecutar_backup_database
-        task = ejecutar_backup_database.delay()
-        messages.success(request, f"✅ Backup iniciado en segundo plano (task id: {task.id}). Revisa R2 en unos minutos.")
+        call_command('backup_database', stdout=out, stderr=out)
+        resultado = out.getvalue()
+        if '✅' in resultado:
+            messages.success(request, "✅ Backup generado y subido a R2 correctamente.")
+        else:
+            messages.warning(request, f"Backup ejecutado con advertencias: {resultado.strip()}")
     except Exception as e:
-        logger.error("Error al lanzar tarea de backup: %s", e)
-        messages.error(request, f"No se pudo iniciar el backup: {e}")
+        logger.error("Error al ejecutar backup: %s", e, exc_info=True)
+        messages.error(request, f"No se pudo ejecutar el backup: {e}")
     return redirect("platform_control:backup")

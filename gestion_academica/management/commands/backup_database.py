@@ -88,7 +88,11 @@ class Command(BaseCommand):
             self.stdout.write(f'  Eliminados {len(eliminados)} backup(s) antiguos.')
 
         # ── 3. Subir a S3 si está configurado ───────────────────────────────
-        bucket = os.environ.get('BACKUP_S3_BUCKET', '')
+        # Acepta BACKUP_S3_BUCKET o AWS_STORAGE_BUCKET_NAME como fallback
+        bucket = (
+            os.environ.get('BACKUP_S3_BUCKET', '')
+            or os.environ.get('AWS_STORAGE_BUCKET_NAME', '')
+        )
         if bucket:
             self._subir_s3(destino, bucket)
 
