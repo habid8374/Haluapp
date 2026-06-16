@@ -18,6 +18,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 
 from gestion_academica.models import (
     ActividadCalificable,
@@ -158,7 +159,7 @@ def crear_recurso_3d(request):
         descripcion    = request.POST.get('descripcion', '').strip()
         modo           = request.POST.get('modo', RecursoEducativo3D.MODO_AMBOS)
         valor_maximo   = request.POST.get('valor_maximo', '5.00')
-        fecha_limite   = request.POST.get('fecha_entrega_limite') or None
+        fecha_limite_raw = request.POST.get('fecha_entrega_limite') or ''
 
         errores = []
         if not curso_id:
@@ -167,6 +168,14 @@ def crear_recurso_3d(request):
             errores.append('El título es obligatorio.')
         if modo not in dict(RecursoEducativo3D.MODO_CHOICES):
             errores.append('Modo inválido.')
+
+        # El input HTML envía 'YYYY-MM-DD'; lo convertimos a date para no pasar
+        # un string al modelo (los signals esperan un objeto fecha).
+        fecha_limite = None
+        if fecha_limite_raw:
+            fecha_limite = parse_date(fecha_limite_raw)
+            if fecha_limite is None:
+                errores.append('La fecha límite no tiene un formato válido.')
 
         try:
             valor_maximo = decimal.Decimal(valor_maximo)
@@ -200,7 +209,7 @@ def crear_recurso_3d(request):
             tipo_actividad=tipo,
             titulo=titulo,
             descripcion=descripcion,
-            fecha_entrega_limite=fecha_limite or None,
+            fecha_entrega_limite=fecha_limite,
             institucion=institucion,
         )
 
