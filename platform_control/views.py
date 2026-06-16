@@ -60,32 +60,64 @@ def login_view(request):
     if request.method == "POST":
         form = SuperAdminLoginForm(request.POST)
         if form.is_valid():
-            username       = form.cleaned_data["username"]
-            password       = form.cleaned_data["password"]
-            master_entered = form.cleaned_data["master_password"]
-            master_ok      = getattr(settings, "SUPERADMIN_MASTER_PASSWORD", None)
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
 
             user = authenticate(request, username=username, password=password)
             if user is None:
                 messages.error(request, "Usuario o contraseña incorrectos.")
             elif not user.is_superuser:
                 messages.error(request, "Esta área es exclusiva para super-administradores.")
-            elif master_entered != master_ok:
-                messages.error(request, "Clave maestra incorrecta.")
             else:
                 auth_login(request, user)
-                request.session["superadmin_autenticado"] = True
-                return redirect("platform_control:dashboard")
+                try:
+                    tiene_2fa = user.dispositivo_totp.confirmado
+                except Exception:
+                    tiene_2fa = False
+
+                if tiene_2fa:
+                    request.session["superadmin_2fa_pending"] = True
+                    return redirect("platform_control:verificar_2fa")
+                else:
+                    request.session["superadmin_autenticado"] = True
+                    return redirect("platform_control:dashboard")
     else:
         form = SuperAdminLoginForm()
 
     return render(request, "platform_control/login.html", {"form": form})
 
 
+def verificar_2fa_superadmin(request):
+    """4ta capa de seguridad: TOTP para el panel superadmin."""
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        return redirect("platform_control:login")
+    if not request.session.get("superadmin_2fa_pending"):
+        return redirect("platform_control:login")
+
+    try:
+        disp = request.user.dispositivo_totp
+    except Exception:
+        request.session["superadmin_autenticado"] = True
+        request.session.pop("superadmin_2fa_pending", None)
+        return redirect("platform_control:dashboard")
+
+    if request.method == "POST":
+        codigo = request.POST.get("codigo", "").strip().replace(" ", "")
+        if disp.verificar(codigo):
+            request.session.pop("superadmin_2fa_pending", None)
+            request.session["superadmin_autenticado"] = True
+            return redirect("platform_control:dashboard")
+        else:
+            messages.error(request, "Código incorrecto. Intenta de nuevo.")
+
+    return render(request, "platform_control/verificar_2fa.html")
+
+
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def lock_view(request):
     request.session.pop("superadmin_autenticado", None)
+    request.session.pop("superadmin_2fa_pending", None)
     messages.info(request, "Panel de control bloqueado.")
     return redirect("gestion_academica:inicio_academico")
 

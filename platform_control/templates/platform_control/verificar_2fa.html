@@ -1,0 +1,139 @@
+{% extends "base_academico.html" %}
+
+{% block titulo %}Panel de Control · Verificación 2FA{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  body { background: #0f172a; }
+  .verify-card { max-width: 420px; margin: 8vh auto; }
+
+  .shield-icon {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, #1e293b, #334155);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.25rem;
+    border: 2px solid #475569;
+  }
+
+  .timer-bar { height: 3px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; }
+  .timer-fill { height: 100%; background: linear-gradient(90deg, #334155, #64748b); transition: width 1s linear; }
+
+  .code-input {
+    width: 100%; font-size: 2rem; font-weight: 800;
+    letter-spacing: .6rem; text-align: center;
+    border: 1.5px solid #e2e8f0; border-radius: 12px;
+    padding: 1rem; color: #1e293b; background: #fff;
+    outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .code-input:focus {
+    border-color: #334155;
+    box-shadow: 0 0 0 3px rgba(51,65,85,.15);
+  }
+  .code-hint { text-align: center; font-size: .78rem; color: #94a3b8; margin-top: .5rem; }
+
+  .btn-verify {
+    width: 100%; padding: .9rem;
+    background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+    background-size: 200% 100%; background-position: 0% 50%;
+    border: none; border-radius: 12px;
+    color: #fff; font-size: 1rem; font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    transition: background-position .4s, transform .15s;
+  }
+  .btn-verify:hover { background-position: 100% 50%; transform: translateY(-2px); }
+  .btn-verify:active { transform: translateY(0); }
+
+  .step-badge {
+    display: inline-block; background: #1e293b; color: #64748b;
+    font-size: .7rem; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+    margin-bottom: 1.2rem;
+  }
+  .step-badge .step-done { color: #22c55e; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="verify-card">
+  <div class="card border-0 shadow-lg" style="border-radius:18px;overflow:hidden;">
+
+    <div style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);padding:2.5rem 2rem 1.5rem;text-align:center;color:white;">
+      <div class="shield-icon">
+        <i class="bi bi-shield-lock-fill" style="font-size:1.8rem;color:#94a3b8;"></i>
+      </div>
+      <h4 class="fw-800 mb-1">Verificación de seguridad</h4>
+      <p style="font-size:.82rem;opacity:.55;margin:0;">Paso 2 de 2 · Autenticación de dos factores</p>
+    </div>
+
+    <div class="card-body p-4">
+
+      <div class="text-center mb-3">
+        <span class="step-badge">
+          <span class="step-done">✓</span> Usuario &nbsp;
+          <span class="step-done">✓</span> Contraseña &nbsp;
+          <i class="bi bi-arrow-right"></i> 2FA
+        </span>
+      </div>
+
+      <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="alert alert-danger py-2 px-3 mb-3" style="font-size:.88rem;border-radius:8px;">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ msg }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <p style="font-size:.88rem;color:#475569;text-align:center;margin-bottom:1.2rem;">
+        Ingresa el código de 6 dígitos de tu app autenticadora para acceder al panel.
+      </p>
+
+      <form method="post" id="form-2fa" autocomplete="off">
+        {% csrf_token %}
+        <div class="mb-3">
+          <input type="text" name="codigo" id="codigoInput"
+                 class="code-input"
+                 inputmode="numeric" autocomplete="one-time-code"
+                 maxlength="6" placeholder="• • • • • •" autofocus>
+          <p class="code-hint"><i class="bi bi-phone me-1"></i>Google Authenticator · Authy · cualquier app TOTP</p>
+        </div>
+        <button type="submit" class="btn-verify">
+          <i class="bi bi-shield-check me-2"></i>Verificar y acceder al panel
+        </button>
+      </form>
+
+      <div class="text-center mt-3">
+        <a href="{% url 'platform_control:login' %}" style="font-size:.8rem;color:#94a3b8;text-decoration:none;">
+          <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+// Barra de tiempo TOTP (30s)
+(function() {
+  function update() {
+    var sec = new Date().getSeconds();
+    var remaining = sec < 30 ? 30 - sec : 60 - sec;
+    document.getElementById('timerFill').style.width = ((remaining / 30) * 100) + '%';
+  }
+  update();
+  setInterval(update, 1000);
+})();
+
+// Auto-enviar al completar 6 dígitos
+document.getElementById('codigoInput').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g, '');
+  if (this.value.length === 6) {
+    document.getElementById('form-2fa').submit();
+  }
+});
+</script>
+{% endblock %}
