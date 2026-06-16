@@ -42,7 +42,7 @@ from ..models import (
 from ..forms import (
     PlaneacionClaseForm, LeccionDiariaIaForm, CandidatoForm,
     DimensionDesarrolloForm, EscalaCualitativaForm, LogroPreescolarForm,
-    DescriptorLogroForm,
+    DescriptorLogroForm, UserEditForm, UserPasswordChangeForm,
 )
 from ..tasks import (
     generar_contenido_planeacion_task,
