@@ -1,6 +1,7 @@
 ﻿import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { ORGANOS, rutasOrgano } from "./data.js";
 
 const LAYOUT = {
@@ -79,6 +80,10 @@ const bodyMeshes = [];
 
 const organosById = new Map(ORGANOS.map((organo) => [organo.id, organo]));
 const loader = new GLTFLoader();
+// Los modelos están comprimidos con Draco; enlazamos el decodificador de Google.
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.7/");
+loader.setDRACOLoader(dracoLoader);
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
@@ -485,6 +490,8 @@ async function selectPiece(id) {
 
   active.live.position.copy(SPAWN);
   active.ghost.visible = state.hints;
+
+  prefetchNextPending();
 }
 
 function nextPendingId() {
@@ -800,12 +807,15 @@ function bindEvents() {
   }
 }
 
-function preloadPieces() {
-  ORDER.forEach((id) => {
-    ensurePieceLoaded(id).catch((error) => {
-      console.warn(`No se pudo precargar ${id}`, error);
+function prefetchNextPending() {
+  // Carga perezosa: en lugar de descargar los 13 modelos de golpe, solo
+  // adelantamos el siguiente órgano pendiente. Los demás se cargan al elegirlos.
+  const next = ORDER.find((id) => id !== state.activeId && !state.placed.has(id));
+  if (next && !pieces.has(next)) {
+    ensurePieceLoaded(next).catch((error) => {
+      console.warn(`No se pudo precargar ${next}`, error);
     });
-  });
+  }
 }
 
 function sleep(ms) {
@@ -891,7 +901,7 @@ async function init() {
     console.error(error);
   }
 
-  preloadPieces();
+  prefetchNextPending();
 }
 
 init();

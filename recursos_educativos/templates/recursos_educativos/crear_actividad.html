@@ -93,8 +93,22 @@
                   placeholder="Instrucciones para los estudiantes...">{{ post_data.descripcion|default:'' }}</textarea>
       </div>
 
-      <!-- Modo (fijo: Galería) -->
-      <input type="hidden" name="modo" value="galeria">
+      <!-- Modo del recurso 3D -->
+      <div class="mb-4">
+        <label class="ps-label" for="modo">Modo de la actividad <span>*</span></label>
+        <select name="modo" id="modo" class="ps-input" required>
+          {% for valor, etiqueta in modos %}
+            <option value="{{ valor }}"
+              {% if post_data.modo == valor %}selected{% elif not post_data.modo and valor == 'ambos' %}selected{% endif %}>
+              {{ etiqueta }}
+            </option>
+          {% endfor %}
+        </select>
+        <small style="font-size:.75rem;color:#94a3b8;">
+          <strong>Galería</strong>: el docente proyecta y explora los órganos en clase ·
+          <strong>Studio</strong>: el estudiante ubica los 13 órganos y se autocalifica al completarlos.
+        </small>
+      </div>
 
       <!-- Nota máxima + Fecha límite -->
       <div class="row g-3 mb-4">

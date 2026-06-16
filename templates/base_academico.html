@@ -670,6 +670,12 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link sub-item {% if request.path == '/academico/recursos/' or '/recursos/crear' in request.path or '/entregas' in request.path %}active{% endif %}"
+                 href="{% url 'recursos_educativos:lista' %}">
+                <i class="bi bi-boxes"></i> Actividades 3D
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_materiales' %}">
                 <i class="bi bi-folder-plus"></i> Materiales de Apoyo
               </a>
@@ -759,6 +765,12 @@
         <a class="nav-link {% if 'piar' in request.path %}active{% endif %}"
            href="{% url 'piar:lista_piars' %}">
           <i class="bi bi-person-hearts"></i> PIARs / Inclusión
+        </a>
+      </li>
+      <li class="nav-item item-color-2">
+        <a class="nav-link {% if '/recursos/' in request.path %}active{% endif %}"
+           href="{% url 'recursos_educativos:lista' %}">
+          <i class="bi bi-boxes"></i> Actividades 3D
         </a>
       </li>
       <li class="nav-item item-color-5">

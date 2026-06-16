@@ -39,6 +39,13 @@ def _get_institucion(request):
     return getattr(request.user, 'institucion_asociada', None)
 
 
+def _es_coord_o_admin(user):
+    """Coordinador / administrador / superusuario — pueden gestionar recursos 3D
+    de toda la institución, aunque no tengan perfil de Docente."""
+    rol = getattr(user, 'rol', '') or ''
+    return rol in ('coordinador', 'administrador', 'admin_institucion') or user.is_superuser
+
+
 def _push_ws(group_name: str, *, kind: str, title: str, message: str,
              url: str = '', severity: str = 'info') -> None:
     """Notificación WS en tiempo real — falla silenciosamente."""
@@ -89,21 +96,21 @@ def lista_recursos_docente(request):
         messages.error(request, 'Tu cuenta no está asociada a ninguna institución.')
         return redirect('gestion_academica:inicio_academico')
 
-    try:
-        docente = Docente.objects.get(usuario=request.user, institucion=institucion)
-    except Docente.DoesNotExist:
+    es_coord = _es_coord_o_admin(request.user)
+    docente = Docente.objects.filter(usuario=request.user, institucion=institucion).first()
+    if not docente and not es_coord:
         messages.error(request, 'No tienes un perfil de docente en esta institución.')
         return redirect('gestion_academica:inicio_academico')
 
     recursos = (
         RecursoEducativo3D.objects
-        .filter(
-            institucion=institucion,
-            actividad__curso__docentes_asignados=docente,
-        )
+        .filter(institucion=institucion)
         .select_related('actividad__curso__materia', 'actividad__curso__grado')
         .order_by('-actividad__fecha_publicacion')
     )
+    # El docente (sin rol de coordinación) solo ve los recursos de sus cursos.
+    if docente and not es_coord:
+        recursos = recursos.filter(actividad__curso__docentes_asignados=docente)
 
     # Enriquecer con conteo de entregas
     for recurso in recursos:
@@ -128,17 +135,21 @@ def crear_recurso_3d(request):
         messages.error(request, 'Tu cuenta no está asociada a ninguna institución.')
         return redirect('gestion_academica:inicio_academico')
 
-    try:
-        docente = Docente.objects.get(usuario=request.user, institucion=institucion)
-    except Docente.DoesNotExist:
+    es_coord = _es_coord_o_admin(request.user)
+    docente = Docente.objects.filter(usuario=request.user, institucion=institucion).first()
+    if not docente and not es_coord:
         messages.error(request, 'No tienes un perfil de docente en esta institución.')
         return redirect('gestion_academica:inicio_academico')
 
-    # Cursos del docente en esta institución
-    cursos = Curso.objects.filter(
-        docentes_asignados=docente,
-        institucion=institucion,
-    ).select_related('materia', 'grado')
+    # Coordinación/admin puede asignar a cualquier curso de la institución;
+    # el docente solo a sus cursos.
+    if es_coord:
+        cursos = Curso.objects.filter(institucion=institucion).select_related('materia', 'grado')
+    else:
+        cursos = Curso.objects.filter(
+            docentes_asignados=docente,
+            institucion=institucion,
+        ).select_related('materia', 'grado')
 
     if request.method == 'POST':
         # ── Validación básica ──────────────────────────────────────
@@ -247,18 +258,23 @@ def ver_entregas_recurso(request, pk):
     """
     institucion = _get_institucion(request)
 
-    try:
-        docente = Docente.objects.get(usuario=request.user, institucion=institucion)
-    except Docente.DoesNotExist:
+    es_coord = _es_coord_o_admin(request.user)
+    docente = Docente.objects.filter(usuario=request.user, institucion=institucion).first()
+    if not docente and not es_coord:
         messages.error(request, 'Acceso no autorizado.')
         return redirect('recursos_educativos:lista')
 
-    recurso = get_object_or_404(
-        RecursoEducativo3D,
-        pk=pk,
-        institucion=institucion,
-        actividad__curso__docentes_asignados=docente,
-    )
+    if es_coord:
+        recurso = get_object_or_404(
+            RecursoEducativo3D, pk=pk, institucion=institucion,
+        )
+    else:
+        recurso = get_object_or_404(
+            RecursoEducativo3D,
+            pk=pk,
+            institucion=institucion,
+            actividad__curso__docentes_asignados=docente,
+        )
 
     if request.method == 'POST':
         # Ajuste manual de nota por el docente
@@ -342,12 +358,11 @@ def _get_estudiante_o_403(request, institucion):
 
 @login_required
 def galeria_directa(request):
-    """Galería 3D directa para docentes — sin actividad, solo para proyectar en clase."""
+    """Galería 3D directa para docentes/coordinación — sin actividad, para proyectar."""
     institucion = _get_institucion(request)
-    try:
-        Docente.objects.get(usuario=request.user, institucion=institucion)
-    except Docente.DoesNotExist:
-        messages.error(request, 'Solo los docentes pueden acceder a este recurso.')
+    es_docente = Docente.objects.filter(usuario=request.user, institucion=institucion).exists()
+    if not es_docente and not _es_coord_o_admin(request.user):
+        messages.error(request, 'Solo docentes y coordinación pueden acceder a este recurso.')
         return redirect('gestion_academica:inicio_academico')
 
     return render(request, 'recursos_educativos/visor_galeria.html', {
@@ -363,11 +378,10 @@ def abrir_visor_galeria(request, pk):
     institucion = _get_institucion(request)
     recurso = get_object_or_404(RecursoEducativo3D, pk=pk, institucion=institucion)
 
-    # Solo docentes pueden abrir la galería (para proyección en clase)
-    try:
-        Docente.objects.get(usuario=request.user, institucion=institucion)
-    except Docente.DoesNotExist:
-        messages.error(request, 'El visor de Galería 3D es solo para docentes.')
+    # Docentes y coordinación pueden abrir la galería (para proyección en clase)
+    es_docente = Docente.objects.filter(usuario=request.user, institucion=institucion).exists()
+    if not es_docente and not _es_coord_o_admin(request.user):
+        messages.error(request, 'El visor de Galería 3D es solo para docentes y coordinación.')
         return redirect('gestion_academica:inicio_academico')
 
     if not recurso.tiene_galeria():
