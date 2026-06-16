@@ -64,8 +64,8 @@ class InstitucionActivaMiddleware:
         if not request.user.is_authenticated or request.user.is_superuser:
             return self.get_response(request)
 
-        # Excluimos la página de logout para evitar un bucle de redirección
-        if request.path_info.startswith('/logout/'):
+        # Excluimos las páginas de logout para evitar un bucle de redirección
+        if request.path_info.startswith('/logout/') or request.path_info.startswith('/accounts/logout/'):
             return self.get_response(request)
 
         institucion = getattr(request.user, 'institucion_asociada', None)

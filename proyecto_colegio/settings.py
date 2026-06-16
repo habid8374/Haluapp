@@ -497,6 +497,9 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
 ]
 
+CSRF_COOKIE_SAMESITE   = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+
 if not DEBUG:
     SECURE_SSL_REDIRECT            = True
     SESSION_COOKIE_SECURE          = True
