@@ -627,6 +627,11 @@ class EstudianteDetailView(LoginRequiredMixin, DetailView):
         context['periodo_activo'] = periodo_activo
         # --- FIN DE LA MODIFICACIÓN ---
 
+        # Caracterización SIMAT/SIMPADE (puede no existir todavía).
+        # El acceso reverso a un OneToOne inexistente lanza un error que
+        # subclasea AttributeError, por lo que getattr(..., None) es seguro.
+        context['caracterizacion'] = getattr(self.object, 'caracterizacion', None)
+
         # Tu lógica para las alertas de riesgo se mantiene igual
         ultimo_analisis = AnalisisRiesgo.objects.order_by('-fecha_analisis').first()
         if ultimo_analisis:

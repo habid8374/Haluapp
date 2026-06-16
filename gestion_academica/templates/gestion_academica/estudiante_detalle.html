@@ -75,6 +75,57 @@
             </div>
         </div>
 
+        {# ── Caracterización SIMAT / SIMPADE ─────────────────────────────── #}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary"><i class="bi bi-clipboard-data-fill me-2"></i>Caracterización (SIMAT / SIMPADE)</h5>
+                {% if perms.gestion_academica.change_estudiante %}
+                <a href="{% url 'gestion_academica:editar_estudiante' estudiante.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Completar</a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if caracterizacion %}
+                <div class="row">
+                    <div class="col-md-6 col-lg-4 mb-2">
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>País de origen:</strong> {{ caracterizacion.pais_origen|default:"-" }}</li>
+                            <li><strong>Zona de residencia:</strong> {{ caracterizacion.get_zona_residencia_display|default:"-" }}</li>
+                            <li><strong>Régimen de salud:</strong> {{ caracterizacion.get_regimen_salud_display|default:"-" }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 col-lg-4 mb-2">
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>Discapacidad (MEN):</strong> {{ caracterizacion.get_discapacidad_categoria_display|default:"-" }}</li>
+                            <li><strong>Capacidad excepcional:</strong> {{ caracterizacion.get_capacidad_excepcional_display|default:"-" }}</li>
+                            <li><strong>Grupo étnico:</strong> {{ caracterizacion.get_grupo_etnico_display|default:"-" }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 col-lg-4 mb-2">
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>Estrato:</strong> {{ caracterizacion.get_estrato_display|default:"-" }}</li>
+                            <li><strong>SISBÉN:</strong> {{ caracterizacion.sisben_grupo|default:"-" }}{% if caracterizacion.sisben_puntaje %} ({{ caracterizacion.sisben_puntaje }}){% endif %}</li>
+                        </ul>
+                    </div>
+                    <div class="col-12">
+                        <hr class="my-2">
+                        <span class="badge {% if caracterizacion.victima_conflicto %}bg-danger{% else %}bg-light text-muted{% endif %} me-2">
+                            <i class="bi bi-{% if caracterizacion.victima_conflicto %}check{% else %}dash{% endif %}-circle"></i>
+                            Víctima del conflicto{% if caracterizacion.victima_conflicto and caracterizacion.tipo_poblacion_victima %}: {{ caracterizacion.get_tipo_poblacion_victima_display }}{% endif %}
+                        </span>
+                        <span class="badge {% if caracterizacion.srpa %}bg-warning text-dark{% else %}bg-light text-muted{% endif %} me-2">
+                            <i class="bi bi-{% if caracterizacion.srpa %}check{% else %}dash{% endif %}-circle"></i> SRPA
+                        </span>
+                        <span class="badge {% if caracterizacion.apoyo_academico_especial %}bg-info text-dark{% else %}bg-light text-muted{% endif %}">
+                            <i class="bi bi-{% if caracterizacion.apoyo_academico_especial %}check{% else %}dash{% endif %}-circle"></i> Apoyo académico especial
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0"><i class="bi bi-info-circle me-1"></i>Este estudiante aún no tiene caracterización registrada.</p>
+                {% endif %}
+            </div>
+        </div>
+
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card shadow-sm h-100">
