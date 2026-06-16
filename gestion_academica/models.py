@@ -427,6 +427,160 @@ class Estudiante(models.Model):
         return self.dias_de_atraso_max <= gracia
 
 
+class CaracterizacionEstudiante(models.Model):
+    """Caracterización socioeconómica y poblacional del estudiante.
+
+    Agrupa los datos exigidos por SIMAT (Anexo 6A) y útiles para SIMPADE y PIAR,
+    sin engordar el modelo Estudiante. Todos los campos son opcionales: la
+    migración es aditiva y se completa progresivamente. Se crea de forma perezosa
+    (get_or_create) cuando se abre el formulario de edición del estudiante.
+
+    NOTA: las etiquetas son legibles para el operador; el mapeo al código exacto
+    que espera SIMAT se hará en el generador del archivo de cargue (Fase 3).
+    """
+
+    class ZonaResidencia(models.TextChoices):
+        URBANA = 'URBANA', 'Urbana'
+        RURAL = 'RURAL', 'Rural'
+
+    class RegimenSalud(models.TextChoices):
+        CONTRIBUTIVO = 'CONTRIBUTIVO', 'Contributivo'
+        SUBSIDIADO = 'SUBSIDIADO', 'Subsidiado'
+        ESPECIAL = 'ESPECIAL', 'Especial / Excepción'
+        NO_AFILIADO = 'NO_AFILIADO', 'No afiliado / Vinculado'
+
+    class Discapacidad(models.TextChoices):
+        NINGUNA = 'NINGUNA', 'Ninguna'
+        FISICA = 'FISICA', 'Física (movilidad)'
+        INTELECTUAL = 'INTELECTUAL', 'Intelectual / cognitiva'
+        PSICOSOCIAL = 'PSICOSOCIAL', 'Psicosocial (mental)'
+        VISUAL_BAJA = 'VISUAL_BAJA', 'Visual — baja visión'
+        VISUAL_CEGUERA = 'VISUAL_CEGUERA', 'Visual — ceguera'
+        AUDITIVA_HIPOACUSIA = 'AUDITIVA_HIPOACUSIA', 'Auditiva — hipoacusia'
+        AUDITIVA_SORDA = 'AUDITIVA_SORDA', 'Auditiva — sordera'
+        SORDOCEGUERA = 'SORDOCEGUERA', 'Sordoceguera'
+        MULTIPLE = 'MULTIPLE', 'Múltiple'
+        SISTEMICA = 'SISTEMICA', 'Sistémica'
+        VOZ_Y_HABLA = 'VOZ_Y_HABLA', 'De la voz y el habla'
+        TEA = 'TEA', 'Trastorno del espectro autista'
+        OTRA = 'OTRA', 'Otra'
+
+    class CapacidadExcepcional(models.TextChoices):
+        NINGUNA = 'NINGUNA', 'Ninguna'
+        GLOBAL = 'GLOBAL', 'Capacidad excepcional global'
+        TALENTO_CIENTIFICO = 'TALENTO_CIENTIFICO', 'Talento científico/tecnológico'
+        TALENTO_ARTISTICO = 'TALENTO_ARTISTICO', 'Talento artístico'
+        TALENTO_DEPORTIVO = 'TALENTO_DEPORTIVO', 'Talento deportivo'
+        OTRA = 'OTRA', 'Otra'
+
+    class GrupoEtnico(models.TextChoices):
+        NINGUNO = 'NINGUNO', 'Ninguno'
+        INDIGENA = 'INDIGENA', 'Indígena'
+        AFROCOLOMBIANO = 'AFROCOLOMBIANO', 'Afrocolombiano / negro'
+        RAIZAL = 'RAIZAL', 'Raizal (San Andrés)'
+        PALENQUERO = 'PALENQUERO', 'Palenquero (San Basilio)'
+        ROM = 'ROM', 'ROM (gitano)'
+
+    class Estrato(models.TextChoices):
+        E0 = '0', 'Sin estrato'
+        E1 = '1', 'Estrato 1'
+        E2 = '2', 'Estrato 2'
+        E3 = '3', 'Estrato 3'
+        E4 = '4', 'Estrato 4'
+        E5 = '5', 'Estrato 5'
+        E6 = '6', 'Estrato 6'
+
+    class TipoPoblacionVictima(models.TextChoices):
+        DESPLAZADO = 'DESPLAZADO', 'Desplazado'
+        VICTIMA_MINAS = 'VICTIMA_MINAS', 'Víctima de minas antipersona'
+        DESVINCULADO = 'DESVINCULADO', 'Desvinculado de grupos armados'
+        HIJO_DESMOVILIZADO = 'HIJO_DESMOVILIZADO', 'Hijo de adulto desmovilizado'
+        OTRA = 'OTRA', 'Otra'
+
+    estudiante = models.OneToOneField(
+        Estudiante, on_delete=models.CASCADE, primary_key=True,
+        related_name='caracterizacion', verbose_name="Estudiante",
+    )
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        verbose_name="Institución", related_name='caracterizaciones_estudiante',
+    )
+
+    # ── Identidad / ubicación ──────────────────────────────────────────────
+    pais_origen = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name="País de origen",
+        help_text="Para estudiantes migrantes (ej: Venezuela). Dejar en blanco si es Colombia.",
+    )
+    zona_residencia = models.CharField(
+        max_length=10, choices=ZonaResidencia.choices, blank=True, null=True,
+        verbose_name="Zona de residencia",
+    )
+    municipio_divipola = models.CharField(
+        max_length=8, blank=True, null=True, verbose_name="Código DIVIPOLA municipio",
+        help_text="Código DANE del municipio de residencia (se completará con la tabla DIVIPOLA).",
+    )
+    departamento_divipola = models.CharField(
+        max_length=5, blank=True, null=True, verbose_name="Código DIVIPOLA departamento",
+    )
+
+    # ── Salud ──────────────────────────────────────────────────────────────
+    regimen_salud = models.CharField(
+        max_length=15, choices=RegimenSalud.choices, blank=True, null=True,
+        verbose_name="Régimen de salud",
+    )
+    discapacidad_categoria = models.CharField(
+        max_length=25, choices=Discapacidad.choices, blank=True, null=True,
+        verbose_name="Categoría de discapacidad (MEN)",
+    )
+    capacidad_excepcional = models.CharField(
+        max_length=25, choices=CapacidadExcepcional.choices, blank=True, null=True,
+        verbose_name="Capacidad / talento excepcional",
+    )
+
+    # ── Socioeconómico ─────────────────────────────────────────────────────
+    grupo_etnico = models.CharField(
+        max_length=20, choices=GrupoEtnico.choices, blank=True, null=True,
+        verbose_name="Grupo étnico",
+    )
+    estrato = models.CharField(
+        max_length=1, choices=Estrato.choices, blank=True, null=True,
+        verbose_name="Estrato socioeconómico",
+    )
+    sisben_grupo = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name="Grupo SISBÉN",
+        help_text="Clasificación SISBÉN IV (ej: A1, B2, C3).",
+    )
+    sisben_puntaje = models.DecimalField(
+        max_digits=6, decimal_places=2, blank=True, null=True,
+        verbose_name="Puntaje SISBÉN",
+    )
+
+    # ── Condiciones especiales ─────────────────────────────────────────────
+    victima_conflicto = models.BooleanField(
+        default=False, verbose_name="¿Víctima del conflicto armado?",
+    )
+    tipo_poblacion_victima = models.CharField(
+        max_length=20, choices=TipoPoblacionVictima.choices, blank=True, null=True,
+        verbose_name="Tipo de población víctima",
+    )
+    srpa = models.BooleanField(
+        default=False,
+        verbose_name="¿Sistema de Responsabilidad Penal Adolescente (SRPA)?",
+    )
+    apoyo_academico_especial = models.BooleanField(
+        default=False, verbose_name="¿Requiere apoyo académico especial?",
+    )
+
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Caracterización de estudiante"
+        verbose_name_plural = "Caracterizaciones de estudiantes"
+
+    def __str__(self):
+        return f"Caracterización de {self.estudiante}"
+
+
 class Docente(models.Model):
     class ModalidadLiquidacion(models.TextChoices):
         POR_HORA = 'POR_HORA', 'Por horas laboradas'

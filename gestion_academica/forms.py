@@ -16,7 +16,7 @@ from .models import (
     DescriptorLogro, AnotacionObservador, DisponibilidadDocente, CitaReunion,
     Pregunta, Opcion, Eleccion, Aula, AreaAcademica, Logro, NivelEscolaridad,
     DimensionDesarrollo, EscalaCualitativa, LogroPreescolar, TicketSoporte,
-    RespuestaTicket, PlaneacionClase, Candidato
+    RespuestaTicket, PlaneacionClase, Candidato, CaracterizacionEstudiante
 )
 
 
@@ -263,6 +263,35 @@ class EstudianteForm(forms.ModelForm):
 
     def clean_codigo_estudiante(self):
         return (self.cleaned_data.get('codigo_estudiante') or '').strip()
+
+
+class CaracterizacionEstudianteForm(forms.ModelForm):
+    """Caracterización SIMAT/SIMPADE del estudiante. Todos los campos opcionales."""
+
+    class Meta:
+        model = CaracterizacionEstudiante
+        fields = [
+            'pais_origen', 'zona_residencia',
+            'regimen_salud', 'discapacidad_categoria', 'capacidad_excepcional',
+            'grupo_etnico', 'estrato', 'sisben_grupo', 'sisben_puntaje',
+            'victima_conflicto', 'tipo_poblacion_victima',
+            'srpa', 'apoyo_academico_especial',
+        ]
+        widgets = {
+            'pais_origen': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dejar en blanco si es Colombia'}),
+            'zona_residencia': forms.Select(attrs={'class': 'form-select'}),
+            'regimen_salud': forms.Select(attrs={'class': 'form-select'}),
+            'discapacidad_categoria': forms.Select(attrs={'class': 'form-select'}),
+            'capacidad_excepcional': forms.Select(attrs={'class': 'form-select'}),
+            'grupo_etnico': forms.Select(attrs={'class': 'form-select'}),
+            'estrato': forms.Select(attrs={'class': 'form-select'}),
+            'sisben_grupo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: A1, B2, C3'}),
+            'sisben_puntaje': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'tipo_poblacion_victima': forms.Select(attrs={'class': 'form-select'}),
+            'victima_conflicto': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'srpa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'apoyo_academico_especial': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
 
 class DocenteForm(forms.ModelForm):

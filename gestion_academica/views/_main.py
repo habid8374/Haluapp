@@ -121,6 +121,7 @@ from ..models import (
     AnalisisComportamientoIA,
     MallaCurricular,
     PlanSemanal,
+    CaracterizacionEstudiante,
 )
 
 from finanzas.models import InstitucionEducativa 
@@ -131,7 +132,7 @@ from finanzas.institucion_credentials import google_api_key as institucion_googl
 
 from ..forms import (
     GradoForm,
-    EstudianteForm, 
+    EstudianteForm, CaracterizacionEstudianteForm,
     CustomUserCreationForm, CustomUserUpdateForm,
     DocenteForm, EstudianteForm,
     MateriaForm,
@@ -689,27 +690,40 @@ def crear_estudiante(request):
 def editar_estudiante(request, pk):
     estudiante = get_object_or_404(Estudiante, pk=pk)
     usuario = estudiante.usuario
+    # Caracterización SIMAT/SIMPADE: se crea de forma perezosa para que los
+    # estudiantes ya existentes puedan completarla sin migración de datos.
+    caracterizacion, _ = CaracterizacionEstudiante.objects.get_or_create(
+        estudiante=estudiante,
+        defaults={'institucion': estudiante.institucion},
+    )
     if request.method == 'POST':
         usuario_form = CustomUserUpdateForm(request.POST, instance=usuario, prefix="usr", request=request)
         estudiante_form = EstudianteForm(request.POST, request.FILES or None, instance=estudiante, prefix="est", request=request)
-        if usuario_form.is_valid() and estudiante_form.is_valid():
+        caracterizacion_form = CaracterizacionEstudianteForm(request.POST, instance=caracterizacion, prefix="car")
+        if usuario_form.is_valid() and estudiante_form.is_valid() and caracterizacion_form.is_valid():
             usuario_form.save()
             estudiante_form.save()
-            
+            caracterizacion = caracterizacion_form.save(commit=False)
+            # La institución nunca se edita desde el form: se fija desde el estudiante.
+            caracterizacion.institucion = estudiante.institucion
+            caracterizacion.save()
+
             # --- CORRECCIÓN DE LA REDIRECCIÓN ---
             if estudiante.grado_actual:
                 return redirect('gestion_academica:lista_estudiantes_por_grado', grado_pk=estudiante.grado_actual.pk)
             else:
                 return redirect('gestion_academica:lista_grados_para_estudiantes')
-            
+
     else:
         usuario_form = CustomUserUpdateForm(instance=usuario, prefix="usr", request=request)
         estudiante_form = EstudianteForm(instance=estudiante, prefix="est", request=request)
-    
+        caracterizacion_form = CaracterizacionEstudianteForm(instance=caracterizacion, prefix="car")
+
     context = {
-        'usuario_form': usuario_form, 
-        'estudiante_form': estudiante_form, 
-        'titulo': f'Editar Estudiante: {usuario.get_full_name()}', 
+        'usuario_form': usuario_form,
+        'estudiante_form': estudiante_form,
+        'caracterizacion_form': caracterizacion_form,
+        'titulo': f'Editar Estudiante: {usuario.get_full_name()}',
         'estudiante_obj': estudiante
     }
     return render(request, 'gestion_academica/estudiante_formulario.html', context)

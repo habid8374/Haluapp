@@ -44,6 +44,30 @@
             </div>
         </div>
 
+        {% if caracterizacion_form %}
+        <div class="accordion mb-3" id="accordionCaracterizacion">
+            <div class="accordion-item border">
+                <h2 class="accordion-header" id="headingCaracterizacion">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapseCaracterizacion"
+                            aria-expanded="false" aria-controls="collapseCaracterizacion">
+                        <i class="bi bi-clipboard-data-fill me-2"></i> Caracterización (SIMAT / SIMPADE)
+                    </button>
+                </h2>
+                <div id="collapseCaracterizacion" class="accordion-collapse collapse"
+                     aria-labelledby="headingCaracterizacion" data-bs-parent="#accordionCaracterizacion">
+                    <div class="accordion-body">
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Datos socioeconómicos y poblacionales para reportes oficiales. Todos opcionales; complétalos cuando los tengas.
+                        </p>
+                        {{ caracterizacion_form|crispy }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <hr>
         <div class="d-flex justify-content-end">
             <button type="submit" class="btn btn-success me-2">
