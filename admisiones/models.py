@@ -6,6 +6,7 @@ from django.urls import reverse
 from gestion_academica.models import (   # Importamos Grado para saber a cuál aspira
     Grado, Usuario, Estudiante,
     TIPO_DOCUMENTO_CHOICES, GRUPO_SANGUINEO_CHOICES,
+    CaracterizacionEstudiante,
 )
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -74,6 +75,61 @@ class Aspirante(models.Model):
     )
     direccion = models.CharField(
         max_length=255, blank=True, null=True, verbose_name="Dirección de Residencia"
+    )
+    # ────────────────────────────────────────────────────────────────────────
+
+    # ── Caracterización SIMAT/SIMPADE (Fase 2) ──────────────────────────────
+    # Se capturan en la admisión y se vuelcan al CaracterizacionEstudiante al
+    # crear el estudiante (procesar_inscripcion_completa). Todos opcionales.
+    pais_origen = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name="País de origen",
+        help_text="Para aspirantes migrantes. Dejar en blanco si es Colombia.",
+    )
+    zona_residencia = models.CharField(
+        max_length=10, choices=CaracterizacionEstudiante.ZonaResidencia.choices,
+        blank=True, null=True, verbose_name="Zona de residencia",
+    )
+    regimen_salud = models.CharField(
+        max_length=15, choices=CaracterizacionEstudiante.RegimenSalud.choices,
+        blank=True, null=True, verbose_name="Régimen de salud",
+    )
+    discapacidad_categoria = models.CharField(
+        max_length=25, choices=CaracterizacionEstudiante.Discapacidad.choices,
+        blank=True, null=True, verbose_name="Categoría de discapacidad (MEN)",
+    )
+    capacidad_excepcional = models.CharField(
+        max_length=25, choices=CaracterizacionEstudiante.CapacidadExcepcional.choices,
+        blank=True, null=True, verbose_name="Capacidad / talento excepcional",
+    )
+    grupo_etnico = models.CharField(
+        max_length=20, choices=CaracterizacionEstudiante.GrupoEtnico.choices,
+        blank=True, null=True, verbose_name="Grupo étnico",
+    )
+    estrato = models.CharField(
+        max_length=1, choices=CaracterizacionEstudiante.Estrato.choices,
+        blank=True, null=True, verbose_name="Estrato socioeconómico",
+    )
+    sisben_grupo = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name="Grupo SISBÉN",
+        help_text="Clasificación SISBÉN IV (ej: A1, B2, C3).",
+    )
+    sisben_puntaje = models.DecimalField(
+        max_digits=6, decimal_places=2, blank=True, null=True,
+        verbose_name="Puntaje SISBÉN",
+    )
+    victima_conflicto = models.BooleanField(
+        default=False, verbose_name="¿Víctima del conflicto armado?",
+    )
+    tipo_poblacion_victima = models.CharField(
+        max_length=20, choices=CaracterizacionEstudiante.TipoPoblacionVictima.choices,
+        blank=True, null=True, verbose_name="Tipo de población víctima",
+    )
+    srpa = models.BooleanField(
+        default=False,
+        verbose_name="¿Sistema de Responsabilidad Penal Adolescente (SRPA)?",
+    )
+    apoyo_academico_especial = models.BooleanField(
+        default=False, verbose_name="¿Requiere apoyo académico especial?",
     )
     # ────────────────────────────────────────────────────────────────────────
 
@@ -201,6 +257,12 @@ class Aspirante(models.Model):
         self.estudiante_creado = estudiante_obj
         self.save(update_fields=['usuario', 'estudiante_creado'])
 
+        # 2.b Vuelca la caracterización SIMAT/SIMPADE capturada en la admisión.
+        #     Se hace para ambos casos (estudiante nuevo o existente). Solo
+        #     sobrescribe un campo del estudiante si el aspirante trae valor,
+        #     para no borrar datos ya cargados manualmente.
+        self._sincronizar_caracterizacion(estudiante_obj)
+
         # 3. Lógica de cobro
         if self.requiere_pago_inscripcion:
             resultado_cobro = crear_cuenta_cobro_inscripcion(self)
@@ -218,6 +280,42 @@ class Aspirante(models.Model):
             aspirante=self,
             cobro_inscripcion=resultado_cobro,
         )
+
+    def _sincronizar_caracterizacion(self, estudiante):
+        """Crea o actualiza el CaracterizacionEstudiante a partir del aspirante.
+
+        Copia los campos planos de caracterización capturados en la admisión.
+        Idempotente: solo escribe un campo si el aspirante trae valor, para no
+        pisar datos cargados manualmente en el estudiante. No falla la
+        inscripción si algo sale mal (la caracterización es complementaria).
+        """
+        try:
+            caracterizacion, _ = CaracterizacionEstudiante.objects.get_or_create(
+                estudiante=estudiante,
+                defaults={'institucion': estudiante.institucion},
+            )
+            campos = [
+                'pais_origen', 'zona_residencia', 'regimen_salud',
+                'discapacidad_categoria', 'capacidad_excepcional', 'grupo_etnico',
+                'estrato', 'sisben_grupo', 'sisben_puntaje',
+                'tipo_poblacion_victima',
+            ]
+            actualizados = []
+            for campo in campos:
+                valor = getattr(self, campo, None)
+                if valor not in (None, ''):
+                    setattr(caracterizacion, campo, valor)
+                    actualizados.append(campo)
+            # Los booleanos siempre se reflejan (False es un valor válido).
+            for campo in ('victima_conflicto', 'srpa', 'apoyo_academico_especial'):
+                setattr(caracterizacion, campo, getattr(self, campo, False))
+                actualizados.append(campo)
+            caracterizacion.institucion = estudiante.institucion
+            caracterizacion.save()
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "No se pudo sincronizar la caracterización del aspirante %s", self.pk
+            )
 
     @transaction.atomic
     def matricular(self):

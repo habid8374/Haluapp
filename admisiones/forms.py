@@ -27,6 +27,12 @@ class AspiranteForm(forms.ModelForm):
             'sexo', 'grupo_sanguineo', 'eps', 'discapacidad',
             'colegio_procedencia', 'municipio_ciudad', 'departamento',
             'direccion', 'requiere_pago_inscripcion',
+            # ── Caracterización SIMAT/SIMPADE (Fase 2) ──
+            'pais_origen', 'zona_residencia', 'regimen_salud',
+            'discapacidad_categoria', 'capacidad_excepcional', 'grupo_etnico',
+            'estrato', 'sisben_grupo', 'sisben_puntaje',
+            'victima_conflicto', 'tipo_poblacion_victima',
+            'srpa', 'apoyo_academico_especial',
         ]
         widgets = {
             'nombres': forms.TextInput(attrs={'class': 'form-control'}),
@@ -47,6 +53,20 @@ class AspiranteForm(forms.ModelForm):
             'departamento': forms.TextInput(attrs={'class': 'form-control'}),
             'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Calle, barrio, municipio'}),
             'requiere_pago_inscripcion': forms.CheckboxInput(attrs={'class': 'form-check-input ms-2'}),
+            # ── Caracterización SIMAT/SIMPADE ──
+            'pais_origen': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dejar en blanco si es Colombia'}),
+            'zona_residencia': forms.Select(attrs={'class': 'form-select'}),
+            'regimen_salud': forms.Select(attrs={'class': 'form-select'}),
+            'discapacidad_categoria': forms.Select(attrs={'class': 'form-select'}),
+            'capacidad_excepcional': forms.Select(attrs={'class': 'form-select'}),
+            'grupo_etnico': forms.Select(attrs={'class': 'form-select'}),
+            'estrato': forms.Select(attrs={'class': 'form-select'}),
+            'sisben_grupo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: A1, B2, C3'}),
+            'sisben_puntaje': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'tipo_poblacion_victima': forms.Select(attrs={'class': 'form-select'}),
+            'victima_conflicto': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'srpa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'apoyo_academico_especial': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'requiere_pago_inscripcion': '¿Generar cobro de inscripción para este aspirante?',
