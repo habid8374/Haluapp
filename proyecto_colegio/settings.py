@@ -37,8 +37,11 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
 # Dominios de confianza para CSRF. Añade tu dominio de producción en .env:
-# CSRF_TRUSTED_ORIGINS=https://app.halu.co,https://*.ngrok-free.app
-_csrf_raw = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://*.ngrok-free.app,https://*.trycloudflare.com')
+# CSRF_TRUSTED_ORIGINS=https://app.haluplataform.com,https://*.ngrok-free.app
+_csrf_raw = os.environ.get(
+    'CSRF_TRUSTED_ORIGINS',
+    'https://app.haluplataform.com,https://*.ngrok-free.app,https://*.trycloudflare.com'
+)
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_raw.split(',') if o.strip()]
 
 # Application definition
