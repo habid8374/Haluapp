@@ -60,24 +60,18 @@ def login_view(request):
     if request.method == "POST":
         form = SuperAdminLoginForm(request.POST)
         if form.is_valid():
-            username       = form.cleaned_data["username"]
-            password       = form.cleaned_data["password"]
-            master_entered = form.cleaned_data["master_password"]
-            master_ok      = getattr(settings, "SUPERADMIN_MASTER_PASSWORD", None)
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
 
             user = authenticate(request, username=username, password=password)
             if user is None:
                 messages.error(request, "Usuario o contraseña incorrectos.")
             elif not user.is_superuser:
                 messages.error(request, "Esta área es exclusiva para super-administradores.")
-            elif master_entered != master_ok:
-                messages.error(request, "Clave maestra incorrecta.")
             else:
                 auth_login(request, user)
-                # Verificar si el superadmin tiene 2FA configurado
                 try:
-                    disp = user.dispositivo_totp
-                    tiene_2fa = disp.confirmado
+                    tiene_2fa = user.dispositivo_totp.confirmado
                 except Exception:
                     tiene_2fa = False
 

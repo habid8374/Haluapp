@@ -20,12 +20,3 @@ class SuperAdminLoginForm(forms.Form):
         }),
         strip=False,
     )
-    master_password = forms.CharField(
-        label="Clave Maestra",
-        widget=forms.PasswordInput(attrs={
-            "class": "form-control form-control-lg",
-            "placeholder": "Clave maestra de la plataforma",
-            "autocomplete": "off",
-        }),
-        strip=False,
-    )
