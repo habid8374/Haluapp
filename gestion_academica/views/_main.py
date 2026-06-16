@@ -547,24 +547,27 @@ class EstudiantesPorGradoListView(LoginRequiredMixin, ListView):
         # Lógica de seguridad: Un docente solo puede ver la lista de estudiantes
         # de un grado si tiene relación con ese grado.
         user = request.user
-        grado_pk = self.kwargs['grado_pk']
-        
-        if not user.is_staff: # Si no es admin, debe ser docente
-            try:
-                docente = user.docente
-                grado = Grado.objects.get(pk=grado_pk)
-                periodo_activo = PeriodoAcademico.objects.filter(institucion=docente.institucion, activo=True).first()
-                
-                if periodo_activo:
-                    es_director = DirectorCurso.objects.filter(docente=docente, grado=grado, periodo_academico=periodo_activo).exists()
-                    da_clases_en_grado = Curso.objects.filter(docentes_asignados=docente, grado=grado, periodo_academico=periodo_activo).exists()
-                    
-                    if not (es_director or da_clases_en_grado):
-                        raise PermissionDenied("No tienes permiso para ver los estudiantes de este grado.")
-                else:
-                    raise PermissionDenied("No hay un periodo académico activo.")
-            except (Docente.DoesNotExist, Grado.DoesNotExist):
-                raise PermissionDenied("Acceso no válido.")
+
+        # Only apply custom permission logic if user is authenticated
+        if user.is_authenticated:
+            grado_pk = self.kwargs['grado_pk']
+
+            if not user.is_staff: # Si no es admin, debe ser docente
+                try:
+                    docente = user.docente
+                    grado = Grado.objects.get(pk=grado_pk)
+                    periodo_activo = PeriodoAcademico.objects.filter(institucion=docente.institucion, activo=True).first()
+
+                    if periodo_activo:
+                        es_director = DirectorCurso.objects.filter(docente=docente, grado=grado, periodo_academico=periodo_activo).exists()
+                        da_clases_en_grado = Curso.objects.filter(docentes_asignados=docente, grado=grado, periodo_academico=periodo_activo).exists()
+
+                        if not (es_director or da_clases_en_grado):
+                            raise PermissionDenied("No tienes permiso para ver los estudiantes de este grado.")
+                    else:
+                        raise PermissionDenied("No hay un periodo académico activo.")
+                except (Docente.DoesNotExist, Grado.DoesNotExist):
+                    raise PermissionDenied("Acceso no válido.")
 
         return super().dispatch(request, *args, **kwargs)
 
