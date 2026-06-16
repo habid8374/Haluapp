@@ -876,7 +876,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
   function applyView(view, persist) {
     currentView = view;
     if (view === 'table') {
-      if (tableCard)    tableCard.style.display    = '';
+      if (tableCard)    tableCard.style.display    = 'block';
       if (cardsSection) cardsSection.style.display = 'none';
       if (saveFab) {
         saveFab.classList.remove('visible');
@@ -886,7 +886,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
         '<i class="bi bi-person-lines-fill"></i><span class="d-none d-sm-inline ms-1">Por Alumno</span>';
     } else {
       if (tableCard)    tableCard.style.display    = 'none';
-      if (cardsSection) cardsSection.style.display = '';
+      if (cardsSection) cardsSection.style.display = 'block';
       if (saveFab) {
         saveFab.classList.add('visible');
         document.body.classList.add('ln-fab-active');
