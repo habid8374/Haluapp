@@ -20,6 +20,8 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 
+from gestion_academica.decorators import requiere_pagos_al_dia, estudiante_esta_al_dia
+
 from gestion_academica.models import (
     ActividadCalificable,
     Calificacion,
@@ -405,6 +407,7 @@ def abrir_visor_galeria(request, pk):
 
 
 @login_required
+@requiere_pagos_al_dia
 def abrir_visor_studio(request, pk):
     """Renderiza el Studio 3D para el estudiante."""
     institucion = _get_institucion(request)
@@ -453,6 +456,13 @@ def api_registrar_progreso(request, pk):
     estudiante = _get_estudiante_o_403(request, institucion)
     if not estudiante:
         return JsonResponse({'ok': False, 'error': 'No eres estudiante.'}, status=403)
+
+    al_dia, _ = estudiante_esta_al_dia(request)
+    if not al_dia:
+        return JsonResponse(
+            {'ok': False, 'error': 'Tu portal está bloqueado por pagos vencidos.'},
+            status=402,
+        )
 
     recurso = get_object_or_404(RecursoEducativo3D, pk=pk, institucion=institucion)
 
