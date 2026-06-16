@@ -438,6 +438,11 @@ def descargar_plantilla_importacion(request):
         'tipo_documento', 'lugar_nacimiento',
         'telefono_contacto', 'sexo', 'grupo_sanguineo', 'eps', 'discapacidad',
         'colegio_procedencia', 'municipio_ciudad', 'departamento', 'direccion',
+        # Opcionales — Caracterización SIMAT/SIMPADE
+        'pais_origen', 'zona_residencia', 'regimen_salud', 'discapacidad_categoria',
+        'capacidad_excepcional', 'grupo_etnico', 'estrato', 'sisben_grupo',
+        'sisben_puntaje', 'victima_conflicto', 'tipo_poblacion_victima',
+        'srpa', 'apoyo_academico_especial',
     ]
     ws.append(headers)
 
@@ -449,6 +454,12 @@ def descargar_plantilla_importacion(request):
         'Teléfono', 'M/F/O', 'A+/A-/B+/B-/AB+/AB-/O+/O-', 'Nombre de la EPS',
         'Condición (vacío=ninguna)',
         'Colegio anterior', 'Municipio/ciudad', 'Departamento', 'Dirección residencia',
+        # Caracterización SIMAT/SIMPADE
+        'Vacío si es Colombia', 'URBANA/RURAL', 'CONTRIBUTIVO/SUBSIDIADO/ESPECIAL/NO_AFILIADO',
+        'Ver lista (vacío=ninguna)', 'Ver lista (vacío=ninguna)',
+        'NINGUNO/INDIGENA/AFROCOLOMBIANO/RAIZAL/PALENQUERO/ROM', '0 a 6',
+        'Ej: A1, B2, C3', 'Puntaje SISBÉN', 'SI o NO', 'Solo si es víctima',
+        'SI o NO', 'SI o NO',
     ])
 
     from openpyxl.styles import PatternFill, Font as OFont, Alignment
@@ -495,6 +506,26 @@ def descargar_plantilla_importacion(request):
     dv_gs = DataValidation(type="list", formula1='"A+,A-,B+,B-,AB+,AB-,O+,O-"', allow_blank=True)
     ws.add_data_validation(dv_gs)
     dv_gs.add('L3:L1000')
+
+    # ── Desplegables de caracterización SIMAT/SIMPADE ──
+    # (columnas: T=zona, U=régimen, V=discapacidad, W=capacidad, X=étnico,
+    #  Y=estrato, AB=víctima, AC=tipo víctima, AD=srpa, AE=apoyo)
+    _dvs_caracterizacion = [
+        ('T', '"URBANA,RURAL"'),
+        ('U', '"CONTRIBUTIVO,SUBSIDIADO,ESPECIAL,NO_AFILIADO"'),
+        ('V', '"NINGUNA,FISICA,INTELECTUAL,PSICOSOCIAL,VISUAL_BAJA,VISUAL_CEGUERA,AUDITIVA_HIPOACUSIA,AUDITIVA_SORDA,SORDOCEGUERA,MULTIPLE,SISTEMICA,VOZ_Y_HABLA,TEA,OTRA"'),
+        ('W', '"NINGUNA,GLOBAL,TALENTO_CIENTIFICO,TALENTO_ARTISTICO,TALENTO_DEPORTIVO,OTRA"'),
+        ('X', '"NINGUNO,INDIGENA,AFROCOLOMBIANO,RAIZAL,PALENQUERO,ROM"'),
+        ('Y', '"0,1,2,3,4,5,6"'),
+        ('AB', '"SI,NO"'),
+        ('AC', '"DESPLAZADO,VICTIMA_MINAS,DESVINCULADO,HIJO_DESMOVILIZADO,OTRA"'),
+        ('AD', '"SI,NO"'),
+        ('AE', '"SI,NO"'),
+    ]
+    for col, formula in _dvs_caracterizacion:
+        dv = DataValidation(type="list", formula1=formula, allow_blank=True)
+        ws.add_data_validation(dv)
+        dv.add(f'{col}3:{col}1000')
 
     for col_cells in ws.columns:
         max_length = max(len(str(cell.value or '')) for cell in col_cells)

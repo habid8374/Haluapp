@@ -31,7 +31,7 @@ from django.db import IntegrityError, transaction
 from django.urls import reverse
 from django.utils import timezone
 
-from gestion_academica.models import Grado
+from gestion_academica.models import Grado, CaracterizacionEstudiante
 
 from .models import Aspirante, LoteImportacionAspirantes
 from .utils import enviar_correo_bienvenida
@@ -238,6 +238,38 @@ def _parsear_fecha(valor) -> date:
     raise ValueError(f"formato no reconocido: '{texto}'")
 
 
+def _norm_texto(s):
+    """Normaliza para comparar: sin acentos, mayúsculas, sin espacios extremos."""
+    import unicodedata
+    return (
+        unicodedata.normalize("NFKD", str(s))
+        .encode("ascii", "ignore")
+        .decode("utf-8")
+        .upper()
+        .strip()
+    )
+
+
+def _match_choice(raw, choices):
+    """Mapea un texto del Excel a un código de TextChoices.
+
+    Acepta el código ('INDIGENA') o la etiqueta ('Indígena'), sin distinguir
+    mayúsculas ni acentos. Devuelve el código, o None si está vacío/no coincide.
+    """
+    if not raw:
+        return None
+    objetivo = _norm_texto(raw)
+    for code, label in choices:
+        if _norm_texto(code) == objetivo or _norm_texto(label) == objetivo:
+            return code
+    return None
+
+
+def _bool_si_no(raw):
+    """Interpreta SI/NO (y variantes) del Excel como booleano. Vacío = False."""
+    return _norm_texto(raw) in {"SI", "S", "TRUE", "1", "YES", "Y", "X", "VERDADERO"}
+
+
 def _parsear_fila(row, grados_por_nombre):
     """Valida y convierte una fila del Excel a un dict listo para crear el Aspirante."""
 
@@ -293,6 +325,17 @@ def _parsear_fila(row, grados_por_nombre):
     gs_validos = {"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"}
     grupo_sanguineo = gs_raw if gs_raw in gs_validos else None
 
+    # ── Caracterización SIMAT/SIMPADE (columnas opcionales) ──────────────────
+    # Mapeo tolerante: acepta código o etiqueta. Si un valor no coincide se
+    # ignora silenciosamente (queda None) para no tumbar la fila.
+    C = CaracterizacionEstudiante
+    sisben_puntaje_raw = _v("sisben_puntaje").replace(",", ".")
+    try:
+        from decimal import Decimal
+        sisben_puntaje = Decimal(sisben_puntaje_raw) if sisben_puntaje_raw else None
+    except (ArithmeticError, ValueError):
+        sisben_puntaje = None
+
     return {
         "documento": documento,
         "grado": grado,
@@ -312,6 +355,20 @@ def _parsear_fila(row, grados_por_nombre):
         "departamento": _v("departamento") or None,
         "direccion": _v("direccion") or None,
         "paga_inscripcion": paga,
+        # ── Caracterización ──
+        "pais_origen": _v("pais_origen") or None,
+        "zona_residencia": _match_choice(_v("zona_residencia"), C.ZonaResidencia.choices),
+        "regimen_salud": _match_choice(_v("regimen_salud"), C.RegimenSalud.choices),
+        "discapacidad_categoria": _match_choice(_v("discapacidad_categoria"), C.Discapacidad.choices),
+        "capacidad_excepcional": _match_choice(_v("capacidad_excepcional"), C.CapacidadExcepcional.choices),
+        "grupo_etnico": _match_choice(_v("grupo_etnico"), C.GrupoEtnico.choices),
+        "estrato": _match_choice(_v("estrato"), C.Estrato.choices),
+        "sisben_grupo": _v("sisben_grupo") or None,
+        "sisben_puntaje": sisben_puntaje,
+        "victima_conflicto": _bool_si_no(_v("victima_conflicto")),
+        "tipo_poblacion_victima": _match_choice(_v("tipo_poblacion_victima"), C.TipoPoblacionVictima.choices),
+        "srpa": _bool_si_no(_v("srpa")),
+        "apoyo_academico_especial": _bool_si_no(_v("apoyo_academico_especial")),
     }
 
 
@@ -639,6 +696,20 @@ def _crear_aspirante_desde_datos(datos, institucion, lote, smtp_connection):
         direccion=datos["direccion"],
         requiere_pago_inscripcion=datos["paga_inscripcion"],
         lote_importacion=lote,
+        # ── Caracterización SIMAT/SIMPADE ──
+        pais_origen=datos["pais_origen"],
+        zona_residencia=datos["zona_residencia"],
+        regimen_salud=datos["regimen_salud"],
+        discapacidad_categoria=datos["discapacidad_categoria"],
+        capacidad_excepcional=datos["capacidad_excepcional"],
+        grupo_etnico=datos["grupo_etnico"],
+        estrato=datos["estrato"],
+        sisben_grupo=datos["sisben_grupo"],
+        sisben_puntaje=datos["sisben_puntaje"],
+        victima_conflicto=datos["victima_conflicto"],
+        tipo_poblacion_victima=datos["tipo_poblacion_victima"],
+        srpa=datos["srpa"],
+        apoyo_academico_especial=datos["apoyo_academico_especial"],
     )
     # No queremos que la señal abra otra conexión SMTP por fila. El correo lo
     # enviaremos manualmente reusando la conexión del lote.
