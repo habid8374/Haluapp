@@ -1318,8 +1318,6 @@
 {% endif %}
 
 {# ── Sincronización de CSRF antes de cualquier submit ── #}
-{# Cuando el cookie cambia (ej: rotate_token tras login/2FA) el campo del form
-   queda desactualizado. Esto lo sincroniza justo antes del envío. #}
 <script>
 (function () {
   function getCsrfCookie() {
