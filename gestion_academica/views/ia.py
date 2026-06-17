@@ -52,6 +52,7 @@ from ..tasks import (
 )
 from finanzas.models import InstitucionEducativa
 from finanzas.institucion_credentials import google_api_key as institucion_google_api_key
+from ._main import get_filtered_queryset
 
 # ── Herramientas (tools) para el Asistente HALU ──────────────────────────────
 from ..utils import (
@@ -1180,7 +1181,7 @@ def lista_lecciones_diarias(request, curso_pk):
     """
     Muestra todas las lecciones diarias registradas para un curso específico.
     """
-    curso = get_object_or_404(Curso, pk=curso_pk)
+    curso = get_object_or_404(get_filtered_queryset(Curso, request.user), pk=curso_pk)
     # Validamos que el docente que solicita tenga permiso sobre este curso
     if not curso.docentes_asignados.filter(pk=request.user.docente.pk).exists():
         messages.error(request, "No tienes permiso para ver las lecciones de este curso.")
@@ -1201,7 +1202,7 @@ def detalle_leccion(request, leccion_pk):
     """
     Muestra el detalle de una lección diaria con lógica de permisos y depuración.
     """
-    leccion = get_object_or_404(LeccionDiaria, pk=leccion_pk)
+    leccion = get_object_or_404(get_filtered_queryset(LeccionDiaria, request.user), pk=leccion_pk)
     curso = leccion.curso
     user = request.user
 
@@ -1287,8 +1288,8 @@ def editar_usuario_view(request, user_pk):
     Permite a un administrador editar los detalles y la contraseña de un usuario.
     VERSIÓN MEJORADA: También obtiene el perfil del estudiante si aplica.
     """
-    user_to_edit = get_object_or_404(Usuario, pk=user_pk)
-    
+    user_to_edit = get_object_or_404(get_filtered_queryset(Usuario, request.user), pk=user_pk)
+
     # --- INICIO DE LA LÓGICA AÑADIDA ---
     # Buscamos el perfil de estudiante solo si el rol del usuario es 'estudiante'
     estudiante_profile = None
@@ -1589,8 +1590,8 @@ class GenerarResumenEstudianteIAView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, estudiante_pk, periodo_pk):
-        estudiante = get_object_or_404(Estudiante, pk=estudiante_pk)
-        periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk)
+        estudiante = get_object_or_404(get_filtered_queryset(Estudiante, request.user), pk=estudiante_pk)
+        periodo = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=periodo_pk)
 
         # --- INICIO DE LA CORRECCIÓN DE PERMISOS ---
         user = request.user

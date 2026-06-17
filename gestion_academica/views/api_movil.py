@@ -7,6 +7,7 @@ Extraído del monolito views.py.
 """
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Avg, Count, Q, Sum
 from rest_framework.decorators import api_view, permission_classes
@@ -24,6 +25,7 @@ from ..models import (
 )
 from finanzas.models import CuentaPorCobrarEstudiante, PagoRegistrado
 from gestion_academica.decorators import EstaAlDiaPermission
+from ._main import get_filtered_queryset
 
 logger = logging.getLogger(__name__)
 
@@ -403,7 +405,8 @@ def api_seleccionar_curso_asistencia(request):
     user = request.user
     if not hasattr(user, 'docente'): return Response({'error': 'Acceso denegado.'}, status=403)
     periodo_activo = PeriodoAcademico.objects.filter(institucion=user.docente.institucion, activo=True).first()
-    cursos = Curso.objects.filter(periodo_academico=periodo_activo).select_related('materia', 'grado')
+    if not periodo_activo: return Response([])
+    cursos = Curso.objects.filter(institucion=user.docente.institucion, periodo_academico=periodo_activo).select_related('materia', 'grado')
     data = [{'id_curso': c.id, 'nombre_curso': f"{c.materia.nombre_materia} - {c.grado.nombre}"} for c in cursos]
     return Response(data)
 
@@ -699,7 +702,7 @@ def detalle_noticia_api_view(request, noticia_pk):
     Devuelve el detalle completo de una noticia específica.
     VERSIÓN CORREGIDA CON LOS NOMBRES DE CAMPO REALES.
     """
-    noticia = get_object_or_404(Noticia, pk=noticia_pk)
+    noticia = get_object_or_404(get_filtered_queryset(Noticia, request.user), pk=noticia_pk)
     
     data = {
         'id': noticia.pk,
