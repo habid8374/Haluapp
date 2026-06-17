@@ -189,7 +189,7 @@ def dashboard(request):
 # ---------------------------------------------------------------------------
 
 @require_POST
-@user_passes_test(lambda u: u.is_superuser)
+@_superadmin_required
 def toggle_institucion(request, pk):
     from finanzas.models import InstitucionEducativa
 
@@ -250,7 +250,7 @@ def ticket_detail_view(request, ticket_id):
 
 
 @require_POST
-@user_passes_test(lambda u: u.is_superuser)
+@_superadmin_required
 def cerrar_ticket_view(request, ticket_id):
     from gestion_academica.models import TicketSoporte
 

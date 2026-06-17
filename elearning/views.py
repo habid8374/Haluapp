@@ -181,7 +181,12 @@ def rendir_evaluacion(request, modulo_id):
         messages.error(request, "Solo los estudiantes pueden rendir evaluaciones.")
         return redirect('elearning:catalogo')
 
-    modulo = get_object_or_404(Modulo, pk=modulo_id)
+    if request.user.is_superuser:
+        modulo = get_object_or_404(Modulo, pk=modulo_id)
+    else:
+        modulo = get_object_or_404(
+            Modulo, pk=modulo_id, curso__institucion=request.user.institucion_asociada
+        )
     estudiante = request.user.estudiante
     inscripcion = get_object_or_404(
         InscripcionCurso.objects.select_related("curso", "cuenta_por_cobrar"),
@@ -211,10 +216,20 @@ def rendir_evaluacion(request, modulo_id):
             puntaje_maximo += pregunta.puntos
             opcion_seleccionada = request.POST.get(f'pregunta_{pregunta.id}')
             if opcion_seleccionada:
-                opcion = Opcion.objects.get(pk=opcion_seleccionada)
-                if opcion.es_correcta:
+                # La opción debe pertenecer a esta misma pregunta (evita IDOR cross-tenant).
+                opcion = Opcion.objects.filter(
+                    pk=opcion_seleccionada, pregunta=pregunta
+                ).first()
+                if opcion and opcion.es_correcta:
                     puntaje_total += pregunta.puntos
-        
+
+        if puntaje_maximo == 0:
+            messages.warning(
+                request,
+                "Esta evaluación no tiene preguntas con puntaje. Contacta a tu institución.",
+            )
+            return redirect('elearning:aula_virtual', curso_id=modulo.curso.id)
+
         nota_final = (puntaje_total / puntaje_maximo) * 100
         progreso.intentos_usados += 1
         progreso.mejor_nota = max(progreso.mejor_nota, nota_final)
@@ -293,7 +308,10 @@ def configurar_curso(request, curso_id):
 @login_required
 @permission_required('elearning.add_modulo', raise_exception=True)
 def agregar_modulo(request, curso_id):
-    curso = get_object_or_404(Curso, pk=curso_id)
+    if request.user.is_superuser:
+        curso = get_object_or_404(Curso, pk=curso_id)
+    else:
+        curso = get_object_or_404(Curso, pk=curso_id, institucion=request.user.institucion_asociada)
     if request.method == 'POST':
         form = ModuloForm(request.POST)
         if form.is_valid():
@@ -309,7 +327,12 @@ def agregar_modulo(request, curso_id):
 @login_required
 @permission_required('elearning.add_material', raise_exception=True)
 def agregar_material(request, modulo_id):
-    modulo = get_object_or_404(Modulo, pk=modulo_id)
+    if request.user.is_superuser:
+        modulo = get_object_or_404(Modulo, pk=modulo_id)
+    else:
+        modulo = get_object_or_404(
+            Modulo, pk=modulo_id, curso__institucion=request.user.institucion_asociada
+        )
     if request.method == 'POST':
         form = MaterialForm(request.POST, request.FILES)
         if form.is_valid():
@@ -325,7 +348,12 @@ def agregar_material(request, modulo_id):
 @login_required
 @permission_required('elearning.add_evaluacion', raise_exception=True)
 def agregar_evaluacion(request, modulo_id):
-    modulo = get_object_or_404(Modulo, pk=modulo_id)
+    if request.user.is_superuser:
+        modulo = get_object_or_404(Modulo, pk=modulo_id)
+    else:
+        modulo = get_object_or_404(
+            Modulo, pk=modulo_id, curso__institucion=request.user.institucion_asociada
+        )
     if request.method == 'POST':
         form = EvaluacionForm(request.POST)
         if form.is_valid():
@@ -363,9 +391,11 @@ def matricular_estudiante_manual(request):
         curso_id = request.POST.get('curso_id')
         
         try:
-            estudiante = Estudiante.objects.get(pk=estudiante_id)
-            curso = Curso.objects.get(pk=curso_id)
-            
+            # Scoping multi-institución: estudiante y curso deben pertenecer
+            # a la institución de trabajo (evita matrícula cross-tenant).
+            estudiante = Estudiante.objects.get(pk=estudiante_id, institucion=institucion_actual)
+            curso = Curso.objects.get(pk=curso_id, institucion=institucion_actual)
+
             # Crear la inscripción (esto disparará la señal post_save)
             inscripcion, created = InscripcionCurso.objects.get_or_create(
                 estudiante=estudiante,
@@ -556,7 +586,7 @@ def registrar_estudiante_curso(request):
                     documento_identidad=documento,
                     institucion=institucion_actual,
                 )
-                curso = Curso.objects.get(pk=curso_id)
+                curso = Curso.objects.get(pk=curso_id, institucion=institucion_actual)
                 inscripcion = InscripcionCurso.objects.create(
                     estudiante=estudiante, curso=curso, activo=True
                 )

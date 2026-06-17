@@ -87,19 +87,24 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
             ActividadCalificable.objects.select_related('curso', 'institucion'),
             pk=actividad_pk,
         )
+        # puede_ver_respuestas: quién tiene derecho a recibir la hoja de respuestas
+        # (es_correcta / respuesta_correcta_abierta). Un estudiante NO debe recibirla
+        # mientras resuelve; solo si el docente habilitó 'mostrar_respuestas'.
+        puede_ver_respuestas = False
+        es_estudiante = False
         if request.user.is_superuser:
-            pass
+            puede_ver_respuestas = True
         elif hasattr(request.user, 'docente') and docente_asignado_a_actividad(request.user, actividad):
-            pass
+            puede_ver_respuestas = True
         elif hasattr(request.user, 'estudiante') and estudiante_en_curso_actividad(
             request.user.estudiante, actividad
         ):
-            pass
+            es_estudiante = True
         elif (
             request.user.is_staff
             and getattr(request.user, 'institucion_asociada_id', None) == actividad.institucion_id
         ):
-            pass
+            puede_ver_respuestas = True
         else:
             return JsonResponse({'error': 'No autorizado.'}, status=403)
 
@@ -108,6 +113,10 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
             actividad_calificable_id=actividad_pk,
             institucion_id=actividad.institucion_id,
         )
+
+        # El estudiante solo ve las respuestas correctas si el docente las habilitó.
+        if es_estudiante and cuestionario.mostrar_respuestas:
+            puede_ver_respuestas = True
 
         preguntas = []
         for p in cuestionario.preguntas.order_by('orden'):
@@ -118,18 +127,19 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 'puntaje': p.puntaje,
                 'orden': p.orden,
                 'retroalimentacion': p.retroalimentacion,
-                'respuesta_correcta_abierta': p.respuesta_correcta_abierta
             }
+            if puede_ver_respuestas:
+                pregunta_data['respuesta_correcta_abierta'] = p.respuesta_correcta_abierta
 
             if p.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento']:
                 pregunta_data['opciones'] = [
                     {
                         'id': op.id,
                         'texto': op.texto,
-                        # Para el editor, podrías necesitar el campo 'emparejamiento'
-                        'emparejamiento': op.emparejamiento, 
-                        'es_correcta': op.es_correcta,
-                        'orden': op.orden
+                        'emparejamiento': op.emparejamiento,
+                        'orden': op.orden,
+                        # es_correcta solo para quien puede ver la hoja de respuestas
+                        **({'es_correcta': op.es_correcta} if puede_ver_respuestas else {}),
                     }
                     for op in p.opciones.order_by('orden')
                 ]
