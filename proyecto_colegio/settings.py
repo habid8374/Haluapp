@@ -29,12 +29,17 @@ if not DEBUG and not SECRET_KEY:
     import sys
     print("ERROR CRÍTICO: SECRET_KEY no está configurada en las variables de entorno.", file=sys.stderr)
     sys.exit(1)
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') + [
-    '.ngrok-free.app',
-    '.trycloudflare.com',
-    '127.0.0.1',
-    'localhost',
-]
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h.strip()]
+ALLOWED_HOSTS += ['127.0.0.1', 'localhost']
+
+# Los dominios de túnel (ngrok / trycloudflare) solo se confían en desarrollo.
+# En producción NUNCA deben aceptarse: cualquiera podría levantar un túnel y
+# servir la app bajo un host de confianza (Host header / CSRF spoofing).
+if DEBUG:
+    ALLOWED_HOSTS += [
+        '.ngrok-free.app',
+        '.trycloudflare.com',
+    ]
 
 # --- CONFIGURACIÓN PARA REVERSE PROXY (NGROK, HEROKU, ETC.) ---
 # Estas líneas le dicen a Django que confíe en las cabeceras del proxy
@@ -46,9 +51,16 @@ USE_X_FORWARDED_HOST = True
 # CSRF_TRUSTED_ORIGINS=https://app.haluplataform.com,https://*.ngrok-free.app
 _csrf_raw = os.environ.get(
     'CSRF_TRUSTED_ORIGINS',
-    'https://app.haluplataform.com,https://*.ngrok-free.app,https://*.trycloudflare.com'
+    'https://app.haluplataform.com'
 )
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_raw.split(',') if o.strip()]
+
+# Igual que ALLOWED_HOSTS: los túneles solo se confían en desarrollo.
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS += [
+        'https://*.ngrok-free.app',
+        'https://*.trycloudflare.com',
+    ]
 
 # Application definition
 
