@@ -296,13 +296,17 @@ class AspiranteDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailVie
         )
         return context
 
-class AspiranteUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class AspiranteUpdateView(LoginRequiredMixin, PermissionRequiredMixin, AspiranteMultiInstitucionMixin, UpdateView):
     model = Aspirante
     form_class = AspiranteForm
     template_name = 'admisiones/formulario_inscripcion.html'
     permission_required = 'admisiones.change_aspirante'
-    # Asumo que tienes un Mixin para filtrar por institución, lo mantengo si existe
-    # de lo contrario, puedes añadir el método get_queryset como en otras vistas.
+
+    def get_form_kwargs(self):
+        # AspiranteForm filtra el queryset de grados por institución usando 'user'.
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def get_success_url(self):
         """

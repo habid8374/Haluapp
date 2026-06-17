@@ -384,6 +384,8 @@ def eliminar_ajuste(request, piar_pk, ajuste_pk):
 @login_required
 @require_POST
 def actualizar_seguimiento(request, piar_pk, ajuste_pk):
+    if not _es_docente_o_superior(request.user):  # verificar rol antes de modificar el seguimiento
+        return JsonResponse({'ok': False, 'error': 'No tienes permiso para actualizar el seguimiento.'}, status=403)
     institucion = _get_institucion(request)
     piar = get_object_or_404(PIAR, pk=piar_pk, institucion=institucion)
     ajuste = get_object_or_404(AjustePIAR, pk=ajuste_pk, piar=piar)

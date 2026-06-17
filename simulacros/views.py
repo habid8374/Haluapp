@@ -589,11 +589,18 @@ def _guardar_simulacro(request, simulacro_existente):
     simulacro_existente.mostrar_respuestas = 'mostrar_respuestas' in p
     simulacro_existente.save()
 
-    # Actualizar preguntas seleccionadas
+    # Actualizar preguntas seleccionadas.
+    # Aislamiento multi-institución: solo se pueden adjuntar preguntas públicas
+    # o del banco de la propia institución. Sin este filtro, un docente podría
+    # enviar por POST el pk de una pregunta privada de OTRA institución y leer
+    # su enunciado/opciones/respuesta vía el simulacro (IDOR cross-tenant).
     ids_seleccionados = list(map(int, p.getlist('preguntas')))
     PreguntaSimulacro.objects.filter(simulacro=simulacro_existente).delete()
+    preguntas_validas = BancoPregunta.objects.filter(
+        Q(es_publica=True) | Q(institucion=institucion)
+    )
     for orden, pid in enumerate(ids_seleccionados):
-        pregunta = BancoPregunta.objects.filter(pk=pid).first()
+        pregunta = preguntas_validas.filter(pk=pid).first()
         if pregunta:
             PreguntaSimulacro.objects.create(
                 simulacro=simulacro_existente, pregunta=pregunta, orden=orden

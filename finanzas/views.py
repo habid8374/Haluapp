@@ -63,6 +63,11 @@ from gestion_academica.forms import RespuestaTicketForm
 
 from utils.mercadopago_webhook import resolve_notification_data_id, verify_mercadopago_webhook_signature
 from finanzas.institucion_credentials import mp_webhook_secret as institucion_mp_webhook_secret
+from finanzas.mercadopago_client import (
+    consultar_pago,
+    MercadoPagoError,
+    MercadoPagoSinCredenciales,
+)
 
 from .logic import aplicar_descuentos_a_cuenta
 
@@ -1039,7 +1044,11 @@ def iniciar_pago_mercadopago(request, cuenta_pk):
 
     # ✅ URLs seguras con HTTPS dinámicas (funciona con ngrok)
     success_url = request.build_absolute_uri(reverse('finanzas:pago_respuesta_mp')).replace('http://', 'https://')
-    notification_url = request.build_absolute_uri(reverse('finanzas:finanzas_mercadopago_webhook')).replace('http://', 'https://')
+    # institucion_id es obligatorio en el webhook (aislamiento multi-institución).
+    notification_url = (
+        request.build_absolute_uri(reverse('finanzas:finanzas_mercadopago_webhook')).replace('http://', 'https://')
+        + f"?institucion_id={institucion.id}"
+    )
 
     payer_email = (request.user.email or estudiante.usuario.email or '').strip()
     if not payer_email:
@@ -1140,60 +1149,36 @@ def pago_respuesta_mp(request):
     return redirect('finanzas:mi_estado_de_cuenta')
 
 
-def _find_payment_institution(payment_id):
-    """
-    Función de ayuda para encontrar la institución correcta iterando sobre sus tokens.
-    Retorna (institucion, payment_info) o (None, None).
-    """
-    # Esta consulta ahora funciona porque 'models' ha sido importado.
-    instituciones_con_mp = InstitucionEducativa.objects.filter(
-        models.Q(mp_access_token_prod__isnull=False) & ~models.Q(mp_access_token_prod__exact='') |
-        models.Q(mp_access_token_test__isnull=False) & ~models.Q(mp_access_token_test__exact='')
-    )
-    
-    for institucion in instituciones_con_mp:
-        try:
-            token = institucion.mp_access_token_prod if institucion.mp_modo_produccion else institucion.mp_access_token_test
-            if not token:
-                continue
-            sdk = mercadopago.SDK(token)
-            payment_info = sdk.payment().get(payment_id)["response"]
-            return institucion, payment_info
-        except Exception:
-            continue
-    return None, None
-
-
 @csrf_exempt
 @transaction.atomic
 def finanzas_mercadopago_webhook(request):
     """
     Webhook para FINANZAS. Procesa pagos de estudiantes (pensiones, etc.).
-    La firma HMAC se verifica ANTES de parsear o procesar el cuerpo del request.
+
+    Aislamiento multi-institución (endurecido):
+      1. ``institucion_id`` es OBLIGATORIO en la URL (?institucion_id=N). Sin él
+         no se puede verificar la firma ni saber qué token usar → HTTP 400.
+      2. La firma HMAC se verifica SIEMPRE con el secret de esa institución; si
+         falla → HTTP 401. No hay ruta que la omita.
+      3. El pago se consulta SOLO con el token de la institución indicada
+         (vía el cliente centralizado), nunca iterando los tokens de todas las
+         instituciones (eso era un fan-out cross-tenant).
     """
     if request.method != 'POST':
         return HttpResponse("Método no permitido", status=405)
 
-    # ── 1. VERIFICAR FIRMA PRIMERO — antes de hacer cualquier otra cosa ───────
-    # Extraemos institution_id de la URL (?institucion_id=N) para obtener el secret.
+    # ── 1. Resolver institución desde la URL — OBLIGATORIO ────────────────────
     institucion_id_raw = (request.GET.get("institucion_id") or "").strip()
-    if institucion_id_raw.isdigit():
-        try:
-            _inst_para_firma = InstitucionEducativa.objects.get(pk=int(institucion_id_raw))
-            _secret = institucion_mp_webhook_secret(_inst_para_firma)
-            _data_id = resolve_notification_data_id(request, request.GET.get("data_id", ""))
-            if not verify_mercadopago_webhook_signature(
-                _secret,
-                data_id=_data_id,
-                x_request_id=request.META.get("HTTP_X_REQUEST_ID"),
-                x_signature_header=request.META.get("HTTP_X_SIGNATURE"),
-            ):
-                logger.warning("Webhook Finanzas: firma inválida para institución %s.", institucion_id_raw)
-                return HttpResponse("Firma webhook invalida", status=401)
-        except InstitucionEducativa.DoesNotExist:
-            pass  # Validación de institución se repite más abajo con mejor contexto
+    if not institucion_id_raw.isdigit():
+        logger.error("Webhook Finanzas: institucion_id ausente o inválido en la URL.")
+        return HttpResponse("institucion_id invalido", status=400)
+    try:
+        institucion = InstitucionEducativa.objects.get(pk=int(institucion_id_raw))
+    except InstitucionEducativa.DoesNotExist:
+        logger.error("Webhook Finanzas: institución %s no encontrada.", institucion_id_raw)
+        return HttpResponse("Institucion no encontrada", status=404)
 
-    # ── 2. Parsear el cuerpo solo si la firma pasó ────────────────────────────
+    # ── 2. Parsear el cuerpo ──────────────────────────────────────────────────
     try:
         body = json.loads(request.body)
         if body.get("type") != "payment":
@@ -1203,12 +1188,35 @@ def finanzas_mercadopago_webhook(request):
         logger.error("Webhook Finanzas: Petición mal formada.")
         return HttpResponse("Petición inválida", status=400)
 
+    # ── 3. VERIFICAR FIRMA con el secret de la institución resuelta ───────────
+    _secret = institucion_mp_webhook_secret(institucion)
+    _data_id = resolve_notification_data_id(request, str(payment_id or ""))
+    if not verify_mercadopago_webhook_signature(
+        _secret,
+        data_id=_data_id,
+        x_request_id=request.META.get("HTTP_X_REQUEST_ID"),
+        x_signature_header=request.META.get("HTTP_X_SIGNATURE"),
+    ):
+        logger.warning("Webhook Finanzas: firma inválida para institución %s.", institucion_id_raw)
+        return HttpResponse("Firma webhook invalida", status=401)
+
     try:
-        institucion_del_pago, payment_info = _find_payment_institution(payment_id)
+        # ── 4. Consultar el pago SOLO con el token de esta institución ────────
+        try:
+            payment_info = consultar_pago(institucion, payment_id=payment_id)
+        except MercadoPagoSinCredenciales as exc:
+            logger.error("Webhook Finanzas: institución %s sin credenciales MP: %s", institucion.pk, exc)
+            return HttpResponse("Sin credenciales", status=503)
+        except MercadoPagoError as exc:
+            logger.error("Webhook Finanzas: fallo al consultar pago %s para institución %s: %s",
+                         payment_id, institucion.pk, exc)
+            return HttpResponse("Error consultando MP", status=502)
 
         if not payment_info:
-            logger.error(f"Webhook Finanzas: No se pudo encontrar el pago {payment_id} en ninguna institución.")
+            logger.error(f"Webhook Finanzas: No se pudo encontrar el pago {payment_id}.")
             return HttpResponse("Pago no encontrado", status=404)
+
+        institucion_del_pago = institucion
 
         if payment_info.get('status') == 'approved':
             external_ref = payment_info.get('external_reference')
