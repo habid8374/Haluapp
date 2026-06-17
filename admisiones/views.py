@@ -260,9 +260,16 @@ def admitir_aspirante(request, aspirante_id):
     return redirect('admisiones:detalle_aspirante', pk=aspirante.id)
 
 class AspiranteMultiInstitucionMixin:
-    """ Mixin para filtrar querysets por la institución del usuario. """
+    """ Mixin para filtrar querysets por la institución del usuario.
+
+    El superusuario ve todo (bypass), igual que el resto de la plataforma; los
+    demás usuarios quedan acotados a su institucion_asociada.
+    """
     def get_queryset(self):
-        return self.model.objects.filter(institucion=self.request.user.institucion_asociada)    
+        qs = self.model.objects.all()
+        if self.request.user.is_superuser:
+            return qs
+        return qs.filter(institucion=self.request.user.institucion_asociada)
 
 # --- Vistas Basadas en Clases (Completas) ---
 class AspiranteDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
@@ -272,7 +279,9 @@ class AspiranteDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailVie
     permission_required = 'admisiones.view_aspirante'
 
     def get_queryset(self):
-        # Tu lógica de seguridad multi-institución está perfecta y se mantiene
+        # Aislamiento multi-institución con bypass de superusuario.
+        if self.request.user.is_superuser:
+            return Aspirante.objects.all()
         return Aspirante.objects.filter(institucion=self.request.user.institucion_asociada)
 
     def get_context_data(self, **kwargs):

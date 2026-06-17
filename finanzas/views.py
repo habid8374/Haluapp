@@ -1188,6 +1188,12 @@ def finanzas_mercadopago_webhook(request):
         logger.error("Webhook Finanzas: Petición mal formada.")
         return HttpResponse("Petición inválida", status=400)
 
+    # payment_id debe ser numérico: evita pasar valores arbitrarios al SDK de MP
+    # (defensa en profundidad contra SSRF/abuso del cliente HTTP).
+    if not re.fullmatch(r"\d+", str(payment_id)):
+        logger.warning("Webhook Finanzas: payment_id no numérico: %r", payment_id)
+        return HttpResponse("payment_id invalido", status=400)
+
     # ── 3. VERIFICAR FIRMA con el secret de la institución resuelta ───────────
     _secret = institucion_mp_webhook_secret(institucion)
     _data_id = resolve_notification_data_id(request, str(payment_id or ""))
@@ -1240,10 +1246,21 @@ def finanzas_mercadopago_webhook(request):
                 logger.info(f"Webhook Finanzas: pago {payment_id} ya registrado (idempotencia).")
                 return HttpResponse(status=200)
 
-            cuenta = CuentaPorCobrarEstudiante.objects.select_for_update().get(
-                pk=cuenta_id,
-                institucion__pk=institucion_id,
-            )
+            try:
+                cuenta = CuentaPorCobrarEstudiante.objects.select_for_update().get(
+                    pk=cuenta_id,
+                    institucion__pk=institucion_id,
+                )
+            except CuentaPorCobrarEstudiante.DoesNotExist:
+                # La cuenta referida no existe (p. ej. fue eliminada). Reintentar es
+                # inútil, así que devolvemos 200 para frenar el bucle de MP y dejamos
+                # un error en el log; la reconciliación puede recuperarlo después.
+                logger.error(
+                    "Webhook Finanzas: cuenta %s (institución %s) no existe para el pago %s. "
+                    "Se omite el procesamiento.",
+                    cuenta_id, institucion_id, payment_id,
+                )
+                return HttpResponse("Cuenta no encontrada", status=200)
 
             if not PagoRegistrado.objects.filter(referencia_transaccion=str(payment_id)).exists():
                 pago_mp = PagoRegistrado.objects.create(
