@@ -673,9 +673,21 @@ class ConsecutivoDocumento(models.Model):
             return numero_actual     
 
 class ItemCuenta(models.Model):
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa',
+        on_delete=models.CASCADE,
+        related_name='items_cuenta',
+    )
     cuenta = models.ForeignKey('CuentaPorCobrarEstudiante', on_delete=models.CASCADE, related_name='items')
     descripcion = models.CharField(max_length=255, verbose_name="Descripción")
     valor = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Valor")
+
+    def save(self, *args, **kwargs):
+        # Denormaliza la institución desde la cuenta (aislamiento multi-institución):
+        # permite filtrar ItemCuenta directamente por institución sin un join.
+        if self.institucion_id is None and self.cuenta_id is not None:
+            self.institucion_id = self.cuenta.institucion_id
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.descripcion}: ${self.valor}"

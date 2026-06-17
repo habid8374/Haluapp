@@ -8327,9 +8327,21 @@ def guardar_libro_notas_api_view(request, curso_pk):
             return Response({'error': 'No tienes permiso para guardar notas en este curso.'}, status=403)
 
         # request.data contiene el JSON que envía la app
-        calificaciones_data = request.data 
+        calificaciones_data = request.data
         if not isinstance(calificaciones_data, list):
             return Response({'error': 'El formato de los datos debe ser una lista de calificaciones.'}, status=400)
+
+        # Aislamiento multi-institución: estudiante_id y actividad_id vienen del
+        # body, así que validamos que pertenezcan a ESTE curso. Sin esto, un docente
+        # podría escribir notas en actividades/estudiantes de otra institución.
+        actividades_validas = set(
+            ActividadCalificable.objects.filter(curso=curso).values_list('id', flat=True)
+        )
+        estudiantes_validos = set(
+            Estudiante.objects.filter(
+                grado_actual=curso.grado, institucion=curso.institucion
+            ).values_list('id', flat=True)
+        )
 
         calificaciones_procesadas_ids = []
 
@@ -8340,8 +8352,21 @@ def guardar_libro_notas_api_view(request, curso_pk):
                 nota_str = item.get('nota')
 
                 if nota_str is not None and nota_str.strip() != '':
+                    # Rechazamos el lote completo si algún id no pertenece al curso
+                    # (señal de manipulación). Fail-closed.
+                    try:
+                        estudiante_id = int(estudiante_id)
+                        actividad_id = int(actividad_id)
+                    except (TypeError, ValueError):
+                        return Response({'error': 'estudiante_id o actividad_id inválido.'}, status=400)
+                    if estudiante_id not in estudiantes_validos or actividad_id not in actividades_validas:
+                        return Response(
+                            {'error': 'Una calificación referencia un estudiante o actividad que no pertenece a este curso.'},
+                            status=400,
+                        )
+
                     valor_nota = Decimal(str(nota_str).replace(',', '.'))
-                    
+
                     # Usamos update_or_create para eficiencia
                     calificacion_obj, created = Calificacion.objects.update_or_create(
                         estudiante_id=estudiante_id,
