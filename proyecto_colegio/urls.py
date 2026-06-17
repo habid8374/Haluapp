@@ -64,8 +64,13 @@ urlpatterns = [
 
     # Redirección de la raíz del sitio al dashboard académico
     path('', RedirectView.as_view(pattern_name='gestion_academica:inicio_academico', permanent=False)),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # Rate-limit del login móvil (oráculo de adivinación de contraseñas).
+    path('api/token/', ratelimit(key='ip', rate='10/m', method='POST', block=True)(
+        TokenObtainPairView.as_view()
+    ), name='token_obtain_pair'),
+    path('api/token/refresh/', ratelimit(key='ip', rate='30/m', method='POST', block=True)(
+        TokenRefreshView.as_view()
+    ), name='token_refresh'),
     path('cuestionarios/', include('cuestionarios.urls', namespace='cuestionarios')),
     path('mensajeria/', include('mensajeria.urls', namespace='mensajeria')),
     path('auditoria/', include('auditoria.urls', namespace='auditoria')),

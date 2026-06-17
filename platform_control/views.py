@@ -18,6 +18,7 @@ from django.db.models.functions import Coalesce
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 
 from .forms import SuperAdminLoginForm
 
@@ -87,6 +88,7 @@ def login_view(request):
     return render(request, "platform_control/login.html", {"form": form})
 
 
+@ratelimit(key='user', rate='5/m', method='POST', block=True)
 def verificar_2fa_superadmin(request):
     """4ta capa de seguridad: TOTP para el panel superadmin."""
     if not request.user.is_authenticated or not request.user.is_superuser:

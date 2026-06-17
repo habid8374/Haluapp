@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django_ratelimit.decorators import ratelimit
 
 from .models import DispositivoTOTP
 
@@ -30,6 +31,7 @@ def configurar_2fa(request):
 
 
 @login_required
+@ratelimit(key='user', rate='5/m', method='POST', block=True)
 @require_http_methods(['GET', 'POST'])
 def verificar_2fa(request):
     """Solicita el código TOTP en cada inicio de sesión."""
@@ -71,15 +73,27 @@ def resetear_2fa(request):
 
 
 @login_required
+@ratelimit(key='user', rate='5/m', method='POST', block=True)
 def desactivar_2fa(request):
-    """Desactiva el 2FA del usuario (requiere confirmación)."""
+    """Desactiva el 2FA del usuario.
+
+    Requiere el código TOTP actual: evita que se desactive el 2FA desde una
+    sesión robada sin acceso al dispositivo autenticador.
+    """
     if request.method == 'POST':
         try:
-            request.user.dispositivo_totp.delete()
-            request.session.pop('2fa_verificado', None)
-            messages.success(request, 'Autenticación de dos factores desactivada.')
+            disp = request.user.dispositivo_totp
         except Exception:
-            pass
+            return redirect(reverse('2fa:configurar'))
+
+        codigo = request.POST.get('codigo', '').strip().replace(' ', '')
+        if not disp.verificar(codigo):
+            messages.error(request, 'Código incorrecto. Ingresa el código actual de tu autenticador para desactivar el 2FA.')
+            return render(request, 'autenticacion_2fa/desactivar_confirm.html')
+
+        disp.delete()
+        request.session.pop('2fa_verificado', None)
+        messages.success(request, 'Autenticación de dos factores desactivada.')
         return redirect(reverse('2fa:configurar'))
 
     return render(request, 'autenticacion_2fa/desactivar_confirm.html')
