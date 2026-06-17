@@ -573,7 +573,7 @@ class EstudiantesPorGradoListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         """ Filtra los estudiantes por el grado seleccionado. """
-        self.grado = get_object_or_404(Grado, pk=self.kwargs['grado_pk'])
+        self.grado = get_object_or_404(get_filtered_queryset(Grado, self.request.user), pk=self.kwargs['grado_pk'])
         
         # Filtro simple y seguro gracias a la validación en dispatch
         return Estudiante.objects.filter(
@@ -696,7 +696,7 @@ def crear_estudiante(request):
 @permission_required('gestion_academica.change_estudiante')
 @mensaje_exito("Datos del estudiante actualizados exitosamente.")
 def editar_estudiante(request, pk):
-    estudiante = get_object_or_404(Estudiante, pk=pk)
+    estudiante = get_object_or_404(get_filtered_queryset(Estudiante, request.user), pk=pk)
     usuario = estudiante.usuario
     # Caracterización SIMAT/SIMPADE: se crea de forma perezosa para que los
     # estudiantes ya existentes puedan completarla sin migración de datos.
@@ -898,7 +898,7 @@ def crear_docente(request):
 @permission_required('gestion_academica.change_docente')
 @mensaje_exito("Datos del docente actualizados exitosamente.")
 def editar_docente(request, pk):
-    docente = get_object_or_404(Docente, pk=pk)
+    docente = get_object_or_404(get_filtered_queryset(Docente, request.user), pk=pk)
     usuario = docente.usuario
 
     if request.method == 'POST':
@@ -1965,7 +1965,7 @@ def realizar_entrega_deber(request, deber_pk):
         messages.error(request, "Tu perfil de estudiante no está configurado.")
         return redirect('gestion_academica:inicio_academico')
 
-    deber = get_object_or_404(Deber.objects.select_related('curso__grado'), pk=deber_pk)
+    deber = get_object_or_404(get_filtered_queryset(Deber, request.user, Deber.objects.select_related('curso__grado')), pk=deber_pk)
 
     if estudiante_actual.grado_actual != deber.curso.grado:
         messages.error(request, "No tienes permiso para realizar una entrega para este deber.")
@@ -2891,7 +2891,7 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
         messages.error(request, "Acceso denegado.")
         return redirect('gestion_academica:inicio_academico')
 
-    curso = get_object_or_404(Curso.objects.select_related('materia', 'grado', 'periodo_academico'), pk=curso_pk)
+    curso = get_object_or_404(get_filtered_queryset(Curso, request.user, Curso.objects.select_related('materia', 'grado', 'periodo_academico')), pk=curso_pk)
 
     # Los coordinadores de la misma institución pueden ver cualquier curso; los docentes sólo los suyos
     if not es_coordinador and not request.user.is_superuser:
@@ -3480,7 +3480,7 @@ def escaner_asistencia(request, curso_pk): # <--- CAMBIO: de curso_id a curso_pk
     """
     Muestra la página con el escáner de QR para un curso específico.
     """
-    curso = get_object_or_404(Curso.objects.select_related('materia', 'grado'), pk=curso_pk) # <--- CAMBIO: usa curso_pk
+    curso = get_object_or_404(get_filtered_queryset(Curso, request.user, Curso.objects.select_related('materia', 'grado')), pk=curso_pk) # <--- CAMBIO: usa curso_pk
     
     # Lógica de seguridad
     if not (request.user.is_superuser or hasattr(request.user, 'docente')):
@@ -3566,7 +3566,7 @@ def exportar_asistencia_excel(request, curso_pk):  # 👈 Asegúrate de que URL 
     hoy = localdate()
 
     # Seguridad multi-institución
-    curso = get_object_or_404(Curso, pk=curso_pk)
+    curso = get_object_or_404(get_filtered_queryset(Curso, request.user), pk=curso_pk)
     if not request.user.is_superuser and curso.institucion != request.user.institucion_asociada:
         return HttpResponse("No autorizado para acceder a este curso.", status=403)
 
@@ -4034,7 +4034,7 @@ def seleccionar_curso_para_leccion(request):
 @login_required
 @permission_required('gestion_academica.add_lecciondiaria')
 def registrar_leccion_diaria(request, curso_pk):
-    curso = get_object_or_404(Curso, pk=curso_pk)
+    curso = get_object_or_404(get_filtered_queryset(Curso, request.user), pk=curso_pk)
     
     if not hasattr(request.user, 'docente') or not curso.docentes_asignados.filter(pk=request.user.docente.pk).exists():
         messages.error(request, "No tienes permiso para registrar lecciones en este curso.")
@@ -4634,8 +4634,8 @@ def gestionar_observaciones_curso(request, grado_pk, periodo_pk):
     Paso 1: Muestra la lista de estudiantes para que el director elija a quién
     registrar una observación para el boletín.
     """
-    grado = get_object_or_404(Grado, pk=grado_pk)
-    periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk)
+    grado = get_object_or_404(get_filtered_queryset(Grado, request.user), pk=grado_pk)
+    periodo = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=periodo_pk)
 
     # Lógica de permisos para asegurar que solo el director de grupo acceda
     try:
@@ -4667,9 +4667,9 @@ def gestionar_observacion_estudiante_form(request, estudiante_pk, periodo_pk):
     """
     Paso 2: Muestra y procesa el formulario para un estudiante específico.
     """
-    estudiante = get_object_or_404(Estudiante.objects.select_related('usuario', 'grado_actual'), pk=estudiante_pk)
-    periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk)
-    
+    estudiante = get_object_or_404(get_filtered_queryset(Estudiante, request.user, Estudiante.objects.select_related('usuario', 'grado_actual')), pk=estudiante_pk)
+    periodo = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=periodo_pk)
+
     # Aquí puedes añadir la misma lógica de permisos de la vista anterior si quieres más seguridad
 
     observacion_obj, created = ObservacionBoletin.objects.get_or_create(
@@ -4723,9 +4723,9 @@ def detalle_leccion_diaria(request, leccion_pk):
     """
     Muestra el detalle completo de una lección diaria para un estudiante.
     """
-    leccion = get_object_or_404(LeccionDiaria.objects.select_related(
+    leccion = get_object_or_404(get_filtered_queryset(LeccionDiaria, request.user, LeccionDiaria.objects.select_related(
         'curso__materia', 'curso__grado', 'creado_por'
-    ), pk=leccion_pk)
+    )), pk=leccion_pk)
 
     # Lógica de seguridad
     try:
@@ -5247,8 +5247,8 @@ def historial_observador_estudiante(request, estudiante_pk):
     """
     Muestra el historial y guarda nuevas anotaciones, disparando el signal de Halu Sentinel.
     """
-    estudiante = get_object_or_404(Estudiante.objects.select_related('usuario', 'institucion'), pk=estudiante_pk)
-    
+    estudiante = get_object_or_404(get_filtered_queryset(Estudiante, request.user, Estudiante.objects.select_related('usuario', 'institucion')), pk=estudiante_pk)
+
     if request.method == 'POST':
         form = AnotacionObservadorForm(request.POST, request=request)
         if form.is_valid():
@@ -5287,7 +5287,7 @@ def exportar_observador_pdf(request, estudiante_pk):
     from gestion_academica.models import Familiar, PeriodoAcademico
 
     estudiante = get_object_or_404(
-        Estudiante.objects.select_related('usuario', 'grado_actual', 'institucion'),
+        get_filtered_queryset(Estudiante, request.user, Estudiante.objects.select_related('usuario', 'grado_actual', 'institucion')),
         pk=estudiante_pk,
     )
     institucion = estudiante.institucion
@@ -5529,7 +5529,7 @@ def seleccionar_curso_reporte_nota_minima(request):
 @login_required
 def generar_reporte_nota_minima(request, curso_pk):
     curso = get_object_or_404(
-        Curso.objects.select_related('grado', 'institucion'), pk=curso_pk
+        get_filtered_queryset(Curso, request.user, Curso.objects.select_related('grado', 'institucion')), pk=curso_pk
     )
     estudiantes = Estudiante.objects.filter(
         grado_actual=curso.grado
@@ -5772,7 +5772,7 @@ def exportar_reporte_nota_minima_excel(request, curso_pk):
     Exporta el reporte de nota mínima a un archivo Excel.
     """
     # Reutilizamos la misma lógica de cálculo de la vista original
-    curso = get_object_or_404(Curso.objects.select_related('grado'), pk=curso_pk)
+    curso = get_object_or_404(get_filtered_queryset(Curso, request.user, Curso.objects.select_related('grado')), pk=curso_pk)
     estudiantes = Estudiante.objects.filter(grado_actual=curso.grado).select_related('usuario').order_by('usuario__last_name')
     actividades = ActividadCalificable.objects.filter(curso=curso).select_related('tipo_actividad')
     calificaciones = Calificacion.objects.filter(actividad_calificable__in=actividades)
@@ -5833,7 +5833,7 @@ def exportar_libro_de_notas_excel(request, curso_pk):
     INCLUYENDO LA NOTA DEFINITIVA CALCULADA.
     """
     # 1. Obtener todos los datos necesarios (igual que antes)
-    curso = get_object_or_404(Curso, pk=curso_pk)
+    curso = get_object_or_404(get_filtered_queryset(Curso, request.user), pk=curso_pk)
     estudiantes = Estudiante.objects.filter(grado_actual=curso.grado).select_related('usuario').order_by('usuario__last_name')
     actividades = ActividadCalificable.objects.filter(curso=curso).select_related('tipo_actividad').order_by('tipo_actividad__nombre', 'titulo')
     
@@ -6171,9 +6171,9 @@ def exportar_reporte_riesgo_global_view(request):
         return HttpResponse("Faltan filtros.", status=400)
     
     try:
-        periodo = get_object_or_404(PeriodoAcademico, pk=periodo_id)
-        grado = get_object_or_404(Grado, pk=grado_id)
-        
+        periodo = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=periodo_id)
+        grado = get_object_or_404(get_filtered_queryset(Grado, request.user), pk=grado_id)
+
         # --- LÓGICA DE PERMISOS DEFINITIVA ---
         user = request.user
         user_inst = getattr(user, 'institucion_asociada', None)
@@ -6350,7 +6350,7 @@ def citar_acudiente_view(request, prediccion_pk):
         messages.error(request, "No tienes permiso para realizar esta acción.")
         return redirect('gestion_academica:reporte_riesgo_academico')
 
-    prediccion = get_object_or_404(PrediccionRiesgoEstudiante, pk=prediccion_pk)
+    prediccion = get_object_or_404(get_filtered_queryset(PrediccionRiesgoEstudiante, request.user), pk=prediccion_pk)
     estudiante = prediccion.estudiante
     institucion = estudiante.institucion
     familiar = estudiante.familiares.select_related('usuario').first()
@@ -7317,7 +7317,7 @@ def seleccionar_estudiante_certificado_view(request):
         ).select_related('usuario', 'grado_actual').order_by('usuario__last_name')
         
         # También obtenemos el objeto del grado para mostrar su nombre
-        grado_seleccionado = get_object_or_404(Grado, pk=grado_id)
+        grado_seleccionado = get_object_or_404(get_filtered_queryset(Grado, request.user), pk=grado_id)
 
     context = {
         'titulo_pagina': "Generar Certificados",
@@ -7515,8 +7515,8 @@ def promocion_anual_view(request):
 
     # Si el admin ha filtrado, calculamos el estado de los estudiantes
     if grado_id and periodo_id:
-        grado = get_object_or_404(Grado, pk=grado_id)
-        periodo = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        grado = get_object_or_404(get_filtered_queryset(Grado, request.user), pk=grado_id)
+        periodo = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=periodo_id)
         estudiantes = Estudiante.objects.filter(grado_actual=grado)
 
         for est in estudiantes:
@@ -7530,7 +7530,7 @@ def promocion_anual_view(request):
         estudiantes_a_promover_ids = request.POST.getlist('estudiantes_a_promover')
         siguiente_periodo_id = request.POST.get('siguiente_periodo_id')
         
-        siguiente_periodo = get_object_or_404(PeriodoAcademico, pk=siguiente_periodo_id)
+        siguiente_periodo = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=siguiente_periodo_id)
         concepto_matricula = ConceptoPago.objects.filter(
             tipo_concepto__nombre__icontains='Matrícula',
             periodo_academico_aplicable=siguiente_periodo
@@ -7643,7 +7643,7 @@ def gestionar_promocion_grados_view(request):
                 siguiente_grado_id = request.POST.get(f'siguiente_grado_{grado.pk}')
                 if siguiente_grado_id:
                     # Usamos .get() para asegurarnos de que el grado seleccionado exista
-                    siguiente_grado = get_object_or_404(Grado, pk=siguiente_grado_id)
+                    siguiente_grado = get_object_or_404(get_filtered_queryset(Grado, request.user), pk=siguiente_grado_id)
                     grado.siguiente_grado = siguiente_grado
                 else:
                     # Si se selecciona "Ninguno", se guarda como nulo
@@ -8266,7 +8266,7 @@ def libro_notas_api_view(request, curso_pk):
 
     try:
         # 1. Obtenemos el curso y verificamos que el docente tenga permiso
-        curso = get_object_or_404(Curso, pk=curso_pk)
+        curso = get_object_or_404(get_filtered_queryset(Curso, request.user), pk=curso_pk)
         if not curso.docentes_asignados.filter(pk=user.docente.pk).exists() and not user.is_superuser:
             return Response({'error': 'No tienes permiso para ver este libro de notas.'}, status=403)
 
@@ -8322,7 +8322,7 @@ def guardar_libro_notas_api_view(request, curso_pk):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
-        curso = get_object_or_404(Curso, pk=curso_pk)
+        curso = get_object_or_404(get_filtered_queryset(Curso, request.user), pk=curso_pk)
         if not curso.docentes_asignados.filter(pk=user.docente.pk).exists():
             return Response({'error': 'No tienes permiso para guardar notas en este curso.'}, status=403)
 
@@ -8488,7 +8488,7 @@ def detalle_calificaciones_materia_api_view(request, materia_pk):
     
     try:
         estudiante = user.estudiante
-        materia = get_object_or_404(Materia, pk=materia_pk)
+        materia = get_object_or_404(get_filtered_queryset(Materia, request.user), pk=materia_pk)
         periodo_activo = PeriodoAcademico.objects.filter(institucion=estudiante.institucion, activo=True).first()
 
         if not periodo_activo:
@@ -9318,8 +9318,8 @@ def detalle_noticia_api_view(request, noticia_pk):
     Devuelve el detalle completo de una noticia específica.
     VERSIÓN CORREGIDA CON LOS NOMBRES DE CAMPO REALES.
     """
-    noticia = get_object_or_404(Noticia, pk=noticia_pk)
-    
+    noticia = get_object_or_404(get_filtered_queryset(Noticia, request.user), pk=noticia_pk)
+
     data = {
         'id': noticia.pk,
         'titulo': noticia.titulo,
@@ -9364,7 +9364,7 @@ def historial_convivencia_view(request):
 
 @login_required
 def votar_view(request, eleccion_id):
-    eleccion = get_object_or_404(Eleccion, pk=eleccion_id)
+    eleccion = get_object_or_404(get_filtered_queryset(Eleccion, request.user), pk=eleccion_id)
 
     if Voto.objects.filter(eleccion=eleccion, votante=request.user.estudiante).exists():
         messages.info(request, "Ya has votado en esta elección.")
@@ -9374,7 +9374,7 @@ def votar_view(request, eleccion_id):
 
     if request.method == 'POST':
         candidato_id = request.POST.get('candidato')
-        candidato = get_object_or_404(Candidato, pk=candidato_id)
+        candidato = get_object_or_404(Candidato, pk=candidato_id, eleccion=eleccion)
         Voto.objects.create(eleccion=eleccion, votante=request.user.estudiante, candidato=candidato)
         messages.success(request, "Tu voto ha sido registrado exitosamente.")
         return redirect('gestion_academica:dashboard_estudiante')
@@ -9462,7 +9462,7 @@ def dashboard_eleccion_ia(request, eleccion_id):
 @login_required
 @permission_required('gestion_academica.view_eleccion')
 def acta_eleccion_view(request, eleccion_id):
-    eleccion = get_object_or_404(Eleccion, pk=eleccion_id)
+    eleccion = get_object_or_404(get_filtered_queryset(Eleccion, request.user), pk=eleccion_id)
     candidatos = Candidato.objects.filter(eleccion=eleccion).annotate(
         total_votos=Count('voto')
     ).order_by('-total_votos')
@@ -9483,8 +9483,8 @@ def analizar_propuestas_ia_view(request, eleccion_id):
     Inicia las tareas de Celery para analizar las propuestas de todos los
     candidatos de una elección que aún no tengan un análisis.
     """
-    eleccion = get_object_or_404(Eleccion, pk=eleccion_id)
-    
+    eleccion = get_object_or_404(get_filtered_queryset(Eleccion, request.user), pk=eleccion_id)
+
     # Buscamos solo los candidatos que no tienen un análisis previo
     candidatos_a_analizar = Candidato.objects.filter(eleccion=eleccion, analisis_ia__isnull=True)
     
@@ -9580,12 +9580,13 @@ def detalle_candidato_view(request, candidato_id):
     """
     Perfil completo de un candidato: propuesta, análisis IA y desglose de votos por grado.
     """
-    candidato = get_object_or_404(
-        Candidato.objects.select_related(
-            'estudiante__usuario', 'estudiante__grado_actual', 'eleccion'
-        ).annotate(total_votos=Count('votos_recibidos')),
-        pk=candidato_id,
-    )
+    # Candidato no tiene FK 'institucion'; se scopea vía la elección.
+    candidato_qs = Candidato.objects.select_related(
+        'estudiante__usuario', 'estudiante__grado_actual', 'eleccion'
+    ).annotate(total_votos=Count('votos_recibidos'))
+    if not request.user.is_superuser:
+        candidato_qs = candidato_qs.filter(eleccion__institucion=request.user.institucion_asociada)
+    candidato = get_object_or_404(candidato_qs, pk=candidato_id)
     eleccion = candidato.eleccion
 
     # Votos totales de la elección
@@ -9637,7 +9638,7 @@ class PreguntaCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.actividad = get_object_or_404(ActividadCalificable, pk=self.kwargs['actividad_pk'])
+        self.actividad = get_object_or_404(get_filtered_queryset(ActividadCalificable, self.request.user), pk=self.kwargs['actividad_pk'])
         context['actividad'] = self.actividad
         context['titulo_formulario'] = "Crear Nueva Pregunta"
         if self.request.POST:
@@ -9651,7 +9652,7 @@ class PreguntaCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView
         opciones_formset = context['opciones_formset']
         
         with transaction.atomic():
-            self.actividad = get_object_or_404(ActividadCalificable, pk=self.kwargs['actividad_pk'])
+            self.actividad = get_object_or_404(get_filtered_queryset(ActividadCalificable, self.request.user), pk=self.kwargs['actividad_pk'])
             form.instance.actividad = self.actividad
             form.instance.institucion = self.request.user.institucion_asociada
             self.object = form.save()
@@ -10317,7 +10318,7 @@ def listar_areas_academicas(request):
 
 @login_required
 def editar_area_academica(request, pk):
-    area = get_object_or_404(AreaAcademica, pk=pk)
+    area = get_object_or_404(get_filtered_queryset(AreaAcademica, request.user), pk=pk)
 
     # Verificación de acceso
     if not request.user.is_superuser and area.institucion != request.user.institucion_asociada:
@@ -10349,7 +10350,7 @@ def editar_area_academica(request, pk):
 
 @login_required
 def eliminar_area_academica(request, pk):
-    area = get_object_or_404(AreaAcademica, pk=pk)
+    area = get_object_or_404(get_filtered_queryset(AreaAcademica, request.user), pk=pk)
     if not request.user.is_superuser and area.institucion != request.user.institucion_asociada:
         return redirect('gestion_academica:listar_areas_academicas')
     
@@ -10449,7 +10450,7 @@ def graduar_estudiantes(institucion_id, ultimo_grado_id):
                 usuario.save(update_fields=['rol'])
 
 def tu_vista_actual_de_boletin(request, estudiante_id, año):
-    estudiante = get_object_or_404(Estudiante, pk=estudiante_id)
+    estudiante = get_object_or_404(get_filtered_queryset(Estudiante, request.user), pk=estudiante_id)
     
     try:
         # Llama a la función centralizada para obtener el PDF
@@ -10520,8 +10521,8 @@ def portal_egresado_view(request):
 
 @login_required
 def evaluar_logros_curso(request, curso_pk):
-    curso = get_object_or_404(Curso.objects.select_related('grado', 'materia', 'periodo_academico'), pk=curso_pk)
-    
+    curso = get_object_or_404(get_filtered_queryset(Curso, request.user, Curso.objects.select_related('grado', 'materia', 'periodo_academico')), pk=curso_pk)
+
     # Tu lógica de permisos se mantiene, es correcta.
     if not (request.user.is_staff or (hasattr(request.user, 'docente') and request.user.docente in curso.docentes_asignados.all())):
         raise PermissionDenied
@@ -10548,7 +10549,7 @@ def evaluar_logros_curso(request, curso_pk):
             for logro in logros:
                 estado_id = request.POST.get(f'eval-E{estudiante.pk}-L{logro.pk}')
                 if estado_id:
-                    estado_obj = get_object_or_404(EscalaCualitativa, pk=estado_id)
+                    estado_obj = get_object_or_404(get_filtered_queryset(EscalaCualitativa, request.user), pk=estado_id)
                     # 2. Guardamos en el modelo correcto: EvaluacionLogroPreescolar
                     EvaluacionLogroPreescolar.objects.update_or_create(
                         estudiante=estudiante,
@@ -10875,7 +10876,7 @@ def redirigir_a_libro_de_notas(request, curso_pk):
     """
     # 1. Obtenemos el curso y su grado para verificar el tipo de evaluación
     curso = get_object_or_404(
-        Curso.objects.select_related('grado'), 
+        get_filtered_queryset(Curso, request.user, Curso.objects.select_related('grado')),
         pk=curso_pk
     )
 
@@ -10902,7 +10903,7 @@ def redirigir_a_libro_de_notas(request, curso_pk):
 
 @login_required
 def gestionar_curso_cualitativo(request, curso_pk):
-    curso = get_object_or_404(Curso.objects.select_related('grado'), pk=curso_pk)
+    curso = get_object_or_404(get_filtered_queryset(Curso, request.user, Curso.objects.select_related('grado')), pk=curso_pk)
     
     # Doble verificación de seguridad
     if curso.grado.tipo_evaluacion != 'CUALITATIVO':
@@ -11377,8 +11378,8 @@ def generar_boletin_dispatcher(request, estudiante_pk, periodo_pk):
     Revisa el tipo de evaluación del grado del estudiante y redirige
     a la vista de generación de PDF correcta (cuantitativa o cualitativa).
     """
-    estudiante = get_object_or_404(Estudiante.objects.select_related('grado_actual'), pk=estudiante_pk)
-    
+    estudiante = get_object_or_404(get_filtered_queryset(Estudiante, request.user, Estudiante.objects.select_related('grado_actual')), pk=estudiante_pk)
+
     # (Aquí puedes añadir la lógica de seguridad que usas en tus otras vistas de boletín
     # para verificar que el usuario (estudiante, familiar, staff) tiene permiso)
 
@@ -12081,7 +12082,7 @@ def reporte_consolidado_materia(request):
         grado_seleccionado = get_object_or_404(Grado, pk=grado_id, **_kw)
         materias_del_grado = Materia.objects.filter(cursos__grado=grado_seleccionado).distinct().order_by('nombre_materia')
     if periodo_id:
-        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        periodo_seleccionado = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=periodo_id)
 
     if grado_seleccionado and periodo_seleccionado:
         estudiantes = Estudiante.objects.filter(grado_actual=grado_seleccionado, activo=True).select_related('usuario').order_by('usuario__last_name')
@@ -12122,7 +12123,7 @@ def reporte_consolidado_materia(request):
         
         elif materia_id:
             # Lógica cuantitativa (sin cambios)
-            materia_seleccionada = get_object_or_404(Materia, pk=materia_id)
+            materia_seleccionada = get_object_or_404(get_filtered_queryset(Materia, request.user), pk=materia_id)
             curso = Curso.objects.filter(grado=grado_seleccionado, periodo_academico=periodo_seleccionado, materia=materia_seleccionada).first()
             datos_tabla_cuantitativa = []
             notas_finales_para_grafico = []
@@ -12702,10 +12703,10 @@ def reporte_consolidado_convivencia(request):
 
     # 2. Aplicamos los filtros si existen
     if grado_id:
-        grado_seleccionado = get_object_or_404(Grado, pk=grado_id)
+        grado_seleccionado = get_object_or_404(get_filtered_queryset(Grado, request.user), pk=grado_id)
         anotaciones_qs = anotaciones_qs.filter(estudiante__grado_actual=grado_seleccionado)
     if periodo_id:
-        periodo_seleccionado = get_object_or_404(PeriodoAcademico, pk=periodo_id)
+        periodo_seleccionado = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=periodo_id)
         anotaciones_qs = anotaciones_qs.filter(fecha_hora__range=(periodo_seleccionado.fecha_inicio, periodo_seleccionado.fecha_fin))
 
     # 3. Agrupamos las anotaciones por estudiante
@@ -13086,7 +13087,7 @@ def lista_lecciones_diarias(request, curso_pk):
     """
     Muestra todas las lecciones diarias registradas para un curso específico.
     """
-    curso = get_object_or_404(Curso, pk=curso_pk)
+    curso = get_object_or_404(get_filtered_queryset(Curso, request.user), pk=curso_pk)
     # Validamos que el docente que solicita tenga permiso sobre este curso
     if not curso.docentes_asignados.filter(pk=request.user.docente.pk).exists():
         messages.error(request, "No tienes permiso para ver las lecciones de este curso.")
@@ -13107,7 +13108,7 @@ def detalle_leccion(request, leccion_pk):
     """
     Muestra el detalle de una lección diaria con lógica de permisos y depuración.
     """
-    leccion = get_object_or_404(LeccionDiaria, pk=leccion_pk)
+    leccion = get_object_or_404(get_filtered_queryset(LeccionDiaria, request.user), pk=leccion_pk)
     curso = leccion.curso
     user = request.user
 
@@ -13221,7 +13222,17 @@ def editar_usuario_view(request, user_pk):
     Permite a un administrador editar los detalles y la contraseña de un usuario.
     VERSIÓN MEJORADA: También obtiene el perfil del estudiante si aplica.
     """
-    user_to_edit = get_object_or_404(Usuario, pk=user_pk)
+    # Aislamiento multi-institución: el modelo Usuario scopea por
+    # 'institucion_asociada' (NO 'institucion'), así que no podemos usar
+    # get_filtered_queryset aquí. Un admin solo puede editar usuarios de su
+    # propia institución; el superusuario puede editar cualquiera.
+    if request.user.is_superuser:
+        usuarios_qs = Usuario.objects.all()
+    elif getattr(request.user, 'institucion_asociada', None):
+        usuarios_qs = Usuario.objects.filter(institucion_asociada=request.user.institucion_asociada)
+    else:
+        usuarios_qs = Usuario.objects.none()
+    user_to_edit = get_object_or_404(usuarios_qs, pk=user_pk)
     
     # --- INICIO DE LA LÓGICA AÑADIDA ---
     # Buscamos el perfil de estudiante solo si el rol del usuario es 'estudiante'
@@ -13523,8 +13534,8 @@ class GenerarResumenEstudianteIAView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, estudiante_pk, periodo_pk):
-        estudiante = get_object_or_404(Estudiante, pk=estudiante_pk)
-        periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk)
+        estudiante = get_object_or_404(get_filtered_queryset(Estudiante, request.user), pk=estudiante_pk)
+        periodo = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=periodo_pk)
 
         # --- INICIO DE LA CORRECCIÓN DE PERMISOS ---
         user = request.user
@@ -13704,8 +13715,8 @@ class GuardarHorarioView(APIView):
                 for evento in horario_data:
                     # Creamos los nuevos bloques SIN el campo 'docente'
                     BloqueHorario.objects.create(
-                        curso=get_object_or_404(Curso, pk=evento['curso_id']),
-                        aula=get_object_or_404(Aula, pk=evento['aula_id']),
+                        curso=get_object_or_404(get_filtered_queryset(Curso, request.user), pk=evento['curso_id']),
+                        aula=get_object_or_404(get_filtered_queryset(Aula, request.user), pk=evento['aula_id']),
                         dia_semana=int(evento['dia_semana']),
                         hora_inicio=evento['hora_inicio'],
                         hora_fin=evento['hora_fin'],
@@ -13741,9 +13752,9 @@ class GenerarCorreoAcudienteIAView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, estudiante_pk, periodo_pk):
-        estudiante = get_object_or_404(Estudiante, pk=estudiante_pk)
-        periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk)
-        
+        estudiante = get_object_or_404(get_filtered_queryset(Estudiante, request.user), pk=estudiante_pk)
+        periodo = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=periodo_pk)
+
         # --- INICIO: Lógica de permisos y recopilación de datos (completa) ---
         user = request.user
         tiene_permiso = False

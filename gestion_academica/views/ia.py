@@ -1288,7 +1288,15 @@ def editar_usuario_view(request, user_pk):
     Permite a un administrador editar los detalles y la contraseña de un usuario.
     VERSIÓN MEJORADA: También obtiene el perfil del estudiante si aplica.
     """
-    user_to_edit = get_object_or_404(get_filtered_queryset(Usuario, request.user), pk=user_pk)
+    # El modelo Usuario scopea por 'institucion_asociada' (NO 'institucion'),
+    # así que get_filtered_queryset (que filtra por 'institucion') no aplica.
+    if request.user.is_superuser:
+        usuarios_qs = Usuario.objects.all()
+    elif getattr(request.user, 'institucion_asociada', None):
+        usuarios_qs = Usuario.objects.filter(institucion_asociada=request.user.institucion_asociada)
+    else:
+        usuarios_qs = Usuario.objects.none()
+    user_to_edit = get_object_or_404(usuarios_qs, pk=user_pk)
 
     # --- INICIO DE LA LÓGICA AÑADIDA ---
     # Buscamos el perfil de estudiante solo si el rol del usuario es 'estudiante'
