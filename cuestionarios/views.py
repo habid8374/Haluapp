@@ -219,9 +219,10 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
             })
             
         except Exception as e:
+            logger.exception("Error al guardar cuestionario: %s", e)
             return JsonResponse({
                 'status': 'error',
-                'message': str(e)
+                'message': 'Ocurrió un error al guardar el cuestionario. Inténtalo de nuevo.'
             }, status=400)
 
 
@@ -690,7 +691,7 @@ class GenerarPreguntasIAView(APIView):
             return JsonResponse({'status': 'error', 'message': 'La IA devolvió una respuesta en formato inválido. Intenta de nuevo.'}, status=400)
         except Exception as e:
             logger.exception("GenerarPreguntasIA error: %s", e)
-            return JsonResponse({'status': 'error', 'message': f'Error inesperado al generar preguntas: {e}'}, status=500)
+            return JsonResponse({'status': 'error', 'message': 'Error inesperado al generar preguntas. Inténtalo de nuevo.'}, status=500)
 
 class SugerirCalificacionIAView(APIView):
     permission_classes = [IsAuthenticated]
@@ -758,4 +759,4 @@ class SugerirCalificacionIAView(APIView):
             return JsonResponse({'status': 'error', 'message': 'La IA devolvió una respuesta en formato inválido.'}, status=400)
         except Exception as e:
             logger.exception("SugerirCalificacionIA error: %s", e)
-            return JsonResponse({'status': 'error', 'message': f'Error inesperado: {e}'}, status=500)
+            return JsonResponse({'status': 'error', 'message': 'Error inesperado al generar la sugerencia. Inténtalo de nuevo.'}, status=500)

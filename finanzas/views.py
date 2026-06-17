@@ -3328,7 +3328,7 @@ def iniciar_pago(request, cuenta_pk):
         
     except Exception as e:
         logger.error(f"Error al generar enlace de pago para cuenta {cuenta_pk}: {e}", exc_info=True)
-        messages.error(request, f"Hubo un error al generar el enlace de pago: {e}")
+        messages.error(request, "Hubo un error al generar el enlace de pago. Inténtalo de nuevo.")
         return redirect('finanzas:mi_estado_de_cuenta')
     
 

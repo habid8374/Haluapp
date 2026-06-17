@@ -19,10 +19,15 @@ def get_current_ip():
 
 
 def _get_client_ip(request):
-    """Extrae la IP real del cliente respetando cabeceras de proxy."""
+    """Extrae la IP del cliente de forma resistente a spoofing.
+
+    X-Forwarded-For es controlable por el cliente, por lo que NO se confía en
+    su primer valor. La entrada más cercana al servidor (la última de la lista)
+    es la que añade el proxy de confianza; si no hay XFF, se usa REMOTE_ADDR.
+    """
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
-        return x_forwarded_for.split(',')[0].strip()
+        return x_forwarded_for.split(',')[-1].strip()
     return request.META.get('REMOTE_ADDR')
 
 

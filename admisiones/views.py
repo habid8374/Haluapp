@@ -68,6 +68,19 @@ from gestion_academica.models import PeriodoAcademico
 logger = logging.getLogger(__name__)
 
 
+# --- Protección contra inyección de fórmulas en exportaciones (OWASP A04) ---
+_FORMULA_PREFIJOS = ('=', '+', '-', '@', '\t', '\r')
+
+
+def _sanitizar_celda_excel(valor):
+    """Evita inyección de fórmulas: si un valor de texto empieza con un carácter
+    peligroso para Excel/CSV, lo prefija con comilla simple. Números/fechas/None
+    se devuelven sin cambios."""
+    if isinstance(valor, str) and valor.startswith(_FORMULA_PREFIJOS):
+        return "'" + valor
+    return valor
+
+
 # --- Validación de archivos subidos al portal del postulante ---
 DOCUMENTO_ASPIRANTE_MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 DOCUMENTO_ASPIRANTE_EXTENSIONES = {
@@ -208,7 +221,8 @@ def crear_aspirante_manual(request):
                 return redirect('admisiones:lista_grados_aspirantes')
 
             except Exception as e:
-                messages.error(request, f"Ocurrió un error al registrar al aspirante: {e}")
+                logger.exception("Error al registrar aspirante: %s", e)
+                messages.error(request, "Ocurrió un error al registrar al aspirante. Inténtalo de nuevo.")
     else:
         form = AspiranteForm(user=request.user)
 
@@ -886,17 +900,21 @@ def lote_importacion_errores_excel(request, lote_id):
     # ({tipo, fila, documento, mensaje, error}).
     filas = [
         {
-            'tipo': (e.get('tipo') or 'error'),
+            'tipo': _sanitizar_celda_excel(e.get('tipo') or 'error'),
             'fila': e.get('fila', ''),
-            'documento': e.get('documento', ''),
-            'mensaje': e.get('mensaje') or e.get('error') or '',
+            'documento': _sanitizar_celda_excel(e.get('documento', '')),
+            'mensaje': _sanitizar_celda_excel(e.get('mensaje') or e.get('error') or ''),
         }
         for e in errores
     ] or [{'tipo': '', 'fila': '', 'documento': '', 'mensaje': 'Sin incidencias registradas.'}]
 
     df = pd.DataFrame(filas, columns=['tipo', 'fila', 'documento', 'mensaje'])
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(
+        output,
+        engine='xlsxwriter',
+        options={'strings_to_formulas': False},
+    ) as writer:
         df.to_excel(writer, index=False, sheet_name='Incidencias')
     output.seek(0)
 
@@ -930,23 +948,27 @@ def exportar_matriculados_excel(request):
 
     # Construimos el diccionario de datos para el DataFrame
     data = {
-        'Nombres': [m.nombres for m in matriculados_qs], 
-        'Apellidos': [m.apellidos for m in matriculados_qs],
-        'Documento': [m.numero_documento for m in matriculados_qs], 
+        'Nombres': [_sanitizar_celda_excel(m.nombres) for m in matriculados_qs],
+        'Apellidos': [_sanitizar_celda_excel(m.apellidos) for m in matriculados_qs],
+        'Documento': [_sanitizar_celda_excel(m.numero_documento) for m in matriculados_qs],
         'Fecha de Nacimiento': [m.fecha_nacimiento.strftime('%Y-%m-%d') if m.fecha_nacimiento else '' for m in matriculados_qs],
-        'Email de Contacto': [m.email_contacto for m in matriculados_qs], 
+        'Email de Contacto': [_sanitizar_celda_excel(m.email_contacto) for m in matriculados_qs],
         'Grado Matriculado': [m.grado_aspira.nombre if m.grado_aspira else 'N/A' for m in matriculados_qs],
         'Sexo': [m.get_sexo_display() for m in matriculados_qs],
-        'Colegio de Procedencia': [m.colegio_procedencia for m in matriculados_qs], 
-        'Municipio': [m.municipio_ciudad for m in matriculados_qs],
-        'Departamento': [m.departamento for m in matriculados_qs],
-        'Username Creado': [m.estudiante_creado.usuario.username if m.estudiante_creado and m.estudiante_creado.usuario else 'N/A' for m in matriculados_qs],
+        'Colegio de Procedencia': [_sanitizar_celda_excel(m.colegio_procedencia) for m in matriculados_qs],
+        'Municipio': [_sanitizar_celda_excel(m.municipio_ciudad) for m in matriculados_qs],
+        'Departamento': [_sanitizar_celda_excel(m.departamento) for m in matriculados_qs],
+        'Username Creado': [_sanitizar_celda_excel(m.estudiante_creado.usuario.username) if m.estudiante_creado and m.estudiante_creado.usuario else 'N/A' for m in matriculados_qs],
     }
-    
+
     # Creamos el archivo Excel en memoria
     df = pd.DataFrame(data)
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(
+        output,
+        engine='xlsxwriter',
+        options={'strings_to_formulas': False},
+    ) as writer:
         df.to_excel(writer, index=False, sheet_name='Matriculados')
     
     output.seek(0)
@@ -1003,7 +1025,8 @@ def revertir_matriculacion(request, aspirante_id):
         messages.success(request, f"La matriculación del aspirante {aspirante} ha sido revertida exitosamente.")
 
     except Exception as e:
-        messages.error(request, f"Ocurrió un error al revertir la matriculación: {e}")
+        logger.exception("Error al revertir matriculación: %s", e)
+        messages.error(request, "Ocurrió un error al revertir la matriculación. Inténtalo de nuevo.")
 
     return redirect('admisiones:lista_aspirantes')
 
@@ -1081,8 +1104,7 @@ def actualizar_estado_aspirante_api(request):
     except Exception as e:
         import traceback
         logger.error("actualizar_estado_aspirante_api error: %s\n%s", e, traceback.format_exc())
-        msg = str(e) or type(e).__name__
-        return JsonResponse({'status': 'error', 'message': msg}, status=500)
+        return JsonResponse({'status': 'error', 'message': 'Ocurrió un error al actualizar el estado del aspirante.'}, status=500)
 
 # =========================================================================
 # INICIO: VISTAS NUEVAS PARA MERCADO PAGO

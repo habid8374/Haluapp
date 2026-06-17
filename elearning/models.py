@@ -1,5 +1,6 @@
 # elearning — ofertas de cursos virtuales / complementarios (ventas por institución, integrado con Finanzas)
 from django.db import models
+from django.core.validators import FileExtensionValidator
 from gestion_academica.models import Estudiante
 from finanzas.models import InstitucionEducativa, ConceptoPago, CuentaPorCobrarEstudiante
 
@@ -12,7 +13,12 @@ class Curso(models.Model):
     )
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField()
-    imagen_portada = models.ImageField(upload_to="elearning/portadas/", null=True, blank=True)
+    imagen_portada = models.ImageField(
+        upload_to="elearning/portadas/",
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp", "gif"])],
+    )
     precio = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     duracion_horas = models.PositiveIntegerField(
         default=0, help_text="Duración en horas para el certificado"
@@ -55,7 +61,15 @@ class Material(models.Model):
     modulo = models.ForeignKey(Modulo, related_name="materiales", on_delete=models.CASCADE)
     titulo = models.CharField(max_length=200)
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
-    archivo = models.FileField(upload_to="elearning/materiales/", null=True, blank=True)
+    archivo = models.FileField(
+        upload_to="elearning/materiales/",
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=[
+            "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt",
+            "jpg", "jpeg", "png", "gif", "mp4", "mp3", "zip",
+        ])],
+    )
     enlace = models.URLField(
         null=True,
         blank=True,

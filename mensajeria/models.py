@@ -9,6 +9,7 @@ a alguno de sus estudiantes asociados (validado en las vistas).
 """
 from django.db import models
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 
 
@@ -114,6 +115,10 @@ class Mensaje(models.Model):
         null=True,
         blank=True,
         verbose_name='Archivo adjunto',
+        validators=[FileExtensionValidator(allowed_extensions=[
+            "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt",
+            "jpg", "jpeg", "png", "gif", "webp",
+        ])],
     )
     enviado_en = models.DateTimeField(auto_now_add=True, db_index=True)
     leido = models.BooleanField(default=False, verbose_name='Leído')
