@@ -131,13 +131,19 @@ def iniciar_conversacion(request, destinatario_pk):
     from django.contrib.auth import get_user_model
     User = get_user_model()
 
-    destinatario = get_object_or_404(User, pk=destinatario_pk)
     estudiante_id = request.POST.get('estudiante_id') or None
     institucion = _get_institucion(request.user)
 
     if not institucion:
         flash.error(request, "Tu cuenta no está asociada a ninguna institución.")
         return redirect('mensajeria:inbox')
+
+    # Aislamiento multi-institución: solo se puede iniciar conversación con
+    # usuarios de la misma institución (el superusuario puede con cualquiera).
+    destinatario_qs = User.objects.all()
+    if not request.user.is_superuser:
+        destinatario_qs = destinatario_qs.filter(institucion_asociada=institucion)
+    destinatario = get_object_or_404(destinatario_qs, pk=destinatario_pk)
 
     if destinatario == request.user:
         flash.error(request, "No puedes enviarte mensajes a ti mismo.")

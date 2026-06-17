@@ -567,8 +567,11 @@ def redirigir_a_libro_de_notas(request, curso_pk):
 
 @login_required
 def gestionar_curso_cualitativo(request, curso_pk):
-    curso = get_object_or_404(Curso.objects.select_related('grado'), pk=curso_pk)
-    
+    curso = get_object_or_404(
+        get_filtered_queryset(Curso, request.user, Curso.objects.select_related('grado')),
+        pk=curso_pk,
+    )
+
     # Doble verificación de seguridad
     if curso.grado.tipo_evaluacion != 'CUALITATIVO':
         messages.error(request, "Esta sección es solo para cursos de evaluación cualitativa.")
@@ -821,8 +824,17 @@ def boletin_descriptivo_preescolar_pdf(request, estudiante_pk, periodo_pk):
         messages.error(request, "El estudiante o periodo solicitado no es válido.")
         return redirect('gestion_academica:inicio_academico')
 
-    # (Tu lógica de permisos se mantiene)
-    if not (request.user.pk == estudiante.usuario.pk or request.user.is_staff or (hasattr(request.user, 'familiar') and request.user.familiar.estudiantes_asociados.filter(pk=estudiante_pk).exists())):
+    # Permisos: el propio estudiante, un familiar vinculado, o staff/superusuario
+    # de LA MISMA institución (is_staff por sí solo no es frontera de institución).
+    _staff_misma_inst = request.user.is_staff and (
+        getattr(request.user, 'institucion_asociada_id', None) == estudiante.institucion_id
+    )
+    if not (
+        request.user.pk == estudiante.usuario.pk
+        or request.user.is_superuser
+        or _staff_misma_inst
+        or (hasattr(request.user, 'familiar') and request.user.familiar.estudiantes_asociados.filter(pk=estudiante_pk).exists())
+    ):
         messages.error(request, "No tienes permiso para ver este boletín.")
         return redirect('gestion_academica:inicio_academico')
 
@@ -1888,16 +1900,22 @@ class GuardarHorarioView(APIView):
                 return Response({'status': 'error', 'message': 'Faltan datos (horario, periodo o grado).'}, status=400)
 
             with transaction.atomic():
+                # Aislamiento multi-institución: curso/aula del body se resuelven
+                # solo dentro de la institución del usuario (evita inyectar objetos
+                # de otra institución en el horario).
+                cursos_inst = get_filtered_queryset(Curso, request.user)
+                aulas_inst = get_filtered_queryset(Aula, request.user)
+
                 # Borramos solo los bloques del grado y periodo específicos
-                cursos_del_grado = Curso.objects.filter(periodo_academico_id=periodo_pk, grado_id=grado_pk)
+                cursos_del_grado = cursos_inst.filter(periodo_academico_id=periodo_pk, grado_id=grado_pk)
                 BloqueHorario.objects.filter(curso__in=cursos_del_grado).delete()
 
                 # --- INICIO DE LA CORRECCIÓN CLAVE ---
                 for evento in horario_data:
                     # Creamos los nuevos bloques SIN el campo 'docente'
                     BloqueHorario.objects.create(
-                        curso=get_object_or_404(Curso, pk=evento['curso_id']),
-                        aula=get_object_or_404(Aula, pk=evento['aula_id']),
+                        curso=get_object_or_404(cursos_inst, pk=evento['curso_id']),
+                        aula=get_object_or_404(aulas_inst, pk=evento['aula_id']),
                         dia_semana=int(evento['dia_semana']),
                         hora_inicio=evento['hora_inicio'],
                         hora_fin=evento['hora_fin'],

@@ -92,8 +92,7 @@ class InstitucionEducativa(models.Model):
     mp_public_key_prod = models.CharField(max_length=255, blank=True, null=True, verbose_name="Public Key de Producción (Mercado Pago)")
     mp_access_token_prod = EncryptedCharField(blank=True, null=True, verbose_name="Access Token de Producción (Mercado Pago)")
     mp_modo_produccion = models.BooleanField(default=False, verbose_name="¿Activar modo producción para Mercado Pago?", help_text="Si está desmarcado, se usarán las credenciales de prueba.")
-    mp_webhook_secret = models.CharField(
-        max_length=255,
+    mp_webhook_secret = EncryptedCharField(
         blank=False,
         default="",
         verbose_name="Secret de firma Webhooks (Mercado Pago)",

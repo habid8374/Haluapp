@@ -38,6 +38,17 @@ document.addEventListener('DOMContentLoaded', function() {
     let cuestionarioData = {};
     let timerInterval;
 
+    // Escapa contenido controlado por docente/IA antes de inyectarlo en innerHTML
+    // (previene XSS almacenado vía enunciado/opciones).
+    function esc(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     // --- LÓGICA PARA RENDERIZAR CADA TIPO DE PREGUNTA ---
     function renderizarPregunta(pregunta, index) {
         let opcionesHtml = '';
@@ -47,15 +58,15 @@ document.addEventListener('DOMContentLoaded', function() {
             opcionesHtml = pregunta.opciones.map(op => `
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="pregunta_${pregunta.id}" id="opcion_${op.id}" value="${op.id}">
-                    <label class="form-check-label" for="opcion_${op.id}">${op.texto}</label>
+                    <label class="form-check-label" for="opcion_${op.id}">${esc(op.texto)}</label>
                 </div>
             `).join('');
-        } 
+        }
         else if (tipo === 'seleccion_multiple') {
             opcionesHtml = pregunta.opciones.map(op => `
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="pregunta_${pregunta.id}" id="opcion_${op.id}" value="${op.id}">
-                    <label class="form-check-label" for="opcion_${op.id}">${op.texto}</label>
+                    <label class="form-check-label" for="opcion_${op.id}">${esc(op.texto)}</label>
                 </div>
             `).join('');
         }
@@ -74,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             opcionesHtml = conceptos.map((concepto, i) => `
                 <div class="row mb-2 align-items-center emparejamiento-par">
                     <div class="col-md-5">
-                        <span class="concepto-texto">${concepto}</span>
+                        <span class="concepto-texto">${esc(concepto)}</span>
                     </div>
                     <div class="col-md-2 text-center">
                         <i class="bi bi-arrow-right-short"></i>
@@ -82,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="col-md-5">
                         <select class="form-select">
                             <option value="">Selecciona una opción...</option>
-                            ${definiciones.map(def => `<option value="${def}">${def}</option>`).join('')}
+                            ${definiciones.map(def => `<option value="${esc(def)}">${esc(def)}</option>`).join('')}
                         </select>
                     </div>
                 </div>
@@ -97,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="badge bg-secondary">${pregunta.puntaje} pts</span>
                 </div>
                 <div class="card-body">
-                    <div class="enunciado mb-3">${pregunta.enunciado}</div>
+                    <div class="enunciado mb-3">${esc(pregunta.enunciado)}</div>
                     <div class="opciones-container">
                         ${opcionesHtml}
                     </div>
@@ -110,10 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const preguntasHtml = cuestionarioData.preguntas.map(renderizarPregunta).join('');
         app.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3>${cuestionarioData.titulo}</h3>
+                <h3>${esc(cuestionarioData.titulo)}</h3>
                 <div id="timer" class="badge bg-danger fs-5 p-2"></div>
             </div>
-            <p>${cuestionarioData.descripcion || ''}</p>
+            <p>${esc(cuestionarioData.descripcion || '')}</p>
             <hr>
             <div id="preguntas-list">
                 ${preguntasHtml}
@@ -215,13 +226,13 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(res => res.json())
         .then(data => {
             if (data.error) {
-                app.innerHTML = `<div class="alert alert-danger"><h4>Error</h4><p>${data.error}</p></div>`;
+                app.innerHTML = `<div class="alert alert-danger"><h4>Error</h4><p>${esc(data.error)}</p></div>`;
                 return;
             }
             app.innerHTML = `
                 <div class="alert alert-success text-center">
                     <h4>¡Cuestionario Finalizado!</h4>
-                    <p>${data.mensaje}</p>
+                    <p>${esc(data.mensaje)}</p>
                     <p class="fs-4">Tu puntaje: <strong>${data.puntaje_obtenido} / ${data.puntaje_maximo}</strong></p>
                     <a href="{% url 'gestion_academica:dashboard_estudiante' %}" class="btn btn-primary mt-3">Volver al Dashboard</a>
                 </div>
@@ -243,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
             renderizarCuestionario();
         })
         .catch(error => {
-            app.innerHTML = `<div class="alert alert-danger"><h4>Error</h4><p>${error.message}</p></div>`;
+            app.innerHTML = `<div class="alert alert-danger"><h4>Error</h4><p>${esc(error.message)}</p></div>`;
         });
 });
 </script>
