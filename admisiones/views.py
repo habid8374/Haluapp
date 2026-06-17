@@ -1559,8 +1559,19 @@ def mercadopago_webhook(request):
     # YA está registrado, así que devolvemos 200 igual y dejamos rastro en el log.
     try:
         if cuenta and aspirante:
+            # Reconciliación de monto: solo avanzamos el estado del aspirante si la
+            # cuenta quedó SALDADA. Un pago parcial registra el abono pero NO debe
+            # disparar matrícula/admisión completas.
+            cuenta.refresh_from_db()
+            cuenta_saldada = (cuenta.estado == "PAGADO") or (cuenta.saldo_pendiente is not None and cuenta.saldo_pendiente <= 0)
             concepto_pagado = cuenta.concepto_pago
-            if concepto_pagado.es_pago_matricula and aspirante.estado == "APROBADO_MATRICULA":
+            if not cuenta_saldada:
+                logger.info(
+                    "Webhook: pago parcial en cuenta #%s (aspirante %s); saldo pendiente, "
+                    "no se avanza el estado.",
+                    cuenta.id, aspirante.pk,
+                )
+            elif concepto_pagado.es_pago_matricula and aspirante.estado == "APROBADO_MATRICULA":
                 _, resultado_cuentas = aspirante.matricular()
                 logger.info(
                     "Webhook: Aspirante %s MATRICULADO. Cuentas: %s",

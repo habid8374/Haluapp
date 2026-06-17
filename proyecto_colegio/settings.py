@@ -23,6 +23,12 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
+
+# Fail-fast: en producción SECRET_KEY es obligatoria (firma sesiones y JWT).
+if not DEBUG and not SECRET_KEY:
+    import sys
+    print("ERROR CRÍTICO: SECRET_KEY no está configurada en las variables de entorno.", file=sys.stderr)
+    sys.exit(1)
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') + [
     '.ngrok-free.app',
     '.trycloudflare.com',
@@ -154,9 +160,8 @@ REST_FRAMEWORK = {
         
         # 2. Si falla, intenta con la sesión de Django (para el panel web)
         'rest_framework.authentication.SessionAuthentication',
-        
-        # 3. Como último recurso, prueba la autenticación básica (opcional)
-        'rest_framework.authentication.BasicAuthentication',
+        # BasicAuthentication se retira: enviaba credenciales en cada request y
+        # ampliaba la superficie de adivinación. Se usa JWT (móvil) + sesión (web).
     ),
     
     # Define los permisos por defecto para todas las vistas de API.
