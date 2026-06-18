@@ -170,7 +170,7 @@
                   <th style="width:110px;">Origen</th>
                   <th style="width:100px;">Estado</th>
                   <th style="width:120px;">Fecha</th>
-                  <th class="text-center pe-3" style="width:140px;">Acciones</th>
+                  <th class="text-center pe-3" style="width:120px;">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -203,44 +203,58 @@
                   </td>
                   <td style="color:#475569; font-size:.8rem;">{{ f.fecha_creacion|date:"d/m/Y H:i" }}</td>
                   <td class="text-center pe-3">
-                    <div class="btn-group btn-group-sm">
-                      <a href="{% url 'facturacion_electronica:detalle_factura' f.pk %}" class="btn btn-outline-primary" title="Ver detalle"><i class="bi bi-eye"></i></a>
-                      {% if f.estado == 'VALIDADA' %}
-                        <a href="{% url 'facturacion_electronica:factura_pdf' f.pk %}" target="_blank"
-                           class="btn btn-outline-indigo fw-semibold" title="PDF Halu (representación gráfica propia)"
-                           style="border-color:#4f46e5;color:#4f46e5;">
-                          <i class="bi bi-file-earmark-text-fill me-1"></i>PDF Halu
+                    <button class="btn btn-sm btn-outline-primary" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#acc-{{ f.pk }}"
+                            aria-expanded="false" aria-controls="acc-{{ f.pk }}">
+                      <i class="bi bi-list-ul me-1"></i>Acciones
+                    </button>
+                    <div id="acc-{{ f.pk }}" class="collapse mt-2">
+                      <div class="d-grid gap-1 mx-auto text-start" style="max-width:230px;">
+                        <a href="{% url 'facturacion_electronica:detalle_factura' f.pk %}"
+                           class="btn btn-sm btn-outline-primary text-start">
+                          <i class="bi bi-eye me-2"></i>Ver detalle
                         </a>
-                      {% endif %}
-                      {% if f.url_pdf %}
-                        <a href="{{ f.url_pdf }}" target="_blank"
-                           class="btn btn-outline-danger fw-semibold" title="PDF oficial DIAN (Factus)">
-                          <i class="bi bi-file-earmark-pdf-fill me-1"></i>PDF DIAN
-                        </a>
-                      {% endif %}
-                      {% if f.qr %}<a href="{{ f.qr }}" target="_blank" class="btn btn-outline-secondary" title="Verificar en DIAN"><i class="bi bi-qr-code"></i></a>{% endif %}
-                      {% if f.estado == 'VALIDADA' and f.tipo == 'FACTURA' and modulo_activo %}
-                        <button type="button" class="btn btn-outline-info" title="Nota Crédito"
-                                data-bs-toggle="modal" data-bs-target="#modalNota"
-                                data-tipo="credito" data-factura="{{ f.pk }}" data-numero="{{ f.numero }}">
-                          <i class="bi bi-arrow-counterclockwise"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-dark" title="Nota Débito"
-                                data-bs-toggle="modal" data-bs-target="#modalNota"
-                                data-tipo="debito" data-factura="{{ f.pk }}" data-numero="{{ f.numero }}">
-                          <i class="bi bi-plus-circle"></i>
-                        </button>
-                      {% endif %}
+                        {% if f.estado == 'VALIDADA' %}
+                          <a href="{% url 'facturacion_electronica:factura_pdf' f.pk %}" target="_blank"
+                             class="btn btn-sm btn-outline-indigo fw-semibold text-start"
+                             style="border-color:#4f46e5;color:#4f46e5;">
+                            <i class="bi bi-file-earmark-text-fill me-2"></i>PDF Halu
+                          </a>
+                        {% endif %}
+                        {% if f.url_pdf %}
+                          <a href="{{ f.url_pdf }}" target="_blank"
+                             class="btn btn-sm btn-outline-danger fw-semibold text-start">
+                            <i class="bi bi-file-earmark-pdf-fill me-2"></i>PDF DIAN
+                          </a>
+                        {% endif %}
+                        {% if f.qr %}
+                          <a href="{{ f.qr }}" target="_blank" class="btn btn-sm btn-outline-secondary text-start">
+                            <i class="bi bi-qr-code me-2"></i>Verificar en DIAN
+                          </a>
+                        {% endif %}
+                        {% if f.estado == 'VALIDADA' and f.tipo == 'FACTURA' and modulo_activo %}
+                          <button type="button" class="btn btn-sm btn-outline-info text-start"
+                                  data-bs-toggle="modal" data-bs-target="#modalNota"
+                                  data-tipo="credito" data-factura="{{ f.pk }}" data-numero="{{ f.numero }}">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i>Nota Crédito
+                          </button>
+                          <button type="button" class="btn btn-sm btn-outline-dark text-start"
+                                  data-bs-toggle="modal" data-bs-target="#modalNota"
+                                  data-tipo="debito" data-factura="{{ f.pk }}" data-numero="{{ f.numero }}">
+                            <i class="bi bi-plus-circle me-2"></i>Nota Débito
+                          </button>
+                        {% endif %}
+                        {% if f.estado == 'VALIDADA' %}
+                          <form method="post" action="{% url 'facturacion_electronica:reenviar_correo_factura' f.pk %}" class="d-grid">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm text-start"
+                                    style="border:1px solid #0891b2;color:#0891b2;background:transparent;">
+                              <i class="bi bi-envelope-arrow-up me-2"></i>Reenviar correo
+                            </button>
+                          </form>
+                        {% endif %}
+                      </div>
                     </div>
-                    {% if f.estado == 'VALIDADA' %}
-                    <form method="post" action="{% url 'facturacion_electronica:reenviar_correo_factura' f.pk %}" class="d-inline ms-1">
-                      {% csrf_token %}
-                      <button type="submit" class="btn btn-sm" title="Reenviar correo al estudiante/familiar"
-                              style="border:1px solid #0891b2;color:#0891b2;background:transparent;">
-                        <i class="bi bi-envelope-arrow-up"></i>
-                      </button>
-                    </form>
-                    {% endif %}
                   </td>
                 </tr>
               {% endfor %}
