@@ -338,8 +338,9 @@ ESTADOS_CUENTA = [
         ('PAGADO_PARCIAL', 'Pagado Parcialmente'),
         ('PAGADO', 'Pagado Completamente'),
         ('VENCIDO', 'Vencido'),
-        ('ANULADO', 'Anulado'), 
-    ]    
+        ('ANULADO', 'Anulado'),
+        ('CASTIGADA', 'Castigada (Incobrable)'),
+    ]
 
 def default_fecha_vencimiento():
     return timezone.now().date() + timedelta(days=15)    
@@ -365,6 +366,8 @@ class CuentaPorCobrarEstudiante(models.Model):
     numero_documento = models.PositiveIntegerField(null=True, blank=True, editable=False, verbose_name="Número de Factura")
     año = models.PositiveIntegerField(null=True, blank=True, verbose_name="Año del Cobro")
     mes = models.PositiveIntegerField(null=True, blank=True, verbose_name="Mes del Cobro (2-11)")
+    motivo_castigo = models.TextField(blank=True, null=True, verbose_name="Motivo de castigo (incobrable)")
+    fecha_castigo = models.DateField(null=True, blank=True, verbose_name="Fecha de castigo")
     aspirante = models.ForeignKey(
         'admisiones.Aspirante', 
         on_delete=models.CASCADE, 
@@ -976,3 +979,39 @@ class EjecucionHealthCheck(models.Model):
     @property
     def en_curso(self):
         return self.estado in (self.Estado.PENDIENTE, self.Estado.EJECUTANDO)
+
+class AuditoriaAccionPago(models.Model):
+    ACCIONES = [
+        ('EDICION', 'Edición de pago'),
+        ('ELIMINACION', 'Eliminación de pago'),
+        ('ANULACION', 'Anulación contable (NC)'),
+        ('CASTIGO', 'Castigo de cartera'),
+    ]
+    institucion = models.ForeignKey(
+        InstitucionEducativa, on_delete=models.CASCADE,
+        verbose_name="Institución"
+    )
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, verbose_name="Usuario que realizó la acción"
+    )
+    accion = models.CharField(max_length=20, choices=ACCIONES, verbose_name="Acción")
+    pago_id = models.IntegerField(verbose_name="ID del pago afectado")
+    estudiante = models.ForeignKey(
+        'gestion_academica.Estudiante', on_delete=models.SET_NULL,
+        null=True, blank=True, verbose_name="Estudiante"
+    )
+    cuenta_id = models.IntegerField(null=True, blank=True, verbose_name="ID cuenta por cobrar")
+    valor_pago = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    metodo_pago = models.CharField(max_length=20, blank=True)
+    detalle = models.TextField(blank=True, verbose_name="Detalle del cambio")
+    datos_anteriores = models.JSONField(null=True, blank=True, verbose_name="Estado anterior (JSON)")
+    fecha = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y hora")
+
+    class Meta:
+        verbose_name = "Auditoría de Acción sobre Pago"
+        verbose_name_plural = "Auditorías de Acciones sobre Pagos"
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.get_accion_display()} — Pago #{self.pago_id} ({self.fecha:%Y-%m-%d %H:%M})"

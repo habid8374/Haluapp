@@ -56,6 +56,7 @@ from .models import (
     CuentaContable,
     AuditoriaExportacionContable,
     ConsecutivoDocumento,
+    AuditoriaAccionPago,
 )
 
 from gestion_academica.models import TicketSoporte, RespuestaTicket
@@ -746,8 +747,26 @@ def editar_pago(request, pago_id):
     if request.method == 'POST':
         form = PagoForm(request.POST, instance=pago, cuenta=pago.cuenta)
         if form.is_valid():
+            datos_antes = {
+                'valor_pagado': str(pago.valor_pagado),
+                'fecha_pago': str(pago.fecha_pago),
+                'metodo_pago': pago.metodo_pago,
+                'referencia_transaccion': pago.referencia_transaccion or '',
+            }
             form.save()
-            
+            AuditoriaAccionPago.objects.create(
+                institucion=pago.institucion,
+                usuario=request.user,
+                accion='EDICION',
+                pago_id=pago.pk,
+                estudiante=pago.estudiante,
+                cuenta_id=pago.cuenta_id,
+                valor_pago=pago.valor_pagado,
+                metodo_pago=pago.metodo_pago,
+                detalle=f"Pago editado. Antes: {datos_antes}",
+                datos_anteriores=datos_antes,
+            )
+
             # Lógica para enviar correo de notificación si el admin lo eligió
             if form.cleaned_data.get('notificar_cambios'):
                 try:
@@ -806,7 +825,24 @@ def eliminar_pago(request, pago_id):
             'estudiante': pago.estudiante,
             'institucion': pago.institucion
         }
-        
+        AuditoriaAccionPago.objects.create(
+            institucion=pago.institucion,
+            usuario=request.user,
+            accion='ELIMINACION',
+            pago_id=pago.pk,
+            estudiante=pago.estudiante,
+            cuenta_id=pago.cuenta_id,
+            valor_pago=pago.valor_pagado,
+            metodo_pago=pago.metodo_pago,
+            detalle=f"Pago eliminado. Concepto: {pago.cuenta.concepto_pago.nombre_concepto}",
+            datos_anteriores={
+                'valor_pagado': str(pago.valor_pagado),
+                'fecha_pago': str(pago.fecha_pago),
+                'metodo_pago': pago.metodo_pago,
+                'referencia_transaccion': pago.referencia_transaccion or '',
+                'concepto': pago.cuenta.concepto_pago.nombre_concepto,
+            },
+        )
         pago.delete()
 
         try:
@@ -3460,6 +3496,323 @@ def seleccionar_estudiante_para_historial(request):
         'estudiantes': estudiantes,
         'query': query
     }
-    return render(request, 'finanzas/seleccionar_estudiante_historial.html', context)    
+    return render(request, 'finanzas/seleccionar_estudiante_historial.html', context)
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITEM 5 — Reporte de Anulaciones / Reversiones
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
+def reporte_anulaciones(request):
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if not institucion and not request.user.is_superuser:
+        messages.error(request, "Tu usuario no tiene institución asociada.")
+        return redirect('finanzas:dashboard_financiero')
+
+    qs = PagoRegistrado.objects.filter(anulado=True)
+    if not request.user.is_superuser:
+        qs = qs.filter(institucion=institucion)
+    qs = qs.select_related('cuenta__concepto_pago', 'estudiante__usuario').order_by('-fecha_pago')
+
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    q = request.GET.get('q', '')
+
+    if fecha_desde:
+        try:
+            qs = qs.filter(fecha_pago__gte=date.fromisoformat(fecha_desde))
+        except ValueError:
+            pass
+    if fecha_hasta:
+        try:
+            qs = qs.filter(fecha_pago__lte=date.fromisoformat(fecha_hasta))
+        except ValueError:
+            pass
+    if q:
+        qs = qs.filter(
+            Q(estudiante__usuario__first_name__icontains=q) |
+            Q(estudiante__usuario__last_name__icontains=q) |
+            Q(referencia_transaccion__icontains=q)
+        )
+
+    total_anulado = qs.aggregate(t=Sum('valor_pagado'))['t'] or Decimal('0')
+
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'finanzas/reporte_anulaciones.html', {
+        'titulo_pagina': 'Reporte de Anulaciones y Reversiones',
+        'page_obj': page_obj,
+        'total_anulado': total_anulado,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+        'q': q,
+    })
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITEM 6 — Reporte de Mora / Intereses Vencidos
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
+def reporte_mora(request):
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if not institucion and not request.user.is_superuser:
+        messages.error(request, "Tu usuario no tiene institución asociada.")
+        return redirect('finanzas:dashboard_financiero')
+
+    hoy = date.today()
+    qs = CuentaPorCobrarEstudiante.objects.filter(
+        estado__in=['VENCIDO', 'PENDIENTE', 'PAGADO_PARCIAL'],
+        fecha_vencimiento_especifica__lt=hoy,
+        concepto_pago__permite_mora=True,
+    ).exclude(estado='CASTIGADA')
+
+    if not request.user.is_superuser:
+        qs = qs.filter(institucion=institucion)
+
+    qs = qs.select_related('estudiante__usuario', 'concepto_pago').order_by('fecha_vencimiento_especifica')
+
+    filas = []
+    total_mora = Decimal('0')
+    for cuenta in qs:
+        dias = (hoy - cuenta.fecha_vencimiento_especifica).days
+        tasa_mensual = cuenta.concepto_pago.porcentaje_mora_mensual or Decimal('0')
+        tasa_diaria = tasa_mensual / Decimal('30')
+        saldo = cuenta.saldo_pendiente
+        mora = (saldo * tasa_diaria / Decimal('100') * dias).quantize(Decimal('0.01'))
+        total_mora += mora
+        filas.append({
+            'cuenta': cuenta,
+            'dias_vencida': dias,
+            'tasa_mensual': tasa_mensual,
+            'mora_estimada': mora,
+            'saldo': saldo,
+        })
+
+    return render(request, 'finanzas/reporte_mora.html', {
+        'titulo_pagina': 'Reporte de Mora e Intereses',
+        'filas': filas,
+        'total_mora': total_mora,
+    })
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITEM 7 — Auditoría de Acciones sobre Pagos
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
+def reporte_auditoria_pagos(request):
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if not institucion and not request.user.is_superuser:
+        messages.error(request, "Tu usuario no tiene institución asociada.")
+        return redirect('finanzas:dashboard_financiero')
+
+    qs = AuditoriaAccionPago.objects.select_related('usuario', 'estudiante__usuario')
+    if not request.user.is_superuser:
+        qs = qs.filter(institucion=institucion)
+
+    accion_filtro = request.GET.get('accion', '')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    q = request.GET.get('q', '')
+
+    if accion_filtro:
+        qs = qs.filter(accion=accion_filtro)
+    if fecha_desde:
+        try:
+            qs = qs.filter(fecha__date__gte=date.fromisoformat(fecha_desde))
+        except ValueError:
+            pass
+    if fecha_hasta:
+        try:
+            qs = qs.filter(fecha__date__lte=date.fromisoformat(fecha_hasta))
+        except ValueError:
+            pass
+    if q:
+        qs = qs.filter(
+            Q(estudiante__usuario__first_name__icontains=q) |
+            Q(estudiante__usuario__last_name__icontains=q) |
+            Q(detalle__icontains=q)
+        )
+
+    paginator = Paginator(qs, 30)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'finanzas/reporte_auditoria_pagos.html', {
+        'titulo_pagina': 'Auditoría de Acciones sobre Pagos',
+        'page_obj': page_obj,
+        'accion_filtro': accion_filtro,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+        'q': q,
+        'opciones_accion': AuditoriaAccionPago.ACCIONES,
+    })
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITEM 8 — Reporte de Descuentos Aplicados
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
+def reporte_descuentos_aplicados(request):
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if not institucion and not request.user.is_superuser:
+        messages.error(request, "Tu usuario no tiene institución asociada.")
+        return redirect('finanzas:dashboard_financiero')
+
+    descuento_filtro = request.GET.get('descuento', '')
+    q = request.GET.get('q', '')
+
+    if request.user.is_superuser:
+        descuentos_inst = Descuento.objects.filter(activo=True)
+        qs = Estudiante.objects.filter(descuentos__activo=True).distinct()
+    else:
+        descuentos_inst = Descuento.objects.filter(activo=True, institucion=institucion)
+        qs = Estudiante.objects.filter(
+            descuentos__activo=True,
+            descuentos__institucion=institucion,
+            institucion=institucion,
+        ).distinct()
+
+    if descuento_filtro:
+        qs = qs.filter(descuentos__pk=descuento_filtro)
+    if q:
+        qs = qs.filter(
+            Q(usuario__first_name__icontains=q) |
+            Q(usuario__last_name__icontains=q) |
+            Q(documento_identidad__icontains=q)
+        )
+
+    qs = qs.select_related('usuario', 'grado_actual').prefetch_related('descuentos')
+
+    return render(request, 'finanzas/reporte_descuentos_aplicados.html', {
+        'titulo_pagina': 'Reporte de Descuentos y Becas Aplicados',
+        'estudiantes': qs,
+        'descuentos_inst': descuentos_inst,
+        'descuento_filtro': descuento_filtro,
+        'q': q,
+    })
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITEM 9 — Cartera Incobrable (Castigada)
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
+def lista_cartera_incobrable(request):
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if not institucion and not request.user.is_superuser:
+        messages.error(request, "Tu usuario no tiene institución asociada.")
+        return redirect('finanzas:dashboard_financiero')
+
+    qs = CuentaPorCobrarEstudiante.objects.filter(estado='CASTIGADA')
+    if not request.user.is_superuser:
+        qs = qs.filter(institucion=institucion)
+    qs = qs.select_related('estudiante__usuario', 'concepto_pago').order_by('-fecha_castigo')
+
+    total_castigado = qs.aggregate(t=Sum('monto_asignado'))['t'] or Decimal('0')
+
+    return render(request, 'finanzas/cartera_incobrable.html', {
+        'titulo_pagina': 'Cartera Incobrable (Castigada)',
+        'cuentas': qs,
+        'total_castigado': total_castigado,
+    })
+
+
+@require_POST
+@login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
+def marcar_incobrable(request, pk):
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if request.user.is_superuser:
+        cuenta = get_object_or_404(CuentaPorCobrarEstudiante, pk=pk)
+    else:
+        cuenta = get_object_or_404(CuentaPorCobrarEstudiante, pk=pk, institucion=institucion)
+
+    motivo = request.POST.get('motivo', '').strip()
+    if not motivo:
+        messages.error(request, "Debes indicar el motivo para castigar la cartera.")
+        return redirect('finanzas:historial_cuentas_estudiante', estudiante_id=cuenta.estudiante_id)
+
+    cuenta.estado = 'CASTIGADA'
+    cuenta.motivo_castigo = motivo
+    cuenta.fecha_castigo = date.today()
+    cuenta.save(update_fields=['estado', 'motivo_castigo', 'fecha_castigo'])
+
+    AuditoriaAccionPago.objects.create(
+        institucion=cuenta.institucion,
+        usuario=request.user,
+        accion='CASTIGO',
+        pago_id=0,
+        estudiante=cuenta.estudiante,
+        cuenta_id=cuenta.pk,
+        valor_pago=cuenta.monto_asignado,
+        detalle=f"Cuenta castigada como incobrable. Motivo: {motivo}",
+    )
+
+    messages.success(request, f"La cuenta fue marcada como incobrable. Motivo: {motivo}")
+    return redirect('finanzas:historial_cuentas_estudiante', estudiante_id=cuenta.estudiante_id)
+
+
+# ═══════════════════════════════════════════════════════════════
+# ITEM 10 — Proyecciones de Cartera (3 meses)
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
+def proyecciones_cartera(request):
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if not institucion and not request.user.is_superuser:
+        messages.error(request, "Tu usuario no tiene institución asociada.")
+        return redirect('finanzas:dashboard_financiero')
+
+    hoy = date.today()
+    meses = []
+    for i in range(3):
+        año = hoy.year
+        mes = hoy.month + i
+        if mes > 12:
+            mes -= 12
+            año += 1
+        ultimo_dia = calendar.monthrange(año, mes)[1]
+        inicio = date(año, mes, 1)
+        fin = date(año, mes, ultimo_dia)
+        meses.append((año, mes, inicio, fin, NOMBRES_MESES_ESPANOL[mes]))
+
+    qs_base = CuentaPorCobrarEstudiante.objects.filter(
+        estado__in=['PENDIENTE', 'PAGADO_PARCIAL', 'VENCIDO']
+    )
+    if not request.user.is_superuser:
+        qs_base = qs_base.filter(institucion=institucion)
+
+    proyecciones = []
+    for año, mes, inicio, fin, nombre_mes in meses:
+        cuentas_mes = qs_base.filter(
+            fecha_vencimiento_especifica__gte=inicio,
+            fecha_vencimiento_especifica__lte=fin,
+        ).select_related('estudiante__usuario', 'concepto_pago')
+        total = sum(c.saldo_pendiente for c in cuentas_mes)
+        proyecciones.append({
+            'nombre_mes': nombre_mes,
+            'año': año,
+            'cuentas': cuentas_mes,
+            'total': total,
+            'num_cuentas': cuentas_mes.count(),
+        })
+
+    total_proyectado = sum(p['total'] for p in proyecciones)
+
+    return render(request, 'finanzas/proyecciones_cartera.html', {
+        'titulo_pagina': 'Proyecciones de Cartera (3 meses)',
+        'proyecciones': proyecciones,
+        'total_proyectado': total_proyectado,
+    })
 
 
