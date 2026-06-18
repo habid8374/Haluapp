@@ -17,7 +17,7 @@
             <p class="mb-0"><strong>Archivo físico:</strong> {{ archivo_plan.archivo.name|cut:"planes_academicos_materiales/" }}</p>
         {% endif %}
         <hr>
-        <p class="mb-0">Esta acción **eliminará permanentemente el registro de la base de datos**. La eliminación del archivo físico del servidor **depende de la configuración de tu almacenamiento de Django** (por defecto, Django no borra el archivo físico del disco). </p>
+        <p class="mb-0">Esta acción <strong>eliminará permanentemente este material</strong> y ya no aparecerá en el plan. No se puede deshacer.</p>
     </div>
 
     <form method="post" class="mt-4">

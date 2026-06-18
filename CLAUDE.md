@@ -4,6 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## ⚠️ REGLA CRÍTICA: USUARIOS NO TÉCNICOS — NUNCA EXPONER EL SERVIDOR
+
+**Esta plataforma la usa personal escolar (rectores, coordinadores, docentes, secretarias, familias), NO ingenieros de sistemas. Toda la interfaz debe ser intuitiva y autoexplicativa.**
+
+PROHIBIDO en cualquier texto, mensaje, plantilla, alerta o ayuda visible al usuario:
+- ❌ Mencionar comandos de terminal/consola (`python manage.py ...`, `pip`, `celery`, `redis`, `cron`, etc.)
+- ❌ Referirse a "el servidor", "Celery Beat", "tarea programada", "shell", "migraciones", variables de entorno, logs, o cualquier concepto de infraestructura
+- ❌ Pedirle al usuario que ejecute algo fuera de la interfaz gráfica
+- ❌ Dejar funcionalidad accesible SOLO por comando o tarea de fondo
+
+**SIEMPRE:**
+- ✅ Toda acción que el usuario necesite ejecutar DEBE tener un **botón** en la interfaz, conectado a una vista (con su modal de confirmación Bootstrap cuando aplique).
+- ✅ Si un management command realiza una acción útil (ej. `calcular_moras`), crear una **vista equivalente** (filtrada por institución) y un botón que la dispare. El command puede seguir existiendo para automatización interna, pero el usuario nunca debe necesitarlo.
+- ✅ Los mensajes de error/ayuda deben ser accionables en lenguaje sencillo y apuntar a la pantalla correspondiente (ej. "Ve a Configuración › Conceptos de Pago y créalo"), nunca a un comando.
+
+Ejemplo correcto: en vez de "use el comando `python manage.py calcular_moras`", poner un botón **«Aplicar intereses ahora»** que llame a la vista `generar_cargos_mora` (POST, scoped por institución, con modal de confirmación).
+
+---
+
 ## ⚠️ REGLA CRÍTICA: SOFTWARE MULTI-INSTITUCIÓN
 
 **ESTE ES UN SAAS MULTI-INSTITUCIÓN. ESTA REGLA ES INNEGOCIABLE Y APLICA A CADA LÍNEA DE CÓDIGO.**

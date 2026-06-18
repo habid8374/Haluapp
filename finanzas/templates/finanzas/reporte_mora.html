@@ -27,10 +27,71 @@
     </div>
   </div>
 
-  <div class="alert alert-info py-2" style="font-size:.85rem;">
-    <i class="bi bi-info-circle me-1"></i>
-    Los valores son <strong>estimados</strong>. Para generar los cargos reales use el comando
-    <code>python manage.py calcular_moras</code> o programe la tarea en Celery Beat.
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show"><i class="bi bi-info-circle me-1"></i>{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <!-- Acción: aplicar mora -->
+  <div class="card shadow-sm mb-4" style="border-left:4px solid #d97706;">
+    <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+      <div>
+        <h6 class="fw-bold mb-1"><i class="bi bi-calculator me-1 text-warning"></i>Aplicar los intereses a la cartera</h6>
+        <p class="text-muted mb-0" style="font-size:.85rem;">
+          Los montos de abajo son una <strong>vista previa</strong>. Al aplicarlos, se agregará un cobro de
+          «Intereses por Mora» a la cuenta de cada estudiante con deuda vencida.
+        </p>
+      </div>
+      {% if filas %}
+      <button type="button" class="btn btn-warning fw-semibold flex-shrink-0"
+              data-bs-toggle="modal" data-bs-target="#modalAplicarMora">
+        <i class="bi bi-cash-stack me-1"></i>Aplicar intereses ahora
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if not concepto_mora_existe %}
+  <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2" style="font-size:.88rem;">
+    <div>
+      <i class="bi bi-exclamation-triangle-fill me-1"></i>
+      Aún no puedes cobrar la mora: falta crear un concepto de pago llamado exactamente
+      <strong>«Intereses por Mora»</strong>.
+    </div>
+    <a href="{% url 'finanzas:crear_concepto_pago' %}" class="btn btn-sm btn-outline-dark">
+      <i class="bi bi-plus-circle me-1"></i>Crear concepto
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- Modal confirmación aplicar mora -->
+  <div class="modal fade" id="modalAplicarMora" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+          <div style="width:48px;height:48px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-cash-stack" style="color:#d97706;font-size:1.2rem;"></i>
+          </div>
+          <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <h5 class="fw-bold mb-1">¿Aplicar los intereses por mora?</h5>
+          <p class="text-muted mb-0" style="font-size:.88rem;">
+            Se agregará un cobro de <strong>${{ total_mora|floatformat:0|intcomma }}</strong> en total,
+            distribuido entre <strong>{{ filas|length }}</strong> cuenta{{ filas|length|pluralize }} vencida{{ filas|length|pluralize }}.
+            El cargo quedará visible en la cartera de cada estudiante.
+          </p>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <form method="post" action="{% url 'finanzas:generar_cargos_mora' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning btn-sm fw-semibold">
+              <i class="bi bi-check-circle me-1"></i>Sí, aplicar intereses
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Tabla -->
