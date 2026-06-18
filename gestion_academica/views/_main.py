@@ -24,7 +24,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import never_cache
 from django_ratelimit.decorators import ratelimit
 import os
-from gestion_academica.utils import registrar_inasistencias_docentes
+from gestion_academica.utils import registrar_inasistencias_docentes, registrar_inasistencias_estudiantes
 import openpyxl
 from openpyxl.styles import Font
 from collections import OrderedDict
@@ -3417,10 +3417,18 @@ def generar_carnet_estudiante(request, estudiante_pk):
  
 @require_POST
 @login_required
+@permission_required('gestion_academica.add_registroasistencia', raise_exception=True)
 def registrar_asistencia_api(request):
     """
-    Endpoint de API para registrar la asistencia.
-    VERSIÓN DEFINITIVA: Usa una búsqueda manual por rango para evitar errores de SQLite.
+    Endpoint de API para registrar la asistencia vía escaneo de QR.
+
+    Seguridad:
+      - Exige el permiso ``add_registroasistencia`` (solo docentes/coordinadores
+        lo tienen): un estudiante no puede marcarse a sí mismo.
+      - Aísla por institución: el estudiante y el curso deben pertenecer a la
+        institución del usuario (el superusuario queda exento).
+      - Registro atómico con bloqueo para evitar duplicados ante escaneos casi
+        simultáneos.
     """
     try:
         data = json.loads(request.body)
@@ -3428,41 +3436,58 @@ def registrar_asistencia_api(request):
         curso_id = data.get('curso_id')
         if not qr_identifier or not curso_id:
             return JsonResponse({'status': 'error', 'message': 'Faltan datos.'}, status=400)
-        
-        estudiante = Estudiante.objects.get(qr_identifier=qr_identifier)
-        curso = Curso.objects.get(pk=curso_id)
 
-        if estudiante.grado_actual != curso.grado:
+        # --- Aislamiento multi-institución ---
+        institucion = getattr(request.user, 'institucion_asociada', None)
+        if not request.user.is_superuser and not institucion:
+            return JsonResponse({'status': 'error', 'message': 'No tienes una institución asociada.'}, status=403)
+
+        est_qs = Estudiante.objects.select_related('usuario', 'grado_actual')
+        curso_qs = Curso.objects.select_related('grado')
+        if not request.user.is_superuser:
+            est_qs = est_qs.filter(institucion=institucion)
+            curso_qs = curso_qs.filter(institucion=institucion)
+
+        try:
+            estudiante = est_qs.get(qr_identifier=qr_identifier)
+        except Estudiante.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'QR no reconocido en esta institución.'}, status=404)
+        try:
+            curso = curso_qs.get(pk=curso_id)
+        except Curso.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Curso no encontrado.'}, status=404)
+
+        if estudiante.grado_actual_id != curso.grado_id:
             return JsonResponse({'status': 'error', 'message': 'Estudiante no pertenece a este curso.'}, status=403)
 
-        # --- LÓGICA DE GUARDADO DEFINITIVA ---
+        # --- Guardado atómico (evita duplicados por doble escaneo) ---
         hoy = timezone.localdate()
         hoy_inicio = make_aware(datetime.combine(hoy, datetime.min.time()))
         hoy_fin = make_aware(datetime.combine(hoy, datetime.max.time()))
 
-        registro_existente = RegistroAsistencia.objects.filter(
-            estudiante=estudiante,
-            curso=curso,
-            fecha__range=(hoy_inicio, hoy_fin)
-        ).first()
-
-        # 2. Decidimos si actualizar o crear
-        if registro_existente:
-            registro_existente.estado = 'PRESENTE'
-            registro_existente.registrado_por = request.user
-            registro_existente.fecha = timezone.now() # Actualizamos la hora
-            registro_existente.save()
-            message = f"Estado de {estudiante.usuario.get_full_name()} actualizado a PRESENTE."
-        else:
-            RegistroAsistencia.objects.create(
+        with transaction.atomic():
+            registro_existente = RegistroAsistencia.objects.select_for_update().filter(
                 estudiante=estudiante,
                 curso=curso,
-                estado='PRESENTE',
-                registrado_por=request.user,
-                fecha=timezone.now(),
-                institucion=estudiante.institucion  # ✅ Corrección
-            )
-            message = f"Asistencia de {estudiante.usuario.get_full_name()} registrada."
+                fecha__range=(hoy_inicio, hoy_fin)
+            ).first()
+
+            if registro_existente:
+                registro_existente.estado = 'PRESENTE'
+                registro_existente.registrado_por = request.user
+                registro_existente.fecha = timezone.now()  # Actualizamos la hora
+                registro_existente.save()
+                message = f"Estado de {estudiante.usuario.get_full_name()} actualizado a PRESENTE."
+            else:
+                RegistroAsistencia.objects.create(
+                    estudiante=estudiante,
+                    curso=curso,
+                    estado='PRESENTE',
+                    registrado_por=request.user,
+                    fecha=timezone.now(),
+                    institucion=estudiante.institucion
+                )
+                message = f"Asistencia de {estudiante.usuario.get_full_name()} registrada."
 
         return JsonResponse({'status': 'success', 'message': message})
 
@@ -6270,6 +6295,10 @@ def asistencia_diaria_admin_view(request):
         fecha_a_consultar = timezone.localdate()
 
     institucion = getattr(request.user, 'institucion_asociada', InstitucionEducativa.objects.first())
+
+    # Completa ausencias de fechas ya cerradas (no toca el día en curso).
+    if institucion:
+        registrar_inasistencias_estudiantes(institucion, fecha_a_consultar)
 
     estudiantes_activos = Estudiante.objects.filter(
         institucion=institucion, usuario__is_active=True
@@ -9969,6 +9998,7 @@ def generar_carnet_docente(request, pk):
 
 @require_POST
 @login_required
+@permission_required('gestion_academica.add_registroasistenciadocente', raise_exception=True)
 def registrar_asistencia_docente_api(request):
     try:
         data = json.loads(request.body)
@@ -10064,26 +10094,15 @@ def asistencias_docentes_hoy_api(request):
     return JsonResponse({'html': html})       
 
 @login_required
-@permission_required('gestion_academica.add_registroasistenciadocente')
+@permission_required('gestion_academica.add_registroasistenciadocente', raise_exception=True)
 def escaner_asistencia_docente(request):
-    # ⚠️ Asegura que el usuario tenga una institución
-    institucion = None
-    if request.user.is_superuser:
-        institucion = None  # Puede ver todo o se puede elegir una
-    elif hasattr(request.user, 'institucion'):
-        institucion = request.user.institucion
-    elif hasattr(request.user, 'docente'):
-        institucion = request.user.docente.institucion
-    else:
+    # El permiso ya restringe el acceso a quien puede registrar asistencia
+    # docente; aquí solo resolvemos la institución (campo correcto:
+    # institucion_asociada) para el encabezado de la vista.
+    institucion = None if request.user.is_superuser else getattr(request.user, 'institucion_asociada', None)
+    if not request.user.is_superuser and not institucion:
         messages.error(request, "No tienes una institución asociada.")
-        return redirect('inicio')
-
-    if not (request.user.is_superuser or request.user.rol in ['coordinador', 'secretaria']):
-        messages.error(request, "No tienes permisos para registrar asistencia de docentes.")
-        return redirect('inicio')
-
-    # 👉 Aquí podrías cargar la lista de docentes si se requiere en la vista
-    # docentes = Docente.objects.filter(institucion=institucion)
+        return redirect('gestion_academica:inicio_academico')
 
     context = {
         'titulo_pagina': "Tomar Asistencia de Docentes",
@@ -12518,6 +12537,7 @@ def cuadro_honor_grado(request):
 
 
 @login_required
+@permission_required('gestion_academica.view_registroasistencia')
 def reporte_estadistica_asistencia_diaria(request):
     """
     Muestra un resumen estadístico de la asistencia (presentes, ausentes, etc.)
@@ -12532,16 +12552,22 @@ def reporte_estadistica_asistencia_diaria(request):
 
     institucion = request.user.institucion_asociada
     reporte_data = {}
-    
+
     if institucion:
+        # Completa las ausencias de fechas ya cerradas (no toca el día en curso),
+        # para que "Ausente" y "Sin Registro" sean coherentes en el reporte.
+        registrar_inasistencias_estudiantes(institucion, fecha_seleccionada)
+
         # 1. Obtenemos el total de estudiantes activos
         total_estudiantes = Estudiante.objects.filter(institucion=institucion, activo=True).count()
 
-        # 2. Contamos los registros de asistencia para la fecha seleccionada
+        # 2. Contamos los registros de asistencia para la fecha seleccionada.
+        #    Contamos estudiantes DISTINTOS por estado: un alumno presente puede
+        #    tener varias filas (una por curso del día) y no debe inflar el total.
         conteo_estados = RegistroAsistencia.objects.filter(
             fecha__date=fecha_seleccionada,
             institucion=institucion
-        ).values('estado').annotate(total=Count('id'))
+        ).values('estado').annotate(total=Count('estudiante', distinct=True))
         
         # 3. Procesamos los conteos en un diccionario limpio
         resumen = {

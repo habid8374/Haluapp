@@ -1,6 +1,6 @@
 # gestion_academica/utils.py
 from django.utils import timezone
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime, time as datetime_time
 from decimal import Decimal
 from xhtml2pdf import pisa
 from django.template.loader import get_template
@@ -230,7 +230,56 @@ def registrar_inasistencias_docentes(institucion, fecha=None):
             dia=fecha,
             institucion=institucion,
             registrado_por=None,
-        ) 
+        )
+
+def registrar_inasistencias_estudiantes(institucion, fecha=None):
+    """
+    Marca como AUSENTE a los estudiantes activos que no tienen NINGÚN registro
+    de asistencia para la fecha indicada. Espejo de
+    ``registrar_inasistencias_docentes``, adaptado al modelo por curso de los
+    estudiantes: crea un único registro de día (curso=None) por estudiante
+    inasistente, para que los reportes diferencien "Ausente" de "Sin Registro".
+
+    Solo opera sobre fechas pasadas: el día en curso todavía puede recibir
+    escaneos, y marcar ausencias prematuras generaría registros contradictorios
+    cuando el alumno llegue y se escanee. Es idempotente.
+    """
+    from gestion_academica.models import Estudiante, RegistroAsistencia
+
+    hoy = timezone.localdate()
+    if fecha is None:
+        fecha = hoy
+    # Nunca marcamos ausencias del día en curso ni de fechas futuras.
+    if fecha >= hoy:
+        return
+
+    inicio = timezone.make_aware(datetime.combine(fecha, datetime_time.min))
+    fin = timezone.make_aware(datetime.combine(fecha, datetime_time.max))
+
+    estudiantes = Estudiante.objects.filter(institucion=institucion, activo=True)
+    con_registro = (
+        RegistroAsistencia.objects.filter(
+            institucion=institucion, fecha__range=(inicio, fin)
+        )
+        .values_list("estudiante_id", flat=True)
+        .distinct()
+    )
+    inasistentes = estudiantes.exclude(pk__in=con_registro)
+
+    nuevos = [
+        RegistroAsistencia(
+            estudiante=estudiante,
+            estado="AUSENTE",
+            curso=None,
+            fecha=inicio,
+            fecha_solo=fecha,  # bulk_create no ejecuta save(); lo poblamos a mano
+            institucion=institucion,
+            registrado_por=None,
+        )
+        for estudiante in inasistentes
+    ]
+    if nuevos:
+        RegistroAsistencia.objects.bulk_create(nuevos, ignore_conflicts=True)
 
 def generar_boletin_pdf_en_memoria(estudiante, año_academico):
     """

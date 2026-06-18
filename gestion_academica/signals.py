@@ -347,27 +347,35 @@ def crear_registros_asistencia_por_clase(sender, instance, created, **kwargs):
         dia_semana = fecha.weekday() # Lunes=0, Martes=1, etc.
         cursos_del_dia = Curso.objects.filter(
             grado=estudiante.grado_actual,
+            institucion=estudiante.institucion,  # aislamiento explícito por institución
             horarios__dia_semana=dia_semana
         ).distinct()
 
-        logger.info(f"Signal activado: Creando registros de asistencia para {estudiante} en {cursos_del_dia.count()} cursos del día.")
+        fecha_dia = fecha.date()
+        # Cursos del día que YA tienen registro para este estudiante hoy: los
+        # excluimos para no duplicar (y para que la re-emisión de este mismo
+        # signal por cada registro creado termine sin trabajo).
+        ya_registrados = set(
+            RegistroAsistencia.objects.filter(
+                estudiante=estudiante,
+                curso__in=cursos_del_dia,
+                fecha__date=fecha_dia,
+            ).values_list('curso_id', flat=True)
+        )
+        faltantes = [c for c in cursos_del_dia if c.pk not in ya_registrados]
 
-        for curso in cursos_del_dia:
-            # Usamos get_or_create para no duplicar registros si por alguna razón ya existiera
-            registro, fue_creado = RegistroAsistencia.objects.get_or_create(
+        if faltantes:
+            logger.info(f"Signal activado: creando asistencia para {estudiante} en {len(faltantes)} cursos del día.")
+        for curso in faltantes:
+            RegistroAsistencia.objects.create(
                 estudiante=estudiante,
                 curso=curso,
-                fecha__date=fecha.date(), # Buscamos por la parte de la fecha para evitar duplicados en el mismo día
-                defaults={
-                    'estado': 'PRESENTE',
-                    'fecha': fecha, # Guardamos el timestamp completo
-                    'institucion': estudiante.institucion,
-                    'registrado_por': instance.registrado_por, # Quien registró la asistencia general
-                    'aula': curso.aula, # Asignamos el aula del curso
-                }
+                estado='PRESENTE',
+                fecha=fecha,
+                institucion=estudiante.institucion,
+                registrado_por=instance.registrado_por,
+                aula=curso.aula,
             )
-            if fue_creado:
-                logger.info(f"Creado registro de asistencia para {estudiante} en el curso '{curso}'.")
 
 
 # ---------------------------------------------------------------------------
