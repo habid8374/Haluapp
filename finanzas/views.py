@@ -3717,14 +3717,14 @@ def reporte_auditoria_pagos(request):
         messages.error(request, "Tu usuario no tiene institución asociada.")
         return redirect('finanzas:dashboard_financiero')
 
-    qs = AuditoriaAccionPago.objects.select_related('usuario', 'estudiante__usuario')
+    qs = AuditoriaAccionPago.objects.select_related('usuario', 'estudiante__usuario', 'estudiante__grado_actual')
     if not request.user.is_superuser:
         qs = qs.filter(institucion=institucion)
 
     accion_filtro = request.GET.get('accion', '')
     fecha_desde = request.GET.get('fecha_desde', '')
     fecha_hasta = request.GET.get('fecha_hasta', '')
-    q = request.GET.get('q', '')
+    estudiante_id = request.GET.get('estudiante_id', '')
 
     if accion_filtro:
         qs = qs.filter(accion=accion_filtro)
@@ -3738,12 +3738,40 @@ def reporte_auditoria_pagos(request):
             qs = qs.filter(fecha__date__lte=date.fromisoformat(fecha_hasta))
         except ValueError:
             pass
-    if q:
-        qs = qs.filter(
-            Q(estudiante__usuario__first_name__icontains=q) |
-            Q(estudiante__usuario__last_name__icontains=q) |
-            Q(detalle__icontains=q)
-        )
+    if estudiante_id:
+        qs = qs.filter(estudiante__pk=estudiante_id)
+
+    # Datos para el modal de selección por grado
+    import json as _json
+    if request.user.is_superuser:
+        grados_qs = Grado.objects.all().order_by('nombre')
+    else:
+        grados_qs = Grado.objects.filter(institucion=institucion).order_by('nombre')
+
+    grados_data = []
+    for g in grados_qs:
+        if request.user.is_superuser:
+            estudiantes_grado = Estudiante.objects.filter(grado_actual=g, activo=True).select_related('usuario')
+        else:
+            estudiantes_grado = Estudiante.objects.filter(grado_actual=g, activo=True, institucion=institucion).select_related('usuario')
+        if estudiantes_grado.exists():
+            grados_data.append({
+                'pk': g.pk,
+                'nombre': g.nombre,
+                'estudiantes': [
+                    {'pk': e.pk, 'nombre': e.usuario.get_full_name()}
+                    for e in estudiantes_grado.order_by('usuario__last_name')
+                ],
+            })
+
+    # Nombre del estudiante seleccionado para mostrar en el filtro activo
+    estudiante_nombre = ''
+    if estudiante_id:
+        try:
+            est = Estudiante.objects.select_related('usuario').get(pk=estudiante_id)
+            estudiante_nombre = est.usuario.get_full_name()
+        except Estudiante.DoesNotExist:
+            estudiante_id = ''
 
     paginator = Paginator(qs, 30)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -3754,8 +3782,10 @@ def reporte_auditoria_pagos(request):
         'accion_filtro': accion_filtro,
         'fecha_desde': fecha_desde,
         'fecha_hasta': fecha_hasta,
-        'q': q,
+        'estudiante_id': estudiante_id,
+        'estudiante_nombre': estudiante_nombre,
         'opciones_accion': AuditoriaAccionPago.ACCIONES,
+        'grados_json': _json.dumps(grados_data, ensure_ascii=False),
     })
 
 
