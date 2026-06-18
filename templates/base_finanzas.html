@@ -274,6 +274,69 @@
       </a>
     </li>
     {% endif %}
+    <h5 class="menu-section-title">Herramientas</h5>
+    {% if perms.finanzas.add_cuentaporcobrarestudiante %}
+    <li class="nav-item item-color-1">
+      <a class="nav-link {% if request.resolver_match.url_name == 'facturacion_masiva' %}active{% endif %}"
+         href="{% url 'finanzas:facturacion_masiva' %}">
+        <i class="bi bi-lightning-charge-fill"></i> Facturación masiva
+      </a>
+    </li>
+    <li class="nav-item item-color-2">
+      <a class="nav-link {% if request.resolver_match.url_name == 'previsualizar_orden_pago' %}active{% endif %}"
+         href="{% url 'finanzas:previsualizar_orden_pago' %}">
+        <i class="bi bi-file-earmark-ruled-fill"></i> Orden de pago
+      </a>
+    </li>
+    <li class="nav-item item-color-3">
+      <a class="nav-link" href="#"
+         data-bs-toggle="modal" data-bs-target="#modalSyncMasivo">
+        <i class="bi bi-arrow-repeat"></i> Sincronizar masivo
+      </a>
+    </li>
+    {% endif %}
+
+    <h5 class="menu-section-title">Reportes adicionales</h5>
+    {% if perms.finanzas.acceso_modulo_finanzas %}
+    <li class="nav-item item-color-1">
+      <a class="nav-link {% if request.resolver_match.url_name == 'reporte_anulaciones' %}active{% endif %}"
+         href="{% url 'finanzas:reporte_anulaciones' %}">
+        <i class="bi bi-x-circle"></i> Anulaciones
+      </a>
+    </li>
+    <li class="nav-item item-color-2">
+      <a class="nav-link {% if request.resolver_match.url_name == 'reporte_mora' %}active{% endif %}"
+         href="{% url 'finanzas:reporte_mora' %}">
+        <i class="bi bi-exclamation-triangle"></i> Mora / Intereses
+      </a>
+    </li>
+    <li class="nav-item item-color-3">
+      <a class="nav-link {% if request.resolver_match.url_name == 'reporte_descuentos_aplicados' %}active{% endif %}"
+         href="{% url 'finanzas:reporte_descuentos_aplicados' %}">
+        <i class="bi bi-percent"></i> Descuentos aplicados
+      </a>
+    </li>
+    <li class="nav-item item-color-4">
+      <a class="nav-link {% if request.resolver_match.url_name == 'lista_cartera_incobrable' %}active{% endif %}"
+         href="{% url 'finanzas:lista_cartera_incobrable' %}">
+        <i class="bi bi-slash-circle"></i> Cartera incobrable
+      </a>
+    </li>
+    <li class="nav-item item-color-1">
+      <a class="nav-link {% if request.resolver_match.url_name == 'proyecciones_cartera' %}active{% endif %}"
+         href="{% url 'finanzas:proyecciones_cartera' %}">
+        <i class="bi bi-graph-up-arrow"></i> Proyecciones (3m)
+      </a>
+    </li>
+    <li class="nav-item item-color-2">
+      <a class="nav-link {% if request.resolver_match.url_name == 'reporte_auditoria_pagos' %}active{% endif %}"
+         href="{% url 'finanzas:reporte_auditoria_pagos' %}">
+        <i class="bi bi-shield-check"></i> Auditoría pagos
+      </a>
+    </li>
+    {% endif %}
+
+    <h5 class="menu-section-title">Configuración</h5>
     <li class="nav-item item-color-4">
       <a class="nav-link {% if 'tipo' in request.resolver_match.url_name %}active{% endif %}"
          href="{% url 'finanzas:lista_tipos_concepto_pago' %}">
@@ -339,6 +402,38 @@
     </li>
   </ul>
 {% endblock floating_menu_content %}
+
+<!-- Modal Sincronizar Masivo -->
+{% if perms.finanzas.add_cuentaporcobrarestudiante %}
+<div class="modal fade" id="modalSyncMasivo" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#e0f2fe;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-arrow-repeat" style="color:#0369a1;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">Sincronización masiva de cuentas</h5>
+        <p class="text-muted mb-0" style="font-size:.85rem;">
+          Esto generará las cuentas automáticas faltantes para <strong>todos los estudiantes activos</strong> de la institución.
+          Las cuentas ya existentes no se modifican.
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" action="{% url 'finanzas:sincronizar_cuentas_masivo' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary btn-sm fw-semibold">
+            <i class="bi bi-arrow-repeat me-1"></i>Sincronizar ahora
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 {% block extra_js %}
 {{ block.super }}

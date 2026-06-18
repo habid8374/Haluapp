@@ -1,0 +1,101 @@
+{% extends 'base_finanzas.html' %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+
+  <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
+    <h2 style="color:#fff;"><i class="bi bi-x-circle-fill me-2"></i>{{ titulo_pagina }}</h2>
+    <p style="color:#fff;margin-bottom:0;">Pagos marcados como anulados o revertidos (Notas Crédito / reembolsos).</p>
+  </div>
+
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show"><i class="bi bi-info-circle me-1"></i>{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+
+  <!-- Filtros -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Buscar estudiante / referencia</label>
+          <input type="text" name="q" class="form-control form-control-sm" value="{{ q }}" placeholder="Nombre o referencia…">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Desde</label>
+          <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{{ fecha_desde }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Hasta</label>
+          <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{{ fecha_hasta }}">
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>Filtrar</button>
+          <a href="{% url 'finanzas:reporte_anulaciones' %}" class="btn btn-outline-secondary btn-sm ms-1">Limpiar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Resumen -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm text-center py-3">
+        <div style="font-size:1.5rem;font-weight:700;color:#dc2626;">${{ total_anulado|floatformat:0|intcomma }}</div>
+        <div class="text-muted small">Total anulado (filtro actual)</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm text-center py-3">
+        <div style="font-size:1.5rem;font-weight:700;color:#4f46e5;">{{ page_obj.paginator.count }}</div>
+        <div class="text-muted small">Pagos anulados encontrados</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card shadow-sm">
+    <div class="card-header fw-bold"><i class="bi bi-list-ul me-2"></i>Detalle de Anulaciones</div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.88rem;">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">Fecha pago</th>
+            <th>Estudiante</th>
+            <th>Concepto</th>
+            <th>Método</th>
+            <th>Referencia</th>
+            <th class="text-end pe-3">Valor anulado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pago in page_obj %}
+          <tr>
+            <td class="ps-3">{{ pago.fecha_pago|date:"d/m/Y" }}</td>
+            <td>{% if pago.estudiante %}{{ pago.estudiante.usuario.get_full_name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td>{{ pago.cuenta.concepto_pago.nombre_concepto|default:"—" }}</td>
+            <td>{{ pago.get_metodo_pago_display|default:pago.metodo_pago }}</td>
+            <td><code style="font-size:.78rem;">{{ pago.referencia_transaccion|default:"—" }}</code></td>
+            <td class="text-end pe-3 fw-semibold text-danger">${{ pago.valor_pagado|floatformat:0|intcomma }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-inbox me-2"></i>No hay pagos anulados con los filtros aplicados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer d-flex justify-content-center">
+      <nav><ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}">‹</a></li>{% endif %}
+        <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}">›</a></li>{% endif %}
+      </ul></nav>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

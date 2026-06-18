@@ -54,6 +54,16 @@
                                     <a href="{% url 'finanzas:registrar_pago' cuenta_id=cuenta.pk %}" class="btn btn-sm btn-success" title="Registrar Pago">
                                         <i class="bi bi-cash-coin"></i>
                                     </a>
+                                    {% if cuenta.estado != 'CASTIGADA' and cuenta.estado != 'PAGADO' and cuenta.estado != 'ANULADO' %}
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-dark ms-1 btn-marcar-incobrable"
+                                            title="Marcar como cartera incobrable"
+                                            data-action="{% url 'finanzas:marcar_incobrable' pk=cuenta.pk %}"
+                                            data-concepto="{{ cuenta.concepto_pago.nombre_concepto }}"
+                                            data-bs-toggle="modal" data-bs-target="#modalIncobrableHistorial">
+                                        <i class="bi bi-slash-circle"></i>
+                                    </button>
+                                    {% endif %}
                                 </td>
                             </tr>
                             
@@ -146,4 +156,51 @@
     </div>
 
 </div>
+
+<!-- Modal Marcar Incobrable -->
+<div class="modal fade" id="modalIncobrableHistorial" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#1f2937;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-slash-circle" style="color:#f9fafb;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">Marcar como cartera incobrable</h5>
+        <p class="text-muted mb-3" style="font-size:.85rem;">
+          La cuenta <strong id="modal-incobrable-concepto"></strong> quedará marcada como <span class="badge bg-dark">Castigada</span>.
+          Esta acción retira la cuenta de la cartera activa. No se puede deshacer automáticamente.
+        </p>
+        <form id="formIncobrableHistorial" method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:.88rem;">Motivo del castigo</label>
+            <textarea name="motivo" class="form-control form-control-sm" rows="3"
+                      placeholder="Ej: Deuda mayor a 2 años sin respuesta del acudiente…" required></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" form="formIncobrableHistorial" class="btn btn-dark btn-sm fw-semibold">
+          <i class="bi bi-slash-circle me-1"></i>Confirmar castigo
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('.btn-marcar-incobrable').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.getElementById('formIncobrableHistorial').action = this.dataset.action;
+    document.getElementById('modal-incobrable-concepto').textContent = this.dataset.concepto || '';
+  });
+});
+</script>
 {% endblock %}

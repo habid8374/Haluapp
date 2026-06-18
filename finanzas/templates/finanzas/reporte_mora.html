@@ -1,0 +1,76 @@
+{% extends 'base_finanzas.html' %}
+{% load humanize %}
+
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid mt-4">
+
+  <div style="background:linear-gradient(135deg,#b45309 0%,#d97706 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
+    <h2 style="color:#fff;"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ titulo_pagina }}</h2>
+    <p style="color:#fff;margin-bottom:0;">Cuentas vencidas con mora estimada según la tasa configurada en cada concepto de pago.</p>
+  </div>
+
+  <!-- Resumen -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm text-center py-3 border-warning">
+        <div style="font-size:1.5rem;font-weight:700;color:#b45309;">${{ total_mora|floatformat:0|intcomma }}</div>
+        <div class="text-muted small">Total mora estimada</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm text-center py-3">
+        <div style="font-size:1.5rem;font-weight:700;color:#4f46e5;">{{ filas|length }}</div>
+        <div class="text-muted small">Cuentas con mora activa</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info py-2" style="font-size:.85rem;">
+    <i class="bi bi-info-circle me-1"></i>
+    Los valores son <strong>estimados</strong>. Para generar los cargos reales use el comando
+    <code>python manage.py calcular_moras</code> o programe la tarea en Celery Beat.
+  </div>
+
+  <!-- Tabla -->
+  <div class="card shadow-sm">
+    <div class="card-header fw-bold"><i class="bi bi-clock-history me-2"></i>Cuentas Vencidas con Mora</div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.88rem;">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">Estudiante</th>
+            <th>Concepto</th>
+            <th class="text-end">Saldo</th>
+            <th class="text-center">Vencimiento</th>
+            <th class="text-center">Días vencida</th>
+            <th class="text-center">Tasa mensual</th>
+            <th class="text-end pe-3">Mora estimada</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in filas %}
+          <tr>
+            <td class="ps-3">{% if f.cuenta.estudiante %}{{ f.cuenta.estudiante.usuario.get_full_name }}{% else %}—{% endif %}</td>
+            <td>{{ f.cuenta.concepto_pago.nombre_concepto }}</td>
+            <td class="text-end">${{ f.saldo|floatformat:0|intcomma }}</td>
+            <td class="text-center">{{ f.cuenta.fecha_vencimiento_especifica|date:"d/m/Y" }}</td>
+            <td class="text-center">
+              <span class="badge {% if f.dias_vencida > 90 %}bg-danger{% elif f.dias_vencida > 30 %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                {{ f.dias_vencida }}d
+              </span>
+            </td>
+            <td class="text-center">{{ f.tasa_mensual }}%</td>
+            <td class="text-end pe-3 fw-semibold text-warning">${{ f.mora_estimada|floatformat:0|intcomma }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-check-circle me-2 text-success"></i>No hay cuentas vencidas con mora activa.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
