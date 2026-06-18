@@ -108,6 +108,7 @@ urlpatterns = [
     # ---- 9. NUEVOS REPORTES (items 5-10) ----
     path('reportes/anulaciones/', views.reporte_anulaciones, name='reporte_anulaciones'),
     path('reportes/mora/', views.reporte_mora, name='reporte_mora'),
+    path('reportes/mora/generar-cargos/', views.generar_cargos_mora, name='generar_cargos_mora'),
     path('reportes/auditoria-pagos/', views.reporte_auditoria_pagos, name='reporte_auditoria_pagos'),
     path('reportes/descuentos-aplicados/', views.reporte_descuentos_aplicados, name='reporte_descuentos_aplicados'),
     path('reportes/cartera-incobrable/', views.lista_cartera_incobrable, name='lista_cartera_incobrable'),

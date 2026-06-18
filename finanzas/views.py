@@ -3593,11 +3593,116 @@ def reporte_mora(request):
             'saldo': saldo,
         })
 
+    # ¿Existe el concepto "Intereses por Mora" para poder generar los cargos?
+    if request.user.is_superuser:
+        concepto_mora_existe = ConceptoPago.objects.filter(
+            nombre_concepto__iexact="Intereses por Mora"
+        ).exists()
+    else:
+        concepto_mora_existe = ConceptoPago.objects.filter(
+            institucion=institucion, nombre_concepto__iexact="Intereses por Mora"
+        ).exists()
+
     return render(request, 'finanzas/reporte_mora.html', {
         'titulo_pagina': 'Reporte de Mora e Intereses',
         'filas': filas,
         'total_mora': total_mora,
+        'concepto_mora_existe': concepto_mora_existe,
     })
+
+
+@require_POST
+@login_required
+@permission_required('finanzas.add_cuentaporcobrarestudiante', raise_exception=True)
+def generar_cargos_mora(request):
+    """
+    Genera (o actualiza) las cuentas por cobrar de 'Intereses por Mora' para todas
+    las cuentas vencidas de la institución del usuario. Equivale al cálculo del
+    comando calcular_moras, pero ejecutado desde la interfaz y limitado a la
+    institución del usuario (multi-tenant).
+    """
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if not institucion and not request.user.is_superuser:
+        messages.error(request, "Tu usuario no tiene institución asociada.")
+        return redirect('finanzas:reporte_mora')
+
+    hoy = date.today()
+
+    cuentas_vencidas = CuentaPorCobrarEstudiante.objects.filter(
+        estado='VENCIDO',
+        concepto_pago__permite_mora=True,
+        concepto_pago__porcentaje_mora_mensual__isnull=False,
+        estudiante__activo=True,
+    ).select_related('institucion', 'concepto_pago', 'estudiante')
+
+    if not request.user.is_superuser:
+        cuentas_vencidas = cuentas_vencidas.filter(institucion=institucion)
+
+    creadas = 0
+    actualizadas = 0
+    instituciones_sin_concepto = set()
+
+    with transaction.atomic():
+        for cuenta_original in cuentas_vencidas:
+            inst = cuenta_original.institucion
+            concepto_mora = ConceptoPago.objects.filter(
+                institucion=inst,
+                nombre_concepto__iexact="Intereses por Mora",
+            ).first()
+
+            if not concepto_mora:
+                instituciones_sin_concepto.add(inst.nombre)
+                continue
+
+            saldo_pendiente = cuenta_original.saldo_pendiente
+            if saldo_pendiente <= 0:
+                continue
+
+            tasa_mensual = cuenta_original.concepto_pago.porcentaje_mora_mensual
+            tasa_diaria = tasa_mensual / Decimal('30.0')
+            dias_vencido = (hoy - cuenta_original.fecha_vencimiento_especifica).days
+            if dias_vencido <= 0:
+                continue
+
+            monto_mora = (saldo_pendiente * (tasa_diaria / Decimal('100.0')) * Decimal(dias_vencido)).quantize(Decimal('0.01'))
+
+            cuenta_de_mora, created = CuentaPorCobrarEstudiante.objects.get_or_create(
+                estudiante=cuenta_original.estudiante,
+                concepto_pago=concepto_mora,
+                año=hoy.year,
+                mes=hoy.month,
+                defaults={
+                    'monto_asignado': monto_mora,
+                    'fecha_vencimiento_especifica': hoy,
+                    'institucion': inst,
+                    'observaciones_internas': f"Mora generada sobre saldo de la cuenta #{cuenta_original.pk}",
+                },
+            )
+
+            if created:
+                creadas += 1
+            else:
+                cuenta_de_mora.monto_asignado = monto_mora
+                cuenta_de_mora.save()
+                actualizadas += 1
+
+    if instituciones_sin_concepto:
+        messages.warning(
+            request,
+            "Para cobrar la mora primero debes crear un concepto de pago llamado "
+            "exactamente «Intereses por Mora». Ve a Configuración › Conceptos de Pago y créalo."
+        )
+
+    if creadas or actualizadas:
+        messages.success(
+            request,
+            f"Cargos de mora aplicados: {creadas} nuevos y {actualizadas} actualizados. "
+            "Ya aparecen en la cartera de cada estudiante."
+        )
+    elif not instituciones_sin_concepto:
+        messages.info(request, "No había cuentas vencidas con mora pendiente por generar.")
+
+    return redirect('finanzas:reporte_mora')
 
 
 # ═══════════════════════════════════════════════════════════════
