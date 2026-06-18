@@ -290,12 +290,6 @@
         <i class="bi bi-lightning-charge-fill"></i> Facturación masiva
       </a>
     </li>
-    <li class="nav-item item-color-3">
-      <a class="nav-link" href="#"
-         data-bs-toggle="modal" data-bs-target="#modalSyncMasivo">
-        <i class="bi bi-arrow-repeat"></i> Sincronizar masivo
-      </a>
-    </li>
     {% endif %}
 
     <h5 class="menu-section-title">Reportes adicionales</h5>
@@ -413,37 +407,6 @@
   </ul>
 {% endblock floating_menu_content %}
 
-<!-- Modal Sincronizar Masivo -->
-{% if perms.finanzas.add_cuentaporcobrarestudiante %}
-<div class="modal fade" id="modalSyncMasivo" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header border-0 pb-0">
-        <div style="width:48px;height:48px;border-radius:50%;background:#e0f2fe;display:flex;align-items:center;justify-content:center;">
-          <i class="bi bi-arrow-repeat" style="color:#0369a1;font-size:1.2rem;"></i>
-        </div>
-        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body pt-2">
-        <h5 class="fw-bold mb-1">Sincronización masiva de cuentas</h5>
-        <p class="text-muted mb-0" style="font-size:.85rem;">
-          Esto generará las cuentas automáticas faltantes para <strong>todos los estudiantes activos</strong> de la institución.
-          Las cuentas ya existentes no se modifican.
-        </p>
-      </div>
-      <div class="modal-footer border-0">
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-        <form method="post" action="{% url 'finanzas:sincronizar_cuentas_masivo' %}">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-primary btn-sm fw-semibold">
-            <i class="bi bi-arrow-repeat me-1"></i>Sincronizar ahora
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-{% endif %}
 
 {% block extra_js %}
 {{ block.super }}
