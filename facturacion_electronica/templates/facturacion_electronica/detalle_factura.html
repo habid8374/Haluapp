@@ -53,6 +53,16 @@
                   <i class="bi bi-envelope-arrow-up-fill me-1"></i>Reenviar correo
                 </button>
               </form>
+              {% if factura.tipo == 'FACTURA' %}
+                <button type="button" class="btn btn-sm btn-outline-warning fw-semibold"
+                        data-bs-toggle="modal" data-bs-target="#modalNotaCredito">
+                  <i class="bi bi-receipt-cutoff me-1"></i>Nota Crédito
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-dark fw-semibold"
+                        data-bs-toggle="modal" data-bs-target="#modalNotaDebito">
+                  <i class="bi bi-plus-circle me-1"></i>Nota Débito
+                </button>
+              {% endif %}
             {% endif %}
             {% if factura.url_pdf %}
               <a href="{{ factura.url_pdf }}" target="_blank" class="btn btn-sm btn-outline-danger fw-semibold">
@@ -65,6 +75,87 @@
               </a>
             {% endif %}
           </div>
+
+          <!-- Modal Nota Crédito -->
+          {% if factura.tipo == 'FACTURA' and factura.estado == 'VALIDADA' %}
+          <div class="modal fade" id="modalNotaCredito" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                  <div style="width:48px;height:48px;border-radius:50%;background:#fef9c3;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-receipt-cutoff" style="color:#d97706;font-size:1.2rem;"></i>
+                  </div>
+                  <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                  <h5 class="fw-bold mb-1">Emitir Nota Crédito</h5>
+                  <p class="text-muted mb-3" style="font-size:.85rem;">Anula total o parcialmente la factura <strong>{{ factura.numero }}</strong>. El pago vinculado quedará marcado como anulado y el saldo volverá a quedar pendiente.</p>
+                  <form id="formNotaCredito" method="post" action="{% url 'facturacion_electronica:emitir_nota_credito' factura.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold" style="font-size:.88rem;">Motivo de corrección (código DIAN)</label>
+                      <select name="correction_code" class="form-select form-select-sm">
+                        <option value="1">1 — Devolución parcial de bienes</option>
+                        <option value="2" selected>2 — Anulación de factura</option>
+                        <option value="3">3 — Rebaja total aplicada</option>
+                        <option value="4">4 — Descuento total aplicado</option>
+                        <option value="5">5 — Rescisión — nulidad por falta de requisitos</option>
+                        <option value="6">6 — Otros</option>
+                      </select>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer border-0">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="submit" form="formNotaCredito" class="btn btn-warning btn-sm fw-semibold">
+                    <i class="bi bi-receipt-cutoff me-1"></i>Emitir Nota Crédito
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Nota Débito -->
+          <div class="modal fade" id="modalNotaDebito" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                  <div style="width:48px;height:48px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-plus-circle" style="color:#16a34a;font-size:1.2rem;"></i>
+                  </div>
+                  <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                  <h5 class="fw-bold mb-1">Emitir Nota Débito</h5>
+                  <p class="text-muted mb-3" style="font-size:.85rem;">Genera un cargo adicional sobre la factura <strong>{{ factura.numero }}</strong>. El monto indicado aumentará el saldo pendiente del estudiante.</p>
+                  <form id="formNotaDebito" method="post" action="{% url 'facturacion_electronica:emitir_nota_debito' factura.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold" style="font-size:.88rem;">Motivo (código DIAN)</label>
+                      <select name="correction_code" class="form-select form-select-sm">
+                        <option value="1">1 — Intereses</option>
+                        <option value="2">2 — Gastos por cobrar</option>
+                        <option value="3">3 — Cambio del valor</option>
+                        <option value="4" selected>4 — Otros</option>
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold" style="font-size:.88rem;">Monto adicional ($)</label>
+                      <input type="number" name="monto" class="form-control form-control-sm" min="1" step="0.01" placeholder="Ej: 50000" required>
+                      <div class="form-text">Valor en pesos colombianos a cargar adicional.</div>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer border-0">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="submit" form="formNotaDebito" class="btn btn-success btn-sm fw-semibold">
+                    <i class="bi bi-plus-circle me-1"></i>Emitir Nota Débito
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>

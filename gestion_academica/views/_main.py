@@ -7603,24 +7603,28 @@ def promocion_anual_view(request):
     return render(request, 'gestion_academica/promocion_anual.html', context)
 
 @login_required
-@permission_required('gestion_academica.view_estudiante') # O un permiso más específico
+@permission_required('gestion_academica.view_estudiante', raise_exception=True)
 def generar_paz_y_salvo_view(request, estudiante_pk):
     """
-    Genera un certificado de Paz y Salvo Financiero, con la lógica de
-    verificación de deudas corregida para usar el campo 'estado'.
+    Genera un certificado de Paz y Salvo Financiero verificando deudas pendientes.
     """
-    try:
-        estudiante = Estudiante.objects.select_related('usuario', 'institucion').get(pk=estudiante_pk)
-    except Estudiante.DoesNotExist:
-        return HttpResponse("Estudiante no encontrado.", status=404)
+    if request.user.is_superuser:
+        estudiante = get_object_or_404(
+            Estudiante.objects.select_related('usuario', 'institucion'),
+            pk=estudiante_pk,
+        )
+    else:
+        institucion = getattr(request.user, 'institucion_asociada', None)
+        estudiante = get_object_or_404(
+            Estudiante.objects.select_related('usuario', 'institucion'),
+            pk=estudiante_pk,
+            institucion=institucion,
+        )
 
-    # --- INICIO DE LA CORRECCIÓN: Usamos el campo 'estado' ---
-    # Buscamos si existe CUALQUIER cuenta para este estudiante que NO esté en estado 'PAGADO'.
-    # Usamos .exclude() para hacerlo más explícito y claro.
     cuentas_pendientes = CuentaPorCobrarEstudiante.objects.filter(
-        estudiante=estudiante
+        estudiante=estudiante,
+        institucion=estudiante.institucion,
     ).exclude(estado='PAGADO')
-    # --- FIN DE LA CORRECCIÓN ---
 
     if cuentas_pendientes.exists():
         messages.error(request, f"No se puede generar el Paz y Salvo. El estudiante {estudiante.usuario.get_full_name()} tiene saldos pendientes.")

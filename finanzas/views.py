@@ -1224,7 +1224,9 @@ def finanzas_mercadopago_webhook(request):
 
         institucion_del_pago = institucion
 
-        if payment_info.get('status') == 'approved':
+        status_mp = payment_info.get('status')
+
+        if status_mp == 'approved':
             external_ref = payment_info.get('external_reference')
 
             if not external_ref or not re.fullmatch(r"CUENTA-\d+-\d+", str(external_ref)):
@@ -1263,10 +1265,20 @@ def finanzas_mercadopago_webhook(request):
                 return HttpResponse("Cuenta no encontrada", status=200)
 
             if not PagoRegistrado.objects.filter(referencia_transaccion=str(payment_id)).exists():
+                # Validar que el monto pagado corresponde al saldo pendiente (tolerancia $1)
+                monto_mp = Decimal(str(payment_info.get('transaction_amount', 0)))
+                saldo = cuenta.saldo_pendiente
+                if abs(monto_mp - saldo) > Decimal('1.00'):
+                    logger.warning(
+                        "Webhook Finanzas: monto MP (%s) difiere del saldo pendiente (%s) "
+                        "en cuenta %s — se registra con el monto recibido.",
+                        monto_mp, saldo, cuenta_id,
+                    )
+
                 pago_mp = PagoRegistrado.objects.create(
                     cuenta=cuenta,
                     estudiante=cuenta.estudiante,
-                    valor_pagado=Decimal(payment_info['transaction_amount']),
+                    valor_pagado=monto_mp,
                     metodo_pago='MERCADO_PAGO',
                     referencia_transaccion=str(payment_id),
                     institucion=institucion_del_pago
@@ -1280,6 +1292,31 @@ def finanzas_mercadopago_webhook(request):
                     transaction.on_commit(lambda: disparar_emision_automatica(pago_mp))
                 except Exception:
                     pass
+
+        elif status_mp in ('refunded', 'charged_back'):
+            # Reembolso o contracargo: anular el pago registrado para que el saldo
+            # vuelva a quedar pendiente y el módulo de facturación pueda emitir NC.
+            pago_a_anular = PagoRegistrado.objects.filter(
+                referencia_transaccion=str(payment_id),
+                anulado=False,
+                institucion=institucion_del_pago,
+            ).first()
+            if pago_a_anular:
+                pago_a_anular.anulado = True
+                pago_a_anular.anulado_en = timezone.now()
+                pago_a_anular.anulado_motivo = (
+                    f"Reembolso/contracargo Mercado Pago (estado: {status_mp})"
+                )
+                pago_a_anular.save()
+                logger.info(
+                    "Webhook Finanzas: pago %s ANULADO por %s (institución %s).",
+                    payment_id, status_mp, institucion.pk,
+                )
+            else:
+                logger.info(
+                    "Webhook Finanzas: pago %s ya anulado o no encontrado para %s — sin acción.",
+                    payment_id, status_mp,
+                )
 
     except Exception as e:
         logger.error(f"Error procesando webhook de FINANZAS: {e}", exc_info=True)
@@ -1722,6 +1759,7 @@ class ConceptoPagoDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Instit
     permission_required = 'finanzas.delete_conceptopago'            
 
 @login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
 def exportar_excel_historial_cuentas(request):
     """
     Exporta el historial de cuentas por cobrar a Excel con formato profesional,
@@ -2104,21 +2142,25 @@ class ProveedorDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Instituci
 
 # --- CRUD PARA GASTO ---
 
-class GastoListView(LoginRequiredMixin, InstitucionOwnedMixin, ListView):
+class GastoListView(LoginRequiredMixin, PermissionRequiredMixin, InstitucionOwnedMixin, ListView):
     model = Gasto
-    template_name = 'finanzas/gasto_list.html' # Necesitaremos una plantilla específica
+    template_name = 'finanzas/gasto_list.html'
     context_object_name = 'gastos'
+    permission_required = 'finanzas.view_gasto'
+    raise_exception = True
 
     def get_queryset(self):
         return Gasto.objects.filter(institucion=self.request.user.institucion_asociada)
 
 
-class GastoCreateView(LoginRequiredMixin, CreateView):
+class GastoCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Gasto
     form_class = GastoForm
     template_name = 'finanzas/formulario_generico.html'
     success_url = reverse_lazy('finanzas:lista_gastos')
-    
+    permission_required = 'finanzas.add_gasto'
+    raise_exception = True
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
@@ -2136,11 +2178,13 @@ class GastoCreateView(LoginRequiredMixin, CreateView):
         context["cancel_url"] = self.success_url
         return context
 
-class GastoUpdateView(LoginRequiredMixin, InstitucionOwnedMixin, UpdateView):
+class GastoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, InstitucionOwnedMixin, UpdateView):
     model = Gasto
     form_class = GastoForm
     template_name = 'finanzas/formulario_generico.html'
     success_url = reverse_lazy('finanzas:lista_gastos')
+    permission_required = 'finanzas.change_gasto'
+    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2148,18 +2192,21 @@ class GastoUpdateView(LoginRequiredMixin, InstitucionOwnedMixin, UpdateView):
         context["cancel_url"] = self.success_url
         return context
 
-class GastoDeleteView(LoginRequiredMixin, InstitucionOwnedMixin, DeleteView):
+class GastoDeleteView(LoginRequiredMixin, PermissionRequiredMixin, InstitucionOwnedMixin, DeleteView):
     model = Gasto
     template_name = 'finanzas/confirmar_eliminacion.html'
-    success_url = reverse_lazy('finanzas:lista_gastos') 
+    success_url = reverse_lazy('finanzas:lista_gastos')
+    permission_required = 'finanzas.delete_gasto'
+    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["titulo_pagina"] = "Eliminar Gasto"
         context["cancel_url"] = self.success_url
-        return context   
+        return context
 
 @login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
 def reporte_estado_resultados(request):
     """
     Calcula y muestra el estado de resultados (Ingresos vs. Gastos)
@@ -2239,6 +2286,7 @@ def reporte_estado_resultados(request):
     return render(request, 'finanzas/reporte_estado_resultados.html', context)
 
 @login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
 def reporte_cartera_por_edades(request):
     """
     Calcula y muestra la cartera vencida, con filtros funcionales por Grado y Estudiante.
@@ -2312,6 +2360,7 @@ def reporte_cartera_por_edades(request):
     return render(request, 'finanzas/reporte_cartera.html', context)
 
 @login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
 def reporte_flujo_caja(request):
     """
     Calcula y muestra el flujo de caja. Tanto los resúmenes numéricos como el gráfico
@@ -2399,23 +2448,27 @@ def reporte_flujo_caja(request):
     }
     return render(request, 'finanzas/reporte_flujo_caja.html', context)
 
-class DescuentoListView(LoginRequiredMixin, InstitucionOwnedMixin, ListView):
+class DescuentoListView(LoginRequiredMixin, PermissionRequiredMixin, InstitucionOwnedMixin, ListView):
     model = Descuento
     template_name = 'finanzas/listado_configuracion.html'
     context_object_name = 'objetos'
+    permission_required = 'finanzas.view_descuento'
+    raise_exception = True
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["titulo_pagina"] = "Descuentos y Becas"
         context["url_crear"] = reverse_lazy('finanzas:crear_descuento')
-        context["tipo_listado"] = "descuento" # Pista para la plantilla
+        context["tipo_listado"] = "descuento"
         return context
 
-class DescuentoCreateView(LoginRequiredMixin, CreateView):
+class DescuentoCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Descuento
     form_class = DescuentoForm
     template_name = 'finanzas/formulario_generico.html'
     success_url = reverse_lazy('finanzas:lista_descuentos')
+    permission_required = 'finanzas.add_descuento'
+    raise_exception = True
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -2433,11 +2486,13 @@ class DescuentoCreateView(LoginRequiredMixin, CreateView):
         context["cancel_url"] = self.success_url
         return context
 
-class DescuentoUpdateView(LoginRequiredMixin, InstitucionOwnedMixin, UpdateView):
+class DescuentoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, InstitucionOwnedMixin, UpdateView):
     model = Descuento
     form_class = DescuentoForm
     template_name = 'finanzas/formulario_generico.html'
     success_url = reverse_lazy('finanzas:lista_descuentos')
+    permission_required = 'finanzas.change_descuento'
+    raise_exception = True
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -2450,10 +2505,12 @@ class DescuentoUpdateView(LoginRequiredMixin, InstitucionOwnedMixin, UpdateView)
         context["cancel_url"] = self.success_url
         return context
 
-class DescuentoDeleteView(LoginRequiredMixin, InstitucionOwnedMixin, DeleteView):
+class DescuentoDeleteView(LoginRequiredMixin, PermissionRequiredMixin, InstitucionOwnedMixin, DeleteView):
     model = Descuento
     template_name = 'finanzas/confirmar_eliminacion.html'
-    success_url = reverse_lazy('finanzas:lista_descuentos')    
+    success_url = reverse_lazy('finanzas:lista_descuentos')
+    permission_required = 'finanzas.delete_descuento'
+    raise_exception = True
 
 @login_required
 @permission_required('finanzas.add_cuentaporcobrarestudiante')

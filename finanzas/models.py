@@ -207,7 +207,7 @@ class CuentaContable(models.Model):
         PASIVO = 'PASIVO', 'Pasivo'
         PATRIMONIO = 'PATRIMONIO', 'Patrimonio'
 
-    codigo = models.CharField(max_length=20, unique=True, verbose_name="Código PUC")
+    codigo = models.CharField(max_length=20, verbose_name="Código PUC")
     nombre = models.CharField(max_length=200, verbose_name="Nombre de la Cuenta")
     tipo = models.CharField(max_length=20, choices=TipoCuenta.choices, verbose_name="Tipo de Cuenta")
     institucion = models.ForeignKey(
@@ -512,6 +512,13 @@ class PagoRegistrado(models.Model):
         permissions = [
             ("puede_editar_pago", "Puede editar pagos registrados"),
             ("puede_eliminar_pago", "Puede eliminar pagos registrados"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['referencia_transaccion'],
+                condition=models.Q(referencia_transaccion__isnull=False) & ~models.Q(referencia_transaccion=''),
+                name='unique_referencia_transaccion_non_empty',
+            )
         ]
 
 
