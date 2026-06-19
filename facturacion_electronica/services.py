@@ -211,6 +211,32 @@ class FactusClient:
             raise FactusError(f"No se pudo conectar con Factus: {exc}") from exc
         return _safe_json(resp)
 
+    def descargar_xml_bytes(self, numero: str) -> bytes | None:
+        """Descarga el XML firmado del documento directamente desde la API de Factus.
+
+        Útil cuando url_xml no se guardó (ocurre en sandbox con ciertos documentos).
+        Prueba los patrones de endpoint conocidos de Factus y devuelve los bytes del
+        XML, o None si ninguno responde con contenido válido.
+        """
+        rutas = [
+            f"/v2/bills/download-xml/{numero}",
+            f"/v2/bills/{numero}/xml",
+            f"/v1/bills/download-xml/{numero}",
+        ]
+        headers = self._headers()
+        for ruta in rutas:
+            url = f"{self.base_url}{ruta}"
+            try:
+                resp = requests.get(url, headers=headers, timeout=HTTP_TIMEOUT)
+                if resp.status_code == 200 and len(resp.content) > 200:
+                    content_type = resp.headers.get("Content-Type", "")
+                    # Aceptar XML o descarga binaria; rechazar JSON de error
+                    if "json" not in content_type:
+                        return resp.content
+            except requests.RequestException:
+                continue
+        return None
+
 
 def _safe_json(resp) -> dict:
     try:

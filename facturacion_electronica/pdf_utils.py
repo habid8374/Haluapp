@@ -102,25 +102,68 @@ def generar_pdf_factura(factura, base_url: str = None) -> bytes:
 
 
 def descargar_xml_factura(factura, timeout: int = 20) -> bytes:
-    """Descarga el XML firmado de la DIAN desde ``factura.url_xml``.
+    """Descarga el XML firmado de la DIAN para la factura.
 
-    Devuelve los bytes del XML, o ``None`` si no hay URL o falla la descarga
-    (p. ej. en sandbox cuando Factus no expone el XML del documento).
+    Estrategia en dos pasos:
+    1. Si ``factura.url_xml`` está guardado, descarga desde esa URL.
+    2. Si está vacío (ocurre en sandbox), consulta la API de Factus directamente
+       usando el número de la factura.
+    Devuelve los bytes del XML, o ``None`` si no se puede obtener por ninguna vía.
     """
+    import requests as _requests
+
+    # ── Paso 1: URL almacenada ──────────────────────────────────────────────
     url = (factura.url_xml or "").strip()
-    if not url:
-        return None
-    try:
-        import requests
-        resp = requests.get(url, timeout=timeout)
-        resp.raise_for_status()
-        return resp.content
-    except Exception as exc:
-        logger.warning(
-            "descargar_xml_factura: no se pudo descargar el XML de la factura %s (%s): %s",
-            factura.pk, url, exc,
+    if url:
+        try:
+            resp = _requests.get(url, timeout=timeout)
+            resp.raise_for_status()
+            return resp.content
+        except Exception as exc:
+            logger.warning(
+                "descargar_xml_factura: fallo al descargar url_xml de factura %s (%s): %s",
+                factura.pk, url, exc,
+            )
+
+    # ── Paso 2: fallback — descargar vía API de Factus usando el número ────
+    numero = (factura.numero or "").strip()
+    if not numero:
+        logger.info(
+            "descargar_xml_factura: factura %s sin número asignado, no se puede descargar XML.",
+            factura.pk,
         )
         return None
+
+    try:
+        from .services import FactusClient
+        from .models import ConfiguracionFactus
+        config = ConfiguracionFactus.objects.filter(institucion=factura.institucion).first()
+        if config and config.operativo:
+            cliente = FactusClient(config)
+            xml_bytes = cliente.descargar_xml_bytes(numero)
+            if xml_bytes:
+                logger.info(
+                    "descargar_xml_factura: XML de factura %s obtenido vía API de Factus.",
+                    factura.pk,
+                )
+                return xml_bytes
+            logger.warning(
+                "descargar_xml_factura: API de Factus no devolvió XML para la factura %s (número=%s). "
+                "Normal en sandbox — el ZIP se enviará solo con el PDF.",
+                factura.pk, numero,
+            )
+        else:
+            logger.info(
+                "descargar_xml_factura: módulo Factus no operativo para institución %s.",
+                factura.institucion_id,
+            )
+    except Exception as exc:
+        logger.warning(
+            "descargar_xml_factura: error al intentar descarga vía API para factura %s: %s",
+            factura.pk, exc,
+        )
+
+    return None
 
 
 def construir_zip_factura(factura, base_url: str = None) -> tuple:
