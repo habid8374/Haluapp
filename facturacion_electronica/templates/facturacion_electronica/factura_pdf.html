@@ -101,6 +101,11 @@
 <div class="header-wrapper">
   <div class="header-left">
     <div class="header-left-inner">
+      {% if logo_url %}
+      <div class="logo-cell" style="text-align:left; padding-left:0; padding-right:12px;">
+        <img src="{{ logo_url }}" class="logo-img" alt="Logo">
+      </div>
+      {% endif %}
       <div class="inst-cell">
         <div class="inst-name">{{ institucion.nombre }}</div>
         <div class="inst-detail">
@@ -110,11 +115,6 @@
           {% if institucion.email_contacto %}{{ institucion.email_contacto }}{% endif %}
         </div>
       </div>
-      {% if logo_url %}
-      <div class="logo-cell">
-        <img src="{{ logo_url }}" class="logo-img" alt="Logo">
-      </div>
-      {% endif %}
     </div>
   </div>
   <div class="header-right">
