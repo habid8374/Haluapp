@@ -111,19 +111,40 @@ def descargar_xml_factura(factura, timeout: int = 20) -> bytes:
     Devuelve los bytes del XML, o ``None`` si no se puede obtener por ninguna vía.
     """
     import requests as _requests
+    from urllib.parse import urlparse
+
+    _FACTUS_DOMINIOS_PERMITIDOS = {
+        "api.factus.com.co",
+        "api-sandbox.factus.com.co",
+    }
+
+    def _url_factus_segura(raw_url: str) -> bool:
+        """Solo acepta HTTPS hacia dominios oficiales de Factus (previene SSRF)."""
+        try:
+            p = urlparse(raw_url.strip())
+            return p.scheme == "https" and p.hostname in _FACTUS_DOMINIOS_PERMITIDOS
+        except Exception:
+            return False
 
     # ── Paso 1: URL almacenada ──────────────────────────────────────────────
     url = (factura.url_xml or "").strip()
     if url:
-        try:
-            resp = _requests.get(url, timeout=timeout)
-            resp.raise_for_status()
-            return resp.content
-        except Exception as exc:
+        if not _url_factus_segura(url):
             logger.warning(
-                "descargar_xml_factura: fallo al descargar url_xml de factura %s (%s): %s",
-                factura.pk, url, exc,
+                "descargar_xml_factura: url_xml de factura %s rechazada "
+                "(debe ser HTTPS de dominio Factus): %s",
+                factura.pk, url,
             )
+        else:
+            try:
+                resp = _requests.get(url, timeout=timeout)
+                resp.raise_for_status()
+                return resp.content
+            except Exception as exc:
+                logger.warning(
+                    "descargar_xml_factura: fallo al descargar url_xml de factura %s (%s): %s",
+                    factura.pk, url, exc,
+                )
 
     # ── Paso 2: fallback — descargar vía API de Factus usando el número ────
     numero = (factura.numero or "").strip()

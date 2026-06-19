@@ -1,4 +1,5 @@
 {% extends "base_finanzas.html" %}
+{% load fe_filters %}
 
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
@@ -217,21 +218,21 @@
                         </li>
                         {% if f.estado == 'VALIDADA' %}
                           <li>
-                            <a class="dropdown-item" href="{% url 'facturacion_electronica:factura_pdf' f.pk %}" target="_blank">
+                            <a class="dropdown-item" href="{% url 'facturacion_electronica:factura_pdf' f.pk %}" target="_blank" rel="noopener noreferrer">
                               <i class="bi bi-file-earmark-text-fill me-2" style="color:#4f46e5;"></i>PDF Halu
                             </a>
                           </li>
                         {% endif %}
-                        {% if f.url_pdf %}
+                        {% if f.url_pdf|safe_url %}
                           <li>
-                            <a class="dropdown-item" href="{{ f.url_pdf }}" target="_blank">
+                            <a class="dropdown-item" href="{{ f.url_pdf }}" target="_blank" rel="noopener noreferrer">
                               <i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>PDF DIAN
                             </a>
                           </li>
                         {% endif %}
-                        {% if f.qr %}
+                        {% if f.qr|safe_url %}
                           <li>
-                            <a class="dropdown-item" href="{{ f.qr }}" target="_blank">
+                            <a class="dropdown-item" href="{{ f.qr }}" target="_blank" rel="noopener noreferrer">
                               <i class="bi bi-qr-code me-2 text-secondary"></i>Verificar en DIAN
                             </a>
                           </li>
