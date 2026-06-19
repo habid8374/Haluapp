@@ -848,12 +848,37 @@ def notificar_factura_electronica(self, factura_id: int) -> None:
         url_factus_pdf=factura.url_pdf or "",
     )
 
+    # Adjunto: ZIP con el PDF (representación gráfica Halu) + el XML firmado DIAN.
+    # El PDF siempre se incluye; el XML solo si Factus lo expone (en sandbox a
+    # veces no viene). Si la generación del ZIP falla, el correo sale igual con
+    # los enlaces como respaldo.
+    adjuntos = None
+    try:
+        from facturacion_electronica.pdf_utils import construir_zip_factura
+        base_url = build_absolute_site_uri("/")
+        nombre_zip, bytes_zip, incluye_xml = construir_zip_factura(factura, base_url=base_url)
+        adjuntos = [(nombre_zip, bytes_zip, "application/zip")]
+        if not incluye_xml:
+            logger.info(
+                "notificar_factura_electronica: factura %s sin XML disponible "
+                "(url_xml vacío); se adjunta solo el PDF.",
+                factura_id,
+            )
+    except Exception as exc:
+        logger.error(
+            "notificar_factura_electronica: no se pudo generar el ZIP de la "
+            "factura %s; se envía el correo con enlaces solamente: %s",
+            factura_id, exc, exc_info=True,
+        )
+        adjuntos = None
+
     try:
         enviar_correo_dinamico(
             institucion=institucion,
             asunto=f"Factura Electrónica {factura.numero} — {institucion.nombre}",
             destinatarios=destinatarios,
             html_content=html,
+            attachments=adjuntos,
         )
         logger.info(
             "notificar_factura_electronica: correo enviado factura %s a %s destinatario(s).",

@@ -260,22 +260,8 @@ def factura_pdf(request, factura_id):
             logger.warning("factura_pdf: no se pudo generar QR: %s", exc)
 
     try:
-        html = render_to_string("facturacion_electronica/factura_pdf.html", {
-            "factura": factura,
-            "institucion": factura.institucion,
-            "logo_url": logo_url,
-            "qr_b64": qr_b64,
-            "items": items,
-            "customer_name": customer_name,
-            "customer_doc": customer_doc,
-            "customer_doc_type": customer_doc_type,
-            "customer_email": customer_email,
-            "customer_address": customer_address,
-            "total": total,
-        }, request=request)
-
-        from weasyprint import HTML as WP_HTML
-        pdf = WP_HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+        from .pdf_utils import generar_pdf_factura
+        pdf = generar_pdf_factura(factura, base_url=request.build_absolute_uri("/"))
         filename = f"FEV_{factura.numero or factura.reference_code}.pdf"
         response = HttpResponse(pdf, content_type="application/pdf")
         response["Content-Disposition"] = f'inline; filename="{filename}"'
