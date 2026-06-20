@@ -495,25 +495,41 @@
             </a>
           </li>
         {% endif %}
-        {% if perms.gestion_academica.view_dimensiondesarrollo %}
+        {% if perms.gestion_academica.view_dimensiondesarrollo or perms.gestion_academica.view_logropreescolar or perms.gestion_academica.view_escalacualitativa %}
           <li class="nav-item item-color-5">
-            <a class="nav-link" href="{% url 'gestion_academica:lista_dimensiones' %}">
-              <i class="bi bi-diagram-3-fill"></i> Dimensiones (Preescolar)
+            <a class="nav-link {% if 'preescolar' in request.path or 'dimensiones' in request.path or 'logros' in request.path or 'escala-cualitativa' in request.path %}{% else %}collapsed{% endif %}"
+               href="#collapsePreescolar"
+               data-bs-toggle="collapse" role="button"
+               aria-expanded="{% if 'preescolar' in request.path or 'dimensiones' in request.path or 'logros' in request.path or 'escala-cualitativa' in request.path %}true{% else %}false{% endif %}"
+               aria-controls="collapsePreescolar">
+              <i class="bi bi-stars"></i> Preescolar
+              <i class="bi bi-chevron-down float-end"></i>
             </a>
-          </li>
-        {% endif %}
-        {% if perms.gestion_academica.view_logropreescolar %}
-          <li class="nav-item item-color-5">
-            <a class="nav-link" href="{% url 'gestion_academica:logro_lista' %}">
-              <i class="bi bi-award-fill"></i> Logros (Preescolar)
-            </a>
-          </li>
-        {% endif %}
-        {% if perms.gestion_academica.view_escalacualitativa %}
-          <li class="nav-item item-color-5">
-            <a class="nav-link" href="{% url 'gestion_academica:lista_escala_cualitativa' %}">
-              <i class="bi bi-list-stars"></i> Escala Cualitativa (Preescolar)
-            </a>
+            <div class="collapse {% if 'preescolar' in request.path or 'dimensiones' in request.path or 'logros' in request.path or 'escala-cualitativa' in request.path %}show{% endif %}" id="collapsePreescolar">
+              <ul class="nav flex-column ps-3">
+                {% if perms.gestion_academica.view_dimensiondesarrollo %}
+                <li class="nav-item">
+                  <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_dimensiones' %}">
+                    <i class="bi bi-diagram-3-fill"></i> Dimensiones
+                  </a>
+                </li>
+                {% endif %}
+                {% if perms.gestion_academica.view_logropreescolar %}
+                <li class="nav-item">
+                  <a class="nav-link sub-item" href="{% url 'gestion_academica:logro_lista' %}">
+                    <i class="bi bi-award-fill"></i> Logros
+                  </a>
+                </li>
+                {% endif %}
+                {% if perms.gestion_academica.view_escalacualitativa %}
+                <li class="nav-item">
+                  <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_escala_cualitativa' %}">
+                    <i class="bi bi-list-stars"></i> Escala Cualitativa
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </div>
           </li>
         {% endif %}
         {% if perms.gestion_academica.view_periodoacademico %}
