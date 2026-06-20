@@ -204,15 +204,15 @@
 
           {% if p.grados %}
           <!-- Acordeón de grados -->
-          <div class="accordion grado-accordion" id="accordion-mes-{{ forloop.counter }}">
+          {% with mes_idx=forloop.counter %}
+          <div class="accordion grado-accordion" id="accordion-mes-{{ mes_idx }}">
             {% for g in p.grados %}
-            {% with acc_id="acc-m"|add:forloop.parentloop.counter|add:"-g"|add:forloop.counter %}
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
                         type="button"
                         data-bs-toggle="collapse"
-                        data-bs-target="#{{ acc_id }}"
+                        data-bs-target="#acc-m{{ mes_idx }}-g{{ forloop.counter }}"
                         aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
                   <div class="d-flex align-items-center justify-content-between w-100 me-3 flex-wrap gap-2">
                     <span>
@@ -229,9 +229,9 @@
                   </div>
                 </button>
               </h2>
-              <div id="{{ acc_id }}"
+              <div id="acc-m{{ mes_idx }}-g{{ forloop.counter }}"
                    class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
-                   data-bs-parent="#accordion-mes-{{ forloop.parentloop.counter }}">
+                   data-bs-parent="#accordion-mes-{{ mes_idx }}">
                 <div class="accordion-body">
                   <div class="table-responsive">
                     <table class="table tabla-estudiantes">
@@ -286,9 +286,9 @@
                 </div>
               </div>
             </div>
-            {% endwith %}
             {% endfor %}
           </div>
+          {% endwith %}
 
           {% else %}
           <div class="text-center text-muted py-4">
