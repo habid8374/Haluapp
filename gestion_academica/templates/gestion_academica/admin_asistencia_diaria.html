@@ -22,7 +22,6 @@
     padding:.35rem .9rem; font-size:.78rem; color:#fff; font-weight:600;
     position:relative; z-index:1;
   }
-  /* Filter card */
   .ps-filter-card {
     background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
     padding:1.4rem 1.6rem; margin-bottom:1.5rem;
@@ -43,32 +42,56 @@
     justify-content:center;
   }
   .ps-btn-consultar:hover { box-shadow:0 4px 16px rgba(79,70,229,.35); transform:translateY(-1px); }
-  /* Table card */
-  .ps-table-card { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; }
+
+  /* Accordion de grados */
+  .ps-accordion .accordion-button {
+    background: linear-gradient(90deg, var(--ps-dark) 0%, var(--ps-mid) 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: .92rem;
+    border-radius: 10px !important;
+  }
+  .ps-accordion .accordion-button.collapsed {
+    background: #f0f4ff;
+    color: var(--ps-dark);
+  }
+  .ps-accordion .accordion-button::after { filter: invert(1) brightness(2); }
+  .ps-accordion .accordion-button.collapsed::after { filter: none; }
+  .ps-accordion .accordion-item {
+    border: none;
+    border-radius: 12px !important;
+    overflow: hidden;
+    margin-bottom: .75rem;
+    box-shadow: 0 2px 8px rgba(30,27,75,.08);
+  }
+  .ps-accordion .accordion-body { padding: 0; }
+
+  /* Tabla dentro del acordeón */
   .ps-table { width:100%; border-collapse:collapse; }
-  .ps-table thead tr { background: linear-gradient(90deg, var(--ps-dark) 0%, var(--ps-mid) 100%); }
+  .ps-table thead tr { background: #f8faff; border-bottom: 2px solid #e0e7ff; }
   .ps-table thead th {
-    color:rgba(255,255,255,.9); font-size:.75rem; font-weight:700;
-    letter-spacing:.6px; text-transform:uppercase;
-    padding:.85rem 1rem; border:none;
+    color: var(--ps-dark); font-size:.75rem; font-weight:700;
+    letter-spacing:.5px; text-transform:uppercase;
+    padding:.7rem 1rem; border:none;
   }
   .ps-table tbody tr { border-bottom:1px solid #f1f5f9; transition:background .12s; }
   .ps-table tbody tr:last-child { border-bottom:none; }
   .ps-table tbody tr:hover { background:#f8faff; }
   .ps-table tbody td { padding:.75rem 1rem; color:#374151; font-size:.9rem; vertical-align:middle; }
-  /* Grade separator row */
-  .ps-grade-row td {
-    background: linear-gradient(90deg, #f0f4ff, #f8faff);
-    color:var(--ps-dark); font-weight:800; font-size:.8rem;
-    letter-spacing:.6px; text-transform:uppercase;
-    padding:.6rem 1rem; border-bottom:1px solid #e0e7ff !important;
+
+  /* Contador badge en accordion header */
+  .ps-count-badge {
+    background: rgba(255,255,255,.25);
+    border-radius: 20px; padding:.15em .65em;
+    font-size:.75rem; font-weight:700;
+    margin-left:.5rem;
   }
-  .ps-grade-dot {
-    width:8px; height:8px; border-radius:50%;
-    background: linear-gradient(135deg, var(--ps-mid), var(--ps-light));
-    display:inline-block; margin-right:.5rem;
+  .collapsed .ps-count-badge {
+    background: #e0e7ff;
+    color: var(--ps-dark);
   }
-  /* Badges */
+
+  /* Badges de estado */
   .ps-badge-present {
     background:#dcfce7; color:#15803d;
     border-radius:20px; padding:.3rem .75rem;
@@ -87,10 +110,10 @@
     font-size:.8rem; font-weight:700;
     display:inline-flex; align-items:center; gap:.3rem;
   }
-  /* Empty */
   .ps-empty { text-align:center; padding:3rem 2rem; color:#94a3b8; }
   .ps-empty i { font-size:2.8rem; margin-bottom:.8rem; display:block; opacity:.4; }
 </style>
+
 <div class="container-fluid mt-4">
   <!-- Hero -->
   <div class="ps-hero">
@@ -101,11 +124,20 @@
         </h1>
         <p class="ps-hero-sub">Consulta el registro de asistencia por fecha para todos los grados</p>
       </div>
-      <span class="ps-hero-badge">
-        <i class="bi bi-calendar3 me-1"></i>{{ fecha_consultada|date:"d/m/Y" }}
-      </span>
+      <div class="d-flex align-items-center gap-2 flex-wrap" style="position:relative;z-index:1;">
+        <span class="ps-hero-badge">
+          <i class="bi bi-calendar3 me-1"></i>{{ fecha_consultada|date:"d/m/Y" }}
+        </span>
+        {% if asistencia_data %}
+        <a href="{% url 'gestion_academica:exportar_asistencia_diaria_excel' %}?fecha={{ fecha_consultada|date:'Y-m-d' }}"
+           class="btn btn-light fw-bold" style="border-radius:9px;color:var(--ps-dark);font-size:.85rem;">
+          <i class="bi bi-file-earmark-excel-fill me-1" style="color:#1d6f42;"></i> Exportar Excel
+        </a>
+        {% endif %}
+      </div>
     </div>
   </div>
+
   <!-- Filtro fecha -->
   <div class="ps-filter-card">
     <form method="get" class="row g-3 align-items-end">
@@ -120,65 +152,84 @@
       </div>
     </form>
   </div>
-  <!-- Tabla -->
-  <div class="ps-table-card">
-    <div class="table-responsive">
-      <table class="ps-table">
-        <thead>
-          <tr>
-            <th>Estudiante</th>
-            <th class="text-center">Estado del Día</th>
-            <th>Detalle del Registro</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for grado, estudiantes in asistencia_data.items %}
-            <tr class="ps-grade-row">
-              <td colspan="3">
-                <span class="ps-grade-dot"></span>Grado: {{ grado }}
-              </td>
-            </tr>
-            {% for item in estudiantes %}
-            <tr>
-              <td style="font-weight:600;">{{ item.estudiante.usuario.get_full_name }}</td>
-              <td class="text-center">
-                {% if item.registro and item.registro.estado == 'PRESENTE' %}
-                  <span class="ps-badge-present">
-                    <i class="bi bi-check-circle-fill"></i> Presente
-                  </span>
-                {% else %}
-                  <span class="ps-badge-absent">
-                    <i class="bi bi-x-circle-fill"></i> Ausente
-                  </span>
-                {% endif %}
-              </td>
-              <td>
-                {% if item.registro %}
-                  <span style="font-size:.87rem;">
-                    Registrado por: <strong>{{ item.registro.registrado_por.get_full_name|default:'Sistema' }}</strong>
-                  </span><br>
-                  <small style="color:#94a3b8;">
-                    Hora: {{ item.registro.fecha|date:"h:i A" }} &nbsp;·&nbsp; Curso: {{ item.registro.curso.materia.nombre_materia|default:'General' }}
-                  </small>
-                {% else %}
-                  <span class="ps-badge-nodata">
-                    <i class="bi bi-exclamation-circle"></i> Sin registro este día
-                  </span>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          {% empty %}
-            <tr>
-              <td colspan="3" class="ps-empty">
-                <i class="bi bi-inbox"></i>
-                <p class="mb-0">No hay estudiantes activos para mostrar.</p>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+
+  <!-- Acordeón por grado -->
+  {% if asistencia_data %}
+  <div class="accordion ps-accordion" id="acordeonGrados">
+    {% for grado, estudiantes in asistencia_data.items %}
+    {% with grado_id=forloop.counter presentes=estudiantes|length %}
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="heading-{{ grado_id }}">
+        <button class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapse-{{ grado_id }}"
+                aria-expanded="false"
+                aria-controls="collapse-{{ grado_id }}">
+          <i class="bi bi-mortarboard-fill me-2"></i>
+          {{ grado }}
+          <span class="ps-count-badge">{{ estudiantes|length }} estudiante{{ estudiantes|length|pluralize }}</span>
+        </button>
+      </h2>
+      <div id="collapse-{{ grado_id }}"
+           class="accordion-collapse collapse"
+           aria-labelledby="heading-{{ grado_id }}"
+           data-bs-parent="#acordeonGrados">
+        <div class="accordion-body">
+          <table class="ps-table">
+            <thead>
+              <tr>
+                <th>Estudiante</th>
+                <th class="text-center">Estado del Día</th>
+                <th>Detalle del Registro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in estudiantes %}
+              <tr>
+                <td style="font-weight:600;">{{ item.estudiante.usuario.get_full_name }}</td>
+                <td class="text-center">
+                  {% if item.registro and item.registro.estado == 'PRESENTE' %}
+                    <span class="ps-badge-present">
+                      <i class="bi bi-check-circle-fill"></i> Presente
+                    </span>
+                  {% else %}
+                    <span class="ps-badge-absent">
+                      <i class="bi bi-x-circle-fill"></i> Ausente
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if item.registro %}
+                    <span style="font-size:.87rem;">
+                      Registrado por: <strong>{{ item.registro.registrado_por.get_full_name|default:'Sistema' }}</strong>
+                    </span><br>
+                    <small style="color:#94a3b8;">
+                      Hora: {{ item.registro.fecha|date:"h:i A" }} &nbsp;·&nbsp; Curso: {{ item.registro.curso.materia.nombre_materia|default:'General' }}
+                    </small>
+                  {% else %}
+                    <span class="ps-badge-nodata">
+                      <i class="bi bi-exclamation-circle"></i> Sin registro este día
+                    </span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card border-0 shadow-sm" style="border-radius:.85rem;">
+    <div class="card-body ps-empty">
+      <i class="bi bi-inbox"></i>
+      <p class="mb-0 fw-semibold">No hay estudiantes activos para mostrar.</p>
     </div>
   </div>
+  {% endif %}
 </div>
 {% endblock %}

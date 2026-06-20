@@ -6346,8 +6346,135 @@ def asistencia_diaria_admin_view(request):
     
     return render(request, 'gestion_academica/admin_asistencia_diaria.html', context)
 
+
 @login_required
-@permission_required('gestion_academica.view_analisisriesgo') # O un permiso de admin/coordinador
+@permission_required('gestion_academica.view_registroasistencia')
+def exportar_asistencia_diaria_excel(request):
+    if not request.user.is_staff:
+        messages.error(request, "Acceso denegado.")
+        return redirect('gestion_academica:admin_asistencia_diaria')
+
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    fecha_str = request.GET.get('fecha', timezone.localdate().strftime('%Y-%m-%d'))
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+    except ValueError:
+        fecha = timezone.localdate()
+
+    institucion = getattr(request.user, 'institucion_asociada', None)
+
+    inicio_del_dia = timezone.make_aware(datetime.combine(fecha, time.min))
+    fin_del_dia    = timezone.make_aware(datetime.combine(fecha, time.max))
+
+    estudiantes_activos = Estudiante.objects.filter(
+        institucion=institucion, usuario__is_active=True
+    ).select_related('usuario', 'grado_actual').order_by('grado_actual__nombre', 'usuario__last_name')
+
+    registros_del_dia = RegistroAsistencia.objects.filter(
+        fecha__range=(inicio_del_dia, fin_del_dia),
+        estudiante__institucion=institucion
+    ).select_related('estudiante', 'curso__materia', 'registrado_por')
+
+    registros_por_estudiante = {r.estudiante.pk: r for r in registros_del_dia}
+
+    from collections import defaultdict
+    asistencia_por_grado = defaultdict(list)
+    for est in estudiantes_activos:
+        if est.grado_actual:
+            asistencia_por_grado[est.grado_actual.nombre].append({
+                'estudiante': est,
+                'registro': registros_por_estudiante.get(est.pk),
+            })
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Asistencia"
+
+    # Estilos
+    color_header  = "1E1B4B"
+    color_grado   = "3730A3"
+    color_present = "DCFCE7"
+    color_absent  = "FEE2E2"
+    color_nodata  = "FEF9C3"
+    thin = Side(style='thin', color="D1D5DB")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    def cell_style(cell, bold=False, bg=None, font_color="000000", size=10, align="left"):
+        cell.font = Font(bold=bold, color=font_color, size=size)
+        if bg:
+            cell.fill = PatternFill("solid", fgColor=bg)
+        cell.alignment = Alignment(horizontal=align, vertical="center", wrap_text=True)
+        cell.border = border
+
+    # Título principal
+    ws.merge_cells("A1:E1")
+    ws["A1"] = f"Control de Asistencia Diaria — {fecha.strftime('%d/%m/%Y')}"
+    cell_style(ws["A1"], bold=True, bg=color_header, font_color="FFFFFF", size=13, align="center")
+    ws.row_dimensions[1].height = 28
+
+    if institucion:
+        ws.merge_cells("A2:E2")
+        ws["A2"] = institucion.nombre
+        cell_style(ws["A2"], bold=True, bg="3730A3", font_color="FFFFFF", size=10, align="center")
+        ws.row_dimensions[2].height = 18
+
+    fila = 3
+    cols = ["#", "Estudiante", "Estado", "Registrado por", "Hora / Curso"]
+    col_widths = [5, 35, 18, 28, 30]
+
+    for grado_nombre, items in asistencia_por_grado.items():
+        # Fila de grado
+        ws.merge_cells(f"A{fila}:E{fila}")
+        ws[f"A{fila}"] = f"  GRADO: {grado_nombre.upper()}"
+        cell_style(ws[f"A{fila}"], bold=True, bg=color_grado, font_color="FFFFFF", size=10, align="left")
+        ws.row_dimensions[fila].height = 20
+        fila += 1
+
+        # Encabezados de columna
+        for ci, col in enumerate(cols, 1):
+            c = ws.cell(row=fila, column=ci, value=col)
+            cell_style(c, bold=True, bg="E0E7FF", font_color=color_header, size=9, align="center")
+        ws.row_dimensions[fila].height = 16
+        fila += 1
+
+        # Filas de estudiantes
+        for idx, item in enumerate(items, 1):
+            est = item['estudiante']
+            reg = item['registro']
+            estado = "Presente" if reg and reg.estado == 'PRESENTE' else "Ausente"
+            bg_estado = color_present if estado == "Presente" else (color_absent if reg else color_nodata)
+            registrado = reg.registrado_por.get_full_name() if reg and reg.registrado_por else ("Sistema" if reg else "—")
+            detalle = f"{timezone.localtime(reg.fecha).strftime('%I:%M %p')} · {reg.curso.materia.nombre_materia if reg and reg.curso else 'General'}" if reg else "Sin registro"
+
+            row_data = [idx, est.usuario.get_full_name(), estado, registrado, detalle]
+            for ci, val in enumerate(row_data, 1):
+                c = ws.cell(row=fila, column=ci, value=val)
+                bg = bg_estado if ci == 3 else ("F8FAFF" if idx % 2 == 0 else "FFFFFF")
+                cell_style(c, bg=bg, size=9, align="center" if ci in (1, 3) else "left")
+            ws.row_dimensions[fila].height = 15
+            fila += 1
+
+        fila += 1  # Espacio entre grados
+
+    # Anchos de columna
+    for ci, w in enumerate(col_widths, 1):
+        ws.column_dimensions[get_column_letter(ci)].width = w
+
+    ws.freeze_panes = "A3"
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="asistencia_{fecha_str}.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_required
+@permission_required('gestion_academica.view_analisisriesgo')
 def dashboard_riesgo_academico(request):
     """
     Muestra el dashboard principal de Analítica Predictiva, presentando
