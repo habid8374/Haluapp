@@ -1,17 +1,11 @@
-{# gestion_academica/templates/gestion_academica/estudiante_mis_deberes_lista.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Asegúrate de tener esto si usas {% static ... %} para el logo #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Mis Deberes / Tareas" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">{{ titulo_pagina|default:"Mis Deberes / Tareas Asignadas" }}</h1>
-        {# Podrías añadir un filtro por curso o periodo si la lista es muy larga #}
-        {# Ejemplo: <a href="#" class="btn btn-outline-primary"><i class="bi bi-filter"></i> Filtrar</a> #}
     </div>
-
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -20,7 +14,6 @@
             </div>
         {% endfor %}
     {% endif %}
-
     {% if periodo_activo %}
         <p class="lead text-muted">Mostrando deberes para el periodo: <strong>{{ periodo_activo.nombre }} ({{ periodo_activo.año_escolar }})</strong>.</p>
     {% else %}
@@ -28,7 +21,6 @@
             <i class="bi bi-exclamation-triangle-fill me-2"></i> No hay un periodo académico activo definido para tu institución. No se pueden mostrar deberes.
         </div>
     {% endif %}
-
     {% if deberes_con_estado_entrega %}
         <div class="list-group shadow-sm rounded-3">
             {% for item in deberes_con_estado_entrega %}
@@ -40,17 +32,14 @@
                         <small class="text-muted"><strong>Descripción:</strong> {{ item.deber.descripcion|truncatewords:15|linebreaksbr }}</small>
                     {% endif %}
                 </div>
-                
                 <div class="d-flex flex-column align-items-start align-items-md-end text-md-end flex-shrink-0">
                     <small class="text-muted mb-2">Fecha Límite: <strong>{{ item.deber.fecha_entrega|date:"d F, Y" }}</strong></small>
-                    
                     <div>
                         {% if item.deber.material_adjunto %}
                             <a href="{{ item.deber.material_adjunto.url }}" target="_blank" class="btn btn-sm btn-outline-info me-2 mb-1">
                                 <i class="bi bi-paperclip"></i> Material de Apoyo
                             </a>
                         {% endif %}
-
                         {% if item.entregado %}
                             <a href="{% url 'gestion_academica:realizar_entrega_deber' deber_pk=item.deber.pk %}" class="btn btn-sm btn-warning me-2 mb-1">
                                 <i class="bi bi-pencil-square"></i> Ver/Editar Entrega
@@ -59,14 +48,12 @@
                                 <i class="bi bi-check-circle-fill me-1"></i> Entregado
                             </span>
                         {% else %}
-                            {# Lógica de fecha vencida debería venir de la vista (ej. item.deber_vencido) #}
-                            {# Para este ejemplo, usaré una lógica de cliente aproximada para mostrar el estado #}
                             {% comment %}
                             La comparación de fechas en plantillas es limitada. Es mejor que la vista te pase
                             una variable `item.es_vencido` o `item.puede_entregar` que ya haya calculado con `timezone.localdate()`.
                             Por ahora, usaré una aproximación que puede no ser 100% precisa en todos los casos de zonas horarias.
                             {% endcomment %}
-                            {% if item.deber.fecha_entrega|date:"Y-m-d" < "now"|date:"Y-m-d" %} {# Comparación básica de fecha #}
+                            {% if item.deber.fecha_entrega|date:"Y-m-d" < "now"|date:"Y-m-d" %}
                                 <button class="btn btn-sm btn-secondary mb-1" disabled>
                                     <i class="bi bi-clock-history"></i> Entrega Vencida
                                 </button>
@@ -87,14 +74,10 @@
             </div>
             {% endfor %}
         </div>
-    {% elif periodo_activo %} {# Si hay periodo activo pero no deberes asignados #}
+    {% elif periodo_activo %}
         <div class="alert alert-info mt-3 text-center" role="alert">
             <i class="bi bi-info-circle-fill me-2"></i> No tienes deberes o tareas asignadas para el periodo activo en tus cursos actuales.
         </div>
     {% endif %}
-
-    {# Aquí podrías añadir paginación si la lista de deberes es muy larga y la implementas en la vista #}
-    {# {% include "gestion_academica/partials/paginacion.html" %} #}
-
 </div>
 {% endblock contenido %}

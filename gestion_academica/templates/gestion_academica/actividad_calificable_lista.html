@@ -1,14 +1,11 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}{{ titulo_pagina|default:"Actividades Calificables" }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ═══════════════════════════════════════════════
    HALU PULSE — Lista de Actividades Calificables
 ═══════════════════════════════════════════════ */
-
 /* ── Hero ── */
 .al-hero {
   background: linear-gradient(135deg, #07285f 0%, #0a3d8c 42%, #0b5ed7 100%);
@@ -29,7 +26,6 @@
 }
 .al-title { font-size: 1.3rem; font-weight: 800; margin-bottom: .2rem; }
 .al-sub   { font-size: .83rem; opacity: .82; }
-
 /* ── Leyenda de tipos ── */
 .al-legend {
   display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.1rem;
@@ -44,14 +40,12 @@
 .al-legend-dot {
   width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
 }
-
 /* ── Tarjeta contenedora ── */
 .al-card {
   background: #fff; border: 1px solid #dbe5f4; border-radius: 1rem;
   overflow: hidden; box-shadow: 0 4px 18px rgba(11,94,215,.07);
   margin-bottom: 1.2rem;
 }
-
 /* ── Tabla DESKTOP ── */
 .al-table { width: 100%; border-collapse: collapse; }
 .al-table thead th {
@@ -67,7 +61,6 @@
   font-size: .86rem; color: #1e293b; vertical-align: middle;
 }
 .al-table tbody tr:last-child td { border-bottom: none; }
-
 /* ── Icono de tipo (columna izquierda) ── */
 .al-type-icon {
   width: 38px; height: 38px; border-radius: .65rem;
@@ -76,7 +69,6 @@
 }
 .al-type-icon.trad { background: #eff6ff; color: #1d4ed8; }
 .al-type-icon.quiz { background: linear-gradient(135deg,#f5f3ff,#ede9fe); color: #7c3aed; }
-
 /* ── Nombre actividad ── */
 .al-act-name {
   font-weight: 700; color: #1e1b4b; font-size: .9rem;
@@ -84,7 +76,6 @@
 }
 .al-act-name:hover { color: #0b5ed7; }
 .al-act-meta { font-size: .76rem; color: #6b7280; margin-top: .18rem; }
-
 /* ── Badges de tipo ── */
 .type-badge {
   display: inline-flex; align-items: center; gap: .28rem;
@@ -105,7 +96,6 @@
 .type-badge.quiz-inactivo {
   background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb;
 }
-
 /* ── Botones de acción ── */
 .al-actions { display: flex; gap: .35rem; flex-wrap: wrap; justify-content: center; }
 .al-btn {
@@ -122,7 +112,6 @@
 .al-btn-del    { background: #fef2f2; color:#dc2626; border:1.5px solid #fca5a5; }
 .al-btn-del:hover { background:#fee2e2; }
 .al-btn-editor { background: linear-gradient(135deg,#5b21b6,#7c3aed); color:#fff; }
-
 /* ── CARDS MÓVIL ── */
 .al-mob-card {
   border: 1.5px solid #e0e7ff; border-radius: .9rem;
@@ -138,24 +127,19 @@
 .al-mob-badges { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .65rem; }
 .al-mob-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
 .al-mob-actions .al-btn { flex: 1; justify-content: center; min-width: 80px; }
-
 /* ── Paginación ── */
 .al-pag { display: flex; justify-content: center; gap: .35rem; flex-wrap: wrap; padding: .9rem 1rem; }
-
 /* ── Empty state ── */
 .al-empty { text-align: center; padding: 3.5rem 1.5rem; color: #9ca3af; }
 .al-empty i { font-size: 2.8rem; display: block; margin-bottom: .75rem; color: #c7d2fe; }
-
 @media (max-width: 767px) {
   .al-hero { padding: 1.2rem 1rem; }
   .al-title { font-size: 1.1rem; }
 }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
   <!-- Hero -->
   <div class="al-hero">
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
@@ -174,7 +158,6 @@
       {% endif %}
     </div>
   </div>
-
   {% if messages %}
     {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3">
@@ -183,7 +166,6 @@
     </div>
     {% endfor %}
   {% endif %}
-
   <!-- Leyenda de tipos -->
   <div class="al-legend">
     <span style="font-size:.78rem;font-weight:700;color:#374151;margin-right:.25rem;">
@@ -198,10 +180,7 @@
       Cuestionario IA — interactivo, autocorrección, generado con Gemini
     </span>
   </div>
-
   {% if actividades %}
-
-    {# ── TABLA DESKTOP (≥ md) ── #}
     <div class="al-card d-none d-md-block">
       <table class="al-table">
         <thead>
@@ -219,7 +198,6 @@
           {% for actividad_obj in actividades %}
           {% with tiene_quiz=actividad_obj.cuestionario|default:None %}
           <tr>
-            {# Icono identificador #}
             <td style="padding-left:.85rem;padding-right:.5rem;">
               {% if tiene_quiz %}
               <div class="al-type-icon quiz" title="Cuestionario interactivo con IA">
@@ -231,8 +209,6 @@
               </div>
               {% endif %}
             </td>
-
-            {# Nombre y metadata #}
             <td>
               <a href="{% url 'gestion_academica:detalle_actividad_calificable' actividad_obj.pk %}"
                  class="al-act-name">{{ actividad_obj.titulo }}</a>
@@ -240,8 +216,6 @@
                 {{ actividad_obj.curso }} · {{ actividad_obj.porcentaje_en_periodo|floatformat:0|default:"?" }}%
               </div>
             </td>
-
-            {# Badge de tipo #}
             <td>
               {% if tiene_quiz %}
                 <span class="type-badge quiz">
@@ -263,38 +237,28 @@
                 </span>
               {% endif %}
             </td>
-
-            {# Curso #}
             <td class="d-none d-lg-table-cell">
               <span style="background:#eff6ff;color:#1d4ed8;font-weight:600;font-size:.76rem;
                            padding:.2rem .6rem;border-radius:.4rem;">
                 {{ actividad_obj.curso }}
               </span>
             </td>
-
-            {# Porcentaje #}
             <td class="d-none d-lg-table-cell text-center">
               <span style="font-weight:700;color:#374151;">
                 {{ actividad_obj.porcentaje_en_periodo|floatformat:1|default:"—" }}%
               </span>
             </td>
-
-            {# Fecha límite #}
             <td class="d-none d-xl-table-cell" style="color:#6b7280;font-size:.82rem;">
               {{ actividad_obj.fecha_entrega_limite|date:"d/m/Y"|default:"—" }}
             </td>
-
-            {# Acciones #}
             <td>
               <div class="al-actions">
                 {% if tiene_quiz %}
-                  {# Cuestionario: editar en editor IA #}
                   <a href="{% url 'cuestionarios:editor_cuestionario' actividad_pk=actividad_obj.pk %}"
                      class="al-btn al-btn-editor" title="Editor de cuestionario">
                     <i class="bi bi-pencil-square"></i> Editor
                   </a>
                 {% else %}
-                  {# Tradicional: calificar estudiantes #}
                   {% if perms.gestion_academica.puede_calificar_estudiantes %}
                   <a href="{% url 'gestion_academica:listar_estudiantes_para_calificar' actividad_obj.pk %}"
                      class="al-btn al-btn-grade" title="Calificar">
@@ -329,8 +293,6 @@
       </table>
       {% include "gestion_academica/partials/paginacion.html" %}
     </div>
-
-    {# ── CARDS MÓVIL (< md) ── #}
     <div class="d-md-none">
       {% for actividad_obj in actividades %}
       {% with tiene_quiz=actividad_obj.cuestionario|default:None %}
@@ -355,7 +317,6 @@
             </div>
           </div>
         </div>
-
         <div class="al-mob-badges">
           {% if tiene_quiz %}
           <span class="type-badge quiz">
@@ -376,7 +337,6 @@
           </span>
           {% endif %}
         </div>
-
         <div class="al-mob-actions">
           {% if tiene_quiz %}
           <a href="{% url 'cuestionarios:editor_cuestionario' actividad_pk=actividad_obj.pk %}"
@@ -415,7 +375,6 @@
       {% endfor %}
       {% include "gestion_academica/partials/paginacion.html" %}
     </div>
-
   {% else %}
     <div class="al-card">
       <div class="al-empty">
@@ -431,6 +390,5 @@
       </div>
     </div>
   {% endif %}
-
 </div>
 {% endblock %}

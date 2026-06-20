@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══════════════════════════════════════════════════════
@@ -13,7 +11,6 @@
   --sent-mid:    #991b1b;
   --sent-light:  #dc2626;
 }
-
 /* ── Hero ─────────────────────────────────────────── */
 .sent-hero {
   background: linear-gradient(135deg, var(--sent-dark) 0%, var(--sent-mid) 55%, #b91c1c 100%);
@@ -44,7 +41,6 @@
 }
 .sent-hero-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
 .sent-hero-btn-outline:hover { background: rgba(255,255,255,.22); color: #fff; }
-
 /* ── Panel ────────────────────────────────────────── */
 .sent-panel {
   background: #fff;
@@ -70,7 +66,6 @@
 }
 .ico-red  { background: #fee2e2; color: #dc2626; }
 .ico-blue { background: #dbeafe; color: #1d4ed8; }
-
 /* ── Filtros ──────────────────────────────────────── */
 .sent-filters {
   padding: 1rem 1.2rem;
@@ -87,7 +82,6 @@
   align-self: flex-end;
 }
 .sent-filter-btn:hover { background: var(--sent-mid); }
-
 /* ── Tabla ─────────────────────────────────────────── */
 .sent-table thead th {
   background: #f8fafc; font-size: .74rem; text-transform: uppercase;
@@ -96,14 +90,11 @@
 }
 .sent-table tbody td { vertical-align: middle; font-size: .83rem; padding: .75rem 1rem; }
 .sent-table tbody tr:hover { background: #fef9f9; }
-
 /* ── Badges riesgo ────────────────────────────────── */
 .risk-alto  { background: #fee2e2; color: #dc2626; border-radius: 2rem; padding: .2rem .7rem; font-size: .74rem; font-weight: 700; display: inline-block; }
 .risk-medio { background: #fef3c7; color: #92400e; border-radius: 2rem; padding: .2rem .7rem; font-size: .74rem; font-weight: 700; display: inline-block; }
-
 /* ── Factores chip ───────────────────────────────── */
 .factor-chip { display: inline-block; background: #f1f5f9; color: #475569; border-radius: .4rem; padding: .15rem .5rem; font-size: .72rem; margin: .1rem .1rem 0 0; }
-
 /* ── Acciones ────────────────────────────────────── */
 .act-btn {
   display: inline-flex; align-items: center; gap: .3rem;
@@ -114,7 +105,6 @@
 .act-btn-citar:hover { background: #c7d2fe; }
 .act-btn-notif  { background: #f1f5f9; color: #475569; }
 .act-btn-notif:hover { background: #e2e8f0; }
-
 /* Tarjeta móvil */
 .sent-card {
   border-radius: .7rem;
@@ -127,16 +117,13 @@
 .sent-card-header.medio  { background: #fffbeb; border-bottom: 2px solid #f59e0b; }
 .sent-card-body { padding: .75rem 1rem; background: #fff; }
 .sent-card-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; font-weight: 600; margin-bottom: .2rem; }
-
 /* Vacío */
 .sent-empty { text-align: center; padding: 2.5rem 1rem; color: #94a3b8; }
 .sent-empty i { font-size: 2.2rem; display: block; margin-bottom: .6rem; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1200px;">
-
   <!-- ══ HERO ════════════════════════════════════════════════════════ -->
   <div class="sent-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
@@ -154,7 +141,6 @@
       </a>
     </div>
   </div>
-
   <!-- ══ PANEL PRINCIPAL ══════════════════════════════════════════════ -->
   <div class="sent-panel">
     <div class="sent-panel-header">
@@ -163,7 +149,6 @@
         Filtros de búsqueda
       </h2>
     </div>
-
     <!-- Filtros -->
     <form method="get">
       <div class="sent-filters">
@@ -194,7 +179,6 @@
         </button>
       </div>
     </form>
-
     <!-- Tabla — desktop -->
     <div class="d-none d-md-block">
       <div class="table-responsive">
@@ -253,7 +237,6 @@
         </table>
       </div>
     </div>
-
     <!-- Tarjetas — móvil -->
     <div class="d-md-none p-2 pt-3">
       {% for pred in predicciones %}
@@ -295,8 +278,6 @@
       </div>
       {% endfor %}
     </div>
-
   </div><!-- /panel -->
-
 </div>
 {% endblock %}

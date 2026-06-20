@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load crispy_forms_tags %}
-
 {% block titulo %}{{ titulo_formulario }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -10,9 +8,7 @@
             <h1 class="mb-4">{{ titulo_formulario }}</h1>
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                
                 {{ form|crispy }}
-                
                 <hr>
                 <div class="d-flex justify-content-end">
                     <a href="{% url 'gestion_academica:lista_deberes' %}" class="btn btn-secondary me-2">Cancelar</a>
@@ -23,23 +19,19 @@
     </div>
 </div>
 {% endblock contenido %}
-
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const institucionSelect = document.getElementById('id_institucion');
     const cursoSelect = document.getElementById('id_curso');
-
     if (institucionSelect && cursoSelect) {
         institucionSelect.addEventListener('change', function() {
             const institucionId = this.value;
             cursoSelect.innerHTML = '<option value="">Cargando cursos...</option>';
-
             if (!institucionId) {
                 cursoSelect.innerHTML = '<option value="">Selecciona una institución primero</option>';
                 return;
             }
-
             fetch(`/academico/api/cursos-por-institucion/${institucionId}/`)
                 .then(response => response.json())
                 .then(data => {
@@ -54,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     cursoSelect.innerHTML = '<option value="">Error al cargar cursos</option>';
                 });
         });
-
         // Si al cargar la página ya hay una institución seleccionada, disparamos el evento
         if (institucionSelect.value) {
             institucionSelect.dispatchEvent(new Event('change'));

@@ -1,29 +1,22 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}{{ titulo_formulario|default:"Formulario de Materia" }}{% endblock %}
-
 {% block contenido %}
-
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
   <h2 class="mb-1"><i class="bi bi-book-fill me-2"></i>{{ titulo_formulario|default:"Materia" }}</h2>
   <p class="mb-0" style="opacity:.85;font-size:.92rem;">Completa los datos de la materia. Los campos marcados con <span style="color:#fde68a;">*</span> son obligatorios.</p>
 </div>
-
 <div class="row justify-content-center">
   <div class="col-lg-8">
     <div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
       <div class="card-body p-4">
         <form method="post" novalidate>
           {% csrf_token %}
-
           {% if form.non_field_errors %}
           <div class="alert alert-danger">
             {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
           </div>
           {% endif %}
-
-          {# ── Datos principales ── #}
           <h6 class="fw-bold mb-3" style="color:#4f46e5;font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;">
             <i class="bi bi-info-circle-fill me-1"></i>Datos de la Materia
           </h6>
@@ -53,8 +46,6 @@
               {{ form.institucion.as_hidden }}
             {% endif %}
           </div>
-
-          {# ── Bloque bilingüe (solo visible si es_bilingue=True) ── #}
           {% if es_bilingue %}
           <hr class="my-3">
           <div style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-radius:12px;padding:1.25rem;border:1px solid #bae6fd;margin-bottom:1rem;">
@@ -86,8 +77,6 @@
             </div>
           </div>
           {% endif %}
-
-          {# ── Acciones ── #}
           <div class="d-flex justify-content-end gap-2 mt-2">
             <a href="{% url 'gestion_academica:lista_materias' %}" class="btn btn-outline-secondary btn-sm">
               <i class="bi bi-x-circle me-1"></i>Cancelar
@@ -96,15 +85,12 @@
               <i class="bi bi-floppy-fill me-1"></i>Guardar
             </button>
           </div>
-
         </form>
       </div>
     </div>
   </div>
 </div>
-
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 {% if es_bilingue %}
 <script>
@@ -114,9 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const btnLoading     = document.getElementById('btn-ia-loading');
   const inputNombreEs  = document.querySelector('[name="nombre_materia"]');
   const inputNombreL2  = document.querySelector('[name="nombre_idioma_secundario"]');
-
   if (!btnSugerir) return;
-
   btnSugerir.addEventListener('click', function () {
     const nombreEs = inputNombreEs ? inputNombreEs.value.trim() : '';
     if (!nombreEs) {
@@ -126,7 +110,6 @@ document.addEventListener('DOMContentLoaded', function () {
     btnTexto.style.display   = 'none';
     btnLoading.style.display = 'inline';
     btnSugerir.disabled      = true;
-
     fetch('{% url "gestion_academica:api_sugerir_nombre_idioma" %}', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },

@@ -1,14 +1,10 @@
-{# gestion_academica/templates/gestion_academica/familiar_portal_inicio.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Asegúrate de tener esto si usas {% static ... %} #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Portal de Familiares" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">{{ titulo_pagina|default:"Portal de Familiares" }}</h1>
-        {# Podrías añadir aquí un botón para ir a editar el perfil del familiar si implementas esa funcionalidad #}
         {% comment %}
         {% if familiar %}
             <a href="{% url 'gestion_academica:editar_familiar' familiar.pk %}" class="btn btn-outline-secondary">
@@ -17,7 +13,6 @@
         {% endif %}
         {% endcomment %}
     </div>
-
     {% if familiar and familiar.usuario %}
         <p class="lead">Bienvenido/a, <strong>{{ familiar.usuario.get_full_name|default:familiar.usuario.username }}</strong>.</p>
         {% if familiar.institucion %}
@@ -27,7 +22,6 @@
         <p class="lead">Bienvenido/a al Portal de Familiares.</p>
     {% endif %}
     <hr>
-
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -36,7 +30,6 @@
             </div>
         {% endfor %}
     {% endif %}
-
     {% if estudiantes_a_cargo %}
         <h3 class="mb-3"><i class="bi bi-people-fill me-2"></i> Estudiantes a tu Cargo:</h3>
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">

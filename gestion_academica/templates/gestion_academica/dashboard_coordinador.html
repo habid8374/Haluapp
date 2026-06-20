@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}{{ titulo_pagina|default:"Panel de Coordinación" }}{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -10,14 +8,12 @@
    HALU PULSE — Dashboard Coordinador
    Paleta: Indigo / Violeta — autoridad y supervisión
 ═══════════════════════════════════════════════════════ */
-
 :root {
   --coord-dark:   #1e1b4b;
   --coord-mid:    #3730a3;
   --coord-light:  #4f46e5;
   --coord-accent: #818cf8;
 }
-
 /* ── Hero ── */
 .coord-hero {
   background: linear-gradient(135deg, var(--coord-dark) 0%, var(--coord-mid) 45%, var(--coord-light) 100%);
@@ -58,7 +54,6 @@
 .ch-btn.ch-white:hover { background:#eef2ff; color: var(--coord-light); }
 .ch-btn.ch-red { background:rgba(239,68,68,.22); border-color:rgba(239,68,68,.4); }
 .ch-btn.ch-red:hover { background:rgba(239,68,68,.36); }
-
 /* ── KPI Strip ── */
 .coord-kpi-strip {
   display: grid;
@@ -81,32 +76,26 @@
 .ckc-num  { font-size:2rem;font-weight:900;font-family:'Manrope',sans-serif;line-height:1;margin-bottom:.2rem; }
 .ckc-label{ font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:#64748b; }
 .ckc-link { font-size:.71rem;font-weight:600;margin-top:.5rem;display:flex;align-items:center;gap:.2rem;opacity:.75; }
-
 .ckc-indigo::before { background:linear-gradient(90deg,#4f46e5,#818cf8); }
 .ckc-indigo .ckc-icon{ background:#eef2ff;color:#4f46e5; }
 .ckc-indigo .ckc-num { color:#4f46e5; }
 .ckc-indigo .ckc-link{ color:#4f46e5; }
-
 .ckc-red::before { background:linear-gradient(90deg,#dc2626,#f87171); }
 .ckc-red .ckc-icon   { background:#fef2f2;color:#dc2626; }
 .ckc-red .ckc-num    { color:#dc2626; }
 .ckc-red .ckc-link   { color:#dc2626; }
-
 .ckc-amber::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
 .ckc-amber .ckc-icon { background:#fefce8;color:#d97706; }
 .ckc-amber .ckc-num  { color:#d97706; }
 .ckc-amber .ckc-link { color:#d97706; }
-
 .ckc-teal::before { background:linear-gradient(90deg,#0d9488,#2dd4bf); }
 .ckc-teal .ckc-icon  { background:#f0fdfa;color:#0d9488; }
 .ckc-teal .ckc-num   { color:#0d9488; }
 .ckc-teal .ckc-link  { color:#0d9488; }
-
 .ckc-green::before { background:linear-gradient(90deg,#15803d,#22c55e); }
 .ckc-green .ckc-icon { background:#f0fdf4;color:#15803d; }
 .ckc-green .ckc-num  { color:#15803d; }
 .ckc-green .ckc-link { color:#15803d; }
-
 /* ── Section header ── */
 .coord-sec {
   display:flex;align-items:center;gap:.65rem;
@@ -119,7 +108,6 @@
   font-size:1rem;flex-shrink:0;
 }
 .coord-sec h2 { font-size:1.05rem;font-weight:800;color:#0f3f90;margin:0; }
-
 /* ── Elección widget ── */
 .elec-widget {
   background:#fff;border:1px solid #dbe5f4;border-radius:1.1rem;
@@ -141,7 +129,6 @@
 .elec-badge-activa  { background:rgba(34,197,94,.25);border:1px solid rgba(34,197,94,.5);color:#dcfce7; }
 .elec-badge-cerrada { background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#e0e7ff; }
 .elec-badge-proxima { background:rgba(251,191,36,.25);border:1px solid rgba(251,191,36,.4);color:#fef9c3; }
-
 /* Métricas de participación */
 .elec-meta-strip {
   display:flex;flex-wrap:wrap;gap:.6rem;
@@ -155,7 +142,6 @@
 }
 .elec-meta-chip i { color:var(--coord-light); }
 .elec-meta-chip strong { color:var(--coord-dark); }
-
 /* Barra de participación general */
 .elec-part-bar-wrap { padding:0 1.4rem .85rem;background:#fafafe;border-bottom:1px solid #eef2ff; }
 .elec-part-bar-label { font-size:.76rem;font-weight:600;color:#64748b;margin-bottom:.3rem;display:flex;justify-content:space-between; }
@@ -166,7 +152,6 @@
   height:100%;background:linear-gradient(90deg,var(--coord-mid),var(--coord-accent));
   border-radius:999px;transition:width .6s ease;
 }
-
 /* Candidatos */
 .elec-candidates { padding:1rem 1.4rem 1.4rem; }
 .elec-candidate-row {
@@ -184,7 +169,6 @@
 .pos-2 { background:#f1f5f9;color:#475569;border:2px solid #e2e8f0; }
 .pos-3 { background:#fff7ed;color:#c2410c;border:2px solid #fed7aa; }
 .pos-n { background:#f8fafc;color:#94a3b8;border:1px solid #e2e8f0; }
-
 .elec-cand-avatar {
   width:40px;height:40px;border-radius:50%;
   background:linear-gradient(135deg,var(--coord-mid),var(--coord-accent));
@@ -211,7 +195,6 @@
   background:linear-gradient(90deg,#d97706,#fbbf24);
 }
 .elec-vote-count { font-size:.72rem;font-weight:700;color:#64748b;white-space:nowrap; }
-
 /* ── Herramientas ── */
 .coord-tool-card {
   background:#fff;border:1px solid #dbe5f4;border-radius:.95rem;
@@ -234,7 +217,6 @@
   font-size:.8rem;font-weight:700;text-decoration:none;transition:gap .2s;
 }
 .ctc-link:hover { gap:.6rem; }
-
 .ctc-indigo .ctc-icon { background:#eef2ff;color:#4f46e5; }
 .ctc-indigo .ctc-link { color:#4f46e5; }
 .ctc-red    .ctc-icon { background:#fef2f2;color:#dc2626; }
@@ -251,7 +233,6 @@
 .ctc-blue   .ctc-link { color:#1d4ed8; }
 .ctc-slate  .ctc-icon { background:#f8fafc;color:#475569; }
 .ctc-slate  .ctc-link { color:#475569; }
-
 /* ── Reporte de Grados ── */
 .coord-grade-card {
   background:#fff;border:1px solid #dbe5f4;border-radius:1rem;
@@ -265,7 +246,6 @@
 }
 .coord-grade-head h5 { font-size:.95rem;font-weight:800;color:#0f3f90;margin:0; }
 .coord-grade-body { padding:1.2rem; }
-
 @media (max-width:768px) {
   .coord-hero { padding:1.4rem 1.2rem 1.9rem; }
   .ch-greeting { font-size:1.35rem; }
@@ -280,11 +260,8 @@
 }
 </style>
 {% endblock extrastyles %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
-  {# ════ HERO ════ #}
   <div class="coord-hero">
     <div class="ch-badge"><i class="bi bi-building-check"></i> Coordinación Académica</div>
     <div class="ch-greeting">
@@ -308,31 +285,25 @@
       </a>
     </div>
   </div>
-
-  {# ════ KPI STRIP ════ #}
   <div class="coord-kpi-strip">
-
     <a href="{% url 'gestion_academica:reporte_asistencia_materia' %}" class="coord-kpi-card ckc-teal">
       <div class="ckc-icon"><i class="bi bi-calendar-check-fill"></i></div>
       <div class="ckc-num">{{ porcentaje_asistencia_hoy }}<span style="font-size:1.1rem;">%</span></div>
       <div class="ckc-label">Asistencia hoy</div>
       <div class="ckc-link"><i class="bi bi-arrow-right-short"></i> Ver detalle</div>
     </a>
-
     <a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="coord-kpi-card {% if alertas_bienestar_count > 0 %}ckc-red{% else %}ckc-green{% endif %}">
       <div class="ckc-icon"><i class="bi bi-heart-pulse-fill"></i></div>
       <div class="ckc-num">{{ alertas_bienestar_count }}</div>
       <div class="ckc-label">Alertas bienestar</div>
       <div class="ckc-link"><i class="bi bi-arrow-right-short"></i> Revisar</div>
     </a>
-
     <a href="{% url 'gestion_academica:historial_convivencia' %}" class="coord-kpi-card ckc-amber">
       <div class="ckc-icon"><i class="bi bi-shield-exclamation"></i></div>
       <div class="ckc-num">{{ cantidad_convivencia }}</div>
       <div class="ckc-label">Casos convivencia</div>
       <div class="ckc-link"><i class="bi bi-arrow-right-short"></i> Ver historial</div>
     </a>
-
     {% if eleccion_mas_reciente %}
     <a href="{% url 'gestion_academica:gestionar_elecciones' %}" class="coord-kpi-card ckc-indigo">
       <div class="ckc-icon"><i class="bi bi-ballot-fill"></i></div>
@@ -350,24 +321,19 @@
       <div class="ckc-link"><i class="bi bi-plus-circle"></i> Crear proceso</div>
     </a>
     {% endif %}
-
     <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="coord-kpi-card ckc-red">
       <div class="ckc-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
       <div class="ckc-num" style="font-size:1rem;padding-top:.5rem;line-height:1.4;">Riesgo Global</div>
       <div class="ckc-label">Por cursos y grados</div>
       <div class="ckc-link"><i class="bi bi-arrow-right-short"></i> Analizar</div>
     </a>
-
     <a href="{% url 'gestion_academica:proceso_graduacion' %}" class="coord-kpi-card ckc-green">
       <div class="ckc-icon"><i class="bi bi-patch-check-fill"></i></div>
       <div class="ckc-num" style="font-size:1rem;padding-top:.5rem;line-height:1.4;">Graduación</div>
       <div class="ckc-label">Egresados</div>
       <div class="ckc-link"><i class="bi bi-arrow-right-short"></i> Proceso</div>
     </a>
-
   </div>
-
-  {# ════ WIDGET DE ELECCIONES ════ #}
   {% if eleccion_mas_reciente %}
   <div class="coord-sec">
     <div class="cs-icon" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-ballot-fill"></i></div>
@@ -383,7 +349,6 @@
     </div>
     {% endif %}
   </div>
-
   <div class="elec-widget">
     <div class="elec-header">
       <div>
@@ -401,14 +366,12 @@
         {% endif %}
       {% endif %}
     </div>
-
     <div class="elec-meta-strip">
       <div class="elec-meta-chip"><i class="bi bi-calendar3"></i> Inicio: <strong>{{ eleccion_mas_reciente.fecha_inicio|date:"d M Y" }}</strong></div>
       <div class="elec-meta-chip"><i class="bi bi-calendar-x-fill"></i> Cierre: <strong>{{ eleccion_mas_reciente.fecha_fin|date:"d M Y" }}</strong></div>
       <div class="elec-meta-chip"><i class="bi bi-person-check-fill"></i> Votos emitidos: <strong>{{ total_votos }}</strong></div>
       <div class="elec-meta-chip"><i class="bi bi-people-fill"></i> Votantes elegibles: <strong>{{ total_votantes_elegibles }}</strong></div>
     </div>
-
     <div class="elec-part-bar-wrap">
       <div class="elec-part-bar-label">
         <span>Participación electoral</span>
@@ -418,7 +381,6 @@
         <div class="elec-part-bar-fill" style="width:{{ porcentaje_participacion }}%;"></div>
       </div>
     </div>
-
     <div class="elec-candidates">
       {% if votos_data %}
       {% for item in votos_data %}
@@ -459,29 +421,22 @@
     </div>
   </div>
   {% endif %}
-
-  {# ════ HERRAMIENTAS DE GESTIÓN ════ #}
   <div class="coord-sec">
     <div class="cs-icon" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-grid-3x3-gap-fill"></i></div>
     <h2>Herramientas de Gestión</h2>
   </div>
   <div class="row g-3 mb-2">
-
-    {# ── CORTE PREVENTIVO (widget destacado) ── #}
     <div class="col-12">
       <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#6d28d9 100%);
                   border-radius:1rem;padding:1.2rem 1.5rem;color:#fff;
                   display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;
                   box-shadow:0 6px 24px rgba(79,70,229,.3);position:relative;overflow:hidden;">
-        {# Burbujas decorativas #}
         <div style="position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06);pointer-events:none;"></div>
         <div style="position:absolute;right:80px;bottom:-50px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none;"></div>
-
         <div style="width:56px;height:56px;border-radius:.9rem;background:rgba(255,255,255,.15);
                     display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex-shrink:0;">
           <i class="bi bi-clipboard2-pulse-fill"></i>
         </div>
-
         <div style="flex:1;min-width:200px;">
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;">
             <span style="font-size:1.1rem;font-weight:800;font-family:'Manrope',sans-serif;">Cortes Preventivos</span>
@@ -493,7 +448,6 @@
             detecta estudiantes en riesgo y exporta PDF/Excel para docentes y familias.
           </p>
         </div>
-
         <div style="display:flex;flex-wrap:wrap;gap:.6rem;flex-shrink:0;">
           <a href="{% url 'gestion_academica:lista_cortes_preventivos' %}"
              style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
@@ -515,7 +469,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-red">
         <div class="ctc-top">
@@ -530,7 +483,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-amber">
         <div class="ctc-top">
@@ -545,7 +497,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-teal">
         <div class="ctc-top">
@@ -560,7 +511,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-purple">
         <div class="ctc-top">
@@ -575,7 +525,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-blue">
         <div class="ctc-top">
@@ -590,7 +539,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-green">
         <div class="ctc-top">
@@ -605,7 +553,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-indigo">
         <div class="ctc-top">
@@ -626,7 +573,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-indigo">
         <div class="ctc-top">
@@ -641,7 +587,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-slate">
         <div class="ctc-top">
@@ -656,7 +601,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-blue">
         <div class="ctc-top">
@@ -671,7 +615,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card" style="border-left:4px solid #4f46e5;">
         <div class="ctc-top">
@@ -686,7 +629,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="coord-tool-card ctc-teal">
         <div class="ctc-top">
@@ -701,25 +643,19 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {# ════ ALERTA PLANES PENDIENTES ════ #}
   {% if planes_pendientes_count > 0 %}
   <a href="{% url 'gestion_academica:supervisar_planes_semanales' %}" class="text-decoration-none d-block mb-3"
      style="border-radius:1rem;overflow:hidden;box-shadow:0 4px 18px rgba(234,88,12,.25);">
     <div style="background:linear-gradient(135deg,#ea580c 0%,#f97316 60%,#fb923c 100%);padding:1rem 1.4rem;display:flex;align-items:center;gap:1rem;position:relative;overflow:hidden;">
-      {# Ondas de fondo #}
       <div style="position:absolute;right:-20px;top:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08);"></div>
       <div style="position:absolute;right:20px;top:10px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.06);"></div>
-      {# Ícono con pulso #}
       <div style="position:relative;flex-shrink:0;">
         <div style="width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:.85rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#fff;">
           <i class="bi bi-hourglass-split"></i>
         </div>
         <span style="position:absolute;-top:4px;right:-4px;background:#fff;color:#ea580c;font-size:.65rem;font-weight:900;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2);">{{ planes_pendientes_count }}</span>
       </div>
-      {# Texto #}
       <div style="flex:1;color:#fff;">
         <div style="font-size:.73rem;opacity:.9;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">Acción requerida</div>
         <div style="font-size:1.05rem;font-weight:800;line-height:1.2;margin:.15rem 0;">
@@ -731,19 +667,14 @@
         </div>
         <div style="font-size:.78rem;opacity:.88;">Docentes han enviado sus planeaciones — revisa, aprueba o devuelve con observaciones.</div>
       </div>
-      {# Flecha #}
       <div style="color:rgba(255,255,255,.8);font-size:1.5rem;flex-shrink:0;"><i class="bi bi-arrow-right-circle-fill"></i></div>
     </div>
   </a>
   {% endif %}
-
-  {# ════ PLANEACIÓN CURRICULAR ════ #}
   <div class="coord-sec" style="margin-top:.5rem;">
     <div class="cs-icon" style="background:#e0e7ff;color:#4f46e5;"><i class="bi bi-journal-bookmark-fill"></i></div>
     <h2>Planeación Curricular</h2>
   </div>
-
-  {# Resumen rápido: mallas + planes pendientes #}
   <div style="background:linear-gradient(135deg,#1e1b4b 0%,#3730a3 55%,#4338ca 100%);border-radius:1rem;padding:1.3rem 1.5rem;margin-bottom:1.25rem;color:#fff;position:relative;overflow:hidden;">
     <div style="position:absolute;inset:0;background:url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\");"></div>
     <div class="row g-3 align-items-center" style="position:relative;z-index:1;">
@@ -773,8 +704,6 @@
       </div>
     </div>
   </div>
-
-  {# Mini-info de qué es cada cosa #}
   <div class="row g-3 mb-4">
     <div class="col-md-6">
       <div style="background:#fff;border-radius:.85rem;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;">
@@ -826,8 +755,6 @@
       </div>
     </div>
   </div>
-
-  {# ════ REPORTE DE CURSOS POR GRADO ════ #}
   <div class="coord-sec">
     <div class="cs-icon" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-collection-fill"></i></div>
     <h2>Estructura de Cursos por Grado</h2>
@@ -859,10 +786,8 @@
       </div>
     </div>
   </div>
-
 </div>
 {% endblock %}
-
 {% block extra_js %}
 {{ block.super }}
 {{ api_cursos_por_grado_json|json_script:"coord-api-cursos-cfg" }}
@@ -874,14 +799,12 @@
   var opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
   el.textContent = new Date().toLocaleDateString('es-ES', opts);
 })();
-
 /* AJAX cursos por grado */
 document.addEventListener('DOMContentLoaded', function () {
   var gradoSelect = document.getElementById('grado-select');
   var container   = document.getElementById('reporte-cursos-container');
   var apiCfg = { pattern:'', ph:'' };
   try { apiCfg = JSON.parse(document.getElementById('coord-api-cursos-cfg').textContent); } catch(e){}
-
   gradoSelect.addEventListener('change', function () {
     var gradoId = this.value;
     if (!gradoId) {

@@ -1,16 +1,12 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
-
   <div style="background:linear-gradient(135deg,#065f46 0%,#059669 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
     <h2 style="color:#fff;"><i class="bi bi-percent me-2"></i>{{ titulo_pagina }}</h2>
     <p style="color:#fff;margin-bottom:0;">Estudiantes con descuentos o becas activos asignados.</p>
   </div>
-
   <!-- Filtros -->
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -35,7 +31,6 @@
       </form>
     </div>
   </div>
-
   <!-- Tabla -->
   <div class="card shadow-sm">
     <div class="card-header fw-bold d-flex justify-content-between align-items-center">
@@ -76,6 +71,5 @@
       </table>
     </div>
   </div>
-
 </div>
 {% endblock %}

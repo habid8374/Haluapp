@@ -1,11 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 {% load notificaciones_tags %}
-
 {% block titulo %}{{ branding.NOMBRE }}{% endblock %}
-
 {% block body_class %}layout-academico{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -14,18 +11,15 @@
      Transforma el menú flotante en sidebar fijo izquierdo.
      Sólo aplica cuando body tiene .layout-academico
   ══════════════════════════════════════════════════════ */
-
   body.layout-academico {
     --sidebar-w: 245px;
     --brand-primary: #0b5ed7;
     --brand-primary-dark: #0a4db4;
   }
-
   /* Ocultar botón flotante original */
   body.layout-academico #floatingMenuToggle {
     display: none !important;
   }
-
   /* ── Sidebar (panel convertido) ── */
   body.layout-academico #mainMenuPanel {
     position: fixed !important;
@@ -50,19 +44,16 @@
     background-color: #ffffff !important;
     transition: transform .28s ease !important;
   }
-
   /* Scrollbar delgado */
   body.layout-academico #mainMenuPanel::-webkit-scrollbar { width: 4px; }
   body.layout-academico #mainMenuPanel::-webkit-scrollbar-thumb {
     background: #c5d8f5; border-radius: 4px;
   }
-
   /* Empujar contenido principal */
   body.layout-academico {
     padding-left: var(--sidebar-w);
     transition: padding-left .28s ease;
   }
-
   /* Mejorar nav-links en sidebar */
   body.layout-academico #mainMenuPanel .nav-link {
     padding-left: .75rem !important;
@@ -84,7 +75,6 @@
     font-size: .82rem !important;
     padding: .42rem .75rem !important;
   }
-
   /* Cabecera dentro del sidebar */
   .sidebar-brand-row {
     display: flex;
@@ -101,7 +91,6 @@
     text-transform: uppercase;
     letter-spacing: .06em;
   }
-
   /* Botón toggle en navbar */
   .btn-sidebar-toggle {
     background: none;
@@ -119,7 +108,6 @@
     line-height: 1;
   }
   .btn-sidebar-toggle:hover { background: rgba(255,255,255,.18); color: #fff; }
-
   /* Avatar inicial en navbar */
   .nav-avatar {
     width: 32px; height: 32px; border-radius: 50%;
@@ -128,7 +116,6 @@
     font-weight: 700; font-size: .84rem;
     flex-shrink: 0;
   }
-
   /* ── MOBILE (<992px): sidebar como drawer ── */
   @media (max-width: 991.98px) {
     body.layout-academico {
@@ -152,7 +139,6 @@
       z-index: 1054;
     }
   }
-
   /* Ajuste del contenedor principal en escritorio */
   @media (min-width: 992px) {
     body.layout-academico main.container {
@@ -161,7 +147,6 @@
       padding-right: 1.5rem !important;
     }
   }
-
   /* ── MOBILE: navbar en una sola fila ──
      1. Ocultamos el navbar-toggler de Bootstrap (el sidebar es la navegación).
      2. Forzamos el área derecha (avatar/campana) siempre visible.
@@ -197,8 +182,6 @@
   }
 </style>
 {% endblock extrastyles %}
-
-{# ── Navbar: agregar botón de toggle antes del brand ── #}
 {% block navbar_brand %}
 <button class="btn-sidebar-toggle" id="sidebarToggleBtn"
         aria-label="Abrir/cerrar menú lateral" type="button">
@@ -215,15 +198,10 @@
   <span class="brand-text">{{ configuracion_institucion.nombre_institucion|default:branding.NOMBRE|default:"HALU" }}</span>
 </a>
 {% endblock navbar_brand %}
-
-{# ── Navbar derecha: notificaciones + mensajes + usuario ── #}
 {% block navbar_content %}
 <ul class="navbar-nav ms-auto d-flex flex-row align-items-center gap-1">
   {% if user.is_authenticated %}
-
     {% notificaciones_bell %}
-
-    {# Badge de mensajes siempre visible en barra #}
     {% if user.rol in 'docente,familiar,estudiante' %}
     <li class="nav-item">
       <a class="nav-link position-relative px-2" href="{% url 'mensajeria:inbox' %}" title="Mensajes">
@@ -234,8 +212,6 @@
       </a>
     </li>
     {% endif %}
-
-    {# Dropdown usuario #}
     <li class="nav-item dropdown">
       <a class="nav-link dropdown-toggle ps-1 d-flex align-items-center gap-2"
          href="#" id="navbarDropdownUserLink" role="button"
@@ -283,20 +259,15 @@
         </li>
       </ul>
     </li>
-
   {% endif %}
 </ul>
 {% endblock navbar_content %}
-
-{# SIDEBAR — contenido del menú #}
 {% block floating_menu_content %}
   <div class="sidebar-brand-row">
     <i class="bi bi-mortarboard-fill text-primary" style="font-size:1.05rem"></i>
     <span class="sb-label">Gestión Académica</span>
   </div>
-
   <ul class="nav flex-column">
-
     <h5 class="menu-section-title">Principal</h5>
     <li class="nav-item item-color-1">
       <a class="nav-link {% if request.resolver_match.url_name == 'inicio_academico' %}active{% endif %}"
@@ -304,8 +275,6 @@
         <i class="bi bi-house-door-fill"></i> Inicio
       </a>
     </li>
-
-    {# ════════ ESTUDIANTE ════════ #}
     {% if user.rol == 'estudiante' %}
       <hr class="menu-divider">
       <h5 class="menu-section-title">Mi Espacio</h5>
@@ -340,10 +309,7 @@
         </a>
       </li>
     {% endif %}
-
-    {# ════════ STAFF ════════ #}
     {% if user.is_staff %}
-
       {% if perms.admisiones.view_aspirante %}
         <hr class="menu-divider">
         <h5 class="menu-section-title">Procesos</h5>
@@ -358,7 +324,6 @@
           <i class="bi bi-patch-check-fill"></i> Proceso de Graduación
         </a>
       </li>
-
       <hr class="menu-divider">
       <h5 class="menu-section-title">E-Learning</h5>
       <li class="nav-item item-color-5">
@@ -400,7 +365,6 @@
           </ul>
         </div>
       </li>
-
       {% if perms.gestion_academica.acceso_modulo_academico %}
         <hr class="menu-divider">
         <h5 class="menu-section-title">Gestión General</h5>
@@ -483,7 +447,6 @@
             </a>
           </li>
         {% endif %}
-
         <h5 class="menu-section-title mt-3">Configuración Académica</h5>
         {% if perms.gestion_academica.view_areaacademica %}
           <li class="nav-item item-color-4">
@@ -532,6 +495,27 @@
             </a>
           </li>
         {% endif %}
+        {% if perms.gestion_academica.view_dimensiondesarrollo %}
+          <li class="nav-item item-color-5">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_dimensiones' %}">
+              <i class="bi bi-diagram-3-fill"></i> Dimensiones (Preescolar)
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_logropreescolar %}
+          <li class="nav-item item-color-5">
+            <a class="nav-link" href="{% url 'gestion_academica:logro_lista' %}">
+              <i class="bi bi-award-fill"></i> Logros (Preescolar)
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_escalacualitativa %}
+          <li class="nav-item item-color-5">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_escala_cualitativa' %}">
+              <i class="bi bi-list-stars"></i> Escala Cualitativa (Preescolar)
+            </a>
+          </li>
+        {% endif %}
         {% if perms.gestion_academica.view_periodoacademico %}
           <li class="nav-item item-color-2">
             <a class="nav-link" href="{% url 'gestion_academica:lista_periodos' %}">
@@ -547,7 +531,6 @@
           </li>
         {% endif %}
       {% endif %}
-
       {% if perms.finanzas.acceso_modulo_finanzas %}
         {% with inst=request.user.institucion_asociada %}
         {% if request.user.is_superuser or not inst or inst.tipo_institucion != 'publico' %}
@@ -561,7 +544,6 @@
         {% endif %}
         {% endwith %}
       {% endif %}
-
       <hr class="menu-divider">
       <li class="nav-item item-color-4">
         <a class="nav-link" href="{% url 'admin:index' %}">
@@ -578,10 +560,7 @@
           <i class="bi bi-headset"></i> Soporte HALU
         </a>
       </li>
-
-    {% endif %}{# end is_staff #}
-
-    {# ════════ DOCENTE ════════ #}
+    {% endif %}
     {% if user.rol == 'docente' %}
       <hr class="menu-divider">
       <h5 class="menu-section-title">Panel de Docente</h5>
@@ -719,8 +698,6 @@
         </a>
       </li>
     {% endif %}
-
-    {# ════════ COORDINADOR / ADMINISTRADOR STAFF ════════ #}
     {% if user.is_staff and user.rol in 'coordinador,administrador' %}
       <hr class="menu-divider">
       <h5 class="menu-section-title">Panel de Coordinación</h5>
@@ -839,8 +816,6 @@
         </div>
       </li>
     {% endif %}
-
-    {# ════════ FAMILIAR ════════ #}
     {% if user.rol == 'familiar' %}
       <h5 class="menu-section-title">Portal Familiar</h5>
       <li class="nav-item item-color-1">
@@ -856,8 +831,6 @@
         </a>
       </li>
     {% endif %}
-
-    {# ════════ EGRESADO ════════ #}
     {% if user.rol == 'egresado' %}
       <hr class="menu-divider">
       <h5 class="menu-section-title">Mi Portal</h5>
@@ -867,7 +840,6 @@
         </a>
       </li>
     {% endif %}
-
     <hr class="menu-divider">
     <h5 class="menu-section-title">Cuenta</h5>
     <li class="nav-item item-color-2">
@@ -885,31 +857,23 @@
         <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
       </a>
     </li>
-
   </ul>
 {% endblock floating_menu_content %}
-
-{# ── Contenido por defecto (lo reemplazan las vistas hijas) ── #}
 {% block contenido %}
   <div class="container-fluid mt-4">
     <h1 class="h4">Bienvenido/a al Módulo Académico</h1>
     <p class="text-muted">Selecciona una opción del menú lateral para comenzar.</p>
   </div>
 {% endblock %}
-
 {% block extra_js %}
 {{ block.super }}
-
-{# ── JS: sidebar toggle ── #}
 <script>
 (function () {
   var body  = document.body;
   var btn   = document.getElementById('sidebarToggleBtn');
   var panel = document.getElementById('mainMenuPanel');
   if (!btn || !panel) return;
-
   function isMobile() { return window.innerWidth < 992; }
-
   btn.addEventListener('click', function (e) {
     e.stopPropagation();
     if (isMobile()) {
@@ -917,7 +881,6 @@
     }
     /* En escritorio el sidebar siempre está visible — sin colapso por ahora */
   });
-
   /* Cerrar en mobile al clic fuera */
   document.addEventListener('click', function (e) {
     if (isMobile() && body.classList.contains('sidebar-open')) {
@@ -926,22 +889,18 @@
       }
     }
   });
-
   /* Cerrar en mobile al navegar */
   panel.querySelectorAll('a:not([data-bs-toggle])').forEach(function (a) {
     a.addEventListener('click', function () {
       if (isMobile()) body.classList.remove('sidebar-open');
     });
   });
-
   /* Escape */
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && isMobile()) body.classList.remove('sidebar-open');
   });
 })();
 </script>
-
-{# ── Badge mensajes en navbar top ── #}
 {% if user.is_authenticated and user.rol in 'docente,familiar,estudiante' %}
 <script>
 (function () {
@@ -968,8 +927,6 @@
 })();
 </script>
 {% endif %}
-
-{# ── Notificaciones staff via WS ── #}
 {% if user.is_authenticated and user.is_staff %}
 <div id="staff-ws-notifications-root"
      class="toast-container position-fixed top-0 end-0 p-3"
@@ -993,8 +950,6 @@
 </div>
 <script src="{% static 'js/notifications_staff_ws.js' %}"></script>
 {% endif %}
-
-{# ── Banners flotantes de noticias y anuncios ── #}
 {% if user.is_authenticated and banners_activos %}
 <style>
 #halu-banners-container {
@@ -1071,7 +1026,6 @@
 @keyframes haluBannerOut {
   to { opacity: 0; transform: translateY(10px); }
 }
-
 /* ── Tablet (≤ 768px) ── */
 @media (max-width: 768px) {
   #halu-banners-container {
@@ -1089,7 +1043,6 @@
     height: 44px;
   }
 }
-
 /* ── Móvil (≤ 576px) ── */
 @media (max-width: 576px) {
   #halu-banners-container {
@@ -1132,13 +1085,11 @@
     padding: 8px;
   }
 }
-
 /* ── Muy pequeño (≤ 360px) ── */
 @media (max-width: 360px) {
   .halu-banner-icon { display: none; }
   .halu-banner { border-radius: 8px; }
 }
-
 /* ── Estado expandido ── */
 .halu-banner.expandido {
   max-width: 480px;
@@ -1203,7 +1154,6 @@
 .urgente .halu-banner-expandir { color: #dc2626; }
 .evento  .halu-banner-expandir { color: #7c3aed; }
 .halu-banner-expandir:hover { opacity: .75; }
-
 /* expandido en móvil: ocupar ancho completo e imagen visible */
 @media (max-width: 576px) {
   .halu-banner.expandido {
@@ -1215,9 +1165,7 @@
   .halu-banner.expandido .halu-banner-texto-resumen { -webkit-line-clamp: unset; }
 }
 </style>
-
 <div id="halu-banners-container"></div>
-
 <script>
 (function () {
   var BANNERS_RAW = [
@@ -1233,26 +1181,21 @@
     }{% if not forloop.last %},{% endif %}
     {% endfor %}
   ];
-
   var LS_PREFIX = 'halu_banner_cerrado_';
   var MAX_VISIBLE = window.innerWidth <= 576 ? 2 : 3;
   var cola = [];
   var visibles = 0;
-
   // La clave incluye la revisión: al reactivar desde el admin sube la revisión
   // y la clave anterior queda huérfana → el banner reaparece para todos.
   function lsKey(b) {
     return LS_PREFIX + b.id + '_r' + b.rev;
   }
-
   function iaCerrado(b) {
     return localStorage.getItem(lsKey(b)) === '1';
   }
-
   function marcarCerrado(b) {
     localStorage.setItem(lsKey(b), '1');
   }
-
   function cerrarBanner(el, b) {
     marcarCerrado(b);
     el.style.animation = 'haluBannerOut .25s ease forwards';
@@ -1262,15 +1205,12 @@
       mostrarSiguiente();
     }, 250);
   }
-
   function crearEl(b) {
     var tipo = b.tipo === 'urgente' ? 'urgente' : 'evento';
     var icono = tipo === 'urgente' ? 'bi-exclamation-triangle-fill' : 'bi-star-fill';
     var hayMas = b.completo.length > b.resumen.length;
-
     var div = document.createElement('div');
     div.className = 'halu-banner ' + tipo;
-
     var iconDiv = '<div class="halu-banner-icon"><i class="bi ' + icono + '"></i></div>';
     var body = '<div class="halu-banner-body">'
              + '<p class="halu-banner-titulo">' + _esc(b.titulo) + '</p>'
@@ -1284,13 +1224,10 @@
              + '</div>';
     var img = b.imagen ? '<img src="' + _esc(b.imagen) + '" class="halu-banner-img" alt="">' : '';
     var close = '<button class="halu-banner-close" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>';
-
     div.innerHTML = iconDiv + body + img + close;
-
     div.querySelector('.halu-banner-close').addEventListener('click', function () {
       cerrarBanner(div, b);  // pasa el objeto completo para construir la clave correcta
     });
-
     if (hayMas) {
       var btnExp = div.querySelector('.halu-banner-expandir');
       var icnExp = btnExp.querySelector('i');
@@ -1301,16 +1238,13 @@
         txtExp.textContent = expandido ? 'Ver menos' : 'Ver más';
       });
     }
-
     return div;
   }
-
   function _esc(str) {
     var d = document.createElement('div');
     d.appendChild(document.createTextNode(str || ''));
     return d.innerHTML;
   }
-
   function mostrarSiguiente() {
     while (cola.length > 0 && visibles < MAX_VISIBLE) {
       var b = cola.shift();
@@ -1320,7 +1254,6 @@
       visibles++;
     }
   }
-
   BANNERS_RAW.forEach(function (b) {
     if (!iaCerrado(b.id)) cola.push(b);
   });
@@ -1328,8 +1261,6 @@
 })();
 </script>
 {% endif %}
-
-{# ── Sincronización de CSRF antes de cualquier submit ── #}
 <script>
 (function () {
   function getCsrfCookie() {
@@ -1344,5 +1275,4 @@
   }, true);
 })();
 </script>
-
 {% endblock extra_js %}

@@ -1,10 +1,8 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block contenido %}
 <div class="container mt-4">
     <h2 class="mb-4">Mis Asistencias</h2>
-
     {% if asistencias %}
         <table class="table table-hover table-bordered">
             <thead class="thead-dark">
@@ -32,7 +30,6 @@
                 {% endfor %}
             </tbody>
         </table>
-
         {% if is_paginated %}
             <nav aria-label="Paginación">
                 <ul class="pagination">
@@ -50,7 +47,6 @@
                 </ul>
             </nav>
         {% endif %}
-
     {% else %}
         <p class="text-muted">No hay asistencias registradas aún.</p>
     {% endif %}

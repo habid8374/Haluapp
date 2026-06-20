@@ -1,10 +1,8 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
-
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -25,17 +23,13 @@
                     <div class="col-md-2"><button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Generar</button></div>
                 </div>
             </form>
-
             {% if estudiante_seleccionado and reporte_data %}
                 <h5 class="border-bottom pb-2 mb-3">
                     Mostrando reporte para: <strong class="text-primary">{{ estudiante_seleccionado.usuario.get_full_name }}</strong> | Año Escolar: <strong class="text-primary">{{ año_seleccionado }}</strong>
                 </h5>
-
                 <div class="mb-4">
                     <canvas id="acumuladoChart"></canvas>
                 </div>
-
-                {# --- REPORTE CUANTITATIVO --- #}
                 {% if reporte_data.tipo_reporte == 'CUANTITATIVO' %}
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover">
@@ -62,8 +56,6 @@
                     </table>
                 </div>
                 {% endif %}
-
-                {# --- REPORTE CUALITATIVO --- #}
                 {% if reporte_data.tipo_reporte == 'CUALITATIVO' %}
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover">
@@ -97,7 +89,6 @@
         </div>
     </div>
 </div>
-
 {% if reporte_data.chart_labels %}
 {{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
 {{ reporte_data.chart_datasets|json_script:"chart-datasets-data" }}
@@ -115,7 +106,6 @@
                 y: { beginAtZero: true, max: 5 }
             }
         };
-
         // Si el reporte es cualitativo, cambiamos el tipo y las opciones
         if ("{{ reporte_data.tipo_reporte }}" === "CUALITATIVO") {
             chartType = 'bar';
@@ -125,7 +115,6 @@
                 y: { stacked: true, beginAtZero: true }
             };
         }
-
         new Chart(ctx, {
             type: chartType,
             data: {

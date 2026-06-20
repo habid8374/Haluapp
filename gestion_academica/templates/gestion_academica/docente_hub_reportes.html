@@ -1,13 +1,11 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina|default:"Centro de Reportes" }}{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
 /* ═══════════════════════════════════════════════════════
    HALU PULSE — Hub de Reportes Docente
 ═══════════════════════════════════════════════════════ */
-
 /* ── Hero ── */
 .rh-hero {
   background: linear-gradient(135deg, #14532d 0%, #15803d 45%, #22c55e 100%);
@@ -43,7 +41,6 @@
   transition: all .2s; display: inline-flex; align-items: center; gap: .35rem;
 }
 .rh-back:hover { background: rgba(255,255,255,.28); color: #fff; }
-
 /* ── Director banner ── */
 .rh-director-banner {
   background: linear-gradient(120deg, #fef9c3, #fefce8);
@@ -54,7 +51,6 @@
 }
 .rh-director-banner i { font-size: 1.2rem; color: #d97706; flex-shrink: 0; }
 .rh-director-banner strong { font-weight: 700; }
-
 /* ── Section header ── */
 .rh-sec {
   display: flex; align-items: center; gap: .65rem;
@@ -67,7 +63,6 @@
   font-size: 1rem; flex-shrink: 0;
 }
 .rh-sec h2 { font-size: 1.02rem; font-weight: 800; color: #0f3f90; margin: 0; }
-
 /* ── Report card ── */
 .rh-card {
   background: #fff; border: 1px solid #dbe5f4; border-radius: .95rem;
@@ -95,7 +90,6 @@
 }
 .rhc-link:hover { gap: .6rem; }
 .rhc-link .bi-arrow-right-short { font-size: 1.1rem; }
-
 /* Tags */
 .rhc-tag {
   display: inline-flex; align-items: center; gap: .3rem;
@@ -103,7 +97,6 @@
   font-size: .68rem; font-weight: 700;
   margin-bottom: .5rem;
 }
-
 /* Color variants */
 .rhc-blue   .rhc-icon { background:#eaf2ff; color:#1d4ed8; }
 .rhc-blue   .rhc-link { color:#1d4ed8; }
@@ -123,12 +116,10 @@
 .rhc-teal   .rhc-link { color:#0d9488; }
 .rhc-slate  .rhc-icon { background:#f8fafc; color:#475569; }
 .rhc-slate  .rhc-link { color:#475569; }
-
 /* ── Director section highlight ── */
 .rh-director-section .rh-sec { border-bottom-color: #fde68a; }
 .rh-director-section .rhs-icon { background: #fefce8; color: #d97706; }
 .rh-director-section h2 { color: #92400e; }
-
 @media (max-width: 768px) {
   .rh-hero  { padding: 1.3rem 1.2rem; }
   .rh-title { font-size: 1.2rem; }
@@ -136,11 +127,8 @@
 }
 </style>
 {% endblock extrastyles %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
-  {# ══════════ HERO ══════════ #}
   <div class="rh-hero">
     <div class="rh-badge"><i class="bi bi-bar-chart-line-fill"></i> Centro de Reportes</div>
     <div class="rh-title">Informes y Análisis Docente</div>
@@ -149,8 +137,6 @@
       <i class="bi bi-arrow-left"></i> Centro de Gestión
     </a>
   </div>
-
-  {# Banner de director de grupo #}
   {% if es_director_de_grupo %}
   <div class="rh-director-banner">
     <i class="bi bi-person-badge-fill"></i>
@@ -160,14 +146,11 @@
     </div>
   </div>
   {% endif %}
-
-  {# ══════════ REPORTES POR MATERIA ══════════ #}
   <div class="rh-sec">
     <div class="rhs-icon" style="background:#eaf2ff;color:#1d4ed8;"><i class="bi bi-pencil-square"></i></div>
     <h2>Reportes por Materia</h2>
   </div>
   <div class="row g-3 mb-2">
-
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-amber">
         <div class="rh-card-top">
@@ -183,7 +166,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-red">
         <div class="rh-card-top">
@@ -199,7 +181,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-blue">
         <div class="rh-card-top">
@@ -215,7 +196,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-teal">
         <div class="rh-card-top">
@@ -231,7 +211,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-purple">
         <div class="rh-card-top">
@@ -247,7 +226,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-green">
         <div class="rh-card-top">
@@ -263,10 +241,7 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {# ══════════ REPORTES DE DIRECTOR DE GRUPO ══════════ #}
   {% if es_director_de_grupo %}
   <div class="rh-director-section">
     <div class="rh-sec">
@@ -274,7 +249,6 @@
       <h2>Director de Grupo{% if direccion_grupo %} — {{ direccion_grupo.grado.nombre }}{% endif %}</h2>
     </div>
     <div class="row g-3 mb-4">
-
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-amber">
           <div class="rh-card-top">
@@ -290,7 +264,6 @@
           </div>
         </div>
       </div>
-
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-blue">
           <div class="rh-card-top">
@@ -306,7 +279,6 @@
           </div>
         </div>
       </div>
-
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-green">
           <div class="rh-card-top">
@@ -322,7 +294,6 @@
           </div>
         </div>
       </div>
-
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-red">
           <div class="rh-card-top">
@@ -338,7 +309,6 @@
           </div>
         </div>
       </div>
-
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-teal">
           <div class="rh-card-top">
@@ -354,7 +324,6 @@
           </div>
         </div>
       </div>
-
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-slate">
           <div class="rh-card-top">
@@ -370,11 +339,9 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
   {% else %}
-  {# Sección de director bloqueada #}
   <div class="rh-sec" style="margin-top:1.6rem;">
     <div class="rhs-icon" style="background:#f8fafc;color:#94a3b8;"><i class="bi bi-lock-fill"></i></div>
     <h2 style="color:#94a3b8;">Reportes de Director de Grupo</h2>
@@ -385,6 +352,5 @@
     en el periodo académico activo. Contacta a coordinación si crees que esto es un error.
   </div>
   {% endif %}
-
 </div>
 {% endblock %}

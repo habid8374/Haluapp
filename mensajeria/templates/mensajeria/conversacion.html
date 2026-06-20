@@ -1,12 +1,8 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}Chat con {{ otro.get_full_name }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-3 d-flex flex-column" style="height: calc(100vh - 90px);">
-
-  {# ── Cabecera ── #}
   <div class="d-flex align-items-center gap-3 mb-2 pb-2 border-bottom">
     <a href="{% url 'mensajeria:inbox' %}" class="btn btn-sm btn-outline-secondary">
       <i class="bi bi-arrow-left"></i>
@@ -24,7 +20,6 @@
         </small>
       {% endif %}
     </div>
-    {# Archivar #}
     <form action="{% url 'mensajeria:archivar' conv.pk %}" method="post" class="ms-auto">
       {% csrf_token %}
       <button type="submit" class="btn btn-sm btn-outline-secondary" title="Archivar conversación">
@@ -32,12 +27,9 @@
       </button>
     </form>
   </div>
-
-  {# ── Burbuja de mensajes ── #}
   <div id="chat-messages" class="flex-grow-1 overflow-y-auto px-1 py-2 d-flex flex-column gap-2">
     {% for m in mensajes %}
       {% if m.remitente_id == request.user.pk %}
-        {# Mensaje propio → derecha #}
         <div class="d-flex justify-content-end" data-msg-id="{{ m.pk }}">
           <div class="bg-primary text-white rounded-3 px-3 py-2 shadow-sm" style="max-width:75%;">
             <div style="white-space:pre-wrap;">{{ m.texto }}</div>
@@ -52,7 +44,6 @@
           </div>
         </div>
       {% else %}
-        {# Mensaje del otro → izquierda #}
         <div class="d-flex justify-content-start" data-msg-id="{{ m.pk }}">
           <div class="bg-light border rounded-3 px-3 py-2 shadow-sm" style="max-width:75%;">
             <div style="white-space:pre-wrap;">{{ m.texto }}</div>
@@ -68,13 +59,9 @@
       </p>
     {% endfor %}
   </div>
-
-  {# ── Indicador "escribiendo…" ── #}
   <div id="typing-indicator" class="text-muted small ps-2 mb-1" style="display:none;">
     {{ otro.first_name }} está escribiendo…
   </div>
-
-  {# ── Input de mensaje ── #}
   <div class="border-top pt-2 pb-1">
     <div id="ws-offline-banner" class="alert alert-warning alert-sm py-1 px-2 mb-1 d-none" role="alert">
       <i class="bi bi-wifi-off"></i> Sin conexión en tiempo real — los mensajes se enviarán igualmente.
@@ -93,49 +80,40 @@
       <span id="char-count">0</span>/2000
     </div>
   </div>
-
 </div>
 {% endblock %}
-
-
 {% block extra_js %}
 {{ block.super }}
 <script>
 (function () {
   'use strict';
-
   const conversacionId = {{ conversacion_id }};
   const miUserId       = {{ request.user.pk }};
   const miNombre       = "{{ request.user.get_full_name|escapejs }}";
   const wsScheme       = window.location.protocol === 'https:' ? 'wss' : 'ws';
   const wsUrl          = `${wsScheme}://${window.location.host}/ws/mensajeria/${conversacionId}/`;
-
   const chatMessages     = document.getElementById('chat-messages');
   const chatForm         = document.getElementById('chat-form');
   const chatInput        = document.getElementById('chat-input');
   const charCount        = document.getElementById('char-count');
   const typingIndicator  = document.getElementById('typing-indicator');
   const offlineBanner    = document.getElementById('ws-offline-banner');
-
   let socket         = null;
   let wsOk           = false;
   let reconnectDelay = 1000;
   let pollingTimer   = null;
   let ultimoMsgId    = 0;   // ID del último mensaje conocido (para polling incremental)
-
   // Registrar IDs de mensajes ya renderizados (evita duplicados WS+polling)
   const idsRendered = new Set();
   chatMessages.querySelectorAll('[data-msg-id]').forEach(el => {
     idsRendered.add(Number(el.dataset.msgId));
     ultimoMsgId = Math.max(ultimoMsgId, Number(el.dataset.msgId));
   });
-
   // ─── Scroll al fondo ────────────────────────────────────────────────
   function scrollBottom() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
   scrollBottom();
-
   // ─── Crear burbuja de mensaje ────────────────────────────────────────
   function agregarBurbuja({ id, texto, remitenteId, enviadoEn, leido = false }) {
     if (id && idsRendered.has(id)) return null;   // ya existe
@@ -143,46 +121,37 @@
       idsRendered.add(id);
       ultimoMsgId = Math.max(ultimoMsgId, id);
     }
-
     const esMio = remitenteId === miUserId;
     const hora  = new Date(enviadoEn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
     const wrap = document.createElement('div');
     wrap.className = `d-flex justify-content-${esMio ? 'end' : 'start'}`;
     if (id) wrap.dataset.msgId = id;
-
     const burbuja = document.createElement('div');
     burbuja.className = esMio
       ? 'bg-primary text-white rounded-3 px-3 py-2 shadow-sm'
       : 'bg-light border rounded-3 px-3 py-2 shadow-sm';
     burbuja.style.maxWidth = '75%';
-
     const cuerpo = document.createElement('div');
     cuerpo.style.whiteSpace = 'pre-wrap';
     cuerpo.textContent = texto;
-
     const meta = document.createElement('div');
     meta.className = esMio ? 'text-end mt-1' : 'text-muted mt-1';
     meta.style.fontSize = '.7rem';
     if (!esMio) meta.style.opacity = '.75';
-
     const checkIcon = esMio ? (leido ? 'bi-check2-all' : 'bi-check2') : '';
     meta.innerHTML = `${hora}${esMio ? ` <i class="bi ${checkIcon} ms-1"></i>` : ''}`;
-
     burbuja.append(cuerpo, meta);
     wrap.appendChild(burbuja);
     chatMessages.appendChild(wrap);
     scrollBottom();
     return { wrap, meta, cuerpo };
   }
-
   // ─── Marcar ticks como leídos (doble check) ─────────────────────────
   function marcarLeidos() {
     chatMessages.querySelectorAll('.bi-check2').forEach(el => {
       el.classList.replace('bi-check2', 'bi-check2-all');
     });
   }
-
   // ─── Polling HTTP (fallback cuando WS no conecta) ────────────────────
   async function pollMensajes() {
     try {
@@ -201,30 +170,24 @@
       });
     } catch { /* silencioso */ }
   }
-
   function iniciarPolling() {
     if (pollingTimer) return;
     pollingTimer = setInterval(pollMensajes, 3000);
   }
-
   function detenerPolling() {
     if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
   }
-
   // ─── WebSocket ───────────────────────────────────────────────────────
   function conectar() {
     socket = new WebSocket(wsUrl);
-
     socket.addEventListener('open', () => {
       wsOk = true;
       reconnectDelay = 1000;
       offlineBanner.classList.add('d-none');
       detenerPolling();
     });
-
     socket.addEventListener('message', (ev) => {
       const data = JSON.parse(ev.data);
-
       if (data.tipo === 'mensaje_nuevo') {
         agregarBurbuja({
           id:          data.id,
@@ -233,12 +196,10 @@
           enviadoEn:   data.enviado_en,
         });
       }
-
       if (data.tipo === 'mensajes_leidos') {
         if (data.lector_id !== miUserId) marcarLeidos();
       }
     });
-
     socket.addEventListener('close', () => {
       wsOk = false;
       offlineBanner.classList.remove('d-none');
@@ -246,18 +207,14 @@
       setTimeout(conectar, Math.min(reconnectDelay, 30000));
       reconnectDelay = Math.min(reconnectDelay * 2, 30000);
     });
-
     socket.addEventListener('error', () => { socket.close(); });
   }
-
   conectar();
-
   // ─── Enviar mensaje ──────────────────────────────────────────────────
   chatForm.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const texto = chatInput.value.trim();
     if (!texto || texto.length > 2000) return;
-
     if (wsOk && socket.readyState === WebSocket.OPEN) {
       // WS activo: mostrar burbuja propia inmediatamente, el server hace el broadcast
       agregarBurbuja({
@@ -291,19 +248,16 @@
         alert('Sin conexión. El mensaje no pudo enviarse.');
       }
     }
-
     chatInput.value = '';
     charCount.textContent = '0';
     chatInput.style.height = 'auto';
   });
-
   // ─── Auto-resize textarea ────────────────────────────────────────────
   chatInput.addEventListener('input', () => {
     charCount.textContent = chatInput.value.length;
     chatInput.style.height = 'auto';
     chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
   });
-
   // ─── Enter envía (Shift+Enter = salto de línea) ──────────────────────
   chatInput.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter' && !ev.shiftKey) {
@@ -311,7 +265,6 @@
       chatForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     }
   });
-
 })();
 </script>
 {% endblock %}

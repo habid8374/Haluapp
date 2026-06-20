@@ -1,10 +1,8 @@
 ﻿{% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
-
 /* ── HERO ── */
 .ps-hero { background:linear-gradient(135deg,var(--ps-dark) 0%,var(--ps-mid) 55%,#4338ca 100%); border-radius:1rem; padding:1.5rem 1.8rem; color:#fff; position:relative; overflow:hidden; margin-bottom:1.5rem; }
 .ps-hero::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
@@ -14,19 +12,16 @@
 .ps-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.42rem .95rem; border-radius:.6rem; font-size:.81rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; }
 .ps-btn-outline { background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.3); }
 .ps-btn-outline:hover { background:rgba(255,255,255,.22); color:#fff; }
-
 /* ── Estado badges ── */
 .ps-estado { display:inline-flex; align-items:center; gap:.35rem; border-radius:2rem; padding:.3rem .85rem; font-size:.78rem; font-weight:700; }
 .ps-estado-borrador { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3); }
 .ps-estado-enviado  { background:#dbeafe; color:#1d4ed8; }
 .ps-estado-aprobado { background:#dcfce7; color:#15803d; }
 .ps-estado-obs      { background:#fef3c7; color:#b45309; }
-
 /* ── Observaciones box ── */
 .ps-obs-box { background:#fef9c3; border:1px solid #fde047; border-radius:.75rem; padding:.85rem 1.1rem; margin-bottom:1.25rem; }
 .ps-obs-box-title { font-size:.83rem; font-weight:700; color:#92400e; margin-bottom:.3rem; }
 .ps-obs-box-text  { font-size:.82rem; color:#78350f; }
-
 /* ── Panel genérico ── */
 .ps-panel { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; margin-bottom:1.25rem; }
 .ps-panel-header { display:flex; align-items:center; justify-content:space-between; gap:.5rem; flex-wrap:wrap; padding:.85rem 1.2rem; border-bottom:1px solid #f1f5f9; }
@@ -34,7 +29,6 @@
 .ps-panel-title .ico { width:30px; height:30px; border-radius:.45rem; display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; }
 .ico-indigo { background:#e0e7ff; color:#4f46e5; }
 .ico-green  { background:#dcfce7; color:#15803d; }
-
 /* ── Vista EDITABLE: días / ítems ── */
 .ps-day-block { border-bottom:1px solid #f1f5f9; }
 .ps-day-block:last-child { border-bottom:none; }
@@ -42,7 +36,6 @@
 .ps-day-badge { background:linear-gradient(135deg,var(--ps-mid),var(--ps-light)); color:#fff; border-radius:.55rem; padding:.25rem .7rem; font-size:.78rem; font-weight:800; flex-shrink:0; }
 .ps-day-date  { font-size:.78rem; color:#64748b; }
 .ps-day-empty { padding:.65rem 1.4rem; font-size:.78rem; color:#94a3b8; font-style:italic; }
-
 .ps-item-card { margin:.5rem 1.2rem; border:1px solid #e2e8f0; border-radius:.65rem; overflow:hidden; }
 .ps-item-header { display:flex; align-items:center; gap:.75rem; padding:.65rem .85rem; background:#fff; }
 .ps-item-num { width:28px; height:28px; border-radius:50%; background:#e0e7ff; color:#4f46e5; font-size:.73rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -59,22 +52,18 @@
 .ps-ia-btn-del    { background:#fee2e2; color:#b91c1c; }
 .ps-ia-btn-del:hover { background:#fecaca; }
 .ps-ia-linked     { background:#e0e7ff; color:#3730a3; }
-
 /* ── Formulario agregar clase ── */
 .ps-add-form { padding:1.1rem 1.2rem; }
 .ps-add-btn { background:linear-gradient(135deg,var(--ps-mid),var(--ps-light)); color:#fff; border:none; border-radius:.55rem; padding:.55rem .9rem; font-size:.82rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:.4rem; transition:opacity .15s; }
 .ps-add-btn:hover { opacity:.88; }
-
 /* ══════════════════════════════════
    VISTA ACORDEÓN — PLAN APROBADO
 ══════════════════════════════════ */
 .psa-accordion { }
-
 .psa-day {
   border-bottom: 1px solid #f1f5f9;
 }
 .psa-day:last-child { border-bottom: none; }
-
 /* Botón de cabecera del día */
 .psa-day-btn {
   width: 100%;
@@ -91,7 +80,6 @@
 }
 .psa-day-btn:hover { background: #f8fafc; }
 .psa-day-btn.open  { background: #f0fdf4; }
-
 .psa-day-dot {
   width: 36px; height: 36px;
   border-radius: .6rem;
@@ -103,11 +91,9 @@
 }
 .psa-day-dot-active  { background: linear-gradient(135deg,#15803d,#16a34a); color: #fff; }
 .psa-day-dot-empty   { background: #f1f5f9; color: #94a3b8; }
-
 .psa-day-info { flex: 1; min-width: 0; }
 .psa-day-name { font-size: .9rem; font-weight: 700; color: #1e293b; }
 .psa-day-date { font-size: .73rem; color: #64748b; margin-top: .05rem; }
-
 .psa-day-right { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
 .psa-count-chip {
   background: #dcfce7; color: #15803d;
@@ -128,11 +114,9 @@
   transition: transform .25s ease;
 }
 .psa-day-btn.open .psa-chevron { transform: rotate(180deg); background: #dcfce7; color: #15803d; }
-
 /* Contenido colapsable */
 .psa-collapse { overflow: hidden; max-height: 0; transition: max-height .3s ease; }
 .psa-collapse.open { max-height: 2000px; }
-
 /* Ítems en vista solo-lectura */
 .psa-item {
   margin: .55rem 1.2rem;
@@ -167,13 +151,11 @@
 .psa-chip-malla   { background: #ede9fe; color: #7c3aed; }
 .psa-chip-deber   { background: #dcfce7; color: #15803d; }
 .psa-chip-act     { background: #dbeafe; color: #1d4ed8; }
-
 /* Día vacío dentro del acordeón */
 .psa-empty-day {
   padding: .6rem 1.2rem .9rem;
   font-size: .77rem; color: #94a3b8; font-style: italic;
 }
-
 /* Panel resumen lateral */
 .psa-summary { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; }
 .psa-summary-header { padding:.85rem 1.2rem; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:.5rem; }
@@ -184,10 +166,8 @@
 .psa-stat-val { font-weight:700; color:#1e293b; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1100px;">
-
   <!-- HERO -->
   <div class="ps-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
@@ -214,7 +194,6 @@
       </div>
     </div>
   </div>
-
   <!-- Banner de estado -->
   {% if plan.estado == 'ENVIADO' %}
   <div style="background:#dbeafe;border:1px solid #93c5fd;border-radius:.75rem;padding:.9rem 1.2rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem;">
@@ -241,7 +220,6 @@
     </div>
   </div>
   {% endif %}
-
   <!-- Observaciones del coordinador -->
   {% if plan.observaciones_coordinador %}
   <div class="ps-obs-box">
@@ -249,11 +227,8 @@
     <div class="ps-obs-box-text">{{ plan.observaciones_coordinador }}</div>
   </div>
   {% endif %}
-
   {% if plan.estado == 'APROBADO' %}
-
   <div class="row g-3 align-items-start">
-
     <!-- Acordeón días -->
     <div class="col-12 col-lg-8">
       <div class="ps-panel">
@@ -264,11 +239,9 @@
           </h2>
           <span style="font-size:.75rem;color:#64748b;"><i class="bi bi-hand-index me-1"></i>Toca un día para expandir</span>
         </div>
-
         <div class="psa-accordion" id="acordeon-plan">
           {% for fecha, dia in dias.items %}
           <div class="psa-day">
-
             <button type="button"
                     class="psa-day-btn {% if forloop.first and dia.items %}open{% endif %}"
                     data-target="dia-{{ forloop.counter }}">
@@ -292,7 +265,6 @@
                 {% endif %}
               </div>
             </button>
-
             {% if dia.items %}
             <div class="psa-collapse {% if forloop.first %}open{% endif %}" id="dia-{{ forloop.counter }}">
               {% for item in dia.items %}
@@ -330,14 +302,11 @@
               <div style="height:.4rem;"></div>
             </div>
             {% endif %}
-
           </div>
           {% endfor %}
         </div>
-
       </div>
     </div>
-
     <!-- Panel resumen lateral -->
     <div class="col-12 col-lg-4">
       <div class="psa-summary">
@@ -366,7 +335,6 @@
           <span class="psa-stat-val" style="color:#15803d;"><i class="bi bi-check-circle-fill me-1"></i>Aprobado</span>
         </div>
       </div>
-
       <!-- Malla curricular (lectura) -->
       {% if malla_items %}
       <div class="ps-panel" style="margin-top:1rem;">
@@ -395,27 +363,21 @@
       </div>
       {% endif %}
     </div>
-
   </div>
-
   {% else %}
-
   <div class="row g-3 align-items-start">
-
     <!-- Días de la semana con sus clases -->
     <div class="col-12 col-lg-8">
       <div class="ps-panel">
         <div class="ps-panel-header">
           <h2 class="ps-panel-title"><span class="ico ico-indigo"><i class="bi bi-calendar3-week-fill"></i></span> Clases de la Semana</h2>
         </div>
-
         {% for fecha, dia in dias.items %}
         <div class="ps-day-block">
           <div class="ps-day-header">
             <span class="ps-day-badge">{{ dia.nombre }}</span>
             <span class="ps-day-date">{{ fecha|date:"d \d\e F" }}</span>
           </div>
-
           {% if dia.items %}
             {% for item in dia.items %}
             <div class="ps-item-card">
@@ -444,19 +406,16 @@
                     <i class="bi bi-pencil-fill"></i> Editar
                   </button>
                 {% endif %}
-
                 {% if item.deber %}
                   <span class="ps-ia-btn ps-ia-linked"><i class="bi bi-check-circle-fill"></i> Deber</span>
                 {% elif plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
                   <a href="{% url 'gestion_academica:item_plan_crear_deber' item.pk %}" class="ps-ia-btn ps-ia-btn-deber"><i class="bi bi-journal-check"></i> → Deber</a>
                 {% endif %}
-
                 {% if item.actividad %}
                   <span class="ps-ia-btn ps-ia-linked"><i class="bi bi-check-circle-fill"></i> Actividad</span>
                 {% elif plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
                   <a href="{% url 'gestion_academica:item_plan_crear_actividad' item.pk %}" class="ps-ia-btn ps-ia-btn-act"><i class="bi bi-clipboard-check"></i> → Actividad</a>
                 {% endif %}
-
                 {% if plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
                 <button type="button" class="ps-ia-btn ps-ia-btn-del"
                         data-bs-toggle="modal" data-bs-target="#modalEliminarItem"
@@ -464,7 +423,6 @@
                   <i class="bi bi-trash-fill"></i>
                 </button>
                 {% endif %}
-
                 {% if plan.estado == 'CON_OBSERVACIONES' %}
                 <button type="button"
                         class="ps-ia-btn"
@@ -481,13 +439,10 @@
           {% endif %}
         </div>
         {% endfor %}
-
       </div>
     </div>
-
     <!-- Panel derecho: agregar ítem + malla -->
     <div class="col-12 col-lg-4">
-
       {% if plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
       <div class="ps-panel">
         <div class="ps-panel-header">
@@ -528,7 +483,6 @@
         </div>
       </div>
       {% endif %}
-
       {% if malla_items %}
       <div class="ps-panel">
         <div class="ps-panel-header">
@@ -555,19 +509,14 @@
         </div>
       </div>
       {% endif %}
-
     </div>
   </div>
-
   {% endif %}
-
 </div>
-
 {% if plan.estado == 'BORRADOR' or plan.estado == 'CON_OBSERVACIONES' %}
 <form method="post" action="{% url 'gestion_academica:plan_semanal_enviar' plan.pk %}" id="form-enviar-plan" style="display:none;">
   {% csrf_token %}
 </form>
-
 <!-- ══ MODAL: Enviar / Reenviar plan al coordinador ══ -->
 <div class="modal fade" id="modalEnviarPlan" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -624,7 +573,6 @@
     </div>
   </div>
 </div>
-
 <!-- ══ MODAL: Editar ítem ══ -->
 <div class="modal fade" id="modalEditarItem" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
@@ -674,7 +622,6 @@
     </div>
   </div>
 </div>
-
 <!-- ══ MODAL: Eliminar ítem ══ -->
 <div class="modal fade" id="modalEliminarItem" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -703,10 +650,7 @@
     </div>
   </div>
 </div>
-
 {% endif %}
-
-{# ── Modales individuales por ítem de malla (server-side, sin encoding issues) ── #}
 {% for mi in malla_items %}
 <div class="modal fade" id="modal-malla-{{ mi.pk }}" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
@@ -722,7 +666,6 @@
         <button type="button" class="btn-close btn-close-white ms-2 flex-shrink-0" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-0">
-
         {% if mi.logro %}
         <div style="padding:1rem 1.5rem;{% if mi.competencias or mi.indicador_bajo or mi.indicador_basico or mi.indicador_alto or mi.indicador_superior %}border-bottom:1px solid #f1f5f9;{% endif %}">
           <div style="font-size:.72rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">
@@ -731,7 +674,6 @@
           <p style="font-size:.88rem;color:#1e293b;margin:0;white-space:pre-line;line-height:1.6;">{{ mi.logro }}</p>
         </div>
         {% endif %}
-
         {% if mi.competencias %}
         <div style="padding:1rem 1.5rem;{% if mi.indicador_bajo or mi.indicador_basico or mi.indicador_alto or mi.indicador_superior %}border-bottom:1px solid #f1f5f9;{% endif %}">
           <div style="font-size:.72rem;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">
@@ -740,7 +682,6 @@
           <p style="font-size:.88rem;color:#1e293b;margin:0;white-space:pre-line;line-height:1.6;">{{ mi.competencias }}</p>
         </div>
         {% endif %}
-
         {% if mi.indicador_bajo or mi.indicador_basico or mi.indicador_alto or mi.indicador_superior %}
         <div style="padding:1rem 1.5rem;">
           <div style="font-size:.72rem;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">
@@ -782,7 +723,6 @@
           </div>
         </div>
         {% endif %}
-
       </div>
       <div class="modal-footer border-0" style="padding:.75rem 1.5rem;">
         <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -791,9 +731,7 @@
   </div>
 </div>
 {% endfor %}
-
 {% endblock %}
-
 {% block extra_js %}
 {{ block.super }}
 <script>
@@ -804,13 +742,10 @@ document.querySelectorAll('.psa-day-btn').forEach(function(btn) {
     var targetId = this.getAttribute('data-target');
     var collapse = document.getElementById(targetId);
     if (!collapse) return; // día sin clases, sin panel colapsable
-
     var isOpen = collapse.classList.contains('open');
-
     // Cerrar todos
     document.querySelectorAll('.psa-collapse').forEach(function(c) { c.classList.remove('open'); });
     document.querySelectorAll('.psa-day-btn').forEach(function(b) { b.classList.remove('open'); });
-
     // Abrir el pulsado (toggle)
     if (!isOpen) {
       collapse.classList.add('open');
@@ -818,7 +753,6 @@ document.querySelectorAll('.psa-day-btn').forEach(function(btn) {
     }
   });
 });
-
 {% else %}
 /* ── Enviar/Reenviar plan ── */
 var btnEnvio = document.getElementById('btn-confirmar-envio');
@@ -827,7 +761,6 @@ if (btnEnvio) {
     document.getElementById('form-enviar-plan').submit();
   });
 }
-
 /* ── Eliminar ítem ── */
 var modalEliminar = document.getElementById('modalEliminarItem');
 if (modalEliminar) {
@@ -835,7 +768,6 @@ if (modalEliminar) {
     document.getElementById('form-eliminar-item').action = e.relatedTarget.getAttribute('data-action');
   });
 }
-
 /* ── Editar ítem ── */
 var modalEditar = document.getElementById('modalEditarItem');
 if (modalEditar) {
@@ -849,7 +781,6 @@ if (modalEditar) {
   });
 }
 {% endif %}
-
 /* ── Modales de malla: renderizados server-side, sin JS adicional necesario ── */
 </script>
 {% endblock %}

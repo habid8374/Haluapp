@@ -1,6 +1,5 @@
 {% extends 'base_academico.html' %}
 {% load static %}
-
 {% block contenido %}
 <div class="container mt-4">
     <nav aria-label="breadcrumb">
@@ -10,20 +9,16 @@
             <li class="breadcrumb-item active" aria-current="page">{{ titulo_formulario }}</li>
         </ol>
     </nav>
-
     <h2>{{ titulo_formulario }}</h2>
     <hr>
-
     <form method="post">
         {% csrf_token %}
-        
         <div class="card mb-4 shadow-sm">
             <div class="card-header">Datos de la Pregunta</div>
             <div class="card-body">
                 {{ form.as_p }}
             </div>
         </div>
-
         <div class="card shadow-sm">
             <div class="card-header">Opciones de Respuesta (si aplica)</div>
             <div class="card-body">
@@ -51,7 +46,6 @@
                 {% endfor %}
             </div>
         </div>
-
         <div class="mt-4">
             <button type="submit" class="btn btn-success btn-lg">Guardar Pregunta</button>
             <a href="{% url 'gestion_academica:gestionar_preguntas_actividad' actividad.pk %}" class="btn btn-secondary btn-lg">Cancelar</a>

@@ -1,15 +1,12 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}Mensajes{% endblock %}
-
 {% block extra_js %}
 {{ block.super }}
 <script>
 (function () {
   // Refresca el inbox silenciosamente cada 5 s si hay mensajes nuevos
   let ultimoNoLeidos = -1;
-
   async function checkNoLeidos() {
     try {
       const resp = await fetch("{% url 'mensajeria:api_no_leidos' %}");
@@ -22,16 +19,13 @@
       ultimoNoLeidos = no_leidos;
     } catch { /* silencioso */ }
   }
-
   setInterval(checkNoLeidos, 5000);
   checkNoLeidos();
 })();
 </script>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="h4 mb-0"><i class="bi bi-chat-dots-fill me-2 text-primary"></i>Mensajes</h2>
     <div class="d-flex gap-2">
@@ -49,7 +43,6 @@
       {% endif %}
     </div>
   </div>
-
   {% if conversaciones %}
     <div class="list-group shadow-sm">
       {% for item in conversaciones %}
@@ -58,14 +51,10 @@
            class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3
                   {% if no_leidos > 0 %}fw-semibold{% endif %}
                   {% if item.archivada %}text-muted{% endif %}">
-
-          {# Avatar inicial #}
           <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0"
                style="width:46px;height:46px;font-size:1.1rem;">
             {{ otro.first_name|first|upper }}{{ otro.last_name|first|upper }}
           </div>
-
-          {# Info #}
           <div class="flex-grow-1 overflow-hidden">
             <div class="d-flex justify-content-between">
               <span class="text-truncate">{{ otro.get_full_name }}</span>
@@ -80,13 +69,9 @@
               </small>
             {% endif %}
           </div>
-
-          {# Badge no leídos #}
           {% if no_leidos > 0 %}
             <span class="badge bg-danger rounded-pill ms-2">{{ no_leidos }}</span>
           {% endif %}
-
-          {# Botón archivar #}
           <form action="{% url 'mensajeria:archivar' conv.pk %}" method="post"
                 class="ms-2" onclick="event.stopPropagation();">
             {% csrf_token %}
@@ -112,6 +97,5 @@
       </p>
     </div>
   {% endif %}
-
 </div>
 {% endblock %}

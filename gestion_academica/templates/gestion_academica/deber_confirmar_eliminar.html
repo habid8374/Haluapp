@@ -1,14 +1,10 @@
-{# gestion_academica/templates/gestion_academica/deber_confirmar_eliminar.html #}
-{% extends "base_academico.html" %} {# CORRECTED: Now extends base_academico.html! #}
-{% load static %} {# Added to use static resources #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Deber" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Deber" }}</h1>
     <hr>
-
     {% if deber %}
         <div class="alert alert-warning shadow-sm" role="alert">
             <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
@@ -23,17 +19,13 @@
             {% if deber.material_adjunto %}
                 <p class="text-muted">Este deber tiene un material adjunto: <a href="{{ deber.material_adjunto.url }}" target="_blank" class="fw-bold">{{ deber.material_adjunto.name|cut:"deberes_materiales/" }} <i class="bi bi-box-arrow-up-right"></i></a></p>
             {% endif %}
-
-            {# WARNING if there are associated student submissions #}
             {% if deber.entregas.exists %}
                 <p class="text-danger">
                     <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este deber ya tiene **{{ deber.entregas.count }} entrega(s)** de estudiantes. Eliminarlo también **borrará permanentemente** estas entregas y cualquier archivo adjunto por los estudiantes.
                 </p>
             {% endif %}
-
             <p class="mb-0 mt-3 text-danger">Esta acción es **irreversible**.</p>
         </div>
-
         <form method="post" class="mt-4">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger me-2">

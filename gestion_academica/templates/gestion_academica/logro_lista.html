@@ -1,8 +1,6 @@
 {% extends 'base_academico.html' %}
 {% load gestion_academica_filters %}
-
 {% block titulo %}Logros de Aprendizaje{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
   .grado-accordion .accordion-button {
@@ -93,7 +91,6 @@
   }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <!-- Hero -->
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
@@ -111,7 +108,6 @@
     </a>
   </div>
 </div>
-
 <!-- Acordeón por grado -->
 {% if logros_por_grado %}
 <div class="accordion grado-accordion" id="acordeonGrados">
@@ -176,7 +172,6 @@
   {% endwith %}
   {% endfor %}
 </div>
-
 {% else %}
 <div class="card border-0 shadow-sm" style="border-radius:14px;">
   <div class="card-body empty-state">
@@ -189,7 +184,6 @@
   </div>
 </div>
 {% endif %}
-
 <!-- Modal eliminar -->
 <div class="modal fade" id="modalEliminarLogro" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -220,7 +214,6 @@
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 document.querySelectorAll('.btn-eliminar-logro').forEach(btn => {

@@ -51,7 +51,6 @@
 </head>
 <body>
 <div class="wrapper">
-
     <!-- CABECERA CON GRADIENTE -->
     <div class="header">
         {% if institucion.logo %}
@@ -60,7 +59,6 @@
         <h1>{{ institucion.nombre }}</h1>
         {% if institucion.texto_aprobacion %}<p>{{ institucion.texto_aprobacion }}</p>{% endif %}
     </div>
-
     <!-- BARRA DATOS INSTITUCIÓN -->
     <div class="school-strip">
         NIT: <strong>{{ institucion.nit }}</strong>
@@ -68,18 +66,15 @@
         {% if institucion.ciudad_departamento %} &nbsp;·&nbsp; {{ institucion.ciudad_departamento }}{% endif %}
         {% if institucion.telefono %} &nbsp;·&nbsp; Tel: {{ institucion.telefono }}{% endif %}
     </div>
-
     <!-- CUERPO -->
     <div class="body">
         <div class="badge-new">📄 Nuevo Aviso de Cobro</div>
-
         <p class="greeting">Estimado/a <strong>{{ nombre_destinatario }}</strong>,</p>
         <p class="intro">
             Le informamos que se ha generado el siguiente cobro a nombre del estudiante
             <strong>{{ estudiante.usuario.get_full_name }}</strong>. Por favor, realice el pago
             antes de la fecha de vencimiento indicada para evitar recargos por mora.
         </p>
-
         <!-- TARJETA DE COBRO -->
         <div class="charge-card">
             <div class="charge-card-header">📋 Detalle del Cobro</div>
@@ -112,7 +107,6 @@
                 </tr>
             </table>
         </div>
-
         <!-- FACTURA ELECTRÓNICA DIAN (si existe) -->
         {% if factura_electronica_url %}
         <div style="background:#f0f9ff;border:2px solid #0ea5e9;border-radius:10px;padding:18px 22px;margin-bottom:24px;">
@@ -126,20 +120,16 @@
           </a>
         </div>
         {% endif %}
-
         <!-- OPCIONES DE PAGO -->
         <p class="section-title">💳 Opciones de Pago</p>
-
         <!-- BOTÓN MERCADO PAGO -->
         <div class="mp-wrapper">
             <a href="{{ portal_url }}" class="mp-btn">Pagar en línea con Mercado Pago</a>
             <p class="mp-caption">Ingrese al portal con su usuario y contraseña para pagar.</p>
             <p class="mp-methods-list">Tarjeta de crédito · Débito · PSE · Efecty · Baloto · Nequi · y más</p>
         </div>
-
         {% if institucion.cuenta_bancaria or institucion.pagos_digitales %}
         <div class="divider-or"><span>o pague por transferencia</span></div>
-
         <div class="alt-methods">
             {% if institucion.cuenta_bancaria %}
             <div class="alt-method">
@@ -161,7 +151,6 @@
             {% endif %}
         </div>
         {% endif %}
-
         <div class="warning-box">
             ⚠️ <strong>Nota:</strong> Si ya realizó este pago, por favor ignore este mensaje.
             Para cualquier consulta comuníquese con la institución al
@@ -169,7 +158,6 @@
             {% if institucion.correo_electronico %} o escriba a <strong>{{ institucion.correo_electronico }}</strong>{% endif %}.
         </div>
     </div>
-
     <!-- PIE DE PÁGINA -->
     <div class="footer">
         <strong>{{ institucion.nombre }}</strong><br>
@@ -179,7 +167,6 @@
         Este mensaje fue generado automáticamente. Por favor, no responda a este correo.<br>
         © {% now "Y" %} {{ institucion.nombre }} — Todos los derechos reservados.
     </div>
-
 </div>
 </body>
 </html>

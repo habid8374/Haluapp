@@ -1,14 +1,11 @@
 {% extends "base_academico.html" %}
 {% load logro_filters %}
-
 {% block titulo %}Evaluar Logros — {{ curso }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ═══════════════════════════════════════════════
    HALU PULSE — Evaluar Logros Preescolar
 ═══════════════════════════════════════════════ */
-
 .el-hero {
   background: linear-gradient(135deg, #07285f 0%, #0a3d8c 42%, #0b5ed7 100%);
   border-radius: 1.1rem; padding: 1.6rem 2rem; color: #fff;
@@ -37,7 +34,6 @@
   transition: background .15s; flex-shrink: 0;
 }
 .el-back:hover { background: rgba(255,255,255,.26); color: #fff; }
-
 /* ── TABLA ESCRITORIO ── */
 .el-table-card {
   background: #fff; border: 1px solid #dbe5f4; border-radius: 1rem;
@@ -72,7 +68,6 @@
   font-size: .76rem; color: #374151; cursor: pointer; white-space: nowrap;
 }
 .el-radio-label input[type="radio"] { accent-color: #0b5ed7; }
-
 /* ── CARDS MÓVIL (< lg) ── */
 .el-mob-card {
   background: #fff; border: 1px solid #e0e7ff; border-radius: .9rem;
@@ -104,7 +99,6 @@
   font-size: .75rem; color: #374151; cursor: pointer; white-space: nowrap;
 }
 .el-mob-opt-label input[type="radio"] { accent-color: #0b5ed7; }
-
 /* ── Guardar FAB móvil ── */
 .el-save-fab {
   position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100;
@@ -122,12 +116,10 @@
   .el-save-fab { display: none; }
   .el-mob-list { display: none; }
 }
-
 .el-footer-btn {
   display: flex; justify-content: flex-end; align-items: center;
   gap: .75rem; margin-top: 1rem;
 }
-
 /* ── Resaltado de logros sin evaluar ── */
 .el-table tbody td.el-pending { background: #fffbeb; box-shadow: inset 0 0 0 1.5px #fde68a; }
 .el-mob-logro.el-pending { background: #fffbeb; border-radius: .5rem; padding-left: .5rem; padding-right: .5rem; }
@@ -139,10 +131,8 @@
 .el-pending-note .el-pending-count { font-weight: 800; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
   <!-- Hero -->
   <div class="el-hero">
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
@@ -162,7 +152,6 @@
       </a>
     </div>
   </div>
-
   {% if messages %}
     {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3">
@@ -171,7 +160,6 @@
     </div>
     {% endfor %}
   {% endif %}
-
   {% if not logros %}
   <div class="d-flex align-items-center gap-2 p-3 mb-3"
        style="background:#fffbeb;border:1px solid #fde68a;border-radius:.75rem;color:#92400e;font-size:.85rem;">
@@ -179,20 +167,15 @@
     <span>No hay logros configurados para esta materia en este período. Contacta al coordinador para configurarlos.</span>
   </div>
   {% endif %}
-
   {% if logros and estudiantes %}
   <div class="el-pending-note" id="el-pending-note" style="display:none;">
     <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
     <span>Tienes <span class="el-pending-count" id="el-pending-count">0</span> valoración(es) sin asignar (resaltadas en amarillo). Puedes guardar de todos modos y completarlas después.</span>
   </div>
   {% endif %}
-
   <form method="post" id="el-form">
     {% csrf_token %}
-
     {% if logros and estudiantes %}
-
-      {# ── TABLA ESCRITORIO (≥ lg) ── #}
       <div class="el-table-card">
         <div class="el-table-scroll">
           <table class="el-table">
@@ -238,7 +221,6 @@
           </table>
         </div>
       </div>
-
       <div class="el-footer-btn d-none d-lg-flex">
         <a href="{% url 'gestion_academica:dashboard_docente' %}"
            style="display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .95rem;
@@ -251,8 +233,6 @@
           <i class="bi bi-save-fill"></i> Guardar Evaluaciones
         </button>
       </div>
-
-      {# ── CARDS MÓVIL (< lg) ── #}
       <div class="el-mob-list">
         {% for estudiante in estudiantes %}
         <div class="el-mob-card">
@@ -290,13 +270,10 @@
           </div>
         </div>
         {% endfor %}
-
-        {# FAB guardar en móvil #}
         <button type="submit" class="el-save-fab">
           <i class="bi bi-save-fill"></i> Guardar evaluaciones
         </button>
       </div>
-
     {% else %}
     <div class="text-center py-5" style="color:#9ca3af;">
       <i class="bi bi-clipboard2-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
@@ -304,11 +281,9 @@
       <p style="font-size:.85rem;margin-top:.4rem;">Verifica que existan logros y estudiantes configurados para este período.</p>
     </div>
     {% endif %}
-
   </form>
 </div>
 {% endblock contenido %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 function toggleCard(header) {
@@ -322,11 +297,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var first = document.querySelector('.el-mob-header');
     if (first) toggleCard(first);
   }
-
   // ── Contador de valoraciones pendientes (resaltadas en amarillo) ──
   var note = document.getElementById('el-pending-note');
   var countEl = document.getElementById('el-pending-count');
-
   function actualizarPendientes() {
     // Cada par estudiante-logro tiene celdas en escritorio y móvil; contamos por 'name' único.
     var grupos = {};
@@ -338,7 +311,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (countEl) countEl.textContent = pendientes;
     if (note) note.style.display = pendientes > 0 ? 'flex' : 'none';
   }
-
   // Al seleccionar, limpiar el resaltado de todas las celdas con ese mismo name.
   document.querySelectorAll('#el-form input[type="radio"]').forEach(function(r) {
     r.addEventListener('change', function() {
@@ -349,7 +321,6 @@ document.addEventListener('DOMContentLoaded', function() {
       actualizarPendientes();
     });
   });
-
   actualizarPendientes();
 });
 </script>

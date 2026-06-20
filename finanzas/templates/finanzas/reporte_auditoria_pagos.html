@@ -1,26 +1,20 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
-
   <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
     <h2 style="color:#fff;"><i class="bi bi-shield-check me-2"></i>{{ titulo_pagina }}</h2>
     <p style="color:#fff;margin-bottom:0;">Registro de ediciones, eliminaciones, anulaciones y castigos realizados sobre pagos.</p>
   </div>
-
   {% if messages %}{% for m in messages %}
   <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
   {% endfor %}{% endif %}
-
   <!-- Filtros -->
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <form method="get" id="form-auditoria-filtros" class="row g-2 align-items-end">
         <input type="hidden" name="estudiante_id" id="input-estudiante-id" value="{{ estudiante_id }}">
-
         <!-- Selector de estudiante por grado -->
         <div class="col-md-4">
           <label class="form-label small fw-semibold">Estudiante</label>
@@ -47,7 +41,6 @@
             </button>
           </div>
         </div>
-
         <div class="col-md-2">
           <label class="form-label small fw-semibold">Acción</label>
           <select name="accion" class="form-select form-select-sm">
@@ -70,7 +63,6 @@
           <a href="{% url 'finanzas:reporte_auditoria_pagos' %}" class="btn btn-outline-secondary btn-sm ms-1">Limpiar</a>
         </div>
       </form>
-
       {% if estudiante_nombre %}
       <div class="mt-2">
         <span class="badge" style="background:#dbeafe;color:#1e40af;font-size:.82rem;padding:.4rem .75rem;">
@@ -80,7 +72,6 @@
       {% endif %}
     </div>
   </div>
-
   <!-- Tabla -->
   <div class="card shadow-sm">
     <div class="card-header fw-bold d-flex justify-content-between align-items-center">
@@ -137,9 +128,7 @@
     </div>
     {% endif %}
   </div>
-
 </div>
-
 <!-- ═══ Modal: Buscar estudiante por grado ═══ -->
 <div class="modal fade" id="modalBuscarEstudiante" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -152,7 +141,6 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-0">
-
         <!-- Paso 1: lista de grados -->
         <div id="paso-grados" class="p-3">
           <p class="text-muted small mb-3">Elige un grado para ver sus estudiantes:</p>
@@ -161,7 +149,6 @@
             <i class="bi bi-inbox me-2"></i>No hay grados con estudiantes registrados.
           </div>
         </div>
-
         <!-- Paso 2: lista de estudiantes del grado -->
         <div id="paso-estudiantes" class="d-none">
           <div class="px-3 pt-3 pb-2 border-bottom d-flex align-items-center gap-2">
@@ -179,7 +166,6 @@
             </div>
           </div>
         </div>
-
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
@@ -187,14 +173,11 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 (function () {
   const GRADOS = {{ grados_json|safe }};
-
   const pasoGrados      = document.getElementById('paso-grados');
   const pasoEstudiantes = document.getElementById('paso-estudiantes');
   const listaGrados     = document.getElementById('lista-grados');
@@ -204,13 +187,11 @@
   const nombreGrado     = document.getElementById('nombre-grado-seleccionado');
   const modalTitulo     = document.getElementById('modal-titulo-texto');
   const buscador        = document.getElementById('buscador-estudiante');
-
   function mostrarPasoGrados() {
     pasoGrados.classList.remove('d-none');
     pasoEstudiantes.classList.add('d-none');
     modalTitulo.textContent = 'Seleccionar por grado';
   }
-
   function mostrarEstudiantesDe(grado) {
     pasoGrados.classList.add('d-none');
     pasoEstudiantes.classList.remove('d-none');
@@ -220,7 +201,6 @@
     renderEstudiantes(grado.estudiantes);
     buscador.focus();
   }
-
   function renderEstudiantes(lista) {
     const q = buscador.value.toLowerCase();
     const filtrados = lista.filter(e => e.nombre.toLowerCase().includes(q));
@@ -237,14 +217,12 @@
     });
     sinEst.classList.toggle('d-none', filtrados.length > 0);
   }
-
   function seleccionarEstudiante(pk, nombre) {
     document.getElementById('input-estudiante-id').value = pk;
     document.getElementById('display-estudiante-nombre').value = nombre;
     bootstrap.Modal.getInstance(document.getElementById('modalBuscarEstudiante')).hide();
     document.getElementById('form-auditoria-filtros').submit();
   }
-
   // Render grados al abrir modal
   document.getElementById('modalBuscarEstudiante').addEventListener('show.bs.modal', function () {
     mostrarPasoGrados();
@@ -268,7 +246,6 @@
       listaGrados.appendChild(btn);
     });
   });
-
   document.getElementById('btn-volver-grados').addEventListener('click', mostrarPasoGrados);
 })();
 </script>

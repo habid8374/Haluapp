@@ -7,19 +7,16 @@
   <style>
     /* ── Reset ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     @page {
       size: A4 landscape;
       margin: 1.4cm 1.1cm 1.8cm 1.1cm;
     }
-
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
       font-size: 9pt;
       color: #111;
       background: #fff;
     }
-
     /* ── Encabezado del documento ── */
     .doc-header {
       display: flex;
@@ -56,7 +53,6 @@
       font-size: 8.5pt;
       color: #475569;
     }
-
     /* ── Franja de metadatos ── */
     .meta-strip {
       display: flex;
@@ -84,7 +80,6 @@
       font-weight: 800;
       color: #1e1b4b;
     }
-
     /* ── Propósito general ── */
     .proposito {
       background: #f0f4ff;
@@ -97,7 +92,6 @@
       print-color-adjust: exact;
     }
     .proposito strong { color: #3730a3; }
-
     /* ── Título de período ── */
     .periodo-titulo {
       background: #1e1b4b;
@@ -110,7 +104,6 @@
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-
     /* ── Tabla ── */
     .malla-table {
       width: 100%;
@@ -143,7 +136,6 @@
       print-color-adjust: exact;
     }
     .malla-table tbody tr { page-break-inside: avoid; }
-
     /* ── Chips de nivel ── */
     .nivel {
       display: inline-block;
@@ -159,13 +151,10 @@
     .nivel-basico   { background: #fef3c7; color: #78350f; }
     .nivel-alto     { background: #dbeafe; color: #1e3a8a; }
     .nivel-superior { background: #dcfce7; color: #14532d; }
-
     .lbl-ebc { font-size: 6.5pt; font-weight: 700; color: #4f46e5; }
     .lbl-dba { font-size: 6.5pt; font-weight: 700; color: #7c3aed; }
-
     /* ── Semanas centrado ── */
     .tc { text-align: center; font-weight: 800; color: #1e1b4b; }
-
     /* ── Período vacío ── */
     .periodo-vacio {
       border: 1pt dashed #d1d5db;
@@ -175,12 +164,10 @@
       text-align: center;
       margin-bottom: .7cm;
     }
-
     /* ── Salto de página entre períodos ── */
     .periodo-block + .periodo-block {
       page-break-before: always;
     }
-
     /* ── Firmas ── */
     .firmas {
       display: flex;
@@ -196,7 +183,6 @@
     }
     .firma-nombre { font-size: 8.5pt; font-weight: 700; color: #111; }
     .firma-cargo  { font-size: 7.5pt;  color: #475569; margin-top: 1pt; }
-
     /* ── Pie de página ── */
     .doc-footer {
       display: flex;
@@ -211,7 +197,6 @@
   </style>
 </head>
 <body>
-
   <!-- Encabezado institucional -->
   <div class="doc-header">
     <div>
@@ -223,7 +208,6 @@
       <p>Documento oficial · Año lectivo {{ malla.año_lectivo }}</p>
     </div>
   </div>
-
   <!-- Metadatos -->
   <div class="meta-strip">
     <div class="meta-item">
@@ -249,18 +233,15 @@
       <span class="val">{{ malla.fecha_actualizacion|date:"d \d\e F \d\e Y" }}</span>
     </div>
   </div>
-
   {% if malla.descripcion_general %}
   <div class="proposito">
     <strong>Propósito general:</strong> {{ malla.descripcion_general }}
   </div>
   {% endif %}
-
   <!-- Períodos -->
   {% for p in periodos %}
   <div class="periodo-block">
     <div class="periodo-titulo">{{ p }}° Período Académico</div>
-
     {% with items=por_periodo|get_item:p %}
     {% if items %}
     <table class="malla-table">
@@ -309,7 +290,6 @@
     {% endwith %}
   </div>
   {% endfor %}
-
   <!-- Firmas -->
   <div class="firmas">
     <div class="firma-box">
@@ -333,14 +313,12 @@
       <div class="firma-cargo">{{ malla.materia.nombre_materia }}</div>
     </div>
   </div>
-
   <!-- Pie -->
   <div class="doc-footer">
     <span>{{ malla.institucion }} · Malla Curricular {{ malla.año_lectivo }}</span>
     <span>Generado por HALU — Sistema de Gestión Escolar</span>
     <span>Actualizado: {{ malla.fecha_actualizacion|date:"d/m/Y" }}</span>
   </div>
-
   <script>
     // Lanzar impresión automáticamente al cargar
     window.addEventListener('load', function () {

@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -10,7 +8,6 @@
     </div>
     <p class="lead text-muted">{{ planeacion.curso.materia.nombre_materia }} - {{ planeacion.curso.grado.nombre }}</p>
     <hr>
-
     {% if planeacion.estado_generacion == 'COMPLETADO' %}
         <!-- ESTADO 1: CONTENIDO GENERADO CON ÉXITO -->
         <div class="row">
@@ -42,7 +39,6 @@
                         <h6><i class="bi bi-bullseye text-primary me-2"></i>Objetivos</h6><p>{{ planeacion.objetivos_aprendizaje }}</p>
                         <h6><i class="bi bi-tools text-primary me-2"></i>Recursos</h6><p>{{ planeacion.recursos_necesarios }}</p>
                         <h6><i class="bi bi-clipboard-check-fill text-primary me-2"></i>Evaluación</h6><p>{{ planeacion.criterios_evaluacion }}</p>
-                        
                         <!-- SECCIÓN DE ACCIONES -->
                         <hr>
                         <h5 class="card-title mt-3">Acciones</h5>
@@ -59,7 +55,6 @@
                 </div>
             </div>
         </div>
-
     {% elif planeacion.estado_generacion == 'GENERANDO' %}
         <!-- ESTADO 2: CONTENIDO EN PROCESO DE GENERACIÓN -->
         <div id="ia-generando-card"
@@ -74,14 +69,12 @@
                     Tiempo transcurrido: <strong id="ia-timer">0</strong>s
                     &middot; Tiempo estimado: 15–60s
                 </p>
-
                 <div class="progress mb-3" style="height: 8px;">
                     <div id="ia-progress-bar"
                          class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
                          role="progressbar"
                          style="width: 5%;"></div>
                 </div>
-
                 <hr>
                 <p class="text-muted small">Si el proceso parece atascado (más de 3 minutos), puedes detenerlo.</p>
                 <form action="{% url 'gestion_academica:cancelar_generacion_planeacion' pk=planeacion.pk %}" method="post">
@@ -92,12 +85,10 @@
                 </form>
             </div>
         </div>
-
         <!-- Contenedor para toasts (éxito/error) -->
         <div aria-live="polite" aria-atomic="true" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
             <div id="ia-toast-container"></div>
         </div>
-
     {% elif planeacion.estado_generacion == 'FALLIDO' %}
         <!-- ESTADO 3: LA GENERACIÓN FALLÓ -->
         <div class="card shadow-sm text-center p-5 border-danger">
@@ -116,8 +107,7 @@
                 </form>
             </div>
         </div>
-
-    {% else %} {# Por defecto, el estado es 'PENDIENTE' #}
+    {% else %}
         <!-- ESTADO 4: PENDIENTE DE GENERACIÓN -->
         <div class="card shadow-sm text-center p-5">
             <div class="card-body">
@@ -133,7 +123,6 @@
         </div>
     {% endif %}
 </div>
-
 <!-- MODAL DE CONFIRMACIÓN -->
 {% if planeacion.estado_generacion == 'COMPLETADO' %}
 <div class="modal fade" id="confirmAddLeccionesModal" tabindex="-1" aria-labelledby="confirmAddLeccionesModalLabel" aria-hidden="true">
@@ -161,10 +150,8 @@
 </div>
 {% endif %}
 {% endblock %}
-
 {% block extra_js %}
     {{ block.super }}
-
     {% comment %}
     Polling del estado de generación + UX progresiva (mensajes rotativos, timer, toasts).
     NOTA: este script DEBE estar dentro del bloque extra_js porque base_academico.html
@@ -186,11 +173,9 @@
                 return;
             }
             console.log('[planeacion-ia] Iniciando polling para planeación', planeacionId, '→', statusUrl);
-
             const POLL_INTERVAL_MS = 3000;
             const MAX_PROGRESS = 95;
             const HARD_TIMEOUT_SECS = 240;
-
             const mensajesRotativos = [
                 "Conectando con la IA…",
                 "Estructurando los objetivos de aprendizaje…",
@@ -201,17 +186,14 @@
                 "Casi listo, organizando las clases…",
             ];
             let mensajeIdx = 0;
-
             const $mensaje = document.getElementById('ia-mensaje-rotativo');
             const $timer = document.getElementById('ia-timer');
             const $progressBar = document.getElementById('ia-progress-bar');
             const $toasts = document.getElementById('ia-toast-container');
-
             const startedAt = Date.now();
             let polling = true;
             let lastShownStatus = 'GENERANDO';
             let timeoutAvisado = false;
-
             // ---- Toasts (con fallback nativo si Bootstrap no está disponible) ----
             function mostrarToast(tipo, titulo, mensaje) {
                 const usarBootstrap = (typeof window.bootstrap !== 'undefined') && window.bootstrap.Toast;
@@ -245,7 +227,6 @@
                     console.warn('[planeacion-ia] No se pudo mostrar toast Bootstrap:', e);
                 }
             }
-
             // ---- Timer + barra de progreso (cada 1s) ----
             function tick() {
                 const elapsedSec = Math.floor((Date.now() - startedAt) / 1000);
@@ -265,7 +246,6 @@
             }
             setInterval(tick, 1000);
             tick(); // primer tick inmediato
-
             // ---- Mensajes rotativos (cada 4.5s) ----
             function rotarMensaje() {
                 if (!$mensaje) return;
@@ -273,7 +253,6 @@
                 $mensaje.textContent = mensajesRotativos[mensajeIdx];
             }
             setInterval(rotarMensaje, 4500);
-
             // ---- Polling cada 3s ----
             function checkStatus() {
                 if (!polling) return;
@@ -290,7 +269,6 @@
                         console.log('[planeacion-ia] estado actual =', estado, data);
                         if (estado === lastShownStatus) return;
                         lastShownStatus = estado;
-
                         if (estado === 'COMPLETADO') {
                             polling = false;
                             if ($progressBar) {
@@ -337,11 +315,9 @@
                         console.error('[planeacion-ia] Polling falló:', err);
                     });
             }
-
             setInterval(checkStatus, POLL_INTERVAL_MS);
             checkStatus(); // primera consulta inmediata
         }
-
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {

@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -12,7 +10,6 @@
         <div class="card-body">
             <h4>Descripción</h4>
             <p>{{ actividad.descripcion|default:"No hay descripción." }}</p>
-
             {% if actividad.cuestionario %}
                 <h4 class="mt-4">Intentos de Estudiantes</h4>
                 <div class="table-responsive">

@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
-
 {% block titulo %}HALU Sentinel – Ruta de Convivencia{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══════════════════════════════════════════════════════
@@ -15,7 +13,6 @@
   --bien-light:  #dc2626;
   --bien-accent: #fca5a5;
 }
-
 /* ── Hero ─────────────────────────────────────────── */
 .bien-hero {
   background: linear-gradient(135deg, var(--bien-dark) 0%, var(--bien-mid) 55%, #b91c1c 100%);
@@ -50,7 +47,6 @@
 .bien-hero-btn-primary { background: #fff; color: var(--bien-mid); }
 .bien-hero-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
 .bien-hero-btn-outline:hover { background: rgba(255,255,255,.22); color: #fff; }
-
 /* ── KPI Strip ───────────────────────────────────── */
 .bien-kpi-strip {
   display: grid;
@@ -81,7 +77,6 @@
 .kpi-dark   .bien-kpi-val { color: #1e293b; }
 .kpi-green  .bien-kpi-val { color: #16a34a; }
 .kpi-gray   .bien-kpi-val { color: #475569; }
-
 /* ── Section Headers ──────────────────────────────── */
 .bien-section-hd {
   display: flex; align-items: center; justify-content: space-between;
@@ -99,7 +94,6 @@
 .bien-section-hd h2 .bien-ico.red    { background: #fee2e2; color: #dc2626; }
 .bien-section-hd h2 .bien-ico.amber  { background: #fef3c7; color: #b45309; }
 .bien-section-hd h2 .bien-ico.indigo { background: #e0e7ff; color: #4f46e5; }
-
 /* ── Panel Cards ──────────────────────────────────── */
 .bien-panel {
   background: #fff;
@@ -116,7 +110,6 @@
 }
 .bien-panel-header-title { font-size: .95rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: .5rem; margin: 0; }
 .bien-panel-body { padding: 0; }
-
 /* ── Filtros ──────────────────────────────────────── */
 .filtro-bar {
   display: flex; gap: .5rem; flex-wrap: wrap;
@@ -128,7 +121,6 @@
   .filtro-bar { flex-direction: column; }
   .filtro-bar .form-select { width: 100% !important; }
 }
-
 /* ── Tabla desktop ─────────────────────────────────── */
 .bien-table thead th {
   background: #f8fafc; font-size: .76rem; text-transform: uppercase;
@@ -137,7 +129,6 @@
 }
 .bien-table tbody td { vertical-align: middle; font-size: .83rem; }
 .bien-table tbody tr:hover { background: #fef9f9; }
-
 /* ── Tarjeta expediente móvil ─────────────────────── */
 .caso-card {
   border-left: 4px solid #e2e8f0;
@@ -152,13 +143,11 @@
 .caso-card.tipo-iii  { border-left-color: #f59e0b; background: #fffbeb; }
 .caso-card.cerrado   { border-left-color: #94a3b8; background: #f8fafc; }
 .caso-card-inner     { padding: .9rem 1rem; }
-
 /* ── Semáforo de plazo ─────────────────────────────── */
 .plazo-vencido  { color: #dc2626; font-weight: 700; }
 .plazo-hoy      { color: #dc2626; font-weight: 700; }
 .plazo-urgente  { color: #d97706; font-weight: 600; }
 .plazo-ok       { color: #16a34a; }
-
 /* ── Análisis IA cards ─────────────────────────────── */
 .ia-card {
   border-radius: .75rem;
@@ -170,7 +159,6 @@
 .ia-card-name { font-size: .88rem; font-weight: 700; color: #1e293b; margin-bottom: .15rem; }
 .ia-card-grade { font-size: .75rem; color: #64748b; margin-bottom: .5rem; }
 .ia-card-text { font-size: .8rem; color: #475569; line-height: 1.5; }
-
 /* ── Estado IA alert ────────────────────────────────── */
 #analysis-status-alert {
   border-radius: .75rem;
@@ -179,10 +167,8 @@
 }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1280px;">
-
   <!-- ══ HERO ═══════════════════════════════════════════════════════════ -->
   <div class="bien-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
@@ -209,7 +195,6 @@
       </a>
     </div>
   </div>
-
   <!-- ══ ALERTA IA ════════════════════════════════════════════════════ -->
   <div id="analysis-status-alert" class="alert alert-info d-none mb-3">
     <div class="d-flex align-items-center gap-2">
@@ -218,7 +203,6 @@
       <span class="d-none d-sm-inline text-muted">Los resultados aparecerán al finalizar.</span>
     </div>
   </div>
-
   <!-- ══ KPI STRIP ════════════════════════════════════════════════════ -->
   <div class="bien-kpi-strip">
     {% for kpi in kpis %}
@@ -255,7 +239,6 @@
     {% endif %}
     {% endfor %}
   </div>
-
   <!-- ══ EXPEDIENTES ACTIVOS ══════════════════════════════════════════ -->
   <div class="bien-section-hd">
     <h2>
@@ -271,7 +254,6 @@
       <i class="bi bi-funnel me-1"></i>Filtros
     </button>
   </div>
-
   <div class="bien-panel">
     <!-- Filtros -->
     <div class="collapse d-sm-block" id="filtrosPanel">
@@ -291,10 +273,8 @@
         </select>
       </div>
     </div>
-
     {% if casos_activos %}
     {% with casos=casos_activos %}
-
       <!-- Vista TABLA — desktop -->
       <div class="d-none d-md-block">
         <div class="table-responsive">
@@ -354,7 +334,6 @@
           </table>
         </div>
       </div>
-
       <!-- Vista TARJETAS — móvil -->
       <div class="d-md-none p-2 pt-3" id="tarjetasCasos">
         {% for caso in casos %}
@@ -364,7 +343,6 @@
           {% elif caso.estado == 'CERRADO' %}cerrado{% endif %}"
           data-estado="{{ caso.estado }}" data-tipo="{{ caso.tipo_situacion }}">
           <div class="caso-card-inner">
-
             <!-- Fila 1: radicado + badges + botón -->
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
@@ -384,7 +362,6 @@
                 <i class="bi bi-folder2-open me-1"></i>Ver
               </a>
             </div>
-
             <!-- Fila 2: estudiante(s) -->
             <div class="d-flex align-items-start gap-2 mb-1">
               <i class="bi bi-person-fill text-secondary mt-1" style="font-size:.85rem;"></i>
@@ -394,7 +371,6 @@
                 {% empty %}<span class="text-muted">Sin involucrados</span>{% endfor %}
               </div>
             </div>
-
             <!-- Fila 3: responsable + plazo -->
             <div class="d-flex justify-content-between align-items-center mt-1">
               <small class="text-muted">
@@ -407,12 +383,10 @@
           </div>
         </div>
         {% endfor %}
-
         <p id="sinExpedientesMobil" class="text-center text-muted py-3 d-none">
           <i class="bi bi-search me-1"></i>Sin resultados para este filtro.
         </p>
       </div>
-
     {% endwith %}
     {% else %}
     <div class="text-center py-5 text-muted">
@@ -422,7 +396,6 @@
     </div>
     {% endif %}
   </div>
-
   <!-- ══ ALERTAS SIN EXPEDIENTE ════════════════════════════════════════ -->
   <div class="bien-section-hd">
     <h2>
@@ -433,10 +406,8 @@
       {% endif %}
     </h2>
   </div>
-
   <div class="bien-panel">
     {% if alertas_sin_caso %}
-
       <!-- Tabla — desktop -->
       <div class="d-none d-md-block">
         <div class="table-responsive">
@@ -480,7 +451,6 @@
           </table>
         </div>
       </div>
-
       <!-- Tarjetas — móvil -->
       <div class="d-md-none p-2 pt-3">
         {% for alerta in alertas_sin_caso %}
@@ -521,7 +491,6 @@
         </div>
         {% endfor %}
       </div>
-
     {% else %}
     <div class="text-center py-4 text-muted">
       <i class="bi bi-check-circle-fill text-success me-2" style="font-size:1.6rem;"></i>
@@ -529,7 +498,6 @@
     </div>
     {% endif %}
   </div>
-
   <!-- ══ RESÚMENES CONDUCTUALES IA ════════════════════════════════════ -->
   {% if resumenes_ia %}
   <div class="bien-section-hd">
@@ -538,7 +506,6 @@
       Resúmenes Conductuales (IA)
     </h2>
   </div>
-
   <div class="row g-3 mb-4">
     {% for r in resumenes_ia %}
     <div class="col-12 col-md-6 col-lg-4">
@@ -558,9 +525,7 @@
     {% endfor %}
   </div>
   {% endif %}
-
 </div><!-- /container -->
-
 <!-- ══ MODAL: Abrir Expediente Formal ══════════════════════════════════ -->
 <div class="modal fade" id="modalAbrirCaso" tabindex="-1" aria-labelledby="modalAbrirCasoLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -592,7 +557,6 @@
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 /* ── Modal: Abrir Expediente ────────────────────────────────────────── */
@@ -602,18 +566,15 @@ document.getElementById('modalAbrirCaso')?.addEventListener('show.bs.modal', fun
   const btnConfirmar = document.getElementById('btnConfirmarAbrir');
   if (btnConfirmar && url) btnConfirmar.href = url;
 });
-
 /* ── Filtros (tabla desktop + tarjetas móvil) ───────────────────────── */
 function filtrarTabla() {
   const estado = document.getElementById('filtroEstado').value;
   const tipo   = document.getElementById('filtroTipo').value;
-
   document.querySelectorAll('.sentinel-row').forEach(tr => {
     const ok = (!estado || tr.dataset.estado === estado) &&
                (!tipo   || tr.dataset.tipo   === tipo);
     tr.style.display = ok ? '' : 'none';
   });
-
   let visibles = 0;
   document.querySelectorAll('.sentinel-card').forEach(card => {
     const ok = (!estado || card.dataset.estado === estado) &&
@@ -621,16 +582,13 @@ function filtrarTabla() {
     card.style.display = ok ? '' : 'none';
     if (ok) visibles++;
   });
-
   const noRes = document.getElementById('sinExpedientesMobil');
   if (noRes) noRes.classList.toggle('d-none', visibles > 0 || (!estado && !tipo));
 }
-
 const selEstado = document.getElementById('filtroEstado');
 const selTipo   = document.getElementById('filtroTipo');
 if (selEstado) selEstado.addEventListener('change', filtrarTabla);
 if (selTipo)   selTipo.addEventListener('change', filtrarTabla);
-
 /* ── Análisis IA ────────────────────────────────────────────────────── */
 document.getElementById('executeAnalysisBtn')?.addEventListener('click', function () {
   const btn     = this;
@@ -638,13 +596,11 @@ document.getElementById('executeAnalysisBtn')?.addEventListener('click', functio
   const icon    = document.getElementById('btn-icon');
   const text    = document.getElementById('btn-text');
   const alertEl = document.getElementById('analysis-status-alert');
-
   btn.disabled = true;
   spinner.classList.remove('d-none');
   icon.classList.add('d-none');
   if (text) text.textContent = 'Analizando…';
   alertEl.classList.remove('d-none');
-
   fetch("{% url 'gestion_academica:ejecutar_analisis_comportamiento' %}", {
     method: 'POST',
     headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }

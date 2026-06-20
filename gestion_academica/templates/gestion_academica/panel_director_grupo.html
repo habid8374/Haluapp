@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
-{% load humanize %} {# Para formatear los números con comas #}
-
+{% load humanize %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}
 <style>
     /* Tus estilos personalizados para la tabla se mantienen intactos */
@@ -31,20 +29,14 @@
     .nota-alta { background-color: #d1e7dd !important; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">{{ titulo_pagina }}</h1>
         <div class="btn-group">
             <a href="{% url 'gestion_academica:dashboard_docente' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver al Panel</a>
-            {# Este botón de exportar necesitará una lógica más avanzada para manejar múltiples grados. Lo dejamos comentado por ahora. #}
-            {# <a href="{% url 'gestion_academica:exportar_panel_director' %}" class="btn btn-success"><i class="bi bi-file-earmark-excel-fill"></i> Exportar a Excel</a> #}
         </div>
     </div>
-
-    {# --- INICIO DE LA LÓGICA CORREGIDA --- #}
-    {# Bucle principal que crea una sección para CADA grado que el docente dirige #}
     {% for panel in paneles_data %}
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-primary text-white">
@@ -56,7 +48,6 @@
                         <thead class="table-dark">
                             <tr>
                                 <th class="student-name">Estudiante</th>
-                                {# Creamos una columna por cada materia del grado #}
                                 {% for curso in panel.cursos_header %}
                                     <th>{{ curso.materia.nombre_materia }}</th>
                                 {% endfor %}
@@ -97,6 +88,5 @@
     {% empty %}
         <div class="alert alert-warning">No se encontraron datos para mostrar.</div>
     {% endfor %}
-    {# --- FIN DE LA LÓGICA CORREGIDA --- #}
 </div>
 {% endblock %}

@@ -1,10 +1,8 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
-
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -12,13 +10,11 @@
             <h4 class="mb-0"><i class="fas fa-signal me-2"></i>{{ titulo_pagina }}</h4>
         </div>
         <div class="card-body">
-            
             <div class="mb-3">
                 <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
                 </a>
             </div>
-
             <form method="get" class="mb-4 p-3 border rounded bg-light">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-5"><label for="grado" class="form-label fw-bold">1. Grado:</label><select name="grado" id="grado" class="form-select"><option value="">--- Seleccione un Grado ---</option>{% for g in grados %}<option value="{{ g.id }}" {% if g.id == grado_seleccionado.id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}</select></div>
@@ -26,12 +22,10 @@
                     <div class="col-md-2"><button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Generar</button></div>
                 </div>
             </form>
-
             {% if grado_seleccionado and periodo_seleccionado %}
                 <h5 class="border-bottom pb-2 mb-3">
                     Mostrando rendimiento para: <strong class="text-primary">{{ grado_seleccionado.nombre }}</strong> | Periodo: <strong class="text-primary">{{ periodo_seleccionado.nombre }}</strong>
                 </h5>
-
                 {% if reporte_data.tipo_reporte == 'CUANTITATIVO' %}
                 <div class="row">
                     <div class="col-lg-7">
@@ -53,7 +47,6 @@
                     </div>
                 </div>
                 {% endif %}
-
                 {% if reporte_data.tipo_reporte == 'CUALITATIVO' %}
                 <div class="row">
                     <div class="col-lg-7">
@@ -78,12 +71,10 @@
                     </div>
                 </div>
                 {% endif %}
-
             {% endif %}
         </div>
     </div>
 </div>
-
 {% if reporte_data.chart_labels %}
 {{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
 {{ reporte_data.chart_data|json_script:"chart-data-data" }}
@@ -95,7 +86,6 @@
             scales: { y: { beginAtZero: true, max: 5.0 } },
             plugins: { legend: { display: false } }
         };
-
         if ("{{ reporte_data.tipo_reporte }}" === "CUALITATIVO") {
             chartType = 'pie';
             chartOptions = {
@@ -106,7 +96,6 @@
                 }
             };
         }
-
         new Chart(ctx, {
             type: chartType,
             data: {

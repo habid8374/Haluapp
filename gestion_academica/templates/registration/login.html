@@ -12,12 +12,10 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
-
     /* ══════════════════════════════
        LAYOUT
     ══════════════════════════════ */
     .page { display: flex; height: 100vh; width: 100vw; }
-
     /* ══════════════════════════════
        PANEL IZQUIERDO — VIDEO
     ══════════════════════════════ */
@@ -27,7 +25,6 @@
       overflow: hidden;
       background: #0f172a; /* fallback si el video no carga */
     }
-
     /* Video de fondo */
     .school-panel video {
       position: absolute;
@@ -37,7 +34,6 @@
       object-fit: cover;
       z-index: 1;
     }
-
     /* Overlay oscuro para legibilidad del texto */
     .school-panel::after {
       content: '';
@@ -46,7 +42,6 @@
       background: rgba(10, 20, 50, 0.52);
       z-index: 2;
     }
-
     /* Branding central */
     .school-brand {
       position: absolute;
@@ -91,7 +86,6 @@
       margin-right: auto;
       text-shadow: 0 1px 8px rgba(0,0,0,.4);
     }
-
     /* Separador decorativo bajo el nombre */
     .brand-line {
       width: 48px; height: 3px;
@@ -99,7 +93,6 @@
       border-radius: 2px;
       margin: 10px auto 0;
     }
-
     /* ══════════════════════════════
        PANEL DERECHO — FORMULARIO
     ══════════════════════════════ */
@@ -113,7 +106,6 @@
       position: relative;
       overflow-y: auto;
     }
-
     /* Franja superior azul */
     .form-panel::before {
       content: '';
@@ -128,7 +120,6 @@
       0%   { background-position: 0% 0; }
       100% { background-position: 300% 0; }
     }
-
     /* Círculo decorativo esquina */
     .form-panel::after {
       content: '';
@@ -139,7 +130,6 @@
       background: radial-gradient(circle, rgba(59,130,246,.08), transparent 70%);
       pointer-events: none;
     }
-
     .form-box {
       width: 100%;
       max-width: 400px;
@@ -149,7 +139,6 @@
       from { opacity: 0; transform: translateY(30px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-
     /* Logo + nombre */
     .form-header {
       display: flex;
@@ -160,11 +149,9 @@
     .form-header img { height: 44px; }
     .form-header .ht { font-size: 1.5rem; font-weight: 900; color: #1e1b4b; letter-spacing: 1px; line-height: 1; }
     .form-header .hs { font-size: .68rem; color: #3b82f6; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; margin-top: 2px; }
-
     /* Saludo */
     .greeting h1 { font-size: 1.5rem; font-weight: 800; color: #1e1b4b; margin-bottom: 4px; }
     .greeting p  { font-size: .88rem; color: #64748b; margin-bottom: 1.8rem; }
-
     /* Alerta error */
     .alert-err {
       background: #eff6ff;
@@ -193,7 +180,6 @@
       font-size: .85rem;
       margin-bottom: 1.2rem;
     }
-
     /* Campos con label flotante */
     .field-wrap { position: relative; margin-bottom: 1.3rem; }
     .field-wrap input {
@@ -238,7 +224,6 @@
     }
     .field-wrap input:focus ~ .fi-ico { color: #3b82f6; }
     .field-wrap .pw-toggle { pointer-events: all; cursor: pointer; }
-
     /* Botón principal */
     .btn-ingresar {
       width: 100%;
@@ -287,14 +272,12 @@
       display: inline-block; vertical-align: middle;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
     /* Divider */
     .or-div {
       display: flex; align-items: center; gap: .7rem;
       margin: 1.1rem 0; color: #94a3b8; font-size: .78rem;
     }
     .or-div::before, .or-div::after { content:''; flex:1; height:1px; background:#e2e8f0; }
-
     /* Botón Google */
     .btn-google {
       width: 100%; padding: .75rem;
@@ -315,7 +298,6 @@
       color: #374151;
     }
     .btn-google svg { width: 18px; height: 18px; }
-
     /* Footer */
     .form-foot { margin-top: 1.5rem; text-align: center; }
     .form-foot a { color: #1d4ed8; font-size: .82rem; font-weight: 600; text-decoration: none; }
@@ -333,25 +315,21 @@
       transition: background .18s;
     }
     .form-foot .reg-link:hover { background: #dbeafe; }
-
     /* ══════════════════════════════
        RESPONSIVE — MOBILE
     ══════════════════════════════ */
     @media (max-width: 820px) {
       html, body { overflow-x: hidden; overflow-y: auto; height: auto; }
-
       .page {
         flex-direction: column;
         height: auto;
         min-height: 100vh;
       }
-
       /* Banner superior compacto */
       .school-panel {
         flex: 0 0 auto;
         height: 180px;
       }
-
       /* Brand en horizontal centrado en mobile */
       .school-brand {
         top: 50%;
@@ -369,25 +347,20 @@
       .school-brand .bs { font-size: .62rem; letter-spacing: 1.5px; }
       .school-brand .tagline { display: none; }
       .brand-line { display: none; }
-
       /* Formulario ocupa toda la pantalla restante */
       .form-panel {
         flex: 1;
         padding: 1.8rem 1.2rem 2rem;
         min-height: calc(100vh - 180px);
       }
-
       .form-box { max-width: 100%; }
-
       /* Header del formulario más compacto */
       .form-header { margin-bottom: 1.3rem; }
       .form-header img { height: 36px; }
       .form-header .ht { font-size: 1.3rem; }
-
       /* Saludo más compacto */
       .greeting h1 { font-size: 1.25rem; }
       .greeting p  { font-size: .85rem; margin-bottom: 1.3rem; }
-
       /* Inputs: font-size mínimo 16px para evitar zoom en iOS */
       .field-wrap input { font-size: 16px; padding: 1rem 2.8rem .6rem 1rem; }
       .field-wrap label { font-size: 16px; }
@@ -395,17 +368,13 @@
       .field-wrap input:not(:placeholder-shown) ~ label {
         font-size: .72rem;
       }
-
       /* Botón más grande para tacto */
       .btn-ingresar { padding: 1rem; font-size: 1rem; }
-
       /* Botón Google */
       .btn-google { padding: .85rem; font-size: .9rem; }
-
       /* Pie de formulario */
       .form-foot { margin-top: 1.2rem; }
     }
-
     @media (max-width: 400px) {
       .school-panel { height: 150px; }
       .form-panel { min-height: calc(100vh - 150px); padding: 1.4rem 1rem 1.8rem; }
@@ -416,15 +385,12 @@
 </head>
 <body>
 <div class="page">
-
   <!-- ══════ PANEL IZQUIERDO — VIDEO ══════ -->
   <div class="school-panel">
-
     <!-- Video de fondo -->
     <video autoplay muted loop playsinline>
       <source src="{% static 'core/video/login_bg.mp4' %}" type="video/mp4">
     </video>
-
     <!-- Branding central (sobre el overlay) -->
     <div class="school-brand">
       <img src="{% static 'core/img/logo_mi_software.png' %}" alt="HALU">
@@ -433,13 +399,10 @@
       <div class="brand-line"></div>
       <div class="tagline">"Educando con tecnología, conectando comunidades"</div>
     </div>
-
   </div>
-
   <!-- ══════ PANEL DERECHO ══════ -->
   <div class="form-panel">
     <div class="form-box">
-
       <div class="form-header">
         <img src="{% static 'core/img/logo_mi_software.png' %}" alt="HALU">
         <div>
@@ -447,19 +410,16 @@
           <div class="hs">Plataforma Educativa</div>
         </div>
       </div>
-
       <div class="greeting">
         <h1>¡Bienvenido de nuevo! 👋</h1>
         <p>Ingresa tus datos para acceder a la plataforma escolar.</p>
       </div>
-
       {% if form.errors %}
       <div class="alert-err">
         <i class="bi bi-exclamation-triangle-fill" style="font-size:1.1rem;flex-shrink:0;"></i>
         Usuario o contraseña incorrectos. Intenta de nuevo.
       </div>
       {% endif %}
-
       {% if next %}
         {% if user.is_authenticated %}
         <div class="alert-info"><i class="bi bi-lock-fill me-1"></i> Tu cuenta no tiene acceso a esa sección.</div>
@@ -467,11 +427,9 @@
         <div class="alert-info"><i class="bi bi-info-circle-fill me-1"></i> Inicia sesión para continuar.</div>
         {% endif %}
       {% endif %}
-
       <form method="post" action="{% url 'login' %}" id="login-form">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ next }}">
-
         <div class="field-wrap">
           <input type="text" name="username" id="id_username"
                  placeholder=" " autocomplete="username" autofocus
@@ -479,20 +437,17 @@
           <label for="id_username">Usuario</label>
           <i class="bi bi-person fi-ico"></i>
         </div>
-
         <div class="field-wrap">
           <input type="password" name="password" id="id_password"
                  placeholder=" " autocomplete="current-password">
           <label for="id_password">Contraseña</label>
           <i class="bi bi-eye pw-toggle fi-ico" id="pw-toggle"></i>
         </div>
-
         <button type="submit" class="btn-ingresar" id="btn-ingresar">
           <span class="btn-text"><i class="bi bi-door-open me-2"></i>Ingresar a HALU</span>
           <span class="btn-spin"><span class="spin-ring"></span></span>
         </button>
       </form>
-
       {% google_socialapp_configured as show_google_login %}
       {% if show_google_login %}
       <div class="or-div">o continúa con</div>
@@ -506,7 +461,6 @@
         Iniciar sesión con Google
       </a>
       {% endif %}
-
       <div class="form-foot">
         <a href="{% url 'password_reset' %}"><i class="bi bi-key me-1"></i>¿Olvidaste tu contraseña?</a>
         {% if not HAY_USUARIOS_REGISTRADOS %}
@@ -516,11 +470,9 @@
         </a>
         {% endif %}
       </div>
-
     </div>
   </div>
 </div>
-
 <script>
 /* Toggle password */
 document.getElementById('pw-toggle').addEventListener('click', function () {
@@ -529,14 +481,12 @@ document.getElementById('pw-toggle').addEventListener('click', function () {
   this.classList.toggle('bi-eye');
   this.classList.toggle('bi-eye-slash');
 });
-
 /* Loading state */
 document.getElementById('login-form').addEventListener('submit', function () {
   const btn = document.getElementById('btn-ingresar');
   btn.classList.add('loading');
   btn.disabled = true;
 });
-
 /* Acceso oculto al panel de control — triple clic en el logo */
 (function () {
   var clicks = 0, timer;

@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load gestion_academica_filters %}
-
 {% block titulo %}{{ corte.nombre_corte }} — Corte Preventivo{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
   /* ─── Paleta de riesgo ─── */
@@ -10,25 +8,21 @@
   .riesgo-MEDIO     { background:#fef9c3; color:#92400e; border-color:#fde68a; }
   .riesgo-BAJO      { background:#dbeafe; color:#1e40af; border-color:#93c5fd; }
   .riesgo-SIN_RIESGO{ background:#dcfce7; color:#166534; border-color:#86efac; }
-
   /* ─── Tarjetas de stats ─── */
   .stat-card { border-radius:14px; border:0; box-shadow:0 2px 10px rgba(0,0,0,.07); padding:1.2rem 1.4rem; }
   .stat-num  { font-size:2.2rem; font-weight:800; line-height:1; }
-
   /* ─── Tabla de resultados ─── */
   .tabla-resultados th { position:sticky; top:0; background:#1e3a5f; color:#fff; z-index:2; }
   .tabla-resultados tr.riesgo-ALTO      td { background:#fff5f5; }
   .tabla-resultados tr.riesgo-MEDIO     td { background:#fffbeb; }
   .tabla-resultados tr.riesgo-BAJO      td { background:#eff6ff; }
   .tabla-resultados tr.riesgo-SIN_RIESGO td { }
-
   .badge-riesgo { font-size:.72rem; padding:3px 9px; border-radius:20px; font-weight:700; }
   .expandable-row td { padding:.4rem .75rem; font-size:.83rem; }
   .materias-detalle { display:none; background:#f8fafc; }
   .materias-detalle.show { display:table-row; }
   .btn-expand { background:none; border:none; color:#6b7280; cursor:pointer; font-size:1rem; }
   .btn-expand:hover { color:#4f46e5; }
-
   /* ─── Estado chips ─── */
   .estado-chip { display:inline-flex; align-items:center; gap:.4rem; border-radius:20px;
                  padding:.25rem .85rem; font-size:.78rem; font-weight:700; }
@@ -36,14 +30,11 @@
   .estado-CALCULANDO { background:#fef3c7; color:#92400e; }
   .estado-PUBLICADO  { background:#dcfce7; color:#166534; }
   .estado-ARCHIVADO  { background:#f1f5f9; color:#64748b; }
-
   .obs-inline-form textarea { min-height:60px; font-size:.83rem; }
   .accion-card { border-radius:12px; border:1px dashed #d1d5db; padding:1rem; }
 </style>
 {% endblock %}
-
 {% block contenido %}
-
 <!-- ╔══════════════════════════════╗
      ║  HERO BANNER + ACCIONES     ║
      ╚══════════════════════════════╝ -->
@@ -72,7 +63,6 @@
         {% endif %}
       </p>
     </div>
-
     {% if puede_gestionar %}
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <!-- Calcular -->
@@ -88,7 +78,6 @@
         <span class="spinner-border spinner-border-sm me-1"></span>Procesando...
       </button>
       {% endif %}
-
       <!-- Publicar -->
       {% if corte.estado == 'BORRADOR' and corte.total_estudiantes_evaluados > 0 %}
       <form method="post" action="{% url 'gestion_academica:publicar_corte' corte.pk %}">
@@ -98,7 +87,6 @@
         </button>
       </form>
       {% endif %}
-
       <!-- Descargas -->
       {% if corte.total_estudiantes_evaluados > 0 %}
       <a href="{% url 'gestion_academica:exportar_pdf_grado' corte.pk %}"
@@ -110,7 +98,6 @@
         <i class="bi bi-file-earmark-excel-fill"></i>Excel
       </a>
       {% endif %}
-
       <!-- Recalcular (si ya fue calculado) -->
       {% if corte.estado == 'BORRADOR' and corte.total_estudiantes_evaluados > 0 %}
       <form method="post" action="{% url 'gestion_academica:calcular_corte' corte.pk %}">
@@ -120,7 +107,6 @@
         </button>
       </form>
       {% endif %}
-
       <!-- Notificar familias -->
       {% if corte.total_estudiantes_evaluados > 0 %}
       <button type="button" class="btn btn-outline-light d-flex align-items-center gap-2"
@@ -128,7 +114,6 @@
         <i class="bi bi-bell-fill"></i>Notificar
       </button>
       {% endif %}
-
       <!-- Más acciones (archivar/eliminar) -->
       <div class="dropdown">
         <button class="btn btn-outline-light" data-bs-toggle="dropdown">
@@ -160,7 +145,6 @@
     {% endif %}
   </div>
 </div>
-
 <!-- ╔══════════════════════════════╗
      ║  TARJETAS DE ESTADÍSTICAS   ║
      ╚══════════════════════════════╝ -->
@@ -193,7 +177,6 @@
     </div>
   </div>
 </div>
-
 <!-- ╔══════════════════════════════╗
      ║  OBSERVACIÓN COORDINADOR    ║
      ╚══════════════════════════════╝ -->
@@ -216,7 +199,6 @@
   <strong><i class="bi bi-chat-quote me-2"></i>Observación:</strong> {{ corte.observacion_general }}
 </div>
 {% endif %}
-
 <!-- ╔══════════════════════════════╗
      ║  FILTROS DE LA TABLA        ║
      ╚══════════════════════════════╝ -->
@@ -253,7 +235,6 @@
     </a>
   </div>
 </div>
-
 <!-- ╔══════════════════════════════╗
      ║  TABLA DE ESTUDIANTES       ║
      ╚══════════════════════════════╝ -->
@@ -371,7 +352,6 @@
           </td>
           {% endif %}
         </tr>
-
         <!-- Fila expandida: detalle de materias -->
         <tr class="materias-detalle" id="detalle-{{ resultado.pk }}">
           <td colspan="{% if puede_gestionar %}9{% else %}8{% endif %}" class="p-0">
@@ -420,7 +400,6 @@
             </div>
           </td>
         </tr>
-
         <!-- Formulario de observación (oculto) -->
         {% if puede_gestionar %}
         <tr id="obs-form-{{ resultado.pk }}" style="display:none;">
@@ -456,7 +435,6 @@
           </td>
         </tr>
         {% endif %}
-
         {% empty %}
         <tr>
           <td colspan="{% if puede_gestionar %}9{% else %}8{% endif %}" class="text-center text-muted py-4">
@@ -469,10 +447,7 @@
   </div>
 </div>
 {% endif %}
-
-
 <!-- ════════════ MODALES ════════════ -->
-
 <!-- Modal: Notificar familias -->
 <div class="modal fade" id="modalNotificar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -503,7 +478,6 @@
     </div>
   </div>
 </div>
-
 <!-- Modal: Eliminar corte -->
 <div class="modal fade" id="modalEliminar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -534,7 +508,6 @@
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 // ── Toggle fila de detalle por materia ──────────────────────────────────────
@@ -545,13 +518,11 @@ function toggleDetalle(pk) {
   fila.classList.toggle('show');
   icono.className = abierto ? 'bi bi-chevron-right' : 'bi bi-chevron-down';
 }
-
 // ── Toggle formulario de observación ───────────────────────────────────────
 function abrirObservacion(pk) {
   const fila = document.getElementById('obs-form-' + pk);
   fila.style.display = fila.style.display === 'none' ? 'table-row' : 'none';
 }
-
 // ── Filtro rápido por nivel de riesgo (clic en tarjeta de stats) ───────────
 function filtrarRiesgo(nivel) {
   const url = new URL(window.location);
@@ -562,7 +533,6 @@ function filtrarRiesgo(nivel) {
   }
   window.location.href = url.toString();
 }
-
 // ── Modal de eliminación ────────────────────────────────────────────────────
 document.querySelectorAll('[data-bs-target="#modalEliminar"]').forEach(btn => {
   btn.addEventListener('click', function() {
@@ -570,7 +540,6 @@ document.querySelectorAll('[data-bs-target="#modalEliminar"]').forEach(btn => {
     document.getElementById('modal-eliminar-nombre').textContent = this.dataset.nombre || '';
   });
 });
-
 // ── Auto-refresh si el estado es CALCULANDO ─────────────────────────────────
 {% if corte.estado == 'CALCULANDO' %}
 setTimeout(function(){ location.reload(); }, 8000);

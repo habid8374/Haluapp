@@ -1,7 +1,5 @@
 {% extends "base_finanzas.html" %}
-
 {% block titulo %}Confirmar Eliminación de Concepto{% endblock %}
-
 {% block contenido %}
 <div class="row justify-content-center">
     <div class="col-md-8">
@@ -11,7 +9,6 @@
             </div>
             <div class="card-body p-4">
                 <p class="lead">¿Estás seguro de que deseas eliminar permanentemente el concepto de pago?</p>
-                
                 <div class="alert alert-secondary text-start">
                     <h4 class="alert-heading">{{ object.nombre_concepto }}</h4>
                     <hr>
@@ -22,16 +19,13 @@
                         <strong>Valor:</strong> ${{ object.valor|floatformat:2 }}
                     </p>
                 </div>
-
                 <div class="alert alert-danger mt-3" role="alert">
                     <i class="bi bi-exclamation-triangle-fill"></i> 
                     <strong>¡Atención!</strong> Esta acción no se puede deshacer.
                 </div>
-                
                 <p class="text-muted mt-3">
                     <small>Si este concepto está asociado a alguna cuenta por cobrar, Django podría impedir su eliminación para proteger la integridad de los datos.</small>
                 </p>
-
                 <form method="post" class="mt-4">
                     {% csrf_token %}
                     <a href="{% url 'finanzas:lista_conceptos_pago' %}" class="btn btn-secondary">

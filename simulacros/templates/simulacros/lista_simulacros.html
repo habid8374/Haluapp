@@ -1,6 +1,5 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
   .sim-card { border:1px solid #e2e8f0; border-radius:14px; padding:1.25rem; background:#fff; transition:box-shadow .15s; }
@@ -10,10 +9,8 @@
   .estado-badge-CERRADO   { background:#fee2e2;color:#dc2626; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
   <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
@@ -30,11 +27,9 @@
       </div>
     </div>
   </div>
-
   {% if messages %}{% for m in messages %}
   <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
   {% endfor %}{% endif %}
-
   <div class="vstack gap-3">
     {% for s in simulacros %}
     <div class="sim-card">
@@ -88,9 +83,7 @@
     </div>
     {% endfor %}
   </div>
-
 </div>
-
 <!-- MODAL ELIMINAR SIMULACRO -->
 <div class="modal fade" id="modalEliminarSim" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -117,7 +110,6 @@
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 document.querySelectorAll('.btn-eliminar-sim').forEach(btn => {

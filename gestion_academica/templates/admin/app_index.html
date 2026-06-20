@@ -1,12 +1,7 @@
 {% extends "admin/app_index.html" %}
 {% load i18n %}
-
 {% block content %}
-    
-    {# Esta línea renderiza la lista de modelos de la app, como siempre #}
     {{ block.super }}
-
-    {# Solo mostramos esta sección si estamos en la página de la app 'gestion_academica' #}
     {% if app_label == 'gestion_academica' %}
         <div class="module">
             <table class="table table-striped">
@@ -36,10 +31,8 @@
                             </a>
                         </td>
                     </tr>
-                    {# Aquí puedes añadir más enlaces a otros reportes en el futuro #}
                 </tbody>
             </table>
         </div>
     {% endif %}
-
 {% endblock %}

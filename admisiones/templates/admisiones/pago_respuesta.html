@@ -1,7 +1,5 @@
 {% extends "base_publica.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container text-center" style="padding: 100px 0;">
     {% if status == 'approved' %}
@@ -16,7 +14,6 @@
     {% endif %}
 </div>
 {% endblock %}
-
 {% block extra_js %}
 {{ block.super }}
 <script>

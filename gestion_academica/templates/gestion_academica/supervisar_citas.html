@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══════════════════════════════════════════════════════
@@ -14,7 +12,6 @@
   --cita-light:  #0d9488;
   --cita-accent: #5eead4;
 }
-
 /* ── Hero ─────────────────────────────────────────── */
 .cita-hero {
   background: linear-gradient(135deg, var(--cita-dark) 0%, var(--cita-mid) 55%, #0f766e 100%);
@@ -45,7 +42,6 @@
 }
 .cita-hero-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
 .cita-hero-btn-outline:hover { background: rgba(255,255,255,.22); color: #fff; }
-
 /* ── Panel ────────────────────────────────────────── */
 .cita-panel {
   background: #fff;
@@ -70,7 +66,6 @@
   font-size: .85rem; flex-shrink: 0;
   background: #ccfbf1; color: #0f766e;
 }
-
 /* ── Tabla ─────────────────────────────────────────── */
 .cita-table thead th {
   background: #f8fafc; font-size: .74rem; text-transform: uppercase;
@@ -79,7 +74,6 @@
 }
 .cita-table tbody td { vertical-align: middle; font-size: .83rem; padding: .75rem 1rem; }
 .cita-table tbody tr:hover { background: #f0fdfa; }
-
 /* ── Estado badges ────────────────────────────────── */
 .estado-badge {
   display: inline-flex; align-items: center; gap: .3rem;
@@ -90,7 +84,6 @@
 .estado-pendiente    { background: #fef3c7; color: #92400e; }
 .estado-cancelada    { background: #fee2e2; color: #dc2626; }
 .estado-default      { background: #f1f5f9; color: #475569; }
-
 /* ── Botón detalle ────────────────────────────────── */
 .det-btn {
   display: inline-flex; align-items: center; gap: .35rem;
@@ -99,7 +92,6 @@
   transition: background .12s;
 }
 .det-btn:hover { background: #99f6e4; color: #0f766e; }
-
 /* ── Tarjeta móvil ────────────────────────────────── */
 .cita-card {
   border-radius: .7rem;
@@ -113,16 +105,13 @@
 .cita-card-date  { font-size: .78rem; font-weight: 700; color: var(--cita-mid); margin-bottom: .35rem; }
 .cita-card-label { font-size: .7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: .4px; margin-bottom: .1rem; }
 .cita-card-val   { font-size: .82rem; color: #1e293b; margin-bottom: .35rem; }
-
 /* Vacío */
 .cita-empty { text-align: center; padding: 2.5rem 1rem; color: #94a3b8; }
 .cita-empty i { font-size: 2.2rem; display: block; margin-bottom: .6rem; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1200px;">
-
   <!-- ══ HERO ════════════════════════════════════════════════════════ -->
   <div class="cita-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
@@ -140,7 +129,6 @@
       </a>
     </div>
   </div>
-
   <!-- ══ PANEL REUNIONES ══════════════════════════════════════════════ -->
   <div class="cita-panel">
     <div class="cita-panel-header">
@@ -154,9 +142,7 @@
       </span>
       {% endif %}
     </div>
-
     {% if citas %}
-
       <!-- Tabla — desktop -->
       <div class="d-none d-md-block">
         <div class="table-responsive">
@@ -209,13 +195,11 @@
           </table>
         </div>
       </div>
-
       <!-- Tarjetas — móvil -->
       <div class="d-md-none p-2 pt-3">
         {% for cita in citas %}
         <div class="cita-card">
           <div class="cita-card-inner">
-
             <!-- Fecha + estado + botón -->
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
@@ -240,18 +224,15 @@
                 <i class="bi bi-eye-fill"></i> Ver
               </a>
             </div>
-
             <!-- Docente -->
             <div class="cita-card-label"><i class="bi bi-person-badge me-1"></i>Docente</div>
             <div class="cita-card-val">{{ cita.docente.usuario.get_full_name }}</div>
-
             <!-- Familiar + estudiante -->
             <div class="cita-card-label"><i class="bi bi-people-fill me-1"></i>Familiar / Estudiante</div>
             <div class="cita-card-val">
               {{ cita.familiar.usuario.get_full_name }}
               <span class="text-muted"> — {{ cita.estudiante.usuario.get_full_name }}</span>
             </div>
-
             <!-- Acuerdos -->
             {% if cita.acuerdos_compromisos %}
             <div class="cita-card-label"><i class="bi bi-journal-check me-1"></i>Acuerdos</div>
@@ -261,7 +242,6 @@
         </div>
         {% endfor %}
       </div>
-
     {% else %}
       <div class="cita-empty">
         <i class="bi bi-calendar2-x"></i>
@@ -270,6 +250,5 @@
       </div>
     {% endif %}
   </div>
-
 </div>
 {% endblock %}

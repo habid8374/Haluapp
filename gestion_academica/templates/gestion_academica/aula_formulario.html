@@ -1,10 +1,8 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_formulario }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
   <h2 class="mb-4">{{ titulo_formulario }}</h2>
-
   <form method="post">
     {% csrf_token %}
     {{ form.non_field_errors }}
@@ -17,7 +15,6 @@
         {% endif %}
       </div>
     {% endfor %}
-
     <button type="submit" class="btn btn-success">Guardar</button>
     <a href="{% url 'gestion_academica:lista_aulas' %}" class="btn btn-secondary">Cancelar</a>
   </form>

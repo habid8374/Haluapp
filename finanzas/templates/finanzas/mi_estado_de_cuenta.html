@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -17,7 +15,6 @@
         </div>
         <a href="{{ volver_url }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
     </div>
-
     <div class="mb-4">
         <div class="btn-group flex-wrap" role="group">
             <a href="{% if es_vista_familiar %}{% url 'finanzas:familiar_estado_cuenta_estudiante' estudiante.pk %}{% else %}{% url 'finanzas:mi_estado_de_cuenta' %}{% endif %}" class="btn {% if not filtro_activo %}btn-primary{% else %}btn-outline-primary{% endif %}">Todas</a>
@@ -25,8 +22,6 @@
             <a href="{% if es_vista_familiar %}{% url 'finanzas:familiar_estado_cuenta_estudiante' estudiante.pk %}{% else %}{% url 'finanzas:mi_estado_de_cuenta' %}{% endif %}?filtro=PAGADO" class="btn {% if filtro_activo == 'PAGADO' %}btn-success{% else %}btn-outline-success{% endif %}">Pagadas</a>
         </div>
     </div>
-
-    {# ── Aviso modo TEST de Mercado Pago ── #}
     {% if not mp_modo_produccion %}
     <div class="alert alert-warning d-flex gap-3 align-items-start mb-4" role="alert"
          style="border-left:4px solid #f59e0b;background:#fffbeb;">
@@ -59,7 +54,6 @@
       </div>
     </div>
     {% endif %}
-
     <div class="card shadow-sm">
         <div class="card-header d-flex flex-column flex-md-row justify-content-between gap-2">
             <h4 class="mb-0">Detalle de cuentas</h4>

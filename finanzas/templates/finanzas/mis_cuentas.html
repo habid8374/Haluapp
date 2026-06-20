@@ -1,8 +1,6 @@
 {% extends 'base_finanzas.html' %}
 {% load static %}
-
 {% block titulo %}Cuentas por Cobrar{% endblock %}
-
 {% block contenido %}
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -11,7 +9,6 @@
                 <i class="bi bi-plus-circle"></i> Asignar Nueva Cuenta
             </a>
         </div>
-
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="table-responsive">
@@ -25,7 +22,7 @@
                                 <th class="text-end">Saldo</th>
                                 <th>Vencimiento</th>
                                 <th class="text-center">Estado</th>
-                                <th class="text-center">Acciones</th> {# Columna de Acciones corregida #}
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -43,7 +40,6 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    {# Botón que lleva a la página de detalle de pagos #}
                                     <a href="{% url 'finanzas:registrar_pago' cuenta.pk %}" class="btn btn-sm btn-success" title="Ver/Registrar Pagos">
                                         <i class="bi bi-cash-coin"></i> Pagos
                                     </a>
@@ -61,7 +57,6 @@
         </div>
     </div>
 {% endblock contenido %}
-
 {% block extrajavascript %}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script> 

@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}Centro de Reportes{% endblock %}
-
 {% block contenido %}
 <style>
   .kpi-card { border:none; border-radius:14px; transition:transform .18s,box-shadow .18s; }
@@ -19,10 +17,7 @@
   .rcard .rbtn { font-size:.72rem; padding:.22rem .6rem; border-radius:6px; }
   .rcard.oculto { display:none!important; }
 </style>
-
 <div class="container-fluid px-3 px-md-4 mt-2 mt-md-4" style="max-width:1180px">
-
-  {# Encabezado #}
   <div class="mb-4">
     <h2 class="h4 fw-bold mb-1">
       <i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>Centro de Reportes
@@ -32,8 +27,6 @@
       {% if periodo_activo %}Período activo: <strong>{{ periodo_activo.nombre }}</strong>{% else %}Sin período activo{% endif %}
     </p>
   </div>
-
-  {# KPIs #}
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-4 col-xl-2">
       <div class="card kpi-card shadow-sm h-100">
@@ -84,22 +77,17 @@
       </div>
     </div>
   </div>
-
-  {# Buscador #}
   <div class="input-group mb-4 shadow-sm" style="max-width:440px">
     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
     <input type="text" id="rBuscar" class="form-control border-start-0 ps-0" placeholder="Buscar reporte…" autocomplete="off">
     <button class="btn btn-outline-secondary d-none" id="rBuscarX" type="button"><i class="bi bi-x-lg"></i></button>
   </div>
   <p id="rSinRes" class="text-muted text-center py-4 d-none"><i class="bi bi-search me-1"></i>Sin resultados para "<strong id="rSinResTxt"></strong>".</p>
-
-  {# ── SECCIÓN: RENDIMIENTO ACADÉMICO ── #}
   <div class="d-flex align-items-center gap-2 mb-3">
     <span class="sec-title text-primary">Rendimiento Académico</span>
     <div class="sec-line bg-primary"></div>
   </div>
   <div class="row g-3 mb-4">
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0d6efd">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -111,7 +99,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0d6efd">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -123,7 +110,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0d6efd">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -135,7 +121,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0d6efd">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -147,7 +132,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0d6efd">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -159,7 +143,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0d6efd">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -171,7 +154,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0d6efd">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -183,7 +165,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0d6efd">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -195,7 +176,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0d6efd">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -207,7 +187,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0d6efd">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -219,16 +198,12 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {# ── SECCIÓN: ASISTENCIA ── #}
   <div class="d-flex align-items-center gap-2 mb-3">
     <span class="sec-title" style="color:#0aa2c0">Asistencia</span>
     <div class="sec-line" style="background:#0dcaf0"></div>
   </div>
   <div class="row g-3 mb-4">
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0dcaf0">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -240,7 +215,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#0dcaf0">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -252,16 +226,12 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {# ── SECCIÓN: RECONOCIMIENTOS ── #}
   <div class="d-flex align-items-center gap-2 mb-3">
     <span class="sec-title text-warning">Reconocimientos</span>
     <div class="sec-line" style="background:#ffc107"></div>
   </div>
   <div class="row g-3 mb-4">
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#ffc107">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -273,16 +243,12 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {# ── SECCIÓN: CUALITATIVO / PREESCOLAR ── #}
   <div class="d-flex align-items-center gap-2 mb-3">
     <span class="sec-title" style="color:#6f42c1">Cualitativo &middot; Preescolar</span>
     <div class="sec-line" style="background:#6f42c1"></div>
   </div>
   <div class="row g-3 mb-4">
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#6f42c1">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -294,16 +260,12 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {# ── SECCIÓN: RIESGO ACADÉMICO ── #}
   <div class="d-flex align-items-center gap-2 mb-3">
     <span class="sec-title text-danger">Riesgo Académico</span>
     <div class="sec-line" style="background:#dc3545"></div>
   </div>
   <div class="row g-3 mb-4">
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#dc3545">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -315,16 +277,12 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {# ── SECCIÓN: CONVIVENCIA SENTINEL ── #}
   <div class="d-flex align-items-center gap-2 mb-3">
     <span class="sec-title text-danger">Convivencia &middot; Sentinel</span>
     <div class="sec-line" style="background:#dc3545"></div>
   </div>
   <div class="row g-3 mb-5">
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#dc3545">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -336,7 +294,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#dc3545">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -348,11 +305,8 @@
         </div>
       </div>
     </div>
-
   </div>
-
 </div>
-
 <script>
 (function () {
   var input  = document.getElementById('rBuscar');
@@ -361,7 +315,6 @@
   var sinTxt = document.getElementById('rSinResTxt');
   var cards  = document.querySelectorAll('.rcard');
   if (!input || !cards.length) return;
-
   function filtrar() {
     var q = input.value.trim().toLowerCase();
     if (btnX) btnX.classList.toggle('d-none', !q);
@@ -376,7 +329,6 @@
       if (sinTxt) sinTxt.textContent = q;
     }
   }
-
   input.addEventListener('input', filtrar);
   input.addEventListener('keydown', function(e) { if (e.key === 'Escape') { input.value = ''; filtrar(); } });
   if (btnX) btnX.addEventListener('click', function() { input.value = ''; filtrar(); input.focus(); });

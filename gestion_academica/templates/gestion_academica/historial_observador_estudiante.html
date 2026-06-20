@@ -1,7 +1,6 @@
 {% extends "base_academico.html" %}
 {% load crispy_forms_tags %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -9,7 +8,6 @@
    HALU PULSE — Observador del Estudiante v2
    (Ley 1620 / Decreto 1965 de 2013 — Convivencia Escolar)
 ═══════════════════════════════════════════════════════ */
-
 /* ── Perfil del estudiante ── */
 .obs-profile {
   background: linear-gradient(135deg, #07285f 0%, #0a3d8c 50%, #0b5ed7 100%);
@@ -43,7 +41,6 @@
   display: flex; gap: .5rem; flex-wrap: wrap;
   align-self: flex-start; flex-shrink: 0;
 }
-
 /* ── Tipo badges ── */
 .obs-badge {
   display: inline-flex; align-items: center; gap: .3rem;
@@ -55,7 +52,6 @@
 .obs-b-convivencia  { background: #fefce8; color: #b45309; border: 1px solid #fde68a; }
 .obs-b-llamado      { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
 .obs-b-otro         { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
-
 /* ── Stats strip ── */
 .obs-stats {
   display: flex; flex-wrap: wrap; gap: .55rem; margin-bottom: 1.2rem;
@@ -67,7 +63,6 @@
   font-size: .78rem; font-weight: 600; color: #64748b;
 }
 .obs-stat .osn { font-size: 1.15rem; font-weight: 800; font-family: 'Manrope', sans-serif; }
-
 /* ── Main grid: timeline + formulario ── */
 .obs-grid {
   display: grid;
@@ -79,7 +74,6 @@
   .obs-grid { grid-template-columns: 1fr; }
   .obs-form-sticky { position: static !important; }
 }
-
 /* ── Timeline card ── */
 .obs-tl-card {
   background: #fff; border: 1px solid #dbe5f4;
@@ -93,7 +87,6 @@
   display: flex; align-items: center; justify-content: space-between;
 }
 .obs-tl-head h6 { font-weight: 800; color: #0f3f90; margin: 0; font-size: .95rem; }
-
 /* ── Anotación item ── */
 .obs-item {
   display: flex; gap: .9rem; padding: 1rem 1.1rem;
@@ -101,12 +94,10 @@
 }
 .obs-item:last-child { border-bottom: none; }
 .obs-item:hover { background: #f8faff; }
-
 /* Línea de tiempo vertical */
 .obs-tl-line { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 14px; }
 .obs-tl-dot  { width: 13px; height: 13px; border-radius: 50%; border: 2.5px solid; flex-shrink: 0; margin-top: .18rem; }
 .obs-tl-connector { flex: 1; width: 2px; margin: .3rem 0; min-height: 24px; }
-
 /* Colores por tipo */
 .ot-FELICITACION .obs-tl-dot      { border-color:#22c55e; background:#f0fdf4; }
 .ot-FELICITACION .obs-tl-connector { background:#86efac; }
@@ -118,7 +109,6 @@
 .ot-LLAMADO_ATENCION .obs-tl-connector { background:#fecaca; }
 .ot-OTRO .obs-tl-dot              { border-color:#94a3b8; background:#f8fafc; }
 .ot-OTRO .obs-tl-connector        { background:#e2e8f0; }
-
 /* Contenido de la anotación */
 .obs-content { flex: 1; min-width: 0; }
 .obs-content .oc-header { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; margin-bottom: .45rem; }
@@ -131,7 +121,6 @@
   display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;
 }
 .obs-content .oc-footer i { font-size: .8rem; }
-
 /* ── Formulario sticky ── */
 .obs-form-sticky { position: sticky; top: 5.5rem; }
 .obs-form-card {
@@ -150,7 +139,6 @@
   background: #fefce8; border: 1px solid #fde68a;
   border-radius: .6rem; font-size: .75rem; color: #92400e; line-height: 1.55;
 }
-
 /* ── Empty state ── */
 .obs-empty {
   text-align: center; padding: 3rem 1rem; color: #94a3b8;
@@ -158,11 +146,8 @@
 .obs-empty i { font-size: 2.8rem; display: block; margin-bottom: .75rem; opacity: .6; }
 </style>
 {% endblock extrastyles %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
-  {# ══════════ PERFIL DEL ESTUDIANTE ══════════ #}
   <div class="obs-profile">
     <div class="obs-avatar" aria-hidden="true">
       {{ estudiante.usuario.first_name|slice:":1"|upper }}{{ estudiante.usuario.last_name|slice:":1"|upper }}
@@ -192,8 +177,6 @@
       </a>
     </div>
   </div>
-
-  {# ══════════ STATS STRIP (conteo dinámico por JS) ══════════ #}
   <div class="obs-stats">
     <div class="obs-stat">
       <i class="bi bi-journal-text" style="color:#0b5ed7;"></i>
@@ -221,26 +204,18 @@
       <span>Llamados</span>
     </div>
   </div>
-
-  {# ══════════ GRID: TIMELINE + FORM ══════════ #}
   <div class="obs-grid">
-
-    {# ── Timeline ── #}
     <div class="obs-tl-card">
       <div class="obs-tl-head">
         <h6><i class="bi bi-clock-history me-2"></i>Historial de Anotaciones</h6>
         <span class="badge bg-primary rounded-pill">{{ anotaciones|length }}</span>
       </div>
-
       {% for anotacion in anotaciones %}
       <div class="obs-item ot-{{ anotacion.tipo }}" data-tipo="{{ anotacion.tipo }}">
-        {# Línea de tiempo #}
         <div class="obs-tl-line">
           <div class="obs-tl-dot"></div>
           {% if not forloop.last %}<div class="obs-tl-connector"></div>{% endif %}
         </div>
-
-        {# Contenido #}
         <div class="obs-content">
           <div class="oc-header">
             {% if anotacion.tipo == 'FELICITACION' %}
@@ -273,8 +248,6 @@
       </div>
       {% endfor %}
     </div>
-
-    {# ── Formulario sticky ── #}
     <div class="obs-form-sticky">
       <div class="obs-form-card">
         <div class="obs-form-head">
@@ -297,11 +270,9 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 {{ block.super }}
 <script>

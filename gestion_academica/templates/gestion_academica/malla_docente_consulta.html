@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}Malla Curricular — Mis Asignaturas{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -16,7 +14,6 @@
   }
   .mc-hero h1 { font-size: 1.7rem; font-weight: 800; margin-bottom: .25rem; }
   .mc-hero p  { opacity: .85; margin: 0; font-size: .95rem; }
-
   /* ── Filtro año ── */
   .año-pills .btn-año {
     border: 2px solid #e0e7ff;
@@ -35,7 +32,6 @@
     border-color: #4f46e5;
     color: #fff;
   }
-
   /* ── Tarjeta malla ── */
   .malla-card {
     border: 1.5px solid #e0e7ff;
@@ -45,7 +41,6 @@
     overflow: hidden;
   }
   .malla-card:hover { box-shadow: 0 6px 24px rgba(79,70,229,.13); border-color: #a5b4fc; }
-
   .malla-card-header {
     background: linear-gradient(90deg, #eef2ff, #f5f3ff);
     padding: 1rem 1.4rem .8rem;
@@ -70,7 +65,6 @@
     margin: 0;
   }
   .malla-card-body { padding: 1rem 1.4rem 1.2rem; }
-
   .malla-meta span {
     display: inline-flex;
     align-items: center;
@@ -80,7 +74,6 @@
     margin-right: 1.1rem;
   }
   .malla-meta i { color: #818cf8; }
-
   .btn-ver-malla {
     background: linear-gradient(135deg, #4f46e5, #7c3aed);
     border: none;
@@ -105,7 +98,6 @@
     transition: all .18s;
   }
   .btn-imprimir-malla:hover { background: #4f46e5; color: #fff; }
-
   /* ── Estado vacío ── */
   .empty-state {
     background: #f8fafc;
@@ -117,7 +109,6 @@
   .empty-state i { font-size: 3rem; color: #a5b4fc; margin-bottom: 1rem; }
   .empty-state h5 { font-weight: 800; color: #1e1b4b; }
   .empty-state p  { color: #64748b; font-size: .9rem; }
-
   /* ── Item count chip ── */
   .chip-items {
     display: inline-block;
@@ -151,10 +142,8 @@
   }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid py-4 px-3 px-md-4">
-
   <!-- Hero -->
   <div class="mc-hero">
     <div class="d-flex align-items-center gap-3 flex-wrap">
@@ -164,7 +153,6 @@
       </div>
     </div>
   </div>
-
   <!-- Filtro de año -->
   <div class="d-flex align-items-center gap-2 mb-4 flex-wrap año-pills">
     <span class="fw-700 text-secondary me-1" style="font-size:.85rem;">Año lectivo:</span>
@@ -172,7 +160,6 @@
     <a href="?año={{ a }}" class="btn-año {% if a == año_filtro %}active{% endif %}">{{ a }}</a>
     {% endfor %}
   </div>
-
   {% if not mallas %}
   <!-- Sin mallas en este año -->
   <div class="empty-state">
@@ -181,7 +168,6 @@
     <p>El coordinador aún no ha creado mallas curriculares en <strong>{{ año_filtro }}</strong>.<br>
        Prueba con otro año o consulta a la coordinación académica.</p>
   </div>
-
   {% else %}
   <!-- Grid de mallas -->
   <div class="row g-3">
@@ -226,6 +212,5 @@
     {% endfor %}
   </div>
   {% endif %}
-
 </div>
 {% endblock %}

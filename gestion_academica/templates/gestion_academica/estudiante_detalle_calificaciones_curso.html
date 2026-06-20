@@ -1,9 +1,6 @@
-{# gestion_academica/templates/gestion_academica/estudiante_detalle_calificaciones_curso.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Detalle de Calificaciones" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -11,7 +8,7 @@
             <h1 class="mb-0">{{ titulo_pagina|default:"Detalle de Calificaciones" }}</h1>
             <h5 class="text-muted mt-2">Curso: <strong>{{ curso.materia.nombre_materia }}</strong> - Grado: <strong>{{ curso.grado.nombre }}</strong></h5>
             <p class="text-muted mb-0">Periodo: <strong>{{ curso.periodo_academico.nombre }} ({{ curso.periodo_academico.año_escolar }})</strong></p>
-            {% if estudiante and es_vista_familiar %} {# Si es vista familiar, se muestra el estudiante específico #}
+            {% if estudiante and es_vista_familiar %}
                 <p class="lead mt-2 mb-0">Estudiante: <strong>{{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}</strong></p>
             {% endif %}
         </div>
@@ -20,7 +17,6 @@
         </a>
     </div>
     <hr>
-
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -29,7 +25,6 @@
             </div>
         {% endfor %}
     {% endif %}
-
     {% if actividades_con_calificacion %}
         <div class="table-responsive shadow-sm rounded-3">
             <table class="table table-striped table-hover table-bordered mb-0">
@@ -84,8 +79,6 @@
                 </tbody>
             </table>
         </div>
-        {# Aquí podrías mostrar el promedio calculado para el curso #}
-        {# Por ejemplo, si pasas 'nota_final_curso' desde la vista #}
         {% if nota_final_curso is not None %}
             <div class="alert alert-success mt-4 text-center lead fw-bold">
                 <i class="bi bi-award-fill me-2"></i> Tu nota final para este curso es: {{ nota_final_curso|floatformat:2 }}

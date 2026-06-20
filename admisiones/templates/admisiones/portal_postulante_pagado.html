@@ -1,7 +1,5 @@
 {% extends "base_publica.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-5 mb-5">
     <div class="card shadow-lg">
@@ -10,7 +8,6 @@
             <p class="mb-0">Tu pago ha sido confirmado. Ya puedes continuar con tu proceso de admisión.</p>
         </div>
         <div class="card-body p-4">
-
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
@@ -19,18 +16,15 @@
                     </div>
                 {% endfor %}
             {% endif %}
-
             <h4>Estado de tu Solicitud: 
                 <span class="badge bg-info text-dark fs-6">{{ aspirante.get_estado_display }}</span>
             </h4>
             <hr class="my-4">
-
             <!-- ================================================================ -->
             <!-- SECCIÓN DE CARGA DE DOCUMENTOS (LÓGICA COMPLETA)                 -->
             <!-- ================================================================ -->
             <h4>Paso 1: Cargar Documentos</h4>
             <p class="text-muted">Por favor, sube los siguientes documentos para completar tu expediente.</p>
-            
             <ul class="list-group list-group-flush">
                 {% for tarea in lista_tareas_documentos %}
                 <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center py-3">
@@ -46,7 +40,6 @@
                     </div>
                     <div class="d-flex align-items-center mt-2 mt-md-0">
                         {% if tarea.entregado %}
-                            {# Si ya se subió un documento... #}
                             {% if tarea.entregado.estado == 'aprobado' %}
                                 <span class="badge bg-success me-2"><i class="bi bi-check-circle-fill"></i> Aprobado</span>
                                 <a href="{{ tarea.entregado.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">Ver Archivo</a>
@@ -55,11 +48,8 @@
                                 <a href="{{ tarea.entregado.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">Ver Archivo</a>
                             {% endif %}
                         {% else %}
-                            {# Si no se ha subido nada todavía #}
                             <span class="badge bg-danger me-2">Pendiente</span>
                         {% endif %}
-                        
-                        {# El botón para subir/reemplazar SOLO aparece si el documento no está aprobado #}
                         {% if not tarea.entregado or tarea.entregado.estado != 'aprobado' %}
                         <form action="{% url 'admisiones:subir_documento' token=aspirante.access_token doc_req_id=tarea.requerido.id %}" method="post" enctype="multipart/form-data" class="d-inline ms-2">
                             {% csrf_token %}
@@ -76,8 +66,6 @@
             <!-- ================================================================ -->
             <!-- FIN DE LA SECCIÓN DE DOCUMENTOS                                  -->
             <!-- ================================================================ -->
-
-
             <!-- ================================================================ -->
             <!-- SECCIÓN DE AGENDAMIENTO DE CITAS (LÓGICA COMPLETA)               -->
             <!-- ================================================================ -->
@@ -85,7 +73,6 @@
             <hr class="my-4">
             <div class="p-3 bg-light border rounded">
                 <h4>Paso 2: Agendar Entrevista</h4>
-
                 {% if aspirante.cita_agendada %}
                     <div class="alert alert-success mt-3">
                         <h5 class="alert-heading"><i class="bi bi-calendar-check-fill"></i> Cita Confirmada</h5>
@@ -112,7 +99,6 @@
         </div>
     </div>
 </div>
-
 <!-- Modal — Confirmar cancelación de cita -->
 <div class="modal fade" id="modalCancelarCita" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">

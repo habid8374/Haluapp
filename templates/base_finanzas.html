@@ -1,10 +1,7 @@
 {% extends "base.html" %}
 {% load static notificaciones_tags %}
-
 {% block titulo %}Módulo de Finanzas - {% if configuracion_institucion and configuracion_institucion.nombre_institucion %}{{ configuracion_institucion.nombre_institucion }}{% else %}{{ block.super }}{% endif %}{% endblock %}
-
 {% block body_class %}layout-finanzas{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -17,10 +14,8 @@
     --brand-primary: #0e67d0;
     --brand-primary-dark: #0a4f9f;
   }
-
   /* Ocultar botón flotante original */
   body.layout-finanzas #floatingMenuToggle { display: none !important; }
-
   /* ── Sidebar (panel convertido) ── */
   body.layout-finanzas #mainMenuPanel {
     position: fixed !important;
@@ -45,16 +40,13 @@
     background-color: #ffffff !important;
     transition: transform .28s ease !important;
   }
-
   /* Scrollbar delgado */
   body.layout-finanzas #mainMenuPanel::-webkit-scrollbar { width: 4px; }
   body.layout-finanzas #mainMenuPanel::-webkit-scrollbar-thumb {
     background: #c5d8f5; border-radius: 4px;
   }
-
   /* Empujar contenido principal */
   body.layout-finanzas { padding-left: var(--sidebar-w); transition: padding-left .28s ease; }
-
   /* Mejorar nav-links en sidebar */
   body.layout-finanzas #mainMenuPanel .nav-link {
     padding-left: .75rem !important; border-radius: .5rem;
@@ -67,7 +59,6 @@
     background-color: #dbeafe !important; color: #0b5ed7 !important;
     font-weight: 600 !important; padding-left: 1rem !important;
   }
-
   /* Botón toggle + Avatar */
   .btn-sidebar-toggle-fin {
     background: none; border: none; color: rgba(255,255,255,.9);
@@ -83,7 +74,6 @@
     display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: .84rem; flex-shrink: 0;
   }
-
   /* Cabecera dentro del sidebar */
   .sidebar-brand-row-fin {
     display: flex; align-items: center; gap: .5rem;
@@ -94,7 +84,6 @@
     font-size: .73rem; font-weight: 800; color: #0b5ed7;
     text-transform: uppercase; letter-spacing: .06em;
   }
-
   /* ── MOBILE (<992px): sidebar como drawer ── */
   @media (max-width: 991.98px) {
     body.layout-finanzas { padding-left: 0 !important; }
@@ -110,7 +99,6 @@
       background: rgba(10,30,60,.45); z-index: 1054;
     }
   }
-
   /* Ajuste contenedor principal en escritorio */
   @media (min-width: 992px) {
     body.layout-finanzas main.container {
@@ -119,7 +107,6 @@
       padding-right: 1.5rem !important;
     }
   }
-
   /* ── MOBILE: navbar en una sola fila ── */
   body.layout-finanzas .navbar-toggler {
     display: none !important;
@@ -146,8 +133,6 @@
   }
 </style>
 {% endblock extrastyles %}
-
-{# ── Navbar: hamburger + brand (siempre visible, fuera del collapse) ── #}
 {% block navbar_brand %}
 <button class="btn-sidebar-toggle-fin" id="sidebarToggleBtnFin"
         aria-label="Abrir/cerrar menú lateral" type="button">
@@ -164,8 +149,6 @@
   <span class="brand-text">{{ configuracion_institucion.nombre_institucion|default:"Módulo de Finanzas" }}</span>
 </a>
 {% endblock navbar_brand %}
-
-{# ── Navbar derecha: notificaciones + usuario ── #}
 {% block navbar_content %}
 <ul class="navbar-nav ms-auto d-flex flex-row align-items-center gap-1">
   {% if user.is_authenticated %}
@@ -224,14 +207,11 @@
   {% endif %}
 </ul>
 {% endblock navbar_content %}
-
-{# SIDEBAR — contenido del menú #}
 {% block floating_menu_content %}
   <div class="sidebar-brand-row-fin">
     <i class="bi bi-currency-dollar text-primary" style="font-size:1.05rem"></i>
     <span class="sb-label">Módulo de Finanzas</span>
   </div>
-
   <ul class="nav flex-column">
     <h5 class="menu-section-title">Principal</h5>
     <li class="nav-item item-color-1">
@@ -246,7 +226,6 @@
         <i class="bi bi-collection-play"></i> Reportes y exportación
       </a>
     </li>
-
     <h5 class="menu-section-title">Gestión Financiera</h5>
     <li class="nav-item item-color-2">
       <a class="nav-link {% if request.resolver_match.url_name == 'reporte_general_cuentas' %}active{% endif %}"
@@ -291,7 +270,6 @@
       </a>
     </li>
     {% endif %}
-
     <h5 class="menu-section-title">Reportes adicionales</h5>
     {% if perms.finanzas.acceso_modulo_finanzas %}
     <li class="nav-item item-color-1">
@@ -331,7 +309,6 @@
       </a>
     </li>
     {% endif %}
-
     <h5 class="menu-section-title">Configuración</h5>
     <li class="nav-item item-color-4">
       <a class="nav-link {% if 'tipo' in request.resolver_match.url_name %}active{% endif %}"
@@ -364,7 +341,6 @@
         <i class="bi bi-file-earmark-check-fill"></i> Facturación Electrónica
       </a>
     </li>
-
     {% if user.is_superuser %}
     <hr class="menu-divider">
     <li class="nav-item item-color-danger">
@@ -373,7 +349,6 @@
       </a>
     </li>
     {% endif %}
-
     <hr class="menu-divider">
     <h5 class="menu-section-title">Ir a Módulos</h5>
     <li class="nav-item item-color-2">
@@ -381,7 +356,6 @@
         <i class="bi bi-mortarboard-fill"></i> Módulo Académico
       </a>
     </li>
-
     <hr class="menu-divider">
     <h5 class="menu-section-title">Cuenta</h5>
     <li class="nav-item item-color-1">
@@ -406,26 +380,19 @@
     </li>
   </ul>
 {% endblock floating_menu_content %}
-
-
 {% block extra_js %}
 {{ block.super }}
-
-{# ── JS: sidebar toggle ── #}
 <script>
 (function () {
   var body  = document.body;
   var btn   = document.getElementById('sidebarToggleBtnFin');
   var panel = document.getElementById('mainMenuPanel');
   if (!btn || !panel) return;
-
   function isMobile() { return window.innerWidth < 992; }
-
   btn.addEventListener('click', function (e) {
     e.stopPropagation();
     if (isMobile()) { body.classList.toggle('sidebar-open'); }
   });
-
   document.addEventListener('click', function (e) {
     if (isMobile() && body.classList.contains('sidebar-open')) {
       if (!panel.contains(e.target) && !btn.contains(e.target)) {
@@ -433,20 +400,16 @@
       }
     }
   });
-
   panel.querySelectorAll('a:not([data-bs-toggle])').forEach(function (a) {
     a.addEventListener('click', function () {
       if (isMobile()) body.classList.remove('sidebar-open');
     });
   });
-
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && isMobile()) body.classList.remove('sidebar-open');
   });
 })();
 </script>
-
-{# ── Notificaciones staff via WS ── #}
 {% if user.is_authenticated and user.is_staff %}
 <div id="staff-ws-notifications-root"
      class="toast-container position-fixed top-0 end-0 p-3"
@@ -470,5 +433,4 @@
 </div>
 <script src="{% static 'js/notifications_staff_ws.js' %}"></script>
 {% endif %}
-
 {% endblock extra_js %}

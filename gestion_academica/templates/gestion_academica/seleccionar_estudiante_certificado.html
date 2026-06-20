@@ -1,11 +1,8 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <h1 class="h2 mb-4"><i class="bi bi-file-earmark-pdf-fill me-2"></i> {{ titulo_pagina }}</h1>
-
     <div class="card shadow-sm mb-4">
         <div class="card-header">
             <i class="bi bi-filter"></i> Paso 1: Selecciona un Grado
@@ -29,7 +26,6 @@
             </form>
         </div>
     </div>
-
     {% if grado_seleccionado %}
     <div class="card shadow-sm">
         <div class="card-header">
@@ -54,7 +50,6 @@
         <a href="{% url 'gestion_academica:generar_certificado_estudios' estudiante.pk %}" class="btn btn-outline-success" target="_blank">
             <i class="bi bi-patch-check-fill me-1"></i> De Estudios
         </a>
-        
         <a href="{% url 'gestion_academica:generar_constancia_matricula' estudiante.pk %}" class="btn btn-outline-primary" target="_blank">
             <i class="bi bi-person-badge me-1"></i> De Matrícula
         </a>
@@ -74,6 +69,5 @@
         </div>
     </div>
     {% endif %}
-
 </div>
 {% endblock %}

@@ -1,11 +1,9 @@
 {% extends "base_academico.html" %}
 {% load horario_filters %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <style>
   :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
-
   .ps-hero {
     background: linear-gradient(135deg, var(--ps-dark) 0%, var(--ps-mid) 55%, var(--ps-light) 100%);
     padding: 2.2rem 2rem 2rem;
@@ -25,7 +23,6 @@
     padding:.35rem .9rem; font-size:.78rem; color:#fff; font-weight:600;
     position:relative; z-index:1;
   }
-
   /* Filter card */
   .ps-filter-card {
     background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
@@ -41,7 +38,6 @@
     padding-right:2.2rem;
   }
   .ps-filter-select:focus { border-color:var(--ps-light); background-color:#fff; }
-
   /* Schedule card */
   .ps-sched-card { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; }
   .ps-sched-header {
@@ -51,7 +47,6 @@
   }
   .ps-sched-header-title { color:#fff; font-weight:800; font-size:1rem; }
   .ps-sched-header i { color:rgba(255,255,255,.7); }
-
   /* Schedule table */
   .ps-sched-table { width:100%; border-collapse:collapse; }
   .ps-sched-table thead tr { background:linear-gradient(90deg, #1e1b4b 0%, #3730a3 100%); }
@@ -75,31 +70,25 @@
     font-size:.82rem; white-space:nowrap;
   }
   .ps-sched-table tbody td:last-child { border-right:none; }
-
   /* Cell content */
   .ps-cell-subject { font-weight:700; color:var(--ps-dark); font-size:.85rem; line-height:1.3; }
   .ps-cell-aula    { font-size:.75rem; color:#94a3b8; margin-top:2px; }
   .ps-cell-empty   { color:#cbd5e1; font-size:1.1rem; }
-
   /* Day chips in header */
   .ps-day-chip {
     display:inline-block; padding:.15rem .6rem;
     background:rgba(255,255,255,.15); border-radius:20px;
     font-size:.7rem; font-weight:700; letter-spacing:.4px;
   }
-
   /* Empty state */
   .ps-no-select {
     background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
     padding:3rem 2rem; text-align:center; color:#94a3b8;
   }
   .ps-no-select i { font-size:3rem; margin-bottom:.8rem; display:block; opacity:.35; }
-
   .ps-empty-row td { padding:2.5rem 1rem; text-align:center; color:#94a3b8; font-size:.9rem; }
 </style>
-
 <div class="container-fluid mt-4">
-
   <!-- Hero -->
   <div class="ps-hero">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -116,7 +105,6 @@
       {% endif %}
     </div>
   </div>
-
   <!-- Selector de grado -->
   <div class="ps-filter-card">
     <form method="get">
@@ -133,7 +121,6 @@
       </select>
     </form>
   </div>
-
   <!-- Horario -->
   {% if grado_seleccionado %}
     <div class="ps-sched-card">
@@ -189,6 +176,5 @@
       <p class="mb-0" style="font-size:.88rem;">Elige un grado en el selector de arriba para visualizar su horario semanal.</p>
     </div>
   {% endif %}
-
 </div>
 {% endblock %}

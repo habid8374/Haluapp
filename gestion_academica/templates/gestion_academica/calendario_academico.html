@@ -1,9 +1,6 @@
-{# gestion_academica/templates/gestion_academica/calendario_academico.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Aseguramos que static esté cargado #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Calendario Académico" }}{% endblock titulo %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -33,7 +30,6 @@
     }
 </style>
 {% endblock extrastyles %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -43,12 +39,9 @@
         </a>
     </div>
     <hr>
-
     <p class="lead">Consulta las fechas importantes, eventos programados, periodos de exámenes y días festivos.</p>
-
     <div class="mt-4">
         {% if institucion_actual.google_calendar_embed_code %}
-            {# Intencional: código de iframe de Google Calendar introducido por el admin de la institución en el panel de administración. Solo usuarios con rol admin_institucion o superusuario pueden editarlo. #}
             {{ institucion_actual.google_calendar_embed_code|safe }}
         {% else %}
             <div class="alert alert-info text-center shadow-sm">

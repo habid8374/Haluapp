@@ -1,12 +1,9 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
     <h1 class="mb-4">{{ titulo_pagina }}</h1>
-
     <div class="card shadow-sm mb-4">
         <div class="card-header">
             <h5 class="mb-0"><i class="bi bi-funnel-fill me-2"></i>Filtrar por Rango de Fechas</h5>
@@ -37,7 +34,6 @@
             </form>
         </div>
     </div>
-
     <h4 class="mb-2">Resumen del periodo: <span class="text-muted">{{ fecha_inicio }} al {{ fecha_fin }}</span></h4>
     {% if periodo_filtrado %}
     <p class="text-muted small mb-3">Ingresos acotados al periodo académico <strong>{{ periodo_filtrado }}</strong> (según el concepto de cobro de cada pago).</p>
@@ -76,24 +72,19 @@
             <canvas id="estadoResultadosChart"></canvas>
         </div>
     </div>
-
     <div class="mt-4">
         <a href="{% url 'finanzas:dashboard_financiero' %}" class="btn btn-secondary">Volver al Dashboard</a>
     </div>
 </div>
 {% endblock %}
-
-
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {{ chart_labels|json_script:"chart-labels-data" }}
 {{ chart_ingresos|json_script:"chart-ingresos-data" }}
 {{ chart_gastos|json_script:"chart-gastos-data" }}
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('estadoResultadosChart').getContext('2d');
-
         const estadoResultadosChart = new Chart(ctx, {
             type: 'bar',
             data: {

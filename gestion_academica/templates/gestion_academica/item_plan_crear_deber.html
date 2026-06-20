@@ -1,6 +1,5 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 :root { --ps-mid:#3730a3; --ps-light:#4f46e5; }
@@ -19,7 +18,6 @@
 .conv-back:hover { color:#1e293b; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5">
   <div class="conv-wrap">
@@ -35,7 +33,6 @@
           <div class="conv-item-ref-val">{{ item.titulo }}</div>
           <div style="font-size:.76rem;color:#64748b;margin-top:.1rem;">{{ item.fecha|date:"l d \d\e F" }} · {{ item.plan.curso.materia.nombre_materia }}</div>
         </div>
-
         <form method="post">
           {% csrf_token %}
           <div class="mb-3">

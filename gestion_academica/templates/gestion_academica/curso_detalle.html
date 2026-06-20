@@ -1,9 +1,6 @@
-{# gestion_academica/templates/gestion_academica/curso_detalle.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Detalle del Curso" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -13,7 +10,6 @@
         </a>
     </div>
     <hr>
-
     {% if curso %}
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
@@ -44,9 +40,7 @@
                     (Inicio: {{ curso.periodo_academico.fecha_inicio|date:"d/m/Y" }} - Fin: {{ curso.periodo_academico.fecha_fin|date:"d/m/Y" }})
                     </span>
                 </li>
-                {# Campos opcionales: cupo_maximo, horario_descripcion si se habilitan en el modelo #}
             </ul>
-
             <h5 class="card-title text-primary mt-4 mb-3"><i class="bi bi-people-fill me-2"></i> Docentes Asignados</h5>
             {% if curso.docentes_asignados.all %}
                 <ul class="list-group list-group-flush">
@@ -62,12 +56,12 @@
             {% endif %}
         </div>
         <div class="card-footer text-end">
-            {% if perms.gestion_academica.change_curso %} {# Permiso para editar #}
+            {% if perms.gestion_academica.change_curso %}
                 <a href="{% url 'gestion_academica:editar_curso' curso.pk %}" class="btn btn-warning me-2">
                     <i class="bi bi-pencil-square"></i> Editar Curso
                 </a>
             {% endif %}
-            {% if perms.gestion_academica.delete_curso %} {# Permiso para eliminar #}
+            {% if perms.gestion_academica.delete_curso %}
                 <a href="{% url 'gestion_academica:eliminar_curso' curso.pk %}" class="btn btn-danger">
                     <i class="bi bi-trash-fill"></i> Eliminar Curso
                 </a>

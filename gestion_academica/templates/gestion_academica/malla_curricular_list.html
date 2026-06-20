@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}Mallas Curriculares{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 :root {
@@ -11,7 +9,6 @@
   --mc-light:  #4f46e5;
   --mc-accent: #818cf8;
 }
-
 /* ── Hero ── */
 .mc-hero {
   background: linear-gradient(135deg, var(--mc-dark) 0%, var(--mc-mid) 50%, var(--mc-light) 100%);
@@ -36,7 +33,6 @@
 }
 .mc-hero h1 { font-size: 1.65rem; font-weight: 800; margin-bottom: .25rem; font-family: 'Manrope', sans-serif; }
 .mc-hero p  { font-size: .85rem; opacity: .82; margin: 0; }
-
 /* ── Stat chips ── */
 .mc-stat-row { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1.2rem; align-items: center; }
 .mc-stat-chip {
@@ -52,7 +48,6 @@
   font-weight: 700; cursor: pointer; transition: all .2s; text-decoration: none;
 }
 .mc-btn-crear:hover { background: #eef2ff; color: var(--mc-mid); transform: translateY(-1px); }
-
 /* ── Filtro año ── */
 .mc-year-bar {
   display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
@@ -69,7 +64,6 @@
 .mc-year-pill.active, .mc-year-pill:hover {
   background: var(--mc-light); color: #fff; border-color: var(--mc-light);
 }
-
 /* ── Acordeón grado ── */
 .mc-grade-block {
   background: #fff; border: 1px solid #dbe5f4;
@@ -92,7 +86,6 @@
 .mc-grade-info { flex: 1; min-width: 0; }
 .mc-grade-name { font-size: .98rem; font-weight: 800; color: #0f3f90; margin-bottom: .1rem; }
 .mc-grade-sub  { font-size: .73rem; color: #64748b; display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
-
 /* Progress */
 .mc-progress-wrap { display: flex; align-items: center; gap: .55rem; flex-shrink: 0; }
 .mc-progress-bar  { width: 90px; height: 6px; background: #e0e7ff; border-radius: 999px; overflow: hidden; }
@@ -102,7 +95,6 @@
 }
 .mc-progress-fill.completo { background: linear-gradient(90deg, #15803d, #22c55e); }
 .mc-progress-txt { font-size: .7rem; font-weight: 700; color: #94a3b8; white-space: nowrap; }
-
 /* Chevron */
 .mc-chevron {
   width: 30px; height: 30px; border-radius: 50%; background: #f1f5f9;
@@ -111,7 +103,6 @@
   transition: transform .25s, background .15s; flex-shrink: 0;
 }
 .mc-grade-head.open .mc-chevron { transform: rotate(180deg); background: #e0e7ff; color: var(--mc-light); }
-
 /* Badges */
 .badge-completo {
   display: inline-flex; align-items: center; gap: .28rem;
@@ -123,11 +114,9 @@
   background: #fefce8; color: #92400e; border: 1px solid #fde68a;
   border-radius: 2rem; padding: .18rem .6rem; font-size: .67rem; font-weight: 700;
 }
-
 /* ── Cuerpo acordeón ── */
 .mc-grade-body { display: none; border-top: 2px solid #f1f5f9; }
 .mc-grade-body.open { display: block; }
-
 /* ── Tabla materias ── */
 .mc-materias-table { width: 100%; border-collapse: collapse; }
 .mc-materias-table thead th {
@@ -142,13 +131,11 @@
 }
 .mc-materias-table tbody tr:last-child td { border-bottom: none; }
 .mc-materias-table tbody tr:hover td { background: #fafafe; }
-
 /* Materia name */
 .materia-name { display: flex; align-items: center; gap: .55rem; font-weight: 700; color: #0f3f90; }
 .materia-dot  { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 .dot-ok       { background: #22c55e; box-shadow: 0 0 0 2px #bbf7d0; }
 .dot-empty    { background: #f1f5f9; border: 2px solid #cbd5e1; }
-
 /* Items badge */
 .mc-items-badge {
   display: inline-flex; align-items: center; gap: .3rem;
@@ -156,7 +143,6 @@
   padding: .18rem .6rem; font-size: .71rem; font-weight: 700;
 }
 .mc-items-badge.zero { background: #f1f5f9; color: #94a3b8; }
-
 /* Botones fila */
 .mc-btn-sm {
   display: inline-flex; align-items: center; gap: .3rem;
@@ -171,14 +157,12 @@
 .mc-btn-del:hover { background: #fee2e2; color: #7f1d1d; }
 .mc-btn-new    { background: linear-gradient(135deg, var(--mc-mid), var(--mc-light)); color: #fff; }
 .mc-btn-new:hover { opacity: .88; color: #fff; text-decoration: none; }
-
 /* ── Empty state ── */
 .mc-empty-state {
   text-align: center; padding: 3.5rem 2rem; background: #fff;
   border: 1px dashed #c7d2fe; border-radius: 1rem; color: #94a3b8;
 }
 .mc-empty-state i { font-size: 2.5rem; display: block; margin-bottom: .75rem; opacity: .45; }
-
 /* ── Modal header ── */
 .mc-modal-header {
   background: linear-gradient(135deg, var(--mc-dark), var(--mc-mid));
@@ -186,19 +170,16 @@
   display: flex; align-items: center; justify-content: space-between;
 }
 .mc-modal-header h5 { margin: 0; font-weight: 800; font-size: .95rem; }
-
 @media (max-width: 768px) {
   .mc-hero { padding: 1.3rem 1.2rem 1.7rem; }
   .mc-hero h1 { font-size: 1.2rem; }
   .mc-progress-wrap { display: none; }
 }
-
 /* ── Tabla → cards en móvil ── */
 @media (max-width: 576px) {
   .mc-materias-table thead { display: none; }
   .mc-materias-table,
   .mc-materias-table tbody { display: block; }
-
   .mc-materias-table tbody tr {
     display: flex;
     flex-wrap: wrap;
@@ -209,37 +190,30 @@
   }
   .mc-materias-table tbody tr:last-child { border-bottom: none; }
   .mc-materias-table tbody tr:hover td { background: transparent; }
-
   .mc-materias-table tbody td {
     display: block;
     padding: 0;
     border: none;
     font-size: .8rem;
   }
-
   /* Materia: fila completa arriba */
   .mc-materias-table tbody td:nth-child(1) {
     width: 100%;
     margin-bottom: .1rem;
   }
   .materia-name { font-size: .85rem; }
-
   /* Ítems badge: izquierda abajo */
   .mc-materias-table tbody td:nth-child(2) { flex: 1; }
-
   /* Fecha: oculta */
   .mc-materias-table tbody td:nth-child(3) { display: none; }
-
   /* Acción: derecha abajo, no se corta */
   .mc-materias-table tbody td:nth-child(4) { flex-shrink: 0; }
-
   /* Botones en fila de acciones más compactos */
   .mc-materias-table tbody td:nth-child(4) .d-flex { flex-wrap: nowrap; gap: .2rem; }
   .mc-materias-table tbody td:nth-child(4) .mc-btn-sm {
     padding: .28rem .55rem;
     font-size: .71rem;
   }
-
   /* Botón "Crear malla" ancho completo en su celda */
   .mc-materias-table tbody td:nth-child(4) .mc-btn-new {
     padding: .35rem .8rem;
@@ -247,11 +221,8 @@
 }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-3" style="max-width: 1080px;">
-
-  {# ── Hero ── #}
   <div class="mc-hero">
     <div class="mc-hero-badge" style="position:relative;z-index:1;">
       <i class="bi bi-journal-bookmark-fill"></i> Coordinación Académica
@@ -282,8 +253,6 @@
       </div>
     </div>
   </div>
-
-  {# ── Filtro año lectivo ── #}
   <div class="mc-year-bar">
     <label><i class="bi bi-calendar3 me-1" style="color:#4f46e5;"></i> Año lectivo:</label>
     {% for año in años %}
@@ -291,17 +260,11 @@
           onclick="filtrarAño({{ año }}, this)">{{ año }}</span>
     {% endfor %}
   </div>
-
-  {# ── Acordeones por grado ── #}
   {% if grados_data %}
     {% for gd in grados_data %}
     <div class="mc-grade-block">
-
-      {# Cabecera #}
       <div class="mc-grade-head" onclick="toggleGrado(this)">
-
         <div class="mc-grade-icon">{{ gd.grado.nombre|slice:":3"|upper }}</div>
-
         <div class="mc-grade-info">
           <div class="mc-grade-name">{{ gd.grado.nombre }}</div>
           <div class="mc-grade-sub">
@@ -317,7 +280,6 @@
             <span>{{ gd.total_materias }} materia{{ gd.total_materias|pluralize:"s" }}</span>
           </div>
         </div>
-
         {% if gd.total_materias > 0 %}
         <div class="mc-progress-wrap">
           <div class="mc-progress-bar">
@@ -327,11 +289,8 @@
           <span class="mc-progress-txt">{{ gd.total_creadas }}/{{ gd.total_materias }}</span>
         </div>
         {% endif %}
-
         <div class="mc-chevron"><i class="bi bi-chevron-down"></i></div>
       </div>
-
-      {# Tabla de materias #}
       <div class="mc-grade-body">
         {% if gd.filas %}
         <table class="mc-materias-table">
@@ -406,10 +365,8 @@
         </div>
         {% endif %}
       </div>
-
     </div>
     {% endfor %}
-
   {% else %}
   <div class="mc-empty-state">
     <i class="bi bi-collection"></i>
@@ -417,10 +374,7 @@
     <p class="small mb-0">Configura los grados de la institución para poder crear mallas curriculares.</p>
   </div>
   {% endif %}
-
 </div>
-
-{# ════ Modal Eliminar Malla ════ #}
 <div class="modal fade" id="modalEliminarMalla" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 430px;">
     <div class="modal-content" style="border-radius:1rem;border:none;box-shadow:0 24px 64px rgba(0,0,0,.18);overflow:hidden;">
@@ -452,21 +406,16 @@
     </div>
   </div>
 </div>
-
-{# ════ Modal Crear Malla ════ #}
 <div class="modal fade" id="modalCrearMalla" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
     <div class="modal-content" style="border-radius:1rem;border:none;box-shadow:0 24px 64px rgba(0,0,0,.18);overflow:hidden;">
-
       <div class="mc-modal-header">
         <h5><i class="bi bi-journal-plus me-2"></i>Nueva Malla Curricular</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-
       <form method="post" action="{% url 'gestion_academica:malla_curricular_list' %}">
         {% csrf_token %}
         <div class="modal-body p-4">
-
           <div class="mb-3">
             <label class="form-label fw-semibold" style="font-size:.83rem;">
               <i class="bi bi-mortarboard-fill me-1" style="color:#4f46e5;"></i>Grado <span class="text-danger">*</span>
@@ -478,7 +427,6 @@
               {% endfor %}
             </select>
           </div>
-
           <div class="mb-3">
             <label class="form-label fw-semibold" style="font-size:.83rem;">
               <i class="bi bi-book-fill me-1" style="color:#4f46e5;"></i>Materia <span class="text-danger">*</span>
@@ -490,7 +438,6 @@
               {% endfor %}
             </select>
           </div>
-
           <div class="mb-3">
             <label class="form-label fw-semibold" style="font-size:.83rem;">
               <i class="bi bi-calendar3 me-1" style="color:#4f46e5;"></i>Año Lectivo <span class="text-danger">*</span>
@@ -501,7 +448,6 @@
               {% endfor %}
             </select>
           </div>
-
           <div class="mb-1">
             <label class="form-label fw-semibold" style="font-size:.83rem;">
               Propósito general <span class="text-muted fw-normal" style="font-size:.78rem;">(opcional)</span>
@@ -509,14 +455,11 @@
             <textarea name="descripcion_general" class="form-control form-control-sm" rows="2"
                       placeholder="Describe brevemente el enfoque de esta malla…"></textarea>
           </div>
-
           <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:.6rem;padding:.65rem .9rem;font-size:.76rem;color:#3730a3;margin-top:.9rem;">
             <i class="bi bi-info-circle-fill me-1"></i>
             Si ya existe una malla para esa combinación, serás redirigido a ella automáticamente.
           </div>
-
         </div>
-
         <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
           <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
             <i class="bi bi-x-circle me-1"></i> Cancelar
@@ -527,13 +470,10 @@
           </button>
         </div>
       </form>
-
     </div>
   </div>
 </div>
-
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 /* ── Toggle acordeón ── */
@@ -550,10 +490,8 @@ function toggleGrado(head) {
     setTimeout(() => head.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
   }
 }
-
 /* ── Modales ── */
 document.addEventListener('DOMContentLoaded', function () {
-
   /* Modal Crear Malla — pre-llenar grado y materia */
   const modalCrear = document.getElementById('modalCrearMalla');
   modalCrear.addEventListener('show.bs.modal', function (event) {
@@ -564,7 +502,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (gradoId)   document.getElementById('modal-grado').value   = gradoId;
     if (materiaId) document.getElementById('modal-materia').value = materiaId;
   });
-
   /* Modal Eliminar Malla */
   const modalEliminar = document.getElementById('modalEliminarMalla');
   modalEliminar.addEventListener('show.bs.modal', function (event) {
@@ -574,14 +511,12 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('form-eliminar-malla').action = action;
     document.getElementById('modal-malla-nombre').textContent = nombre;
   });
-
   /* Abrir automáticamente si solo hay un grado */
   const bloques = document.querySelectorAll('.mc-grade-block');
   if (bloques.length === 1) {
     const head = bloques[0].querySelector('.mc-grade-head');
     if (head) toggleGrado(head);
   }
-
   /* Resaltar año activo desde URL */
   const params = new URLSearchParams(window.location.search);
   const añoUrl = params.get('año');
@@ -591,7 +526,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
-
 /* ── Filtrar por año (recarga con querystring) ── */
 function filtrarAño(año, el) {
   document.querySelectorAll('.mc-year-pill').forEach(p => p.classList.remove('active'));

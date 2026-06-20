@@ -1,10 +1,7 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
-
 <div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:18px;padding:1.75rem 2rem;color:white;margin-bottom:1.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
     <div>
         <h2 class="fw-800 mb-1" style="font-size:1.45rem;">
@@ -18,7 +15,6 @@
         <i class="bi bi-arrow-left me-1"></i> Panel Principal
     </a>
 </div>
-
 <div class="row g-4 mb-4">
     <!-- Último diagnóstico -->
     <div class="col-lg-7">
@@ -73,7 +69,6 @@
             </div>
         </div>
     </div>
-
     <!-- Lanzar diagnóstico -->
     <div class="col-lg-5">
         <div class="card h-100" style="border-radius:14px;border:2px solid #2563eb;box-shadow:0 2px 12px rgba(0,0,0,.07);">
@@ -103,7 +98,6 @@
         </div>
     </div>
 </div>
-
 <!-- Qué se verifica -->
 <div class="card mb-4" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
     <div class="card-header fw-700 border-0 pt-3">
@@ -122,7 +116,6 @@
         </div>
     </div>
 </div>
-
 <!-- Histórico -->
 <div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
     <div class="card-header fw-700 border-0 pt-3">

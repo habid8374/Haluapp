@@ -1,15 +1,12 @@
 {% extends "base_academico.html" %}
 {% load horario_filters %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
 /* ═══════════════════════════════════════════════════════
    HALU PULSE — Libro de Notas v3 (Mobile-first)
 ═══════════════════════════════════════════════════════ */
-
 /* ── Hero ── */
 .ln-hero {
   background: linear-gradient(135deg, #07285f 0%, #0a3d8c 42%, #0b5ed7 100%);
@@ -53,7 +50,6 @@
   border: 1px solid rgba(255,255,255,.3);
 }
 .ln-ha-btn.ln-glass:hover { background: rgba(255,255,255,.26); color:#fff; }
-
 /* ── Info chips ── */
 .ln-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
 .ln-chip {
@@ -64,7 +60,6 @@
 }
 .ln-chip i { color: #0b5ed7; }
 .ln-chip.cat { background: #eaf2ff; border-color: #bfdbfe; color: #1d4ed8; }
-
 /* ══════════════════════════════════════════
    TABLA — VISTA ESCRITORIO (≥ 681px)
 ══════════════════════════════════════════ */
@@ -101,7 +96,6 @@
 }
 .ln-table tbody tr:last-child td { border-bottom: none; }
 .ln-table tbody tr:hover { background: #f8faff; }
-
 /* Sticky student name */
 .ln-cell-name {
   text-align: left !important; min-width: 180px; max-width: 220px;
@@ -111,7 +105,6 @@
   padding-left: .9rem !important; font-size: .85rem;
 }
 .ln-table tbody tr:hover .ln-cell-name { background: #f8faff; }
-
 /* Category header */
 .ln-cat-hdr {
   background: linear-gradient(120deg, #0a3d8c, #1a56db);
@@ -171,13 +164,11 @@
   display: flex; gap: .75rem; justify-content: flex-end; flex-wrap: wrap;
   padding: .9rem 1.1rem; background: #f7faff; border-top: 1px solid #dbe5f4;
 }
-
 /* ══════════════════════════════════════════
    CARDS — VISTA MÓVIL (≤ 680px)
    Cada estudiante = 1 card expandible
 ══════════════════════════════════════════ */
 .ln-mobile-cards { display: block; } /* visible por defecto en todos los tamaños */
-
 .ln-student-card {
   background: #fff; border: 1px solid #dbe5f4; border-radius: .95rem;
   margin-bottom: .75rem; overflow: hidden;
@@ -254,7 +245,6 @@
   font-size: 1.1rem; font-weight: 900; color: #15803d;
   font-family: 'Manrope', sans-serif;
 }
-
 /* ── Acción guardar en móvil — botón fijo al fondo ── */
 .ln-save-fab {
   display: none;
@@ -265,7 +255,6 @@
   border-radius: 2rem;
   white-space: nowrap;
 }
-
 /* ══════ RESPONSIVE — solo tipografía; vistas las controla JS ══════ */
 @media (max-width: 680px) {
   .ln-hero { padding: 1.2rem 1.1rem; }
@@ -276,7 +265,6 @@
 .ln-save-fab.visible { display: inline-flex !important; }
 /* Padding inferior cuando el FAB está activo */
 body.ln-fab-active { padding-bottom: 7rem !important; }
-
 /* ═══════════════════════════════════════════════════
    TABS — Selector Período Actual / Vista Anual
 ═══════════════════════════════════════════════════ */
@@ -305,7 +293,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
 @media (max-width: 420px) {
   .ln-tab-btn { font-size: .76rem; padding: .48rem .5rem; }
 }
-
 /* ═══════════════════════════════════════════════════
    TABLA ANUAL — DESKTOP (≥ 681px)
 ═══════════════════════════════════════════════════ */
@@ -358,7 +345,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
   padding: .65rem 1rem; background: #f7faff; border-top: 1px solid #dbe5f4; font-size: .75rem; color: #64748b;
 }
 .la-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-
 /* Resumen rápido encabezado */
 .la-resumen-bar {
   display: flex; align-items: center; flex-wrap: wrap; gap: .5rem;
@@ -375,7 +361,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
 .la-chip-ok   { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
 .la-chip-fail { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
 .la-chip-nd   { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-
 /* ═══════════════════════════════════════════════════
    CARDS ANUALES — MÓVIL (≤ 680px)
 ═══════════════════════════════════════════════════ */
@@ -423,18 +408,14 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
 .la-def-row.fail  .la-def-row-label { color: #dc2626; }
 .la-def-row-val   { font-size: 1.15rem; font-weight: 900; color: #15803d; font-family: 'Manrope', sans-serif; }
 .la-def-row.fail  .la-def-row-val   { color: #dc2626; }
-
 @media (max-width: 680px) {
   .la-table-card   { display: none; }
   .la-mobile-cards { display: block; }
 }
 </style>
 {% endblock extrastyles %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
-  {# ── Hero ── #}
   <div class="ln-hero">
     <div>
       <div class="ln-hero-badge"><i class="bi bi-book-fill"></i> Libro de Notas</div>
@@ -458,8 +439,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       </a>
     </div>
   </div>
-
-  {# ── BARRA DE TABS ── #}
   <div class="ln-tab-bar" role="tablist">
     <button class="ln-tab-btn active" id="tab-btn-periodo" role="tab"
             aria-selected="true" aria-controls="tab-periodo" data-tab="tab-periodo">
@@ -476,8 +455,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       <span class="ln-tab-badge">{{ año_escolar }}</span>
     </button>
   </div>
-
-  {# ── Chips de categorías ── #}
   <div class="ln-chips" id="chips-periodo">
     <span class="ln-chip"><i class="bi bi-diagram-3-fill"></i> Categorías:</span>
     {% for categoria, actividades_lista in actividades_agrupadas.items %}
@@ -499,8 +476,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       Decreto 1290 / 2009 · MEN
     </a>
   </div>
-
-  {# ── Mensajes ── #}
   {% if messages %}
   {% for message in messages %}
   <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
@@ -508,17 +483,13 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
   </div>
   {% endfor %}
   {% endif %}
-
   <div id="tab-periodo" role="tabpanel">
   <form method="post" id="ln-form">
     {% csrf_token %}
-
-    {# ══════════ TABLA — ESCRITORIO ══════════ #}
     <div class="ln-table-card">
       <div class="ln-table-scroll">
         <table class="ln-table">
           <thead>
-            {# Fila 1: categorías #}
             <tr>
               <th class="ln-cat-hdr name-col" rowspan="2">Estudiante</th>
               {% for categoria, actividades_lista in actividades_agrupadas.items %}
@@ -528,7 +499,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
               {% endfor %}
               <th class="ln-cat-hdr final-col" rowspan="2">Definitiva</th>
             </tr>
-            {# Fila 2: actividades #}
             <tr>
               {% for categoria, actividades_lista in actividades_agrupadas.items %}
               {% for actividad in actividades_lista %}
@@ -595,12 +565,9 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
         {% endif %}
       </div>
     </div>
-
     <div class="ln-mobile-cards" id="ln-cards">
       {% for item in libro_notas_data %}
       <div class="ln-student-card">
-
-        {# Cabecera — acordeón toggle #}
         <button type="button"
                 class="ln-sc-toggle"
                 aria-expanded="false"
@@ -621,16 +588,11 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
           </div>
           <div class="ln-sc-chevron"><i class="bi bi-chevron-down"></i></div>
         </button>
-
-        {# Body del acordeón #}
         <div class="ln-sc-body" id="card-body-{{ item.estudiante.pk }}">
           {% for categoria, actividades_lista in actividades_agrupadas.items %}
-
-          {# Separador de categoría #}
           <div class="ln-sc-row-cat">
             <i class="bi bi-tag-fill me-1"></i>{{ categoria.nombre }} ({{ categoria.porcentaje }}%)
           </div>
-
           {% for actividad in actividades_lista %}
           <div class="ln-sc-row">
             <label class="ln-sc-label"
@@ -648,10 +610,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
                    placeholder="0.0">
           </div>
           {% endfor %}
-
           {% endfor %}
-
-          {# Definitiva al fondo de la card #}
           <div class="ln-sc-final-row">
             <span class="ln-sc-label"><i class="bi bi-check-circle-fill me-1"></i>Definitiva</span>
             <span class="ln-final-val">
@@ -663,7 +622,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
             </span>
           </div>
         </div>
-
       </div>
       {% empty %}
       <div class="text-center p-4" style="color:#94a3b8;">
@@ -672,20 +630,14 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       </div>
       {% endfor %}
     </div>
-
-    {# Botón guardar flotante en móvil — sólo para docentes #}
     {% if not es_coordinador %}
     <button type="submit" class="btn btn-primary btn-lg ln-save-fab">
       <i class="bi bi-save-fill me-2"></i>Guardar Notas
     </button>
     {% endif %}
-
-  </form>{# fin form #}
-  </div>{# fin tab-periodo #}
-
+  </form>
+  </div>
   <div id="tab-anual" role="tabpanel" style="display:none;">
-
-    {# Resumen rápido #}
     {% with aprobados=datos_anuales|length %}
     <div class="la-resumen-bar">
       <span class="la-chip la-chip-año"><i class="bi bi-calendar-fill"></i> Año {{ año_escolar }}</span>
@@ -698,8 +650,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       </span>
     </div>
     {% endwith %}
-
-    {# ── TABLA DESKTOP ── #}
     <div class="la-table-card">
       <div class="la-table-scroll">
         <table class="la-table">
@@ -774,8 +724,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
         </span>
       </div>
     </div>
-
-    {# ── CARDS MÓVIL ── #}
     <div class="la-mobile-cards">
       {% for item in datos_anuales %}
       <div class="la-student-card">
@@ -800,7 +748,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
           </div>
           <div class="la-sc-chev"><i class="bi bi-chevron-down"></i></div>
         </button>
-
         <div class="la-sc-body" id="la-body-{{ item.estudiante.pk }}">
           {% for np in item.notas_periodos %}
           <div class="la-per-row {% if np.es_actual %}actual{% endif %}">
@@ -817,7 +764,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
             {% endif %}
           </div>
           {% endfor %}
-
           <div class="la-def-row {% if item.aprueba == False %}fail{% endif %}">
             <span class="la-def-row-label">
               <i class="bi bi-trophy-fill me-1"></i>Definitiva Anual
@@ -835,17 +781,13 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       </div>
       {% endfor %}
     </div>
-
   </div>
-
 </div>
 {% endblock contenido %}
-
 {% block extra_js %}
 {{ block.super }}
 <script>
 (function () {
-
   /* ─── Acordeón de estudiantes (vista por alumno) ─── */
   document.querySelectorAll('.ln-sc-toggle').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -863,16 +805,13 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       }
     });
   });
-
   /* ─── Toggle vista: Acordeón (Por Alumno) ↔ Hoja de Cálculo ─── */
   var viewToggleBtn = document.getElementById('btn-toggle-view');
   var tableCard     = document.querySelector('.ln-table-card');
   var cardsSection  = document.getElementById('ln-cards');
   var saveFab       = document.querySelector('.ln-save-fab');
-
   var currentView = 'cards';
   try { currentView = sessionStorage.getItem('ln_view') || 'cards'; } catch(e) {}
-
   function applyView(view, persist) {
     currentView = view;
     if (view === 'table') {
@@ -898,16 +837,13 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       try { sessionStorage.setItem('ln_view', view); } catch(e) {}
     }
   }
-
   if (viewToggleBtn) {
     viewToggleBtn.addEventListener('click', function () {
       applyView(currentView === 'table' ? 'cards' : 'table');
     });
   }
-
   /* Aplicar vista guardada (o 'cards' por defecto) */
   applyView(currentView, false);
-
   /* ─── Evitar envío duplicado: deshabilita la vista OCULTA antes de enviar ─── */
   var form = document.getElementById('ln-form');
   if (form) {
@@ -925,7 +861,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       }
     });
   }
-
   /* ─── Sincronizar valor entre tabla ↔ card mientras escribe ─── */
   function syncInputs(source, targetId) {
     var target = document.getElementById(targetId);
@@ -940,9 +875,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
     var tableId = inp.id.replace(/^mob-/, '');
     inp.addEventListener('input', function () { syncInputs(inp, tableId); });
   });
-
 })();
-
 /* ═══════ TABS: Período Actual ↔ Vista Anual ═══════ */
 (function () {
   var tabs = document.querySelectorAll('.ln-tab-btn');
@@ -951,7 +884,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
     'tab-anual':   document.getElementById('tab-anual'),
   };
   var chipsEl = document.getElementById('chips-periodo');
-
   function activateTab(targetId) {
     tabs.forEach(function (btn) {
       var isActive = btn.dataset.tab === targetId;
@@ -966,11 +898,9 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
     // Guardar preferencia en sessionStorage
     try { sessionStorage.setItem('ln_tab', targetId); } catch(e) {}
   }
-
   tabs.forEach(function (btn) {
     btn.addEventListener('click', function () { activateTab(btn.dataset.tab); });
   });
-
   // 1. URL param tiene prioridad (?tab=anual desde dashboard)
   var urlTab = new URLSearchParams(window.location.search).get('tab');
   if (urlTab && panes['tab-' + urlTab]) {
@@ -983,7 +913,6 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
     } catch(e) {}
   }
 })();
-
 /* ═══════ ACORDEÓN: Cards Vista Anual (móvil) ═══════ */
 (function () {
   document.querySelectorAll('.la-sc-toggle').forEach(function (btn) {

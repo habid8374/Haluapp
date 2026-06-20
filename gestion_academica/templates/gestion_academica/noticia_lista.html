@@ -1,9 +1,6 @@
-{# gestion_academica/templates/gestion_academica/noticia_lista.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
+{% extends "base_academico.html" %}
 {% load static gestion_academica_filters %}
-
 {% block titulo %}{{ titulo_pagina|default:"Noticias y Anuncios" }}{% endblock titulo %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -33,12 +30,10 @@
     }
 </style>
 {% endblock extrastyles %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">{{ titulo_pagina|default:"Noticias y Anuncios" }}</h1>
-        {# Botón para ir a la gestión de noticias, solo si el usuario tiene permiso #}
         {% if user.is_authenticated %}
             {% if perms.gestion_academica.view_noticia and user.is_superuser or user.rol == 'administrativo' or user.rol == 'docente' %}
                 <a href="{% url 'gestion_academica:lista_noticias_gestion' %}" class="btn btn-outline-secondary">
@@ -48,7 +43,6 @@
         {% endif %}
     </div>
     <hr>
-
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -57,7 +51,6 @@
             </div>
         {% endfor %}
     {% endif %}
-
     {% if noticias %}
         <div class="row row-cols-1 row-cols-md-2 g-4">
             {% for noticia_item in noticias %}
@@ -66,12 +59,10 @@
                     {% if noticia_item.imagen_destacada %}
                         <img src="{{ noticia_item.imagen_destacada.url }}" class="card-img-top" alt="{{ noticia_item.titulo }}">
                     {% else %}
-                        {# Placeholder con un texto más amigable y color consistente #}
                         <img src="https://placehold.co/600x200/{{ 'f0f4f8'|urlencode }}/{{ '2a3342'|urlencode }}?text=Anuncio+HALU&font=roboto" class="card-img-top" alt="Imagen Placeholder de Anuncio">
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ noticia_item.titulo }}</h5>
-                        {# Truncar el contenido a HTML, asegurándose de que sea seguro (usar autoescape off si el contenido es HTML puro y confiable) #}
                         <p class="card-text">{{ noticia_item.contenido|safe_html|truncatewords:30 }}</p>
                         <a href="{% url 'gestion_academica:detalle_noticia' noticia_item.pk %}" class="btn btn-primary btn-sm">Leer Más <i class="bi bi-arrow-right-short"></i></a>
                     </div>
@@ -88,7 +79,6 @@
             </div>
             {% endfor %}
         </div>
-        {# Incluye tu partial de paginación si aplica aquí #}
         {% include "gestion_academica/partials/paginacion.html" %} 
     {% else %}
         <div class="alert alert-info mt-3 text-center" role="alert">

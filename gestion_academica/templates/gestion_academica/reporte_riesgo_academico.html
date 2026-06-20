@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══════════════════════════════════════════════════════
@@ -14,7 +12,6 @@
   --sent-light:  #dc2626;
   --sent-accent: #fca5a5;
 }
-
 /* ── Hero ─────────────────────────────────────────── */
 .sent-hero {
   background: linear-gradient(135deg, var(--sent-dark) 0%, var(--sent-mid) 55%, #b91c1c 100%);
@@ -48,7 +45,6 @@
 .sent-hero-btn-white   { background: #fff; color: var(--sent-mid); }
 .sent-hero-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
 .sent-hero-btn-outline:hover { background: rgba(255,255,255,.22); color: #fff; }
-
 /* ── Panel ────────────────────────────────────────── */
 .sent-panel {
   background: #fff;
@@ -73,7 +69,6 @@
   font-size: .85rem; flex-shrink: 0;
   background: #fee2e2; color: #dc2626;
 }
-
 /* ── Tabla ─────────────────────────────────────────── */
 .sent-table thead th {
   background: #f8fafc; font-size: .74rem; text-transform: uppercase;
@@ -82,11 +77,9 @@
 }
 .sent-table tbody td { vertical-align: middle; font-size: .83rem; padding: .75rem 1rem; }
 .sent-table tbody tr:hover { background: #fef9f9; }
-
 /* ── Nivel riesgo ─────────────────────────────────── */
 .risk-alto  { background: #fee2e2; color: #dc2626; border-radius: 2rem; padding: .2rem .7rem; font-size: .75rem; font-weight: 700; display: inline-block; }
 .risk-medio { background: #fef3c7; color: #92400e; border-radius: 2rem; padding: .2rem .7rem; font-size: .75rem; font-weight: 700; display: inline-block; }
-
 /* ── Action buttons inline ────────────────────────── */
 .act-btn {
   display: inline-flex; align-items: center; gap: .3rem;
@@ -97,7 +90,6 @@
 .act-btn-citar:hover { background: #c7d2fe; color: #1e1b4b; }
 .act-btn-notif    { background: #f1f5f9; color: #475569; }
 .act-btn-notif:hover { background: #e2e8f0; color: #1e293b; }
-
 /* Tarjeta móvil */
 .sent-card {
   border-radius: .7rem;
@@ -111,7 +103,6 @@
 .sent-card-body { padding: .75rem 1rem; background: #fff; }
 .sent-card-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; font-weight: 600; margin-bottom: .1rem; }
 .sent-card-val   { font-size: .83rem; color: #1e293b; }
-
 /* Estado vacío o sin análisis */
 .sent-info-box {
   text-align: center; padding: 3rem 1.5rem; color: #64748b;
@@ -119,10 +110,8 @@
 .sent-info-box i { font-size: 2.8rem; display: block; margin-bottom: .75rem; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1200px;">
-
   <!-- ══ HERO ════════════════════════════════════════════════════════ -->
   <div class="sent-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
@@ -156,7 +145,6 @@
       </form>
     </div>
   </div>
-
   {% if ultimo_analisis %}
   <!-- ══ PANEL: Predicciones ══════════════════════════════════════════ -->
   <div class="sent-panel">
@@ -171,9 +159,7 @@
       </span>
       {% endif %}
     </div>
-
     {% if predicciones %}
-
       <!-- Tabla — desktop -->
       <div class="d-none d-md-block">
         <div class="table-responsive">
@@ -219,7 +205,6 @@
           </table>
         </div>
       </div>
-
       <!-- Tarjetas — móvil -->
       <div class="d-md-none p-2 pt-3">
         {% for pred in predicciones %}
@@ -253,7 +238,6 @@
         </div>
         {% endfor %}
       </div>
-
     {% else %}
       <div class="sent-info-box">
         <i class="bi bi-emoji-smile text-success"></i>
@@ -262,7 +246,6 @@
       </div>
     {% endif %}
   </div>
-
   {% else %}
   <!-- ══ Sin análisis ejecutado ════════════════════════════════════════ -->
   <div class="sent-panel">
@@ -279,6 +262,5 @@
     </div>
   </div>
   {% endif %}
-
 </div>
 {% endblock %}

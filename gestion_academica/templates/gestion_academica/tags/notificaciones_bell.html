@@ -1,5 +1,4 @@
 {% load static %}
-{# ── Campana de notificaciones — dropdown global ── #}
 <style>
 /* ── Campanita responsive ── */
 .nb-panel {
@@ -52,10 +51,7 @@
   .nb-list  { max-height: 260px !important; }
 }
 </style>
-
 <li class="nav-item dropdown">
-
-  {# Botón campana #}
   <a class="nav-link position-relative px-2"
      href="#"
      id="dropdownNotifBell"
@@ -73,12 +69,8 @@
     </span>
     {% endif %}
   </a>
-
-  {# Dropdown panel #}
   <div class="dropdown-menu dropdown-menu-end shadow-lg p-0 nb-panel"
        aria-labelledby="dropdownNotifBell">
-
-    {# Cabecera #}
     <div style="background:linear-gradient(135deg,#3730a3,#4f46e5);padding:.7rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;">
       <div style="display:flex;align-items:center;gap:.4rem;color:#fff;min-width:0;">
         <i class="bi bi-bell-fill" style="flex-shrink:0;font-size:.88rem;"></i>
@@ -94,16 +86,12 @@
         Ver todas <i class="bi bi-arrow-right"></i>
       </a>
     </div>
-
-    {# Lista de notificaciones recientes #}
     <div class="nb-list" style="max-height:310px;overflow-y:auto;">
       {% if recientes %}
         {% for n in recientes %}
         <a href="{{ n.enlace|default:'#' }}"
            class="nb-item"
            style="background:{% if not n.leido %}#f0f4ff{% else %}#fff{% endif %};">
-
-          {# Ícono #}
           <div class="nb-icon"
                style="{% if n.consejo_ia %}background:#ede9fe;color:#7c3aed;{% elif not n.leido %}background:#dbeafe;color:#1d4ed8;{% else %}background:#f1f5f9;color:#94a3b8;{% endif %}">
             {% if n.consejo_ia %}
@@ -114,8 +102,6 @@
               <i class="bi bi-check2"></i>
             {% endif %}
           </div>
-
-          {# Contenido #}
           <div style="flex:1;min-width:0;">
             <div class="nb-msg" style="{% if not n.leido %}font-weight:700;{% endif %}">
               {{ n.mensaje }}
@@ -131,7 +117,6 @@
               </span>
             </div>
           </div>
-
         </a>
         {% endfor %}
       {% else %}
@@ -142,8 +127,6 @@
         </div>
       {% endif %}
     </div>
-
-    {# Pie: ir a todas #}
     {% if recientes %}
     <div style="padding:.5rem 1rem;border-top:1px solid #f1f5f9;text-align:center;background:#fafafe;">
       <a href="{% url 'gestion_academica:lista_notificaciones' %}"
@@ -152,6 +135,5 @@
       </a>
     </div>
     {% endif %}
-
   </div>
 </li>

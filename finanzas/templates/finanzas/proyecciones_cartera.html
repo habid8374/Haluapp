@@ -1,8 +1,6 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
   /* ── Tabs de mes ─────────────────────────────────────── */
@@ -17,7 +15,6 @@
     background: #4f46e5;
     color: #fff !important;
   }
-
   /* ── Acordeón de grado ───────────────────────────────── */
   .grado-accordion .accordion-button {
     font-weight: 700;
@@ -43,7 +40,6 @@
   .grado-accordion .accordion-body {
     padding: 0;
   }
-
   /* ── Tabla de estudiantes ────────────────────────────── */
   .tabla-estudiantes {
     font-size: .83rem;
@@ -66,7 +62,6 @@
   .tabla-estudiantes tbody tr:last-child td {
     border-bottom: none;
   }
-
   /* ── Matriz resumen ──────────────────────────────────── */
   .matriz-resumen th, .matriz-resumen td {
     font-size: .82rem;
@@ -79,7 +74,6 @@
     color: #3730a3;
   }
   .matriz-resumen tbody tr:hover td { background: #f5f3ff; }
-
   /* ── Chips de badge en acordeón ─────────────────────── */
   .badge-subtotal {
     background: #ede9fe;
@@ -89,7 +83,6 @@
     border-radius: 20px;
     padding: .25em .7em;
   }
-
   /* ── Responsive: en móvil ocultar columnas secundarias ─ */
   @media (max-width: 576px) {
     .col-oculta-movil { display: none; }
@@ -97,16 +90,13 @@
   }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
-
   <!-- Hero banner -->
   <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
     <h2 style="color:#fff;"><i class="bi bi-graph-up-arrow me-2"></i>{{ titulo_pagina }}</h2>
     <p style="color:#fff;margin-bottom:0;">Cartera pendiente por mes (próximos 3 meses) · agrupada por grado · ordenada por apellido.</p>
   </div>
-
   <!-- KPI total -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
@@ -125,7 +115,6 @@
     </div>
     {% endfor %}
   </div>
-
   <!-- ══ Matriz resumen ══════════════════════════════════════════ -->
   {% if matriz_grados %}
   <div class="card shadow-sm mb-4">
@@ -171,7 +160,6 @@
     </div>
   </div>
   {% endif %}
-
   <!-- ══ Tabs de mes ═════════════════════════════════════════════ -->
   {% if proyecciones %}
   <div class="card shadow-sm">
@@ -194,14 +182,12 @@
         {% endfor %}
       </ul>
     </div>
-
     <div class="card-body pt-3">
       <div class="tab-content">
         {% for p in proyecciones %}
         <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
              id="panel-mes-{{ forloop.counter }}"
              role="tabpanel">
-
           {% if p.grados %}
           <!-- Acordeón de grados -->
           {% with mes_idx=forloop.counter %}
@@ -289,14 +275,12 @@
             {% endfor %}
           </div>
           {% endwith %}
-
           {% else %}
           <div class="text-center text-muted py-4">
             <i class="bi bi-inbox fs-2 d-block mb-2"></i>
             Sin cuentas pendientes en {{ p.nombre_mes }} {{ p.año }}.
           </div>
           {% endif %}
-
         </div>
         {% endfor %}
       </div>
@@ -308,6 +292,5 @@
     No hay cartera pendiente en los próximos 3 meses.
   </div>
   {% endif %}
-
 </div>
 {% endblock %}

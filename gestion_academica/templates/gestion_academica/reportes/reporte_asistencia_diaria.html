@@ -1,9 +1,7 @@
 {% extends "base_academico.html" %}
-
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -16,7 +14,6 @@
                     <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
                 </a>
             </div>
-
             <form method="get" class="mb-4 p-3 border rounded bg-light">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-10">
@@ -28,12 +25,10 @@
                     </div>
                 </div>
             </form>
-
             {% if reporte_data %}
                 <h5 class="border-bottom pb-2 mb-3">
                     Resultados para el día: <strong class="text-primary">{{ fecha_seleccionada|date:"d \d\e F \d\e Y" }}</strong>
                 </h5>
-
                 <div class="row text-center mb-4 g-3">
                     <div class="col"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle text-muted">Total Estudiantes</h6><p class="fs-4 fw-bold">{{ reporte_data.total_estudiantes }}</p></div></div></div>
                     <div class="col"><div class="card h-100 bg-success-light"><div class="card-body"><h6 class="card-subtitle text-muted">Presentes</h6><p class="fs-4 fw-bold text-success">{{ reporte_data.resumen.Presentes }}</p></div></div></div>
@@ -41,7 +36,6 @@
                     <div class="col"><div class="card h-100 bg-warning-light"><div class="card-body"><h6 class="card-subtitle text-muted">Tardanzas</h6><p class="fs-4 fw-bold text-warning">{{ reporte_data.resumen.Tardanzas }}</p></div></div></div>
                     <div class="col"><div class="card h-100 bg-secondary-light"><div class="card-body"><h6 class="card-subtitle text-muted">Sin Registro</h6><p class="fs-4 fw-bold text-secondary">{{ reporte_data.resumen.Sin_Registro }}</p></div></div></div>
                 </div>
-
                 <div class="row justify-content-center">
                     <div class="col-lg-6">
                         <h6>Distribución de Asistencia</h6>
@@ -52,7 +46,6 @@
         </div>
     </div>
 </div>
-
 {% if reporte_data.chart_labels %}
 {{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
 {{ reporte_data.chart_data|json_script:"chart-data-data" }}

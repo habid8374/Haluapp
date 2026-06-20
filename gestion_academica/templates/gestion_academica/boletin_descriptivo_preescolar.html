@@ -75,7 +75,6 @@
             <td><strong>FECHA:</strong> {{ fecha_emision|date:"d/m/Y" }}</td>
         </tr>
     </table>
-
     <table class="main-table">
         <thead>
             <tr>
@@ -100,7 +99,6 @@
                             <td style="padding-left: 25px;">- {{ logro.descripcion }}</td>
                             {% for escala in escala_cualitativa %}
                                 <td class="center">
-                                    {# Lógica simplificada: ahora accedemos directamente a 'logro.evaluacion' #}
                                     {% if logro.evaluacion and logro.evaluacion.id == escala.id %}✓{% endif %}
                                 </td>
                             {% endfor %}
@@ -110,19 +108,16 @@
             {% endfor %}
         </tbody>
     </table>
-
     <div class="observaciones">
         <strong>Observaciones:</strong><br>
         {{ observaciones|linebreaksbr }}
     </div>
-
     <div class="escala-valorativa">
         <strong>Nivel de Desempeño:</strong>
         {% for escala in escala_cualitativa %}
             {{ escala.abreviatura }}: {{ escala.nombre_escala }}{% if not forloop.last %}, {% endif %}
         {% endfor %}
     </div>
-
     <div class="footer-signatures">
         <table style="border: none;">
             <tr style="border: none;">

@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}{{ titulo_pagina|default:"Mis Calificaciones" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -26,7 +24,6 @@
         </div>
     {% endif %}
     <hr>
-
     {% if cursos_con_notas %}
         <div class="card text-center bg-light mb-4 shadow-sm">
             <div class="card-body">
@@ -35,7 +32,6 @@
                 <small class="text-muted">Este es tu promedio ponderado considerando todas las asignaturas.</small>
             </div>
         </div>
-
         <div class="card shadow-sm">
             <div class="card-header">
                 <h5 class="mb-0">Resumen por Asignatura</h5>
@@ -73,12 +69,10 @@
                 </table>
             </div>
         </div>
-
     {% elif periodo_activo %}
         <div class="alert alert-info mt-3 text-center" role="alert">
             <i class="bi bi-info-circle-fill me-2"></i> No tienes cursos asignados para el periodo activo.
         </div>
     {% endif %}
-
     </div>
 {% endblock contenido %}

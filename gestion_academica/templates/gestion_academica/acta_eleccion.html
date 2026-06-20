@@ -8,7 +8,6 @@
         <p>Fecha: {{ eleccion.fecha_inicio|date:"d/m/Y" }} a {{ eleccion.fecha_fin|date:"d/m/Y" }}</p>
         <p>Total de votos emitidos: <strong>{{ total_votantes }}</strong></p>
     </div>
-
     <table class="table table-bordered table-sm">
         <thead>
             <tr>
@@ -36,11 +35,9 @@
             {% endfor %}
         </tbody>
     </table>
-
     <div class="text-end mt-4">
         <p>Firma Coordinador: ____________________________</p>
     </div>
-
     <div class="text-center mt-3">
         <button class="btn btn-outline-dark" onclick="window.print()">🖨️ Imprimir</button>
     </div>

@@ -1,10 +1,7 @@
 {% extends "base.html" %}
 {% load static notificaciones_tags %}
-
 {% block titulo %}Módulo de Admisiones - {{ branding.NOMBRE }}{% endblock %}
-
 {% block body_class %}layout-admisiones{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -17,10 +14,8 @@
     --brand-primary: #1358c8;
     --brand-primary-dark: #0f469f;
   }
-
   /* Ocultar botón flotante original */
   body.layout-admisiones #floatingMenuToggle { display: none !important; }
-
   /* ── Sidebar (panel convertido) ── */
   body.layout-admisiones #mainMenuPanel {
     position: fixed !important;
@@ -45,16 +40,13 @@
     background-color: #ffffff !important;
     transition: transform .28s ease !important;
   }
-
   /* Scrollbar delgado */
   body.layout-admisiones #mainMenuPanel::-webkit-scrollbar { width: 4px; }
   body.layout-admisiones #mainMenuPanel::-webkit-scrollbar-thumb {
     background: #c5d8f5; border-radius: 4px;
   }
-
   /* Empujar contenido principal */
   body.layout-admisiones { padding-left: var(--sidebar-w); transition: padding-left .28s ease; }
-
   /* Mejorar nav-links en sidebar */
   body.layout-admisiones #mainMenuPanel .nav-link {
     padding-left: .75rem !important; border-radius: .5rem;
@@ -67,7 +59,6 @@
     background-color: #dbeafe !important; color: #1358c8 !important;
     font-weight: 600 !important; padding-left: 1rem !important;
   }
-
   /* Botón toggle + Avatar */
   .btn-sidebar-toggle-adm {
     background: none; border: none; color: rgba(255,255,255,.9);
@@ -83,7 +74,6 @@
     display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: .84rem; flex-shrink: 0;
   }
-
   /* Cabecera dentro del sidebar */
   .sidebar-brand-row-adm {
     display: flex; align-items: center; gap: .5rem;
@@ -94,11 +84,9 @@
     font-size: .73rem; font-weight: 800; color: #1358c8;
     text-transform: uppercase; letter-spacing: .06em;
   }
-
   /* ── MOBILE (<992px): sidebar como drawer ── */
   @media (max-width: 991.98px) {
     body.layout-admisiones { padding-left: 0 !important; }
-
     /* Estado por defecto: fuera de pantalla a la izquierda (CSS fallback pre-JS) */
     body.layout-admisiones #mainMenuPanel {
       transform: translateX(-285px) !important;
@@ -109,14 +97,12 @@
     }
     /* El estado abierto/cerrado lo maneja JS con style.setProperty('important')
        que siempre gana sobre cualquier regla CSS con !important             */
-
     /* Overlay oscuro cuando el sidebar está abierto */
     body.layout-admisiones.sidebar-open::after {
       content: ''; position: fixed; inset: 0;
       background: rgba(10,30,60,.45); z-index: 1054;
     }
   }
-
   /* Ajuste contenedor principal en escritorio */
   @media (min-width: 992px) {
     body.layout-admisiones main.container {
@@ -125,7 +111,6 @@
       padding-right: 1.5rem !important;
     }
   }
-
   /* ── MOBILE: navbar en una sola fila ── */
   body.layout-admisiones .navbar-toggler {
     display: none !important;
@@ -152,8 +137,6 @@
   }
 </style>
 {% endblock extrastyles %}
-
-{# ── Navbar: hamburger + brand (siempre visible, fuera del collapse) ── #}
 {% block navbar_brand %}
 <button class="btn-sidebar-toggle-adm" id="sidebarToggleBtnAdm"
         aria-label="Abrir/cerrar menú lateral" type="button">
@@ -170,8 +153,6 @@
   <span class="brand-text">{{ configuracion_institucion.nombre_institucion|default:"Módulo de Admisiones" }}</span>
 </a>
 {% endblock navbar_brand %}
-
-{# ── Navbar derecha: notificaciones + usuario ── #}
 {% block navbar_content %}
 <ul class="navbar-nav ms-auto d-flex flex-row align-items-center gap-1">
   {% if user.is_authenticated %}
@@ -230,14 +211,11 @@
   {% endif %}
 </ul>
 {% endblock navbar_content %}
-
-{# SIDEBAR — contenido del menú #}
 {% block floating_menu_content %}
   <div class="sidebar-brand-row-adm">
     <i class="bi bi-person-badge text-primary" style="font-size:1.05rem"></i>
     <span class="sb-label">Admisiones</span>
   </div>
-
   <ul class="nav flex-column">
     <h5 class="menu-section-title">Análisis y Gestión</h5>
     <li class="nav-item item-color-4">
@@ -252,7 +230,6 @@
         <i class="bi bi-kanban-fill"></i> Pipeline de Admisiones
       </a>
     </li>
-
     <hr class="menu-divider">
     <h5 class="menu-section-title">Registros</h5>
     <li class="nav-item item-color-1">
@@ -267,7 +244,6 @@
         <i class="bi bi-person-plus-fill"></i> Registrar Aspirante
       </a>
     </li>
-
     <hr class="menu-divider">
     <h5 class="menu-section-title">Portal del Postulante</h5>
     <li class="nav-item item-color-3">
@@ -275,7 +251,6 @@
         <i class="bi bi-folder2-open"></i> Gestionar Documentos
       </a>
     </li>
-
     <hr class="menu-divider">
     <h5 class="menu-section-title">Herramientas</h5>
     <li class="nav-item item-color-3">
@@ -289,7 +264,6 @@
         <i class="bi bi-file-earmark-excel-fill"></i> Exportar Matriculados
       </a>
     </li>
-
     <hr class="menu-divider">
     <h5 class="menu-section-title">Ir a Módulos</h5>
     <li class="nav-item item-color-1">
@@ -297,7 +271,6 @@
         <i class="bi bi-mortarboard-fill"></i> Módulo Académico
       </a>
     </li>
-
     <hr class="menu-divider">
     <h5 class="menu-section-title">Cuenta</h5>
     <li class="nav-item item-color-2">
@@ -317,37 +290,26 @@
     </li>
   </ul>
 {% endblock floating_menu_content %}
-
 {% block contenido %}{% endblock contenido %}
-
 {% block extra_js %}
 {{ block.super }}
-
-{# ── JS: sidebar toggle ── #}
 <script>
 (function () {
   'use strict';
-
   var body  = document.body;
   var btn   = document.getElementById('sidebarToggleBtnAdm');
   var panel = document.getElementById('mainMenuPanel');
-
   if (!btn || !panel) return;
-
   /*
    * Usamos panel.style.setProperty(..., 'important') para que el inline style
    * con !important gane SIEMPRE sobre cualquier regla CSS con !important.
    * Esto evita cualquier batalla de especificidad CSS.
    */
-
   /* Contraresta el opacity:0 / visibility:hidden del .main-menu-panel base */
   panel.style.setProperty('opacity',    '1',       'important');
   panel.style.setProperty('visibility', 'visible', 'important');
-
   function isMobile() { return window.innerWidth < 992; }
-
   var _abierto = false;
-
   /* Establece estado inicial: oculto en móvil, visible en escritorio */
   function init() {
     _abierto = false;
@@ -360,14 +322,12 @@
     }
   }
   init();
-
   function abrirSidebar() {
     _abierto = true;
     panel.style.setProperty('transform', 'translateX(0px)', 'important');
     if (isMobile()) body.classList.add('sidebar-open');
     btn.setAttribute('aria-expanded', 'true');
   }
-
   function cerrarSidebar() {
     _abierto = false;
     body.classList.remove('sidebar-open');
@@ -378,14 +338,12 @@
       panel.style.removeProperty('transform');
     }
   }
-
   /* Botón hamburguesa */
   btn.addEventListener('click', function (e) {
     e.preventDefault();
     e.stopPropagation();
     _abierto ? cerrarSidebar() : abrirSidebar();
   });
-
   /* Toque en el overlay → cierra */
   document.addEventListener('click', function (e) {
     if (!_abierto) return;
@@ -393,23 +351,18 @@
       cerrarSidebar();
     }
   });
-
   /* Clic en enlace del menú → cierra y navega */
   panel.querySelectorAll('a:not([data-bs-toggle])').forEach(function (a) {
     a.addEventListener('click', cerrarSidebar);
   });
-
   /* Tecla Escape → cierra */
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && _abierto) cerrarSidebar();
   });
-
   /* Resize: recalcula estado inicial (cambio desktop ↔ móvil) */
   window.addEventListener('resize', init);
 })();
 </script>
-
-{# ── Notificaciones staff via WS ── #}
 {% if user.is_authenticated and user.is_staff %}
 <div id="staff-ws-notifications-root"
      class="toast-container position-fixed top-0 end-0 p-3"
@@ -433,5 +386,4 @@
 </div>
 <script src="{% static 'js/notifications_staff_ws.js' %}"></script>
 {% endif %}
-
 {% endblock extra_js %}

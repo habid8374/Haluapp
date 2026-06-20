@@ -1,8 +1,6 @@
 {% extends "base_admisiones.html" %}
 {% load crispy_forms_tags %}
-
 {% block titulo %}Formulario de Inscripción de Aspirantes{% endblock %}
-
 {% block contenido %}
 <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10">
@@ -15,10 +13,7 @@
                 <hr>
                 <form method="post" novalidate>
                     {% csrf_token %}
-                    
-                    {# Esta línea es la clave #}
                     {{ form|crispy }}
-
                     <hr class="my-4">
                     <div class="d-flex justify-content-end">
                         <a href="{% url 'admisiones:lista_grados_aspirantes' %}" class="btn btn-secondary me-2">Cancelar</a>

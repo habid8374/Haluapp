@@ -1,10 +1,8 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
-
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -18,7 +16,6 @@
                 </a>
             </div>
             <form method="get" action="{% url 'gestion_academica:reporte_rendimiento_estudiante' %}" id="reporteForm" class="mb-4 p-3 border rounded bg-light">
-            
                 <div class="row g-3 align-items-end">
                     <div class="col-md-3">
                         <label for="grado" class="form-label fw-bold">1. Grado:</label>
@@ -46,13 +43,10 @@
                     </div>
                 </div>
             </form>
-
             {% if estudiante_seleccionado and periodo_seleccionado %}
                 <h5 class="border-bottom pb-2 mb-3">
                     Reporte para: <strong class="text-primary">{{ estudiante_seleccionado.usuario.get_full_name }}</strong> | Periodo: <strong class="text-primary">{{ periodo_seleccionado.nombre }}</strong>
                 </h5>
-
-                {# --- REPORTE CUANTITATIVO (CON GRÁFICA) --- #}
                 {% if contexto_reporte.tipo_reporte == 'CUANTITATIVO' %}
                     <div class="row">
                         <div class="col-lg-6">
@@ -94,8 +88,6 @@
                         </div>
                     </div>
                 {% endif %}
-
-                {# --- REPORTE CUALITATIVO (PREESCOLAR) --- #}
                 {% if contexto_reporte.tipo_reporte == 'CUALITATIVO' %}
                     <h6>Reporte Descriptivo de Logros</h6>
                     {% for dimension in contexto_reporte.dimensiones_data %}
@@ -118,7 +110,6 @@
                         <div class="alert alert-info">No se encontraron dimensiones o logros para este periodo.</div>
                     {% endfor %}
                 {% endif %}
-
             {% elif grado_seleccionado_id %}
                 <div class="alert alert-info mt-4">
                     <i class="fas fa-info-circle me-2"></i>Por favor, seleccione un estudiante y un periodo para generar el reporte.
@@ -127,7 +118,6 @@
         </div>
     </div>
 </div>
-
 {% if contexto_reporte.tipo_reporte == 'CUANTITATIVO' and contexto_reporte.chart_data %}
 {{ contexto_reporte.chart_labels|json_script:"chart-labels-data" }}
 {{ contexto_reporte.chart_data|json_script:"chart-data-data" }}

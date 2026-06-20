@@ -1,14 +1,11 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
-
 {% block contenido %}
 <style>
 /* ═══════════════════════════════════════════════
    HALU PULSE — Dashboard de inicio institucional
    Todo inline en contenido para evitar conflictos
 ═══════════════════════════════════════════════ */
-
 /* Greeting hero */
 .pulse-hero {
   background: linear-gradient(135deg, #0a3d8c 0%, #0b5ed7 55%, #3b82f6 100%);
@@ -51,7 +48,6 @@
   padding: .2rem .7rem; border-radius: 1rem;
   display: inline-block;
 }
-
 /* KPI strip */
 .kpi-strip {
   display: grid;
@@ -96,7 +92,6 @@
   70%  { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
   100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
 }
-
 /* Panels row */
 .pulse-panels {
   display: grid;
@@ -117,7 +112,6 @@
   margin-bottom: 1rem; padding-bottom: .55rem;
   border-bottom: 1px solid #f0f4fb;
 }
-
 /* Quick action buttons */
 .qa-grid {
   display: grid;
@@ -145,7 +139,6 @@
 .qa-btn.qa-danger:hover { background: #dc2626; border-color: #dc2626; }
 .qa-btn.qa-green:hover  { background: #16a34a; border-color: #16a34a; }
 .qa-btn.qa-purple:hover { background: #7c3aed; border-color: #7c3aed; }
-
 /* Timeline */
 .tl-item {
   display: flex; gap: .75rem; align-items: flex-start;
@@ -168,10 +161,7 @@
 .tl-body .tl-msg { color: #374151; font-weight: 500; }
 .tl-body .tl-time { color: #94a3b8; font-size: .72rem; }
 </style>
-
 <div class="container-fluid px-2 px-md-3 mt-1 mt-md-3" style="max-width:1200px">
-
-  {# ── HERO ── #}
   <div class="pulse-hero">
     <div class="hero-inner d-flex flex-wrap align-items-center justify-content-between gap-3">
       <div>
@@ -201,7 +191,6 @@
           <span class="ms-1" style="color:#4ade80">●</span>
         </p>
       </div>
-
       <div class="d-flex gap-2 flex-wrap">
         <a href="{% url 'gestion_academica:reportes_dashboard' %}"
            class="btn btn-sm" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(4px)">
@@ -216,10 +205,7 @@
       </div>
     </div>
   </div>
-
-  {# ── KPI STRIP ── #}
   <div class="kpi-strip" id="kpi-strip">
-
     <div class="kpi-card kpi-blue">
       <div class="kpi-pulse-dot"></div>
       <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
@@ -227,7 +213,6 @@
       <div class="kpi-lbl">Alumnos Activos</div>
       <div class="kpi-sub">En esta institución</div>
     </div>
-
     <div class="kpi-card kpi-green">
       <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
       <div class="kpi-val">{% if promedio_institucional %}{{ promedio_institucional }}{% else %}—{% endif %}</div>
@@ -236,7 +221,6 @@
         {% if periodo_activo %}{{ periodo_activo.nombre }}{% else %}Sin período activo{% endif %}
       </div>
     </div>
-
     <div class="kpi-card {% if asistencia_hoy_pct is not None %}{% if asistencia_hoy_pct >= 85 %}kpi-teal{% elif asistencia_hoy_pct >= 70 %}kpi-amber{% else %}kpi-red{% endif %}{% else %}kpi-teal{% endif %}">
       <div class="kpi-pulse-dot"></div>
       <div class="kpi-icon"><i class="bi bi-calendar-check-fill"></i></div>
@@ -244,7 +228,6 @@
       <div class="kpi-lbl">Asistencia Hoy</div>
       <div class="kpi-sub" id="pulse-fecha-kpi"></div>
     </div>
-
     <div class="kpi-card kpi-amber">
       <div class="kpi-icon"><i class="bi bi-calendar-range"></i></div>
       <div class="kpi-val" style="font-size:1.1rem;padding-top:.3rem">
@@ -257,27 +240,20 @@
         {% else %}Sin fecha fin{% endif %}
       </div>
     </div>
-
     <div class="kpi-card {% if alumnos_riesgo > 0 %}kpi-red{% else %}kpi-green{% endif %}">
       <div class="kpi-icon"><i class="bi bi-shield-exclamation"></i></div>
       <div class="kpi-val">{{ alumnos_riesgo|default:"0" }}</div>
       <div class="kpi-lbl">Riesgo Alto (IA)</div>
       <div class="kpi-sub">Alumnos detectados</div>
     </div>
-
     <div class="kpi-card {% if casos_sentinel > 0 %}kpi-red{% else %}kpi-green{% endif %}">
       <div class="kpi-icon"><i class="bi bi-shield-shaded"></i></div>
       <div class="kpi-val">{{ casos_sentinel|default:"0" }}</div>
       <div class="kpi-lbl">Casos Sentinel</div>
       <div class="kpi-sub">Abiertos / En seguimiento</div>
     </div>
-
   </div>
-
-  {# ── PANELS ── #}
   <div class="pulse-panels">
-
-    {# Panel 1: Acciones rápidas #}
     <div class="panel-card">
       <div class="panel-title">
         <i class="bi bi-lightning-charge-fill text-warning"></i> Acciones Rápidas
@@ -335,13 +311,10 @@
         </a>
       </div>
     </div>
-
-    {# Panel 2: Actividad reciente (estado del sistema) #}
     <div class="panel-card">
       <div class="panel-title">
         <i class="bi bi-activity text-primary"></i> Estado del Sistema
       </div>
-
       <div class="tl-item">
         <div class="tl-dot {% if asistencia_hoy_pct is not None and asistencia_hoy_pct >= 85 %}green{% elif asistencia_hoy_pct is not None %}amber{% else %}blue{% endif %}">
           <i class="bi bi-calendar-check"></i>
@@ -357,7 +330,6 @@
           <div class="tl-time">Registro diario</div>
         </div>
       </div>
-
       <div class="tl-item">
         <div class="tl-dot {% if periodo_activo %}green{% else %}amber{% endif %}">
           <i class="bi bi-calendar-range"></i>
@@ -373,7 +345,6 @@
           <div class="tl-time">Configuración académica</div>
         </div>
       </div>
-
       <div class="tl-item">
         <div class="tl-dot {% if alumnos_riesgo > 0 %}red{% else %}green{% endif %}">
           <i class="bi bi-shield-exclamation"></i>
@@ -389,7 +360,6 @@
           <div class="tl-time">Motor de predicción IA</div>
         </div>
       </div>
-
       <div class="tl-item">
         <div class="tl-dot {% if casos_sentinel > 0 %}red{% else %}green{% endif %}">
           <i class="bi bi-shield-shaded"></i>
@@ -405,7 +375,6 @@
           <div class="tl-time">Módulo HALU Sentinel</div>
         </div>
       </div>
-
       <div class="tl-item">
         <div class="tl-dot blue">
           <i class="bi bi-people-fill"></i>
@@ -417,17 +386,13 @@
           <div class="tl-time">Matrícula vigente</div>
         </div>
       </div>
-
       <div class="text-end mt-2">
         <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-sm btn-outline-primary">
           <i class="bi bi-arrow-right me-1"></i> Centro de Reportes
         </a>
       </div>
     </div>
-
   </div>
-
-  {# ── MÓDULOS RÁPIDOS ── #}
   <div class="panel-card mb-3">
     <div class="panel-title">
       <i class="bi bi-grid-1x2-fill text-primary"></i> Módulos del Sistema
@@ -483,14 +448,11 @@
       </div>
     </div>
   </div>
-
 </div>
-
 <script>
 (function () {
   var dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-
   function actualizarFecha() {
     var d = new Date();
     var txt = dias[d.getDay()] + ', ' + d.getDate() + ' de ' + meses[d.getMonth()] + ' de ' + d.getFullYear();

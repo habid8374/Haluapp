@@ -2,9 +2,7 @@
 {% load i18n %}
 {% load socialaccount %}
 {% load socialapp_checks %}
-
 {% block titulo %}{% trans "Account Connections" %}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -38,7 +36,6 @@
                     {% else %}
                         <p>{% trans 'You currently have no social network accounts connected to this account.' %}</p>
                     {% endif %}
-
                     <h5 class="mt-4">{% trans 'Add a third-party account' %}</h5>
                     {% google_socialapp_configured as google_social_ok %}
                     {% if google_social_ok %}

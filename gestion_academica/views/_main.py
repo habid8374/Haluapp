@@ -116,7 +116,7 @@ from ..models import (
     Pregunta, Opcion, RespuestaEstudiante, IntentoActividad, DescriptorLogro, ObservacionBoletin,
     PeriodoAcademico, EscalaValorativa, AnotacionObservador, AnalisisRiesgo, PrediccionRiesgoEstudiante,
     Notificacion, DisponibilidadDocente, CitaReunion, Eleccion, Candidato, Voto, Estudiante, RegistroAsistenciaDocente,
-    Aula, AreaAcademica, Egresado, ArchivoHistorico, SolicitudDocumento, Logro, EvaluacionLogroPreescolar, EscalaCualitativa,
+    Aula, AreaAcademica, Egresado, ArchivoHistorico, SolicitudDocumento, EvaluacionLogroPreescolar, EscalaCualitativa,
     DimensionDesarrollo, LogroPreescolar, TicketSoporte, RespuestaTicket, PlaneacionClase, DetalleClase, NivelEscolaridad,
     AnalisisComportamientoIA,
     MallaCurricular,
@@ -166,7 +166,6 @@ from ..forms import (
     ActividadConfigForm,
     AulaForm,
     AreaAcademicaForm,
-    LogroForm,
     DimensionDesarrolloForm,
     EscalaCualitativaForm, LogroPreescolarForm,
     TicketSoporteForm, 
@@ -10660,7 +10659,7 @@ def generar_boletin_descriptivo_pdf(request, estudiante_pk, periodo_pk):
     
     materias_con_logros = []
     for curso in cursos:
-        logros = Logro.objects.filter(materia=curso.materia, periodo=periodo)
+        logros = LogroPreescolar.objects.filter(materia=curso.materia, periodo=periodo, institucion=institucion)
         evaluaciones = EvaluacionLogroPreescolar.objects.filter(estudiante=estudiante, logro__in=logros)
         evaluaciones_map = {ev.logro_id: ev for ev in evaluaciones}
         
@@ -10694,88 +10693,6 @@ def generar_boletin_descriptivo_pdf(request, estudiante_pk, periodo_pk):
 
 
 
-class LogroListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    model = Logro
-    template_name = 'gestion_academica/logro_lista.html'
-    context_object_name = 'logros'
-    permission_required = 'gestion_academica.view_logro' # Asegúrate de que los docentes tengan este permiso
-
-    def get_queryset(self):
-        # El docente solo ve los logros de su institución
-        return Logro.objects.filter(institucion=self.request.user.institucion_asociada).select_related('materia', 'periodo')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = "Mis Logros de Aprendizaje (Preescolar)"
-        return context
-
-
-class LogroCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    model = Logro
-    form_class = LogroForm
-    template_name = 'gestion_academica/logro_formulario.html'
-    success_url = reverse_lazy('gestion_academica:logro_lista')
-    permission_required = 'gestion_academica.add_logro'
-
-    def get_form_kwargs(self):
-        # Pasamos el usuario al formulario para que filtre los desplegables
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    def form_valid(self, form):
-        # Asignamos la institución automáticamente
-        form.instance.institucion = self.request.user.institucion_asociada
-        messages.success(self.request, "Logro creado exitosamente.")
-        return super().form_valid(form)
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = "Crear Nuevo Logro"
-        return context
-
-
-class LogroUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = Logro
-    form_class = LogroForm
-    template_name = 'gestion_academica/logro_formulario.html'
-    success_url = reverse_lazy('gestion_academica:logro_lista')
-    permission_required = 'gestion_academica.change_logro'
-
-    def get_queryset(self):
-        # Seguridad: El docente solo puede editar logros de su institución
-        return Logro.objects.filter(institucion=self.request.user.institucion_asociada)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    def form_valid(self, form):
-        messages.success(self.request, "Logro actualizado exitosamente.")
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = "Editar Logro"
-        return context
-
-
-class LogroDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = Logro
-    template_name = 'gestion_academica/logro_confirmar_eliminar.html'
-    success_url = reverse_lazy('gestion_academica:logro_lista')
-    permission_required = 'gestion_academica.delete_logro'
-    context_object_name = 'logro'
-
-    def get_queryset(self):
-        return Logro.objects.filter(institucion=self.request.user.institucion_asociada)
-
-    def form_valid(self, form):
-        messages.success(self.request, f"El logro '{self.object.descripcion[:30]}...' ha sido eliminado.")
-        return super().form_valid(form)
-
-     
 @require_POST
 @login_required
 @ratelimit(key='user', rate='30/h', method='POST', block=True)

@@ -1,10 +1,7 @@
 {% extends "base_finanzas.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4" style="max-width: 920px;">
-
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h1 class="h3 mb-0">
       {% if factura.tipo == 'FACTURA' %}<span class="badge bg-primary">Factura</span>
@@ -14,11 +11,9 @@
     </h1>
     <a href="{% url 'facturacion_electronica:lista_facturas' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Volver</a>
   </div>
-
   {% if messages %}{% for message in messages %}
   <div class="alert alert-{{ message.tags }} alert-dismissible fade show">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
   {% endfor %}{% endif %}
-
   <div class="row g-3">
     <!-- Datos del documento -->
     <div class="col-md-6">
@@ -75,7 +70,6 @@
               </a>
             {% endif %}
           </div>
-
           <!-- Modal Nota Crédito -->
           {% if factura.tipo == 'FACTURA' and factura.estado == 'VALIDADA' %}
           <div class="modal fade" id="modalNotaCredito" tabindex="-1">
@@ -114,7 +108,6 @@
               </div>
             </div>
           </div>
-
           <!-- Modal Nota Débito -->
           <div class="modal fade" id="modalNotaDebito" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
@@ -159,7 +152,6 @@
         </div>
       </div>
     </div>
-
     <!-- Cliente -->
     <div class="col-md-6">
       <div class="card shadow-sm h-100">
@@ -178,7 +170,6 @@
       </div>
     </div>
   </div>
-
   <!-- Ítems -->
   <div class="card shadow-sm mt-3">
     <div class="card-header fw-bold">Detalle</div>
@@ -196,7 +187,6 @@
       </table>
     </div>
   </div>
-
   <!-- Notas asociadas -->
   {% if notas %}
   <div class="card shadow-sm mt-3">
@@ -219,7 +209,6 @@
     </div>
   </div>
   {% endif %}
-
   <!-- Auditoría (JSON) -->
   <div class="accordion mt-3" id="accAudit">
     <div class="accordion-item">
@@ -235,6 +224,5 @@
       </div>
     </div>
   </div>
-
 </div>
 {% endblock %}

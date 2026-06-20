@@ -12,7 +12,6 @@
         <p><strong>Estudiante:</strong> {{ estudiante.usuario.get_full_name }}</p>
         <p><strong>Grado:</strong> {{ estudiante.grado_actual.nombre }} | <strong>Periodo:</strong> {{ periodo.nombre }}</p>
     </header>
-
     {% for data in materias_con_logros %}
     <section>
         <h3>{{ data.materia.nombre_materia|upper }}{% if es_bilingue and data.materia.nombre_idioma_secundario %} / {{ data.materia.nombre_idioma_secundario|upper }}{% endif %}</h3>
@@ -39,7 +38,6 @@
         <br>
     </section>
     {% endfor %}
-
     <section>
         <h4>OBSERVACIONES GENERALES DEL DOCENTE</h4>
         <p>{{ observacion_general.observacion|default:"Sin observaciones para este periodo."|linebreaks }}</p>

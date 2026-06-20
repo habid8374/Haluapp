@@ -1,16 +1,13 @@
 {% extends "base_academico.html" %}
-
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white"><h4 class="mb-0"><i class="fas fa-cubes me-2"></i>{{ titulo_pagina }}</h4></div>
         <div class="card-body">
             <div class="mb-3"><a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Volver al Dashboard</a></div>
-            
             <form method="get" class="mb-4 p-3 border rounded bg-light">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-5"><label for="grado" class="form-label fw-bold">1. Grado:</label><select name="grado" id="grado" class="form-select"><option value="">--- Seleccione ---</option>{% for g in grados %}<option value="{{ g.id }}" {% if g.id == grado_seleccionado.id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}</select></div>
@@ -18,12 +15,9 @@
                     <div class="col-md-2"><button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Generar</button></div>
                 </div>
             </form>
-
             {% if grado_seleccionado and periodo_seleccionado and reporte_data %}
                 <h5 class="border-bottom pb-2 mb-3">Resultados para: <strong class="text-primary">{{ grado_seleccionado.nombre }}</strong> | Periodo: <strong class="text-primary">{{ periodo_seleccionado.nombre }}</strong></h5>
-
                 <div class="mb-4" style="max-height: 350px;"><canvas id="areasChart"></canvas></div>
-
                 {% if reporte_data.tipo_reporte == 'CUANTITATIVO' %}
                 <div class="table-responsive">
                     <table class="table table-bordered table-sm" style="font-size: 0.8rem;">
@@ -32,7 +26,6 @@
                     </table>
                 </div>
                 {% endif %}
-
                 {% if reporte_data.tipo_reporte == 'CUALITATIVO' %}
                 <div class="table-responsive">
                     <table class="table table-bordered table-sm" style="font-size: 0.8rem;">
@@ -56,7 +49,6 @@
         </div>
     </div>
 </div>
-
 {% if reporte_data.chart_labels %}
 {{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
 {{ reporte_data.chart_datasets|json_script:"chart-datasets-data" }}
@@ -65,12 +57,10 @@
         const ctx = document.getElementById('areasChart').getContext('2d');
         let chartType = 'bar';
         let chartOptions = { plugins: { title: { display: true, text: 'Nº de Estudiantes por Nivel de Desempeño en cada Área' } }, responsive: true, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } } } };
-
         if ("{{ reporte_data.tipo_reporte }}" === "CUALITATIVO") {
             chartType = 'pie';
             chartOptions = { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Distribución General de Logros Evaluados' } } };
         }
-
         const _labels   = JSON.parse(document.getElementById('chart-labels-data').textContent);
         const _datasets = JSON.parse(document.getElementById('chart-datasets-data').textContent);
         new Chart(ctx, { type: chartType, data: { labels: _labels, datasets: _datasets }, options: chartOptions });

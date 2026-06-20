@@ -1,8 +1,6 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
   .est-fila { border-left: 4px solid transparent; transition: background .15s; }
@@ -11,12 +9,10 @@
   .est-parcial   { border-left-color: #d97706; }
   .est-pendiente { border-left-color: #2563eb; }
   .est-al-dia    { border-left-color: #16a34a; }
-
   .badge-mora      { background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; }
   .badge-parcial   { background:#fffbeb; color:#d97706; border:1px solid #fcd34d; }
   .badge-pendiente { background:#eff6ff; color:#2563eb; border:1px solid #93c5fd; }
   .badge-al-dia    { background:#f0fdf4; color:#16a34a; border:1px solid #86efac; }
-
   .grado-header { cursor:pointer; user-select:none; }
   .grado-header:hover { background:#f1f5f9 !important; }
   .leyenda-dot { width:11px; height:11px; border-radius:50%; display:inline-block; vertical-align:middle; }
@@ -24,10 +20,8 @@
   .collapsed .accordion-chevron { transform: rotate(-90deg); }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4 px-4">
-
   <!-- Hero Banner -->
   <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -40,7 +34,6 @@
       </a>
     </div>
   </div>
-
   <!-- Leyenda -->
   <div class="d-flex flex-wrap gap-3 mb-3 align-items-center">
     <small class="text-muted fw-semibold">Estado de cartera:</small>
@@ -57,13 +50,10 @@
       <span class="leyenda-dot me-1" style="background:#16a34a;"></span>Al día
     </span>
   </div>
-
   {% if grados_lista %}
   <div class="accordion" id="acordeonGrados">
     {% for grado in grados_lista %}
-
     <div class="card shadow-sm mb-3 border-0" style="border-radius:12px;overflow:hidden;">
-
       <!-- Cabecera del grado -->
       <div class="card-header bg-white px-4 py-3 grado-header"
            data-bs-toggle="collapse"
@@ -97,7 +87,6 @@
           </div>
         </div>
       </div>
-
       <!-- Tabla de estudiantes del grado -->
       <div id="grado-{{ forloop.counter }}"
            class="collapse {% if forloop.first %}show{% endif %}">
@@ -119,7 +108,6 @@
                   {% elif est.estado_financiero == 'PARCIAL' %}est-parcial
                   {% elif est.estado_financiero == 'PENDIENTE' %}est-pendiente
                   {% else %}est-al-dia{% endif %}">
-
                 <td class="ps-4 py-3">
                   <div class="fw-semibold" style="font-size:.93rem;">
                     {{ est.usuario.get_full_name }}
@@ -128,7 +116,6 @@
                     <small class="text-muted">Cód. {{ est.codigo_estudiante }}</small>
                   {% endif %}
                 </td>
-
                 <td class="py-3">
                   {% if est.estado_financiero == 'MORA' %}
                     <span class="badge badge-mora rounded-pill px-2 py-1">
@@ -148,7 +135,6 @@
                     </span>
                   {% endif %}
                 </td>
-
                 <td class="text-end py-3 fw-semibold" style="font-size:.93rem;">
                   {% if est.total_asignado %}
                     ${{ est.total_asignado|floatformat:0|intcomma }}
@@ -156,7 +142,6 @@
                     <span class="text-muted">—</span>
                   {% endif %}
                 </td>
-
                 <td class="text-center py-3">
                   {% if est.num_cuentas %}
                     <span class="badge bg-light text-secondary border" style="font-size:.8rem;">
@@ -166,7 +151,6 @@
                     <span class="text-muted small">—</span>
                   {% endif %}
                 </td>
-
                 <td class="text-end pe-4 py-3">
                   <a href="{% url 'finanzas:historial_cuentas_estudiante' est.pk %}"
                      class="btn btn-outline-primary btn-sm px-3">
@@ -179,17 +163,14 @@
           </table>
         </div>
       </div>
-
     </div>
     {% endfor %}
   </div>
-
   {% else %}
   <div class="alert alert-info text-center mt-4">
     <i class="bi bi-info-circle-fill me-2"></i>
     No hay estudiantes registrados en la institución.
   </div>
   {% endif %}
-
 </div>
 {% endblock contenido %}

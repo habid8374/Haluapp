@@ -1,7 +1,5 @@
 {% extends "base_publica.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-5 mb-5">
     <div class="card shadow-lg">
@@ -14,7 +12,6 @@
                 <span class="badge bg-secondary text-dark fs-6">{{ aspirante.get_estado_display }}</span>
             </h4>
             <hr>
-
             <!-- Bloque para Pago de Inscripción -->
             {% if aspirante.requiere_pago_inscripcion and aspirante.estado == 'INSCRITO' %}
                 {% if cuenta_inscripcion %}
@@ -42,7 +39,6 @@
                     </div>
                 {% endif %}
             {% endif %}
-
             <!-- Bloque para Pago de Matrícula -->
             {% if aspirante.estado == 'APROBADO_MATRICULA' %}
                 {% if cuenta_matricula %}
@@ -67,13 +63,10 @@
                     </div>
                 {% endif %}
             {% endif %}
-            
-
             <!-- Mensaje para cuando no hay pagos pendientes -->
             {% if aspirante.estado == 'ADMITIDO' or aspirante.estado == 'EN_PROCESO' %}
                  <div class="alert alert-light">Tu solicitud está en proceso. Te notificaremos por correo electrónico sobre los siguientes pasos.</div>
             {% endif %}
-
         </div>
     </div>
 </div>

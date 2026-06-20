@@ -1,10 +1,8 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
-
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -17,7 +15,6 @@
                     <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
                 </a>
             </div>
-            
             <form method="get" class="mb-4 p-3 border rounded bg-light">
                 <div class="row align-items-end">
                     <div class="col-md-5">
@@ -49,7 +46,6 @@
             </form>
             {% if grado_seleccionado and periodo_seleccionado %}
                 <h5 class="border-bottom pb-2 mb-3">Resultados para: <strong class="text-primary">{{ grado_seleccionado.nombre }}</strong> | Periodo: <strong class="text-primary">{{ periodo_seleccionado.nombre }}</strong></h5>
-
                 {% if reporte_data.tipo_reporte == 'CUANTITATIVO' %}
                 <div class="row">
                     <div class="col-lg-6">
@@ -81,7 +77,6 @@
                     </div>
                 </div>
                 {% endif %}
-
                 {% if reporte_data.tipo_reporte == 'CUALITATIVO' %}
                 <div class="row">
                     <div class="col-lg-7">
@@ -105,12 +100,10 @@
                     </div>
                 </div>
                 {% endif %}
-
             {% endif %}
         </div>
     </div>
 </div>
-
 {% if reporte_data.chart_labels %}
 {{ reporte_data.chart_datasets|json_script:"chart-datasets-data" }}
 {{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
@@ -119,15 +112,12 @@
         const ctx = document.getElementById('reporteChart').getContext('2d');
         let chartType = 'bar';
         let chartOptions = { scales: { y: { beginAtZero: true, max: 5.0 } }, plugins: { legend: { display: false } }};
-
         if ("{{ reporte_data.tipo_reporte }}" === "CUALITATIVO") {
             chartType = 'pie';
             chartOptions = { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Distribución Total de Logros' } } };
         }
-
         const chartData = JSON.parse(document.getElementById('chart-datasets-data').textContent);
         const datasets = Array.isArray(chartData) ? chartData : [{ label: 'Resultados', data: chartData, backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)','rgba(255, 99, 132, 0.6)','rgba(153, 102, 255, 0.6)'] }];
-
         new Chart(ctx, { type: chartType, data: { labels: JSON.parse(document.getElementById('chart-labels-data').textContent), datasets: datasets }, options: chartOptions });
     });
 </script>
