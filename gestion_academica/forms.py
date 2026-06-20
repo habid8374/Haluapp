@@ -14,7 +14,7 @@ from .models import (
     PlanCurricular, MencionReconocimiento, ArchivoPlanAcademico, Noticia,
     ConfiguracionInstitucion, Usuario, LeccionDiaria, ObservacionBoletin,
     DescriptorLogro, AnotacionObservador, DisponibilidadDocente, CitaReunion,
-    Pregunta, Opcion, Eleccion, Aula, AreaAcademica, Logro, NivelEscolaridad,
+    Pregunta, Opcion, Eleccion, Aula, AreaAcademica, NivelEscolaridad,
     DimensionDesarrollo, EscalaCualitativa, LogroPreescolar, TicketSoporte,
     RespuestaTicket, PlaneacionClase, Candidato, CaracterizacionEstudiante
 )
@@ -1284,29 +1284,6 @@ class AreaAcademicaForm(forms.ModelForm):
             )
         else:
             self.fields['materias'].queryset = Materia.objects.all()          
-
-class LogroForm(forms.ModelForm):
-    class Meta:
-        model = Logro
-        fields = ['materia', 'periodo', 'grado', 'descripcion', 'orden']
-        widgets = {
-            'descripcion': forms.Textarea(attrs={'rows': 3}),
-            'grado': forms.Select(attrs={'class': 'form-select'}),
-        }
-        labels = {
-            'grado': 'Grado (opcional — deja en blanco para aplicar a todos)',
-        }
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-
-        if user and hasattr(user, 'institucion_asociada'):
-            institucion = user.institucion_asociada
-            self.fields['materia'].queryset = Materia.objects.filter(institucion=institucion)
-            self.fields['periodo'].queryset = PeriodoAcademico.objects.filter(institucion=institucion, activo=True)
-            self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
-
 
 class DimensionDesarrolloForm(forms.ModelForm):
     """

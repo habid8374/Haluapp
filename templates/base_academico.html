@@ -495,6 +495,27 @@
             </a>
           </li>
         {% endif %}
+        {% if perms.gestion_academica.view_dimensiondesarrollo %}
+          <li class="nav-item item-color-5">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_dimensiones' %}">
+              <i class="bi bi-diagram-3-fill"></i> Dimensiones (Preescolar)
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_logropreescolar %}
+          <li class="nav-item item-color-5">
+            <a class="nav-link" href="{% url 'gestion_academica:logro_lista' %}">
+              <i class="bi bi-award-fill"></i> Logros (Preescolar)
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.view_escalacualitativa %}
+          <li class="nav-item item-color-5">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_escala_cualitativa' %}">
+              <i class="bi bi-list-stars"></i> Escala Cualitativa (Preescolar)
+            </a>
+          </li>
+        {% endif %}
         {% if perms.gestion_academica.view_periodoacademico %}
           <li class="nav-item item-color-2">
             <a class="nav-link" href="{% url 'gestion_academica:lista_periodos' %}">
