@@ -16,7 +16,7 @@
         <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-person-hearts me-2"></i>PIARs — Planes de Ajustes Razonables</h2>
         <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">Decreto 1421 de 2017 · Inclusión educativa y ajustes razonables · {{ piars|length }} plan(es)</p>
       </div>
-      {% if request.user.rol == 'coordinador' or request.user.rol == 'admin_institucion' or request.user.is_superuser %}
+      {% if request.user.rol == 'coordinador' or request.user.rol == 'administrador' or request.user.is_superuser %}
       <a href="{% url 'piar:crear_piar' %}" class="btn btn-warning fw-bold">
         <i class="bi bi-plus-circle-fill me-1"></i>Nuevo PIAR
       </a>
@@ -75,7 +75,7 @@
             <a href="{% url 'piar:detalle_piar' piar.pk %}" class="btn btn-sm btn-outline-primary fw-bold">
               <i class="bi bi-eye me-1"></i>Ver
             </a>
-            {% if request.user.rol == 'coordinador' or request.user.rol == 'admin_institucion' or request.user.is_superuser %}
+            {% if request.user.rol == 'coordinador' or request.user.rol == 'administrador' or request.user.is_superuser %}
             <a href="{% url 'piar:editar_piar' piar.pk %}" class="btn btn-sm btn-outline-secondary">
               <i class="bi bi-pencil"></i>
             </a>
@@ -94,7 +94,7 @@
     <div class="text-center py-5 text-muted">
       <i class="bi bi-person-hearts" style="font-size:3rem;opacity:.3;"></i>
       <p class="mt-2">No hay PIARs registrados con estos filtros.</p>
-      {% if request.user.rol == 'coordinador' or request.user.rol == 'admin_institucion' or request.user.is_superuser %}
+      {% if request.user.rol == 'coordinador' or request.user.rol == 'administrador' or request.user.is_superuser %}
       <a href="{% url 'piar:crear_piar' %}" class="btn btn-primary mt-1"><i class="bi bi-plus-circle me-1"></i>Crear primer PIAR</a>
       {% endif %}
     </div>

@@ -30,7 +30,7 @@
         </div>
       </div>
       <div class="d-flex gap-2">
-        {% if request.user.rol == 'coordinador' or request.user.rol == 'admin_institucion' or request.user.is_superuser %}
+        {% if request.user.rol == 'coordinador' or request.user.rol == 'administrador' or request.user.is_superuser %}
         <a href="{% url 'piar:editar_piar' piar.pk %}" class="btn btn-warning btn-sm fw-bold">
           <i class="bi bi-pencil me-1"></i>Editar PIAR
         </a>

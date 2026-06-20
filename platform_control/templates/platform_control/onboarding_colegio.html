@@ -271,7 +271,7 @@
                    value="{{ form.admin_email.value|default:'' }}"
                    placeholder="Ej: admin@colegio.edu.co"
                    style="border-radius:8px;" required>
-            <div class="form-text">Se creará un usuario <em>admin_institucion</em> con este correo.</div>
+            <div class="form-text">Se creará un usuario <em>administrador</em> con este correo.</div>
             {% if form.admin_email.errors %}
               <div class="invalid-feedback">{{ form.admin_email.errors.0 }}</div>
             {% endif %}
