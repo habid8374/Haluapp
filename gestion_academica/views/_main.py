@@ -1133,17 +1133,33 @@ class CursoListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = 'gestion_academica/curso_lista.html'
     context_object_name = 'cursos'
     permission_required = 'gestion_academica.view_curso'
-    paginate_by = 10
 
     def get_queryset(self):
         base_queryset = Curso.objects.select_related('materia', 'grado', 'periodo_academico').prefetch_related('docentes_asignados__usuario').all().order_by(
-            '-periodo_academico__año_escolar', '-periodo_academico__fecha_inicio', 'grado__nombre', 'materia__nombre_materia'
+            'grado__orden', 'grado__nombre', '-periodo_academico__año_escolar', 'materia__nombre_materia'
         )
         return get_filtered_queryset(self.model, self.request.user, base_queryset)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo_pagina'] = "Listado de Cursos"
+        # Agrupar cursos por grado para la vista de acordeón
+        grupos = {}
+        for curso in context['cursos']:
+            grado = curso.grado
+            key = (
+                grado.orden if grado and grado.orden is not None else 9999,
+                grado.nombre if grado else 'zzz',
+            )
+            if key not in grupos:
+                grupos[key] = {
+                    'grado': grado,
+                    'grado_nombre': grado.nombre if grado else 'Sin grado asignado',
+                    'cursos': [],
+                }
+            grupos[key]['cursos'].append(curso)
+        context['grados'] = [grupos[k] for k in sorted(grupos)]
+        context['total_cursos'] = len(context['cursos'])
         return context
 
 class CursoDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
