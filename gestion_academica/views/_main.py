@@ -7718,7 +7718,9 @@ def gestionar_promocion_grados_view(request):
     if not request.user.is_superuser and user_inst:
         grados_qs = grados_qs.filter(institucion=user_inst)
     
-    grados_qs = grados_qs.order_by('nombre')
+    # Ordenar por el orden pedagógico real (campo 'orden'); los grados sin
+    # orden asignado van al final, y se desempata por nombre.
+    grados_qs = grados_qs.order_by(F('orden').asc(nulls_last=True), 'nombre')
 
     if request.method == 'POST':
         # Procesamos el formulario enviado
