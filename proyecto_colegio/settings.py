@@ -494,7 +494,7 @@ if not DEBUG and not FERNET_KEY:
 # ── A05: Límites de tamaño para uploads y campos de formulario ───────────────
 FILE_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024   # 15 MB (archivos en memoria)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5  * 1024 * 1024   # 5 MB  (campos de formulario)
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 300               # máx 300 campos en un POST
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000             # suficiente para asignar todos los permisos en el admin
 
 # ── A05: Rate limiting ────────────────────────────────────────────────────────
 RATELIMIT_USE_CACHE = 'default'
