@@ -539,13 +539,6 @@
             </a>
           </li>
         {% endif %}
-        {% if perms.gestion_academica.view_tipoactividad %}
-          <li class="nav-item item-color-3">
-            <a class="nav-link" href="{% url 'gestion_academica:lista_tipos_actividad' %}">
-              <i class="bi bi-tags-fill"></i> Tipos de Actividad
-            </a>
-          </li>
-        {% endif %}
       {% endif %}
       {% if perms.finanzas.acceso_modulo_finanzas %}
         {% with inst=request.user.institucion_asociada %}
@@ -803,6 +796,12 @@
       <li class="nav-item">
         <a class="nav-link sub-item" href="{% url 'gestion_academica:gestionar_promocion_grados' %}">
           <i class="bi bi-calendar2-week-fill"></i> Secuencia de Promoción
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link sub-item {% if request.resolver_match.url_name == 'promocion_anual' %}active{% endif %}"
+           href="{% url 'gestion_academica:promocion_anual' %}">
+          <i class="bi bi-arrow-up-circle-fill"></i> Promoción Anual
         </a>
       </li>
       <li class="nav-item">
