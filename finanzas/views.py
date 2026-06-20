@@ -2561,7 +2561,7 @@ def facturacion_masiva(request):
     if request.method == 'POST':
         form = FacturacionMasivaForm(request.POST, user=request.user)
         if form.is_valid():
-            from .services import nombre_base_concepto
+            from .services import nombre_base_concepto, tokens_niveles_y_grados
 
             concepto_rep = get_object_or_404(
                 ConceptoPago, pk=form.cleaned_data['concepto_pago'], institucion=institucion
@@ -2572,18 +2572,25 @@ def facturacion_masiva(request):
             notificar_correo = form.cleaned_data.get('notificar_correo', True)
 
             # Reconstruir el "grupo" del concepto: todos los conceptos del mismo
-            # tipo y mismo nombre base (sin el nivel) → uno por nivel.
-            base = nombre_base_concepto(concepto_rep)
+            # tipo y mismo nombre base (sin el nivel/grado) → uno por nivel.
+            tokens = tokens_niveles_y_grados(institucion)
+            base = nombre_base_concepto(concepto_rep, tokens)
             candidatos = ConceptoPago.objects.filter(
                 institucion=institucion, tipo_concepto=concepto_rep.tipo_concepto
             ).select_related('nivel_escolaridad')
             concepto_por_nivel = {}
             concepto_sin_nivel = None
             for c in candidatos:
-                if nombre_base_concepto(c) != base:
+                if nombre_base_concepto(c, tokens) != base:
                     continue
                 if c.nivel_escolaridad_id:
-                    concepto_por_nivel[c.nivel_escolaridad_id] = c
+                    # Si un nivel tiene varios conceptos (p.ej. "- Preescolar" y
+                    # "- Transición", ambos nivel Preescolar), preferir el que
+                    # lleva el nombre del nivel en su propio nombre (el canónico).
+                    actual = concepto_por_nivel.get(c.nivel_escolaridad_id)
+                    nombre_nivel = c.nivel_escolaridad.nombre or ""
+                    if actual is None or (nombre_nivel and nombre_nivel in (c.nombre_concepto or "")):
+                        concepto_por_nivel[c.nivel_escolaridad_id] = c
                 else:
                     concepto_sin_nivel = c
 

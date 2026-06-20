@@ -38,24 +38,33 @@ def choices_conceptos_agrupados(institucion):
     (para no romper la previsualización, que recibe un concepto_id real).
     """
     from collections import OrderedDict
-    from .services import nombre_base_concepto
+    from .services import nombre_base_concepto, tokens_niveles_y_grados
 
+    tokens = tokens_niveles_y_grados(institucion)
     qs = _conceptos_pago_orden_por_nivel(
         ConceptoPago.objects.filter(institucion=institucion)
     )
     grupos = OrderedDict()
     for c in qs:
-        base = nombre_base_concepto(c)
+        base = nombre_base_concepto(c, tokens)
         clave = (c.tipo_concepto_id, base.lower())
         grupos.setdefault(clave, []).append(c)
 
     choices = [('', '--------- Selecciona un concepto ---------')]
     for lista in grupos.values():
         rep = lista[0]
-        base = nombre_base_concepto(rep)
-        niveles = [c.nivel_escolaridad.nombre for c in lista if c.nivel_escolaridad_id]
-        if len(lista) > 1 and niveles:
+        base = nombre_base_concepto(rep, tokens)
+        # Niveles del grupo, sin duplicar y ordenados por su 'orden'.
+        niveles_vistos = {}
+        for c in lista:
+            niv = c.nivel_escolaridad
+            if niv and niv.pk not in niveles_vistos:
+                niveles_vistos[niv.pk] = (niv.orden or 0, niv.nombre)
+        niveles = [nombre for _, nombre in sorted(niveles_vistos.values())]
+        if len(niveles) > 1:
             label = f"{base} — todos los niveles ({', '.join(niveles)})"
+        elif niveles:
+            label = f"{base} — {niveles[0]} (${rep.valor:,.0f})"
         else:
             label = f"{rep.nombre_concepto} (${rep.valor:,.0f})"
         choices.append((str(rep.pk), label))

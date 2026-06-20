@@ -46,21 +46,45 @@ TIPO_PENSION = "Pensión"
 MESES_PENSION = tuple(range(2, 12))
 
 
-def nombre_base_concepto(concepto) -> str:
-    """Devuelve el nombre del concepto SIN el nombre del nivel de escolaridad.
+def tokens_niveles_y_grados(institucion) -> set:
+    """Conjunto de nombres de Niveles de Escolaridad y Grados de la institución.
 
-    Los conceptos se crean por nivel con el nivel incrustado en el nombre, p.ej.
-    "Pensión Abril 2026 - Preescolar", "Matrícula Preescolar 2026",
-    "Inscripción Preescolar". Esta función quita el token del nivel para obtener
+    Se usa para reconocer y quitar esos tokens del nombre de un ConceptoPago al
+    calcular su "nombre base". Incluye los grados porque, por datos heredados,
+    algunos conceptos se nombran por grado (p.ej. "Pensión Abril 2026 -
+    Transición") aunque su nivel asignado sea otro (Preescolar)."""
+    from gestion_academica.models import NivelEscolaridad, Grado
+    nombres = set()
+    nombres.update(
+        NivelEscolaridad.objects.filter(institucion=institucion).values_list('nombre', flat=True)
+    )
+    nombres.update(
+        Grado.objects.filter(institucion=institucion).values_list('nombre', flat=True)
+    )
+    return {n for n in nombres if n}
+
+
+def nombre_base_concepto(concepto, tokens=None) -> str:
+    """Devuelve el nombre del concepto SIN el nombre del nivel/grado.
+
+    Los conceptos se crean por nivel con el nivel (o el grado) incrustado en el
+    nombre, p.ej. "Pensión Abril 2026 - Preescolar", "Matrícula Preescolar 2026",
+    "Pensión Abril 2026 - Transición". Esta función quita ese token para obtener
     un "nombre base" común que permite agrupar el mismo concepto a través de los
     niveles ("Pensión Abril 2026", "Matrícula 2026", "Inscripción").
+
+    ``tokens``: nombres a quitar (niveles + grados de la institución). Si no se
+    pasa, se usa solo el nombre del nivel asignado al concepto.
     """
     nombre = concepto.nombre_concepto or ""
-    nivel = getattr(concepto, "nivel_escolaridad", None)
-    if nivel and getattr(nivel, "nombre", ""):
-        n = nivel.nombre
-        for token in (f" - {n}", f"- {n}", f" {n} ", f" {n}", n):
-            nombre = nombre.replace(token, " ")
+    if tokens is None:
+        nivel = getattr(concepto, "nivel_escolaridad", None)
+        tokens = [nivel.nombre] if (nivel and getattr(nivel, "nombre", "")) else []
+    # Quitar primero los tokens más largos para evitar recortes parciales.
+    for t in sorted((t for t in tokens if t), key=len, reverse=True):
+        nombre = nombre.replace(t, " ")
+    # Quitar separadores sueltos que queden y normalizar espacios.
+    nombre = nombre.replace(" - ", " ").replace(" -", " ").replace("- ", " ")
     return " ".join(nombre.split())
 
 
