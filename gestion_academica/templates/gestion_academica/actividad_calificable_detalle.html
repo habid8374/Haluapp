@@ -1,9 +1,6 @@
-{# gestion_academica/templates/gestion_academica/actividad_calificable_detalle.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Detalle de Actividad Calificable" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -13,7 +10,6 @@
         </a>
     </div>
     <hr>
-
     {% if actividad %}
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
@@ -23,23 +19,16 @@
             <dl class="row">
                 <dt class="col-sm-3 text-secondary">Curso:</dt>
                 <dd class="col-sm-9">{{ actividad.curso }}</dd>
-
                 <dt class="col-sm-3 text-secondary">Tipo de Actividad:</dt>
                 <dd class="col-sm-9">{{ actividad.tipo_actividad.nombre }}</dd>
-
                 <dt class="col-sm-3 text-secondary">Descripción:</dt>
                 <dd class="col-sm-9">{{ actividad.descripcion|linebreaksbr|default:"No especificada" }}</dd>
-
                 <dt class="col-sm-3 text-secondary">Fecha de Publicación:</dt>
                 <dd class="col-sm-9">{{ actividad.fecha_publicacion|date:"d F, Y" }}</dd>
-
                 <dt class="col-sm-3 text-secondary">Fecha Límite de Entrega:</dt>
                 <dd class="col-sm-9">{{ actividad.fecha_entrega_limite|date:"d F, Y"|default:"No especificada" }}</dd>
-
                 <dt class="col-sm-3 text-secondary">Porcentaje en Periodo:</dt>
                 <dd class="col-sm-9">{{ actividad.porcentaje_en_periodo|default:"No especificado" }}%</dd>
-
-                {# Solo intentar mostrar el enlace si hay un archivo adjunto #}
                 {% if actividad.material_adjunto %}
                 <dt class="col-sm-3 text-secondary">Material Adjunto:</dt>
                 <dd class="col-sm-9">

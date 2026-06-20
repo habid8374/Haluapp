@@ -15,10 +15,8 @@ body {
     font-size: 8pt;
     color: #1e293b;
 }
-
 /* ── BARRA SUPERIOR ── */
 .top-bar { background: #0f3460; height: 5px; width: 100%; margin-bottom: 10px; }
-
 /* ── ENCABEZADO ── */
 .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
 .header-table td { vertical-align: middle; }
@@ -46,10 +44,8 @@ body {
 .doc-box-body { padding: 6px; }
 .doc-box-body p { font-size: 7.5pt; color: #475569; margin: 2px 0; }
 .doc-box-body strong { color: #0f3460; font-size: 8.5pt; }
-
 /* ── SEPARADOR ── */
 .divider { border: none; border-top: 1.5px solid #cbd5e1; margin: 8px 0; }
-
 /* ── RESUMEN KPIs ── */
 .kpi-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
 .kpi-table td { padding: 6px 10px; border: 1px solid #e2e8f0; }
@@ -58,7 +54,6 @@ body {
 .kpi-green { color: #15803d; }
 .kpi-red   { color: #b91c1c; }
 .kpi-blue  { color: #0f3460; }
-
 /* ── TABLA DE MOVIMIENTOS ── */
 .section-label {
     background: #e8eef8;
@@ -71,7 +66,6 @@ body {
     border-left: 3px solid #0f3460;
     margin-bottom: 6px;
 }
-
 .mov-table { width: 100%; border-collapse: collapse; }
 .mov-table thead tr { background: #0f3460; color: white; }
 .mov-table thead th {
@@ -89,11 +83,9 @@ body {
 .mov-table tbody td { padding: 4px 6px; font-size: 7.5pt; vertical-align: middle; }
 .mov-table tbody td.r { text-align: right; }
 .mov-table tbody td.mono { font-family: 'Courier New', monospace; font-size: 7pt; }
-
 /* Tipo badges */
 .tipo-I { color: #15803d; font-weight: bold; }
 .tipo-G { color: #b91c1c; font-weight: bold; }
-
 /* PUC pill */
 .puc-code {
     background: #e0f2fe;
@@ -109,7 +101,6 @@ body {
     font-style: italic;
     font-size: 7pt;
 }
-
 /* ── FILA DE TOTALES ── */
 .totals-row td {
     background: #0f3460;
@@ -120,7 +111,6 @@ body {
     border-top: 2px solid #0f3460;
 }
 .totals-row td.r { text-align: right; }
-
 /* ── FILA SIN DATOS ── */
 .empty-row td {
     text-align: center;
@@ -128,7 +118,6 @@ body {
     color: #94a3b8;
     font-style: italic;
 }
-
 /* ── PIE DE PÁGINA FIJO ── */
 .page-footer {
     position: fixed;
@@ -143,7 +132,6 @@ body {
 </style>
 </head>
 <body>
-
 <!-- PIE FIJO -->
 <div class="page-footer">
     {{ institucion.nombre }} &nbsp;·&nbsp; NIT: {{ institucion.nit }}
@@ -151,10 +139,8 @@ body {
     &nbsp;·&nbsp; Generado el {% now "d/m/Y H:i" %} por {{ generado_por }}
     &nbsp;·&nbsp; Página <pdf:pagenumber> de <pdf:pagecount>
 </div>
-
 <!-- BARRA SUPERIOR -->
 <div class="top-bar"></div>
-
 <!-- ENCABEZADO -->
 <table class="header-table">
     <tr>
@@ -186,9 +172,7 @@ body {
         </td>
     </tr>
 </table>
-
 <hr class="divider">
-
 <!-- KPIs RESUMEN -->
 <table class="kpi-table">
     <tr>
@@ -206,10 +190,8 @@ body {
         </td>
     </tr>
 </table>
-
 <!-- TABLA DE MOVIMIENTOS -->
 <div class="section-label" style="margin-top:8px;">Detalle de Movimientos — incluye códigos PUC</div>
-
 <table class="mov-table">
     <thead>
         <tr>
@@ -270,7 +252,6 @@ body {
     </tr>
     {% endif %}
 </table>
-
 <!-- NOTA SOBRE PUC FALTANTE -->
 {% for row in filas %}{% if not row.codigo_puc %}{% if forloop.first %}
 <div style="margin-top:10px; font-size:7pt; color:#b45309; background:#fff7ed; border:1px solid #fcd34d; border-radius:4px; padding:5px 10px;">
@@ -278,6 +259,5 @@ body {
     <em>Finanzas → Configuración → Conceptos de Pago</em> o <em>Categorías de Gasto</em> y asigne la cuenta contable correspondiente.
 </div>
 {% endif %}{% endif %}{% endfor %}
-
 </body>
 </html>

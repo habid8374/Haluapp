@@ -1,13 +1,9 @@
 {% extends 'base_finanzas.html' %}
-
 {% block titulo %}Estado de Cuenta de {{ estudiante.usuario.get_full_name }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
-    
     <div class="card shadow-sm mb-4">
         </div>
-
     <div class="card shadow-sm">
         <div class="card-header">
             <h5 class="mb-0">Cuentas Asignadas</h5>
@@ -66,7 +62,6 @@
                                     {% endif %}
                                 </td>
                             </tr>
-                            
                             {% if cuenta.pagos.all %}
                             <tr class="table-light">
                                 <td colspan="6" class="p-0">
@@ -145,7 +140,6 @@
             {% endif %}
         </div>
     </div>
-
     <div class="mt-4">
         <a href="{% url 'finanzas:sincronizar_cuentas' estudiante_pk=estudiante.pk %}" class="btn btn-info">
                 <i class="bi bi-arrow-repeat"></i> Sincronizar Cuentas
@@ -154,9 +148,7 @@
             <i class="bi bi-arrow-left"></i> Volver al Reporte General
         </a>
     </div>
-
 </div>
-
 <!-- Modal Marcar Incobrable -->
 <div class="modal fade" id="modalIncobrableHistorial" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -191,9 +183,7 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 document.querySelectorAll('.btn-marcar-incobrable').forEach(function(btn) {

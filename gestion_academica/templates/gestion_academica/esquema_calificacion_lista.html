@@ -1,7 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Esquemas de Calificación" }}{% endblock %}
-
 {% block contenido %}
 <!-- Hero -->
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
@@ -21,7 +20,6 @@
     {% endif %}
   </div>
 </div>
-
 {% if messages %}
   {% for message in messages %}
   <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
@@ -30,7 +28,6 @@
   </div>
   {% endfor %}
 {% endif %}
-
 <div class="card shadow-sm border-0" style="border-radius:14px;">
   <div class="card-body p-0">
     {% if esquemas %}

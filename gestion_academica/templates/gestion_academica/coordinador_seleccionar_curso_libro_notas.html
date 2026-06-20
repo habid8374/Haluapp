@@ -1,13 +1,10 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}Supervisión — Libro de Notas{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ═══════════════════════════════════════════════════════
    HALU PULSE — Coordinador: Libro de Notas (jerárquico)
 ═══════════════════════════════════════════════════════ */
-
 /* ── Hero ── */
 .cln-hero {
   background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
@@ -37,7 +34,6 @@
   color: #fff; text-decoration: none; transition: all .2s; flex-shrink: 0;
 }
 .cln-hero-btn:hover { background: rgba(255,255,255,.28); color: #fff; }
-
 /* ── Aviso solo lectura ── */
 .cln-readonly-bar {
   display: flex; align-items: center; gap: .7rem;
@@ -45,7 +41,6 @@
   padding: .7rem 1rem; font-size: .83rem; color: #1e40af; margin-bottom: 1rem;
 }
 .cln-readonly-bar i { font-size: 1rem; flex-shrink: 0; }
-
 /* ── Breadcrumb ── */
 .cln-breadcrumb {
   display: flex; align-items: center; flex-wrap: wrap; gap: .3rem;
@@ -59,14 +54,12 @@
 .cln-breadcrumb a:hover { text-decoration: underline; }
 .cln-breadcrumb .sep { color: #cbd5e1; margin: 0 .15rem; }
 .cln-breadcrumb .current { color: #1e1b4b; font-weight: 700; }
-
 /* ── Filtro de período ── */
 .cln-filter {
   background: #fff; border: 1px solid #e0e7ff; border-radius: .85rem;
   padding: .75rem 1.1rem; margin-bottom: 1.1rem;
   box-shadow: 0 2px 6px rgba(79,70,229,.05);
 }
-
 /* ══════════════════════════════════════════
    NIVEL 1 — Tarjetas de GRADO
 ══════════════════════════════════════════ */
@@ -116,7 +109,6 @@
   transition: transform .2s;
 }
 .cln-grado-card:hover .cln-grado-arrow { transform: translateX(4px); }
-
 /* ══════════════════════════════════════════
    NIVEL 2 — Tarjetas de MATERIA / CURSO
 ══════════════════════════════════════════ */
@@ -142,7 +134,6 @@
 .cln-mat-docente { font-size: .79rem; color: #6b7280; }
 .cln-mat-docente i { color: #4f46e5; }
 .cln-mat-actions { display: flex; gap: .5rem; flex-wrap: wrap; flex-shrink: 0; }
-
 .btn-ver-notas {
   display: inline-flex; align-items: center; gap: .35rem;
   padding: .44rem .95rem; border-radius: .55rem; font-size: .8rem; font-weight: 600;
@@ -150,7 +141,6 @@
   text-decoration: none; transition: all .15s; white-space: nowrap;
 }
 .btn-ver-notas:hover { background: #e0e7ff; color: #4338ca; }
-
 .btn-ver-anual {
   display: inline-flex; align-items: center; gap: .35rem;
   padding: .44rem .95rem; border-radius: .55rem; font-size: .8rem; font-weight: 600;
@@ -158,13 +148,11 @@
   border: none; text-decoration: none; transition: filter .15s; white-space: nowrap;
 }
 .btn-ver-anual:hover { filter: brightness(1.1); color: #fff; }
-
 /* ── Vacíos ── */
 .cln-empty {
   text-align: center; padding: 3rem 1rem; color: #9ca3af;
 }
 .cln-empty i { font-size: 2.5rem; display: block; margin-bottom: .75rem; }
-
 @media (max-width: 540px) {
   .cln-grados-grid { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); }
   .cln-materia-card { gap: .75rem; }
@@ -175,11 +163,8 @@
 }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
-  {# ── Hero ── #}
   <div class="cln-hero">
     <div>
       <div class="cln-badge"><i class="bi bi-eye-fill me-1"></i>Coordinación Académica</div>
@@ -209,8 +194,6 @@
       </a>
     {% endif %}
   </div>
-
-  {# ── Mensajes ── #}
   {% if messages %}
     {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3">
@@ -219,14 +202,10 @@
     </div>
     {% endfor %}
   {% endif %}
-
-  {# ── Aviso solo lectura ── #}
   <div class="cln-readonly-bar">
     <i class="bi bi-shield-lock-fill"></i>
     <span><strong>Modo supervisión:</strong> Las calificaciones solo pueden ser modificadas por el docente asignado a cada curso. Esta vista es de solo lectura.</span>
   </div>
-
-  {# ── Breadcrumb (nivel 2) ── #}
   {% if nivel == 'materias' %}
   <div class="cln-breadcrumb">
     <i class="bi bi-house-fill" style="color:#4f46e5;"></i>
@@ -241,8 +220,6 @@
     {% endif %}
   </div>
   {% endif %}
-
-  {# ── Filtro de período ── #}
   {% if periodos_disponibles %}
   <div class="cln-filter">
     <form method="get" class="row align-items-end g-2">
@@ -262,8 +239,6 @@
     </form>
   </div>
   {% endif %}
-
-  {# ══════════════════ NIVEL 1 — GRADOS ══════════════════ #}
   {% if nivel == 'grados' %}
     {% if not periodo_seleccionado %}
     <div class="alert alert-warning d-flex align-items-center gap-2">
@@ -297,8 +272,6 @@
       {% endfor %}
     </div>
     {% endif %}
-
-  {# ══════════════════ NIVEL 2 — MATERIAS DEL GRADO ══════════════════ #}
   {% elif nivel == 'materias' %}
     {% if not cursos %}
     <div class="cln-empty">
@@ -335,6 +308,5 @@
     </div>
     {% endif %}
   {% endif %}
-
 </div>
 {% endblock contenido %}

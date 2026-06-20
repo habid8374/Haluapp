@@ -1,16 +1,12 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
-
   <div style="background:linear-gradient(135deg,#1f2937 0%,#374151 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
     <h2 style="color:#fff;"><i class="bi bi-slash-circle me-2"></i>{{ titulo_pagina }}</h2>
     <p style="color:#fff;margin-bottom:0;">Cuentas marcadas como incobrables y retiradas de la cartera activa.</p>
   </div>
-
   <!-- Resumen -->
   <div class="row g-3 mb-4">
     <div class="col-md-4">
@@ -26,7 +22,6 @@
       </div>
     </div>
   </div>
-
   <!-- Tabla -->
   <div class="card shadow-sm">
     <div class="card-header fw-bold"><i class="bi bi-archive me-2"></i>Cuentas Castigadas</div>
@@ -57,6 +52,5 @@
       </table>
     </div>
   </div>
-
 </div>
 {% endblock %}

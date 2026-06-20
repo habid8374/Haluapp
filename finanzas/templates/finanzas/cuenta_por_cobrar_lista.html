@@ -1,7 +1,5 @@
 {% extends "base_finanzas.html" %}
-
 {% block titulo %}Cuentas por Cobrar - Finanzas{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,7 +8,6 @@
             <i class="bi bi-plus-circle"></i> Asignar Nueva Cuenta
         </a>
     </div>
-
     <div class="card shadow-sm">
         <div class="card-body">
             {% if cuentas_por_cobrar %}
@@ -49,16 +46,11 @@
                                         {{ cuenta.get_estado_display }}
                                     </span>
                                 </td>
-                                
-                                {# --- COLUMNA DE ACCIONES CON LOS NUEVOS BOTONES --- #}
                                 <td class="text-end text-nowrap">
                                     {% if cuenta.estado != 'PAGADO' and cuenta.estado != 'ANULADO' %}
-                                        {# Botón para REGISTRAR un PAGO #}
                                         <a href="{% url 'finanzas:registrar_pago' cuenta.pk %}" class="btn btn-sm btn-success" title="Registrar Pago">
                                             <i class="bi bi-cash-coin"></i>
                                         </a>
-
-                                        {# Botón para generar VOLANTE DE PAGO #}
                                         {% if 'matrícula' in cuenta.concepto_pago.nombre_concepto|lower %}
                                             <a href="{% url 'finanzas:volante_matricula' cuenta.estudiante.pk %}" class="btn btn-sm btn-info" target="_blank" title="Generar Volante de Matrícula">
                                                 <i class="bi bi-file-earmark-text"></i>
@@ -69,8 +61,6 @@
                                             </a>
                                         {% endif %}
                                     {% endif %}
-                                    
-                                    {# Botones para EDITAR y ELIMINAR la cuenta #}
                                     <a href="{% url 'finanzas:editar_cuenta_por_cobrar' cuenta.pk %}" class="btn btn-sm btn-warning mx-1" title="Editar Cuenta">
                                         <i class="bi bi-pencil-fill"></i>
                                     </a>

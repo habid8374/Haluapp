@@ -1,8 +1,6 @@
 {% extends 'base_academico.html' %}
 {% load static %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══════════════════════════════════════════════════════
@@ -15,7 +13,6 @@
   --grad-light:  #16a34a;
   --grad-accent: #86efac;
 }
-
 /* ── Hero ─────────────────────────────────────────── */
 .grad-hero {
   background: linear-gradient(135deg, var(--grad-dark) 0%, var(--grad-mid) 55%, #15803d 100%);
@@ -46,7 +43,6 @@
 }
 .grad-hero-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
 .grad-hero-btn-outline:hover { background: rgba(255,255,255,.22); color: #fff; }
-
 /* ── Panel ────────────────────────────────────────── */
 .grad-panel {
   background: #fff;
@@ -72,7 +68,6 @@
 .ico-green  { background: #dcfce7; color: #16a34a; }
 .ico-amber  { background: #fef3c7; color: #92400e; }
 .ico-red    { background: #fee2e2; color: #dc2626; }
-
 /* ── Info items ────────────────────────────────────── */
 .grad-info-grid {
   display: grid;
@@ -88,7 +83,6 @@
 .grad-info-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; font-weight: 600; }
 .grad-info-val   { font-size: 1.15rem; font-weight: 800; color: #1e293b; }
 .grad-info-val.big { font-size: 1.6rem; color: var(--grad-light); }
-
 /* ── Advertencia ─────────────────────────────────── */
 .grad-warning {
   margin: 0 1.2rem 1.2rem;
@@ -100,7 +94,6 @@
   font-size: .83rem; color: #713f12;
 }
 .grad-warning i { font-size: 1.1rem; color: #d97706; flex-shrink: 0; margin-top: .05rem; }
-
 /* ── Botón confirmar ─────────────────────────────── */
 .grad-confirm-wrap { padding: 1.2rem; }
 .grad-confirm-btn {
@@ -113,7 +106,6 @@
 }
 .grad-confirm-btn:hover { opacity: .9; }
 .grad-confirm-btn:active { transform: scale(.98); }
-
 /* ── Vacío ─────────────────────────────────────────── */
 .grad-empty {
   padding: 2rem 1.4rem;
@@ -127,10 +119,8 @@
 .grad-empty i { font-size: 2rem; display: block; margin-bottom: .5rem; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:760px;">
-
   <!-- ══ HERO ════════════════════════════════════════════════════════ -->
   <div class="grad-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
@@ -148,7 +138,6 @@
       </a>
     </div>
   </div>
-
   <!-- ══ DATOS DEL PROCESO ════════════════════════════════════════════ -->
   <div class="grad-panel">
     <div class="grad-panel-header">
@@ -157,7 +146,6 @@
         Información del Proceso
       </h2>
     </div>
-
     <div class="grad-info-grid">
       <div class="grad-info-item">
         <div class="grad-info-label"><i class="bi bi-calendar-year me-1"></i>Año académico a cerrar</div>
@@ -177,7 +165,6 @@
       </div>
     </div>
   </div>
-
   <!-- ══ ADVERTENCIA + CONFIRMACIÓN ═══════════════════════════════════ -->
   <div class="grad-panel">
     <div class="grad-panel-header">
@@ -186,7 +173,6 @@
         Confirmar Proceso
       </h2>
     </div>
-
     <div class="grad-warning">
       <i class="bi bi-exclamation-triangle-fill"></i>
       <div>
@@ -196,7 +182,6 @@
         Asegúrate de haber cerrado las calificaciones y el año escolar antes de proceder.
       </div>
     </div>
-
     {% if conteo_estudiantes > 0 %}
     <div class="grad-confirm-wrap">
       <form id="form-graduacion" method="post">
@@ -216,7 +201,6 @@
     </div>
     {% endif %}
   </div>
-
 </div>
 <!-- Modal — Confirmar proceso de graduación -->
 <div class="modal fade" id="modalConfirmarGraduacion" tabindex="-1" aria-hidden="true">

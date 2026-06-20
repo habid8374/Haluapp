@@ -1,11 +1,9 @@
 {% extends "base_admisiones.html" %}
 {% block titulo %}Dashboard de Admisiones{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
   :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
-
   .ps-hero {
     background: linear-gradient(135deg, var(--ps-dark) 0%, var(--ps-mid) 55%, var(--ps-light) 100%);
     padding: 2rem 2rem 1.8rem;
@@ -25,7 +23,6 @@
     padding:.32rem .85rem; font-size:.77rem; color:#fff; font-weight:600;
     position:relative; z-index:1;
   }
-
   /* Chart cards */
   .ps-chart-card {
     background:#fff; border-radius:.85rem;
@@ -52,7 +49,6 @@
     display:flex; align-items:center; justify-content:center;
   }
   .ps-chart-body-auto { padding:1.2rem; }
-
   /* Error state */
   .ps-error-state {
     background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
@@ -61,10 +57,8 @@
   }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid">
-
   <!-- Hero -->
   <div class="ps-hero">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -79,10 +73,8 @@
       </span>
     </div>
   </div>
-
   <!-- Gráficos -->
   <div id="charts-container">
-
   <!-- Fila 1: Estado + Por Grado -->
   <div class="row g-4 mb-4">
     <div class="col-lg-5 col-md-12">
@@ -108,7 +100,6 @@
       </div>
     </div>
   </div>
-
   <!-- Fila 2: Colegios + Sexo -->
   <div class="row g-4 mb-4">
     <div class="col-lg-8 col-md-12">
@@ -134,7 +125,6 @@
       </div>
     </div>
   </div>
-
   <!-- Fila 3: Municipios -->
   <div class="row g-4">
     <div class="col-12">
@@ -149,18 +139,14 @@
       </div>
     </div>
   </div>
-
-  </div>{# /charts-container #}
-
+  </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 {{ block.super }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const EMPTY_MSG = '<p class="text-center text-muted py-4 mb-0" style="font-size:.88rem;"><i class="bi bi-inbox me-1"></i>Sin datos para mostrar.</p>';
-
 document.addEventListener('DOMContentLoaded', function () {
     fetch("{% url 'admisiones:dashboard_data' %}")
         .then(response => {
@@ -169,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(data => {
             const totalAspirantes = (data.porEstado.data || []).reduce((a, b) => a + b, 0);
-
             if (data.sin_datos || totalAspirantes === 0) {
                 document.getElementById('charts-container').innerHTML =
                     '<div class="text-center py-5 text-muted">' +
@@ -179,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     '</div>';
                 return;
             }
-
             const palette = [
                 'rgba(29,78,216,.8)',
                 'rgba(124,58,237,.8)',
@@ -188,7 +172,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 'rgba(239,68,68,.8)',
             ];
             const borderColor = '#fff';
-
             // --- GRÁFICO 1: ASPIRANTES POR ESTADO (pie) ---
             const canvasEstado = document.getElementById('chartPorEstado');
             if (canvasEstado && data.porEstado.labels.length > 0) {
@@ -203,7 +186,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (canvasEstado) {
                 canvasEstado.parentElement.innerHTML = EMPTY_MSG;
             }
-
             // --- GRÁFICO 2: ASPIRANTES POR GRADO (bar) ---
             const canvasGrado = document.getElementById('chartPorGrado');
             if (canvasGrado && data.porGrado.labels.length > 0) {
@@ -215,7 +197,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (canvasGrado) {
                 canvasGrado.parentElement.innerHTML = EMPTY_MSG;
             }
-
             // --- GRÁFICO 3: TOP COLEGIOS (bar horizontal) ---
             const canvasColegio = document.getElementById('chartPorColegio');
             if (canvasColegio && data.porColegio.labels.length > 0) {
@@ -227,7 +208,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (canvasColegio) {
                 canvasColegio.parentElement.innerHTML = EMPTY_MSG;
             }
-
             // --- GRÁFICO 4: TOP MUNICIPIOS (bar horizontal) ---
             const canvasMunicipio = document.getElementById('chartPorMunicipio');
             if (canvasMunicipio && data.porMunicipio.labels.length > 0) {
@@ -239,7 +219,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (canvasMunicipio) {
                 canvasMunicipio.parentElement.innerHTML = EMPTY_MSG;
             }
-
             // --- GRÁFICO 5: DISTRIBUCIÓN POR SEXO (doughnut) ---
             const canvasSexo = document.getElementById('graficoPorSexo');
             if (canvasSexo && data.porSexo.labels.length > 0) {

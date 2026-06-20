@@ -1,19 +1,15 @@
-{# gestion_academica/templates/gestion_academica/docente_detalle.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
-{% block titulo %}{{ titulo_pagina|default:"Detalle del Docente" }}{% endblock titulo %} {# Usamos titulo_pagina #}
-
+{% extends "base_academico.html" %}
+{% load static %}
+{% block titulo %}{{ titulo_pagina|default:"Detalle del Docente" }}{% endblock titulo %}
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">{{ titulo_pagina|default:"Detalle del Docente" }}</h1> {# Usamos titulo_pagina #}
+        <h1 class="mb-0">{{ titulo_pagina|default:"Detalle del Docente" }}</h1>
         <a href="{% url 'gestion_academica:lista_docentes' %}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left-circle-fill"></i> Volver a la Lista
         </a>
     </div>
     <hr>
-
     {% if docente %}
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
@@ -31,7 +27,7 @@
                         <li><strong>Nombres:</strong> {{ docente.usuario.first_name|default:"No especificado" }}</li>
                         <li><strong>Apellidos:</strong> {{ docente.usuario.last_name|default:"No especificado" }}</li>
                         <li><strong>Email:</strong> {{ docente.usuario.email|default:"No especificado" }}</li>
-                        <li><strong>Rol:</strong> {{ docente.usuario.rol|default:"No especificado" }}</li> {# Usa el campo 'rol' del modelo Usuario #}
+                        <li><strong>Rol:</strong> {{ docente.usuario.rol|default:"No especificado" }}</li>
                         <li><strong>Activo:</strong> {% if docente.usuario.is_active %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</li>
                         <li><strong>Fecha de Ingreso:</strong> {{ docente.usuario.date_joined|date:"d/m/Y H:i" }}</li>
                         {% if docente.usuario.institucion_asociada %}
@@ -44,20 +40,17 @@
                     <ul class="list-unstyled">
                         <li><strong>Código de Docente:</strong> {{ docente.codigo_docente|default:"No especificado" }}</li>
                         <li><strong>Especialidad Principal:</strong> {{ docente.especialidad|default:"No especificada" }}</li>
-                        {# Aquí podrías añadir más información si la tienes en el modelo Docente #}
-                        {# Ejemplo: <li><strong>Teléfono de Contacto:</strong> {{ docente.telefono_contacto|default:"No especificado" }}</li> #}
-                        {# Ejemplo: <li><strong>Oficina:</strong> {{ docente.oficina|default:"No especificada" }}</li> #}
                     </ul>
                 </div>
             </div>
         </div>
         <div class="card-footer text-end">
-            {% if perms.gestion_academica.change_docente %} {# Permiso para editar #}
+            {% if perms.gestion_academica.change_docente %}
                 <a href="{% url 'gestion_academica:editar_docente' docente.pk %}" class="btn btn-warning me-2">
                     <i class="bi bi-pencil-square"></i> Editar Docente
                 </a>
             {% endif %}
-            {% if perms.gestion_academica.delete_docente %} {# Permiso para eliminar #}
+            {% if perms.gestion_academica.delete_docente %}
                 <a href="{% url 'gestion_academica:eliminar_docente' docente.pk %}" class="btn btn-danger">
                     <i class="bi bi-trash-fill"></i> Eliminar Docente
                 </a>
@@ -69,6 +62,5 @@
             <i class="bi bi-info-circle-fill me-2"></i> No se encontró la información del docente.
         </div>
     {% endif %}
-
 </div>
 {% endblock contenido %}

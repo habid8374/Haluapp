@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -10,7 +8,6 @@
             <p class="lead text-muted">¡No te preocupes! Repasar estos temas te ayudará a mejorar. ¡Tú puedes!</p>
         </div>
     </div>
-
     <div class="row mt-4">
         {% for recurso in recursos %}
             <div class="col-md-6 col-lg-4 mb-4">

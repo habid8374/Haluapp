@@ -1,9 +1,6 @@
-{# gestion_academica/templates/gestion_academica/deber_detalle.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Detalle del Deber" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -13,7 +10,6 @@
         </a>
     </div>
     <hr>
-
     {% if deber %}
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
@@ -24,16 +20,12 @@
             <dl class="row">
                 <dt class="col-sm-3 text-secondary">Curso:</dt>
                 <dd class="col-sm-9">{{ deber.curso.materia.nombre_materia }} del grado {{ deber.curso.grado.nombre }} ({{ deber.curso.periodo_academico.nombre }})</dd>
-
                 <dt class="col-sm-3 text-secondary">Descripción / Instrucciones:</dt>
                 <dd class="col-sm-9">{{ deber.descripcion|linebreaksbr|default:"No especificada" }}</dd>
-
                 <dt class="col-sm-3 text-secondary">Fecha de Asignación:</dt>
                 <dd class="col-sm-9">{{ deber.fecha_asignacion|date:"d F, Y" }}</dd>
-
                 <dt class="col-sm-3 text-secondary">Fecha Límite de Entrega:</dt>
                 <dd class="col-sm-9">{{ deber.fecha_entrega|date:"d F, Y" }}</dd>
-
                 {% if deber.material_adjunto %}
                 <dt class="col-sm-3 text-secondary">Material de Apoyo Adjunto:</dt>
                 <dd class="col-sm-9">
@@ -45,8 +37,6 @@
                 <dt class="col-sm-3 text-secondary">Material de Apoyo Adjunto:</dt>
                 <dd class="col-sm-9">No adjuntado</dd>
                 {% endif %}
-                
-                {# Si tuvieras un campo 'creado_por' en el modelo Deber #}
                 {% comment %}
                 {% if deber.creado_por %}
                 <dt class="col-sm-3 text-secondary">Creado por:</dt>
@@ -56,12 +46,12 @@
             </dl>
         </div>
         <div class="card-footer text-end">
-            {% if perms.gestion_academica.change_deber %} {# Permiso para editar #}
+            {% if perms.gestion_academica.change_deber %}
                 <a href="{% url 'gestion_academica:editar_deber' deber.pk %}" class="btn btn-warning me-2">
                     <i class="bi bi-pencil-square"></i> Editar Deber
                 </a>
             {% endif %}
-            {% if perms.gestion_academica.delete_deber %} {# Permiso para eliminar #}
+            {% if perms.gestion_academica.delete_deber %}
                 <a href="{% url 'gestion_academica:eliminar_deber' deber.pk %}" class="btn btn-danger ms-2">
                     <i class="bi bi-trash-fill"></i> Eliminar Deber
                 </a>

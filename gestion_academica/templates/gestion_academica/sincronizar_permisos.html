@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══════════════════════════════════════════════════════
@@ -13,7 +11,6 @@
   --sp-light:  #4f46e5;
   --sp-accent: #818cf8;
 }
-
 /* ── Hero ─────────────────────────────────────────── */
 .sp-hero {
   background: linear-gradient(135deg, var(--sp-dark) 0%, var(--sp-mid) 55%, #4338ca 100%);
@@ -31,7 +28,6 @@
 }
 .sp-hero-title  { font-size: 1.35rem; font-weight: 800; letter-spacing: -.5px; margin-bottom: .25rem; }
 .sp-hero-sub    { font-size: .83rem; opacity: .78; max-width: 600px; }
-
 /* ── Info box ─────────────────────────────────────── */
 .sp-info-box {
   display: flex; align-items: flex-start; gap: .85rem;
@@ -45,7 +41,6 @@
 }
 .sp-info-text   { font-size: .83rem; color: #3730a3; line-height: 1.55; }
 .sp-info-text strong { color: #1e1b4b; }
-
 /* ── Panel base ───────────────────────────────────── */
 .sp-panel {
   background: #fff; border-radius: .85rem;
@@ -67,17 +62,14 @@
   font-size: .85rem; flex-shrink: 0;
   background: #e0e7ff; color: #4f46e5;
 }
-
 /* ── Groups grid ──────────────────────────────────── */
 .sp-grid { padding: 1.2rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
-
 .sp-group-card {
   border: 1px solid #e2e8f0; border-radius: .75rem;
   overflow: hidden; transition: box-shadow .15s, transform .15s;
   display: flex; flex-direction: column;
 }
 .sp-group-card:hover { box-shadow: 0 4px 16px rgba(79,70,229,.15); transform: translateY(-2px); }
-
 .sp-group-card-top {
   background: linear-gradient(135deg, var(--sp-mid), var(--sp-light));
   padding: 1rem 1.15rem .85rem;
@@ -90,10 +82,8 @@
 }
 .sp-group-name  { font-size: .92rem; font-weight: 700; color: #fff; line-height: 1.3; }
 .sp-group-sub   { font-size: .74rem; color: rgba(255,255,255,.75); margin-top: .1rem; }
-
 .sp-group-card-body { padding: .85rem 1.1rem; flex: 1; }
 .sp-group-desc  { font-size: .78rem; color: #64748b; line-height: 1.5; margin-bottom: .75rem; }
-
 .sp-sync-btn {
   width: 100%; background: linear-gradient(135deg, var(--sp-mid), var(--sp-light));
   color: #fff; border: none; border-radius: .55rem;
@@ -103,12 +93,10 @@
 }
 .sp-sync-btn:hover { opacity: .88; }
 .sp-sync-btn:active { transform: scale(.98); }
-
 /* ── Spinner animation on submit ─────────────────── */
 .sp-sync-btn .sp-spinner { display: none; }
 .sp-sync-btn.loading .sp-spinner { display: inline-block; }
 .sp-sync-btn.loading .sp-btn-text { display: none; }
-
 /* ── Empty state ──────────────────────────────────── */
 .sp-empty { text-align: center; padding: 2.5rem 1.2rem; color: #94a3b8; }
 .sp-empty i { font-size: 2.2rem; display: block; margin-bottom: .6rem; color: #c7d2fe; }
@@ -122,10 +110,8 @@
 .sp-empty-link:hover { background: #c7d2fe; color: #1e1b4b; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1100px;">
-
   <!-- ══ HERO ══════════════════════════════════════════════════════════ -->
   <div class="sp-hero">
     <div style="position:relative;z-index:1;">
@@ -140,7 +126,6 @@
       </div>
     </div>
   </div>
-
   <!-- ══ INFO BOX ══════════════════════════════════════════════════════ -->
   <div class="sp-info-box">
     <div class="sp-info-icon"><i class="bi bi-info-circle-fill"></i></div>
@@ -150,7 +135,6 @@
       Es seguro ejecutarlo varias veces — solo actualiza a quienes faltan.
     </div>
   </div>
-
   <!-- ══ PANEL GRUPOS ══════════════════════════════════════════════════ -->
   <div class="sp-panel">
     <div class="sp-panel-header">
@@ -164,7 +148,6 @@
       </span>
       {% endif %}
     </div>
-
     {% if grupos %}
     <div class="sp-grid">
       {% for grupo in grupos %}
@@ -200,7 +183,6 @@
       </div>
       {% endfor %}
     </div>
-
     {% else %}
     <div class="sp-empty">
       <i class="bi bi-shield-x"></i>
@@ -214,12 +196,9 @@
       </a>
     </div>
     {% endif %}
-
   </div><!-- /sp-panel -->
-
 </div>
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 // Muestra spinner mientras el form hace POST

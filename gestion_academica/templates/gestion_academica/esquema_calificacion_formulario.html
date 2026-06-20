@@ -1,7 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% block titulo %}{{ titulo_formulario|default:"Esquema de Calificación" }}{% endblock %}
-
 {% block contenido %}
 <!-- Hero -->
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
@@ -14,7 +13,6 @@
     <p class="mb-0" style="opacity:.82;font-size:.85rem;">Configura la estructura de ponderación para calificaciones</p>
   </div>
 </div>
-
 <div class="card shadow-sm border-0" style="border-radius:14px;">
   <div class="card-body p-4">
     {% if form.non_field_errors %}
@@ -25,7 +23,6 @@
       </ul>
     </div>
     {% endif %}
-
     <form method="post" novalidate>
       {% csrf_token %}
       {% for field in form %}
@@ -42,7 +39,6 @@
         {% endfor %}
       </div>
       {% endfor %}
-
       <div class="d-flex gap-2 justify-content-end mt-3">
         <a href="{% url 'gestion_academica:lista_esquemas_calificacion' %}" class="btn btn-outline-secondary">
           <i class="bi bi-x-circle me-1"></i>Cancelar

@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══════════════════════════════════════════════════════
@@ -17,7 +15,6 @@
   --gold:        #d97706;
   --gold-light:  #fbbf24;
 }
-
 /* ── Hero ─────────────────────────────────────────── */
 .te-hero {
   background: linear-gradient(135deg, var(--elec-dark) 0%, var(--elec-mid) 55%, #4338ca 100%);
@@ -52,7 +49,6 @@
 .te-btn-outline { background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.3); }
 .te-btn-outline:hover { background:rgba(255,255,255,.22); color:#fff; }
 .te-btn-white   { background:#fff; color:var(--elec-mid); }
-
 /* ── Panel base ────────────────────────────────────── */
 .te-panel {
   background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
@@ -74,7 +70,6 @@
 .ico-violet { background:#ede9fe; color:#7c3aed; }
 .ico-green  { background:#dcfce7; color:#16a34a; }
 .ico-gold   { background:#fef3c7; color:#d97706; }
-
 /* ── Participación ─────────────────────────────────── */
 .te-part-wrap { padding:.9rem 1.2rem 1.1rem; }
 .te-part-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem; font-size:.82rem; color:#475569; }
@@ -85,7 +80,6 @@
   background:linear-gradient(90deg,var(--elec-mid),var(--elec-accent));
   transition:width 1s cubic-bezier(.4,0,.2,1);
 }
-
 /* ── Ranking candidatos ────────────────────────────── */
 .te-cand-row {
   display:flex; align-items:center; gap:.75rem;
@@ -94,7 +88,6 @@
 .te-cand-row:last-child { border-bottom:none; }
 .te-cand-row:hover  { background:#fafafe; }
 .te-cand-row.leader { background:linear-gradient(90deg,#fefce8 0%,#fff 100%); }
-
 .te-medal { font-size:1.3rem; flex-shrink:0; width:26px; text-align:center; line-height:1; }
 .te-avatar {
   width:44px; height:44px; border-radius:50%; flex-shrink:0; overflow:hidden;
@@ -123,7 +116,6 @@
   border:none; cursor:pointer;
 }
 .te-det-btn:hover { background:#c7d2fe; }
-
 /* ── Tabla por grado ────────────────────────────────── */
 .te-grade-table { width:100%; border-collapse:collapse; font-size:.8rem; }
 .te-grade-table thead th {
@@ -140,20 +132,16 @@
 }
 .te-cell-bar-bg  { flex:1; background:#f1f5f9; border-radius:2rem; height:6px; overflow:hidden; }
 .te-cell-bar-fill { height:100%; border-radius:2rem; background:var(--elec-light); transition:width .6s; }
-
 /* ── Gráfica ─────────────────────────────────────── */
 .te-chart-wrap { padding:1rem 1.2rem; }
 .te-chart-wrap canvas { max-height:220px; }
-
 /* ── Vacío ─────────────────────────────────────────── */
 .te-empty { text-align:center; padding:2.5rem 1rem; color:#94a3b8; }
 .te-empty i { font-size:2.2rem; display:block; margin-bottom:.6rem; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1280px;">
-
   <!-- ══ HERO ════════════════════════════════════════════════════════ -->
   <div class="te-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
@@ -192,7 +180,6 @@
       </div>
     </div>
   </div>
-
   <!-- ══ PARTICIPACIÓN TOTAL ══════════════════════════════════════════ -->
   <div class="te-panel">
     <div class="te-panel-header">
@@ -214,13 +201,10 @@
       </div>
     </div>
   </div>
-
   <!-- ══ GRID PRINCIPAL ═══════════════════════════════════════════════ -->
   <div class="row g-3">
-
     <!-- ─ Ranking + Gráfica ─ -->
     <div class="col-12 col-xl-7">
-
       <!-- Gráfica -->
       <div class="te-panel">
         <div class="te-panel-header">
@@ -233,7 +217,6 @@
           <canvas id="votosChart"></canvas>
         </div>
       </div>
-
       <!-- Ranking -->
       <div class="te-panel">
         <div class="te-panel-header">
@@ -245,7 +228,6 @@
             {{ candidatos|length }} candidato{{ candidatos|length|pluralize:"s" }}
           </span>
         </div>
-
         {% if candidatos %}
           {% for c in candidatos %}
           <div class="te-cand-row {% if forloop.first %}leader{% endif %}">
@@ -288,9 +270,7 @@
           </div>
         {% endif %}
       </div>
-
     </div><!-- /col ranking -->
-
     <!-- ─ Votos por grado ─ -->
     <div class="col-12 col-xl-5">
       <div class="te-panel" style="height:100%;">
@@ -300,7 +280,6 @@
             Escrutinio por Grado
           </h2>
         </div>
-
         {% if grados_participantes and candidatos %}
         <div class="table-responsive">
           <table class="te-grade-table">
@@ -320,7 +299,6 @@
                 <td class="fw-semibold">{{ grado }}</td>
                 {% for c in candidatos %}
                   {% with v=votos_por_grado|dictsort:"pk" %}
-                  {# Accedemos al dict por candidato pk ─ hacemos el cálculo en contexto #}
                   <td>
                     {% with cid=c.pk gdict=votos_por_grado %}
                       {% for k, d in gdict.items %}
@@ -352,15 +330,11 @@
             <p class="small mb-0">Aún no hay votos emitidos por grado.</p>
           </div>
         {% endif %}
-
       </div>
     </div><!-- /col grado -->
-
   </div><!-- /row -->
-
 </div>
 {% endblock %}
-
 {% block body_end %}
 {{ block.super }}
 {{ labels|json_script:"chart-labels-data" }}
@@ -371,7 +345,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const labels = JSON.parse(document.getElementById('chart-labels-data').textContent);
   const votos  = JSON.parse(document.getElementById('chart-votos-data').textContent);
   const maxV   = Math.max(...votos, 1);
-
   /* ── Estado elección ──────────────────────────────── */
   const fechaInicio = new Date("{{ eleccion.fecha_inicio|date:'c' }}");
   const fechaFin    = new Date("{{ eleccion.fecha_fin|date:'c' }}");
@@ -390,18 +363,15 @@ document.addEventListener('DOMContentLoaded', function () {
       badgeTxt.textContent = 'Próxima';
     }
   }
-
   /* ── Barra participación ────────────────────────── */
   const partBar = document.getElementById('partBar');
   if (partBar) requestAnimationFrame(() => { partBar.style.width = (partBar.dataset.pct || 0) + '%'; });
-
   /* ── Barras ranking ──────────────────────────────── */
   document.querySelectorAll('.te-bar-fill').forEach(bar => {
     const v   = parseInt(bar.dataset.votes || '0', 10);
     const pct = maxV > 0 ? Math.round((v / maxV) * 100) : 0;
     requestAnimationFrame(() => { bar.style.width = pct + '%'; });
   });
-
   /* ── Gráfica de barras ───────────────────────────── */
   const ctx = document.getElementById('votosChart')?.getContext('2d');
   if (ctx && labels.length) {

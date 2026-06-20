@@ -32,7 +32,6 @@
         <div class="content">
             <p>Hola <strong>{{ pago.estudiante.usuario.get_full_name }}</strong>,</p>
             <p>Confirmamos que hemos recibido tu pago. A continuación, los detalles de la transacción:</p>
-            
             <table class="content-table">
                 <tr>
                     <th>Recibo No.</th>
@@ -61,14 +60,12 @@
                 </tr>
                 {% endif %}
             </table>
-
             <table class="content-table" style="margin-top: 25px;">
                 <tr class="total-row">
                     <td>Saldo restante para este concepto:</td>
                     <td style="text-align: right; color: #dc3545;">${{ pago.cuenta.saldo_pendiente|floatformat:2 }}</td>
                 </tr>
             </table>
-
             <p style="text-align:center; margin-top: 30px;">¡Gracias por mantener tus cuentas al día!</p>
         </div>
         <div class="footer">

@@ -1,8 +1,6 @@
 {% extends 'base_finanzas.html' %}
-{% load humanize %}  {# Esta línea es clave para usar intcomma #}
-
+{% load humanize %}
 {% block titulo %}Confirmar Eliminación{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -15,16 +13,13 @@
                     <p class="fs-5">
                         ¿Estás seguro de que deseas eliminar el siguiente gasto?
                     </p>
-                    
                     <div class="alert alert-warning">
                         <strong>Gasto:</strong> {{ object.descripcion }} ({{ object.fecha_gasto|date:"d/m/Y" }}) — ${{ object.monto|floatformat:2|intcomma }}
                     </div>
-
                     <p class="text-danger mt-3">
                         <strong><i class="bi bi-exclamation-triangle-fill"></i> ¡Esta acción no se puede deshacer!</strong>
                     </p>
                     <hr>
-                    
                     <form method="POST">
                         {% csrf_token %}
                         <div class="d-flex justify-content-between mt-4">

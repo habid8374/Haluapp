@@ -1,8 +1,6 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
     <nav aria-label="breadcrumb" class="mb-3">
@@ -11,14 +9,11 @@
             <li class="breadcrumb-item active" aria-current="page">{{ titulo_pagina }}</li>
         </ol>
     </nav>
-
     <h1 class="h3 mb-2">{{ titulo_pagina }}</h1>
     <p class="text-muted mb-3">Acceda a los informes de gestión y a las descargas para contabilidad externa (contador o revisor fiscal).</p>
-
     {% if periodo_activo %}
     <p class="small text-muted mb-3">Periodo académico activo en la institución: <strong>{{ periodo_activo }}</strong>. En los informes puede elegir periodo en el formulario o usar <code>?periodo=&lt;id&gt;</code> en la URL.</p>
     {% endif %}
-
     {% if alertas_puc.conceptos_sin_puc or alertas_puc.categorias_sin_puc %}
     <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 mb-4" role="alert">
         <div>
@@ -32,7 +27,6 @@
         </div>
     </div>
     {% endif %}
-
     <div class="row g-4">
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm">
@@ -71,8 +65,6 @@
             </div>
         </div>
     </div>
-
-
     <h2 class="h6 text-muted mt-4 mb-3"><i class="bi bi-bar-chart-steps me-2"></i>Reportes adicionales</h2>
     <div class="row g-4">
       <div class="col-md-6 col-lg-4">
@@ -130,11 +122,9 @@
         </div>
       </div>
     </div>
-
     {% if auditorias_exportacion %}
     {% with ultima=auditorias_exportacion.0 %}
     <div class="card shadow-sm mt-4" style="border-radius:12px;overflow:hidden;">
-
         <!-- Encabezado colapsable -->
         <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap"
              style="cursor:pointer;background:#f8faff;"
@@ -157,7 +147,6 @@
             <i class="bi bi-chevron-down text-muted" id="auditoria-chevron"
                style="transition:transform .25s;"></i>
         </div>
-
         <!-- Cuerpo colapsado por defecto -->
         <div class="collapse" id="auditoria-body">
             <div class="table-responsive">
@@ -214,13 +203,11 @@
                 El historial completo está disponible en el panel de administración.
             </div>
         </div>
-
     </div>
     {% endwith %}
     {% endif %}
 </div>
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 (function () {

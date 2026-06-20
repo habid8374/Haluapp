@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
     .hc-log {
@@ -24,9 +22,7 @@
     .hc-log .hc-line.info.header { color: #ffd166; font-weight: 700; margin-top: .75rem; }
 </style>
 {% endblock %}
-
 {% block contenido %}
-
 <div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:18px;padding:1.75rem 2rem;color:white;margin-bottom:1.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
     <div>
         <h2 class="fw-800 mb-1" style="font-size:1.45rem;">
@@ -42,7 +38,6 @@
         <i class="bi bi-arrow-left me-1"></i> Volver al Dashboard
     </a>
 </div>
-
 <!-- KPIs -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
@@ -89,7 +84,6 @@
         </div>
     </div>
 </div>
-
 <!-- Progress bar (solo cuando está en curso) -->
 {% if ejecucion.en_curso %}
 <div class="progress mb-4" style="height:10px;border-radius:9px;">
@@ -99,7 +93,6 @@
          style="width: {% widthratio ejecucion.pasos_completados PASOS_TOTALES 100 %}%;"></div>
 </div>
 {% endif %}
-
 <!-- Log en vivo -->
 <div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
     <div class="card-header fw-700 border-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
@@ -116,16 +109,13 @@
         </div>
     </div>
 </div>
-
 {% if ejecucion.error_excepcion %}
 <div class="alert alert-danger mt-3 mb-0" style="border-radius:12px;">
     <strong><i class="bi bi-exclamation-triangle-fill me-1"></i>Excepción interna:</strong>
     <pre class="mb-0 mt-2" style="font-size:.82rem;">{{ ejecucion.error_excepcion }}</pre>
 </div>
 {% endif %}
-
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 {% if ejecucion.en_curso %}
 <script>
@@ -141,10 +131,8 @@
     const $pasosActual = document.getElementById('hc-pasos-actual');
     const $progressBar = document.getElementById('hc-progress-bar');
     const $statusText = document.getElementById('hc-status-text');
-
     let errores = parseInt($errores.textContent || '0', 10);
     let warns = parseInt($warns.textContent || '0', 10);
-
     function append(evento) {
         const nivel = (evento.nivel || '').toLowerCase();
         const div = document.createElement('div');
@@ -162,7 +150,6 @@
         $log.appendChild(div);
         $log.scrollTop = $log.scrollHeight;
     }
-
     function updateProgress(pasosCompletados) {
         $pasosActual.textContent = pasosCompletados;
         if ($progressBar) {
@@ -170,7 +157,6 @@
             $progressBar.style.width = pct + '%';
         }
     }
-
     function aplicarEstadoFinal(payload) {
         let badge;
         if (payload.estado === 'OK')        badge = '<span class="badge bg-success fs-6">OK</span>';
@@ -179,7 +165,6 @@
         else if (payload.estado === 'FALLIDO') badge = '<span class="badge bg-dark fs-6">FALLIDO</span>';
         else badge = `<span class="badge bg-secondary fs-6">${payload.estado}</span>`;
         $estado.innerHTML = badge;
-
         if ($progressBar) {
             $progressBar.classList.remove('progress-bar-animated', 'bg-primary');
             $progressBar.classList.add(
@@ -190,7 +175,6 @@
         }
         $statusText.textContent = 'Diagnóstico finalizado. Recarga para refrescar.';
     }
-
     let ws;
     try {
         ws = new WebSocket(wsUrl);
@@ -199,14 +183,11 @@
         $statusText.textContent = 'WebSocket no disponible. Recarga para ver el resultado final.';
         return;
     }
-
     ws.onopen = () => { $statusText.textContent = 'Conectado. Recibiendo eventos en vivo…'; };
-
     ws.onmessage = (evt) => {
         let payload;
         try { payload = JSON.parse(evt.data); }
         catch (e) { console.warn('WS msg inválido:', evt.data); return; }
-
         if (payload.tipo === 'evento' && payload.evento) {
             append(payload.evento);
             if (payload.evento.nivel === 'ERR')  $errores.textContent = ++errores;
@@ -222,7 +203,6 @@
             $statusText.textContent = 'El diagnóstico falló: ' + (payload.error || 'error desconocido');
         }
     };
-
     ws.onclose = () => { $statusText.textContent = 'WebSocket cerrado.'; };
     ws.onerror = (e) => {
         console.error('WS error:', e);

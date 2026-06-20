@@ -1,7 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Categorías de Actividad" }}{% endblock %}
-
 {% block contenido %}
 <!-- Hero -->
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
@@ -21,7 +20,6 @@
     {% endif %}
   </div>
 </div>
-
 {% if messages %}
   {% for message in messages %}
   <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
@@ -30,7 +28,6 @@
   </div>
   {% endfor %}
 {% endif %}
-
 <!-- Marco legal y nota preescolar -->
 <div class="row g-3 mb-3">
   <div class="col-md-7">
@@ -56,7 +53,6 @@
     </div>
   </div>
 </div>
-
 <div class="card shadow-sm border-0" style="border-radius:14px;">
   <div class="card-body p-0">
     {% if object_list %}
@@ -114,7 +110,6 @@
           </tr>
           {% endfor %}
         </tbody>
-        {# Total ponderación #}
         {% with total=0 %}
         <tfoot style="background:#f5f3ff;">
           <tr>
@@ -123,7 +118,6 @@
             </td>
             <td class="py-2 text-center fw-800" style="font-size:.95rem;color:#4f46e5;">
               {% widthratio 1 1 0 as dummy %}
-              {# Calculamos en el backend; si hay contexto lo usamos #}
               {{ total_porcentaje|default:"—" }}{% if total_porcentaje %}%{% endif %}
             </td>
             <td colspan="3" class="d-none d-md-table-cell"></td>
@@ -146,7 +140,6 @@
     {% endif %}
   </div>
 </div>
-
 <!-- Modal de confirmación de eliminación -->
 <div class="modal fade" id="modalEliminar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -176,9 +169,7 @@
     </div>
   </div>
 </div>
-
 {% endblock contenido %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 document.querySelectorAll('[data-bs-target="#modalEliminar"]').forEach(function(btn) {

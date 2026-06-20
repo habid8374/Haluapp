@@ -1,5 +1,4 @@
 {% extends "base_academico.html" %}
-
 {% block contenido %}
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -9,7 +8,6 @@
                     <h4 class="mb-0"><i class="bi bi-person-check-fill"></i> Matricular Estudiante Existente</h4>
                 </div>
                 <div class="card-body p-4">
-                    
                     {% if es_superuser %}
                     <div class="mb-4 p-3 bg-light border rounded">
                         <label class="form-label fw-bold"><i class="bi bi-building"></i> Seleccionar Institución:</label>
@@ -26,14 +24,11 @@
                     {% else %}
                         <div class="alert alert-info"><i class="bi bi-building"></i> Institución: <strong>{{ institucion_actual.nombre }}</strong></div>
                     {% endif %}
-
                     <p class="text-muted mb-4">
                         Utilice este formulario para matricular manualmente a un estudiante que <strong>ya existe</strong> en la plataforma (por ejemplo, si pagó en efectivo).
                     </p>
-
                     <form method="post">
                         {% csrf_token %}
-                        
                         <div class="mb-4">
                             <label class="form-label fw-bold">Seleccionar Estudiante</label>
                             <select name="estudiante_id" class="form-select" required>
@@ -46,7 +41,6 @@
                             </select>
                             <div class="form-text">Solo se muestran estudiantes activos de su institución.</div>
                         </div>
-
                         <div class="mb-4">
                             <label class="form-label fw-bold">Seleccionar Curso</label>
                             <select name="curso_id" class="form-select" required>
@@ -56,7 +50,6 @@
                                 {% endfor %}
                             </select>
                         </div>
-
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-info text-white btn-lg">
                                 <i class="bi bi-check-circle"></i> Matricular y Enviar Acceso

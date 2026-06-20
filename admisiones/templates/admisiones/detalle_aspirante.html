@@ -1,9 +1,6 @@
 <!-- Archivo: templates/admisiones/detalle_aspirante.html -->
-
 {% extends "base_admisiones.html" %}
-
 {% block titulo %}Detalle de Aspirante: {{ aspirante }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -15,13 +12,11 @@
             {% endif %}
         </div>
     </div>
-    
     <div class="card shadow-sm">
         <div class="card-header">
             <h4>{{ aspirante.nombres }} {{ aspirante.apellidos }}</h4>
         </div>
         <div class="card-body">
-            
             <!-- Sección de Información Personal -->
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -46,9 +41,7 @@
                     <p class="mb-1"><strong>Departamento:</strong> {{ aspirante.departamento|default:"No especificado" }}</p>
                 </div>
             </div>
-
             <hr>
-
             <!-- Sección de Información de Admisión -->
             <div class="row">
                 <div class="col-md-6">
@@ -73,7 +66,6 @@
                     {% endif %}
                 </div>
             </div>
-
             <!-- ================================================================ -->
             <!--  SECCIÓN DEL PORTAL CON LÓGICA DE DEPURACIÓN                     -->
             <!-- ================================================================ -->
@@ -82,7 +74,6 @@
             <div class="mt-4 p-3 border rounded bg-light">
                 <h5 class="mb-3"><i class="bi bi-link-45deg me-2"></i>Portal del Postulante</h5>
                 <p>Este es el enlace único y seguro para que el padre de familia pueda subir documentos y seguir el proceso. **Cópielo y envíelo por correo electrónico o WhatsApp.**</p>
-                
                 <div class="input-group">
                     <input type="text" class="form-control" value="{{ portal_url_absoluta }}" id="portal-link-input" readonly>
                     <button class="btn btn-outline-secondary" type="button" onclick="copiarAlPortapapeles('portal-link-input', this)" id="copy-button">
@@ -109,7 +100,6 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 {{ block.super }}
 <script>
@@ -118,7 +108,6 @@ function copiarAlPortapapeles(inputId, buttonElement) {
     const linkInput = document.getElementById(inputId);
     linkInput.select();
     linkInput.setSelectionRange(0, 99999); // Para compatibilidad con móviles
-
     try {
         document.execCommand('copy');
         buttonElement.innerHTML = '<i class="bi bi-clipboard-check-fill"></i> Copiado';

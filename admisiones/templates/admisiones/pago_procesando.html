@@ -1,22 +1,18 @@
 {% extends "base.html" %}
-
 {% block contenido %}
 <div class="container text-center mt-5 mb-5">
     <h2 class="mb-3">Estamos confirmando tu pago...</h2>
     <p class="lead text-muted">Por favor, espera un momento. Esto puede tardar unos segundos.</p>
-    
     <div class="spinner-border text-primary mt-4" role="status" style="width: 3rem; height: 3rem;">
         <span class="visually-hidden">Cargando...</span>
     </div>
 </div>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const urlVerificacion = "{{ url_verificacion }}";
         const urlFinal = "{{ url_final }}";
         let intentos = 0;
         const maxIntentos = 15; // Intentar por un máximo de 30 segundos (15 intentos * 2 segundos)
-
         const verificarPago = setInterval(() => {
             intentos++;
             if (intentos > maxIntentos) {
@@ -33,7 +29,6 @@
                 `;
                 return;
             }
-
             fetch(urlVerificacion)
                 .then(response => response.json())
                 .then(data => {

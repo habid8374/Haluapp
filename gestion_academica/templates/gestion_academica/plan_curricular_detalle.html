@@ -1,9 +1,6 @@
-{# gestion_academica/templates/gestion_academica/plan_curricular_detalle.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Detalle del Plan Curricular" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -13,7 +10,6 @@
         </a>
     </div>
     <hr>
-
     {% if plan %}
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
@@ -24,32 +20,26 @@
             <dl class="row">
                 <dt class="col-sm-3 text-secondary">Descripción:</dt>
                 <dd class="col-sm-9">{{ plan.descripcion|linebreaksbr|default:"No especificada." }}</dd>
-
                 <dt class="col-sm-3 text-secondary">Fecha de Publicación/Vigencia:</dt>
                 <dd class="col-sm-9">{{ plan.fecha_publicacion|date:"d F, Y" }}</dd>
-
                 <dt class="col-sm-3 text-secondary">Creado por:</dt>
                 <dd class="col-sm-9">{{ plan.creado_por.get_full_name|default:plan.creado_por.username }}</dd>
             </dl>
-
             <h5 class="card-title text-primary mt-4 mb-3"><i class="bi bi-journals me-2"></i> Asociaciones Académicas</h5>
             <dl class="row">
                 {% if plan.grado_asociado %}
                 <dt class="col-sm-3 text-secondary">Grado Asociado:</dt>
                 <dd class="col-sm-9">{{ plan.grado_asociado.nombre }}</dd>
                 {% endif %}
-
                 {% if plan.materia_asociada %}
                 <dt class="col-sm-3 text-secondary">Materia Asociada:</dt>
                 <dd class="col-sm-9">{{ plan.materia_asociada.nombre_materia }}</dd>
                 {% endif %}
-
                 {% if plan.periodo_academico_asociado %}
                 <dt class="col-sm-3 text-secondary">Periodo Académico Asociado:</dt>
                 <dd class="col-sm-9">{{ plan.periodo_academico_asociado.nombre }} ({{ plan.periodo_academico_asociado.año_escolar }})</dd>
                 {% endif %}
             </dl>
-
             <h5 class="card-title text-primary mt-4 mb-3"><i class="bi bi-file-earmark-arrow-down-fill me-2"></i> Documento Adjunto</h5>
             <dl class="row">
                 {% if plan.documento_adjunto %}
@@ -68,12 +58,12 @@
             </dl>
         </div>
         <div class="card-footer text-end">
-            {% if perms.gestion_academica.change_plancurricular %} {# Permiso para editar #}
+            {% if perms.gestion_academica.change_plancurricular %}
                 <a href="{% url 'gestion_academica:editar_plan_curricular' plan.pk %}" class="btn btn-warning me-2">
                     <i class="bi bi-pencil-square"></i> Editar Plan
                 </a>
             {% endif %}
-            {% if perms.gestion_academica.delete_plancurricular %} {# Permiso para eliminar #}
+            {% if perms.gestion_academica.delete_plancurricular %}
                 <a href="{% url 'gestion_academica:eliminar_plan_curricular' plan.pk %}" class="btn btn-danger">
                     <i class="bi bi-trash-fill"></i> Eliminar Plan
                 </a>
@@ -85,6 +75,5 @@
             <i class="bi bi-info-circle-fill me-2"></i> No se encontró la información del plan curricular.
         </div>
     {% endif %}
-
 </div>
 {% endblock contenido %}

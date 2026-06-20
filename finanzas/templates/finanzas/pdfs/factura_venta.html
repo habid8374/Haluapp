@@ -19,7 +19,6 @@ body {
     color: #1e293b;
     line-height: 1.4;
 }
-
 /* ═══════════════════════════════════════════
    BARRA DE COLOR SUPERIOR
    ═══════════════════════════════════════════ */
@@ -29,7 +28,6 @@ body {
     width: 100%;
     margin-bottom: 14px;
 }
-
 /* ═══════════════════════════════════════════
    ENCABEZADO
    ═══════════════════════════════════════════ */
@@ -80,7 +78,6 @@ body {
     letter-spacing: 0.5px;
 }
 .doc-date { font-size: 8pt; color: #475569; margin-top: 4px; }
-
 /* ═══════════════════════════════════════════
    SECCIÓN CLIENTE / DATOS
    ═══════════════════════════════════════════ */
@@ -99,7 +96,6 @@ body {
 .data-table td { padding: 3px 8px; font-size: 9pt; }
 .data-table .lbl { color: #64748b; width: 110px; font-size: 8pt; }
 .data-table .val { color: #0f172a; font-weight: 600; }
-
 /* ═══════════════════════════════════════════
    TABLA DE ÍTEMS
    ═══════════════════════════════════════════ */
@@ -126,7 +122,6 @@ body {
     font-size: 9pt;
     border-top: 2px solid #0f3460;
 }
-
 /* ═══════════════════════════════════════════
    TOTALES
    ═══════════════════════════════════════════ */
@@ -162,7 +157,6 @@ body {
     font-size: 11pt;
     font-weight: bold;
 }
-
 /* ═══════════════════════════════════════════
    BADGE DE ESTADO
    ═══════════════════════════════════════════ */
@@ -179,7 +173,6 @@ body {
 .badge-PAGADO     { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
 .badge-VENCIDO    { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
 .badge-PAGADO_PARCIAL { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
-
 /* ═══════════════════════════════════════════
    TABLA DE PAGOS APLICADOS
    ═══════════════════════════════════════════ */
@@ -189,7 +182,6 @@ body {
 .pagos-table thead th.r { text-align: right; }
 .pagos-table tbody td { padding: 6px 9px; font-size: 8.5pt; border-bottom: 1px solid #f1f5f9; }
 .pagos-table tbody td.r { text-align: right; color: #15803d; font-weight: 600; }
-
 /* ═══════════════════════════════════════════
    SELLO PAGADO (watermark visual)
    ═══════════════════════════════════════════ */
@@ -207,7 +199,6 @@ body {
     opacity: 0.6;
     margin-top: 6px;
 }
-
 /* ═══════════════════════════════════════════
    MÉTODOS DE PAGO
    ═══════════════════════════════════════════ */
@@ -220,14 +211,12 @@ body {
 }
 .pay-row { font-size: 8.5pt; margin: 3px 0; color: #334155; }
 .pay-row strong { color: #0f3460; }
-
 /* ═══════════════════════════════════════════
    PIE DE FIRMA
    ═══════════════════════════════════════════ */
 .firma-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
 .firma-table td { text-align: center; padding: 0 16px; }
 .firma-line { border-top: 1px solid #94a3b8; padding-top: 4px; font-size: 8pt; color: #64748b; }
-
 /* ═══════════════════════════════════════════
    PIE DE PÁGINA FIJO
    ═══════════════════════════════════════════ */
@@ -245,7 +234,6 @@ body {
 </style>
 </head>
 <body>
-
 <!-- PIE FIJO -->
 <div class="page-footer">
     {{ institucion.nombre }} &nbsp;·&nbsp; NIT: {{ institucion.nit }}
@@ -253,10 +241,8 @@ body {
     &nbsp;·&nbsp; Generado el {% now "d/m/Y H:i" %}
     &nbsp;·&nbsp; Página <pdf:pagenumber> de <pdf:pagecount>
 </div>
-
 <!-- BARRA SUPERIOR -->
 <div class="top-bar"></div>
-
 <!-- ══════════════════════════════════════════
      ENCABEZADO
      ══════════════════════════════════════════ -->
@@ -304,7 +290,6 @@ body {
         </td>
     </tr>
 </table>
-
 <!-- ══════════════════════════════════════════
      DATOS DEL CLIENTE
      ══════════════════════════════════════════ -->
@@ -329,7 +314,6 @@ body {
     </tr>
     {% endif %}
 </table>
-
 <!-- ══════════════════════════════════════════
      DETALLE DE COBRO
      ══════════════════════════════════════════ -->
@@ -366,7 +350,6 @@ body {
         </tr>
     </tbody>
 </table>
-
 <!-- TOTALES -->
 <div class="clearfix">
     <div class="totals-right">
@@ -395,7 +378,6 @@ body {
         </table>
     </div>
 </div>
-
 <!-- ══════════════════════════════════════════
      PAGOS APLICADOS (si existen)
      ══════════════════════════════════════════ -->
@@ -426,7 +408,6 @@ body {
     </table>
 </div>
 {% endif %}
-
 <!-- ══════════════════════════════════════════
      SELLO PAGADO
      ══════════════════════════════════════════ -->
@@ -435,7 +416,6 @@ body {
     <span class="sello-pagado">PAGADO</span>
 </div>
 {% endif %}
-
 <!-- ══════════════════════════════════════════
      MÉTODOS DE PAGO
      ══════════════════════════════════════════ -->
@@ -453,7 +433,6 @@ body {
 </div>
 {% endif %}
 {% endif %}
-
 <!-- ══════════════════════════════════════════
      FIRMAS
      ══════════════════════════════════════════ -->
@@ -470,13 +449,11 @@ body {
         </td>
     </tr>
 </table>
-
 <!-- RESOLUCIÓN -->
 {% if institucion.texto_resolucion %}
 <div style="text-align:center; font-size:7pt; color:#94a3b8; margin-top:10px; border-top:1px solid #e2e8f0; padding-top:6px;">
     {{ institucion.texto_resolucion }}
 </div>
 {% endif %}
-
 </body>
 </html>

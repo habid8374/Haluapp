@@ -1,10 +1,7 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
-
 <div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:18px;padding:1.75rem 2rem;color:white;margin-bottom:1.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
     <div>
         <h2 class="fw-800 mb-1" style="font-size:1.45rem;"><i class="bi bi-headset me-2"></i>{{ titulo_pagina }}</h2>
@@ -14,7 +11,6 @@
         <i class="bi bi-arrow-left me-1"></i> Panel Principal
     </a>
 </div>
-
 <div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
     <div class="card-body p-0">
         <div class="table-responsive">

@@ -1,6 +1,5 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
@@ -12,7 +11,6 @@
 .ps-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.42rem .95rem; border-radius:.6rem; font-size:.81rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; }
 .ps-btn-outline { background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.3); }
 .ps-btn-outline:hover { background:rgba(255,255,255,.22); color:#fff; }
-
 .ps-panel { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; margin-bottom:1.25rem; }
 .ps-panel-header { display:flex; align-items:center; gap:.5rem; padding:.85rem 1.2rem; border-bottom:1px solid #f1f5f9; }
 .ps-panel-title { font-size:.95rem; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:.5rem; margin:0; }
@@ -20,7 +18,6 @@
 .ico-indigo { background:#e0e7ff; color:#4f46e5; }
 .ico-green  { background:#dcfce7; color:#15803d; }
 .ico-amber  { background:#fef3c7; color:#b45309; }
-
 /* Días */
 .ps-day-block { border-bottom:1px solid #f1f5f9; }
 .ps-day-block:last-child { border-bottom:none; }
@@ -38,21 +35,17 @@
 .ps-chip-deber { background:#dcfce7; color:#15803d; }
 .ps-chip-act   { background:#dbeafe; color:#1d4ed8; }
 .ps-day-empty  { padding:.5rem 1.4rem; font-size:.76rem; color:#94a3b8; font-style:italic; }
-
 /* Review form */
 .ps-review-form { padding:1.2rem; }
 .ps-aprobar-btn { background:linear-gradient(135deg,#15803d,#22c55e); color:#fff; border:none; border-radius:.6rem; padding:.65rem 1.2rem; font-size:.88rem; font-weight:700; display:flex; align-items:center; gap:.5rem; cursor:pointer; width:100%; justify-content:center; margin-top:.75rem; transition:opacity .15s; }
 .ps-aprobar-btn:hover { opacity:.88; }
 .ps-obs-btn { background:linear-gradient(135deg,#b45309,#f59e0b); color:#fff; border:none; border-radius:.6rem; padding:.65rem 1.2rem; font-size:.88rem; font-weight:700; display:flex; align-items:center; gap:.5rem; cursor:pointer; width:100%; justify-content:center; margin-top:.5rem; transition:opacity .15s; }
 .ps-obs-btn:hover { opacity:.88; }
-
 .ps-info-card { background:#eef2ff; border:1px solid #c7d2fe; border-radius:.75rem; padding:.85rem 1rem; margin-bottom:1rem; font-size:.82rem; color:#3730a3; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1100px;">
-
   <div class="ps-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
       <div>
@@ -65,9 +58,7 @@
       </div>
     </div>
   </div>
-
   <div class="row g-3 align-items-start">
-
     <!-- Contenido del plan -->
     <div class="col-12 col-lg-8">
       <div class="ps-info-card">
@@ -75,12 +66,10 @@
         <strong>Enviado:</strong> {{ plan.fecha_envio|date:"d/m/Y H:i" }} &nbsp;·&nbsp;
         <strong>Clases:</strong> {{ plan.items.count }}
       </div>
-
       <div class="ps-panel">
         <div class="ps-panel-header">
           <h2 class="ps-panel-title"><span class="ico ico-indigo"><i class="bi bi-calendar3-week-fill"></i></span> Contenido del Plan</h2>
         </div>
-
         {% for fecha, dia in dias.items %}
         <div class="ps-day-block">
           <div class="ps-day-header">
@@ -109,7 +98,6 @@
         {% endfor %}
       </div>
     </div>
-
     <!-- Panel de revisión -->
     <div class="col-12 col-lg-4">
       {% if puede_revisar %}
@@ -119,15 +107,12 @@
         </div>
         <div class="ps-review-form">
           <p style="font-size:.8rem;color:#475569;margin-bottom:.75rem;">Revisa el plan y toma una decisión. Si apruebas, el docente recibirá una notificación de confirmación. Si devuelves, escribe qué debe corregir.</p>
-
           <!-- Aprobar → dispara modal de confirmación -->
           <button type="button" class="ps-aprobar-btn"
                   data-bs-toggle="modal" data-bs-target="#modalAprobarPlan">
             <i class="bi bi-check-circle-fill"></i> Aprobar Plan
           </button>
-
           <hr style="margin:1rem 0;border-color:#f1f5f9;">
-
           <!-- Devolver con observaciones -->
           <form id="form-observar" method="post">
             {% csrf_token %}
@@ -166,11 +151,8 @@
       </div>
       {% endif %}
     </div>
-
   </div>
 </div>
-
-{# ════ MODAL: Confirmar Aprobación ════ #}
 <div class="modal fade" id="modalAprobarPlan" tabindex="-1" aria-labelledby="modalAprobarLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
     <div class="modal-content" style="border-radius:1rem;border:none;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18);">
@@ -202,8 +184,6 @@
     </div>
   </div>
 </div>
-
-{# ════ MODAL: Confirmar Devolución con Observaciones ════ #}
 <div class="modal fade" id="modalDevolverPlan" tabindex="-1" aria-labelledby="modalDevolverLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
     <div class="modal-content" style="border-radius:1rem;border:none;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18);">
@@ -231,7 +211,6 @@
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 // Modal "Devolver" → validar observaciones antes de abrir y mostrar preview
@@ -250,14 +229,12 @@ document.querySelector('[data-bs-target="#modalDevolverPlan"]').addEventListener
   document.getElementById('txt-observaciones').classList.remove('is-invalid');
   document.getElementById('modal-obs-preview').textContent = obs;
 });
-
 // Limpiar error al escribir
 document.getElementById('txt-observaciones').addEventListener('input', function() {
   this.classList.remove('is-invalid');
   const errDiv = document.getElementById('obs-error-msg');
   if (errDiv) errDiv.style.display = 'none';
 });
-
 // Confirmar devolución → submit del form
 document.getElementById('btn-confirmar-devolver').addEventListener('click', function() {
   document.getElementById('form-observar').submit();

@@ -1,7 +1,5 @@
 {% extends 'base_academico.html' %}
-
 {% block titulo %}Descriptores de Logro{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
   .grado-accordion .accordion-button {
@@ -65,7 +63,6 @@
   .empty-state { text-align: center; padding: 3rem 1rem; color: #9ca3af; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <!-- Hero -->
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
@@ -83,7 +80,6 @@
     </a>
   </div>
 </div>
-
 {% if descriptores_por_grado %}
 <div class="accordion grado-accordion" id="acordeonGrados">
   {% for grado_nombre, materias, total in descriptores_por_grado %}
@@ -159,7 +155,6 @@
   </div>
 </div>
 {% endif %}
-
 <!-- Modal eliminar -->
 <div class="modal fade" id="modalEliminarDesc" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -190,7 +185,6 @@
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 document.querySelectorAll('.btn-eliminar-desc').forEach(btn => {

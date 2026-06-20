@@ -13,7 +13,6 @@
 </style>
 </head>
 <body>
-
 <!-- ════ ENCABEZADO (tabla con anchos inline) ════ -->
 <table style="width:100%; border:1.5pt solid #000; border-collapse:collapse;">
   <tr>
@@ -40,7 +39,6 @@
     </td>
   </tr>
 </table>
-
 <!-- ════ DATOS DEL ALUMNO ════ -->
 <table style="width:100%; border:1.5pt solid #000; border-top:none; border-collapse:collapse;">
   <tr>
@@ -67,7 +65,6 @@
     </td>
   </tr>
 </table>
-
 <!-- ════ TABLA DE CONCEPTOS (anchos inline en cada celda) ════ -->
 <table style="width:100%; border:1.5pt solid #000; border-top:none; border-collapse:collapse;">
   <tr>
@@ -109,7 +106,6 @@
   </tr>
   {% endif %}
 </table>
-
 <!-- ════ PAGO EN LÍNEA ════ -->
 <table style="width:100%; border:1.5pt solid #174ea6; border-collapse:collapse; margin-top:9pt;">
   <tr>
@@ -134,7 +130,6 @@
     </td>
   </tr>
 </table>
-
 {% if institucion.cuenta_bancaria or institucion.pagos_digitales %}
 <div class="legal">
   <strong>Otros medios de pago:</strong>
@@ -142,13 +137,11 @@
   {% if institucion.pagos_digitales %} Nequi/Daviplata: {{ institucion.pagos_digitales }}.{% endif %}
 </div>
 {% endif %}
-
 <div class="legal">
   Este documento es una orden de pago generada electrónicamente. Cancele antes de la fecha límite
   para evitar recargos por mora. Si ya realizó el pago, ignore este aviso.
   Consultas: {% if institucion.telefono %}{{ institucion.telefono }}{% endif %}{% if institucion.correo_electronico %} · {{ institucion.correo_electronico }}{% endif %}.
 </div>
 <p class="copy">{{ institucion.nombre }} — Generado el {% now "d/m/Y H:i" %}</p>
-
 </body>
 </html>

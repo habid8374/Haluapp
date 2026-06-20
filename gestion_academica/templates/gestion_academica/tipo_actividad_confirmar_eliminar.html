@@ -1,7 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% block titulo %}Eliminar Categoría{% endblock %}
-
 {% block contenido %}
 <!-- Hero -->
 <div style="background:linear-gradient(135deg,#991b1b 0%,#dc2626 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
@@ -14,7 +13,6 @@
     <p class="mb-0" style="opacity:.82;font-size:.85rem;">Esta acción no se puede deshacer</p>
   </div>
 </div>
-
 <div class="card shadow-sm border-0" style="border-radius:14px;">
   <div class="card-body p-4">
     {% if tipo_actividad %}
@@ -32,7 +30,6 @@
         {% endif %}
       </div>
     </div>
-
     {% with uso=tipo_actividad.actividadcalificable_set.count %}
     {% if uso > 0 %}
     <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
@@ -52,7 +49,6 @@
     </div>
     {% endif %}
     {% endwith %}
-
     <div class="d-flex gap-2 justify-content-end">
       <a href="{% url 'gestion_academica:lista_tipos_actividad' %}" class="btn btn-outline-secondary">
         <i class="bi bi-x-circle me-1"></i>Cancelar
@@ -64,7 +60,6 @@
         </button>
       </form>
     </div>
-
     {% else %}
     <div class="text-center py-4" style="color:#9ca3af;">
       <i class="bi bi-question-circle" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>

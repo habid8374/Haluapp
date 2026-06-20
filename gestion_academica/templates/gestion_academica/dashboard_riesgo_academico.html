@@ -8,7 +8,6 @@
     <div class="card-body">
         {% if estudiantes_con_riesgo %}
             <div class="accordion" id="acordeonRiesgoGlobal">
-                
                 {% for estudiante, lista_predicciones in estudiantes_con_riesgo.items %}
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="heading-{{ estudiante.pk }}">

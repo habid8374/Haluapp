@@ -1,16 +1,12 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
-
   <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
     <h2 style="color:#fff;"><i class="bi bi-graph-up-arrow me-2"></i>{{ titulo_pagina }}</h2>
     <p style="color:#fff;margin-bottom:0;">Cartera pendiente por mes (próximos 3 meses). Basado en cuentas PENDIENTE, PAGADO_PARCIAL y VENCIDAS sin fecha de cobro.</p>
   </div>
-
   <!-- Resumen total -->
   <div class="row g-3 mb-4">
     <div class="col-md-4">
@@ -20,7 +16,6 @@
       </div>
     </div>
   </div>
-
   <!-- Meses -->
   {% for p in proyecciones %}
   <div class="card shadow-sm mb-4">
@@ -64,6 +59,5 @@
     </div>
   </div>
   {% endfor %}
-
 </div>
 {% endblock %}

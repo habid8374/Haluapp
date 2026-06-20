@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}{{ titulo_pagina|default:"Detalle del Estudiante" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -10,7 +8,6 @@
         <a href="javascript:history.back()" class="btn btn-outline-secondary"><i class="bi bi-arrow-left-circle-fill"></i> Volver</a>
     </div>
     <hr>
-
     {% if estudiante %}
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-light">
@@ -74,8 +71,6 @@
                 {% if perms.gestion_academica.delete_estudiante %}<a href="{% url 'gestion_academica:eliminar_estudiante' estudiante.pk %}" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Eliminar</a>{% endif %}
             </div>
         </div>
-
-        {# ── Caracterización SIMAT / SIMPADE ─────────────────────────────── #}
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-primary"><i class="bi bi-clipboard-data-fill me-2"></i>Caracterización (SIMAT / SIMPADE)</h5>
@@ -125,7 +120,6 @@
                 {% endif %}
             </div>
         </div>
-
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card shadow-sm h-100">
@@ -145,7 +139,6 @@
                 </div>
             </div>
         </div>
-
         <div class="modal fade" id="emailPreviewModal" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -176,7 +169,6 @@
     {% endif %}
 </div>
 {% endblock contenido %}
-
 {% block extra_js %}
 {{ block.super }}
 <script>
@@ -190,18 +182,14 @@
             const copyEmailBtn = document.getElementById('copyEmailBtn');
             // Asegúrate de que este token esté disponible si tu base no lo provee aquí.
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '{{ csrf_token }}';
-
             emailModalEl.addEventListener('show.bs.modal', function() {
                 emailSpinner.classList.remove('d-none');
                 emailContent.classList.add('d-none');
                 copyEmailBtn.classList.add('d-none');
-                
                 const estudiantePk = "{{ estudiante.pk }}";
                 const periodoPk = "{{ periodo_activo.pk }}";
                 if (!estudiantePk || !periodoPk) return;
-
                 const url = `/academico/api/generar-correo-acudiente/${estudiantePk}/${periodoPk}/`;
-
                 fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
@@ -223,7 +211,6 @@
                     copyEmailBtn.classList.remove('d-none');
                 });
             });
-
             copyEmailBtn.addEventListener('click', function() {
                 emailTextarea.select();
                 navigator.clipboard.writeText(emailTextarea.value).then(() => {

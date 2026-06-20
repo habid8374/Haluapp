@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
     #schedule-output { min-height: 70vh; }
@@ -14,7 +12,6 @@
     }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
     <form method="get" class="mb-3 card shadow-sm">
@@ -53,9 +50,7 @@
                 </button>
             </div>
         </div>
-
         <div id="status-alert" class="alert alert-info d-none" role="alert"></div>
-
         <div class="row">
             <div class="col-lg-3">
                 <div class="card mb-3">
@@ -77,7 +72,6 @@
                     </ul>
                 </div>
             </div>
-
             <div class="col-lg-9">
                 <div class="card">
                     <div class="card-body">
@@ -90,7 +84,6 @@
         <div class="alert alert-info mt-3">Por favor, selecciona un grado para comenzar a optimizar su horario.</div>
     {% endif %}
 </div>
-
 <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -106,10 +99,8 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Solo ejecutar el script si hemos seleccionado un grado
@@ -121,19 +112,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const scheduleOutput = document.getElementById('schedule-output');
         const csrfToken = '{{ csrf_token }}';
         let calendar;
-
         // --- Mapeo de Datos (para mostrar nombres en lugar de IDs) ---
         const cursosMap = { {% for c in cursos_a_programar %}{{ c.pk }}: "{{ c.materia.nombre_materia|escapejs }}",{% endfor %} };
         const docentesMap = { {% for d in docentes_disponibles %}{{ d.pk }}: "{{ d.usuario.get_full_name|truncatechars:15|escapejs }}",{% endfor %} };
         const aulasMap = { {% for a in aulas_disponibles %}{{ a.pk }}: "{{ a.nombre|escapejs }}",{% endfor %} };
-
         // --- Función de Notificación Modal Profesional ---
         const notificationModalEl = document.getElementById('notificationModal');
         const notificationModal = new bootstrap.Modal(notificationModalEl);
         const modalHeader = document.getElementById('notificationModalHeader');
         const modalTitle = document.getElementById('notificationModalLabel');
         const modalBody = document.getElementById('notificationModalBody');
-
         function showNotification(title, message, isSuccess = true) {
             modalTitle.innerHTML = isSuccess 
                 ? `<i class="bi bi-check-circle-fill me-2"></i> ${title}` 
@@ -143,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
             modalHeader.classList.add(isSuccess ? 'bg-success' : 'bg-danger');
             notificationModal.show();
         }
-
         // --- Función para Inicializar o "Dibujar" el Calendario ---
         function renderCalendar(events = []) {
             if (calendar) { calendar.destroy(); }
@@ -168,19 +155,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     const title = arg.event.title;
                     const docente = arg.event.extendedProps.docente;
                     const aula = arg.event.extendedProps.aula;
-                    
                     let innerHtml = `<div class="fc-event-time">${timeText}</div>`;
                     innerHtml += `<div class="fc-event-title fw-bold">${title}</div>`;
                     innerHtml += `<div>${docente}</div>`;
                     innerHtml += `<i>${aula}</i>`;
-
                     return { html: innerHtml };
                 }
             });
             calendar.render();
             saveBtn.classList.remove('d-none');
         }
-
         // --- Lógica para Generar Propuesta con IA ---
         generateBtn.addEventListener('click', function() {
             this.disabled = true;
@@ -189,7 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('btn-text-gen').textContent = 'Generando...';
             statusAlert.textContent = 'HALU está creando la propuesta de horario para {{ grado_seleccionado.nombre }}. Esto puede tardar varios minutos...';
             statusAlert.classList.remove('d-none');
-            
             fetch("{% url 'gestion_academica:optimizador_horarios' %}", { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
@@ -204,7 +187,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
-
         // --- Función que Pregunta por el Estado de la Tarea ---
         function checkTaskStatus(taskId) {
             const interval = setInterval(() => {
@@ -218,7 +200,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('btn-spinner-gen').classList.add('d-none');
                         document.getElementById('btn-icon-gen').classList.remove('d-none');
                         document.getElementById('btn-text-gen').textContent = 'Generar Propuesta con IA';
-
                         if (data.status === 'SUCCESS' && data.result.status === 'SUCCESS') {
                             const events = data.result.horario.map(e => ({
                                 title: cursosMap[e.curso_id] || 'Curso Desconocido',
@@ -242,11 +223,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }, 5000);
         }
-
         // --- Lógica para Guardar el Horario Final ---
         saveBtn.addEventListener('click', function() {
             if (!calendar) return;
-            
             const finalEvents = calendar.getEvents().map(event => {
                 const dayOfWeek = event.start.getDay();
                 return {
@@ -258,12 +237,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     aula_id: event.extendedProps.aula_id,
                 };
             });
-
             this.disabled = true;
             document.getElementById('btn-text-save').textContent = 'Guardando...';
             document.getElementById('btn-spinner-save').classList.remove('d-none');
             document.getElementById('btn-icon-save').classList.add('d-none');
-
             fetch("{% url 'gestion_academica:guardar_horario' %}", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
@@ -288,7 +265,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('btn-icon-save').classList.remove('d-none');
             });
         });
-
         // Inicializamos un calendario vacío al cargar la página
         renderCalendar();
     {% endif %}

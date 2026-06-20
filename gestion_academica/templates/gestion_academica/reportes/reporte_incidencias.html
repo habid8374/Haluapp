@@ -1,5 +1,4 @@
 {% extends "base_academico.html" %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -12,7 +11,6 @@
                     <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
                 </a>
             </div>
-
             <form method="get" class="mb-4 p-3 border rounded bg-light">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-6">
@@ -31,12 +29,10 @@
                     </div>
                 </div>
             </form>
-
             {% if estudiante_seleccionado %}
                 <h5 class="border-bottom pb-2 mb-3">
                     Historial de: <strong class="text-primary">{{ estudiante_seleccionado.usuario.get_full_name }}</strong>
                 </h5>
-
                 <div class="row">
                     <div class="col-lg-8">
                         <h6>Historial de Anotaciones</h6>
@@ -66,7 +62,6 @@
         </div>
     </div>
 </div>
-
 {% if reporte_data.chart_labels %}
 {{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
 {{ reporte_data.chart_data|json_script:"chart-data-data" }}

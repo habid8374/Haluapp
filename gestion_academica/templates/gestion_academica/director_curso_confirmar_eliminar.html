@@ -1,14 +1,10 @@
-{# gestion_academica/templates/gestion_academica/director_curso_confirmar_eliminar.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Asignación" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Asignación" }}</h1>
     <hr>
-
     {% if director_curso %}
         <div class="alert alert-warning shadow-sm" role="alert">
             <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
@@ -25,7 +21,6 @@
             <hr>
             <p class="mb-0 text-danger">Esta acción es **irreversible**.</p>
         </div>
-
         <form method="post" class="mt-4">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger me-2">

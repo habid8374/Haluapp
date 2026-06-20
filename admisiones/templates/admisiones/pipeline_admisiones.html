@@ -1,5 +1,4 @@
 {% extends "base_admisiones.html" %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══ KANBAN DESKTOP ══════════════════════════════════════════════ */
@@ -39,7 +38,6 @@
   transition: background .2s;
 }
 .pipeline-cards.drag-over { background: #dbeafe; }
-
 .aspirante-card {
   background: #fff;
   border-radius: 7px;
@@ -58,13 +56,10 @@
 .aspirante-card .card-sub { font-size: .72rem; color: #64748b; margin-top: 3px; }
 .sortable-ghost { opacity: .4; background: #cce5ff; border: 2px dashed #0d6efd; }
 .sortable-drag   { cursor: grabbing; }
-
 /* ══ MOBILE: tabs + lista vertical ════════════════════════════════ */
 @media (max-width: 767.98px) {
   .pipeline-board { display: none; }
-
   .pipeline-mobile { display: block; }
-
   .pmob-tabs {
     display: flex;
     overflow-x: auto;
@@ -94,7 +89,6 @@
   }
   .pmob-panel { display: none; }
   .pmob-panel.active { display: block; }
-
   .pmob-card {
     background: #fff;
     border-radius: 8px;
@@ -116,12 +110,10 @@
     font-size: .82rem;
   }
 }
-
 @media (min-width: 768px) {
   .pipeline-mobile { display: none; }
   .pipeline-board   { display: flex; }
 }
-
 /* Toast de error */
 #pipeline-toast-wrap {
   position: fixed;
@@ -133,7 +125,6 @@
 }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-3 px-md-4">
   <div class="d-flex align-items-center gap-2 mb-3 mt-1">
@@ -142,8 +133,6 @@
       {% with total=0 %}{{ pipeline.values|length }} etapas{% endwith %}
     </span>
   </div>
-
-  {# ── DESKTOP: Kanban clásico ── #}
   <div class="pipeline-board">
     {% for estado, data in pipeline.items %}
     <div class="pipeline-column">
@@ -166,8 +155,6 @@
     </div>
     {% endfor %}
   </div>
-
-  {# ── MÓVIL: Tabs + lista vertical ── #}
   <div class="pipeline-mobile">
     <div class="pmob-tabs" id="pmob-tabs">
       {% for estado, data in pipeline.items %}
@@ -180,7 +167,6 @@
       </button>
       {% endfor %}
     </div>
-
     {% for estado, data in pipeline.items %}
     <div class="pmob-panel {% if forloop.first %}active{% endif %}"
          id="pmob-panel-{{ estado }}"
@@ -212,8 +198,6 @@
     {% endfor %}
   </div>
 </div>
-
-{# ── Toast de error (reemplaza alert()) ── #}
 <div id="pipeline-toast-wrap">
   <div id="pipeline-toast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="d-flex">
@@ -225,13 +209,11 @@
   </div>
 </div>
 {% endblock contenido %}
-
 {% block extra_js %}
 {{ block.super }}
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-
   /* ── CSRF ── */
   function getCookie(name) {
     let v = null;
@@ -245,7 +227,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   const csrftoken = getCookie('csrftoken');
   const API_URL   = "{% url 'admisiones:actualizar_estado_aspirante_api' %}";
-
   /* ── Toast de error ── */
   const toastEl  = document.getElementById('pipeline-toast');
   const toastMsg = document.getElementById('pipeline-toast-msg');
@@ -253,7 +234,6 @@ document.addEventListener('DOMContentLoaded', function () {
     toastMsg.textContent = msg || 'Error al actualizar el estado.';
     bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 4000 }).show();
   }
-
   /* ── Llamada API ── */
   function actualizarEstado(aspiranteId, nuevoEstado, onError) {
     if (!csrftoken) {
@@ -277,7 +257,6 @@ document.addEventListener('DOMContentLoaded', function () {
     .then(data => { if (data.status !== 'success') throw new Error(data.message || 'Error del servidor'); })
     .catch(err => { showError(err.message); if (onError) onError(); });
   }
-
   /* ── DESKTOP: SortableJS ── */
   document.querySelectorAll('.pipeline-cards').forEach(col => {
     new Sortable(col, {
@@ -292,7 +271,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
-
   /* ── MÓVIL: tabs ── */
   document.querySelectorAll('.pmob-tab').forEach(tab => {
     tab.addEventListener('click', function () {

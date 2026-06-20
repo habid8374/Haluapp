@@ -74,9 +74,7 @@
         <h1>{{ institucion.nombre }}</h1>
         <p>Planeación de Clases</p>
     </div>
-
     <h2>{{ planeacion.titulo }}</h2>
-
     <table class="info-table">
         <tr>
             <td class="label">Curso:</td>
@@ -95,32 +93,23 @@
             <td>{{ planeacion.duracion_clases }} clase(s)</td>
         </tr>
     </table>
-
     <h3><i class="bi bi-bullseye"></i> Objetivos de Aprendizaje</h3>
     <p>{{ planeacion.objetivos_aprendizaje|linebreaksbr }}</p>
-
     <h3><i class="bi bi-tools"></i> Recursos Necesarios</h3>
     <p>{{ planeacion.recursos_necesarios|linebreaksbr }}</p>
-
     <h3><i class="bi bi-clipboard-check-fill"></i> Criterios de Evaluación</h3>
     <p>{{ planeacion.criterios_evaluacion|linebreaksbr }}</p>
-
     <h2>Desarrollo de las Clases</h2>
-
     {% for detalle in detalles %}
         <div class="class-detail">
             <h3>Clase {{ detalle.numero_clase }}: {{ detalle.tema_clase }}</h3>
-            
             <h4>Actividades de Inicio</h4>
             <p>{{ detalle.actividades_inicio|linebreaksbr }}</p>
-            
             <h4>Actividades de Desarrollo</h4>
             <p>{{ detalle.actividades_desarrollo|linebreaksbr }}</p>
-            
             <h4>Actividades de Cierre</h4>
             <p>{{ detalle.actividades_cierre|linebreaksbr }}</p>
         </div>
     {% endfor %}
-
 </body>
 </html>

@@ -1,12 +1,9 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <h1 class="h2 mb-4">{{ titulo_pagina }}</h1>
     <p>Esta herramienta te permite promover a los estudiantes al siguiente grado y generar automáticamente sus órdenes de matrícula para el próximo periodo.</p>
-
     <div class="card shadow-sm mb-4">
         <div class="card-header">Paso 1: Seleccionar Grupo y Periodo a Evaluar</div>
         <div class="card-body">
@@ -31,7 +28,6 @@
             </form>
         </div>
     </div>
-
     {% if lista_para_promocion %}
     <form method="post">
         {% csrf_token %}
@@ -83,7 +79,6 @@
     </form>
     {% endif %}
 </div>
-
 <script>
     document.getElementById('select-all').onclick = function() {
         var checkboxes = document.querySelectorAll('input[name="estudiantes_a_promover"]');

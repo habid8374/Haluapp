@@ -1,15 +1,12 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}{{ titulo_pagina|default:"Lista de Estudiantes" }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <h1 class="mb-3">{{ titulo_pagina }}</h1>
     <a href="{% url 'gestion_academica:lista_grados_para_estudiantes' %}" class="btn btn-secondary mb-4">
         <i class="bi bi-arrow-left"></i> Volver a la lista de grados
     </a>
-
     {% if estudiantes %}
         <ul class="list-group shadow-sm rounded">
             {% for estudiante in estudiantes %}

@@ -1,7 +1,5 @@
 {% extends "base_publica.html" %}
-
 {% block titulo %}Confirmar Cita de Admisión{% endblock %}
-
 {% block contenido %}
 <div class="container mt-5">
     <div class="card shadow-sm">
@@ -10,7 +8,6 @@
         </div>
         <div class="card-body p-4">
             <p class="lead">Estás a punto de reservar el siguiente horario para <strong>{{ aspirante.nombres }} {{ aspirante.apellidos }}</strong>.</p>
-            
             <div class="alert alert-secondary">
                 <ul class="list-unstyled mb-0">
                     <li><strong>Tipo de Cita:</strong> {{ horario.get_tipo_cita_display }}</li>
@@ -21,18 +18,14 @@
                     {% endif %}
                 </ul>
             </div>
-
             <p>Por favor, revisa que los datos sean correctos antes de confirmar.</p>
-
             <form method="post" class="mt-4">
                 {% csrf_token %}
                 <div class="mb-3">
                     <label for="notas" class="form-label"><strong>Notas adicionales para el equipo de admisiones (opcional):</strong></label>
                     <textarea class="form-control" id="notas" name="notas" rows="3" placeholder="Por ejemplo: 'Necesitaré acceso para silla de ruedas' o 'Llegaré 5 minutos tarde'."></textarea>
                 </div>
-                
                 <hr>
-
                 <div class="d-flex justify-content-end">
                     <a href="{% url 'admisiones:vista_agendamiento' token=aspirante.access_token %}" class="btn btn-secondary me-3">
                         <i class="bi bi-arrow-left"></i> Cancelar y Volver

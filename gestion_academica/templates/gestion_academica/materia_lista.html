@@ -1,10 +1,7 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}{{ titulo_pagina|default:"Listado de Materias" }}{% endblock %}
-
 {% block contenido %}
-
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
@@ -28,7 +25,6 @@
     </div>
   </div>
 </div>
-
 {% if materias %}
 <div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
   <div class="table-responsive">
@@ -85,7 +81,6 @@
     </table>
   </div>
 </div>
-
 {% if is_paginated %}
 <nav class="mt-4">
   <ul class="pagination justify-content-center">
@@ -107,7 +102,6 @@
   </ul>
 </nav>
 {% endif %}
-
 {% else %}
 <div class="card border-0 shadow-sm text-center py-5" style="border-radius:16px;">
   <i class="bi bi-book" style="font-size:2.5rem;color:#c7d2fe;"></i>
@@ -119,16 +113,13 @@
   {% endif %}
 </div>
 {% endif %}
-
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 {% if es_bilingue %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const btn = document.getElementById('btn-sugerir-todas');
   if (!btn) return;
-
   btn.addEventListener('click', function () {
     // Recoge PKs de materias sin nombre en L2 visibles en esta página
     const filas = document.querySelectorAll('tr[data-pk]');
@@ -136,16 +127,13 @@ document.addEventListener('DOMContentLoaded', function () {
     filas.forEach(function(fila) {
       if (fila.dataset.tieneL2 === '0') pks.push(parseInt(fila.dataset.pk));
     });
-
     if (pks.length === 0) {
       alert('Todas las materias en esta página ya tienen nombre en {{ idioma_secundario }}.');
       return;
     }
-
     document.getElementById('btn-todas-texto').style.display  = 'none';
     document.getElementById('btn-todas-loading').style.display = 'inline';
     btn.disabled = true;
-
     fetch('{% url "gestion_academica:api_sugerir_nombres_idioma_masivo" %}', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
@@ -181,7 +169,6 @@ document.addEventListener('DOMContentLoaded', function () {
       btn.disabled = false;
     });
   });
-
   function guardarSugerencias(sugerencias, actualizadas) {
     fetch('{% url "gestion_academica:api_guardar_nombres_idioma_masivo" %}', {
       method: 'POST',
@@ -196,7 +183,6 @@ document.addEventListener('DOMContentLoaded', function () {
     })
     .catch(() => showToast('⚠️ Las sugerencias se muestran pero no se pudieron guardar.'));
   }
-
   function showToast(msg) {
     const t = document.createElement('div');
     t.textContent = msg;
@@ -204,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 4000);
   }
-
   function getCookie(name) {
     let v = null;
     document.cookie.split(';').forEach(c => {

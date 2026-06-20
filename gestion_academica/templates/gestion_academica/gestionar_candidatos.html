@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load crispy_forms_tags %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══════════════════════════════════════════════════════
@@ -14,7 +12,6 @@
   --elec-light:  #4f46e5;
   --elec-accent: #818cf8;
 }
-
 /* ── Hero ─────────────────────────────────────────── */
 .gc-hero {
   background: linear-gradient(135deg, var(--elec-dark) 0%, var(--elec-mid) 55%, #4338ca 100%);
@@ -39,7 +36,6 @@
 }
 .gc-hero-btn-outline { background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.3); }
 .gc-hero-btn-outline:hover { background:rgba(255,255,255,.22); color:#fff; }
-
 /* ── Panel base ───────────────────────────────────── */
 .gc-panel {
   background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07);
@@ -59,7 +55,6 @@
 }
 .ico-indigo { background:#e0e7ff; color:#4f46e5; }
 .ico-violet { background:#ede9fe; color:#7c3aed; }
-
 /* ── Formulario ───────────────────────────────────── */
 .gc-form-body { padding:1.2rem; }
 .gc-submit-btn {
@@ -69,11 +64,9 @@
   justify-content:center; gap:.5rem; transition:opacity .15s; margin-top:.5rem; cursor:pointer;
 }
 .gc-submit-btn:hover { opacity:.9; }
-
 /* ── Grado accordion ──────────────────────────────── */
 .gc-grado-block { border-bottom:1px solid #f1f5f9; }
 .gc-grado-block:last-child { border-bottom:none; }
-
 .gc-grado-toggle {
   display:flex; align-items:center; gap:.85rem;
   padding:.85rem 1.2rem; cursor:pointer; user-select:none;
@@ -92,7 +85,6 @@
 }
 .gc-grado-arrow { color:#94a3b8; font-size:.8rem; transition:transform .2s; flex-shrink:0; }
 .gc-grado-toggle[aria-expanded="true"] .gc-grado-arrow { transform:rotate(180deg); }
-
 /* ── Candidatos dentro del accordion ─────────────── */
 .gc-cands-list { background:#fafafe; }
 .gc-cand-row {
@@ -120,16 +112,13 @@
   transition:background .12s;
 }
 .gc-cand-link:hover { background:#c7d2fe; color:#1e1b4b; }
-
 /* ── Sin candidatos ────────────────────────────────── */
 .gc-empty { text-align:center; padding:2.5rem 1rem; color:#94a3b8; }
 .gc-empty i { font-size:2rem; display:block; margin-bottom:.5rem; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1200px;">
-
   <!-- ══ HERO ════════════════════════════════════════════════════════ -->
   <div class="gc-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
@@ -152,9 +141,7 @@
       </div>
     </div>
   </div>
-
   <div class="row g-3 align-items-start">
-
     <!-- ─ Formulario añadir candidato ─ -->
     <div class="col-12 col-lg-4">
       <div class="gc-panel">
@@ -175,7 +162,6 @@
         </div>
       </div>
     </div>
-
     <!-- ─ Candidatos por grado ─ -->
     <div class="col-12 col-lg-8">
       <div class="gc-panel">
@@ -190,15 +176,11 @@
           </span>
           {% endif %}
         </div>
-
         {% if candidatos %}
-          {# ── Agrupación por grado usando regroup ── #}
           {% regroup candidatos by estudiante.grado_actual as grados_list %}
-
           {% for grado_group in grados_list %}
           {% with grado=grado_group.grouper cands=grado_group.list %}
           <div class="gc-grado-block">
-
             <!-- Toggle del grado -->
             <button class="gc-grado-toggle"
                     type="button"
@@ -215,7 +197,6 @@
               <span class="gc-grado-count">{{ cands|length }} candidato{{ cands|length|pluralize:"s" }}</span>
               <i class="bi bi-chevron-down gc-grado-arrow"></i>
             </button>
-
             <!-- Lista candidatos del grado -->
             <div class="collapse {% if forloop.first %}show{% endif %} gc-cands-list"
                  id="grado-{{ forloop.counter }}">
@@ -241,11 +222,9 @@
               </div>
               {% endfor %}
             </div>
-
           </div>
           {% endwith %}
           {% endfor %}
-
         {% else %}
           <div class="gc-empty">
             <i class="bi bi-person-x"></i>
@@ -255,11 +234,9 @@
         {% endif %}
       </div>
     </div>
-
   </div><!-- /row -->
 </div>
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 // Actualiza aria-expanded al colapsar/expandir con Bootstrap

@@ -1,5 +1,4 @@
 {% extends "base_academico.html" %}
-
 {% block contenido %}
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -9,7 +8,6 @@
                     <h4 class="mb-0"><i class="bi bi-person-plus-fill"></i> Admisión Express - Cursos Virtuales</h4>
                 </div>
                 <div class="card-body p-4">
-                    
                     {% if es_superuser %}
                     <div class="mb-4 p-3 bg-light border rounded">
                         <label class="form-label fw-bold"><i class="bi bi-building"></i> Seleccionar Institución:</label>
@@ -26,18 +24,14 @@
                     {% else %}
                         <div class="alert alert-info"><i class="bi bi-building"></i> Institución: <strong>{{ institucion_actual.nombre }}</strong></div>
                     {% endif %}
-
                     <p class="text-muted mb-4">
                         Utilice este formulario para registrar nuevos estudiantes externos que solo tomarán cursos virtuales. 
                         Se creará su usuario y se les enviará el acceso por correo automáticamente.
                     </p>
-
                     <form method="post">
                         {% csrf_token %}
-                        
                         <!-- Campo oculto para asegurar que se cree en la institución seleccionada -->
                         <input type="hidden" name="institucion_id" value="{{ institucion_actual.id }}">
-                        
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label">Nombres</label>
@@ -48,19 +42,16 @@
                                 <input type="text" name="last_name" class="form-control" required>
                             </div>
                         </div>
-
                         <div class="mb-3">
                             <label class="form-label">Documento de Identidad</label>
                             <input type="text" name="documento" class="form-control" required>
                             <div class="form-text">Se generará una contraseña temporal aleatoria para el estudiante al registrarlo.</div>
                         </div>
-
                         <div class="mb-3">
                             <label class="form-label">Correo Electrónico</label>
                             <input type="email" name="email" class="form-control" required>
                             <div class="form-text">El enlace de acceso al curso se enviará aquí.</div>
                         </div>
-
                         <div class="mb-4">
                             <label class="form-label fw-bold">Seleccionar Curso a Matricular</label>
                             <select name="curso_id" class="form-select" required>
@@ -70,7 +61,6 @@
                                 {% endfor %}
                             </select>
                         </div>
-
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-success btn-lg">
                                 <i class="bi bi-check-circle"></i> Registrar y Dar Acceso

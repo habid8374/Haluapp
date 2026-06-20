@@ -1,9 +1,7 @@
 {% extends "base_academico.html" %}
-
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -14,7 +12,6 @@
             <div class="mb-3">
                 <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Volver al Dashboard</a>
             </div>
-
             <form method="get" class="mb-4 p-3 border rounded bg-light">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-5">
@@ -36,9 +33,7 @@
                     </div>
                 </div>
             </form>
-
             {% if grado_seleccionado and periodo_seleccionado %}
-                
                 {% if reporte_no_aplica %}
                     <div class="alert alert-warning">
                         <i class="fas fa-info-circle me-2"></i>El "Cuadro de Honor" no aplica para grados con evaluación cualitativa como '{{ grado_seleccionado.nombre }}'.
@@ -71,12 +66,10 @@
                         </div>
                     </div>
                 {% endif %}
-
             {% endif %}
         </div>
     </div>
 </div>
-
 {% if chart_data %}
 {{ chart_labels|json_script:"chart-labels-data" }}
 {{ chart_data|json_script:"chart-data-data" }}

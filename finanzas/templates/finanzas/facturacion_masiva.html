@@ -1,8 +1,6 @@
 {% extends "base_finanzas.html" %}
 {% load crispy_forms_tags %}
-
 {% block titulo %}Facturación Masiva{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
     .halu-card { border-radius: 14px; border: none; box-shadow: 0 2px 12px rgba(79,70,229,.08); }
@@ -30,9 +28,7 @@
     .lote-nuevo { background: #f0fdf4 !important; }
 </style>
 {% endblock %}
-
 {% block contenido %}
-
 <!-- Hero Banner -->
 <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:18px; padding:2rem 2.25rem; color:white; margin-bottom:1.75rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1.25rem;">
     <div class="d-flex align-items-center gap-3">
@@ -48,7 +44,6 @@
         <i class="bi bi-file-earmark-text-fill me-2"></i>Ver todas las facturas
     </a>
 </div>
-
 <!-- Accesos rápidos -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
@@ -118,10 +113,8 @@
         </a>
     </div>
 </div>
-
 <div class="row justify-content-center">
     <div class="col-lg-8 col-xl-7">
-
         {% if not smtp_configurado %}
         <div class="smtp-alert mb-3">
             <i class="bi bi-envelope-exclamation-fill me-2"></i>
@@ -129,12 +122,10 @@
             Configure el correo de notificaciones en <em>Ajustes de la Institución</em> para activar el envío.
         </div>
         {% endif %}
-
         <div class="card halu-card">
             <div class="card-body p-4">
                 <form method="POST" id="form-facturacion">
                     {% csrf_token %}
-
                     <!-- PASO 1: Concepto -->
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -143,7 +134,6 @@
                         </div>
                         {{ form.concepto_pago|as_crispy_field }}
                     </div>
-
                     <!-- PASO 2: Fecha -->
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -152,7 +142,6 @@
                         </div>
                         {{ form.fecha_vencimiento|as_crispy_field }}
                     </div>
-
                     <!-- PASO 3: Destinatarios -->
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
@@ -189,14 +178,12 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- PASO 4: Notificación -->
                     <div class="mb-4">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <span class="step-badge" style="background:#16a34a;">4</span>
                             <span class="fw-700" style="font-size:.97rem;">Notificación por Correo</span>
                         </div>
-
                         <div id="notif-card" class="notif-card {% if not smtp_configurado %}notif-card-off{% endif %}">
                             <div class="form-check">
                                 {{ form.notificar_correo }}
@@ -216,7 +203,6 @@
                             {% endif %}
                         </div>
                     </div>
-
                     <!-- PASO 5: Factura electrónica (solo si el módulo está operativo) -->
                     {% if fe_operativo %}
                     <div class="mb-4">
@@ -241,21 +227,18 @@
                         </div>
                     </div>
                     {% endif %}
-
                     <!-- Errores generales del form -->
                     {% if form.non_field_errors %}
                     <div class="alert alert-danger rounded-3">
                         {% for error in form.non_field_errors %}{{ error }}{% endfor %}
                     </div>
                     {% endif %}
-
                     <!-- Botón submit -->
                     <div class="d-grid mt-3">
                         <button type="submit" class="btn btn-primary btn-lg fw-700" style="border-radius:10px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border:none; padding:.85rem;">
                             <i class="bi bi-play-circle-fill me-2"></i> Iniciar Proceso de Facturación
                         </button>
                     </div>
-
                     <!-- Previsualizar Orden de Pago (sin enviar correos) -->
                     <div class="d-grid mt-2">
                         <button type="button" id="btn-previsualizar" class="btn btn-outline-secondary fw-700" style="border-radius:10px; padding:.7rem;">
@@ -263,11 +246,9 @@
                         </button>
                         <small id="prev-hint" class="text-center mt-1" style="font-size:.78rem; color:#b45309;"></small>
                     </div>
-
                 </form>
             </div>
         </div>
-
         <!-- Info card -->
         <div class="card halu-card mt-3" style="background:#f8faff; border:1px solid #e0e7ff;">
             <div class="card-body p-3">
@@ -283,10 +264,8 @@
                 </ul>
             </div>
         </div>
-
     </div>
 </div>
-
 <!-- ═══════════════════════════════════════════════════════
      RESULTADO DEL ÚLTIMO LOTE (aparece solo tras ejecutar)
      ═══════════════════════════════════════════════════════ -->
@@ -357,7 +336,6 @@
     </div>
 </div>
 {% endif %}
-
 <!-- ═══════════════════════════════════════════════════════
      HISTORIAL RECIENTE (siempre visible)
      ═══════════════════════════════════════════════════════ -->
@@ -432,15 +410,12 @@
     </div>
 </div>
 {% endif %}
-
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 // Desactivar/activar los checkboxes de grado cuando "toda la institución" está marcado
 const cbTodos = document.getElementById('{{ form.toda_la_institucion.id_for_label }}');
 const gradosWrap = document.querySelectorAll('.check-grado label');
-
 function toggleGrados() {
     gradosWrap.forEach(lbl => {
         const cb = lbl.querySelector('input[type=checkbox]');
@@ -459,7 +434,6 @@ if (cbTodos) {
     cbTodos.addEventListener('change', toggleGrados);
     toggleGrados();
 }
-
 // Previsualizar Orden de Pago en una pestaña nueva, usando el concepto seleccionado
 const btnPrev = document.getElementById('btn-previsualizar');
 const selConcepto = document.getElementById('{{ form.concepto_pago.id_for_label }}');

@@ -1,14 +1,12 @@
 {% extends "base_academico.html" %}
 {% load gestion_academica_filters %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══════════════════════════════════════════
    PANTALLA
 ══════════════════════════════════════════ */
 :root { --mc-dark:#1e1b4b; --mc-mid:#3730a3; --mc-light:#4f46e5; }
-
 .mc-hero { background:linear-gradient(135deg,var(--mc-dark) 0%,var(--mc-mid) 55%,#4338ca 100%); border-radius:1rem; padding:1.5rem 1.8rem; color:#fff; position:relative; overflow:hidden; margin-bottom:1.5rem; }
 .mc-hero::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
 .mc-hero-badge { display:inline-flex; align-items:center; gap:.35rem; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); border-radius:2rem; padding:.25rem .75rem; font-size:.78rem; font-weight:600; }
@@ -19,55 +17,44 @@
 .mc-btn-outline:hover { background:rgba(255,255,255,.22); color:#fff; }
 .mc-btn-print { background:#fff; color:var(--mc-mid); border:none; font-weight:700; }
 .mc-btn-print:hover { background:#eef2ff; color:var(--mc-dark); }
-
 .mc-period-tabs { display:flex; gap:.4rem; margin-bottom:1.25rem; flex-wrap:wrap; }
 .mc-period-tab { padding:.45rem 1.1rem; border-radius:.6rem; font-size:.82rem; font-weight:700; cursor:pointer; border:none; background:#e0e7ff; color:#3730a3; transition:background .15s; }
 .mc-period-tab.active { background:linear-gradient(135deg,var(--mc-mid),var(--mc-light)); color:#fff; }
 .mc-period-tab:hover:not(.active) { background:#c7d2fe; }
-
 .mc-period-panel { display:none; }
 .mc-period-panel.active { display:block; }
-
 .mc-panel { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; margin-bottom:1.25rem; }
 .mc-panel-header { display:flex; align-items:center; justify-content:space-between; gap:.5rem; flex-wrap:wrap; padding:.85rem 1.2rem; border-bottom:1px solid #f1f5f9; }
 .mc-panel-title { font-size:.95rem; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:.5rem; margin:0; }
 .mc-panel-title .ico { width:30px; height:30px; border-radius:.45rem; display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; background:#e0e7ff; color:#4f46e5; }
-
 .mc-table-wrap { overflow-x:auto; }
 .mc-table { width:100%; border-collapse:collapse; font-size:.78rem; }
 .mc-table th { background:linear-gradient(135deg,var(--mc-mid),var(--mc-light)); color:#fff; padding:.55rem .75rem; font-weight:700; font-size:.73rem; text-align:left; white-space:nowrap; }
 .mc-table td { padding:.6rem .75rem; border-bottom:1px solid #f1f5f9; vertical-align:top; color:#1e293b; }
 .mc-table tr:last-child td { border-bottom:none; }
 .mc-table tr:hover td { background:#fafafe; }
-
 .nivel-bajo     { display:inline-block; background:#fee2e2; color:#b91c1c; border-radius:.35rem; padding:.12rem .5rem; font-size:.7rem; font-weight:700; margin-bottom:.25rem; }
 .nivel-basico   { display:inline-block; background:#fef3c7; color:#92400e; border-radius:.35rem; padding:.12rem .5rem; font-size:.7rem; font-weight:700; margin-bottom:.25rem; }
 .nivel-alto     { display:inline-block; background:#dbeafe; color:#1d4ed8; border-radius:.35rem; padding:.12rem .5rem; font-size:.7rem; font-weight:700; margin-bottom:.25rem; }
 .nivel-superior { display:inline-block; background:#dcfce7; color:#15803d; border-radius:.35rem; padding:.12rem .5rem; font-size:.7rem; font-weight:700; margin-bottom:.25rem; }
-
 .mc-empty { text-align:center; padding:2rem; color:#94a3b8; }
 .mc-empty i { font-size:1.8rem; display:block; margin-bottom:.4rem; }
-
 .mc-add-card { background:#f8faff; border:1px dashed #c7d2fe; border-radius:.75rem; padding:1.1rem 1.2rem; margin-bottom:1.25rem; }
 .mc-add-title { font-size:.85rem; font-weight:700; color:#3730a3; margin-bottom:.9rem; display:flex; align-items:center; gap:.4rem; }
 .mc-add-btn { background:linear-gradient(135deg,var(--mc-mid),var(--mc-light)); color:#fff; border:none; border-radius:.55rem; padding:.55rem .9rem; font-size:.82rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; margin-top:.5rem; }
 .mc-add-btn:hover { opacity:.88; }
-
 .mc-act { display:inline-flex; align-items:center; gap:.3rem; padding:.22rem .55rem; border-radius:.35rem; font-size:.71rem; font-weight:600; text-decoration:none; cursor:pointer; border:none; transition:background .12s; }
 .mc-act-edit { background:#e0e7ff; color:#3730a3; }
 .mc-act-edit:hover { background:#c7d2fe; }
 .mc-act-del  { background:#fee2e2; color:#b91c1c; }
 .mc-act-del:hover { background:#fecaca; }
-
 .mc-info-strip { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.25rem; }
 .mc-info-chip  { display:inline-flex; align-items:center; gap:.4rem; background:#fff; border:1px solid #e2e8f0; border-radius:.6rem; padding:.4rem .85rem; font-size:.78rem; color:#475569; font-weight:500; }
 .mc-info-chip strong { color:#1e293b; }
-
 /* Sólo visible en pantalla */
 .screen-only { display:block; }
 /* Sólo visible al imprimir */
 .print-only  { display:none; }
-
 /* ══════════════════════════════════════════
    IMPRESIÓN  @media print
 ══════════════════════════════════════════ */
@@ -87,21 +74,16 @@
   [class*="sidebar"], [class*="navbar"],
   [class*="topbar"], [id*="sidebar"],
   .no-print { display:none !important; }
-
   /* Mostrar elementos de impresión */
   .print-only { display:block !important; }
-
   /* Todos los períodos visibles */
   .mc-period-panel { display:block !important; }
-
   /* Página en horizontal para que quepa la tabla */
   @page {
     size: A4 landscape;
     margin: 1.5cm 1.2cm 2cm 1.2cm;
   }
-
   body { font-size: 10pt; color: #000; background: #fff !important; }
-
   /* Quitar bordes redondeados, sombras y fondos de pantalla */
   .mc-panel {
     border-radius: 0 !important;
@@ -117,7 +99,6 @@
   }
   .mc-panel-title { font-size: 11pt !important; color: #1e1b4b !important; }
   .mc-panel-title .ico { display:none; }
-
   /* Tabla de impresión */
   .mc-table-wrap { overflow: visible !important; }
   .mc-table { font-size: 8pt !important; border-collapse: collapse !important; width: 100% !important; }
@@ -137,21 +118,17 @@
     word-break: break-word;
   }
   .mc-table tr:hover td { background: transparent !important; }
-
   /* Chips de nivel sin color de fondo */
   .nivel-bajo     { background: #fee2e2 !important; color: #7f1d1d !important; font-size:7pt !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .nivel-basico   { background: #fef3c7 !important; color: #78350f !important; font-size:7pt !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .nivel-alto     { background: #dbeafe !important; color: #1e3a8a !important; font-size:7pt !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .nivel-superior { background: #dcfce7 !important; color: #14532d !important; font-size:7pt !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-
   /* Ocultar la columna Acciones al imprimir */
   .mc-table th:last-child,
   .mc-table td:last-child { display: none !important; }
-
   /* Período — salto de página antes de cada uno */
   .mc-period-panel { page-break-before: auto; }
   .mc-period-panel + .mc-period-panel { page-break-before: always; }
-
   /* Encabezado del documento */
   .print-doc-header {
     border-bottom: 3px solid #1e1b4b;
@@ -178,7 +155,6 @@
   .print-doc-header .pdh-title p {
     font-size: 9pt; color: #475569; margin: 0;
   }
-
   /* Meta strip del documento */
   .print-meta-strip {
     display: flex !important;
@@ -195,7 +171,6 @@
   .print-meta-item { flex: 1; }
   .print-meta-item span { font-size: 7.5pt; color: #475569; display: block; text-transform: uppercase; letter-spacing: .3pt; }
   .print-meta-item strong { font-size: 10pt; color: #1e1b4b; }
-
   /* Propósito general */
   .print-proposito {
     background: #eef2ff !important;
@@ -206,7 +181,6 @@
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-
   /* Bloque de firmas */
   .print-firmas {
     display: flex !important;
@@ -222,7 +196,6 @@
   }
   .print-firma-box p { font-size: 8.5pt; margin: 0; color: #1e293b; }
   .print-firma-box .firma-cargo { font-size: 7.5pt; color: #475569; margin-top: 1pt; }
-
   /* Pie del documento */
   .print-footer {
     display: flex !important;
@@ -237,11 +210,8 @@
 }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1200px;">
-
-  {# ═══ ENCABEZADO DE DOCUMENTO — solo visible al imprimir ═══ #}
   <div class="print-only">
     <div class="print-doc-header">
       <div>
@@ -253,7 +223,6 @@
         <p>Documento oficial — Año lectivo {{ malla.año_lectivo }}</p>
       </div>
     </div>
-
     <div class="print-meta-strip">
       <div class="print-meta-item">
         <span>Área / Asignatura</span>
@@ -278,15 +247,12 @@
         <strong>{{ malla.fecha_actualizacion|date:"d \d\e F \d\e Y" }}</strong>
       </div>
     </div>
-
     {% if malla.descripcion_general %}
     <div class="print-proposito">
       <strong>Propósito general:</strong> {{ malla.descripcion_general }}
     </div>
     {% endif %}
   </div>
-
-  {# ═══ HERO — solo en pantalla ═══ #}
   <div class="mc-hero screen-only">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
       <div>
@@ -301,8 +267,6 @@
       </div>
     </div>
   </div>
-
-  {# Chips de info — solo pantalla #}
   <div class="mc-info-strip screen-only">
     <div class="mc-info-chip"><i class="bi bi-book-half" style="color:#4f46e5;"></i> <strong>Área:</strong> {{ malla.materia.nombre_materia }}</div>
     <div class="mc-info-chip"><i class="bi bi-mortarboard-fill" style="color:#7c3aed;"></i> <strong>Grado:</strong> {{ malla.grado.nombre }}</div>
@@ -311,7 +275,6 @@
     {% if malla.materia.intensidad_horaria_semanal %}
     <div class="mc-info-chip"><i class="bi bi-clock-fill" style="color:#b45309;"></i> <strong>Intensidad:</strong> {{ malla.materia.intensidad_horaria_semanal }} h/sem</div>
     {% endif %}
-    {# Cobertura DBA #}
     {% if total_items %}
     <div class="mc-info-chip" style="flex-direction:column;align-items:flex-start;gap:.2rem;min-width:160px;">
       <div style="display:flex;align-items:center;gap:.4rem;width:100%;">
@@ -325,17 +288,13 @@
       </div>
     </div>
     {% endif %}
-    {# Chip: ¿tiene DBA oficiales? — se rellena por JS #}
     <div id="chip-area-dba" class="mc-info-chip" style="display:none;"></div>
   </div>
-
   {% if malla.descripcion_general %}
   <div class="screen-only" style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:.75rem;padding:.85rem 1.1rem;margin-bottom:1.25rem;font-size:.83rem;color:#3730a3;">
     <i class="bi bi-info-circle-fill me-2"></i><strong>Propósito general:</strong> {{ malla.descripcion_general }}
   </div>
   {% endif %}
-
-  {# Pestañas — solo pantalla #}
   <div class="mc-period-tabs screen-only">
     {% for p in periodos %}
     <button class="mc-period-tab {% if forloop.first %}active{% endif %}"
@@ -345,11 +304,8 @@
     </button>
     {% endfor %}
   </div>
-
-  {# ═══ PANELES DE PERÍODO ═══ #}
   {% for p in periodos %}
   <div class="mc-period-panel {% if forloop.first %}active{% endif %}" id="periodo-panel-{{ p }}">
-
     {% if por_periodo|get_item:p %}
     <div class="mc-panel">
       <div class="mc-panel-header">
@@ -503,7 +459,6 @@
         </table>
       </div>
     </div>
-
     {% else %}
     <div class="mc-panel screen-only">
       <div class="mc-empty">
@@ -513,8 +468,6 @@
       </div>
     </div>
     {% endif %}
-
-    {# Formulario agregar — solo pantalla #}
     <div class="mc-add-card screen-only">
       <div class="mc-add-title"><i class="bi bi-plus-circle-fill"></i> Agregar Eje Temático al {{ p }}° Período</div>
       <form method="post" action="{% url 'gestion_academica:item_malla_add' malla.pk %}">
@@ -666,11 +619,8 @@
         <button type="submit" class="mc-add-btn"><i class="bi bi-plus-lg"></i> Agregar a la Malla</button>
       </form>
     </div>
-
   </div>
   {% endfor %}
-
-  {# ═══ BLOQUE DE FIRMAS — solo impresión ═══ #}
   <div class="print-only">
     <div class="print-firmas">
       <div class="print-firma-box">
@@ -694,17 +644,13 @@
         <p class="firma-cargo">{{ malla.materia.nombre_materia }}</p>
       </div>
     </div>
-
     <div class="print-footer">
       <span>{{ malla.institucion }} · Malla Curricular {{ malla.año_lectivo }}</span>
       <span>Generado por HALU — Sistema de Gestión Escolar</span>
       <span>Actualizado: {{ malla.fecha_actualizacion|date:"d/m/Y" }}</span>
     </div>
   </div>
-
 </div>
-
-{# ── Modal Biblioteca DBA MEN ── #}
 <div class="modal fade" id="modalDBABiblioteca" tabindex="-1" aria-labelledby="modalDBATituloDetalle">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content" style="border-radius:14px;border:none;">
@@ -769,8 +715,6 @@
     </div>
   </div>
 </div>
-
-{# ── Modal eliminación ── #}
 <div class="modal fade" id="modalEliminarItem" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
     <div class="modal-content" style="border-radius:1rem;border:none;box-shadow:0 20px 60px rgba(0,0,0,.18);">
@@ -802,15 +746,12 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 (function () {
   const API_URL = "{% url 'gestion_academica:dba_predefinido_api' %}";
   var dbaCacheIL = {};
-
   function renderDBAInline(dbaList) {
     const cont = document.getElementById('dba-resultados-inline');
     dbaCacheIL = {};
@@ -838,7 +779,6 @@
         </div>`;
     }).join('');
   }
-
   document.addEventListener('DOMContentLoaded', function () {
     var btnBuscar = document.getElementById('btn-buscar-dba-inline');
     if (btnBuscar) {
@@ -856,7 +796,6 @@
           });
       });
     }
-
     var resDBA = document.getElementById('dba-resultados-inline');
     if (resDBA) {
       resDBA.addEventListener('click', function (e) {
@@ -877,21 +816,18 @@
     }
   });
 })();
-
 // ── Fase 3: Bridge interactivo Evidencias → Indicadores (inline) ──
 (function () {
   const CSRF_DI  = "{{ csrf_token }}";
   const API_DI   = "{% url 'gestion_academica:sugerir_distribucion_ia' %}";
   const MAT_IL   = "{{ malla.materia.nombre_materia|default:'' }}";
   const GRAD_IL  = "{{ malla.grado.nombre|default:'' }}";
-
   const NIVELES_IL = {
     bajo:     { label: '{% if niveles.bajo %}{{ niveles.bajo.nombre_desempeno }}{% else %}Bajo{% endif %}',       campo: 'ind-bajo-inline',     color: '#dc2626', bg: '#fef2f2' },
     basico:   { label: '{% if niveles.basico %}{{ niveles.basico.nombre_desempeno }}{% else %}Básico{% endif %}', campo: 'ind-basico-inline',   color: '#d97706', bg: '#fefce8' },
     alto:     { label: '{% if niveles.alto %}{{ niveles.alto.nombre_desempeno }}{% else %}Alto{% endif %}',       campo: 'ind-alto-inline',     color: '#1d4ed8', bg: '#dbeafe' },
     superior: { label: '{% if niveles.superior %}{{ niveles.superior.nombre_desempeno }}{% else %}Superior{% endif %}', campo: 'ind-superior-inline', color: '#15803d', bg: '#dcfce7' },
   };
-
   function pegarInline(texto, nivel) {
     var n = NIVELES_IL[nivel];
     var el = document.getElementById(n.campo);
@@ -901,9 +837,7 @@
     el.style.background = n.bg;
     setTimeout(function () { el.style.background = ''; }, 800);
   }
-
   var sugerenciasIL = {};
-
   function renderLineaIL(texto, sugerido) {
     var safe = texto.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     var btns = Object.keys(NIVELES_IL).map(function (k) {
@@ -919,7 +853,6 @@
       '<span style="flex:1;min-width:0;font-size:.77rem;">' + texto + '</span>' +
       '<div style="display:flex;gap:.2rem;flex-wrap:wrap;">' + btns + '</div></div>';
   }
-
   function updateBridgeIL() {
     var campoEv = document.getElementById('campo-evidencias-dba-inline');
     var bridge  = document.getElementById('bridge-inline');
@@ -931,14 +864,12 @@
     bridge.style.display = 'block';
   }
   window._updateBridgeIL = updateBridgeIL;
-
   document.addEventListener('DOMContentLoaded', function () {
     var campoEv = document.getElementById('campo-evidencias-dba-inline');
     if (campoEv) {
       campoEv.addEventListener('input', function () { sugerenciasIL = {}; updateBridgeIL(); });
       updateBridgeIL();
     }
-
     var bridgeList = document.getElementById('bridge-list-inline');
     if (bridgeList) {
       bridgeList.addEventListener('click', function (e) {
@@ -947,7 +878,6 @@
         pegarInline(btn.dataset.texto, btn.dataset.nivel);
       });
     }
-
     var btnSug = document.getElementById('btn-sugerir-dist-inline');
     if (btnSug) {
       btnSug.addEventListener('click', function () {
@@ -976,14 +906,12 @@
     }
   });
 })();
-
 // ── Generar indicadores con IA (formulario inline) ──
 (function () {
   const API_URL = "{% url 'gestion_academica:generar_indicadores_ia' %}";
   const CSRF    = "{{ csrf_token }}";
   const MATERIA = "{{ malla.materia.nombre_materia|default:'' }}";
   const GRADO   = "{{ malla.grado.nombre|default:'' }}";
-
   document.addEventListener('DOMContentLoaded', function () {
     var btn = document.getElementById('btn-generar-indicadores-inline');
     if (!btn) return;
@@ -1001,7 +929,6 @@
       errDiv.style.display = 'none';
       spinner.classList.remove('d-none');
       btn.disabled = true;
-
       var body = new URLSearchParams({
         csrfmiddlewaretoken: CSRF,
         dba:        dba,
@@ -1033,12 +960,10 @@
     });
   });
 })();
-
 // ── Fase 4: Detección de área DBA + auto-contexto del modal ──
 (function () {
   var MATERIA_N = "{{ malla.materia.nombre_materia|default:''|escapejs }}";
   var GRADO_N   = "{{ malla.grado.nombre|default:''|escapejs }}";
-
   var AREA_MAP = [
     { area: 'matematicas',      re: /matem/i },
     { area: 'lenguaje',         re: /lenguaje|espa[nñ]|castell|comunicaci|liter|lectura|escrit/i },
@@ -1046,29 +971,24 @@
     { area: 'ciencias_sociales',  re: /ciencias?\s*soc|histor|geogr|sociol|democr|c[aá]tedr/i },
     { area: 'ingles',           re: /ingl[eé]|english/i },
   ];
-
   var AREAS_LABEL = {
     matematicas: 'Matemáticas', lenguaje: 'Lenguaje',
     ciencias_naturales: 'Ciencias Naturales', ciencias_sociales: 'Ciencias Sociales', ingles: 'Inglés'
   };
-
   function detectarArea(nombre) {
     for (var i = 0; i < AREA_MAP.length; i++) {
       if (AREA_MAP[i].re.test(nombre)) return AREA_MAP[i].area;
     }
     return null;
   }
-
   function detectarGrado(nombre) {
     if (/transici/i.test(nombre)) return 'transicion';
     var m = nombre.match(/(\d+)/);
     if (m) { var g = parseInt(m[1]); if (g >= 1 && g <= 11) return String(g); }
     return null;
   }
-
   var areaDetectada  = detectarArea(MATERIA_N);
   var gradoDetectado = detectarGrado(GRADO_N);
-
   // Chip de advertencia en la barra de info
   var chip = document.getElementById('chip-area-dba');
   if (chip) {
@@ -1086,7 +1006,6 @@
       chip.style.background  = '#fffbeb';
     }
   }
-
   // Auto-contextualizar el modal DBA al abrirse
   var modalEl = document.getElementById('modalDBABiblioteca');
   if (modalEl && areaDetectada) {
@@ -1104,14 +1023,12 @@
     });
   }
 })();
-
 function showPeriodo(num, btn) {
   document.querySelectorAll('.mc-period-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.mc-period-tab').forEach(b => b.classList.remove('active'));
   document.getElementById('periodo-panel-' + num).classList.add('active');
   btn.classList.add('active');
 }
-
 document.addEventListener('DOMContentLoaded', function () {
   /* Auto-imprimir si viene ?print=1 desde la lista */
   {% if auto_print %}

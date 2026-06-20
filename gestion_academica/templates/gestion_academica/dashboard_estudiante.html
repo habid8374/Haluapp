@@ -2,16 +2,13 @@
 {% load static %}
 {% load horario_filters %}
 {% load tz %}
-
 {% block titulo %}{{ titulo_pagina|default:"Mi Panel de Estudiante" }}{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
 /* ═══════════════════════════════════════════════════
    HALU PULSE — Dashboard Estudiante
 ═══════════════════════════════════════════════════ */
-
 /* ── Hero ── */
 .est-hero {
   position: relative;
@@ -73,7 +70,6 @@
 .est-ha-btn.ha-red { background: rgba(239,68,68,.22); border-color: rgba(239,68,68,.4); }
 .est-ha-btn.ha-red:hover { background: rgba(239,68,68,.38); }
 .est-ha-btn.opacity-50 { opacity: .5; pointer-events: none; }
-
 /* ── KPI Strip ── */
 .est-kpi-strip {
   display: grid;
@@ -110,7 +106,6 @@
 .kpi-red   .kpi-val  { color: #dc2626; }
 .kpi-green .kpi-icon { background: #f0fdf4; color: #16a34a; }
 .kpi-green .kpi-val  { color: #16a34a; }
-
 /* ── Alert panels ── */
 .pulse-notif-panel {
   background: linear-gradient(135deg, #eff6ff, #dbeafe);
@@ -136,7 +131,6 @@
   display: flex; align-items: center; gap: .5rem;
   font-weight: 700; color: #15803d; margin-bottom: .5rem; font-size: .92rem;
 }
-
 /* ── Bloqueo por mora ── */
 .pulse-block-panel {
   background: linear-gradient(135deg, #fef2f2, #fee2e2);
@@ -154,7 +148,6 @@
 }
 .pulse-block-stat .pbs-val { font-size: 1.9rem; font-weight: 900; color: #dc2626; line-height: 1; font-family: 'Manrope', sans-serif; }
 .pulse-block-stat .pbs-lbl { font-size: .68rem; color: #64748b; margin-top: .25rem; font-weight: 600; text-transform: uppercase; }
-
 /* ── Cartera banner ── */
 .pulse-cartera-banner {
   display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
@@ -165,7 +158,6 @@
 .pcb-icon { font-size: 2rem; flex-shrink: 0; }
 .pcb-title { font-weight: 700; font-size: .95rem; margin-bottom: .1rem; }
 .pcb-sub   { font-size: .8rem; color: #64748b; }
-
 /* ── Section headers ── */
 .pulse-sec-hdr {
   display: flex; align-items: center; gap: .6rem;
@@ -180,7 +172,6 @@
   font-size: 1rem; flex-shrink: 0;
 }
 .pulse-sec-hdr h2 { font-size: 1.05rem; font-weight: 800; color: #0f3f90; margin: 0; }
-
 /* ── Calificaciones list ── */
 .pulse-cal-link {
   display: flex; align-items: center; justify-content: space-between;
@@ -191,7 +182,6 @@
 .pulse-cal-link:hover { background: #eaf2ff; border-color: #93c5fd; color: #0b5ed7; transform: translateX(3px); }
 .pulse-cal-link .pcl-name { font-weight: 600; font-size: .9rem; }
 .pulse-cal-badge { background: #0b5ed7; color: #fff; border-radius: 2rem; padding: .2rem .75rem; font-size: .76rem; font-weight: 700; flex-shrink: 0; }
-
 /* ── Inasistencias box ── */
 .pulse-inasist-box {
   text-align: center; padding: 1.5rem 1rem;
@@ -199,12 +189,10 @@
 }
 .pulse-inasist-box .pia-num { font-size: 3.2rem; font-weight: 900; color: #d97706; line-height: 1; font-family: 'Manrope', sans-serif; }
 .pulse-inasist-box .pia-lbl { font-size: .78rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; margin: .3rem 0 1rem; }
-
 /* ── Accordion override ── */
 .accordion-button:not(.collapsed) { background: #eaf2ff; color: #0b5ed7; box-shadow: none; }
 .accordion-button { font-weight: 600; }
 .accordion-item { border-color: #dbe5f4 !important; margin-bottom: .4rem; border-radius: .65rem !important; overflow: hidden; }
-
 /* ── Elecciones ── */
 .pulse-elec-card {
   background: #fff; border-radius: .9rem; border: 1px solid #dbe5f4;
@@ -212,7 +200,6 @@
   padding: 1.1rem; transition: transform .2s, box-shadow .2s; height: 100%;
 }
 .pulse-elec-card:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(11,94,215,.12); }
-
 /* ── Horario PULSE ── */
 .pulse-horario-wrap {
   background: #fff; border: 1px solid #dbe5f4; border-radius: .9rem; overflow: hidden; margin-bottom: 1.5rem;
@@ -233,7 +220,6 @@
 }
 .pulse-sched-name { font-weight: 700; font-size: .88rem; color: #0f3f90; }
 .pulse-sched-aula { font-size: .75rem; color: #64748b; margin-top: .1rem; }
-
 /* ── Citas ── */
 .pulse-cita-row {
   display: flex; align-items: flex-start; gap: .8rem;
@@ -244,7 +230,6 @@
 .pulse-cita-row.confirmada { border-left-color: #22c55e; }
 .pci-date { font-weight: 800; font-size: .82rem; min-width: 46px; text-align: center; flex-shrink: 0; }
 .pci-date .pci-time { font-size: .7rem; font-weight: 500; color: #64748b; margin-top: .1rem; }
-
 /* ── Noticias ── */
 .pulse-news-card {
   border-radius: .9rem; border: 1px solid #dbe5f4; background: #fff;
@@ -258,12 +243,10 @@
 .pulse-news-date { font-size: .71rem; color: #94a3b8; margin-bottom: .3rem; }
 .pulse-news-title { font-weight: 700; font-size: .9rem; color: #0f3f90; margin-bottom: .4rem; }
 .pulse-news-excerpt { font-size: .82rem; color: #4b5563; flex: 1; margin-bottom: .75rem; }
-
 @media (max-width: 768px) {
   .est-hero { padding: 1.4rem 1.2rem 1.9rem; }
   .est-hero .hero-greeting { font-size: 1.35rem; }
   .est-kpi-strip { grid-template-columns: repeat(2, 1fr); }
-
   /* ── Panel de notificaciones compacto en móvil ── */
   .pulse-notif-panel {
     padding: .65rem .85rem;
@@ -288,11 +271,8 @@
 }
 </style>
 {% endblock extrastyles %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
-  {# ══════════════════ HERO ══════════════════ #}
   <div class="est-hero">
     <div class="hero-badge"><i class="bi bi-mortarboard-fill"></i> Estudiante · {{ estudiante.grado_actual.nombre|default:"Sin grado asignado" }}</div>
     <div class="hero-greeting">¡Hola, {{ estudiante.usuario.first_name|default:estudiante.usuario.username }}! 👋</div>
@@ -313,8 +293,6 @@
       <a href="{% url 'finanzas:mi_estado_de_cuenta' %}" class="est-ha-btn ha-red"><i class="bi bi-credit-card-fill"></i> Pagos</a>
     </div>
   </div>
-
-  {# ══════════════════ KPI STRIP ══════════════════ #}
   <div class="est-kpi-strip">
     <div class="est-kpi {% if cuentas_vencidas_count == 0 %}kpi-green{% else %}kpi-red{% endif %}">
       <div class="kpi-icon">
@@ -339,8 +317,6 @@
       <div class="kpi-lbl">Notificaciones</div>
     </div>
   </div>
-
-  {# ══════════════════ NOTIFICACIONES ══════════════════ #}
   {% if notificaciones_sin_leer %}
   <div class="pulse-notif-panel" id="dashboard-notifications">
     <div class="pnp-head"><i class="bi bi-bell-fill"></i> Tienes {{ notificaciones_sin_leer|length }} notificación(es) nueva(s)</div>
@@ -360,8 +336,6 @@
     </div>
   </div>
   {% endif %}
-
-  {# ══════════════════ MENCIONES ══════════════════ #}
   {% if ultimas_menciones %}
   <div class="pulse-mencion-panel">
     <div class="pmp-head">
@@ -384,8 +358,6 @@
     </ul>
   </div>
   {% endif %}
-
-  {# ══════════════════ BLOQUEO POR MORA ══════════════════ #}
   {% if portal_bloqueado_por_mora %}
   <div class="pulse-block-panel">
     <div class="pbp-title"><i class="bi bi-shield-lock-fill"></i> Tu portal académico está bloqueado</div>
@@ -423,8 +395,6 @@
     </div>
   </div>
   {% endif %}
-
-  {# ══════════════════ CARTERA BANNER ══════════════════ #}
   <div class="pulse-cartera-banner {% if cuentas_vencidas_count > 0 %}vencida{% else %}ok{% endif %}">
     <div class="pcb-icon">
       {% if cuentas_vencidas_count > 0 %}<i class="bi bi-exclamation-triangle-fill text-danger"></i>
@@ -441,11 +411,7 @@
       {% if cuentas_vencidas_count > 0 %}Ver y Pagar Urgente{% else %}Ver Historial de Pagos{% endif %}
     </a>
   </div>
-
-  {# ══════════════════ SECCIÓN ACADÉMICA (solo si no moroso) ══════════════════ #}
   {% if not estudiante_moroso %}
-
-  {# Calificaciones + Inasistencias #}
   <div class="row g-4">
     <div class="col-lg-8">
       <div class="pulse-sec-hdr">
@@ -478,8 +444,6 @@
       </div>
     </div>
   </div>
-
-  {# ══════════════════ ASIGNATURAS ══════════════════ #}
   <div class="pulse-sec-hdr" id="acordeonAsignaturas">
     <div class="psh-icon"><i class="bi bi-journal-richtext"></i></div>
     <h2>Mis Asignaturas</h2>
@@ -547,8 +511,6 @@
     {% endfor %}
   </div>
   {% endif %}
-
-  {# ══════════════════ ELECCIONES ══════════════════ #}
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#fdf4ff;color:#a21caf;"><i class="bi bi-person-check-fill"></i></div>
     <h2>Elecciones Escolares Activas</h2>
@@ -579,10 +541,7 @@
     </div>
     {% endfor %}
   </div>
-
-  {% endif %}{# fin not estudiante_moroso #}
-
-  {# ══════════════════ HORARIO SEMANAL ══════════════════ #}
+  {% endif %}
   <div class="pulse-sec-hdr" id="seccion-horario">
     <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar-week"></i></div>
     <h2>Mi Horario Semanal</h2>
@@ -630,8 +589,6 @@
       {% endfor %}
     </div>
   </div>
-
-  {# ══════════════════ CITAS ══════════════════ #}
   {% if citas_estudiante %}
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar2-heart-fill"></i></div>
@@ -666,8 +623,6 @@
     {% endfor %}
   </div>
   {% endif %}
-
-  {# ══════════════════ NOTICIAS ══════════════════ #}
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#fff7ed;color:#ea580c;"><i class="bi bi-newspaper"></i></div>
     <h2>Últimas Noticias y Anuncios</h2>
@@ -697,16 +652,13 @@
     </div>
     {% endfor %}
   </div>
-
 </div>
 {% endblock contenido %}
-
 {% block extra_js %}
 {{ block.super }}
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-
   // ── Live date ──
   function updateLiveDate() {
     const el = document.getElementById('est-live-date');
@@ -719,7 +671,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   updateLiveDate();
   setInterval(updateLiveDate, 60000);
-
   // ── FullCalendar ──
   var calendarEl = document.getElementById('calendar');
   if (calendarEl) {
@@ -732,7 +683,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     calendar.render();
   }
-
   // ── Notificaciones dismiss ──
   const notifContainer = document.getElementById('dashboard-notifications');
   if (notifContainer) {
@@ -742,7 +692,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const notifId = btn.dataset.notificacionId;
         const item = document.getElementById('notification-' + notifId);
         if (item) item.style.display = 'none';
-
         fetch("{% url 'gestion_academica:marcar_notificacion_leida' %}", {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
@@ -754,7 +703,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-
 });
 </script>
 {% endblock %}

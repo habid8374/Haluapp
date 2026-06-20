@@ -1,8 +1,6 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
@@ -22,7 +20,6 @@
     {% if etiqueta_periodo %}
     <p class="text-muted small mb-4">{{ etiqueta_periodo }} · del {{ fecha_periodo_inicio|date:"d/m/Y" }} al {{ fecha_periodo_fin|date:"d/m/Y" }}</p>
     {% endif %}
-
     {% if puede_cargar_puc %}
     <div class="card shadow-sm border-warning mb-4">
         <div class="card-header bg-warning-subtle">
@@ -66,7 +63,6 @@
         </div>
     </div>
     {% endif %}
-
     {% if alertas_puc.conceptos_sin_puc or alertas_puc.categorias_sin_puc %}
     <div class="card shadow-sm border-warning mb-4">
         <div class="card-header bg-warning-subtle">
@@ -89,7 +85,6 @@
         </div>
     </div>
     {% endif %}
-
     {% if not kpis %}
     <div class="alert alert-info" role="alert">
         No hay datos financieros para mostrar: su usuario no está asociado a una institución, o no tiene permisos de visualización en este módulo.
@@ -150,7 +145,6 @@
             </div>
         </div>
     </div>
-
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="card border-info h-100 shadow-sm">
@@ -169,7 +163,6 @@
             </div>
         </div>
     </div>
-
     {% if proximos_vencimientos %}
     <div class="card shadow-sm mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -209,9 +202,7 @@
     </div>
     {% endif %}
     {% endif %}
-
     <h3 class="h5 text-uppercase text-muted mb-3">Accesos rápidos</h3>
-
     <h4 class="h6 border-bottom pb-2 mb-3"><i class="bi bi-cash-coin me-2"></i>Ingresos y cartera</h4>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4">
         <div class="col">
@@ -245,7 +236,6 @@
             </div>
         </div>
     </div>
-
     <h4 class="h6 border-bottom pb-2 mb-3"><i class="bi bi-box-arrow-up-right me-2"></i>Gastos</h4>
     <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
         <div class="col">
@@ -259,7 +249,6 @@
             </div>
         </div>
     </div>
-
     <h4 class="h6 border-bottom pb-2 mb-3"><i class="bi bi-graph-up me-2"></i>Reportes y exportación</h4>
     <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
         <div class="col">
@@ -283,7 +272,6 @@
             </div>
         </div>
     </div>
-
     <h4 class="h6 border-bottom pb-2 mb-3"><i class="bi bi-gear-fill me-2"></i>Configuración</h4>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4">
         {% if puede_config_pagos %}

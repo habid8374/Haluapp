@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load crispy_forms_tags %}
-
 {% block titulo %}Gestión de Elecciones{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 /* ══════════════════════════════════════════════════════
@@ -14,7 +12,6 @@
   --elec-light:  #4f46e5;
   --elec-accent: #818cf8;
 }
-
 /* ── Hero ─────────────────────────────────────────── */
 .ge-hero {
   background: linear-gradient(135deg, var(--elec-dark) 0%, var(--elec-mid) 55%, #4338ca 100%);
@@ -45,7 +42,6 @@
 }
 .ge-hero-btn-outline { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
 .ge-hero-btn-outline:hover { background: rgba(255,255,255,.22); color: #fff; }
-
 /* ── Panel base ───────────────────────────────────── */
 .ge-panel {
   background: #fff;
@@ -70,7 +66,6 @@
 }
 .ico-indigo { background: #e0e7ff; color: #4f46e5; }
 .ico-violet { background: #ede9fe; color: #7c3aed; }
-
 /* ── Formulario ───────────────────────────────────── */
 .ge-form-body { padding: 1.2rem; }
 .ge-submit-btn {
@@ -84,7 +79,6 @@
 }
 .ge-submit-btn:hover { opacity: .9; }
 .ge-submit-btn:active { transform: scale(.98); }
-
 /* ── Elección card ────────────────────────────────── */
 .ge-elec-item {
   padding: 1rem 1.2rem;
@@ -93,11 +87,9 @@
 }
 .ge-elec-item:last-child { border-bottom: none; }
 .ge-elec-item:hover { background: #fafafe; }
-
 .ge-elec-name   { font-size: .9rem; font-weight: 700; color: #1e293b; margin-bottom: .1rem; }
 .ge-elec-cargo  { font-size: .78rem; color: #64748b; margin-bottom: .3rem; }
 .ge-elec-dates  { font-size: .74rem; color: #94a3b8; display: flex; align-items: center; gap: .35rem; }
-
 /* Status badges */
 .ge-badge {
   display: inline-flex; align-items: center; gap: .3rem;
@@ -106,7 +98,6 @@
 .ge-badge-activa  { background: #dcfce7; color: #15803d; }
 .ge-badge-cerrada { background: #e0e7ff; color: #3730a3; }
 .ge-badge-proxima { background: #fef3c7; color: #92400e; }
-
 /* Action buttons */
 .ge-actions { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .65rem; }
 .ge-btn {
@@ -118,16 +109,13 @@
 .ge-btn-primary:hover { background: #c7d2fe; color: #1e1b4b; }
 .ge-btn-info    { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
 .ge-btn-info:hover { background: #ccfbf1; color: #0f766e; }
-
 /* ── Vacío ─────────────────────────────────────────── */
 .ge-empty { text-align: center; padding: 2.5rem 1rem; color: #94a3b8; }
 .ge-empty i { font-size: 2rem; display: block; margin-bottom: .5rem; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1200px;">
-
   <!-- ══ HERO ════════════════════════════════════════════════════════ -->
   <div class="ge-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2" style="position:relative;z-index:1;">
@@ -147,10 +135,8 @@
       </div>
     </div>
   </div>
-
   <!-- ══ CONTENIDO PRINCIPAL ══════════════════════════════════════════ -->
   <div class="row g-3 align-items-start">
-
     <!-- ─ Formulario: Crear nueva elección ─ -->
     <div class="col-12 col-lg-4">
       <div class="ge-panel">
@@ -171,7 +157,6 @@
         </div>
       </div>
     </div>
-
     <!-- ─ Lista de elecciones existentes ─ -->
     <div class="col-12 col-lg-8">
       <div class="ge-panel">
@@ -186,7 +171,6 @@
           </span>
           {% endif %}
         </div>
-
         {% if elecciones %}
           {% for e in elecciones %}
           <div class="ge-elec-item">
@@ -229,8 +213,6 @@
         {% endif %}
       </div>
     </div>
-
   </div><!-- /row -->
-
 </div>
 {% endblock %}

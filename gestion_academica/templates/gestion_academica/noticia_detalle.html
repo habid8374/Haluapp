@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static gestion_academica_filters %}
-
 {% block titulo %}{{ noticia.titulo|default:"Detalle de Noticia" }}{% endblock titulo %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -25,7 +23,6 @@
     }
 </style>
 {% endblock extrastyles %}
-
 {% block contenido %}
 <div class="container mt-4">
     {% if noticia %}
@@ -39,13 +36,11 @@
                     {% endif %}
                 </div>
             </header>
-            
             {% if noticia.imagen_destacada %}
             <figure class="mb-4 text-center">
                 <img class="img-fluid rounded noticia-detalle-img" src="{{ noticia.imagen_destacada.url }}" alt="{{ noticia.titulo }}">
             </figure>
             {% endif %}
-            
             <section class="mb-5 fs-5 noticia-contenido">
                 {{ noticia.contenido|safe_html }}
             </section>
@@ -55,9 +50,7 @@
             <a href="{% url 'gestion_academica:lista_noticias' %}" class="btn btn-outline-primary mb-2">
                 <i class="bi bi-arrow-left-circle"></i> Volver a Noticias
             </a>
-            
             <div class="btn-group mb-2" role="group">
-                {# Botones de gestión para Admin/Superusuario/Docente que la publicó #}
                 {% if user.is_authenticated %}
                     {% if perms.gestion_academica.change_noticia and user.is_superuser or user.rol == 'administrativo' or noticia.publicado_por == user %}
                          <a href="{% url 'gestion_academica:editar_noticia' noticia.pk %}" class="btn btn-warning">

@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
-
 {% block titulo %}Confirmar Inicio de Sesión Externo{% endblock %}
-
 {% block contenido %}
 <div class="container d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 4.5rem - 4rem);">
     <div class="row justify-content-center w-100">
@@ -12,11 +10,9 @@
                     <h3 class="mb-0 fw-bold">{% trans "Sign In Via" %} {{ provider.name }}</h3>
                 </div>
                 <div class="card-body p-4 text-center">
-                    
                     <p>
                         {% blocktrans with provider.name as provider %}Estás a punto de iniciar sesión en <strong>HALU</strong> usando tu cuenta de <strong>{{ provider }}</strong>.{% endblocktrans %}
                     </p>
-
                     <form method="post">
                         {% csrf_token %}
                         <div class="d-grid gap-2 mt-4">
@@ -25,7 +21,6 @@
                             </button>
                         </div>
                     </form>
-
                 </div>
                 <div class="card-footer text-center p-3">
                     <small class="text-muted">Serás redirigido a Google para confirmar tu identidad.</small>

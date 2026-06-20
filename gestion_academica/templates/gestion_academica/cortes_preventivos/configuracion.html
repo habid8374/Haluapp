@@ -1,7 +1,5 @@
 {% extends "base_academico.html" %}
-
 {% block titulo %}Configuración — Corte Preventivo{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
   .config-section { border-left:4px solid #7c3aed; padding-left:1rem; margin-bottom:1.5rem; }
@@ -17,7 +15,6 @@
                     padding:.2rem .7rem; font-size:.78rem; font-weight:700; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <!-- Hero Banner -->
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
@@ -32,12 +29,10 @@
     </div>
   </div>
 </div>
-
 <div class="row justify-content-center">
   <div class="col-lg-8">
     <form method="post">
       {% csrf_token %}
-
       <!-- ── UMBRALES DE RIESGO ─────────────────────────────────────── -->
       <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
         <div class="card-body p-4">
@@ -48,7 +43,6 @@
               "Riesgo Alto" si su promedio es <em>menor</em> al umbral bajo.
             </p>
           </div>
-
           <!-- Visualización de escala -->
           <div class="d-flex align-items-center gap-1 mb-4 flex-wrap">
             <span class="threshold-chip" style="background:#fee2e2;color:#991b1b;">
@@ -67,7 +61,6 @@
               <i class="bi bi-check-circle-fill"></i>OK ≥ 4.0
             </span>
           </div>
-
           <div class="row g-3">
             <div class="col-md-4">
               <label class="form-label fw-600 small">
@@ -105,7 +98,6 @@
           </div>
         </div>
       </div>
-
       <!-- ── OPCIONES DE INFORME ──────────────────────────────────── -->
       <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
         <div class="card-body p-4">
@@ -115,9 +107,7 @@
               Elige qué información debe incluirse al exportar los informes.
             </p>
           </div>
-
           <div class="row g-2">
-
             <div class="col-md-6">
               <div class="toggle-card">
                 <div class="label-group">
@@ -134,7 +124,6 @@
                 </div>
               </div>
             </div>
-
             <div class="col-md-6">
               <div class="toggle-card">
                 <div class="label-group">
@@ -151,7 +140,6 @@
                 </div>
               </div>
             </div>
-
             <div class="col-md-6">
               <div class="toggle-card">
                 <div class="label-group">
@@ -168,7 +156,6 @@
                 </div>
               </div>
             </div>
-
             <div class="col-md-6">
               <div class="toggle-card">
                 <div class="label-group">
@@ -185,7 +172,6 @@
                 </div>
               </div>
             </div>
-
             <div class="col-md-6">
               <div class="toggle-card">
                 <div class="label-group">
@@ -202,11 +188,9 @@
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
-
       <!-- ── PIE DE PÁGINA PDF ────────────────────────────────────── -->
       <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
         <div class="card-body p-4">
@@ -218,7 +202,6 @@
                     placeholder="Ej: Este informe es de carácter preventivo y no constituye el boletín oficial de calificaciones.">{{ cfg.texto_pie_pagina }}</textarea>
         </div>
       </div>
-
       <!-- Botones -->
       <div class="d-flex gap-3">
         <button type="submit" class="btn btn-primary d-flex align-items-center gap-2 px-4">

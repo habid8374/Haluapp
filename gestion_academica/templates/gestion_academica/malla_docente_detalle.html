@@ -1,9 +1,7 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% load gestion_academica_filters %}
-
 {% block titulo %}Malla — {{ malla.materia.nombre_materia }} · {{ malla.grado.nombre }}{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -17,7 +15,6 @@
   }
   .mc-hero h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: .2rem; }
   .mc-hero p  { opacity: .85; margin: 0; font-size: .9rem; }
-
   /* ── Meta strip ── */
   .meta-strip {
     display: flex;
@@ -43,7 +40,6 @@
     font-weight: 800;
     color: #1e1b4b;
   }
-
   /* ── Propósito ── */
   .proposito-box {
     background: #f0f4ff;
@@ -55,7 +51,6 @@
     margin-bottom: 1.5rem;
   }
   .proposito-box strong { color: #3730a3; }
-
   /* ── Período ── */
   .periodo-header {
     background: linear-gradient(90deg, #1e1b4b, #3730a3);
@@ -67,7 +62,6 @@
   }
   .periodo-header h5 { color: #fff; font-weight: 800; font-size: 1rem; margin: 0; }
   .periodo-block { margin-bottom: 2rem; }
-
   /* ── Tabla ── */
   .malla-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
   .malla-table thead th {
@@ -87,7 +81,6 @@
   }
   .malla-table tbody tr:nth-child(even) td { background: #f8fafc; }
   .malla-table tbody tr:hover td         { background: #eef2ff; }
-
   /* ── Nivel chips ── */
   .nivel {
     display: inline-block;
@@ -102,10 +95,8 @@
   .nivel-basico   { background: #fef3c7; color: #78350f; }
   .nivel-alto     { background: #dbeafe; color: #1e3a8a; }
   .nivel-superior { background: #dcfce7; color: #14532d; }
-
   .lbl-ebc { font-size: .7rem; font-weight: 700; color: #4f46e5; margin-right: 2px; }
   .lbl-dba { font-size: .7rem; font-weight: 700; color: #7c3aed; margin-right: 2px; }
-
   /* ── Vacío ── */
   .periodo-vacio {
     background: #f8fafc;
@@ -116,10 +107,8 @@
     color: #94a3b8;
     font-size: .85rem;
   }
-
   /* ── Semanas ── */
   .tc { text-align: center; font-weight: 800; color: #1e1b4b; }
-
   /* ── Btn volver ── */
   .btn-volver {
     display: inline-flex;
@@ -136,7 +125,6 @@
     transition: background .18s;
   }
   .btn-volver:hover { background: rgba(255,255,255,.3); color: #fff; }
-
   .btn-imprimir {
     display: inline-flex;
     align-items: center;
@@ -152,7 +140,6 @@
     transition: all .18s;
   }
   .btn-imprimir:hover { background: #f0f4ff; color: #3730a3; }
-
   /* ── Readonly badge ── */
   .badge-readonly {
     display: inline-flex;
@@ -169,10 +156,8 @@
   }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid py-4 px-3 px-md-4">
-
   <!-- Hero -->
   <div class="mc-hero">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
@@ -192,7 +177,6 @@
       </div>
     </div>
   </div>
-
   <!-- Meta -->
   <div class="meta-strip">
     <div class="meta-item">
@@ -218,13 +202,11 @@
       <span class="val">{{ malla.fecha_actualizacion|date:"d/m/Y" }}</span>
     </div>
   </div>
-
   {% if malla.descripcion_general %}
   <div class="proposito-box">
     <strong>Propósito general:</strong> {{ malla.descripcion_general }}
   </div>
   {% endif %}
-
   <!-- Períodos -->
   {% for p in periodos %}
   <div class="periodo-block">
@@ -232,7 +214,6 @@
       <i class="bi bi-calendar-range" style="font-size:1.1rem; color:#a5b4fc;"></i>
       <h5>{{ p }}° Período Académico</h5>
     </div>
-
     {% with items=por_periodo|get_item:p %}
     {% if items %}
     <div class="table-responsive" style="border-radius: 0 0 10px 10px; border: 1px solid #e2e8f0; border-top: none;">
@@ -293,6 +274,5 @@
     {% endwith %}
   </div>
   {% endfor %}
-
 </div>
 {% endblock %}

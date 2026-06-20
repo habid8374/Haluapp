@@ -1,10 +1,8 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
-
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -12,13 +10,11 @@
             <h4 class="mb-0"><i class="fas fa-id-card me-2"></i>{{ titulo_pagina }}</h4>
         </div>
         <div class="card-body">
-
             <div class="mb-3">
                 <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
                 </a>
             </div>
-
             <form method="get" class="mb-4 p-3 border rounded bg-light">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-6">
@@ -37,17 +33,14 @@
                     </div>
                 </div>
             </form>
-
             {% if estudiante_seleccionado and contexto_reporte %}
                 <div class="text-center border-bottom pb-3 mb-4">
-                    
                     <div class="mb-2">
                         <i class="bi bi-person-circle" style="font-size: 6rem; color: #6c757d;"></i>
                     </div>
                     <h4 class="mb-0">{{ estudiante_seleccionado.usuario.get_full_name }}</h4>
                     <p class="text-muted mb-0">{{ estudiante_seleccionado.grado_actual.nombre }}</p>
                 </div>
-
                 {% if contexto_reporte.tipo_reporte == 'CUANTITATIVO' %}
                     <div class="row text-center mb-4 g-3">
                         <div class="col-md-3"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Promedio Periodo</h6><p class="card-text fs-4 fw-bold text-primary">{{ contexto_reporte.promedio_actual|floatformat:2|default:"N/A" }}</p></div></div></div>
@@ -60,7 +53,6 @@
                         <div class="col-lg-4"><div class="card"><div class="card-body"><h5 class="card-title">Observador Reciente</h5><ul class="list-group list-group-flush">{% for an in contexto_reporte.anotaciones_recientes %}<li class="list-group-item"><strong>{{ an.get_tipo_display }}:</strong> {{ an.descripcion|truncatewords:10 }}<br><small class="text-muted">{{ an.fecha_hora|date:"d/m/Y" }}</small></li>{% empty %}<li class="list-group-item">Sin anotaciones.</li>{% endfor %}</ul></div></div></div>
                     </div>
                 {% endif %}
-
                 {% if contexto_reporte.tipo_reporte == 'CUALITATIVO' %}
                     <div class="row text-center mb-4 g-3">
                         <div class="col-md-4"><div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Logros Alcanzados</h6><p class="card-text fs-4 fw-bold text-success">{{ contexto_reporte.logros_alcanzados }}</p></div></div></div>
@@ -75,7 +67,6 @@
         </div>
     </div>
 </div>
-
 {% if contexto_reporte.tipo_reporte == 'CUANTITATIVO' and contexto_reporte.chart_labels %}
 {{ contexto_reporte.chart_labels|json_script:"chart-labels-data" }}
 {{ contexto_reporte.chart_data|json_script:"chart-data-data" }}

@@ -1,13 +1,11 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina|default:"Centro de Gestión" }}{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
 /* ═══════════════════════════════════════════════════════
    HALU PULSE — Centro de Gestión Docente v2
 ═══════════════════════════════════════════════════════ */
-
 /* ── Hero ── */
 .cg-hero {
   background: linear-gradient(135deg, #07285f 0%, #0a3d8c 42%, #0b5ed7 100%);
@@ -43,7 +41,6 @@
   display: inline-flex; align-items: center; gap: .35rem;
 }
 .cg-back:hover { background: rgba(255,255,255,.28); color: #fff; }
-
 /* ── Section header ── */
 .cg-sec {
   display: flex; align-items: center; gap: .65rem;
@@ -56,7 +53,6 @@
   font-size: 1rem; flex-shrink: 0;
 }
 .cg-sec h2 { font-size: 1.02rem; font-weight: 800; color: #0f3f90; margin: 0; }
-
 /* ── Tool card ── */
 .cg-card {
   background: #fff; border: 1px solid #dbe5f4; border-radius: .95rem;
@@ -65,7 +61,6 @@
   transition: transform .2s, box-shadow .2s;
 }
 .cg-card:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(11,94,215,.13); }
-
 .cg-card-top {
   padding: 1.25rem 1.25rem .8rem; flex: 1;
 }
@@ -76,7 +71,6 @@
 }
 .cgc-title { font-size: .97rem; font-weight: 800; color: #0f3f90; margin-bottom: .3rem; font-family: 'Manrope', sans-serif; }
 .cgc-desc  { font-size: .8rem; color: #64748b; line-height: 1.6; }
-
 .cg-card-foot {
   padding: .75rem 1.25rem; border-top: 1px solid #f1f5f9;
   background: #fafcff;
@@ -88,7 +82,6 @@
 }
 .cgc-link:hover { gap: .6rem; }
 .cgc-link .bi-arrow-right-short { font-size: 1.1rem; }
-
 /* Color variants */
 .cgc-blue   .cgc-icon { background:#eaf2ff; color:#1d4ed8; }
 .cgc-blue   .cgc-link { color:#1d4ed8; }
@@ -108,10 +101,8 @@
 .cgc-indigo .cgc-link { color:#4f46e5; }
 .cgc-cyan   .cgc-icon { background:#ecfeff; color:#0891b2; }
 .cgc-cyan   .cgc-link { color:#0891b2; }
-
 /* Disabled card */
 .cg-card.cg-disabled { opacity: .65; pointer-events: none; }
-
 @media (max-width: 768px) {
   .cg-hero  { padding: 1.3rem 1.2rem; }
   .cg-title { font-size: 1.2rem; }
@@ -119,11 +110,8 @@
 }
 </style>
 {% endblock extrastyles %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
-  {# ══════════ HERO ══════════ #}
   <div class="cg-hero">
     <div class="cg-badge"><i class="bi bi-tools"></i> Centro de Gestión Docente</div>
     <div class="cg-title">Herramientas del Docente</div>
@@ -132,14 +120,11 @@
       <i class="bi bi-arrow-left"></i> Panel Principal
     </a>
   </div>
-
-  {# ══════════ EVALUACIÓN ACADÉMICA ══════════ #}
   <div class="cg-sec">
     <div class="cgs-icon" style="background:#eaf2ff;color:#1d4ed8;"><i class="bi bi-pencil-square"></i></div>
     <h2>Evaluación Académica</h2>
   </div>
   <div class="row g-3 mb-2">
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-blue">
         <div class="cg-card-top">
@@ -154,7 +139,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-purple">
         <div class="cg-card-top">
@@ -169,7 +153,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-indigo">
         <div class="cg-card-top">
@@ -184,7 +167,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card" style="border-top:3px solid #7c3aed;background:#faf5ff;">
         <div class="cg-card-top">
@@ -199,16 +181,12 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {# ══════════ GESTIÓN DE CLASE ══════════ #}
   <div class="cg-sec">
     <div class="cgs-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-person-workspace"></i></div>
     <h2>Gestión de Clase</h2>
   </div>
   <div class="row g-3 mb-2">
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-teal">
         <div class="cg-card-top">
@@ -223,7 +201,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-amber">
         <div class="cg-card-top">
@@ -238,7 +215,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-slate">
         <div class="cg-card-top">
@@ -253,16 +229,12 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {# ══════════ CONVIVENCIA ESCOLAR ══════════ #}
   <div class="cg-sec">
     <div class="cgs-icon" style="background:#fef2f2;color:#dc2626;"><i class="bi bi-shield-check"></i></div>
     <h2>Convivencia Escolar</h2>
   </div>
   <div class="row g-3 mb-2">
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-red">
         <div class="cg-card-top">
@@ -277,7 +249,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-cyan">
         <div class="cg-card-top">
@@ -292,16 +263,12 @@
         </div>
       </div>
     </div>
-
   </div>
-
-  {# ══════════ REPORTES Y ANÁLISIS ══════════ #}
   <div class="cg-sec">
     <div class="cgs-icon" style="background:#fefce8;color:#d97706;"><i class="bi bi-graph-up-arrow"></i></div>
     <h2>Reportes y Análisis</h2>
   </div>
   <div class="row g-3 mb-5">
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-amber">
         <div class="cg-card-top">
@@ -316,7 +283,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-red">
         <div class="cg-card-top">
@@ -331,7 +297,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-sm-6 col-lg-4">
       <div class="cg-card cgc-blue">
         <div class="cg-card-top">
@@ -346,8 +311,6 @@
         </div>
       </div>
     </div>
-
   </div>
-
 </div>
 {% endblock %}

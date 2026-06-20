@@ -1,5 +1,4 @@
 {% extends 'base_academico.html' %}
-
 {% block contenido %}
 <div class="container mt-4">
     <a href="{% url 'admisiones:revision_documentos_lista' %}" class="btn btn-outline-secondary mb-3">
@@ -7,7 +6,6 @@
     </a>
     <h3 class="mb-2">{{ titulo_pagina }}</h3>
     <p class="text-muted">Grado al que aspira: {{ aspirante.grado_aspira.nombre }}</p>
-
     <div class="card">
         <div class="card-body">
             {% for item in lista_documentos %}

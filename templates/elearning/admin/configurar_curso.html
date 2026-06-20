@@ -1,12 +1,10 @@
 {% extends "base_academico.html" %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-3 mb-3">
         <h3 class="mb-0">Configurando: {{ curso.nombre }}</h3>
         <a href="{% url 'elearning:gestion_cursos_admin' %}" class="btn btn-outline-secondary align-self-stretch align-self-md-auto">Volver</a>
     </div>
-
     <div class="card mb-4">
         <div class="card-header bg-light d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-between gap-2">
             <h5 class="mb-0">Módulos del curso</h5>
@@ -35,7 +33,6 @@
                                 </a>
                                 {% endif %}
                             </div>
-
                             <!-- Lista de Materiales -->
                             <ul class="list-group mb-3">
                                 {% for material in modulo.materiales.all %}
@@ -52,7 +49,6 @@
                                 <li class="list-group-item text-muted small">Sin materiales aún.</li>
                                 {% endfor %}
                             </ul>
-
                             <!-- Evaluación -->
                             {% if modulo.evaluacion %}
                             <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-md-between gap-2 mb-0">

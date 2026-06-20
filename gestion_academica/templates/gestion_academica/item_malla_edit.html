@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}Editar Ítem de Malla{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 .edit-hero {
@@ -20,7 +18,6 @@
   display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;
 }
 .edit-hero h1 { font-size: 1.25rem; font-weight: 800; margin: 0; font-family: 'Manrope', sans-serif; }
-
 .form-card {
   background: #fff; border: 1px solid #dbe5f4;
   border-radius: 1rem; overflow: hidden;
@@ -39,7 +36,6 @@
 }
 .form-card-header h6 { margin: 0; font-weight: 800; font-size: .88rem; color: #0f3f90; }
 .form-card-body { padding: 1rem; }
-
 .nivel-pill {
   display: inline-flex; align-items: center; gap: .4rem;
   padding: .3rem .75rem; border-radius: 2rem; font-size: .73rem;
@@ -49,14 +45,12 @@
 .nivel-basico   { background: #fefce8; color: #d97706; border: 1px solid #fde68a; }
 .nivel-alto     { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
 .nivel-superior { background: #eef2ff; color: #4f46e5; border: 1px solid #a5b4fc; }
-
 .btn-save {
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   border: none; color: #fff; font-weight: 700; padding: .6rem 2rem;
   border-radius: .55rem; font-size: .88rem; transition: opacity .2s;
 }
 .btn-save:hover { opacity: .88; color: #fff; }
-
 /* Mobile */
 @media (max-width: 576px) {
   .edit-hero { padding: 1.1rem 1rem; }
@@ -69,11 +63,8 @@
 }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
-  {# ── Hero ── #}
   <div class="edit-hero">
     <div class="breadcrumb-top">
       <a href="{% url 'gestion_academica:malla_curricular_list' %}" style="color:rgba(255,255,255,.75);text-decoration:none;">
@@ -92,15 +83,10 @@
       Período {{ item.get_periodo_display }}
     </div>
   </div>
-
   <form method="post" id="edit-form">
     {% csrf_token %}
     <div class="row g-4">
-
-      {# ── Columna izquierda ── #}
       <div class="col-lg-8">
-
-        {# Datos generales #}
         <div class="form-card">
           <div class="form-card-header">
             <div class="fch-icon"><i class="bi bi-info-circle-fill"></i></div>
@@ -123,25 +109,21 @@
                        value="{{ item.tiempo_semanas }}" min="1" max="20" required>
               </div>
             </div>
-
             <div class="mt-3">
               <label class="form-label fw-semibold" style="font-size:.82rem;">Eje Temático <span class="text-danger">*</span></label>
               <input type="text" name="eje_tematico" class="form-control form-control-sm"
                      value="{{ item.eje_tematico }}" placeholder="Ej: Álgebra lineal — sistemas de ecuaciones" required>
             </div>
-
             <div class="mt-3">
               <label class="form-label fw-semibold" style="font-size:.82rem;">Logro del Período <span class="text-danger">*</span></label>
               <textarea name="logro" class="form-control form-control-sm" rows="3"
                         placeholder="Describe el logro general que el estudiante debe alcanzar en este período…" required>{{ item.logro }}</textarea>
             </div>
-
             <div class="mt-3">
               <label class="form-label fw-semibold" style="font-size:.82rem;">Competencias</label>
               <textarea name="competencias" class="form-control form-control-sm" rows="2"
                         placeholder="Competencias que se desarrollan…">{{ item.competencias|default:'' }}</textarea>
             </div>
-
             {% if es_bilingue %}
             <div class="mt-3 p-3" style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-radius:.75rem;border:1px solid #bae6fd;">
               <div style="font-size:.75rem;font-weight:700;color:#0369a1;margin-bottom:.75rem;">
@@ -166,8 +148,6 @@
             {% endif %}
           </div>
         </div>
-
-        {# EBC y DBA #}
         <div class="form-card">
           <div class="form-card-header">
             <div class="fch-icon"><i class="bi bi-book-fill"></i></div>
@@ -223,8 +203,6 @@
             </div>
           </div>
         </div>
-
-        {# ── Bridge: Evidencias → Indicadores ── #}
         <div id="bridge-edit" style="display:none;margin-bottom:1rem;">
           <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;">
             <div style="flex:1;height:1px;background:linear-gradient(90deg,#86efac,#4ade80);"></div>
@@ -246,8 +224,6 @@
             </div>
           </div>
         </div>
-
-        {# Indicadores de desempeño #}
         <div class="form-card">
           <div class="form-card-header">
             <div class="fch-icon"><i class="bi bi-bar-chart-steps"></i></div>
@@ -329,9 +305,7 @@
             </div>
           </div>
         </div>
-
         {% if es_bilingue %}
-        {# Indicadores L2 #}
         <div class="form-card">
           <div class="form-card-header" style="background:linear-gradient(90deg,#f0f9ff,#e0f2fe);border-bottom:1px solid #bae6fd;">
             <div class="fch-icon" style="background:#bae6fd;color:#0369a1;"><i class="bi bi-translate"></i></div>
@@ -363,13 +337,8 @@
           </div>
         </div>
         {% endif %}
-
-      </div>{# /col-lg-8 #}
-
-      {# ── Columna derecha ── #}
+      </div>
       <div class="col-lg-4">
-
-        {# Metodología, recursos, evaluación #}
         <div class="form-card">
           <div class="form-card-header">
             <div class="fch-icon"><i class="bi bi-tools"></i></div>
@@ -393,8 +362,6 @@
             </div>
           </div>
         </div>
-
-        {# Acciones #}
         <div class="form-card">
           <div class="form-card-header">
             <div class="fch-icon"><i class="bi bi-check2-square"></i></div>
@@ -419,8 +386,6 @@
             </div>
           </div>
         </div>
-
-        {# Info del ítem #}
         <div class="form-card">
           <div class="form-card-header">
             <div class="fch-icon"><i class="bi bi-info-circle"></i></div>
@@ -445,11 +410,9 @@
             </div>
           </div>
         </div>
-
-      </div>{# /col-lg-4 #}
-    </div>{# /row #}
+      </div>
+    </div>
   </form>
-
 </div>
 <!-- Modal Biblioteca DBA MEN -->
 <div class="modal fade" id="modalDBABiblioteca" tabindex="-1" aria-labelledby="modalDBATitulo">
@@ -517,18 +480,15 @@
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 document.querySelectorAll('textarea').forEach(function(ta) {
   ta.style.resize = 'vertical';
 });
-
 // ── Fase 4: Detección de área DBA + auto-contexto modal ──
 (function () {
   var MATERIA_N = "{{ item.malla.materia.nombre_materia|default:''|escapejs }}";
   var GRADO_N   = "{{ item.malla.grado.nombre|default:''|escapejs }}";
-
   var AREA_MAP = [
     { area: 'matematicas',        re: /matem/i },
     { area: 'lenguaje',           re: /lenguaje|espa[nñ]|castell|comunicaci|liter|lectura|escrit/i },
@@ -540,7 +500,6 @@ document.querySelectorAll('textarea').forEach(function(ta) {
     matematicas: 'Matemáticas', lenguaje: 'Lenguaje',
     ciencias_naturales: 'Ciencias Naturales', ciencias_sociales: 'Ciencias Sociales', ingles: 'Inglés'
   };
-
   function detectarArea(n) {
     for (var i = 0; i < AREA_MAP.length; i++) { if (AREA_MAP[i].re.test(n)) return AREA_MAP[i].area; }
     return null;
@@ -550,10 +509,8 @@ document.querySelectorAll('textarea').forEach(function(ta) {
     var m = n.match(/(\d+)/); if (m) { var g = parseInt(m[1]); if (g >= 1 && g <= 11) return String(g); }
     return null;
   }
-
   var areaDetectada  = detectarArea(MATERIA_N);
   var gradoDetectado = detectarGrado(GRADO_N);
-
   // Chip informativo junto al campo DBA
   var chip = document.getElementById('chip-area-dba-edit');
   if (chip) {
@@ -566,7 +523,6 @@ document.querySelectorAll('textarea').forEach(function(ta) {
       chip.style.cssText += 'display:block;background:#fffbeb;border:1px solid #fde68a;color:#92400e;';
     }
   }
-
   // Auto-contextualizar el modal al abrirse
   var modalEl = document.getElementById('modalDBABiblioteca');
   if (modalEl && areaDetectada) {
@@ -584,26 +540,22 @@ document.querySelectorAll('textarea').forEach(function(ta) {
     });
   }
 })();
-
 // ── Fase 3: Bridge interactivo Evidencias → Indicadores ──
 (function () {
   const CSRF_DIST   = "{{ csrf_token }}";
   const API_DIST    = "{% url 'gestion_academica:sugerir_distribucion_ia' %}";
   const MATERIA_ED  = "{{ item.malla.materia.nombre_materia|default:'' }}";
   const GRADO_ED    = "{{ item.malla.grado.nombre|default:'' }}";
-
   const NIVELES = {
     bajo:     { label: '{% if niveles.bajo %}{{ niveles.bajo.nombre_desempeno }}{% else %}Bajo{% endif %}',     campo: 'edit-ind-bajo',     color: '#dc2626', bg: '#fef2f2' },
     basico:   { label: '{% if niveles.basico %}{{ niveles.basico.nombre_desempeno }}{% else %}Básico{% endif %}', campo: 'edit-ind-basico',   color: '#d97706', bg: '#fefce8' },
     alto:     { label: '{% if niveles.alto %}{{ niveles.alto.nombre_desempeno }}{% else %}Alto{% endif %}',     campo: 'edit-ind-alto',     color: '#1d4ed8', bg: '#dbeafe' },
     superior: { label: '{% if niveles.superior %}{{ niveles.superior.nombre_desempeno }}{% else %}Superior{% endif %}', campo: 'edit-ind-superior', color: '#15803d', bg: '#dcfce7' },
   };
-
   var campoEv = document.getElementById('campo-evidencias-dba');
   var bridge  = document.getElementById('bridge-edit');
   var list    = document.getElementById('bridge-list-edit');
   if (!campoEv || !bridge || !list) return;
-
   function pegarEnCampo(texto, nivel) {
     var el = document.getElementById(NIVELES[nivel].campo);
     if (!el) return;
@@ -612,7 +564,6 @@ document.querySelectorAll('textarea').forEach(function(ta) {
     el.style.background = NIVELES[nivel].bg;
     setTimeout(function () { el.style.background = ''; }, 800);
   }
-
   function renderLinea(texto, sugerido) {
     var safe = texto.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     var btns = Object.keys(NIVELES).map(function (k) {
@@ -628,22 +579,18 @@ document.querySelectorAll('textarea').forEach(function(ta) {
       '<span style="flex:1;min-width:0;font-size:.78rem;">' + texto + '</span>' +
       '<div style="display:flex;gap:.25rem;flex-wrap:wrap;">' + btns + '</div></div>';
   }
-
   list.addEventListener('click', function (e) {
     var btn = e.target.closest('.bridge-btn-edit');
     if (!btn) return;
     pegarEnCampo(btn.dataset.texto, btn.dataset.nivel);
   });
-
   var sugerencias = {};
-
   function updateBridge() {
     var lines = campoEv.value.trim().split('\n').map(function (l) { return l.replace(/^[\s•\-*]+/, '').trim(); }).filter(Boolean);
     if (!lines.length) { bridge.style.display = 'none'; return; }
     list.innerHTML = lines.map(function (l) { return renderLinea(l, sugerencias[l]); }).join('');
     bridge.style.display = 'block';
   }
-
   // Botón Sugerir con IA
   var btnSugerir = document.getElementById('btn-sugerir-dist-edit');
   if (btnSugerir) {
@@ -671,15 +618,12 @@ document.querySelectorAll('textarea').forEach(function(ta) {
         });
     });
   }
-
   campoEv.addEventListener('input', function () { sugerencias = {}; updateBridge(); });
   updateBridge();
 })();
-
 (function () {
   const API_URL = "{% url 'gestion_academica:dba_predefinido_api' %}";
   var dbaCache = {};
-
   function renderDBA(dbaList) {
     const cont = document.getElementById('dba-resultados');
     dbaCache = {};
@@ -707,7 +651,6 @@ document.querySelectorAll('textarea').forEach(function(ta) {
         </div>`;
     }).join('');
   }
-
   document.getElementById('dba-resultados').addEventListener('click', function (e) {
     const card = e.target.closest('[data-dba-idx]');
     if (!card) return;
@@ -722,7 +665,6 @@ document.querySelectorAll('textarea').forEach(function(ta) {
     const modal = bootstrap.Modal.getInstance(document.getElementById('modalDBABiblioteca'));
     if (modal) modal.hide();
   });
-
   document.getElementById('btn-buscar-dba').addEventListener('click', function () {
     const area  = document.getElementById('dba-filtro-area').value;
     const grado = document.getElementById('dba-filtro-grado').value;
@@ -737,20 +679,16 @@ document.querySelectorAll('textarea').forEach(function(ta) {
       });
   });
 })();
-
 // ── Generar indicadores con IA (página editar ítem) ──
 (function () {
   const API_URL = "{% url 'gestion_academica:generar_indicadores_ia' %}";
   const CSRF    = "{{ csrf_token }}";
   const MATERIA = "{{ item.malla.materia.nombre_materia|default:'' }}";
   const GRADO   = "{{ item.malla.grado.nombre|default:'' }}";
-
   var errorDiv = null;
-
   document.getElementById('btn-generar-indicadores-edit').addEventListener('click', function () {
     var dba        = (document.getElementById('campo-dba') || {}).value || '';
     var evidencias = (document.getElementById('campo-evidencias-dba') || {}).value || '';
-
     if (!dba.trim() && !evidencias.trim()) {
       if (!errorDiv) {
         errorDiv = document.createElement('div');
@@ -762,12 +700,10 @@ document.querySelectorAll('textarea').forEach(function(ta) {
       return;
     }
     if (errorDiv) errorDiv.textContent = '';
-
     var spinner = document.getElementById('spinner-indicadores-edit');
     var btn = this;
     spinner.classList.remove('d-none');
     btn.disabled = true;
-
     fetch(API_URL, {
       method: 'POST',
       body: new URLSearchParams({
@@ -810,7 +746,6 @@ document.querySelectorAll('textarea').forEach(function(ta) {
     });
   });
 })();
-
 // Fase 4: Validación al guardar
 document.getElementById('edit-form').addEventListener('submit', function () {
   var dba = (document.getElementById('campo-dba') || {}).value || '';

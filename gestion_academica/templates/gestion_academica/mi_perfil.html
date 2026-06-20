@@ -2,9 +2,7 @@
 {% load humanize %}
 {% load socialaccount %}
 {% load socialapp_checks %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="row">
@@ -12,7 +10,6 @@
         <div class="col-lg-4 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-body text-center">
-                    {# ── Avatar ── #}
                     <div class="position-relative d-inline-block mb-2">
                       {% if user.foto_perfil %}
                         <img src="{{ user.foto_perfil.url }}" alt="{{ user.get_full_name }}"
@@ -29,8 +26,6 @@
                     <p class="text-muted mb-1 small">@{{ user.username }}</p>
                     <p class="text-muted small">{{ user.email }}</p>
                     <span class="badge bg-primary mb-3">{{ user.get_rol_display }}</span>
-
-                    {# ── Cambiar foto ── #}
                     <form method="post" enctype="multipart/form-data" class="mt-2">
                       {% csrf_token %}
                       <label for="fotoPerfilInput"
@@ -57,7 +52,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Columna Derecha: Detalles y Acciones -->
         <div class="col-lg-8">
             <!-- Tarjeta de Detalles del Perfil -->
@@ -95,7 +89,6 @@
                     {% endif %}
                 </div>
             </div>
-
             <!-- Tarjeta de Configuración de Cuenta -->
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
@@ -105,7 +98,6 @@
                     <p>Gestiona las opciones de seguridad y conexión de tu cuenta.</p>
                     <div class="d-grid gap-2 d-md-flex flex-wrap">
                         <a href="{% url 'password_change' %}" class="btn btn-outline-danger"><i class="bi bi-key-fill me-2"></i>Cambiar Contraseña</a>
-
                         {% google_socialapp_configured as google_social_ok %}
                         {% if google_social_ok %}
                         <a href="{% url 'socialaccount_connections' %}" class="btn btn-outline-primary">

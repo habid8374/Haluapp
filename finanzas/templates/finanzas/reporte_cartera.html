@@ -1,12 +1,9 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-4">
     <h1 class="mb-4">{{ titulo_pagina }}</h1>
-
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3 align-items-end">
@@ -85,7 +82,6 @@
             </div>
         </div>
     </div>
-
     <div class="card shadow-sm">
         <div class="card-header">
             <h5 class="mb-0">Detalle de Cartera Vencida</h5>

@@ -2,16 +2,13 @@
 {% load static %}
 {% load horario_filters %}
 {% load tz %}
-
 {% block titulo %}{{ titulo_pagina|default:"Panel de Docente" }}{% endblock %}
-
 {% block extrastyles %}
 {{ block.super }}
 <style>
 /* ═══════════════════════════════════════════════════
    HALU PULSE — Dashboard Docente v2 (sin GridStack)
 ═══════════════════════════════════════════════════ */
-
 /* ── Hero ── */
 .doc-hero {
   position: relative;
@@ -60,7 +57,6 @@
 .doc-ha-btn.ha-white:hover { background: #e8f0fe; color: #0b5ed7; }
 .doc-ha-btn.ha-green { background: rgba(34,197,94,.22); border-color: rgba(34,197,94,.4); }
 .doc-ha-btn.ha-green:hover { background: rgba(34,197,94,.36); }
-
 /* ── KPI Strip ── */
 .doc-kpi-strip {
   display: grid;
@@ -112,33 +108,27 @@
 .dkc-amber .dkc-icon  { background: #fefce8; color: #d97706; }
 .dkc-amber .dkc-num   { color: #d97706; }
 .dkc-amber .dkc-link  { color: #d97706; }
-
 .dkc-blue::before   { background: linear-gradient(90deg,#1d4ed8,#3b82f6); }
 .dkc-blue .dkc-icon   { background: #eaf2ff; color: #1d4ed8; }
 .dkc-blue .dkc-num    { color: #1d4ed8; }
 .dkc-blue .dkc-link   { color: #1d4ed8; }
-
 .dkc-red::before    { background: linear-gradient(90deg,#dc2626,#f87171); }
 .dkc-red .dkc-icon    { background: #fef2f2; color: #dc2626; }
 .dkc-red .dkc-num     { color: #dc2626; }
 .dkc-red .dkc-link    { color: #dc2626; }
-
 .dkc-cyan::before   { background: linear-gradient(90deg,#0284c7,#38bdf8); }
 .dkc-cyan .dkc-icon   { background: #f0f9ff; color: #0284c7; }
 .dkc-cyan .dkc-num    { color: #0284c7; }
 .dkc-cyan .dkc-link   { color: #0284c7; }
-
 .dkc-green::before  { background: linear-gradient(90deg,#15803d,#22c55e); }
 .dkc-green .dkc-icon  { background: #f0fdf4; color: #15803d; }
 .dkc-green .dkc-num   { color: #15803d; }
 .dkc-green .dkc-link  { color: #15803d; }
-
 .dkc-slate::before  { background: linear-gradient(90deg,#475569,#94a3b8); }
 .dkc-slate .dkc-icon  { background: #f1f5f9; color: #475569; }
 .dkc-slate .dkc-num   { color: #475569; font-size: 1.1rem; padding-top:.4rem; }
 .dkc-slate .dkc-label { color: #475569; }
 .dkc-slate .dkc-link  { color: #475569; }
-
 /* ── Panel doble: Cuestionarios + Acciones Rápidas ── */
 .doc-panel-duo {
   display: grid;
@@ -149,7 +139,6 @@
 @media (max-width: 767px) {
   .doc-panel-duo { grid-template-columns: 1fr; }
 }
-
 /* Cuestionarios card */
 .doc-cuestion-card {
   background: #fff; border-radius: .9rem;
@@ -180,7 +169,6 @@
 }
 .dcc-item .dci-title { font-weight: 600; font-size: .86rem; color: #0f3f90; }
 .dcc-item .dci-meta { font-size: .73rem; color: #94a3b8; }
-
 /* Acciones rápidas */
 .doc-qa-card {
   background: #fff; border-radius: .9rem;
@@ -228,7 +216,6 @@
 .dqb-teal:hover   { background: #ccfbf1; border-color: #99f6e4; }
 .dqb-indigo .dqb-icon { background: #eef2ff; color: #4f46e5; }
 .dqb-indigo:hover { background: #e0e7ff; border-color: #a5b4fc; }
-
 /* ── Section headers ── */
 .pulse-sec-hdr {
   display: flex; align-items: center; gap: .6rem;
@@ -243,7 +230,6 @@
   font-size: 1rem; flex-shrink: 0;
 }
 .pulse-sec-hdr h2 { font-size: 1.05rem; font-weight: 800; color: #0f3f90; margin: 0; }
-
 /* ── Citas hoy ── */
 .pulse-cita-hoy {
   background: #fff; border-radius: .85rem;
@@ -255,7 +241,6 @@
 .pulse-cita-hoy .pch-time { font-size: 1.1rem; font-weight: 800; color: #15803d; font-family: 'Manrope', sans-serif; }
 .pulse-cita-hoy .pch-names { font-size: .83rem; color: #64748b; margin: .3rem 0; }
 .pulse-cita-hoy .pch-asunto { font-size: .82rem; flex-grow: 1; margin-bottom: .75rem; }
-
 /* ── Clases de hoy ── */
 .pulse-clase-card {
   background: #fff; border-radius: .85rem; border: 1px solid #dbe5f4;
@@ -267,7 +252,6 @@
 .pulse-clase-card .pcla-materia { font-size: 1rem; font-weight: 800; color: #0f3f90; margin-bottom: .15rem; font-family: 'Manrope', sans-serif; }
 .pulse-clase-card .pcla-grado   { font-size: .82rem; color: #64748b; margin-bottom: .75rem; }
 .pulse-clase-card .pcla-horario { font-size: .78rem; color: #1d4ed8; font-weight: 600; margin-bottom: .2rem; }
-
 /* ── Horario PULSE ── */
 .pulse-horario-wrap {
   background: #fff; border: 1px solid #dbe5f4; border-radius: .9rem;
@@ -292,7 +276,6 @@
 }
 .pulse-sched-name { font-weight: 700; font-size: .88rem; color: #0f3f90; }
 .pulse-sched-meta { font-size: .74rem; color: #64748b; margin-top: .1rem; }
-
 /* ── Agenda citas ── */
 .pulse-agenda-row {
   display: flex; align-items: flex-start; gap: .8rem;
@@ -310,7 +293,6 @@
 }
 .agenda-subsection-title.pendiente  { color: #b45309; background: #fefce8; }
 .agenda-subsection-title.confirmada { color: #15803d; background: #f0fdf4; }
-
 /* ── Mis cursos (card grid) ── */
 .pulse-curso-card {
   background: #fff; border: 1px solid #dbe5f4; border-radius: 1rem;
@@ -361,26 +343,22 @@
 @media (max-width: 400px) {
   .pcc-actions { grid-template-columns: 1fr; }
 }
-
 /* ── Empty state ── */
 .pulse-empty {
   text-align: center; padding: 2.5rem 1rem;
   background: #f7faff; border: 1px solid #dbe5f4; border-radius: .85rem; color: #94a3b8;
 }
 .pulse-empty i { font-size: 2.2rem; margin-bottom: .75rem; display: block; }
-
 @media (max-width: 768px) {
   .doc-hero { padding: 1.4rem 1.2rem 1.9rem; }
   .doc-hero .hero-greeting { font-size: 1.35rem; }
   .doc-kpi-strip { grid-template-columns: repeat(3, 1fr); }
-
   /* KPI cards compactos en móvil */
   .doc-kpi-card { padding: .75rem .8rem .65rem; }
   .doc-kpi-card .dkc-num  { font-size: 1.55rem; }
   .doc-kpi-card .dkc-icon { width: 32px; height: 32px; font-size: .9rem; }
   .doc-kpi-card .dkc-label { font-size: .65rem; }
   .doc-kpi-card .dkc-link  { font-size: .65rem; }
-
   /* Alerta planes devueltos compacta */
   .doc-panel-duo { gap: .65rem; }
 }
@@ -390,11 +368,8 @@
 }
 </style>
 {% endblock extrastyles %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
-  {# ══════════════════ HERO ══════════════════ #}
   <div class="doc-hero">
     <div class="hero-badge"><i class="bi bi-person-video3"></i> Docente · Panel de Control</div>
     <div class="hero-greeting">
@@ -418,8 +393,6 @@
       </a>
     </div>
   </div>
-
-  {# ══════════ ALERTA: PLANES DEVUELTOS CON OBSERVACIONES ══════════ #}
   {% if planes_con_observaciones %}
   <div style="margin-bottom:1rem;">
     {% for plan in planes_con_observaciones %}
@@ -442,58 +415,45 @@
     {% endfor %}
   </div>
   {% endif %}
-
-  {# ══════════════════ KPI STRIP ══════════════════ #}
   <div class="doc-kpi-strip">
-
     <a href="{% url 'gestion_academica:tareas_por_calificar' %}" class="doc-kpi-card dkc-amber">
       <div class="dkc-icon"><i class="bi bi-pencil-square"></i></div>
       <div class="dkc-num">{{ entregas_pendientes_calificar }}</div>
       <div class="dkc-label">Tareas por calificar</div>
       <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Calificar ahora</div>
     </a>
-
     <a href="#cursos-asignados-lista" class="doc-kpi-card dkc-blue">
       <div class="dkc-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
       <div class="dkc-num">{{ cursos_asignados|length }}</div>
       <div class="dkc-label">Cursos asignados</div>
       <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver cursos</div>
     </a>
-
     <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="doc-kpi-card dkc-red">
       <div class="dkc-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
       <div class="dkc-num">{{ cantidad_estudiantes_riesgo }}</div>
       <div class="dkc-label">Alerta de grupo</div>
       <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver reporte</div>
     </a>
-
     <a href="{% url 'gestion_academica:lista_notificaciones' %}" class="doc-kpi-card dkc-cyan">
       <div class="dkc-icon"><i class="bi bi-bell-fill"></i></div>
       <div class="dkc-num">{{ notificaciones_sin_leer|length }}</div>
       <div class="dkc-label">Notificaciones</div>
       <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver todas</div>
     </a>
-
     <a href="{% url 'gestion_academica:docente_mis_citas' %}" class="doc-kpi-card dkc-green">
       <div class="dkc-icon"><i class="bi bi-calendar2-check-fill"></i></div>
       <div class="dkc-num">{{ citas_proxima_semana }}</div>
       <div class="dkc-label">Citas próximas</div>
       <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver agenda</div>
     </a>
-
     <a href="{% url 'gestion_academica:historial_entregas' %}" class="doc-kpi-card dkc-slate">
       <div class="dkc-icon"><i class="bi bi-archive-fill"></i></div>
       <div class="dkc-num" style="font-size:.85rem;padding-top:.5rem;line-height:1.4;">Historial de entregas</div>
       <div class="dkc-label">Trabajos recibidos</div>
       <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Revisar</div>
     </a>
-
   </div>
-
-  {# ══════════════════ PANEL DUO: Cuestionarios + Acciones Rápidas ══════════════════ #}
   <div class="doc-panel-duo">
-
-    {# Cuestionarios recientes #}
     <div class="doc-cuestion-card">
       <div class="dcc-header">
         <h6><i class="bi bi-pencil-square me-2"></i>Mis Cuestionarios Recientes</h6>
@@ -516,8 +476,6 @@
         {% endfor %}
       </div>
     </div>
-
-    {# Acciones rápidas #}
     <div class="doc-qa-card">
       <div class="dqc-header">
         <h6><i class="bi bi-lightning-charge-fill me-2"></i>Acciones Rápidas</h6>
@@ -553,10 +511,7 @@
         </a>
       </div>
     </div>
-
   </div>
-
-  {# ══════════════════ CITAS CON FAMILIAS HOY ══════════════════ #}
   {% if citas_reunion_hoy %}
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar-heart"></i></div>
@@ -580,8 +535,6 @@
     {% endfor %}
   </div>
   {% endif %}
-
-  {# ══════════════════ CLASES DE HOY ══════════════════ #}
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#fefce8;color:#d97706;"><i class="bi bi-check2-square"></i></div>
     <h2>Mis Clases de Hoy</h2>
@@ -610,8 +563,6 @@
     </div>
     {% endfor %}
   </div>
-
-  {# ══════════════════ HORARIO SEMANAL ══════════════════ #}
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar-week"></i></div>
     <h2>Mi Horario Semanal</h2>
@@ -659,8 +610,6 @@
       {% endfor %}
     </div>
   </div>
-
-  {# ══════════════════ AGENDA DE REUNIONES ══════════════════ #}
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar2-heart-fill"></i></div>
     <h2>Agenda de Reuniones con Familias</h2>
@@ -673,7 +622,6 @@
       </a>
     </div>
   </div>
-
   {% if citas_proximas_lista %}
     <div class="mb-2">
       <span class="agenda-subsection-title pendiente"><i class="bi bi-hourglass-split"></i> Pendientes de confirmación</span>
@@ -699,7 +647,6 @@
         {% endif %}
       {% endfor %}
     </div>
-
     <div class="mb-3">
       <span class="agenda-subsection-title confirmada"><i class="bi bi-calendar-check-fill"></i> Confirmadas</span>
       {% for cita in citas_proximas_lista %}
@@ -729,7 +676,6 @@
         {% endif %}
       {% endfor %}
     </div>
-
   {% else %}
     <div class="pulse-empty mb-3">
       <i class="bi bi-calendar2-x"></i>
@@ -740,8 +686,6 @@
       </a>
     </div>
   {% endif %}
-
-  {# ══════════════════ MIS CURSOS Y ACCIONES ══════════════════ #}
   <div class="pulse-sec-hdr" id="cursos-asignados-lista">
     <div class="psh-icon"><i class="bi bi-list-task"></i></div>
     <h2>Mis Cursos y Acciones</h2>
@@ -753,7 +697,6 @@
     {% for curso in cursos_asignados %}
     <div class="col-sm-6 col-xl-4">
       <div class="pulse-curso-card">
-        {# Cabecera de la card #}
         <div class="pcc-head">
           <div class="pcc-materia">{{ curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and curso.materia.nombre_idioma_secundario %}<br><span style="font-size:.75em;opacity:.8;font-style:italic;">{{ curso.materia.nombre_idioma_secundario }}</span>{% endif %}</div>
           <div class="pcc-meta">
@@ -761,7 +704,6 @@
             &nbsp;·&nbsp;<i class="bi bi-door-closed-fill me-1"></i>{{ curso.aula.nombre|default:"Sin aula" }}
           </div>
         </div>
-        {# Botones de acción — grid 2 columnas #}
         <div class="pcc-body">
           <div class="pcc-actions">
             {% if curso.grado.tipo_evaluacion == 'CUALITATIVO' %}
@@ -812,14 +754,11 @@
     </div>
     {% endfor %}
   </div>
-
-  {# ══════════════════ MALLA CURRICULAR ══════════════════ #}
   {% if mallas_docente %}
   <div class="pulse-sec-hdr" id="malla-curricular-docente">
     <div class="psh-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
     <h2>Malla Curricular {{ año_malla }}</h2>
   </div>
-
   <style>
     .mc-acc-item { border: 1.5px solid #e0e7ff; border-radius: 12px; margin-bottom: .75rem; overflow: hidden; }
     .mc-acc-btn { width: 100%; background: linear-gradient(90deg,#eef2ff,#f5f3ff); border: none; padding: .85rem 1.2rem; display: flex; align-items: center; gap: .75rem; cursor: pointer; text-align: left; }
@@ -844,7 +783,6 @@
     .mc-tc { text-align:center; font-weight:800; color:#1e1b4b; }
     .mc-vacio { border:1px dashed #c7d2fe; border-radius:6px; padding:.6rem; text-align:center; color:#94a3b8; font-size:.78rem; margin-top:.5rem; }
   </style>
-
   <div class="mb-4">
     {% for entry in mallas_docente %}
     {% with malla=entry.malla pp=entry.por_periodo total_items=entry.malla.items.count %}
@@ -916,10 +854,8 @@
     {% endfor %}
   </div>
   {% endif %}
-
 </div>
 {% endblock %}
-
 {% block extra_js %}
 {{ block.super }}
 <script>

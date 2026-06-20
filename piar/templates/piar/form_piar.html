@@ -1,21 +1,16 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-3" style="max-width:900px;">
-
   <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem;color:#fff;margin-bottom:1.5rem;">
     <h2 class="fw-bold mb-1" style="font-size:1.35rem;color:#fff;"><i class="bi bi-person-hearts me-2"></i>{{ titulo_pagina }}</h2>
     <p class="mb-0" style="opacity:.85;font-size:.88rem;color:#fff;">Decreto 1421 de 2017 · Plan Individual de Ajustes Razonables</p>
   </div>
-
   {% if messages %}{% for m in messages %}
   <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
   {% endfor %}{% endif %}
-
   <form method="post">
     {% csrf_token %}
-
     <!-- Sección 1: Datos básicos -->
     <div class="card shadow-sm mb-3">
       <div class="card-header fw-bold" style="background:#f8fafc;font-size:.9rem;">
@@ -62,7 +57,6 @@
         </div>
       </div>
     </div>
-
     <!-- Sección 2: Caracterización pedagógica -->
     <div class="card shadow-sm mb-3">
       <div class="card-header fw-bold" style="background:#f8fafc;font-size:.9rem;">
@@ -83,7 +77,6 @@
         </div>
       </div>
     </div>
-
     <!-- Sección 3: Compromisos -->
     <div class="card shadow-sm mb-3">
       <div class="card-header fw-bold" style="background:#f8fafc;font-size:.9rem;">
@@ -104,7 +97,6 @@
         </div>
       </div>
     </div>
-
     <!-- Sección 4: Gestión -->
     <div class="card shadow-sm mb-3">
       <div class="card-header fw-bold" style="background:#f8fafc;font-size:.9rem;">
@@ -142,7 +134,6 @@
         </div>
       </div>
     </div>
-
     <div class="d-flex gap-2 justify-content-end mt-3 mb-4">
       <a href="{% url 'piar:lista_piars' %}" class="btn btn-outline-secondary">Cancelar</a>
       <button type="submit" class="btn btn-primary fw-bold">

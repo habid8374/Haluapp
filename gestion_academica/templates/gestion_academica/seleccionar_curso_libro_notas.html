@@ -1,8 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
-
 {% block titulo %}Seleccionar Curso — Libro de Notas{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 .csl-hero {
@@ -24,14 +22,12 @@
 }
 .csl-title { font-size: 1.4rem; font-weight: 800; margin-bottom: .2rem; }
 .csl-sub   { font-size: .86rem; opacity: .82; }
-
 /* Filter bar */
 .csl-filter {
   background: #fff; border: 1px solid #dbe5f4; border-radius: .85rem;
   padding: .85rem 1.1rem; margin-bottom: 1.1rem;
   box-shadow: 0 2px 6px rgba(79,70,229,.05);
 }
-
 /* Course cards */
 .csl-grid { display: flex; flex-direction: column; gap: .75rem; }
 .csl-card {
@@ -51,7 +47,6 @@
 .csl-materia { font-size: 1rem; font-weight: 800; color: #1e1b4b; margin-bottom: .15rem; }
 .csl-grado   { font-size: .82rem; color: #64748b; }
 .csl-actions { display: flex; gap: .5rem; flex-wrap: wrap; flex-shrink: 0; }
-
 .btn-ln-notas {
   display: inline-flex; align-items: center; gap: .35rem;
   padding: .45rem 1rem; border-radius: .55rem; font-size: .82rem; font-weight: 600;
@@ -59,7 +54,6 @@
   border: none; text-decoration: none; transition: filter .15s; white-space: nowrap;
 }
 .btn-ln-notas:hover { filter: brightness(1.1); color: #fff; }
-
 .btn-ln-anual {
   display: inline-flex; align-items: center; gap: .35rem;
   padding: .45rem 1rem; border-radius: .55rem; font-size: .82rem; font-weight: 600;
@@ -67,7 +61,6 @@
   text-decoration: none; transition: all .15s; white-space: nowrap;
 }
 .btn-ln-anual:hover { background: #dcfce7; color: #15803d; border-color: #4ade80; }
-
 @media (max-width: 540px) {
   .csl-card { gap: .75rem; }
   .csl-actions { width: 100%; }
@@ -75,17 +68,14 @@
 }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid mt-3">
-
   <!-- Hero -->
   <div class="csl-hero">
     <div class="csl-badge"><i class="bi bi-journal-richtext me-1"></i>Coordinación Académica</div>
     <div class="csl-title">Libro de Notas por Curso</div>
     <div class="csl-sub">Supervisión de notas y vista anual de todos los cursos de la institución</div>
   </div>
-
   {% if messages %}
     {% for message in messages %}
     <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
@@ -94,7 +84,6 @@
     </div>
     {% endfor %}
   {% endif %}
-
   <!-- Filtro de período -->
   {% if periodos_disponibles %}
   <div class="csl-filter">
@@ -124,7 +113,6 @@
     </form>
   </div>
   {% endif %}
-
   {% if periodo_seleccionado %}
     {% if cursos %}
     <!-- Información modo lectura -->
@@ -173,6 +161,5 @@
     <span>No hay períodos académicos disponibles en el sistema.</span>
   </div>
   {% endif %}
-
 </div>
 {% endblock contenido %}

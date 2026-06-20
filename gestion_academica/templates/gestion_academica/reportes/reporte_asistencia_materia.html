@@ -1,9 +1,7 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% load humanize %}
-
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -12,7 +10,6 @@
             <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard de Reportes
         </a>
     </div>
-
     <!-- Filtros de Búsqueda (Tu Lógica Original con Mejor Estilo) -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
@@ -50,7 +47,6 @@
             </form>
         </div>
     </div>
-
     {% if curso_seleccionado %}
     <!-- Resultados del Reporte -->
     <div class="row g-4">
@@ -103,7 +99,6 @@
     {% endif %}
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% if reporte_data.chart_data %}

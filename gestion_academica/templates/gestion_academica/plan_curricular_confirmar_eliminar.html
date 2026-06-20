@@ -1,37 +1,28 @@
-{# gestion_academica/templates/gestion_academica/plan_curricular_confirmar_eliminar.html #}
-{% extends "base_academico.html" %} {# ¡CORREGIDO: Ahora extiende de base_academico.html! #}
-{% load static %} {# Agregado para usar recursos estáticos #}
-
+{% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Plan Curricular" }}{% endblock titulo %}
-
 {% block contenido %}
 <div class="container mt-4">
     <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Plan Curricular" }}</h1>
     <hr>
-
     {% if plan %}
         <div class="alert alert-warning shadow-sm" role="alert">
             <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
             <p>¿Estás seguro de que deseas eliminar el plan curricular: 
                 <br><strong>"{{ plan.nombre }}"</strong>?
             </p>
-
             {% if plan.descripcion %}
                 <p class="mb-1 text-muted">Descripción: {{ plan.descripcion|truncatewords:20|default:"N/A" }}</p>
             {% endif %}
-
             {% if plan.documento_adjunto %}
                 <p class="mb-0 text-muted">Archivo adjunto: 
                     <a href="{{ plan.documento_adjunto.url }}" target="_blank" class="fw-bold">{{ plan.documento_adjunto.name|cut:"planes_curriculares/" }} <i class="bi bi-box-arrow-up-right"></i></a>
                 </p>
             {% endif %}
-
             <hr>
             <p class="mb-0 text-danger">
                 Esta acción es <strong>irreversible</strong> y eliminará permanentemente este plan curricular. No se puede deshacer.
             </p>
-
-            {# Podrías añadir advertencias si el plan está referenciado en otras entidades #}
             {% comment %}
             {% if plan.alumnos_asociados.exists %}
                 <p class="mt-3 text-danger">
@@ -40,7 +31,6 @@
             {% endif %}
             {% endcomment %}
         </div>
-
         <form method="post" class="mt-4">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger me-2">

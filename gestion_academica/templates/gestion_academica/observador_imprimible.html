@@ -16,7 +16,6 @@ body {
     color: #1e293b;
     line-height: 1.4;
 }
-
 /* ── BARRA SUPERIOR ── */
 .top-bar {
     background: #0f3460;
@@ -24,7 +23,6 @@ body {
     width: 100%;
     margin-bottom: 10px;
 }
-
 /* ── ENCABEZADO INSTITUCIÓN ── */
 .header-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
 .header-table td { vertical-align: middle; }
@@ -44,7 +42,6 @@ body {
 .doc-box-body { padding: 6px 8px; }
 .doc-box-body p { font-size: 7.5pt; color: #475569; margin: 2px 0; }
 .doc-box-body strong { color: #0f3460; font-size: 8pt; }
-
 /* ── NORMA LEGAL ── */
 .norma-bar {
     background: #e8eef8;
@@ -54,7 +51,6 @@ body {
     color: #475569;
     margin-bottom: 10px;
 }
-
 /* ── SECCIÓN ETIQUETA ── */
 .section-label {
     background: #0f3460;
@@ -67,7 +63,6 @@ body {
     margin-bottom: 6px;
     margin-top: 10px;
 }
-
 /* ── TABLA DE DATOS ── */
 .datos-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
 .datos-table td {
@@ -94,7 +89,6 @@ body {
     font-style: italic;
     font-size: 7.5pt;
 }
-
 /* ── TABLA ANOTACIONES ── */
 .anot-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
 .anot-table thead tr { background: #0f3460; color: white; }
@@ -119,7 +113,6 @@ body {
 .sentimiento-NEGATIVO { color: #b91c1c; font-size: 7pt; }
 .sentimiento-NEUTRO   { color: #475569; font-size: 7pt; }
 .empty-row td { text-align: center; padding: 18px; color: #94a3b8; font-style: italic; }
-
 /* ── COMPROMISO ── */
 .compromiso-box {
     border: 1px solid #cbd5e1;
@@ -130,7 +123,6 @@ body {
 }
 .compromiso-box p { margin-bottom: 4px; font-size: 8pt; color: #475569; }
 .linea-firma { border-bottom: 1px solid #94a3b8; width: 100%; margin: 18px 0 4px; }
-
 /* ── TABLA DE FIRMAS ── */
 .firmas-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
 .firmas-table td {
@@ -143,7 +135,6 @@ body {
 .firma-linea { border-top: 1px solid #94a3b8; padding-top: 4px; font-size: 7pt; color: #475569; }
 .firma-nombre { font-weight: bold; font-size: 7.5pt; color: #0f3460; }
 .firma-cargo  { font-size: 7pt; color: #64748b; }
-
 /* ── PIE FIJO ── */
 .page-footer {
     position: fixed;
@@ -154,13 +145,11 @@ body {
     font-size: 6.5pt;
     color: #94a3b8;
 }
-
 /* ── DIVIDER ── */
 hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
 </style>
 </head>
 <body>
-
 <!-- PIE FIJO -->
 <div class="page-footer">
     {{ institucion.nombre }}
@@ -169,10 +158,8 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
     &nbsp;·&nbsp; Generado el {% now "d/m/Y H:i" %} por {{ generado_por }}
     &nbsp;·&nbsp; Página <pdf:pagenumber> de <pdf:pagecount>
 </div>
-
 <!-- BARRA SUPERIOR -->
 <div class="top-bar"></div>
-
 <!-- ENCABEZADO -->
 <table class="header-table">
     <tr>
@@ -210,7 +197,6 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
         </td>
     </tr>
 </table>
-
 <!-- NORMA LEGAL -->
 <div class="norma-bar">
     <strong>Marco normativo:</strong>
@@ -220,7 +206,6 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
     Decreto 1965 de 2013 (Protocolo de Atención)
     &nbsp;·&nbsp; <em>Documento de carácter confidencial.</em>
 </div>
-
 <!-- ══════════════════════════════════════════════════════════ -->
 <!-- SECCIÓN 1: DATOS DEL ESTUDIANTE                           -->
 <!-- ══════════════════════════════════════════════════════════ -->
@@ -297,7 +282,6 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
     </tr>
     {% endif %}
 </table>
-
 <!-- ══════════════════════════════════════════════════════════ -->
 <!-- SECCIÓN 2: DATOS DEL ACUDIENTE / FAMILIAR                 -->
 <!-- ══════════════════════════════════════════════════════════ -->
@@ -356,7 +340,6 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
     No hay acudiente / familiar registrado para este estudiante.
 </p>
 {% endif %}
-
 <!-- ══════════════════════════════════════════════════════════ -->
 <!-- SECCIÓN 3: REGISTRO DE ANOTACIONES                        -->
 <!-- ══════════════════════════════════════════════════════════ -->
@@ -364,7 +347,6 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
     3. Registro de Anotaciones
     {% if periodo_seleccionado %} — {{ periodo_seleccionado.nombre }}{% endif %}
 </div>
-
 <table class="anot-table">
     <thead>
         <tr>
@@ -422,7 +404,6 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
         {% endfor %}
     </tbody>
 </table>
-
 <!-- ══════════════════════════════════════════════════════════ -->
 <!-- SECCIÓN 4: COMPROMISOS Y ACUERDOS                         -->
 <!-- ══════════════════════════════════════════════════════════ -->
@@ -437,12 +418,10 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
     <div class="linea-firma"></div>
     <div class="linea-firma"></div>
 </div>
-
 <!-- ══════════════════════════════════════════════════════════ -->
 <!-- SECCIÓN 5: FIRMAS                                         -->
 <!-- ══════════════════════════════════════════════════════════ -->
 <div class="section-label">5. Firmas</div>
-
 <table class="firmas-table">
     <!-- Fila de imágenes de firma -->
     <tr>
@@ -511,13 +490,11 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
         </td>
     </tr>
 </table>
-
 <!-- PIE LEGAL -->
 <div style="margin-top:14px; border-top:1px solid #e2e8f0; padding-top:6px; text-align:center; font-size:6.5pt; color:#94a3b8;">
     {% if institucion.texto_resolucion %}{{ institucion.texto_resolucion }} &nbsp;·&nbsp; {% endif %}
     Documento confidencial — uso exclusivo de la institución educativa.
     Prohibida su reproducción o divulgación sin autorización.
 </div>
-
 </body>
 </html>

@@ -1,29 +1,24 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
-
 {% block extrastyles %}{{ block.super }}
 <style>
 :root { --ps-dark:#1e1b4b; --ps-mid:#3730a3; --ps-light:#4f46e5; }
-
 .ps-hero { background:linear-gradient(135deg,var(--ps-dark) 0%,var(--ps-mid) 55%,#4338ca 100%); border-radius:1rem; padding:1.5rem 1.8rem; color:#fff; position:relative; overflow:hidden; margin-bottom:1.5rem; }
 .ps-hero::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
 .ps-hero-badge { display:inline-flex; align-items:center; gap:.35rem; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); border-radius:2rem; padding:.25rem .75rem; font-size:.78rem; font-weight:600; }
 .ps-hero-title { font-size:1.35rem; font-weight:800; letter-spacing:-.5px; margin-bottom:.2rem; }
 .ps-hero-sub   { font-size:.83rem; opacity:.78; }
-
 /* Semana actual highlight */
 .ps-current-week { background:linear-gradient(135deg,#0c4a6e,#0369a1); border-radius:.85rem; padding:1.1rem 1.4rem; color:#fff; margin-bottom:1.25rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.75rem; }
 .ps-cw-label { font-size:.78rem; font-weight:600; opacity:.8; margin-bottom:.15rem; }
 .ps-cw-week  { font-size:1rem; font-weight:800; }
 .ps-cw-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.45rem 1rem; border-radius:.6rem; font-size:.82rem; font-weight:700; background:#fff; color:#0c4a6e; text-decoration:none; border:none; cursor:pointer; transition:opacity .15s; }
 .ps-cw-btn:hover { opacity:.9; color:#0c4a6e; }
-
 .ps-panel { background:#fff; border-radius:.85rem; box-shadow:0 1px 6px rgba(0,0,0,.07); overflow:hidden; margin-bottom:1.25rem; }
 .ps-panel-header { display:flex; align-items:center; justify-content:space-between; gap:.5rem; flex-wrap:wrap; padding:.85rem 1.2rem; border-bottom:1px solid #f1f5f9; }
 .ps-panel-title { font-size:.95rem; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:.5rem; margin:0; }
 .ps-panel-title .ico { width:30px; height:30px; border-radius:.45rem; display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; }
 .ico-indigo { background:#e0e7ff; color:#4f46e5; }
-
 /* Lista de planes */
 .ps-plan-row { display:flex; align-items:center; gap:.6rem; padding:.65rem 1rem; border-top:1px solid #f1f5f9; transition:background .12s; }
 .ps-plan-row:hover { background:#fafafe; }
@@ -35,27 +30,22 @@
 .ps-plan-count { font-size:.75rem; font-weight:600; color:#4f46e5; flex-shrink:0; }
 /* Acciones por plan */
 .ps-plan-actions { display:flex; flex-direction:column; align-items:flex-end; gap:.3rem; flex-shrink:0; }
-
 /* Estado badges */
 .ps-badge { display:inline-flex; align-items:center; gap:.3rem; border-radius:2rem; padding:.2rem .65rem; font-size:.72rem; font-weight:700; flex-shrink:0; }
 .ps-badge-borrador { background:#f1f5f9; color:#475569; }
 .ps-badge-enviado  { background:#dbeafe; color:#1d4ed8; }
 .ps-badge-aprobado { background:#dcfce7; color:#15803d; }
 .ps-badge-obs      { background:#fef3c7; color:#b45309; }
-
 /* Formulario crear plan */
 .ps-create-form { padding:1.2rem; }
 .ps-create-btn { width:100%; background:linear-gradient(135deg,var(--ps-mid),var(--ps-light)); color:#fff; border:none; border-radius:.65rem; padding:.7rem; font-size:.9rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:.5rem; cursor:pointer; transition:opacity .15s; margin-top:.5rem; }
 .ps-create-btn:hover { opacity:.9; }
-
 .ps-empty { text-align:center; padding:2.5rem 1rem; color:#94a3b8; }
 .ps-empty i { font-size:2rem; display:block; margin-bottom:.5rem; }
 </style>
 {% endblock %}
-
 {% block contenido %}
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1100px;">
-
   <div class="ps-hero">
     <div style="position:relative;z-index:1;">
       <div class="ps-hero-badge mb-2"><i class="bi bi-calendar-week-fill"></i> Docente</div>
@@ -63,7 +53,6 @@
       <div class="ps-hero-sub">Registra, organiza y envía tus planes de clase semana a semana.</div>
     </div>
   </div>
-
   <!-- Semana actual -->
   <div class="ps-current-week">
     <div>
@@ -80,10 +69,7 @@
       </button>
     {% endif %}
   </div>
-
-
   <div class="row g-3 align-items-start">
-
     <!-- Lista de planes -->
     <div class="col-12 col-lg-8">
       <div class="ps-panel">
@@ -96,12 +82,9 @@
             <i class="bi bi-plus-lg me-1"></i>Nuevo Plan
           </button>
         </div>
-
         {% if planes_con_label %}
           {% for plan, label in planes_con_label %}
           <div class="ps-plan-row">
-
-            {# Parte izquierda: link al detalle del plan #}
             <a href="{% url 'gestion_academica:plan_semanal_detalle' plan.pk %}" class="ps-plan-link">
               <div class="ps-plan-week-icon">
                 {{ plan.semana_inicio|date:"d" }}<br><span style="font-size:.62rem;opacity:.85;">{{ plan.semana_inicio|date:"M" }}</span>
@@ -114,8 +97,6 @@
                 <i class="bi bi-list-check me-1"></i>{{ plan.total_items }} clase{{ plan.total_items|pluralize:"s" }}
               </div>
             </a>
-
-            {# Parte derecha: badge + botón de acción según estado #}
             <div class="ps-plan-actions">
               {% if plan.estado == 'BORRADOR' %}
                 <span class="ps-badge ps-badge-borrador"><i class="bi bi-pencil-fill"></i> Borrador</span>
@@ -127,18 +108,15 @@
                         data-info="{{ plan.curso.materia.nombre_materia }} · {{ label }}">
                   <i class="bi bi-send-fill"></i> Enviar
                 </button>
-
               {% elif plan.estado == 'CON_OBSERVACIONES' %}
                 <span class="ps-badge ps-badge-obs"><i class="bi bi-exclamation-circle-fill"></i> Con obs.</span>
                 <a href="{% url 'gestion_academica:plan_semanal_detalle' plan.pk %}"
                    style="display:inline-flex;align-items:center;gap:.3rem;background:linear-gradient(135deg,#92400e,#b45309,#d97706);color:#fff;text-decoration:none;border-radius:.45rem;padding:.28rem .7rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
                   <i class="bi bi-arrow-repeat"></i> Corregir y reenviar
                 </a>
-
               {% elif plan.estado == 'ENVIADO' %}
                 <span class="ps-badge ps-badge-enviado"><i class="bi bi-send-fill"></i> Enviado</span>
                 <span style="font-size:.68rem;color:#94a3b8;white-space:nowrap;">En revisión…</span>
-
               {% elif plan.estado == 'APROBADO' %}
                 <span class="ps-badge ps-badge-aprobado"><i class="bi bi-check-circle-fill"></i> Aprobado</span>
                 <a href="{% url 'gestion_academica:plan_semanal_detalle' plan.pk %}"
@@ -147,7 +125,6 @@
                 </a>
               {% endif %}
             </div>
-
           </div>
           {% endfor %}
         {% else %}
@@ -159,7 +136,6 @@
         {% endif %}
       </div>
     </div>
-
     <!-- Panel de ayuda -->
     <div class="col-12 col-lg-4">
       <div class="ps-panel">
@@ -186,10 +162,8 @@
         </div>
       </div>
     </div>
-
   </div>
 </div>
-
 <!-- Modal crear plan -->
 <div class="modal fade" id="modalCrearPlan" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -221,7 +195,6 @@
     </div>
   </div>
 </div>
-
 <!-- ══ MODAL: Confirmar Envío desde la Lista ══ -->
 <div class="modal fade" id="modalEnviarPlanLista" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
@@ -253,9 +226,7 @@
     </div>
   </div>
 </div>
-
 {% endblock %}
-
 {% block extra_js %}{{ block.super }}
 <script>
 // Enviar desde lista → pre-cargar modal con datos del plan

@@ -99,13 +99,11 @@
 <p class="carnet-codigo"><strong>Código:</strong> {{ docente.codigo_docente }}</p>
 <p class="carnet-codigo"><strong>Rol:</strong> DOCENTE</p>
 <p class="carnet-especialidad"><strong>Especialidad:</strong> {{ docente.especialidad }}</p>
-
 {% if docente.firma_docente %}
     <div style="margin-top: 5px;">
         <img src="{{ docente.firma_docente.url }}" alt="Firma" style="height: 25px;">
     </div>
 {% endif %}
-
 <div class="carnet-footer">
     Carnet Docente - Emitido: {{ docente.usuario.date_joined|date:"d/m/Y" }}
 </div>
