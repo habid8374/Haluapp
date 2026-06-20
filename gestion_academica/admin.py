@@ -14,7 +14,7 @@ from django.shortcuts import redirect
 from .models import (
     Usuario, Grado, Estudiante, Docente, Familiar,
     Materia, PeriodoAcademico, Curso, DirectorCurso,
-    EsquemaCalificacion, TipoActividad, ActividadCalificable, Calificacion,
+    TipoActividad, ActividadCalificable, Calificacion,
     PlanCurricular, Deber, EntregaDeber, MencionReconocimiento, ArchivoPlanAcademico,
     ConfiguracionInstitucion, Noticia, EnlaceVideollamada, AreaAcademica,
     DescriptorLogro, RegistroAsistencia, Aula, BloqueHorario, Pregunta, Opcion, EscalaValorativa,
@@ -304,14 +304,6 @@ class DirectorCursoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_filter = ('periodo_academico', 'grado', 'institucion')
     ordering = ('institucion', 'periodo_academico', 'grado')
     raw_id_fields = ('docente', 'grado', 'periodo_academico', 'institucion')
-
-@admin.register(EsquemaCalificacion)
-class EsquemaCalificacionAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
-    list_display = ('nombre', 'institucion')
-    search_fields = ('nombre',)
-    list_filter = ('institucion',)
-    ordering = ('institucion', 'nombre',)
-    raw_id_fields = ('institucion',)
 
 @admin.register(TipoActividad)
 class TipoActividadAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):

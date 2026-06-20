@@ -101,11 +101,6 @@ urlpatterns = [
     path('directores-curso/<int:pk>/editar/', views.DirectorCursoUpdateView.as_view(), name='editar_director_curso'),
     path('directores-curso/<int:pk>/eliminar/', views.DirectorCursoDeleteView.as_view(), name='eliminar_director_curso'),
 
-    # --- Gestión de Esquemas de Calificación ---
-    path('esquemas-calificacion/', views.EsquemaCalificacionListView.as_view(), name='lista_esquemas_calificacion'),
-    path('esquemas-calificacion/crear/', views.EsquemaCalificacionCreateView.as_view(), name='crear_esquema_calificacion'),
-    path('esquemas-calificacion/<int:pk>/editar/', views.EsquemaCalificacionUpdateView.as_view(), name='editar_esquema_calificacion'),
-    path('esquemas-calificacion/<int:pk>/eliminar/', views.EsquemaCalificacionDeleteView.as_view(), name='eliminar_esquema_calificacion'),
 
     # --- Gestión de Tipos de Actividad ---
     path('tipos-actividad/', views.TipoActividadListView.as_view(), name='lista_tipos_actividad'),

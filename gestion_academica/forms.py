@@ -9,7 +9,7 @@ from django.forms import inlineformset_factory
 # Modelos propios de gestion_academica
 from .models import (
     Grado, Estudiante, Docente, Familiar, Materia, PeriodoAcademico,
-    Curso, DirectorCurso, EsquemaCalificacion, TipoActividad,
+    Curso, DirectorCurso, TipoActividad,
     ActividadCalificable, Calificacion, Deber, EntregaDeber,
     PlanCurricular, MencionReconocimiento, ArchivoPlanAcademico, Noticia,
     ConfiguracionInstitucion, Usuario, LeccionDiaria, ObservacionBoletin,
@@ -451,31 +451,6 @@ class DirectorCursoForm(forms.ModelForm):
             self.fields['docente'].queryset = filter_by_user_institution(self.fields['docente'].queryset, request.user)
             self.fields['grado'].queryset = filter_by_user_institution(self.fields['grado'].queryset, request.user)
             self.fields['periodo_academico'].queryset = filter_by_user_institution(self.fields['periodo_academico'].queryset, request.user)
-            self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
-            if not request.user.is_superuser and request.user.institucion_asociada:
-                self.fields['institucion'].initial = request.user.institucion_asociada
-                self.fields['institucion'].disabled = True
-
-
-class EsquemaCalificacionForm(forms.ModelForm):
-    class Meta:
-        model = EsquemaCalificacion
-        fields = ['nombre', 'descripcion', 'institucion']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'institucion': forms.Select(attrs={'class': 'form-select'}),
-        }
-        labels = {
-            'nombre': 'Nombre del Esquema',
-            'descripcion': 'Descripción',
-            'institucion': 'Institución',
-        }
-
-    def __init__(self, *args, **kwargs):
-        request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
-        if request:
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada

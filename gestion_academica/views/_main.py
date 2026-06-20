@@ -110,7 +110,7 @@ from cuestionarios.models import Cuestionario
 from ..models import (
     Usuario, Grado, Estudiante, Docente, Familiar,
     Materia, PeriodoAcademico, Curso, DirectorCurso,
-    EsquemaCalificacion, TipoActividad, ActividadCalificable, Calificacion,
+    TipoActividad, ActividadCalificable, Calificacion,
     PlanCurricular, Deber, EntregaDeber, MencionReconocimiento, ArchivoPlanAcademico,
     ConfiguracionInstitucion, Noticia, RegistroAsistencia, BloqueHorario, LeccionDiaria,
     Pregunta, Opcion, RespuestaEstudiante, IntentoActividad, DescriptorLogro, ObservacionBoletin,
@@ -139,7 +139,6 @@ from ..forms import (
     PeriodoAcademicoForm,
     CursoForm,
     DirectorCursoForm,
-    EsquemaCalificacionForm,
     TipoActividadForm,
     ActividadCalificableForm,
     CalificacionForm,
@@ -1341,96 +1340,6 @@ class DirectorCursoDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Delet
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo_pagina'] = "Confirmar Eliminación de Asignación"
-        return context
-
-# --- Vistas para Esquemas de Calificación ---
-class EsquemaCalificacionListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    model = EsquemaCalificacion
-    template_name = 'gestion_academica/esquema_calificacion_lista.html'
-    context_object_name = 'esquemas'
-    permission_required = 'gestion_academica.view_esquemacalificacion'
-    paginate_by = 10
-
-    def get_queryset(self):
-        base_queryset = super().get_queryset().order_by('nombre')
-        return get_filtered_queryset(self.model, self.request.user, base_queryset)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = "Esquemas de Calificación"
-        return context
-
-class EsquemaCalificacionCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    model = EsquemaCalificacion
-    form_class = EsquemaCalificacionForm
-    template_name = 'gestion_academica/esquema_calificacion_formulario.html'
-    success_url = reverse_lazy('gestion_academica:lista_esquemas_calificacion')
-    permission_required = 'gestion_academica.add_esquemacalificacion'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo_formulario'] = "Crear Nuevo Esquema de Calificación"
-        return context
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['request'] = self.request 
-        return kwargs
-
-    def form_valid(self, form):
-        if not self.request.user.is_superuser and hasattr(self.request.user, 'institucion_asociada') and self.request.user.institucion_asociada:
-            form.instance.institucion = self.request.user.institucion_asociada
-        elif self.request.user.is_superuser and not form.instance.institucion:
-            messages.error(self.request, "Como superusuario, debes seleccionar una institución para el esquema de calificación.")
-            return self.form_invalid(form)
-
-        messages.success(self.request, f"Esquema '{form.cleaned_data['nombre']}' creado exitosamente.") # CORRECCIÓN: self.request usado para messages
-        return super().form_valid(form)
-
-class EsquemaCalificacionUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = EsquemaCalificacion
-    form_class = EsquemaCalificacionForm
-    template_name = 'gestion_academica/esquema_calificacion_formulario.html'
-    success_url = reverse_lazy('gestion_academica:lista_esquemas_calificacion')
-    permission_required = 'gestion_academica.change_esquemacalificacion'
-
-    def get_queryset(self):
-        base_queryset = super().get_queryset()
-        return get_filtered_queryset(self.model, self.request.user, base_queryset)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo_formulario'] = "Editar Esquema de Calificación"
-        return context
-    
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['request'] = self.request 
-        return kwargs
-
-    def form_valid(self, form):
-        messages.success(self.request, f"Esquema '{form.cleaned_data['nombre']}' actualizada exitosamente.") # CORRECCIÓN: self.request usado para messages
-        return super().form_valid(form)
-
-class EsquemaCalificacionDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = EsquemaCalificacion
-    template_name = 'gestion_academica/esquema_calificacion_confirmar_eliminar.html'
-    success_url = reverse_lazy('gestion_academica:lista_esquemas_calificacion')
-    context_object_name = 'esquema'
-    permission_required = 'gestion_academica.delete_esquemacalificacion'
-
-    def get_queryset(self):
-        base_queryset = super().get_queryset()
-        return get_filtered_queryset(self.model, self.request.user, base_queryset)
-
-    def delete(self, request, *args, **kwargs):
-        esquema_eliminado = self.get_object()
-        messages.success(request, f"El esquema '{esquema_eliminado.nombre}' ha sido eliminado.") 
-        return super().delete(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = "Confirmar Eliminación de Esquema"
         return context
 
 # --- Vistas para Tipos de Actividad ---

@@ -37,7 +37,7 @@ from ..models import (
     Estudiante, Docente, Curso, PeriodoAcademico, Grado, BloqueHorario, Aula,
     ActividadCalificable, Calificacion, AnotacionObservador, AnalisisComportamientoIA,
     PlaneacionClase, DetalleClase, LeccionDiaria, Candidato, Notificacion,
-    RegistroAsistencia, TipoActividad, EsquemaCalificacion, Materia,
+    RegistroAsistencia, TipoActividad, Materia,
     DimensionDesarrollo, LogroPreescolar, EscalaCualitativa, DescriptorLogro,
     EvaluacionLogroPreescolar, NivelEscolaridad, Familiar, Usuario,
     DirectorCurso, AreaAcademica, Deber, EntregaDeber, MencionReconocimiento,

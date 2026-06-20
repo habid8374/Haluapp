@@ -21,7 +21,7 @@ from ..models import (
     ActividadCalificable, Calificacion, Deber, EntregaDeber, RegistroAsistencia,
     MencionReconocimiento, BloqueHorario, Noticia, TipoActividad, DescriptorLogro,
     DisponibilidadDocente, CitaReunion, DirectorCurso, AnotacionObservador,
-    EsquemaCalificacion, AreaAcademica, LeccionDiaria,
+    AreaAcademica, LeccionDiaria,
 )
 from finanzas.models import CuentaPorCobrarEstudiante, PagoRegistrado
 from gestion_academica.decorators import EstaAlDiaPermission

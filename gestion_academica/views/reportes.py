@@ -20,7 +20,7 @@ from collections import defaultdict, OrderedDict
 
 from ..models import (
     Grado, Curso, Materia, PeriodoAcademico, Estudiante, Calificacion,
-    ActividadCalificable, TipoActividad, EsquemaCalificacion, AnotacionObservador,
+    ActividadCalificable, TipoActividad, AnotacionObservador,
     RegistroAsistencia, MencionReconocimiento, EscalaCualitativa, DescriptorLogro,
     EvaluacionLogroPreescolar, LogroPreescolar, DimensionDesarrollo,
     PrediccionRiesgoEstudiante, AnalisisRiesgo, DirectorCurso, AreaAcademica,

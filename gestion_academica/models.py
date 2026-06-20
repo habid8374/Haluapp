@@ -829,22 +829,6 @@ class DirectorCurso(models.Model):
         nombre_docente = self.docente.usuario.get_full_name() or self.docente.usuario.username
         return f"Dir. {nombre_docente} - {self.grado.nombre} ({self.periodo_academico.nombre})"
 
-class EsquemaCalificacion(models.Model):
-    nombre = models.CharField(max_length=100, verbose_name="Nombre del Esquema")
-    descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción (Opcional)")
-    
-    # --- CAMBIO: Se quita null=True, blank=True ---
-    institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
-
-    class Meta:
-        verbose_name = "Esquema de Calificación"
-        verbose_name_plural = "Esquemas de Calificación"
-        ordering = ['nombre']
-        unique_together = ('nombre', 'institucion',)
-
-    def __str__(self):
-        return self.nombre
-
 class TipoActividad(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del Tipo de Actividad")
     descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción (Opcional)")
