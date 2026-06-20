@@ -10593,6 +10593,10 @@ def evaluar_logros_curso(request, curso_pk):
 
     # Tu lógica para guardar los datos (POST) se mantiene, pero ahora usará los modelos correctos.
     if request.method == 'POST':
+        # Candado de notas: si el período está cerrado, no se permite editar (salvo superusuario).
+        if curso.periodo_academico.notas_cerradas and not request.user.is_superuser:
+            messages.error(request, "Las notas de este período están cerradas. No es posible modificar las valoraciones.")
+            return redirect('gestion_academica:evaluar_logros_curso', curso_pk=curso.pk)
         for estudiante in estudiantes:
             for logro in logros:
                 estado_id = request.POST.get(f'eval-E{estudiante.pk}-L{logro.pk}')
@@ -10985,6 +10989,11 @@ class DimensionCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
     success_url = reverse_lazy('gestion_academica:lista_dimensiones')
     permission_required = 'gestion_academica.add_dimensiondesarrollo'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         form.instance.institucion = self.request.user.institucion_asociada
         messages.success(self.request, "Dimensión creada exitosamente.")
@@ -11004,6 +11013,11 @@ class DimensionUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         messages.success(self.request, "Dimensión actualizada exitosamente.")

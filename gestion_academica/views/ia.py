@@ -41,6 +41,7 @@ from ..models import (
     DimensionDesarrollo, LogroPreescolar, EscalaCualitativa, DescriptorLogro,
     EvaluacionLogroPreescolar, NivelEscolaridad, Familiar, Usuario,
     DirectorCurso, AreaAcademica, Deber, EntregaDeber, MencionReconocimiento,
+    ObservacionBoletin,
 )
 from ..forms import (
     PlaneacionClaseForm, LeccionDiariaIaForm, CandidatoForm,

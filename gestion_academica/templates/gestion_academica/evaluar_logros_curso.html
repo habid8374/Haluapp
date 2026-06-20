@@ -127,6 +127,16 @@
   display: flex; justify-content: flex-end; align-items: center;
   gap: .75rem; margin-top: 1rem;
 }
+
+/* ── Resaltado de logros sin evaluar ── */
+.el-table tbody td.el-pending { background: #fffbeb; box-shadow: inset 0 0 0 1.5px #fde68a; }
+.el-mob-logro.el-pending { background: #fffbeb; border-radius: .5rem; padding-left: .5rem; padding-right: .5rem; }
+.el-pending-note {
+  display: flex; align-items: center; gap: .5rem; padding: .6rem .9rem; margin-bottom: 1rem;
+  background: #fffbeb; border: 1px solid #fde68a; border-radius: .65rem;
+  color: #92400e; font-size: .82rem;
+}
+.el-pending-note .el-pending-count { font-weight: 800; }
 </style>
 {% endblock %}
 
@@ -170,6 +180,13 @@
   </div>
   {% endif %}
 
+  {% if logros and estudiantes %}
+  <div class="el-pending-note" id="el-pending-note" style="display:none;">
+    <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
+    <span>Tienes <span class="el-pending-count" id="el-pending-count">0</span> valoración(es) sin asignar (resaltadas en amarillo). Puedes guardar de todos modos y completarlas después.</span>
+  </div>
+  {% endif %}
+
   <form method="post" id="el-form">
     {% csrf_token %}
 
@@ -197,9 +214,9 @@
                   {{ estudiante.usuario.get_full_name }}
                 </td>
                 {% for logro in logros %}
-                <td>
-                  {% with estudiante_evaluaciones=evaluaciones_map|get_item:estudiante.pk %}
-                  {% with evaluacion_actual=estudiante_evaluaciones|get_item:logro.pk %}
+                {% with estudiante_evaluaciones=evaluaciones_map|get_item:estudiante.pk %}
+                {% with evaluacion_actual=estudiante_evaluaciones|get_item:logro.pk %}
+                <td class="el-eval-cell {% if not evaluacion_actual %}el-pending{% endif %}">
                   <div class="el-radio-group">
                     {% for estado in estados_posibles %}
                     <label class="el-radio-label">
@@ -211,9 +228,9 @@
                     </label>
                     {% endfor %}
                   </div>
-                  {% endwith %}
-                  {% endwith %}
                 </td>
+                {% endwith %}
+                {% endwith %}
                 {% endfor %}
               </tr>
               {% endfor %}
@@ -250,7 +267,7 @@
             {% for logro in logros %}
             {% with estudiante_evaluaciones=evaluaciones_map|get_item:estudiante.pk %}
             {% with evaluacion_actual=estudiante_evaluaciones|get_item:logro.pk %}
-            <div class="el-mob-logro">
+            <div class="el-mob-logro el-eval-cell {% if not evaluacion_actual %}el-pending{% endif %}">
               <div class="el-mob-logro-txt">
                 <i class="bi bi-check2-circle me-1" style="color:#0b5ed7;"></i>
                 {{ logro.descripcion|truncatewords:15 }}
@@ -305,6 +322,35 @@ document.addEventListener('DOMContentLoaded', function() {
     var first = document.querySelector('.el-mob-header');
     if (first) toggleCard(first);
   }
+
+  // ── Contador de valoraciones pendientes (resaltadas en amarillo) ──
+  var note = document.getElementById('el-pending-note');
+  var countEl = document.getElementById('el-pending-count');
+
+  function actualizarPendientes() {
+    // Cada par estudiante-logro tiene celdas en escritorio y móvil; contamos por 'name' único.
+    var grupos = {};
+    document.querySelectorAll('#el-form input[type="radio"]').forEach(function(r) {
+      if (!(r.name in grupos)) grupos[r.name] = false;
+      if (r.checked) grupos[r.name] = true;
+    });
+    var pendientes = Object.values(grupos).filter(function(v) { return !v; }).length;
+    if (countEl) countEl.textContent = pendientes;
+    if (note) note.style.display = pendientes > 0 ? 'flex' : 'none';
+  }
+
+  // Al seleccionar, limpiar el resaltado de todas las celdas con ese mismo name.
+  document.querySelectorAll('#el-form input[type="radio"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      document.querySelectorAll('#el-form input[name="' + CSS.escape(r.name) + '"]').forEach(function(sib) {
+        var cell = sib.closest('.el-eval-cell');
+        if (cell) cell.classList.remove('el-pending');
+      });
+      actualizarPendientes();
+    });
+  });
+
+  actualizarPendientes();
 });
 </script>
 {% endblock %}
