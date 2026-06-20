@@ -1,63 +1,296 @@
 {% extends 'base_finanzas.html' %}
 {% load humanize %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+  /* ── Tabs de mes ─────────────────────────────────────── */
+  .mes-tabs .nav-link {
+    border-radius: 10px;
+    font-weight: 600;
+    color: #4f46e5;
+    padding: .45rem 1.1rem;
+    transition: background .15s;
+  }
+  .mes-tabs .nav-link.active {
+    background: #4f46e5;
+    color: #fff !important;
+  }
+  /* ── Acordeón de grado ───────────────────────────────── */
+  .grado-accordion .accordion-button {
+    font-weight: 700;
+    font-size: .93rem;
+    background: #f5f3ff;
+    color: #3730a3;
+    padding: .7rem 1rem;
+  }
+  .grado-accordion .accordion-button:not(.collapsed) {
+    background: #ede9fe;
+    color: #3730a3;
+    box-shadow: none;
+  }
+  .grado-accordion .accordion-button::after {
+    filter: hue-rotate(220deg);
+  }
+  .grado-accordion .accordion-item {
+    border: 1px solid #e0e7ff;
+    border-radius: 10px !important;
+    overflow: hidden;
+    margin-bottom: .5rem;
+  }
+  .grado-accordion .accordion-body {
+    padding: 0;
+  }
+  /* ── Tabla de estudiantes ────────────────────────────── */
+  .tabla-estudiantes {
+    font-size: .83rem;
+    margin: 0;
+  }
+  .tabla-estudiantes thead th {
+    background: #f8f9ff;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: #6b7280;
+    border-bottom: 2px solid #e0e7ff;
+    padding: .5rem .75rem;
+  }
+  .tabla-estudiantes td {
+    padding: .45rem .75rem;
+    vertical-align: middle;
+    border-color: #f0f0f0;
+  }
+  .tabla-estudiantes tbody tr:last-child td {
+    border-bottom: none;
+  }
+  /* ── Matriz resumen ──────────────────────────────────── */
+  .matriz-resumen th, .matriz-resumen td {
+    font-size: .82rem;
+    white-space: nowrap;
+    padding: .45rem .7rem;
+  }
+  .matriz-resumen tfoot td {
+    background: #eef2ff;
+    font-weight: 700;
+    color: #3730a3;
+  }
+  .matriz-resumen tbody tr:hover td { background: #f5f3ff; }
+  /* ── Chips de badge en acordeón ─────────────────────── */
+  .badge-subtotal {
+    background: #ede9fe;
+    color: #4f46e5;
+    font-weight: 700;
+    font-size: .78rem;
+    border-radius: 20px;
+    padding: .25em .7em;
+  }
+  /* ── Responsive: en móvil ocultar columnas secundarias ─ */
+  @media (max-width: 576px) {
+    .col-oculta-movil { display: none; }
+    .tabla-estudiantes { font-size: .8rem; }
+  }
+</style>
+{% endblock %}
 {% block contenido %}
 <div class="container-fluid mt-4">
+  <!-- Hero banner -->
   <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
     <h2 style="color:#fff;"><i class="bi bi-graph-up-arrow me-2"></i>{{ titulo_pagina }}</h2>
-    <p style="color:#fff;margin-bottom:0;">Cartera pendiente por mes (próximos 3 meses). Basado en cuentas PENDIENTE, PAGADO_PARCIAL y VENCIDAS sin fecha de cobro.</p>
+    <p style="color:#fff;margin-bottom:0;">Cartera pendiente por mes (próximos 3 meses) · agrupada por grado · ordenada por apellido.</p>
   </div>
-  <!-- Resumen total -->
+  <!-- KPI total -->
   <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="card shadow-sm text-center py-3 border-primary">
-        <div style="font-size:1.6rem;font-weight:700;color:#4f46e5;">${{ total_proyectado|floatformat:0|intcomma }}</div>
-        <div class="text-muted small">Total proyectado 3 meses</div>
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm text-center py-3 border-0" style="border-left:4px solid #4f46e5 !important;">
+        <div style="font-size:1.5rem;font-weight:800;color:#4f46e5;">${{ total_proyectado|floatformat:0|intcomma }}</div>
+        <div class="text-muted small">Total 3 meses</div>
       </div>
     </div>
-  </div>
-  <!-- Meses -->
-  {% for p in proyecciones %}
-  <div class="card shadow-sm mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center fw-bold"
-         style="background:#eef2ff;">
-      <span><i class="bi bi-calendar3 me-2 text-primary"></i>{{ p.nombre_mes }} {{ p.año }}</span>
-      <div>
-        <span class="badge bg-primary me-2">{{ p.num_cuentas }} cuenta{{ p.num_cuentas|pluralize }}</span>
-        <span class="fw-bold text-primary">${{ p.total|floatformat:0|intcomma }}</span>
+    {% for p in proyecciones %}
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm text-center py-3 border-0">
+        <div style="font-size:1.1rem;font-weight:700;color:#374151;">${{ p.total|floatformat:0|intcomma }}</div>
+        <div class="text-muted small">{{ p.nombre_mes }} {{ p.año }}</div>
+        <div class="text-muted" style="font-size:.75rem;">{{ p.num_cuentas }} cuenta{{ p.num_cuentas|pluralize }}</div>
       </div>
+    </div>
+    {% endfor %}
+  </div>
+  <!-- ══ Matriz resumen ══════════════════════════════════════════ -->
+  {% if matriz_grados %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header fw-bold d-flex align-items-center gap-2" style="background:#eef2ff;">
+      <i class="bi bi-table text-primary"></i> Resumen por grado
+      <span class="text-muted fw-normal ms-1" style="font-size:.82rem;">Foto rápida de la cartera</span>
     </div>
     <div class="table-responsive">
-      <table class="table table-sm table-hover mb-0" style="font-size:.86rem;">
-        <thead class="table-light">
+      <table class="table table-hover mb-0 matriz-resumen">
+        <thead>
           <tr>
-            <th class="ps-3">Estudiante</th>
-            <th>Concepto</th>
-            <th class="text-center">Vencimiento</th>
-            <th class="text-center">Estado</th>
-            <th class="text-end pe-3">Saldo pendiente</th>
+            <th>Grado</th>
+            {% for p in proyecciones %}
+            <th class="text-end">{{ p.nombre_mes }} {{ p.año }}</th>
+            {% endfor %}
+            <th class="text-end">Total grado</th>
           </tr>
         </thead>
         <tbody>
-          {% for c in p.cuentas %}
+          {% for fila in matriz_grados %}
           <tr>
-            <td class="ps-3">{% if c.estudiante %}{{ c.estudiante.usuario.get_full_name }}{% else %}—{% endif %}</td>
-            <td>{{ c.concepto_pago.nombre_concepto }}</td>
-            <td class="text-center">{{ c.fecha_vencimiento_especifica|date:"d/m/Y" }}</td>
-            <td class="text-center">
-              {% if c.estado == 'VENCIDO' %}<span class="badge bg-danger">Vencido</span>
-              {% elif c.estado == 'PENDIENTE' %}<span class="badge bg-secondary">Pendiente</span>
-              {% else %}<span class="badge bg-warning text-dark">Parcial</span>{% endif %}
+            <td class="fw-semibold">{{ fila.grado_nombre }}</td>
+            {% for monto in fila.totales_mes %}
+            <td class="text-end">
+              {% if monto %}<span class="text-danger fw-semibold">${{ monto|floatformat:0|intcomma }}</span>
+              {% else %}<span class="text-muted">—</span>{% endif %}
             </td>
-            <td class="text-end pe-3 fw-semibold">${{ c.saldo_pendiente|floatformat:0|intcomma }}</td>
+            {% endfor %}
+            <td class="text-end fw-bold">${{ fila.total_fila|floatformat:0|intcomma }}</td>
           </tr>
-          {% empty %}
-          <tr><td colspan="5" class="text-center text-muted py-2">Sin cuentas en este mes.</td></tr>
           {% endfor %}
         </tbody>
+        <tfoot>
+          <tr>
+            <td>Total mes</td>
+            {% for p in proyecciones %}
+            <td class="text-end">${{ p.total|floatformat:0|intcomma }}</td>
+            {% endfor %}
+            <td class="text-end">${{ total_proyectado|floatformat:0|intcomma }}</td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>
-  {% endfor %}
+  {% endif %}
+  <!-- ══ Tabs de mes ═════════════════════════════════════════════ -->
+  {% if proyecciones %}
+  <div class="card shadow-sm">
+    <div class="card-header border-0 pt-3 pb-0 px-3" style="background:#fff;">
+      <ul class="nav nav-pills mes-tabs gap-1 flex-nowrap overflow-auto pb-2" id="mesTabs" role="tablist">
+        {% for p in proyecciones %}
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if forloop.first %}active{% endif %}"
+                  id="tab-mes-{{ forloop.counter }}"
+                  data-bs-toggle="pill"
+                  data-bs-target="#panel-mes-{{ forloop.counter }}"
+                  type="button" role="tab">
+            <i class="bi bi-calendar3 me-1"></i>{{ p.nombre_mes }}
+            <span class="ms-1" style="font-size:.78rem;opacity:.75;">{{ p.año }}</span>
+            <span class="badge bg-white text-primary ms-1" style="font-size:.72rem;">
+              ${{ p.total|floatformat:0|intcomma }}
+            </span>
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="card-body pt-3">
+      <div class="tab-content">
+        {% for p in proyecciones %}
+        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+             id="panel-mes-{{ forloop.counter }}"
+             role="tabpanel">
+          {% if p.grados %}
+          <!-- Acordeón de grados -->
+          {% with mes_idx=forloop.counter %}
+          <div class="accordion grado-accordion" id="accordion-mes-{{ mes_idx }}">
+            {% for g in p.grados %}
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#acc-m{{ mes_idx }}-g{{ forloop.counter }}"
+                        aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+                  <div class="d-flex align-items-center justify-content-between w-100 me-3 flex-wrap gap-2">
+                    <span>
+                      <i class="bi bi-mortarboard me-2"></i>{{ g.grado_nombre }}
+                    </span>
+                    <div class="d-flex gap-2 align-items-center">
+                      <span class="badge bg-secondary" style="font-size:.73rem;">
+                        {{ g.cuentas|length }} alumno{{ g.cuentas|length|pluralize }}
+                      </span>
+                      <span class="badge-subtotal">
+                        ${{ g.subtotal|floatformat:0|intcomma }}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              </h2>
+              <div id="acc-m{{ mes_idx }}-g{{ forloop.counter }}"
+                   class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                   data-bs-parent="#accordion-mes-{{ mes_idx }}">
+                <div class="accordion-body">
+                  <div class="table-responsive">
+                    <table class="table tabla-estudiantes">
+                      <thead>
+                        <tr>
+                          <th>Estudiante</th>
+                          <th class="col-oculta-movil">Concepto</th>
+                          <th class="text-center col-oculta-movil">Vence</th>
+                          <th class="text-center">Estado</th>
+                          <th class="text-end">Saldo</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for c in g.cuentas %}
+                        <tr>
+                          <td>
+                            {% if c.estudiante %}
+                              <span class="fw-semibold">{{ c.estudiante.usuario.get_full_name }}</span>
+                            {% else %}
+                              <span class="text-muted">—</span>
+                            {% endif %}
+                          </td>
+                          <td class="col-oculta-movil text-muted">{{ c.concepto_pago.nombre_concepto }}</td>
+                          <td class="text-center col-oculta-movil">{{ c.fecha_vencimiento_especifica|date:"d/m/Y" }}</td>
+                          <td class="text-center">
+                            {% if c.estado == 'VENCIDO' %}
+                              <span class="badge bg-danger">Vencido</span>
+                            {% elif c.estado == 'PENDIENTE' %}
+                              <span class="badge bg-secondary">Pendiente</span>
+                            {% else %}
+                              <span class="badge bg-warning text-dark">Parcial</span>
+                            {% endif %}
+                          </td>
+                          <td class="text-end fw-bold {% if c.estado == 'VENCIDO' %}text-danger{% else %}text-primary{% endif %}">
+                            ${{ c.saldo_pendiente|floatformat:0|intcomma }}
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                      <tfoot>
+                        <tr style="background:#f5f3ff;">
+                          <td colspan="4" class="text-end fw-bold text-primary" style="font-size:.83rem;">
+                            Subtotal {{ g.grado_nombre }}
+                          </td>
+                          <td class="text-end fw-bold text-primary">
+                            ${{ g.subtotal|floatformat:0|intcomma }}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endwith %}
+          {% else %}
+          <div class="text-center text-muted py-4">
+            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+            Sin cuentas pendientes en {{ p.nombre_mes }} {{ p.año }}.
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center text-muted py-5">
+    <i class="bi bi-check-circle fs-2 d-block mb-2 text-success"></i>
+    No hay cartera pendiente en los próximos 3 meses.
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

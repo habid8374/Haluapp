@@ -1291,20 +1291,32 @@ class DimensionDesarrolloForm(forms.ModelForm):
     """
     class Meta:
         model = DimensionDesarrollo
-        fields = ['nombre', 'descripcion', 'orden']
+        fields = ['nombre', 'descripcion', 'orden', 'materias']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Cognitiva, Comunicativa'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'orden': forms.NumberInput(attrs={'class': 'form-control'}),
+            'materias': forms.CheckboxSelectMultiple(),
         }
         labels = {
             'nombre': 'Nombre de la Dimensión',
             'descripcion': 'Descripción (Opcional)',
             'orden': 'Orden de Aparición',
+            'materias': 'Materias asociadas (Opcional)',
         }
         help_texts = {
-            'orden': 'Un número menor aparecerá primero en la lista y en los reportes.'
+            'orden': 'Un número menor aparecerá primero en la lista y en los reportes.',
+            'materias': 'Materias que aportan a esta dimensión del desarrollo.',
         }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        self.fields['materias'].required = False
+        if user is not None and getattr(user, 'institucion_asociada', None) is not None:
+            self.fields['materias'].queryset = Materia.objects.filter(
+                institucion=user.institucion_asociada
+            ).order_by('nombre_materia')
 
 class EscalaCualitativaForm(forms.ModelForm):
     class Meta:

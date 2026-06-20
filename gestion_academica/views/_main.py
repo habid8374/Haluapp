@@ -1132,17 +1132,33 @@ class CursoListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = 'gestion_academica/curso_lista.html'
     context_object_name = 'cursos'
     permission_required = 'gestion_academica.view_curso'
-    paginate_by = 10
 
     def get_queryset(self):
         base_queryset = Curso.objects.select_related('materia', 'grado', 'periodo_academico').prefetch_related('docentes_asignados__usuario').all().order_by(
-            '-periodo_academico__año_escolar', '-periodo_academico__fecha_inicio', 'grado__nombre', 'materia__nombre_materia'
+            'grado__orden', 'grado__nombre', '-periodo_academico__año_escolar', 'materia__nombre_materia'
         )
         return get_filtered_queryset(self.model, self.request.user, base_queryset)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo_pagina'] = "Listado de Cursos"
+        # Agrupar cursos por grado para la vista de acordeón
+        grupos = {}
+        for curso in context['cursos']:
+            grado = curso.grado
+            key = (
+                grado.orden if grado and grado.orden is not None else 9999,
+                grado.nombre if grado else 'zzz',
+            )
+            if key not in grupos:
+                grupos[key] = {
+                    'grado': grado,
+                    'grado_nombre': grado.nombre if grado else 'Sin grado asignado',
+                    'cursos': [],
+                }
+            grupos[key]['cursos'].append(curso)
+        context['grados'] = [grupos[k] for k in sorted(grupos)]
+        context['total_cursos'] = len(context['cursos'])
         return context
 
 class CursoDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
@@ -10592,6 +10608,10 @@ def evaluar_logros_curso(request, curso_pk):
 
     # Tu lógica para guardar los datos (POST) se mantiene, pero ahora usará los modelos correctos.
     if request.method == 'POST':
+        # Candado de notas: si el período está cerrado, no se permite editar (salvo superusuario).
+        if curso.periodo_academico.notas_cerradas and not request.user.is_superuser:
+            messages.error(request, "Las notas de este período están cerradas. No es posible modificar las valoraciones.")
+            return redirect('gestion_academica:evaluar_logros_curso', curso_pk=curso.pk)
         for estudiante in estudiantes:
             for logro in logros:
                 estado_id = request.POST.get(f'eval-E{estudiante.pk}-L{logro.pk}')
@@ -10902,6 +10922,11 @@ class DimensionCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
     success_url = reverse_lazy('gestion_academica:lista_dimensiones')
     permission_required = 'gestion_academica.add_dimensiondesarrollo'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def form_valid(self, form):
         form.instance.institucion = self.request.user.institucion_asociada
         messages.success(self.request, "Dimensión creada exitosamente.")
@@ -10921,6 +10946,11 @@ class DimensionUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         messages.success(self.request, "Dimensión actualizada exitosamente.")

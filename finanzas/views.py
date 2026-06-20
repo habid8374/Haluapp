@@ -3903,13 +3903,14 @@ def marcar_incobrable(request, pk):
 @login_required
 @permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
 def proyecciones_cartera(request):
+    from decimal import Decimal as _D
     institucion = getattr(request.user, 'institucion_asociada', None)
     if not institucion and not request.user.is_superuser:
         messages.error(request, "Tu usuario no tiene institución asociada.")
         return redirect('finanzas:dashboard_financiero')
 
     hoy = date.today()
-    meses = []
+    periodos = []
     for i in range(3):
         año = hoy.year
         mes = hoy.month + i
@@ -3919,7 +3920,7 @@ def proyecciones_cartera(request):
         ultimo_dia = calendar.monthrange(año, mes)[1]
         inicio = date(año, mes, 1)
         fin = date(año, mes, ultimo_dia)
-        meses.append((año, mes, inicio, fin, NOMBRES_MESES_ESPANOL[mes]))
+        periodos.append((año, mes, inicio, fin, NOMBRES_MESES_ESPANOL[mes]))
 
     qs_base = CuentaPorCobrarEstudiante.objects.filter(
         estado__in=['PENDIENTE', 'PAGADO_PARCIAL', 'VENCIDO']
@@ -3927,27 +3928,80 @@ def proyecciones_cartera(request):
     if not request.user.is_superuser:
         qs_base = qs_base.filter(institucion=institucion)
 
+    # Clave de ordenación para grado None (va al final)
+    _SIN_GRADO_KEY = (9999, 'zzz')
+
+    def _agrupar_por_grado(cuentas_qs):
+        """Devuelve lista de dicts {grado, grado_nombre, cuentas, subtotal} ordenados por grado.orden."""
+        cuentas = list(
+            cuentas_qs.select_related(
+                'estudiante__usuario',
+                'estudiante__grado_actual',
+                'concepto_pago',
+            ).order_by(
+                'estudiante__grado_actual__orden',
+                'estudiante__grado_actual__nombre',
+                'estudiante__usuario__last_name',
+                'estudiante__usuario__first_name',
+            )
+        )
+        grupos = {}
+        for c in cuentas:
+            grado = c.estudiante.grado_actual if c.estudiante else None
+            key = (grado.orden if grado and grado.orden is not None else 9999,
+                   grado.nombre if grado else 'zzz')
+            if key not in grupos:
+                grupos[key] = {
+                    'grado': grado,
+                    'grado_nombre': grado.nombre if grado else 'Sin grado asignado',
+                    'cuentas': [],
+                    'subtotal': _D('0'),
+                }
+            grupos[key]['cuentas'].append(c)
+            grupos[key]['subtotal'] += c.saldo_pendiente
+        return [grupos[k] for k in sorted(grupos)]
+
     proyecciones = []
-    for año, mes, inicio, fin, nombre_mes in meses:
+    for año, mes, inicio, fin, nombre_mes in periodos:
         cuentas_mes = qs_base.filter(
             fecha_vencimiento_especifica__gte=inicio,
             fecha_vencimiento_especifica__lte=fin,
-        ).select_related('estudiante__usuario', 'concepto_pago')
-        total = sum(c.saldo_pendiente for c in cuentas_mes)
+        )
+        grados = _agrupar_por_grado(cuentas_mes)
+        total = sum(g['subtotal'] for g in grados)
         proyecciones.append({
             'nombre_mes': nombre_mes,
             'año': año,
-            'cuentas': cuentas_mes,
+            'mes_idx': mes,
+            'grados': grados,
             'total': total,
-            'num_cuentas': cuentas_mes.count(),
+            'num_cuentas': sum(len(g['cuentas']) for g in grados),
         })
 
     total_proyectado = sum(p['total'] for p in proyecciones)
+
+    # Matriz resumen: filas = grados, columnas = meses
+    todos_los_grados = {}
+    for p in proyecciones:
+        for g in p['grados']:
+            key = g['grado_nombre']
+            if key not in todos_los_grados:
+                orden = g['grado'].orden if g['grado'] and g['grado'].orden is not None else 9999
+                todos_los_grados[key] = {'grado_nombre': key, 'orden': orden, 'totales_mes': []}
+    todos_los_grados = dict(sorted(todos_los_grados.items(), key=lambda x: (x[1]['orden'], x[0])))
+
+    for fila in todos_los_grados.values():
+        fila['totales_mes'] = []
+        for p in proyecciones:
+            encontrado = next((g['subtotal'] for g in p['grados'] if g['grado_nombre'] == fila['grado_nombre']), _D('0'))
+            fila['totales_mes'].append(encontrado)
+        fila['total_fila'] = sum(fila['totales_mes'])
 
     return render(request, 'finanzas/proyecciones_cartera.html', {
         'titulo_pagina': 'Proyecciones de Cartera (3 meses)',
         'proyecciones': proyecciones,
         'total_proyectado': total_proyectado,
+        'matriz_grados': list(todos_los_grados.values()),
     })
 
 

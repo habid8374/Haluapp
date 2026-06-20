@@ -45,17 +45,32 @@
   }
   .logro-row {
     border-bottom: 1px solid #f0eeff;
-    padding: .55rem 1rem;
+    padding: .65rem 1rem;
     display: flex;
-    align-items: flex-start;
-    gap: .75rem;
+    flex-direction: column;     /* móvil: apilado */
+    align-items: stretch;
+    gap: .5rem;
     font-size: .87rem;
   }
   .logro-row:last-child { border-bottom: none; }
   .logro-desc { flex: 1; color: #374151; line-height: 1.45; }
-  .logro-meta { white-space: nowrap; font-size: .75rem; color: #6b7280; }
+  .logro-side {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    flex-wrap: wrap;
+  }
+  .logro-meta { font-size: .75rem; color: #6b7280; }
+  .logro-actions { display: flex; gap: .35rem; flex-shrink: 0; }
   .badge-grado { font-size: .7rem; font-weight: 700; border-radius: 20px; padding: .25em .75em; }
-  .btn-accion { font-size: .75rem; padding: .2rem .55rem; border-radius: 6px; }
+  .btn-accion { font-size: .75rem; padding: .25rem .6rem; border-radius: 6px; }
+
+  @media (min-width: 768px) {
+    .logro-row { flex-direction: row; align-items: flex-start; gap: .75rem; }
+    .logro-side { flex-direction: column; align-items: flex-end; flex-wrap: nowrap; flex-shrink: 0; }
+    .logro-meta { white-space: nowrap; }
+  }
   .contador-badge {
     background: rgba(255,255,255,.25);
     color: #fff;
@@ -128,11 +143,11 @@
               <span style="color:#6d28d9;font-weight:600;margin-right:.4rem;">{{ forloop.counter }}.</span>
               {{ logro.descripcion }}
             </div>
-            <div class="d-flex flex-column align-items-end gap-1">
+            <div class="logro-side">
               <span class="logro-meta">
                 <i class="bi bi-calendar3 me-1"></i>{{ logro.periodo.nombre }}
               </span>
-              <div class="d-flex gap-1">
+              <div class="logro-actions">
                 <a href="{% url 'gestion_academica:logro_editar' logro.pk %}"
                    class="btn btn-outline-primary btn-accion" title="Editar">
                   <i class="bi bi-pencil-fill"></i>
