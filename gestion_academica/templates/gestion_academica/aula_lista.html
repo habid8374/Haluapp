@@ -1,62 +1,104 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
-{% block contenido %}
-<div class="container mt-4">
-  <h2 class="mb-4">{{ titulo_pagina }}</h2>
+{% block extrastyles %}{{ block.super }}
+<style>
+  .au-card {
+    background:#fff; border:1px solid #d6e2f5; border-radius:14px;
+    padding:1.1rem 1.2rem; height:100%;
+    display:flex; flex-direction:column; gap:.55rem;
+    box-shadow:0 2px 10px rgba(13,59,102,.05); transition:box-shadow .15s, transform .15s;
+  }
+  .au-card:hover { box-shadow:0 6px 20px rgba(13,59,102,.12); transform:translateY(-2px); }
+  .au-nombre { font-weight:800; color:#0d3b66; font-size:1.05rem; display:flex; align-items:center; gap:.5rem; }
+  .au-meta { font-size:.85rem; color:#475569; display:flex; align-items:center; gap:.5rem; }
+  .au-meta i { color:#1d4ed8; width:1rem; text-align:center; }
+  .au-cap-badge {
+    background:#eff4ff; color:#1d4ed8; font-weight:700; font-size:.8rem;
+    border-radius:20px; padding:.2em .7em;
+  }
+  .au-acciones { display:flex; gap:.5rem; margin-top:auto; padding-top:.5rem; }
+  .au-acciones .btn { flex:1; }
+</style>
+{% endblock %}
 
-  <div class="mb-3 text-end">
-    <a href="{% url 'gestion_academica:crear_aula' %}" class="btn btn-primary">+ Nueva Aula</a>
+{% block contenido %}
+<div class="container-fluid mt-4">
+
+  <!-- Hero -->
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:18px;padding:1.6rem 2rem;color:#fff;margin-bottom:1.5rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 style="color:#fff;margin-bottom:.25rem;"><i class="bi bi-door-open-fill me-2"></i>{{ titulo_pagina }}</h2>
+        <p style="color:#fff;margin-bottom:0;opacity:.9;">{{ aulas|length }} aula{{ aulas|length|pluralize }} en esta página.</p>
+      </div>
+      {% if perms.gestion_academica.add_aula %}
+      <a href="{% url 'gestion_academica:crear_aula' %}" class="btn btn-light fw-bold" style="color:#0d3b66;">
+        <i class="bi bi-plus-circle-fill me-1"></i> Nueva Aula
+      </a>
+      {% endif %}
+    </div>
   </div>
 
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Ubicación</th>
-        <th>Capacidad</th>
-        <th>Institución</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for aula in aulas %}
-      <tr>
-        <td>{{ aula.nombre }}</td>
-        <td>{{ aula.ubicacion }}</td>
-        <td>{{ aula.capacidad }}</td>
-        <td>{{ aula.institucion.nombre }}</td>
-        <td>
-          <a href="{% url 'gestion_academica:editar_aula' aula.id %}" class="btn btn-sm btn-warning">Editar</a>
-          <a href="{% url 'gestion_academica:eliminar_aula' aula.id %}" class="btn btn-sm btn-danger">Eliminar</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="5">No hay aulas registradas.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if aulas %}
+  <div class="row g-3">
+    {% for aula in aulas %}
+    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+      <div class="au-card">
+        <div class="au-nombre"><i class="bi bi-easel2-fill"></i>{{ aula.nombre }}</div>
+        <div class="au-meta"><i class="bi bi-geo-alt-fill"></i>{{ aula.ubicacion|default:"Sin ubicación" }}</div>
+        <div class="au-meta">
+          <i class="bi bi-people-fill"></i>Capacidad:
+          <span class="au-cap-badge">{{ aula.capacidad }}</span>
+        </div>
+        <div class="au-meta"><i class="bi bi-building"></i>{{ aula.institucion.nombre }}</div>
+        <div class="au-acciones">
+          {% if perms.gestion_academica.change_aula %}
+          <a href="{% url 'gestion_academica:editar_aula' aula.id %}" class="btn btn-sm btn-outline-warning">
+            <i class="bi bi-pencil-fill"></i> Editar
+          </a>
+          {% endif %}
+          {% if perms.gestion_academica.delete_aula %}
+          <a href="{% url 'gestion_academica:eliminar_aula' aula.id %}" class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-trash-fill"></i> Eliminar
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 
   {% if is_paginated %}
-  <div class="pagination">
-    <span class="page-links">
+  <nav class="mt-4" aria-label="Paginación de aulas">
+    <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
-        <a href="?page=1">&laquo; primero</a>
-        <a href="?page={{ page_obj.previous_page_number }}">anterior</a>
+        <li class="page-item"><a class="page-link" href="?page=1">&laquo;</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
       {% endif %}
-
-      <span class="current">
-        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
-      </span>
-
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
       {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}">siguiente</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}">última &raquo;</a>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a></li>
       {% endif %}
-    </span>
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="alert alert-info text-center mt-3" role="alert">
+    <i class="bi bi-info-circle-fill me-2"></i> No hay aulas registradas. ¡Crea la primera!
   </div>
   {% endif %}
+
 </div>
 {% endblock %}
