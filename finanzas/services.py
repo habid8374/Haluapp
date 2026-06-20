@@ -46,6 +46,24 @@ TIPO_PENSION = "Pensión"
 MESES_PENSION = tuple(range(2, 12))
 
 
+def nombre_base_concepto(concepto) -> str:
+    """Devuelve el nombre del concepto SIN el nombre del nivel de escolaridad.
+
+    Los conceptos se crean por nivel con el nivel incrustado en el nombre, p.ej.
+    "Pensión Abril 2026 - Preescolar", "Matrícula Preescolar 2026",
+    "Inscripción Preescolar". Esta función quita el token del nivel para obtener
+    un "nombre base" común que permite agrupar el mismo concepto a través de los
+    niveles ("Pensión Abril 2026", "Matrícula 2026", "Inscripción").
+    """
+    nombre = concepto.nombre_concepto or ""
+    nivel = getattr(concepto, "nivel_escolaridad", None)
+    if nivel and getattr(nivel, "nombre", ""):
+        n = nivel.nombre
+        for token in (f" - {n}", f"- {n}", f" {n} ", f" {n}", n):
+            nombre = nombre.replace(token, " ")
+    return " ".join(nombre.split())
+
+
 @dataclass
 class ResultadoSincronizacionConceptos:
     """Resultado estructurado del servicio de sincronización por nivel."""

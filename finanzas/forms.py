@@ -28,6 +28,40 @@ def _conceptos_pago_orden_por_nivel(qs):
     )
 
 
+def choices_conceptos_agrupados(institucion):
+    """Construye las opciones del desplegable de Facturación Masiva agrupando el
+    mismo concepto a través de los niveles.
+
+    En vez de mostrar "Pensión Abril 2026 - Preescolar", "Pensión Abril 2026 -
+    Transición"... muestra una sola opción "Pensión Abril 2026 — todos los
+    niveles". El *valor* de cada opción es el PK de un concepto representativo
+    (para no romper la previsualización, que recibe un concepto_id real).
+    """
+    from collections import OrderedDict
+    from .services import nombre_base_concepto
+
+    qs = _conceptos_pago_orden_por_nivel(
+        ConceptoPago.objects.filter(institucion=institucion)
+    )
+    grupos = OrderedDict()
+    for c in qs:
+        base = nombre_base_concepto(c)
+        clave = (c.tipo_concepto_id, base.lower())
+        grupos.setdefault(clave, []).append(c)
+
+    choices = [('', '--------- Selecciona un concepto ---------')]
+    for lista in grupos.values():
+        rep = lista[0]
+        base = nombre_base_concepto(rep)
+        niveles = [c.nivel_escolaridad.nombre for c in lista if c.nivel_escolaridad_id]
+        if len(lista) > 1 and niveles:
+            label = f"{base} — todos los niveles ({', '.join(niveles)})"
+        else:
+            label = f"{rep.nombre_concepto} (${rep.valor:,.0f})"
+        choices.append((str(rep.pk), label))
+    return choices
+
+
 # --- Formularios de Finanzas ---
 
 class ConfiguracionPagoForm(forms.ModelForm):
@@ -446,10 +480,12 @@ class DescuentoForm(forms.ModelForm):
             )              
 
 class FacturacionMasivaForm(forms.Form):
-    concepto_pago = forms.ModelChoiceField(
-        queryset=ConceptoPago.objects.none(),
+    concepto_pago = forms.ChoiceField(
+        choices=[],
         label="1. Selecciona el Concepto a Cobrar",
-        widget=forms.Select(attrs={'class': 'form-select form-select-lg mb-3'})
+        widget=forms.Select(attrs={'class': 'form-select form-select-lg mb-3'}),
+        help_text="Al elegir un concepto que aplica a varios niveles, se cobrará a cada "
+                  "estudiante el valor correspondiente a SU nivel de escolaridad.",
     )
 
     fecha_vencimiento = forms.DateField(
@@ -487,9 +523,7 @@ class FacturacionMasivaForm(forms.Form):
         if user and hasattr(user, 'institucion_asociada'):
             institucion = user.institucion_asociada
             if institucion:
-                self.fields['concepto_pago'].queryset = _conceptos_pago_orden_por_nivel(
-                    ConceptoPago.objects.filter(institucion=institucion)
-                )
+                self.fields['concepto_pago'].choices = choices_conceptos_agrupados(institucion)
                 self.fields['grados'].queryset = Grado.objects.filter(institucion=institucion).order_by('nombre')
 
     def clean(self):

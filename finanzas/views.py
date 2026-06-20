@@ -2561,11 +2561,31 @@ def facturacion_masiva(request):
     if request.method == 'POST':
         form = FacturacionMasivaForm(request.POST, user=request.user)
         if form.is_valid():
-            concepto = form.cleaned_data['concepto_pago']
+            from .services import nombre_base_concepto
+
+            concepto_rep = get_object_or_404(
+                ConceptoPago, pk=form.cleaned_data['concepto_pago'], institucion=institucion
+            )
             grados = form.cleaned_data['grados']
             toda_la_institucion = form.cleaned_data['toda_la_institucion']
             fecha_vencimiento = form.cleaned_data['fecha_vencimiento']
             notificar_correo = form.cleaned_data.get('notificar_correo', True)
+
+            # Reconstruir el "grupo" del concepto: todos los conceptos del mismo
+            # tipo y mismo nombre base (sin el nivel) → uno por nivel.
+            base = nombre_base_concepto(concepto_rep)
+            candidatos = ConceptoPago.objects.filter(
+                institucion=institucion, tipo_concepto=concepto_rep.tipo_concepto
+            ).select_related('nivel_escolaridad')
+            concepto_por_nivel = {}
+            concepto_sin_nivel = None
+            for c in candidatos:
+                if nombre_base_concepto(c) != base:
+                    continue
+                if c.nivel_escolaridad_id:
+                    concepto_por_nivel[c.nivel_escolaridad_id] = c
+                else:
+                    concepto_sin_nivel = c
 
             if toda_la_institucion:
                 estudiantes_a_facturar = Estudiante.objects.filter(institucion=institucion, activo=True)
@@ -2573,15 +2593,25 @@ def facturacion_masiva(request):
                 estudiantes_a_facturar = Estudiante.objects.filter(
                     institucion=institucion, grado_actual__in=grados, activo=True
                 )
+            estudiantes_a_facturar = estudiantes_a_facturar.select_related('grado_actual')
 
             año_cobro = fecha_vencimiento.year
             mes_cobro = fecha_vencimiento.month
 
             creadas = 0
             existentes = 0
+            sin_concepto = 0
             ids_nuevas = []
 
             for estudiante in estudiantes_a_facturar:
+                # A cada estudiante se le cobra el concepto de SU nivel.
+                nivel_id = estudiante.grado_actual.nivel_escolaridad_id if estudiante.grado_actual else None
+                concepto = concepto_por_nivel.get(nivel_id) or concepto_sin_nivel
+                if concepto is None:
+                    # El nivel del estudiante no tiene un concepto equivalente: se omite.
+                    sin_concepto += 1
+                    continue
+
                 monto_final, observaciones = aplicar_descuentos_a_cuenta(estudiante, concepto)
                 cuenta, created = CuentaPorCobrarEstudiante.objects.get_or_create(
                     estudiante=estudiante,
@@ -2605,6 +2635,11 @@ def facturacion_masiva(request):
                 f"Proceso completado: Se crearon {creadas} nuevas cuentas. "
                 f"{existentes} estudiantes ya tenían este cobro para {mes_cobro}/{año_cobro}."
             )
+            if sin_concepto:
+                msg += (
+                    f" {sin_concepto} estudiante(s) se omitieron porque su nivel de "
+                    f"escolaridad no tiene un concepto equivalente configurado."
+                )
 
             if notificar_correo and ids_nuevas:
                 if institucion.email_host_user and institucion.email_host_password:
