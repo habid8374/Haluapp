@@ -8,6 +8,6 @@
     <h1 class="display-5 mt-3">¡Proceso Exitoso!</h1>
     <p class="lead">{{ request.session.flash.success }}</p>
     <p>Gracias por utilizar nuestro sistema.</p>
-    <a href="{% url 'admisiones:lista_aspirantes' %}" class="btn btn-primary mt-3">Volver a la Lista de Aspirantes</a>
+    <a href="{% url 'admisiones:lista_grados_aspirantes' %}" class="btn btn-primary mt-3">Volver a la Lista de Aspirantes</a>
 </div>
 {% endblock contenido %}

@@ -8155,7 +8155,7 @@ def dashboard_coordinador_api_view(request):
         
         # 3. Módulos Externos y Admin Avanzado
         if user.has_perm('admisiones.view_aspirante'):
-             acciones_disponibles.append({"id": "admisiones", "titulo": "Módulo de Admisiones", "icono": "bi-person-plus-fill", "url": reverse('admisiones:lista_aspirantes')})
+             acciones_disponibles.append({"id": "admisiones", "titulo": "Módulo de Admisiones", "icono": "bi-person-plus-fill", "url": reverse('admisiones:lista_grados_aspirantes')})
         
         if user.is_superuser:
             acciones_disponibles.append({"id": "admin_avanzado", "titulo": "Admin Avanzado Django", "icono": "bi-speedometer2", "url": reverse('admin:index')})
@@ -8204,7 +8204,7 @@ def dashboard_admin_api_view(request):
             # 2. Módulo de Admisiones
             {
                 "id": "admisiones", "titulo": "Módulo de Admisiones", "icono": "bi-person-plus-fill", 
-                "url": reverse('admisiones:lista_aspirantes')
+                "url": reverse('admisiones:lista_grados_aspirantes')
             },
             # 3. Módulo Financiero
             {

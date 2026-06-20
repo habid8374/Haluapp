@@ -995,7 +995,7 @@ def revertir_matriculacion(request, aspirante_id):
 
     if aspirante.estado != Aspirante.EstadoAdmision.MATRICULADO:
         messages.warning(request, f"El aspirante {aspirante} no está matriculado. No se puede revertir.")
-        return redirect('admisiones:lista_aspirantes')
+        return redirect('admisiones:lista_grados_aspirantes')
 
     try:
         estudiante_asociado = aspirante.estudiante_creado

@@ -544,9 +544,9 @@ def api_dashboard_bienestar(request):
         alertas = alertas.filter(estudiante__institucion=user_inst)
     
     data = [{
-        'id': a.id, 
-        'estudiante': a.estudiante.usuario.get_full_name(), 
-        'fecha': a.fecha_hora, 
+        'id': a.id,
+        'estudiante': a.estudiante.usuario.get_full_name(),
+        'fecha': a.fecha_hora.strftime('%d/%m/%Y'),
         'descripcion_corta': a.descripcion[:70] + '...'
     } for a in alertas.select_related('estudiante__usuario')]
     return Response(data)
@@ -562,76 +562,16 @@ def api_supervisar_citas(request):
     citas = CitaReunion.objects.all()
     if user_inst:
         citas = citas.filter(docente__institucion=user_inst)
-        
-    data = [{
-        'id': c.id, 
-        'docente': c.docente.usuario.get_full_name(), 
-        'familiar': c.familiar.usuario.get_full_name(),
-        'estudiante': c.estudiante.usuario.get_full_name(),
-        'fecha_hora': c.fecha_hora_inicio,
-        'estado': c.get_estado_display()
-    } for c in citas.select_related('docente__usuario', 'familiar__usuario', 'estudiante__usuario')]
-    return Response(data)    
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def api_admin_asistencia_diaria(request):
-    user = request.user
-    if not user.is_staff: return Response({'error': 'Acceso denegado.'}, status=403)
-    user_inst = getattr(user, 'institucion_asociada', None)
-    if not user_inst: return Response({'error': 'Usuario no asociado a una institución.'}, status=400)
-    
-    hoy = timezone.localdate()
-    registros_hoy = RegistroAsistencia.objects.filter(estudiante__institucion=user_inst, fecha__date=hoy)
-    total_estudiantes = Estudiante.objects.filter(institucion=user_inst, usuario__is_active=True).count()
-    presentes = registros_hoy.filter(estado='PRESENTE').count()
-    
-    data = {
-        'fecha': hoy.strftime('%d de %B de %Y'),
-        'total_estudiantes': total_estudiantes,
-        'presentes': presentes,
-        'ausentes': registros_hoy.filter(estado='AUSENTE').count(),
-        'tardanzas': registros_hoy.filter(estado='TARDANZA').count(),
-    }
-    return Response(data)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def api_dashboard_bienestar(request):
-    user = request.user
-    if not user.is_staff: return Response({'error': 'Acceso denegado.'}, status=403)
-    user_inst = getattr(user, 'institucion_asociada', None)
-    alertas = AnotacionObservador.objects.filter(requiere_revision=True)
-    if user_inst:
-        alertas = alertas.filter(estudiante__institucion=user_inst)
-    
     data = [{
-        'id': a.id, 
-        'estudiante': a.estudiante.usuario.get_full_name(), 
-        'fecha': a.fecha_hora.strftime('%d/%m/%Y'), 
-        'descripcion_corta': a.descripcion[:70] + '...'
-    } for a in alertas.select_related('estudiante__usuario')]
-    return Response(data)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def api_supervisar_citas(request):
-    user = request.user
-    if not user.is_staff: return Response({'error': 'Acceso denegado.'}, status=403)
-    user_inst = getattr(user, 'institucion_asociada', None)
-    citas = CitaReunion.objects.all()
-    if user_inst:
-        citas = citas.filter(docente__institucion=user_inst)
-        
-    data = [{
-        'id': c.id, 
-        'docente': c.docente.usuario.get_full_name(), 
+        'id': c.id,
+        'docente': c.docente.usuario.get_full_name(),
         'familiar': c.familiar.usuario.get_full_name(),
         'estudiante': c.estudiante.usuario.get_full_name(),
         'fecha_hora': c.fecha_hora_inicio.strftime('%d/%m/%Y %I:%M %p'),
         'estado': c.get_estado_display()
     } for c in citas.select_related('docente__usuario', 'familiar__usuario', 'estudiante__usuario')]
-    return Response(data)    
+    return Response(data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
