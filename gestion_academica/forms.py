@@ -1343,6 +1343,7 @@ class LogroPreescolarForm(forms.ModelForm):
         }
         labels = {
             'grado': 'Grado (opcional — deja en blanco para aplicar a todos)',
+            'materia': 'Materia (opcional)',
         }
 
     def __init__(self, *args, **kwargs):
@@ -1355,6 +1356,8 @@ class LogroPreescolarForm(forms.ModelForm):
             self.fields['materia'].queryset = Materia.objects.filter(institucion=institucion)
             self.fields['periodo'].queryset = PeriodoAcademico.objects.filter(institucion=institucion, activo=True)
             self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
+
+        self.fields['materia'].required = False
 
 class TicketSoporteForm(forms.ModelForm):
     class Meta:

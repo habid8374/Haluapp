@@ -190,10 +190,11 @@ class LogroPreescolar(models.Model):
         verbose_name="Dimensión de Desarrollo"
     )
     materia = models.ForeignKey(
-        'Materia', 
-        on_delete=models.CASCADE, 
+        'Materia',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
         related_name='logros_preescolar',
-        verbose_name="Materia Asociada"
+        verbose_name="Materia Asociada (opcional)"
     )
     periodo = models.ForeignKey(
         'PeriodoAcademico', 
@@ -212,7 +213,8 @@ class LogroPreescolar(models.Model):
         ordering = ['dimension__orden', 'materia__nombre_materia', 'orden']
 
     def __str__(self):
-        return f"{self.descripcion[:50]}... ({self.materia.nombre_materia})"
+        materia_str = self.materia.nombre_materia if self.materia_id else "Sin materia"
+        return f"{self.descripcion[:50]}... ({materia_str})"
 
 
 class EvaluacionLogroPreescolar(models.Model):

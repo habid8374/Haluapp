@@ -10596,7 +10596,10 @@ def evaluar_logros_curso(request, curso_pk):
 
     # --- INICIO DE LA CORRECCIÓN PRINCIPAL ---
     # 1. Buscamos en el modelo correcto: LogroPreescolar.
-    logros = LogroPreescolar.objects.filter(materia=curso.materia, periodo=curso.periodo_academico)
+    logros = LogroPreescolar.objects.filter(
+        periodo=curso.periodo_academico,
+        institucion=curso.institucion,
+    ).filter(Q(materia=curso.materia) | Q(materia__isnull=True))
     # --- FIN DE LA CORRECCIÓN PRINCIPAL ---
 
     estudiantes = Estudiante.objects.filter(grado_actual=curso.grado, activo=True).select_related('usuario')
@@ -10659,7 +10662,10 @@ def generar_boletin_descriptivo_pdf(request, estudiante_pk, periodo_pk):
     
     materias_con_logros = []
     for curso in cursos:
-        logros = LogroPreescolar.objects.filter(materia=curso.materia, periodo=periodo, institucion=institucion)
+        logros = LogroPreescolar.objects.filter(
+            periodo=periodo,
+            institucion=institucion,
+        ).filter(Q(materia=curso.materia) | Q(materia__isnull=True))
         evaluaciones = EvaluacionLogroPreescolar.objects.filter(estudiante=estudiante, logro__in=logros)
         evaluaciones_map = {ev.logro_id: ev for ev in evaluaciones}
         
