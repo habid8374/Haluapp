@@ -19,7 +19,10 @@ from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Q, Prefetch
+from django.template.loader import get_template
+from io import BytesIO
+from xhtml2pdf import pisa
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -52,7 +55,7 @@ from ..tasks import (
 )
 from finanzas.models import InstitucionEducativa
 from finanzas.institucion_credentials import google_api_key as institucion_google_api_key
-from ._main import get_filtered_queryset
+from ._main import get_filtered_queryset, link_callback
 
 # ── Herramientas (tools) para el Asistente HALU ──────────────────────────────
 from ..utils import (
