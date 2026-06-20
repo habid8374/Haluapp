@@ -46,7 +46,7 @@ def _es_coord_o_admin(user):
     """Coordinador / administrador / superusuario — pueden gestionar recursos 3D
     de toda la institución, aunque no tengan perfil de Docente."""
     rol = getattr(user, 'rol', '') or ''
-    return rol in ('coordinador', 'administrador', 'admin_institucion') or user.is_superuser
+    return rol in ('coordinador', 'administrador') or user.is_superuser
 
 
 def _push_ws(group_name: str, *, kind: str, title: str, message: str,

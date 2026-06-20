@@ -17,8 +17,8 @@ def historial_auditoria(request):
     Historial de auditoría paginado.
     Accesible únicamente para coordinador, admin_institucion y superusuario.
     """
-    cargo = getattr(request.user, 'cargo', None)
-    if not (request.user.is_superuser or cargo in ('coordinador', 'admin_institucion')):
+    cargo = getattr(request.user, 'rol', None)
+    if not (request.user.is_superuser or cargo in ('coordinador', 'administrador')):
         raise Http404
 
     institucion = _get_institucion(request)

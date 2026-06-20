@@ -37,7 +37,7 @@ from utils.mensajes import mensaje_exito, mensaje_error, mostrar_mensaje
 from ._main import get_filtered_queryset
 
 # Roles autorizados para reportes de staff (docente/coordinador/admin) + superusuario
-_ROLES_STAFF_REPORTES = ('docente', 'coordinador', 'admin_institucion')
+_ROLES_STAFF_REPORTES = ('docente', 'coordinador', 'administrador')
 
 
 def _staff_solo(request):

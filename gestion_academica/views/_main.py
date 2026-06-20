@@ -13878,7 +13878,7 @@ def cerrar_periodo_y_notificar(request, periodo_pk):
         return redirect('gestion_academica:lista_periodos')
 
     rol = getattr(request.user, 'rol', '') or ''
-    if rol not in ('coordinador', 'admin_institucion') and not request.user.is_superuser:
+    if rol not in ('coordinador', 'administrador') and not request.user.is_superuser:
         messages.error(request, "Solo el coordinador o administrador puede cerrar el período.")
         return redirect('gestion_academica:lista_periodos')
 

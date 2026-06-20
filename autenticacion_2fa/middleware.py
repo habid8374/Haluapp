@@ -12,7 +12,7 @@ _RUTAS_EXENTAS = frozenset([
 ])
 
 # Roles que DEBEN tener 2FA activo
-_ROLES_OBLIGATORIOS = frozenset(['coordinador', 'admin_institucion', 'psicologo'])
+_ROLES_OBLIGATORIOS = frozenset(['coordinador', 'administrador', 'psicologo'])
 
 
 class Verificacion2FAMiddleware:

@@ -32,8 +32,8 @@ def _get_institucion(request):
 
 def _puede_gestionar_cortes(user):
     """Coordinador, admin institución o superusuario pueden gestionar cortes."""
-    return user.is_superuser or getattr(user, 'cargo', '') in (
-        'coordinador', 'admin_institucion', 'rector',
+    return user.is_superuser or getattr(user, 'rol', '') in (
+        'coordinador', 'administrador',
     )
 
 
