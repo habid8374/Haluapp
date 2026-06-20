@@ -11,7 +11,7 @@
             <table class="table table-bordered table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>#</th>
+                        <th title="Orden de aparición">Orden</th>
                         <th>Nombre del Área</th>
                         <th>Materias Asociadas</th>
                         <th>Institución</th>
@@ -21,7 +21,7 @@
                 <tbody>
                     {% for area in areas %}
                         <tr>
-                            <td>{{ forloop.counter }}</td>
+                            <td><span class="badge bg-primary">{{ area.orden }}</span></td>
                             <td>{{ area.nombre }}</td>
                             <td>
                                 {% for materia in area.materias.all %}

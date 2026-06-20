@@ -651,11 +651,14 @@ class Familiar(models.Model):
 class AreaAcademica(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del Área")
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE)
+    orden = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Orden de aparición",
+        help_text="Define el orden en que se muestran las áreas en pantallas y reportes (menor = primero)."
+    )
 
-    # --- CAMBIO IMPORTANTE: AÑADIMOS ESTE CAMPO ---
-    # Creamos la relación muchos a muchos aquí.
     materias = models.ManyToManyField(
-        'Materia', 
+        'Materia',
         blank=True, # Un área puede no tener materias asignadas todavía
         verbose_name="Materias Pertenecientes"
     )
@@ -664,7 +667,8 @@ class AreaAcademica(models.Model):
         verbose_name = "Área Académica"
         verbose_name_plural = "Áreas Académicas"
         unique_together = ('nombre', 'institucion',)
-     
+        ordering = ['orden', 'nombre']
+
     def __str__(self):
         return self.nombre
 

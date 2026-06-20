@@ -1265,10 +1265,17 @@ class AreaAcademicaForm(forms.ModelForm):
 
     class Meta:
         model = AreaAcademica
-        fields = ['nombre', 'institucion', 'materias']
+        fields = ['nombre', 'orden', 'institucion', 'materias']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'orden': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
             'institucion': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'orden': 'Orden de aparición',
+        }
+        help_texts = {
+            'orden': 'Menor número = aparece primero. Ej: 1, 2, 3…',
         }
 
     def __init__(self, *args, **kwargs):
