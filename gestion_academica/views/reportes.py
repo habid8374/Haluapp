@@ -31,7 +31,7 @@ from ..utils import (
     obtener_desempeno,
     analizar_riesgo_academico_curso,
 )
-from finanzas.models import InstitucionEducativa
+from finanzas.models import InstitucionEducativa, CuentaPorCobrarEstudiante
 from gestion_academica.decorators import requiere_pagos_al_dia
 from utils.mensajes import mensaje_exito, mensaje_error, mostrar_mensaje
 from ._main import get_filtered_queryset
@@ -466,9 +466,12 @@ def reporte_estudiante_dashboard(request):
             if periodo_activo:
                 evaluaciones = EvaluacionLogroPreescolar.objects.filter(estudiante=estudiante_seleccionado, logro__periodo=periodo_activo).select_related('estado')
                 for ev in evaluaciones:
-                    if "alcanzado" in ev.estado.nombre_escala.lower():
+                    if not ev.estado:
+                        continue
+                    nombre_escala = (ev.estado.nombre_escala or "").lower()
+                    if "alcanzado" in nombre_escala:
                         logros_alcanzados += 1
-                    elif "proceso" in ev.estado.nombre_escala.lower():
+                    elif "proceso" in nombre_escala:
                         logros_en_proceso += 1
 
             contexto_reporte = {
