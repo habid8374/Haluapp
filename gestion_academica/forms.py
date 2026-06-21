@@ -1324,7 +1324,7 @@ class LogroPreescolarForm(forms.ModelForm):
             'grado': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'grado': 'Grado (opcional — deja en blanco para aplicar a todos)',
+            'grado': 'Grado',
             'materia': 'Materia (opcional)',
         }
 
@@ -1339,7 +1339,10 @@ class LogroPreescolarForm(forms.ModelForm):
             self.fields['periodo'].queryset = PeriodoAcademico.objects.filter(institucion=institucion, activo=True)
             self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
 
+        # La materia es opcional (no todos los colegios la usan); el grado sí
+        # es obligatorio para poder ubicar el logro en la lista por grado.
         self.fields['materia'].required = False
+        self.fields['grado'].required = True
 
 class TicketSoporteForm(forms.ModelForm):
     class Meta:

@@ -27,3 +27,16 @@ from .api_movil import *
 from .planeacion_semanal import *
 from .cortes_preventivos import *
 from .carga_familiares import *
+
+# ── Vistas de Logros (Preescolar) ────────────────────────────────────────────
+# Estas vistas existen tanto en _main.py como en una versión legacy en ia.py.
+# La de _main.py es la completa y la que corresponde al template actual
+# (agrupa los logros por grado → materia). Se reimporta de forma explícita al
+# final para garantizar que NO quede activa la versión antigua de ia.py, que no
+# construía 'logros_por_grado' y hacía que la lista siempre se viera vacía.
+from ._main import (
+    LogroListView,
+    LogroCreateView,
+    LogroUpdateView,
+    LogroDeleteView,
+)
