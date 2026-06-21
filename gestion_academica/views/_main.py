@@ -11119,7 +11119,7 @@ class LogroListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
         for logro in context['logros']:
             grado_key = logro.grado.nombre if logro.grado else None
-            mat_key = logro.materia.nombre_materia
+            mat_key = logro.materia.nombre_materia if logro.materia_id else "Sin materia asignada"
             if grado_key:
                 grupos[grado_key][mat_key].append(logro)
             else:
