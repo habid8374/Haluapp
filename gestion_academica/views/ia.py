@@ -12,10 +12,11 @@ Extraído del monolito views.py.
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group
 from django.views.generic import View, ListView, CreateView, UpdateView, DeleteView
 from django.http import JsonResponse, HttpResponse
+from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
@@ -587,11 +588,16 @@ def gestionar_curso_cualitativo(request, curso_pk):
     }
     return render(request, 'gestion_academica/gestion_curso_cualitativo.html', context)
 
-class DimensionListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class DimensionListView(LoginRequiredMixin, ListView):
     model = DimensionDesarrollo
     template_name = 'gestion_academica/dimension_lista.html'
     context_object_name = 'dimensiones'
-    permission_required = 'gestion_academica.view_dimensiondesarrollo' # Necesitarás crear este permiso
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user).order_by('orden')
@@ -601,12 +607,17 @@ class DimensionListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         context['titulo_pagina'] = "Gestionar Dimensiones de Desarrollo (Preescolar)"
         return context
 
-class DimensionCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class DimensionCreateView(LoginRequiredMixin, CreateView):
     model = DimensionDesarrollo
     form_class = DimensionDesarrolloForm
     template_name = 'gestion_academica/dimension_formulario.html'
     success_url = reverse_lazy('gestion_academica:lista_dimensiones')
-    permission_required = 'gestion_academica.add_dimensiondesarrollo'
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.institucion = self.request.user.institucion_asociada
@@ -618,12 +629,17 @@ class DimensionCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
         context['titulo_formulario'] = "Crear Nueva Dimensión"
         return context
 
-class DimensionUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class DimensionUpdateView(LoginRequiredMixin, UpdateView):
     model = DimensionDesarrollo
     form_class = DimensionDesarrolloForm
     template_name = 'gestion_academica/dimension_formulario.html'
     success_url = reverse_lazy('gestion_academica:lista_dimensiones')
-    permission_required = 'gestion_academica.change_dimensiondesarrollo'
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user)
@@ -637,12 +653,17 @@ class DimensionUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVie
         context['titulo_formulario'] = f"Editar Dimensión: {self.object.nombre}"
         return context
 
-class DimensionDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class DimensionDeleteView(LoginRequiredMixin, DeleteView):
     model = DimensionDesarrollo
     template_name = 'gestion_academica/confirmar_eliminar_generico.html'
     success_url = reverse_lazy('gestion_academica:lista_dimensiones')
-    permission_required = 'gestion_academica.delete_dimensiondesarrollo'
     context_object_name = 'object'
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user)
@@ -658,11 +679,16 @@ class DimensionDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteVie
         context['url_cancelar'] = reverse_lazy('gestion_academica:lista_dimensiones')
         return context    
 
-class EscalaCualitativaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class EscalaCualitativaListView(LoginRequiredMixin, ListView):
     model = EscalaCualitativa
     template_name = 'gestion_academica/escala_cualitativa_lista.html'
     context_object_name = 'escalas'
-    permission_required = 'gestion_academica.view_escalacualitativa'
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user).order_by('orden')
@@ -672,12 +698,17 @@ class EscalaCualitativaListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         context['titulo_pagina'] = "Gestionar Escala Cualitativa (Preescolar)"
         return context
 
-class EscalaCualitativaCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class EscalaCualitativaCreateView(LoginRequiredMixin, CreateView):
     model = EscalaCualitativa
     form_class = EscalaCualitativaForm
     template_name = 'gestion_academica/escala_cualitativa_formulario.html'
     success_url = reverse_lazy('gestion_academica:lista_escala_cualitativa')
-    permission_required = 'gestion_academica.add_escalacualitativa'
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.institucion = self.request.user.institucion_asociada
@@ -689,12 +720,17 @@ class EscalaCualitativaCreateView(LoginRequiredMixin, PermissionRequiredMixin, C
         context['titulo_formulario'] = "Crear Nuevo Nivel de Escala"
         return context
 
-class EscalaCualitativaUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class EscalaCualitativaUpdateView(LoginRequiredMixin, UpdateView):
     model = EscalaCualitativa
     form_class = EscalaCualitativaForm
     template_name = 'gestion_academica/escala_cualitativa_formulario.html'
     success_url = reverse_lazy('gestion_academica:lista_escala_cualitativa')
-    permission_required = 'gestion_academica.change_escalacualitativa'
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user)
@@ -708,12 +744,17 @@ class EscalaCualitativaUpdateView(LoginRequiredMixin, PermissionRequiredMixin, U
         context['titulo_formulario'] = f"Editar Nivel: {self.object.nombre_escala}"
         return context
 
-class EscalaCualitativaDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class EscalaCualitativaDeleteView(LoginRequiredMixin, DeleteView):
     model = EscalaCualitativa
     template_name = 'gestion_academica/confirmar_eliminar_generico.html'
     success_url = reverse_lazy('gestion_academica:lista_escala_cualitativa')
-    permission_required = 'gestion_academica.delete_escalacualitativa'
     context_object_name = 'object'
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user)
@@ -729,11 +770,16 @@ class EscalaCualitativaDeleteView(LoginRequiredMixin, PermissionRequiredMixin, D
         context['url_cancelar'] = reverse_lazy('gestion_academica:lista_escala_cualitativa')
         return context        
 
-class LogroListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class LogroListView(LoginRequiredMixin, ListView):
     model = LogroPreescolar
     template_name = 'gestion_academica/logro_lista.html'
     context_object_name = 'logros'
-    permission_required = 'gestion_academica.view_logropreescolar' # <-- CORREGIDO
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user).select_related('materia', 'periodo').order_by('-periodo__año_escolar', 'materia__nombre_materia')
@@ -743,12 +789,17 @@ class LogroListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         context['titulo_pagina'] = "Mis Logros de Aprendizaje (Preescolar)"
         return context
 
-class LogroCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class LogroCreateView(LoginRequiredMixin, CreateView):
     model = LogroPreescolar
     form_class = LogroPreescolarForm
     template_name = 'gestion_academica/logro_formulario.html'
     success_url = reverse_lazy('gestion_academica:logro_lista')
-    permission_required = 'gestion_academica.add_logropreescolar' # <-- CORREGIDO
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -765,12 +816,17 @@ class LogroCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         context['titulo_formulario'] = "Crear Nuevo Logro de Preescolar"
         return context
 
-class LogroUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class LogroUpdateView(LoginRequiredMixin, UpdateView):
     model = LogroPreescolar
     form_class = LogroPreescolarForm
     template_name = 'gestion_academica/logro_formulario.html'
     success_url = reverse_lazy('gestion_academica:logro_lista')
-    permission_required = 'gestion_academica.change_logropreescolar' # <-- CORREGIDO
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user)
@@ -789,16 +845,21 @@ class LogroUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         context['titulo_formulario'] = "Editar Logro de Preescolar"
         return context
 
-class LogroDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class LogroDeleteView(LoginRequiredMixin, DeleteView):
     model = LogroPreescolar
     template_name = 'gestion_academica/confirmar_eliminar_generico.html'
     success_url = reverse_lazy('gestion_academica:logro_lista')
-    permission_required = 'gestion_academica.delete_logropreescolar' # <-- CORREGIDO
     context_object_name = 'object'
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user)
-    
+
     def form_valid(self, form):
         messages.success(self.request, "El logro de Preescolar ha sido eliminado.")
         return super().form_valid(form)
@@ -808,7 +869,7 @@ class LogroDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
         context['titulo_pagina'] = "Confirmar Eliminación de Logro"
         context['mensaje_confirmacion'] = f"¿Estás seguro de que deseas eliminar este logro?"
         context['url_cancelar'] = reverse_lazy('gestion_academica:logro_lista')
-        return context       
+        return context
 
 @login_required
 def boletin_descriptivo_preescolar_pdf(request, estudiante_pk, periodo_pk):

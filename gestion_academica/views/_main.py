@@ -10624,8 +10624,10 @@ def portal_egresado_view(request):
 def evaluar_logros_curso(request, curso_pk):
     curso = get_object_or_404(get_filtered_queryset(Curso, request.user, Curso.objects.select_related('grado', 'materia', 'periodo_academico')), pk=curso_pk)
 
-    # Tu lógica de permisos se mantiene, es correcta.
-    if not (request.user.is_staff or (hasattr(request.user, 'docente') and request.user.docente in curso.docentes_asignados.all())):
+    user_rol = getattr(request.user, 'rol', '') or ''
+    is_coord_or_admin = user_rol in ('coordinador', 'administrador') or request.user.is_superuser
+    is_assigned_docente = hasattr(request.user, 'docente') and request.user.docente in curso.docentes_asignados.all()
+    if not (is_coord_or_admin or is_assigned_docente):
         raise PermissionDenied
         
     if curso.grado.tipo_evaluacion != 'CUALITATIVO':
@@ -10704,6 +10706,7 @@ def generar_boletin_descriptivo_pdf(request, estudiante_pk, periodo_pk):
         logros = LogroPreescolar.objects.filter(
             periodo=periodo,
             institucion=institucion,
+            grado=estudiante.grado_actual,
         ).filter(Q(materia=curso.materia) | Q(materia__isnull=True))
         evaluaciones = EvaluacionLogroPreescolar.objects.filter(estudiante=estudiante, logro__in=logros)
         evaluaciones_map = {ev.logro_id: ev for ev in evaluaciones}
@@ -11098,11 +11101,16 @@ class EscalaCualitativaDeleteView(LoginRequiredMixin, PermissionRequiredMixin, D
         context['url_cancelar'] = reverse_lazy('gestion_academica:lista_escala_cualitativa')
         return context        
 
-class LogroListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class LogroListView(LoginRequiredMixin, ListView):
     model = LogroPreescolar
     template_name = 'gestion_academica/logro_lista.html'
     context_object_name = 'logros'
-    permission_required = 'gestion_academica.view_logropreescolar'
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user).select_related(
@@ -11138,12 +11146,17 @@ class LogroListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         context['logros_por_grado'] = logros_por_grado
         return context
 
-class LogroCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class LogroCreateView(LoginRequiredMixin, CreateView):
     model = LogroPreescolar
     form_class = LogroPreescolarForm
     template_name = 'gestion_academica/logro_formulario.html'
     success_url = reverse_lazy('gestion_academica:logro_lista')
-    permission_required = 'gestion_academica.add_logropreescolar' # <-- CORREGIDO
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -11160,12 +11173,17 @@ class LogroCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         context['titulo_formulario'] = "Crear Nuevo Logro de Preescolar"
         return context
 
-class LogroUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class LogroUpdateView(LoginRequiredMixin, UpdateView):
     model = LogroPreescolar
     form_class = LogroPreescolarForm
     template_name = 'gestion_academica/logro_formulario.html'
     success_url = reverse_lazy('gestion_academica:logro_lista')
-    permission_required = 'gestion_academica.change_logropreescolar' # <-- CORREGIDO
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user)
@@ -11184,16 +11202,21 @@ class LogroUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         context['titulo_formulario'] = "Editar Logro de Preescolar"
         return context
 
-class LogroDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class LogroDeleteView(LoginRequiredMixin, DeleteView):
     model = LogroPreescolar
     template_name = 'gestion_academica/confirmar_eliminar_generico.html'
     success_url = reverse_lazy('gestion_academica:logro_lista')
-    permission_required = 'gestion_academica.delete_logropreescolar' # <-- CORREGIDO
     context_object_name = 'object'
+
+    def dispatch(self, request, *args, **kwargs):
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return get_filtered_queryset(self.model, self.request.user)
-    
+
     def form_valid(self, form):
         messages.success(self.request, "El logro de Preescolar ha sido eliminado.")
         return super().form_valid(form)
