@@ -10637,6 +10637,7 @@ def evaluar_logros_curso(request, curso_pk):
     logros = LogroPreescolar.objects.filter(
         periodo=curso.periodo_academico,
         institucion=curso.institucion,
+        grado=curso.grado,
     ).filter(Q(materia=curso.materia) | Q(materia__isnull=True))
     # --- FIN DE LA CORRECCIÓN PRINCIPAL ---
 
@@ -11348,7 +11349,7 @@ def boletin_descriptivo_preescolar_pdf(request, estudiante_pk, periodo_pk):
             'logros_preescolar',
             queryset=LogroPreescolar.objects.filter(
                 periodo=periodo,
-                materia__cursos__grado=estudiante.grado_actual
+                grado=estudiante.grado_actual
             ).distinct(),
             to_attr='logros_de_la_dimension'
         )
@@ -11464,7 +11465,7 @@ def reporte_rendimiento_estudiante(request):
         if estudiante_seleccionado.grado_actual.tipo_evaluacion == 'CUALITATIVO':
             # --- LÓGICA PARA PREESCOLAR ---
             dimensiones = DimensionDesarrollo.objects.filter(institucion=estudiante_seleccionado.institucion).prefetch_related(
-                Prefetch('logros_preescolar', queryset=LogroPreescolar.objects.filter(periodo=periodo_seleccionado, materia__cursos__grado=estudiante_seleccionado.grado_actual))
+                Prefetch('logros_preescolar', queryset=LogroPreescolar.objects.filter(periodo=periodo_seleccionado, grado=estudiante_seleccionado.grado_actual))
             )
             evaluaciones = EvaluacionLogroPreescolar.objects.filter(estudiante=estudiante_seleccionado, logro__periodo=periodo_seleccionado).select_related('estado')
             evaluaciones_map = {ev.logro_id: ev.estado for ev in evaluaciones}
@@ -11571,7 +11572,7 @@ def reporte_acumulado_periodo(request):
 
         if estudiante_seleccionado.grado_actual and estudiante_seleccionado.grado_actual.tipo_evaluacion == 'CUALITATIVO':
             # --- LÓGICA PARA REPORTE CUALITATIVO + GRÁFICO ---
-            logros = LogroPreescolar.objects.filter(materia__cursos__grado=estudiante_seleccionado.grado_actual, periodo__in=periodos_del_año).select_related('dimension', 'materia').order_by('dimension__orden', 'orden')
+            logros = LogroPreescolar.objects.filter(grado=estudiante_seleccionado.grado_actual, periodo__in=periodos_del_año).select_related('dimension', 'materia').order_by('dimension__orden', 'orden')
             evaluaciones = EvaluacionLogroPreescolar.objects.filter(estudiante=estudiante_seleccionado, logro__in=logros).select_related('logro', 'estado')
             evaluaciones_map = {(ev.logro.periodo_id, ev.logro_id): ev.estado for ev in evaluaciones}
             
@@ -12129,7 +12130,7 @@ def reporte_consolidado_materia(request):
 
         if grado_seleccionado.tipo_evaluacion == 'CUALITATIVO':
             # --- LÓGICA DE GRÁFICO CORREGIDA PARA CUALITATIVO ---
-            logros = LogroPreescolar.objects.filter(periodo=periodo_seleccionado, materia__cursos__grado=grado_seleccionado).distinct().select_related('dimension').order_by('dimension__orden', 'orden')
+            logros = LogroPreescolar.objects.filter(periodo=periodo_seleccionado, grado=grado_seleccionado).distinct().select_related('dimension').order_by('dimension__orden', 'orden')
             evaluaciones = EvaluacionLogroPreescolar.objects.filter(estudiante__in=estudiantes, logro__in=logros)
             evaluaciones_map = {(ev.estudiante_id, ev.logro_id): ev.estado for ev in evaluaciones}
             
