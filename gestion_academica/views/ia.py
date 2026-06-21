@@ -860,6 +860,7 @@ def boletin_descriptivo_preescolar_pdf(request, estudiante_pk, periodo_pk):
         Prefetch(
             'logros_preescolar',
             queryset=LogroPreescolar.objects.filter(
+                institucion=estudiante.institucion,
                 periodo=periodo,
                 grado=estudiante.grado_actual
             ).distinct(),
