@@ -25,6 +25,33 @@
   {% endfor %}
 {% endif %}
 
+<!-- Ayuda rápida -->
+<div class="mb-3">
+  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#ayudaConexiones">
+    <i class="bi bi-question-circle me-1"></i> ¿Cómo usar las acciones de seguridad?
+  </button>
+  <div class="collapse mt-2" id="ayudaConexiones">
+    <div class="card card-body" style="border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;font-size:.86rem;">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="fw-700 mb-1"><i class="bi bi-box-arrow-right text-secondary me-1"></i> Cerrar una sesión</div>
+          <p class="text-muted mb-0">Expulsa solo ese dispositivo. Úsalo si ves <b>una</b> conexión sospechosa puntual. El usuario sigue activo en sus otros dispositivos.</p>
+        </div>
+        <div class="col-md-4">
+          <div class="fw-700 mb-1"><i class="bi bi-power text-warning me-1"></i> Cerrar todas las sesiones</div>
+          <p class="text-muted mb-0">Saca al usuario de <b>todos</b> sus dispositivos. Útil si perdió un equipo o quieres forzar un nuevo inicio de sesión. No cambia su contraseña.</p>
+        </div>
+        <div class="col-md-4">
+          <div class="fw-700 mb-1"><i class="bi bi-shield-exclamation text-danger me-1"></i> Bloqueo de emergencia</div>
+          <p class="text-muted mb-0">Cuando crees que <b>le robaron las credenciales</b>. Genera una contraseña temporal nueva (deja fuera al atacante) y cierra todas sus sesiones. Se muestra <b>una sola vez</b>: entrégala al dueño por un canal seguro (no por el medio comprometido); él la cambia al entrar.</p>
+        </div>
+      </div>
+      <hr class="my-2">
+      <p class="text-muted mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>Toda acción queda registrada en el historial con tu nombre como responsable, la IP y la hora.</p>
+    </div>
+  </div>
+</div>
+
 <!-- ================= CONECTADOS AHORA ================= -->
 <div class="card mb-4" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
     <div class="card-header bg-white border-0 d-flex align-items-center justify-content-between" style="border-radius:14px 14px 0 0;padding:1rem 1.25rem;">
