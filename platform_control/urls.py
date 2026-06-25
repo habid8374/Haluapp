@@ -19,4 +19,8 @@ urlpatterns = [
     path("nuevo-colegio/",                       views.onboarding_nuevo_colegio,   name="onboarding_nuevo_colegio"),
     path("backups/",                             views.backup_view,                name="backup"),
     path("backups/ejecutar/",                    views.backup_ejecutar,            name="backup_ejecutar"),
+    path("conexiones/",                          views.conexiones_view,            name="conexiones"),
+    path("conexiones/cerrar-sesion/",            views.cerrar_sesion_remota,       name="cerrar_sesion_remota"),
+    path("conexiones/<int:user_id>/cerrar-todas/", views.cerrar_sesiones_usuario,  name="cerrar_sesiones_usuario"),
+    path("conexiones/<int:user_id>/reset-emergencia/", views.restablecer_password_emergencia, name="reset_emergencia"),
 ]

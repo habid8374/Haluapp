@@ -680,3 +680,225 @@ def backup_ejecutar(request):
         logger.error("Error al ejecutar backup: %s", e, exc_info=True)
         messages.error(request, f"No se pudo ejecutar el backup: {e}")
     return redirect("platform_control:backup")
+
+
+# ---------------------------------------------------------------------------
+# Conexiones y Seguridad — usuarios conectados, historial, cierre remoto
+# ---------------------------------------------------------------------------
+
+def _terminar_sesiones_de_usuario(user_id):
+    """Elimina todas las sesiones activas de un usuario. Devuelve cuántas cerró."""
+    from django.contrib.sessions.models import Session
+    from django.utils import timezone
+
+    eliminadas = 0
+    for s in Session.objects.filter(expire_date__gte=timezone.now()):
+        try:
+            if str(s.get_decoded().get('_auth_user_id')) == str(user_id):
+                s.delete()
+                eliminadas += 1
+        except Exception:
+            continue
+    return eliminadas
+
+
+@_superadmin_required
+def conexiones_view(request):
+    """Muestra usuarios conectados ahora + historial de conexiones con filtros."""
+    from django.contrib.auth import get_user_model
+    from django.contrib.sessions.models import Session
+    from django.core.paginator import Paginator
+    from django.utils import timezone
+    from finanzas.models import InstitucionEducativa
+    from auditoria.models import RegistroSesion
+
+    Usuario = get_user_model()
+    ahora = timezone.now()
+
+    # --- Conectados ahora: sesiones activas en BD ---
+    uid_por_key = {}
+    for s in Session.objects.filter(expire_date__gte=ahora):
+        try:
+            uid = s.get_decoded().get('_auth_user_id')
+        except Exception:
+            continue
+        if uid:
+            uid_por_key[s.session_key] = (uid, s.expire_date)
+
+    usuarios = {
+        str(u.pk): u
+        for u in Usuario.objects.filter(
+            pk__in=[v[0] for v in uid_por_key.values()]
+        ).select_related('institucion_asociada')
+    }
+
+    # Último LOGIN por session_key → IP, dispositivo, hora de inicio
+    login_info = {}
+    if uid_por_key:
+        for r in RegistroSesion.objects.filter(
+            session_key__in=list(uid_por_key.keys()), tipo_evento='LOGIN'
+        ).order_by('fecha'):
+            login_info[r.session_key] = r  # el último gana
+
+    conectados = []
+    for key, (uid, expira) in uid_por_key.items():
+        u = usuarios.get(str(uid))
+        if u is None:
+            continue
+        info = login_info.get(key)
+        conectados.append({
+            'usuario': u,
+            'institucion': getattr(u, 'institucion_asociada', None),
+            'ip': info.ip_address if info else None,
+            'user_agent': info.user_agent if info else '',
+            'inicio': info.fecha if info else None,
+            'session_key': key,
+            'expira': expira,
+        })
+    conectados.sort(key=lambda a: (a['inicio'] is not None, a['inicio']), reverse=True)
+
+    # --- Historial con filtros ---
+    historial_qs = RegistroSesion.objects.select_related(
+        'usuario', 'institucion', 'ejecutado_por'
+    )
+    f_inst = request.GET.get('inst') or ''
+    f_q = (request.GET.get('q') or '').strip()
+    f_tipo = request.GET.get('tipo') or ''
+    f_ip = (request.GET.get('ip') or '').strip()
+    f_desde = request.GET.get('desde') or ''
+    f_hasta = request.GET.get('hasta') or ''
+
+    if f_inst:
+        historial_qs = historial_qs.filter(institucion_id=f_inst)
+    if f_tipo:
+        historial_qs = historial_qs.filter(tipo_evento=f_tipo)
+    if f_ip:
+        historial_qs = historial_qs.filter(ip_address__icontains=f_ip)
+    if f_q:
+        historial_qs = historial_qs.filter(
+            Q(usuario__email__icontains=f_q)
+            | Q(usuario__username__icontains=f_q)
+            | Q(usuario__first_name__icontains=f_q)
+            | Q(usuario__last_name__icontains=f_q)
+        )
+    if f_desde:
+        historial_qs = historial_qs.filter(fecha__date__gte=f_desde)
+    if f_hasta:
+        historial_qs = historial_qs.filter(fecha__date__lte=f_hasta)
+
+    page = Paginator(historial_qs, 40).get_page(request.GET.get('page'))
+
+    return render(request, "platform_control/conexiones.html", {
+        "titulo_pagina": "Conexiones y Seguridad",
+        "conectados": conectados,
+        "total_conectados": len(conectados),
+        "historial": page,
+        "instituciones": InstitucionEducativa.objects.order_by('nombre'),
+        "tipos_evento": RegistroSesion.EVENTOS,
+        "f_inst": f_inst, "f_q": f_q, "f_tipo": f_tipo,
+        "f_ip": f_ip, "f_desde": f_desde, "f_hasta": f_hasta,
+    })
+
+
+@require_POST
+@_superadmin_required
+def cerrar_sesion_remota(request):
+    """Cierra UNA sesión activa (por session_key) — expulsa al instante."""
+    from django.contrib.sessions.models import Session
+    from django.contrib.auth import get_user_model
+    from auditoria.models import RegistroSesion
+    from auditoria.middleware import _get_client_ip
+
+    session_key = request.POST.get('session_key', '')
+    s = Session.objects.filter(session_key=session_key).first()
+    if not s:
+        messages.warning(request, "Esa sesión ya no está activa.")
+        return redirect("platform_control:conexiones")
+
+    uid = None
+    try:
+        uid = s.get_decoded().get('_auth_user_id')
+    except Exception:
+        pass
+    Usuario = get_user_model()
+    afectado = Usuario.objects.filter(pk=uid).first() if uid else None
+
+    s.delete()
+    RegistroSesion.objects.create(
+        usuario=afectado,
+        institucion=getattr(afectado, 'institucion_asociada', None) if afectado else None,
+        tipo_evento='CIERRE_REMOTO',
+        ip_address=_get_client_ip(request),
+        session_key=session_key,
+        ejecutado_por=request.user,
+    )
+    nombre = (afectado.get_full_name() or afectado.username) if afectado else "usuario"
+    messages.success(request, f"Sesión de {nombre} cerrada correctamente.")
+    return redirect("platform_control:conexiones")
+
+
+@require_POST
+@_superadmin_required
+def cerrar_sesiones_usuario(request, user_id):
+    """Cierra TODAS las sesiones activas de un usuario."""
+    from django.contrib.auth import get_user_model
+    from auditoria.models import RegistroSesion
+    from auditoria.middleware import _get_client_ip
+
+    Usuario = get_user_model()
+    afectado = get_object_or_404(Usuario, pk=user_id)
+    n = _terminar_sesiones_de_usuario(user_id)
+
+    RegistroSesion.objects.create(
+        usuario=afectado,
+        institucion=getattr(afectado, 'institucion_asociada', None),
+        tipo_evento='CIERRE_REMOTO',
+        ip_address=_get_client_ip(request),
+        ejecutado_por=request.user,
+    )
+    nombre = afectado.get_full_name() or afectado.username
+    messages.success(request, f"Se cerraron {n} sesión(es) de {nombre}.")
+    return redirect("platform_control:conexiones")
+
+
+@require_POST
+@_superadmin_required
+def restablecer_password_emergencia(request, user_id):
+    """Bloqueo de emergencia: contraseña temporal aleatoria + cierre de todas
+    las sesiones del usuario. Para casos de credenciales comprometidas."""
+    from django.contrib.auth import get_user_model
+    from django.utils.crypto import get_random_string
+    from auditoria.models import RegistroSesion
+    from auditoria.middleware import _get_client_ip
+
+    Usuario = get_user_model()
+    afectado = get_object_or_404(Usuario, pk=user_id)
+
+    # No permitir restablecer a OTRO super-administrador por esta vía.
+    if afectado.is_superuser and afectado.pk != request.user.pk:
+        messages.error(request, "No puedes restablecer la contraseña de otro super-administrador desde aquí.")
+        return redirect("platform_control:conexiones")
+
+    # Contraseña temporal fuerte pero legible (sin caracteres ambiguos).
+    alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"
+    temporal = get_random_string(12, alfabeto)
+    afectado.set_password(temporal)
+    afectado.save(update_fields=["password"])
+
+    n = _terminar_sesiones_de_usuario(user_id)
+
+    RegistroSesion.objects.create(
+        usuario=afectado,
+        institucion=getattr(afectado, 'institucion_asociada', None),
+        tipo_evento='RESET_EMERGENCIA',
+        ip_address=_get_client_ip(request),
+        ejecutado_por=request.user,
+    )
+    nombre = afectado.get_full_name() or afectado.username
+    messages.success(
+        request,
+        f"Acceso bloqueado: contraseña de {nombre} restablecida y {n} sesión(es) cerradas. "
+        f"Contraseña temporal (se muestra UNA sola vez): {temporal}  ·  "
+        f"Entrégala por un canal seguro; el usuario debe cambiarla al ingresar."
+    )
+    return redirect("platform_control:conexiones")

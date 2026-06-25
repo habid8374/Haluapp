@@ -5,10 +5,64 @@ Utiliza threading.local() (via AuditoriaMiddleware) para obtener el usuario
 que realiza el cambio y la IP del request sin necesidad de pasar esos datos
 explícitamente por cada vista.
 """
+from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 
-from .middleware import get_current_user, get_current_ip
+from .middleware import get_current_user, get_current_ip, _get_client_ip
+
+
+# ===========================================================================
+# REGISTRO DE SESIONES (login / logout)
+# ===========================================================================
+
+def _registrar_evento_sesion(tipo_evento, request, user):
+    """Crea un RegistroSesion sin propagar excepciones."""
+    try:
+        from .models import RegistroSesion
+        if user is None:
+            return
+
+        ip = None
+        user_agent = ''
+        session_key = ''
+        if request is not None:
+            try:
+                ip = _get_client_ip(request)
+            except Exception:
+                ip = None
+            user_agent = (request.META.get('HTTP_USER_AGENT', '') or '')[:500]
+            sesion = getattr(request, 'session', None)
+            if sesion is not None:
+                # Tras login() la sesión ya tiene clave; por si acaso, la forzamos.
+                if sesion.session_key is None:
+                    try:
+                        sesion.save()
+                    except Exception:
+                        pass
+                session_key = sesion.session_key or ''
+
+        RegistroSesion.objects.create(
+            usuario=user,
+            institucion=getattr(user, 'institucion_asociada', None),
+            tipo_evento=tipo_evento,
+            ip_address=ip,
+            user_agent=user_agent,
+            session_key=session_key,
+        )
+    except Exception:
+        # Nunca interrumpir el login/logout por un fallo de auditoría.
+        pass
+
+
+@receiver(user_logged_in)
+def registrar_inicio_sesion(sender, request, user, **kwargs):
+    _registrar_evento_sesion('LOGIN', request, user)
+
+
+@receiver(user_logged_out)
+def registrar_cierre_sesion(sender, request, user, **kwargs):
+    _registrar_evento_sesion('LOGOUT', request, user)
 
 
 # ---------------------------------------------------------------------------
