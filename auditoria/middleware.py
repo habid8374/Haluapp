@@ -2,10 +2,20 @@
 AuditoriaMiddleware — guarda el request actual en thread-local para que las
 signals de auditoría puedan acceder al usuario y la IP sin necesidad de
 recibir esos datos explícitamente.
+
+Además registra en la propia sesión la IP "en vivo" (la red desde la que el
+usuario está navegando ahora mismo) y su última actividad, para que el panel
+de Conexiones muestre la ubicación actual de cada sesión y pueda detectar una
+sesión usada desde una IP distinta (señal típica de cookie robada).
 """
 import threading
+import time
 
 _thread_locals = threading.local()
+
+# Mínimo de segundos entre escrituras de "última actividad" para no guardar la
+# sesión en cada request (la IP sí se actualiza siempre que cambie).
+_INTERVALO_ACTIVIDAD = 120
 
 
 def get_current_user():
@@ -43,12 +53,46 @@ class AuditoriaMiddleware:
     def __call__(self, request):
         # Guardar usuario e IP antes de procesar la vista
         _thread_locals.usuario = getattr(request, 'user', None)
-        _thread_locals.ip_address = _get_client_ip(request)
+        ip = _get_client_ip(request)
+        _thread_locals.ip_address = ip
 
         response = self.get_response(request)
+
+        # Actualizar la IP/actividad en vivo de la sesión. Se hace DESPUÉS de la
+        # vista para que SessionMiddleware (que está antes en la lista, y por
+        # tanto guarda al final) persista los cambios.
+        self._actualizar_actividad_sesion(request, ip)
 
         # Limpiar después de cada request para no filtrar datos entre hilos reutilizados
         _thread_locals.usuario = None
         _thread_locals.ip_address = None
 
         return response
+
+    @staticmethod
+    def _actualizar_actividad_sesion(request, ip):
+        """Guarda en la sesión la IP actual, el dispositivo y la última actividad.
+
+        - La IP/dispositivo se reescriben solo cuando cambian (escrituras raras).
+        - La marca de "última actividad" se actualiza como máximo cada
+          _INTERVALO_ACTIVIDAD segundos para no guardar la sesión en cada request.
+        """
+        try:
+            user = getattr(request, 'user', None)
+            if user is None or not user.is_authenticated:
+                return
+            sesion = getattr(request, 'session', None)
+            if sesion is None:
+                return
+
+            ua = (request.META.get('HTTP_USER_AGENT', '') or '')[:500]
+            ahora = int(time.time())
+
+            if sesion.get('_halu_ip') != ip:
+                sesion['_halu_ip'] = ip
+                sesion['_halu_ua'] = ua
+            if ahora - int(sesion.get('_halu_seen', 0)) > _INTERVALO_ACTIVIDAD:
+                sesion['_halu_seen'] = ahora
+        except Exception:
+            # Nunca interrumpir el request por el seguimiento de actividad.
+            pass

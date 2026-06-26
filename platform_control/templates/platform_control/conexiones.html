@@ -69,9 +69,10 @@
                         <th class="ps-3">Usuario</th>
                         <th>Institución</th>
                         <th>Rol</th>
-                        <th>IP</th>
+                        <th>IP actual</th>
                         <th>Dispositivo</th>
                         <th>Inicio</th>
+                        <th>Última actividad</th>
                         <th class="text-end pe-3">Acciones</th>
                     </tr>
                 </thead>
@@ -90,6 +91,9 @@
                     </td>
                     <td class="text-muted" style="font-size:.82rem;">
                         {% if c.inicio %}{{ c.inicio|naturaltime }}{% else %}—{% endif %}
+                    </td>
+                    <td class="text-muted" style="font-size:.82rem;">
+                        {% if c.ultima %}{{ c.ultima|naturaltime }}{% else %}—{% endif %}
                     </td>
                     <td class="text-end pe-3">
                         <button type="button" class="btn btn-sm btn-outline-secondary" title="Cerrar esta sesión"
@@ -112,7 +116,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" class="text-center py-4 text-muted">
+                <tr><td colspan="8" class="text-center py-4 text-muted">
                     <i class="bi bi-moon-stars fs-4 d-block mb-2"></i>No hay usuarios conectados en este momento.
                 </td></tr>
                 {% endfor %}

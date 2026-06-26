@@ -712,18 +712,24 @@ def conexiones_view(request):
     from finanzas.models import InstitucionEducativa
     from auditoria.models import RegistroSesion
 
+    import datetime as _dt
+
     Usuario = get_user_model()
     ahora = timezone.now()
+    tz = timezone.get_current_timezone()
 
     # --- Conectados ahora: sesiones activas en BD ---
     uid_por_key = {}
+    sesiones_data = {}  # session_key -> dict decodificado de la sesión
     for s in Session.objects.filter(expire_date__gte=ahora):
         try:
-            uid = s.get_decoded().get('_auth_user_id')
+            data = s.get_decoded()
         except Exception:
             continue
+        uid = data.get('_auth_user_id')
         if uid:
             uid_por_key[s.session_key] = (uid, s.expire_date)
+            sesiones_data[s.session_key] = data
 
     usuarios = {
         str(u.pk): u
@@ -732,7 +738,7 @@ def conexiones_view(request):
         ).select_related('institucion_asociada')
     }
 
-    # Último LOGIN por session_key → IP, dispositivo, hora de inicio
+    # Último LOGIN por session_key → IP/dispositivo/hora de inicio (respaldo)
     login_info = {}
     if uid_por_key:
         for r in RegistroSesion.objects.filter(
@@ -746,16 +752,29 @@ def conexiones_view(request):
         if u is None:
             continue
         info = login_info.get(key)
+        data = sesiones_data.get(key, {})
+
+        # IP/dispositivo EN VIVO desde la sesión; si no hay, caemos al login.
+        ip_vivo = data.get('_halu_ip')
+        ua_vivo = data.get('_halu_ua')
+        seen = data.get('_halu_seen')
+        ultima = _dt.datetime.fromtimestamp(seen, tz=tz) if seen else None
+
         conectados.append({
             'usuario': u,
             'institucion': getattr(u, 'institucion_asociada', None),
-            'ip': info.ip_address if info else None,
-            'user_agent': info.user_agent if info else '',
+            'ip': ip_vivo or (info.ip_address if info else None),
+            'user_agent': ua_vivo or (info.user_agent if info else ''),
             'inicio': info.fecha if info else None,
+            'ultima': ultima,
             'session_key': key,
             'expira': expira,
         })
-    conectados.sort(key=lambda a: (a['inicio'] is not None, a['inicio']), reverse=True)
+
+    def _orden(a):
+        t = a['ultima'] or a['inicio']
+        return (t is not None, t)
+    conectados.sort(key=_orden, reverse=True)
 
     # --- Historial con filtros ---
     historial_qs = RegistroSesion.objects.select_related(
