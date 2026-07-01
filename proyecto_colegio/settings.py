@@ -626,15 +626,28 @@ if _REDIS_URL:
         }
     }
 else:
+    # Fail-fast: en producción Redis es obligatorio (caché/sesiones/WebSockets/
+    # rate-limit compartidos entre procesos). Sin él, con varios workers el
+    # rate-limit y la caché quedan incoherentes. Solo se permite memoria local
+    # en desarrollo (DEBUG) o en pruebas con SQLite (USE_SQLITE).
+    if not DEBUG and not os.environ.get('USE_SQLITE'):
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured(
+            "REDIS_URL no está configurada. En producción Redis es obligatorio "
+            "para caché, sesiones, WebSockets y rate-limit compartidos entre "
+            "procesos. Configura la variable de entorno REDIS_URL."
+        )
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         }
     }
 
-# --- SESIONES EN BASE DE DATOS (predeterminado Django, sin Redis) ---
-# En producción cambiar a cache backend cuando Redis esté activo
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
+# --- SESIONES ---
+# cached_db: lee de la caché (Redis en producción) y escribe también en la BD.
+# Reduce las lecturas a PostgreSQL en cada request autenticado. Si Redis no
+# está disponible, cae a leer de la BD sin perder la sesión.
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
 # --- CONFIGURACIÓN DE DJANGO CHANNELS ---
 ASGI_APPLICATION = 'proyecto_colegio.asgi.application'

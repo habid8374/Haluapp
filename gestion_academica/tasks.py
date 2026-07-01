@@ -1050,3 +1050,182 @@ def ejecutar_backup_database(self):
     except Exception as exc:
         logger.error("Error en backup automático: %s", exc, exc_info=True)
         raise self.retry(exc=exc, countdown=300)  # reintenta en 5 min
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  TAREAS CELERY: análisis de IA fuera del request (evita bloquear el worker).
+#  Antes estas llamadas a Gemini se hacían síncronas dentro de post_save y de la
+#  vista de guardar notas; con muchos estudiantes bloqueaban la petición. Ahora
+#  los signals/vistas solo encolan estas tareas con .delay().
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _sanitize_ai(text):
+    import bleach
+    return bleach.clean(str(text or ''), tags=[], strip=True).strip()
+
+
+@shared_task(soft_time_limit=150, time_limit=180)
+def sugerir_material_de_refuerzo_task(calificacion_id):
+    """Genera un consejo de refuerzo con IA para una nota baja y notifica al
+    estudiante. Reconstruye la calificación por id; si la nota no está por
+    debajo del mínimo de aprobación, no hace nada."""
+    from .models import Calificacion, ArchivoPlanAcademico, Notificacion
+    try:
+        calificacion = Calificacion.objects.select_related(
+            'estudiante__usuario', 'estudiante__institucion',
+            'estudiante__grado_actual', 'actividad_calificable__curso__materia',
+        ).get(pk=calificacion_id)
+    except Calificacion.DoesNotExist:
+        return
+
+    estudiante = calificacion.estudiante
+    institucion = estudiante.institucion
+    nota_minima = getattr(institucion, 'nota_minima_aprobacion', Decimal('3.0'))
+    if calificacion.valor_numerico is None or calificacion.valor_numerico >= nota_minima:
+        return
+
+    actividad = calificacion.actividad_calificable
+
+    consejo_ia = ""
+    try:
+        api_key = get_inst_google_api_key(institucion)
+        if not api_key:
+            raise ValueError("Institución sin google_api_key")
+        client = genai.Client(api_key=api_key)
+        prompt = (
+            f"Actúa como un tutor amigable y positivo llamado HALU. Un estudiante de '{estudiante.grado_actual}' "
+            f"obtuvo una calificación baja de '{calificacion.valor_numerico}' en la materia de '{actividad.curso.materia.nombre_materia}' "
+            f"sobre el tema '{actividad.titulo}'. "
+            "Genera un consejo corto en español (máximo 150 palabras) con 2 o 3 pasos de estudio concretos y accionables. "
+            "El tono debe ser alentador, nunca regañes."
+        )
+        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        consejo_ia = _sanitize_ai(response.text)
+    except Exception as e:
+        logger.error("Error al generar consejo de IA (task) para calificación %s: %s", calificacion_id, e)
+        consejo_ia = "Te recomendamos fuertemente repasar los temas de la actividad y consultar con tu docente. ¡Tú puedes mejorar!"
+
+    recursos_sugeridos = ArchivoPlanAcademico.objects.filter(
+        institucion=institucion, temas_relacionados__icontains=actividad.titulo
+    ).distinct()
+    if recursos_sugeridos.exists():
+        enlace = reverse('gestion_academica:ver_material_refuerzo', kwargs={'actividad_pk': actividad.pk})
+        mensaje = f"HALU tiene un plan de estudio para ti sobre '{actividad.titulo}'."
+    else:
+        enlace = reverse('gestion_academica:dashboard_estudiante')
+        mensaje = f"HALU tiene un consejo para ayudarte a mejorar en '{actividad.titulo}'."
+
+    Notificacion.objects.create(
+        destinatario=estudiante.usuario, mensaje=mensaje, enlace=enlace,
+        consejo_ia=consejo_ia, institucion=institucion,
+    )
+
+
+def _crear_caso_convivencia(anotacion, tipo_situacion, ai_data):
+    """Crea el CasoConvivencia y notifica a coordinadores (Notificacion + WebSocket)."""
+    from .models import CasoConvivencia, InvolucradoCaso, Usuario, Notificacion
+    from django.utils import timezone as _tz
+    try:
+        if tipo_situacion == 'TIPO III':
+            fecha_limite = _tz.now() + timedelta(hours=2)
+        else:
+            fecha_limite = _tz.now() + timedelta(days=7)
+
+        caso = CasoConvivencia.objects.create(
+            institucion=anotacion.institucion,
+            tipo_situacion=tipo_situacion,
+            anotacion_origen=anotacion,
+            descripcion_detalle=anotacion.descripcion,
+            protocolo_ia=ai_data.get('protocolo_sugerido', ''),
+            fecha_limite=fecha_limite,
+        )
+        InvolucradoCaso.objects.create(
+            caso=caso, estudiante=anotacion.estudiante,
+            rol=CasoConvivencia.RolInvolucrado.VICTIMA,
+        )
+        coordinadores = Usuario.objects.filter(
+            institucion_asociada=anotacion.institucion,
+            is_staff=True, rol__in=['coordinador', 'administrador'],
+        )
+        urgencia = "⚠️ URGENTE — " if tipo_situacion == 'TIPO III' else ""
+        url_caso = reverse('gestion_academica:detalle_caso_convivencia', kwargs={'pk': caso.pk})
+        for coord in coordinadores:
+            Notificacion.objects.create(
+                destinatario=coord, institucion=anotacion.institucion,
+                mensaje=(f"{urgencia}Nuevo caso {tipo_situacion} abierto: "
+                         f"{anotacion.estudiante} — Radicado {caso.radicado}"),
+                enlace=url_caso,
+            )
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                severity = 'danger' if tipo_situacion == 'TIPO III' else 'warning'
+                for coord in coordinadores:
+                    async_to_sync(channel_layer.group_send)(
+                        f"user_{coord.pk}",
+                        {
+                            'type': 'send_notification', 'kind': 'sentinel',
+                            'title': f'{urgencia}Halu Sentinel — Caso {tipo_situacion}',
+                            'message': (f"Caso {caso.radicado} abierto para {anotacion.estudiante}. "
+                                        f"Plazo: {fecha_limite.strftime('%d/%m %H:%M')}"),
+                            'url': url_caso, 'severity': severity,
+                        }
+                    )
+        except Exception as ws_err:
+            logger.warning("WS Sentinel no disponible: %s", ws_err)
+    except Exception as caso_err:
+        logger.exception("Error creando CasoConvivencia para anotación %s: %s", anotacion.pk, caso_err)
+
+
+@shared_task(soft_time_limit=150, time_limit=180)
+def analizar_observacion_convivencia_task(anotacion_id):
+    """Clasifica una anotación del observador con IA (Ley 1620) y, si es TIPO II/III,
+    abre el caso de convivencia. Movido fuera del post_save para no bloquear."""
+    from .models import AnotacionObservador
+    try:
+        anotacion = AnotacionObservador.objects.select_related(
+            'institucion', 'estudiante'
+        ).get(pk=anotacion_id)
+    except AnotacionObservador.DoesNotExist:
+        return
+    if anotacion.tipo_situacion_ia is not None:
+        return  # ya analizada (idempotencia)
+
+    try:
+        api_key = get_inst_google_api_key(anotacion.institucion)
+        if not api_key:
+            logger.warning("Institución %s sin google_api_key; se omite análisis de observación.", anotacion.institucion_id)
+            return
+        client = genai.Client(api_key=api_key)
+        prompt = f"""
+        Actúa como un experto en la Ley 1620 de Colombia. Analiza la siguiente anotación y responde ÚNICAMENTE con un objeto JSON válido que siga esta estructura:
+        {{
+            "tipo_situacion": "TIPO I" | "TIPO II" | "TIPO III" | "NINGUNO",
+            "resumen": "Un resumen objetivo y conciso de los hechos.",
+            "protocolo_sugerido": "Una lista numerada de acciones a seguir según el protocolo." | "No se requiere protocolo.",
+            "requiere_revision": true | false
+        }}
+
+        Anotación: "{anotacion.descripcion}"
+        """
+        response = client.models.generate_content(
+            model='gemini-2.5-flash', contents=prompt,
+            config=types.GenerateContentConfig(response_mime_type="application/json"),
+        )
+        ai_data = json.loads(response.text)
+        tipo_situacion = ai_data.get('tipo_situacion', 'NINGUNO').upper()
+        requiere_revision = ai_data.get('requiere_revision', False)
+        if tipo_situacion in ['TIPO II', 'TIPO III']:
+            requiere_revision = True
+
+        AnotacionObservador.objects.filter(pk=anotacion.pk).update(
+            tipo_situacion_ia=tipo_situacion,
+            analisis_ia=_sanitize_ai(ai_data.get('resumen', 'No se generó resumen.')),
+            acciones_protocolo_ia=_sanitize_ai(ai_data.get('protocolo_sugerido', 'No se sugirieron acciones.')),
+            requiere_revision=requiere_revision,
+        )
+        if tipo_situacion in ['TIPO II', 'TIPO III']:
+            _crear_caso_convivencia(anotacion, tipo_situacion, ai_data)
+    except Exception as e:
+        logger.error("ERROR en análisis de convivencia (task) para anotación %s: %s", anotacion_id, e, exc_info=True)

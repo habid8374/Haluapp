@@ -2881,50 +2881,19 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
             
             messages.success(request, "¡Notas guardadas exitosamente!")
 
+        # Encolar en segundo plano el análisis de IA (consejos de refuerzo) para
+        # NO bloquear el guardado con llamadas síncronas a Gemini (antes se hacía
+        # una llamada por alumno reprobado dentro de esta petición). La tarea
+        # revisa cada nota y solo genera consejo/notificación para las que están
+        # por debajo del mínimo de aprobación.
         if calificaciones_ids_para_revisar:
-            api_key = institucion_google_api_key(curso.institucion)
-            ia_disponible = False
-            _gemini_client = None
-            if api_key:
-                try:
-                    _gemini_client = genai.Client(api_key=api_key)
-                    ia_disponible = True
-                except Exception as e:
-                    print(f"--- ERROR FATAL DE IA: No se pudo configurar la API de Google: {e} ---")
-            else:
-                print("--- IA omitida: la institución no tiene google_api_key (Gemini). ---")
+            from django.db import transaction
+            from ..tasks import sugerir_material_de_refuerzo_task
+            ids_para_ia = list(calificaciones_ids_para_revisar)
+            transaction.on_commit(
+                lambda: [sugerir_material_de_refuerzo_task.delay(_id) for _id in ids_para_ia]
+            )
 
-            if ia_disponible:
-                calificaciones_procesadas = Calificacion.objects.filter(pk__in=calificaciones_ids_para_revisar)
-                for calificacion in calificaciones_procesadas:
-                    estudiante = calificacion.estudiante
-                    nota_minima_aprobacion = getattr(estudiante.institucion, 'nota_minima_aprobacion', Decimal('3.0'))
-
-                    if calificacion.valor_numerico is not None and calificacion.valor_numerico < nota_minima_aprobacion:
-                        actividad = calificacion.actividad_calificable
-                        
-                        prompt = (
-                            f"Actúa como un tutor amigable llamado HALU. Un estudiante de '{estudiante.grado_actual.nombre}' "
-                            f"obtuvo una calificación baja de '{calificacion.valor_numerico}' en la materia de '{actividad.curso.materia.nombre_materia}' "
-                            f"sobre el tema '{actividad.titulo}'. "
-                            "Genera un consejo corto en español con 3 pasos de estudio concretos y accionables. "
-                            "El tono debe ser alentador y positivo."
-                        )
-                        
-                        try:
-                            response = _gemini_client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-                            consejo_generado = response.text
-                            
-                            Notificacion.objects.create(
-                                destinatario=estudiante.usuario, 
-                                mensaje=f"HALU te ha generado un plan de estudio para '{actividad.titulo}'.",
-                                consejo_ia=consejo_generado,
-                                institucion=estudiante.institucion # <-- LÍNEA AÑADIDA
-                            )
-                        except Exception as e:
-                            print(f">>> ERROR al llamar a la API de Google: {e} !!!")
-
-        messages.success(request, "¡Notas guardadas y notificaciones de refuerzo enviadas!")
         return redirect('gestion_academica:docente_libro_de_notas_por_curso', curso_pk=curso.pk)
 
     # 2. Preparación de datos para mostrar la planilla (la parte que ya tenías, pero mejorada)

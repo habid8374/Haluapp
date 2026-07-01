@@ -523,6 +523,10 @@ class PagoRegistrado(models.Model):
                 name='unique_referencia_transaccion_non_empty',
             )
         ]
+        indexes = [
+            # Reportes financieros por rango de fechas dentro de una institución.
+            models.Index(fields=['institucion', 'fecha_pago'], name='pago_inst_fecha_idx'),
+        ]
 
 
 @receiver([post_save, post_delete], sender=PagoRegistrado)

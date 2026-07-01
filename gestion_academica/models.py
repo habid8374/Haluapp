@@ -343,6 +343,11 @@ class Estudiante(models.Model):
             ('institucion', 'documento_identidad'),
             ('institucion', 'codigo_estudiante'),
         ]
+        indexes = [
+            # Consulta caliente: estudiantes activos por institución (dashboards,
+            # KPIs, listados). Muy frecuente a escala de cientos/miles de alumnos.
+            models.Index(fields=['institucion', 'activo'], name='estudiante_inst_activo_idx'),
+        ]
 
     def __str__(self):
         nombre_completo = self.usuario.get_full_name()

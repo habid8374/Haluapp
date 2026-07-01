@@ -31,236 +31,45 @@ def _sanitize_ai(text: str) -> str:
 @receiver(post_save, sender=Calificacion)
 def sugerir_material_de_refuerzo(sender, instance, created, **kwargs):
     """
-    Si una calificación es baja, llama a la IA para generar un consejo
-    Y busca material de refuerzo, luego crea una notificación completa.
+    Si la calificación es numérica, encola en segundo plano la generación del
+    consejo de refuerzo con IA. Antes esto se hacía síncrono aquí (llamada a
+    Gemini de varios segundos dentro del post_save) y bloqueaba el guardado de
+    notas; ahora solo se encola. La tarea revisa el umbral de aprobación y solo
+    genera consejo/notificación si la nota está por debajo del mínimo.
     """
-    calificacion = instance
-    estudiante = calificacion.estudiante
-    institucion = estudiante.institucion
-    nota_minima = getattr(institucion, 'nota_minima_aprobacion', Decimal('3.0'))
-
-    # Solo actuar si la nota es baja y numérica
-    if calificacion.valor_numerico is None or calificacion.valor_numerico >= nota_minima:
+    if instance.valor_numerico is None:
         return
-
-    actividad = calificacion.actividad_calificable
-    
-    # --- INICIO DE LA MODIFICACIÓN ---
-
-    # 1. Generar el consejo personalizado con la IA
-    consejo_ia = "" # Valor por defecto en caso de que la IA falle
-    try:
-        api_key = get_inst_google_api_key(institucion)
-        if not api_key:
-            raise ValueError("Institución sin google_api_key")
-        client = genai.Client(api_key=api_key)
-
-        prompt = (
-            f"Actúa como un tutor amigable y positivo llamado HALU. Un estudiante de '{estudiante.grado_actual}' "
-            f"obtuvo una calificación baja de '{calificacion.valor_numerico}' en la materia de '{actividad.curso.materia.nombre_materia}' "
-            f"sobre el tema '{actividad.titulo}'. "
-            "Genera un consejo corto en español (máximo 150 palabras) con 2 o 3 pasos de estudio concretos y accionables. "
-            "El tono debe ser alentador, nunca regañes."
-        )
-        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-        consejo_ia = _sanitize_ai(response.text)
-    except Exception as e:
-        logger.error("Error al generar consejo de IA: %s", e)
-        consejo_ia = "Te recomendamos fuertemente repasar los temas de la actividad y consultar con tu docente. ¡Tú puedes mejorar!"
-
-    # 2. Buscar material de refuerzo (lógica que ya teníamos)
-    recursos_sugeridos = ArchivoPlanAcademico.objects.filter(
-        institucion=institucion,
-        temas_relacionados__icontains=actividad.titulo
-    ).distinct()
-
-    # 3. Preparar el mensaje y el enlace final
-    if recursos_sugeridos.exists():
-        enlace = reverse('gestion_academica:ver_material_refuerzo', kwargs={'actividad_pk': actividad.pk})
-        mensaje = f"HALU tiene un plan de estudio para ti sobre '{actividad.titulo}'."
-    else:
-        enlace = reverse('gestion_academica:dashboard_estudiante')
-        mensaje = f"HALU tiene un consejo para ayudarte a mejorar en '{actividad.titulo}'."
-
-    # 4. Crear la notificación con TODA la información
-    Notificacion.objects.create(
-        destinatario=estudiante.usuario,
-        mensaje=mensaje,
-        enlace=enlace,
-        consejo_ia=consejo_ia,  # Asumimos que tu modelo Notificacion tiene este campo
-        institucion=institucion
-    )
+    from django.db import transaction
+    from .tasks import sugerir_material_de_refuerzo_task
+    pk = instance.pk
+    transaction.on_commit(lambda: sugerir_material_de_refuerzo_task.delay(pk))
 
 
 @receiver(post_save, sender=AnotacionObservador)
 def analizar_observacion_convivencia(sender, instance, created, **kwargs):
     """
-    Signal que usa la IA para clasificar la situación de convivencia.
-    Utiliza un prompt que fuerza una respuesta JSON para mayor robustez.
+    Encola en segundo plano el análisis de convivencia con IA (Ley 1620) y la
+    apertura automática del Caso de Convivencia (TIPO II/III). Antes la llamada
+    a Gemini se hacía síncrona dentro del post_save y bloqueaba el guardado.
     """
     if not created or instance.tipo_situacion_ia is not None:
         return
-
-    anotacion = instance
-    texto_a_analizar = anotacion.descripcion
-
-    try:
-        api_key = get_inst_google_api_key(anotacion.institucion)
-        if not api_key:
-            logger.warning("Institución %s sin google_api_key; se omite análisis de observación.", anotacion.institucion_id)
-            return
-
-        client = genai.Client(api_key=api_key)
-
-        prompt = f"""
-        Actúa como un experto en la Ley 1620 de Colombia. Analiza la siguiente anotación y responde ÚNICAMENTE con un objeto JSON válido que siga esta estructura:
-        {{
-            "tipo_situacion": "TIPO I" | "TIPO II" | "TIPO III" | "NINGUNO",
-            "resumen": "Un resumen objetivo y conciso de los hechos.",
-            "protocolo_sugerido": "Una lista numerada de acciones a seguir según el protocolo." | "No se requiere protocolo.",
-            "requiere_revision": true | false
-        }}
-
-        Anotación: "{texto_a_analizar}"
-        """
-
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json")
-        )
-        ai_data = json.loads(response.text)
-        
-        tipo_situacion = ai_data.get('tipo_situacion', 'NINGUNO').upper()
-        
-        # Actualizamos los campos de la anotación
-        anotacion.tipo_situacion_ia = tipo_situacion
-        anotacion.analisis_ia = _sanitize_ai(ai_data.get('resumen', 'No se generó resumen.'))
-        anotacion.acciones_protocolo_ia = _sanitize_ai(ai_data.get('protocolo_sugerido', 'No se sugirieron acciones.'))
-        anotacion.requiere_revision = ai_data.get('requiere_revision', False)
-        
-        if tipo_situacion in ['TIPO II', 'TIPO III']:
-            anotacion.requiere_revision = True
-
-        # Usamos update() para evitar un bucle infinito en el signal
-        AnotacionObservador.objects.filter(pk=anotacion.pk).update(
-            tipo_situacion_ia=anotacion.tipo_situacion_ia,
-            analisis_ia=anotacion.analisis_ia,
-            acciones_protocolo_ia=anotacion.acciones_protocolo_ia,
-            requiere_revision=anotacion.requiere_revision
-        )
-
-        # ── Apertura automática de Caso de Convivencia (Tipo II / III) ──
-        if tipo_situacion in ['TIPO II', 'TIPO III']:
-            from django.db import transaction
-            from django.utils import timezone as _tz
-            from datetime import timedelta
-
-            def _crear_caso():
-                try:
-                    # Calcular fecha límite legal
-                    if tipo_situacion == 'TIPO III':
-                        # 2 horas hábiles (urgente)
-                        fecha_limite = _tz.now() + timedelta(hours=2)
-                    else:
-                        # 5 días hábiles ≈ 7 días calendario
-                        fecha_limite = _tz.now() + timedelta(days=7)
-
-                    caso = CasoConvivencia.objects.create(
-                        institucion=anotacion.institucion,
-                        tipo_situacion=tipo_situacion,
-                        anotacion_origen=anotacion,
-                        descripcion_detalle=anotacion.descripcion,
-                        protocolo_ia=ai_data.get('protocolo_sugerido', ''),
-                        fecha_limite=fecha_limite,
-                    )
-                    # Registrar al estudiante como involucrado (rol por defecto: VICTIMA)
-                    InvolucradoCaso.objects.create(
-                        caso=caso,
-                        estudiante=anotacion.estudiante,
-                        rol=CasoConvivencia.RolInvolucrado.VICTIMA,
-                    )
-                    # Notificar a coordinadores de la institución
-                    coordinadores = Usuario.objects.filter(
-                        institucion_asociada=anotacion.institucion,
-                        is_staff=True,
-                        rol__in=['coordinador', 'administrador'],
-                    )
-                    urgencia = "⚠️ URGENTE — " if tipo_situacion == 'TIPO III' else ""
-                    url_caso = reverse('gestion_academica:detalle_caso_convivencia', kwargs={'pk': caso.pk})
-                    for coord in coordinadores:
-                        Notificacion.objects.create(
-                            destinatario=coord,
-                            institucion=anotacion.institucion,
-                            mensaje=(
-                                f"{urgencia}Nuevo caso {tipo_situacion} abierto: "
-                                f"{anotacion.estudiante} — Radicado {caso.radicado}"
-                            ),
-                            enlace=url_caso,
-                        )
-                    # Push WebSocket en tiempo real a coordinadores
-                    try:
-                        from channels.layers import get_channel_layer
-                        from asgiref.sync import async_to_sync
-                        channel_layer = get_channel_layer()
-                        if channel_layer:
-                            severity = 'danger' if tipo_situacion == 'TIPO III' else 'warning'
-                            for coord in coordinadores:
-                                async_to_sync(channel_layer.group_send)(
-                                    f"user_{coord.pk}",
-                                    {
-                                        'type': 'send_notification',
-                                        'kind': 'sentinel',
-                                        'title': f'{urgencia}Halu Sentinel — Caso {tipo_situacion}',
-                                        'message': (
-                                            f"Caso {caso.radicado} abierto para "
-                                            f"{anotacion.estudiante}. "
-                                            f"Plazo: {fecha_limite.strftime('%d/%m %H:%M')}"
-                                        ),
-                                        'url': url_caso,
-                                        'severity': severity,
-                                    }
-                                )
-                    except Exception as ws_err:
-                        logger.warning("WS Sentinel no disponible: %s", ws_err)
-
-                except Exception as caso_err:
-                    logger.exception("Error creando CasoConvivencia para anotación %s: %s", anotacion.pk, caso_err)
-
-            transaction.on_commit(_crear_caso)
-
-    except Exception as e:
-        logger.error("ERROR CRÍTICO en el signal de Halu Sentinel: %s", e, exc_info=True)
+    from django.db import transaction
+    from .tasks import analizar_observacion_convivencia_task
+    pk = instance.pk
+    transaction.on_commit(lambda: analizar_observacion_convivencia_task.delay(pk))
 
 @receiver(post_save, sender=Candidato)
 def analizar_propuesta_candidato(sender, instance, created, **kwargs):
+    """Encola el análisis de la propuesta del candidato con IA en segundo plano
+    (antes se llamaba a Gemini síncrono aquí). Reutiliza la tarea Celery ya
+    existente en tasks.py."""
     if not created:
         return
-
-    try:
-        api_key = get_inst_google_api_key(instance.eleccion.institucion)
-        if not api_key:
-            logger.warning("Institución sin google_api_key; se omite análisis de propuesta candidato %s.", instance.pk)
-            return
-        client = genai.Client(api_key=api_key)
-
-        prompt = (
-            f"Eres un asesor electoral. Analiza esta propuesta de candidatura:\n\n"
-            f"'{instance.propuesta}'\n\n"
-            "Responde con:\n"
-            "1. Resumen breve (máx. 2 líneas)\n"
-            "2. Principales ejes temáticos (como educación, deporte, inclusión)\n"
-            "3. Nivel de claridad: Alto, Medio, Bajo"
-        )
-
-        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-        texto_respuesta = _sanitize_ai(response.text)
-
-        instance.analisis_ia = texto_respuesta
-        instance.save(update_fields=['analisis_ia'])
-
-    except Exception as e:
-        logger.error("Error con Gemini analizando propuesta candidato %s: %s", instance.pk, e)
+    from django.db import transaction
+    from .tasks import analizar_propuesta_candidato_task
+    pk = instance.pk
+    transaction.on_commit(lambda: analizar_propuesta_candidato_task.delay(pk))
 
 @receiver(pre_save, sender=SolicitudDocumento)
 def gestionar_notificacion_documento_listo(sender, instance, **kwargs):
