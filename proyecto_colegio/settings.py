@@ -559,9 +559,28 @@ LOGGING = {
 }
 
 # --- CONFIGURACIÓN DE CELERY ---
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+# Respaldo simétrico entre servicios (Railway): la web suele definir solo
+# REDIS_URL y el worker solo CELERY_BROKER_URL — es el MISMO Redis. Si falta
+# CELERY_BROKER_URL, se deriva de REDIS_URL (db 0/1); localhost es solo para dev.
+def _redis_db_url(base_url, db):
+    if not base_url:
+        return ''
+    _base, _sep, _last = base_url.rstrip('/').rpartition('/')
+    root = _base if _last.isdigit() else base_url.rstrip('/')
+    return f"{root}/{db}"
+
+_REDIS_ENV = os.environ.get('REDIS_URL', '')
+CELERY_BROKER_URL = (
+    os.environ.get('CELERY_BROKER_URL')
+    or _redis_db_url(_REDIS_ENV, 0)
+    or 'redis://localhost:6379/0'
+)
 # Redis como backend de resultados: más rápido que la BD y no acumula rows en Django
-CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/1')
+CELERY_RESULT_BACKEND = (
+    os.environ.get('CELERY_RESULT_BACKEND')
+    or _redis_db_url(_REDIS_ENV, 1)
+    or 'redis://localhost:6379/1'
+)
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

@@ -28,6 +28,17 @@ def _sanitize_ai(text: str) -> str:
     return bleach.clean(str(text or ''), tags=[], strip=True).strip()
 
 
+def _delay_seguro(task, *args):
+    """Encola una tarea Celery sin propagar errores: si el broker no está
+    disponible, la operación principal (guardar la nota, la anotación, etc.)
+    NO debe fallar por eso — solo se pierde el análisis de IA y queda en log."""
+    try:
+        task.delay(*args)
+    except Exception as e:
+        logger.error("No se pudo encolar la tarea %s%r: %s",
+                     getattr(task, 'name', task), args, e)
+
+
 @receiver(post_save, sender=Calificacion)
 def sugerir_material_de_refuerzo(sender, instance, created, **kwargs):
     """
@@ -42,7 +53,7 @@ def sugerir_material_de_refuerzo(sender, instance, created, **kwargs):
     from django.db import transaction
     from .tasks import sugerir_material_de_refuerzo_task
     pk = instance.pk
-    transaction.on_commit(lambda: sugerir_material_de_refuerzo_task.delay(pk))
+    transaction.on_commit(lambda: _delay_seguro(sugerir_material_de_refuerzo_task, pk))
 
 
 @receiver(post_save, sender=AnotacionObservador)
@@ -57,7 +68,7 @@ def analizar_observacion_convivencia(sender, instance, created, **kwargs):
     from django.db import transaction
     from .tasks import analizar_observacion_convivencia_task
     pk = instance.pk
-    transaction.on_commit(lambda: analizar_observacion_convivencia_task.delay(pk))
+    transaction.on_commit(lambda: _delay_seguro(analizar_observacion_convivencia_task, pk))
 
 @receiver(post_save, sender=Candidato)
 def analizar_propuesta_candidato(sender, instance, created, **kwargs):
@@ -69,7 +80,7 @@ def analizar_propuesta_candidato(sender, instance, created, **kwargs):
     from django.db import transaction
     from .tasks import analizar_propuesta_candidato_task
     pk = instance.pk
-    transaction.on_commit(lambda: analizar_propuesta_candidato_task.delay(pk))
+    transaction.on_commit(lambda: _delay_seguro(analizar_propuesta_candidato_task, pk))
 
 @receiver(pre_save, sender=SolicitudDocumento)
 def gestionar_notificacion_documento_listo(sender, instance, **kwargs):

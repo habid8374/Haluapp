@@ -2889,9 +2889,10 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
         if calificaciones_ids_para_revisar:
             from django.db import transaction
             from ..tasks import sugerir_material_de_refuerzo_task
+            from ..signals import _delay_seguro
             ids_para_ia = list(calificaciones_ids_para_revisar)
             transaction.on_commit(
-                lambda: [sugerir_material_de_refuerzo_task.delay(_id) for _id in ids_para_ia]
+                lambda: [_delay_seguro(sugerir_material_de_refuerzo_task, _id) for _id in ids_para_ia]
             )
 
         return redirect('gestion_academica:docente_libro_de_notas_por_curso', curso_pk=curso.pk)
