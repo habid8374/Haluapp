@@ -2886,8 +2886,10 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
         # una llamada por alumno reprobado dentro de esta petición). La tarea
         # revisa cada nota y solo genera consejo/notificación para las que están
         # por debajo del mínimo de aprobación.
+        # OJO: no importar 'transaction' aquí dentro — ya viene del módulo; un
+        # import local lo convertiría en variable local de TODA la función y
+        # rompería el 'with transaction.atomic()' de arriba (UnboundLocalError).
         if calificaciones_ids_para_revisar:
-            from django.db import transaction
             from ..tasks import sugerir_material_de_refuerzo_task
             from ..signals import _delay_seguro
             ids_para_ia = list(calificaciones_ids_para_revisar)
