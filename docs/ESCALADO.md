@@ -39,21 +39,30 @@ Cutover cuando llegue ese momento (paso manual en Railway):
 Así el scheduler queda en un único proceso y el worker puede replicarse sin
 duplicar tareas.
 
+## Fase B — items de bajo riesgo: APLICADOS ✅
+
+- ✅ **N+1 de riesgo académico**: `analizar_riesgo_academico_en_lote()` en
+  `gestion_academica/utils.py` calcula todos los pares (estudiante, curso) con
+  2 consultas totales (antes 2 por par; ~960 → 4 en el dashboard del director
+  de grupo). La usan el contador del dashboard/API, el export a Excel y el
+  detalle por estudiante. Equivalencia verificada par a par contra la función
+  original.
+- ✅ **Asistencia**: consultas por día migradas de `fecha__date` a `fecha_solo`
+  (DateField indexado) + índice compuesto `(institucion, fecha_solo, estado)`.
+  Migración `gestion_academica/0047` con backfill (`TruncDate`, zona Bogotá).
+- ✅ **Paginación** en `lista_notificaciones_view` (25 por página).
+- ✅ **Encolados Celery blindados**: todos los `.delay()` de `signals.py` pasan
+  por `_delay_seguro` — un broker caído no tumba la operación del usuario.
+
 ## Fase B — pendiente (antes de firmar un cliente de 500+)
 
 - **Separar HTTP de WebSockets.** Hoy el web corre como **un solo proceso Daphne**
   (sin `--workers`). Servir HTTP con Gunicorn + workers `uvicorn` y dejar Daphne
   solo para WebSockets, o correr varias instancias tras un balanceador.
+  Requiere staging + prueba de carga antes de producción.
 - **PgBouncer** (pooling de conexiones a PostgreSQL, modo transaction) — sin esto,
-  muchos procesos agotan el `max_connections`.
-- **N+1 de riesgo académico** (`gestion_academica/utils.py`
-  `calcular_estado_academico_curso`): hace 2 consultas por par estudiante×curso;
-  invocado desde `dashboard_docente` y el export de riesgo. Precomputar en 2
-  consultas por grado y trabajar en memoria.
-- **Asistencia:** indexar/usar `fecha_solo` (DateField) en `RegistroAsistencia` en
-  vez de `fecha__date` sobre el DateTimeField, con índice
-  `(institucion, fecha_solo, estado)`.
-- **Paginación** en `lista_notificaciones_view`.
+  muchos procesos agotan el `max_connections`. Primer paso más ligero: pool
+  nativo de Django 5.2/psycopg3 (`OPTIONS: {"pool": True}`).
 - **Prueba de carga** simulando ~300 usuarios concurrentes antes de comprometer SLA.
 
 ## Dónde escala mejor
