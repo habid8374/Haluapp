@@ -175,9 +175,10 @@
 </div>
 {% endblock %}
 {% block extra_js %}{{ block.super }}
+{{ grados_data|json_script:"grados-data" }}
 <script>
 (function () {
-  const GRADOS = {{ grados_json|safe }};
+  const GRADOS = JSON.parse(document.getElementById('grados-data').textContent);
   const pasoGrados      = document.getElementById('paso-grados');
   const pasoEstudiantes = document.getElementById('paso-estudiantes');
   const listaGrados     = document.getElementById('lista-grados');
@@ -209,7 +210,12 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'list-group-item list-group-item-action d-flex align-items-center gap-2 py-2';
-      btn.innerHTML = '<i class="bi bi-person-circle text-primary"></i> ' + e.nombre;
+      // A03 (XSS): el ícono es HTML fijo; el nombre del estudiante se inserta
+      // como TEXTO (textContent), nunca como innerHTML.
+      const _ico = document.createElement('i');
+      _ico.className = 'bi bi-person-circle text-primary';
+      btn.appendChild(_ico);
+      btn.appendChild(document.createTextNode(' ' + e.nombre));
       btn.addEventListener('click', function () {
         seleccionarEstudiante(e.pk, e.nombre);
       });

@@ -678,8 +678,9 @@ def analizar_propuesta_candidato_task(self, candidato_id):
             feedback = getattr(response, 'prompt_feedback', 'Razón desconocida.')
             raise Exception(f"La IA no generó contenido. Feedback: {feedback}")
 
-        # Guardamos el análisis directamente en el modelo del candidato
-        candidato.analisis_ia = response.text
+        # Guardamos el análisis (sanitizado: defensa en profundidad frente a
+        # HTML/JS que pudiera venir en la respuesta de la IA).
+        candidato.analisis_ia = _sanitize_ai(response.text)
         candidato.save(update_fields=['analisis_ia'])
         
         logger.info(f"Análisis de IA generado exitosamente para el candidato ID {candidato_id}.")

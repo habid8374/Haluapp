@@ -249,11 +249,34 @@ def enviar_avisos_cobro_masivo_task(self, cuenta_ids: list, institucion_id: int,
                     .first()
                 )
                 if fe and fe.url_pdf:
-                    import urllib.request as _ur
-                    pdf_dian = _ur.urlopen(fe.url_pdf, timeout=12).read()
-                    adjuntos.append((f"Factura_DIAN_{fe.numero or cuenta.pk}.pdf", pdf_dian, "application/pdf"))
-                    ctx["factura_electronica_url"] = fe.url_pdf
-                    ctx["factura_numero"] = fe.numero
+                    # A10 (SSRF): descargar solo por HTTPS y nunca hacia IPs
+                    # internas/loopback/link-local. requests (a diferencia de
+                    # urllib) no soporta file://, cerrando la lectura de archivos
+                    # locales. Si la URL se rechaza, más abajo se adjunta el
+                    # volante interno como respaldo (no rompe el envío).
+                    import ipaddress
+                    import requests as _rq
+                    from urllib.parse import urlparse as _urlparse
+                    _p = _urlparse((fe.url_pdf or "").strip())
+                    _host = _p.hostname or ""
+                    _ip_interna = False
+                    try:
+                        _ip = ipaddress.ip_address(_host)
+                        _ip_interna = _ip.is_private or _ip.is_loopback or _ip.is_link_local or _ip.is_reserved
+                    except ValueError:
+                        _ip_interna = False  # es un dominio, no una IP literal
+                    if _p.scheme != "https" or not _host or _ip_interna:
+                        logger.warning(
+                            "PDF DIAN rechazado (URL no segura) para cuenta %s: %s",
+                            cuenta.pk, fe.url_pdf,
+                        )
+                    else:
+                        _resp = _rq.get(fe.url_pdf, timeout=12)
+                        _resp.raise_for_status()
+                        pdf_dian = _resp.content
+                        adjuntos.append((f"Factura_DIAN_{fe.numero or cuenta.pk}.pdf", pdf_dian, "application/pdf"))
+                        ctx["factura_electronica_url"] = fe.url_pdf
+                        ctx["factura_numero"] = fe.numero
             except Exception as _exc_fe:
                 logger.warning("No se pudo obtener PDF DIAN para cuenta %s: %s", cuenta.pk, _exc_fe)
 

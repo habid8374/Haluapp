@@ -3827,7 +3827,9 @@ def reporte_auditoria_pagos(request):
         'estudiante_id': estudiante_id,
         'estudiante_nombre': estudiante_nombre,
         'opciones_accion': AuditoriaAccionPago.ACCIONES,
-        'grados_json': _json.dumps(grados_data, ensure_ascii=False),
+        # A03 (XSS): se pasa la estructura cruda; el template la embebe con
+        # {{ ...|json_script }} (escape seguro) en vez de |safe dentro de <script>.
+        'grados_data': grados_data,
     })
 
 
