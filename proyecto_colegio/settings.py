@@ -609,10 +609,16 @@ CELERY_TASK_ACKS_LATE = True
 
 # --- CACHÉ ---
 # Producción: Redis (db 2) — django_ratelimit exige un cache compartido.
-# Desarrollo (sin REDIS_URL): memoria local.
-_REDIS_URL = os.environ.get('REDIS_URL', '')
-if _REDIS_URL:
-    # REDIS_URL puede traer un número de db (ej. .../3 para channels);
+# Desarrollo (sin Redis): memoria local.
+# Igual que CHANNEL_LAYERS: si el servicio no define REDIS_URL (p. ej. el worker
+# de Celery en Railway solo tiene CELERY_BROKER_URL), se usa esa URL — es el
+# mismo Redis, solo cambia el número de base de datos.
+_REDIS_URL = (
+    os.environ.get('REDIS_URL', '')
+    or os.environ.get('CELERY_BROKER_URL', '')
+)
+if _REDIS_URL.startswith(('redis://', 'rediss://')):
+    # La URL puede traer un número de db (ej. .../0 del broker);
     # el caché usa siempre la db 2.
     _base, _sep, _db = _REDIS_URL.rpartition('/')
     _cache_url = f"{_base}/2" if _db.isdigit() else f"{_REDIS_URL}/2"
@@ -633,9 +639,10 @@ else:
     if not DEBUG and not os.environ.get('USE_SQLITE'):
         from django.core.exceptions import ImproperlyConfigured
         raise ImproperlyConfigured(
-            "REDIS_URL no está configurada. En producción Redis es obligatorio "
-            "para caché, sesiones, WebSockets y rate-limit compartidos entre "
-            "procesos. Configura la variable de entorno REDIS_URL."
+            "Redis no está configurado (ni REDIS_URL ni CELERY_BROKER_URL). "
+            "En producción Redis es obligatorio para caché, sesiones, WebSockets "
+            "y rate-limit compartidos entre procesos. Configura la variable de "
+            "entorno REDIS_URL en este servicio."
         )
     CACHES = {
         "default": {
