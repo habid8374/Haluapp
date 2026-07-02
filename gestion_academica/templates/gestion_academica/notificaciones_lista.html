@@ -136,8 +136,8 @@
     <div class="nf-hero-badge"><i class="bi bi-bell-fill"></i> Centro de mensajes</div>
     <div class="nf-hero-title"><i class="bi bi-bell-fill me-2"></i>{{ titulo_pagina }}</div>
     <div class="nf-hero-sub">
-      {% if notificaciones %}
-        {{ notificaciones|length }} notificación{{ notificaciones|length|pluralize:"es" }} en total
+      {% if total_notificaciones %}
+        {{ total_notificaciones }} notificación{{ total_notificaciones|pluralize:"es" }} en total
       {% else %}
         Todo al día — sin notificaciones pendientes
       {% endif %}
@@ -198,6 +198,27 @@
         <p class="small mt-1" style="color:#b0bec5;">Cuando recibas avisos o sugerencias aparecerán aquí.</p>
       </div>
     {% endfor %}
+    {% if notificaciones.paginator.num_pages > 1 %}
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.8rem 1.2rem;border-top:1px solid #f1f5f9;">
+      <span style="font-size:.78rem;color:#94a3b8;">
+        Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}
+      </span>
+      <div style="display:flex;gap:.4rem;">
+        {% if notificaciones.has_previous %}
+        <a href="?page={{ notificaciones.previous_page_number }}"
+           style="display:inline-flex;align-items:center;gap:.3rem;background:#f1f5f9;color:#475569;text-decoration:none;border-radius:.5rem;padding:.3rem .75rem;font-size:.78rem;font-weight:600;">
+          <i class="bi bi-chevron-left"></i> Más recientes
+        </a>
+        {% endif %}
+        {% if notificaciones.has_next %}
+        <a href="?page={{ notificaciones.next_page_number }}"
+           style="display:inline-flex;align-items:center;gap:.3rem;background:#f1f5f9;color:#475569;text-decoration:none;border-radius:.5rem;padding:.3rem .75rem;font-size:.78rem;font-weight:600;">
+          Más antiguas <i class="bi bi-chevron-right"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

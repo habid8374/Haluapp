@@ -1261,7 +1261,7 @@ def reporte_estadistica_asistencia_diaria(request):
 
         # 2. Contamos los registros de asistencia para la fecha seleccionada
         conteo_estados = RegistroAsistencia.objects.filter(
-            fecha__date=fecha_seleccionada,
+            fecha_solo=fecha_seleccionada,
             institucion=institucion
         ).values('estado').annotate(total=Count('id'))
         

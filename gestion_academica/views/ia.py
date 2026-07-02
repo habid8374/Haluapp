@@ -1467,7 +1467,7 @@ def pasar_lista_view(request, curso_pk):
         registro, created = RegistroAsistencia.objects.get_or_create(
             estudiante=est,
             curso=curso,
-            fecha__date=hoy,
+            fecha_solo=hoy,
             defaults={
                 'estado': 'AUSENTE',
                 'institucion': curso.institucion,

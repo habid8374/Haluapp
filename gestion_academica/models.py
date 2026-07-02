@@ -1178,7 +1178,9 @@ class RegistroAsistencia(models.Model):
 
     estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='asistencias')
     fecha = models.DateTimeField(default=timezone.now)
-    fecha_solo = models.DateField(null=True, blank=True, editable=False)
+    # Fecha calendario (sin hora) para consultas por día: filtrar por fecha_solo
+    # usa índice; filtrar por fecha__date obliga a convertir fila por fila.
+    fecha_solo = models.DateField(null=True, blank=True, editable=False, db_index=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='PRESENTE')
     curso = models.ForeignKey(Curso, on_delete=models.SET_NULL, null=True, blank=True)
     aula = models.ForeignKey('gestion_academica.Aula', on_delete=models.SET_NULL, null=True, blank=True)  # ✅ Nuevo
@@ -1187,6 +1189,10 @@ class RegistroAsistencia(models.Model):
 
     class Meta:
         unique_together = ('estudiante', 'fecha', 'curso')
+        indexes = [
+            # KPIs de asistencia diaria por institución (dashboards y reportes).
+            models.Index(fields=['institucion', 'fecha_solo', 'estado'], name='asistencia_inst_fecha_idx'),
+        ]
 
     def save(self, *args, **kwargs):
         if self.fecha:

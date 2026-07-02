@@ -115,7 +115,7 @@ def api_asistencia_diaria_data(request):
         # Registros de asistencia del día
         registros_dia = RegistroAsistencia.objects.filter(
             estudiante__institucion=user_inst,
-            fecha__date=fecha_consulta
+            fecha_solo=fecha_consulta
         ).select_related('estudiante__usuario', 'estudiante__grado_actual', 'curso__materia')
 
         # Agrupar por grado
@@ -514,7 +514,7 @@ def api_admin_asistencia_diaria(request):
     if not user_inst: return Response({'error': 'Usuario no asociado a una institución.'}, status=400)
 
     hoy = timezone.localdate()
-    registros_hoy = RegistroAsistencia.objects.filter(estudiante__institucion=user_inst, fecha__date=hoy)
+    registros_hoy = RegistroAsistencia.objects.filter(estudiante__institucion=user_inst, fecha_solo=hoy)
     
     total_estudiantes = Estudiante.objects.filter(institucion=user_inst, usuario__is_active=True).count()
     presentes = registros_hoy.filter(estado='PRESENTE').count()

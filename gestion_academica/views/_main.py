@@ -60,6 +60,7 @@ from ..utils import (
     calcular_estado_academico_curso,
     obtener_desempeno,
     analizar_riesgo_academico_curso,
+    analizar_riesgo_academico_en_lote,
     contar_pares_estudiante_curso_en_riesgo_academico,
     ESTADOS_RIESGO_ACADEMICO_CURSO,
     generar_boletin_pdf_en_memoria,
@@ -3494,7 +3495,7 @@ def exportar_asistencia_excel(request, curso_pk):  # 👈 Asegúrate de que URL 
     # Obtiene registros filtrando por curso, fecha e institución
     registros = RegistroAsistencia.objects.filter(
         curso=curso,
-        fecha__date=hoy,
+        fecha_solo=hoy,
         institucion=curso.institucion  # 👈 Garantiza coherencia
     ).select_related('estudiante__usuario')
 
@@ -4448,15 +4449,26 @@ def exportar_reporte_riesgo_view(request):
     if not direccion_grupo:
         return HttpResponse("No eres director de grupo en el periodo activo.", status=403)
 
-    # 2. Calculamos los datos del reporte (misma lógica)
-    estudiantes_del_grupo = Estudiante.objects.filter(grado_actual=direccion_grupo.grado, institucion=docente.institucion)
-    cursos_del_grado = Curso.objects.filter(grado=direccion_grupo.grado, periodo_academico=periodo_activo)
-    
+    # 2. Calculamos los datos del reporte con el análisis EN LOTE (2 consultas
+    #    en total, en vez de 2 por cada par estudiante×curso).
+    estudiantes_del_grupo = list(
+        Estudiante.objects.filter(
+            grado_actual=direccion_grupo.grado, institucion=docente.institucion
+        ).select_related('usuario')
+    )
+    cursos_del_grado = list(
+        Curso.objects.filter(
+            grado=direccion_grupo.grado, periodo_academico=periodo_activo
+        ).select_related('materia', 'institucion')
+    )
+
+    resultados_riesgo = analizar_riesgo_academico_en_lote(estudiantes_del_grupo, cursos_del_grado)
+
     data_para_excel = []
     for estudiante in estudiantes_del_grupo:
         for curso in cursos_del_grado:
-            resultado_riesgo = analizar_riesgo_academico_curso(curso, estudiante)
-            if resultado_riesgo['estado'] in ESTADOS_RIESGO_ACADEMICO_CURSO:
+            resultado_riesgo = resultados_riesgo.get((estudiante.pk, curso.pk))
+            if resultado_riesgo and resultado_riesgo['estado'] in ESTADOS_RIESGO_ACADEMICO_CURSO:
                 data_para_excel.append({
                     'Estudiante': estudiante.usuario.get_full_name(),
                     'Materia en Riesgo': curso.materia.nombre_materia,
@@ -4523,12 +4535,19 @@ def detalle_riesgo_estudiante_view(request, estudiante_pk):
         messages.error(request, "Acceso denegado o datos no válidos.")
         return redirect('gestion_academica:reporte_riesgo_academico')
 
-    cursos_del_grado = Curso.objects.filter(grado=direccion_grupo.grado, periodo_academico=periodo_activo)
-    
+    cursos_del_grado = list(
+        Curso.objects.filter(
+            grado=direccion_grupo.grado, periodo_academico=periodo_activo
+        ).select_related('materia', 'institucion')
+    )
+
+    # Análisis en lote: 2 consultas totales en vez de 2 por curso.
+    resultados_riesgo = analizar_riesgo_academico_en_lote([estudiante], cursos_del_grado)
+
     alertas_riesgo = []
     for curso in cursos_del_grado:
-        resultado_riesgo = analizar_riesgo_academico_curso(curso, estudiante)
-        if resultado_riesgo['estado'] in ESTADOS_RIESGO_ACADEMICO_CURSO:
+        resultado_riesgo = resultados_riesgo.get((estudiante.pk, curso.pk))
+        if resultado_riesgo and resultado_riesgo['estado'] in ESTADOS_RIESGO_ACADEMICO_CURSO:
             alertas_riesgo.append({
                 'estudiante': estudiante,
                 'curso': curso,
@@ -6608,7 +6627,7 @@ def dashboard_coordinador_view(request):
         cantidad_convivencia = AnotacionObservador.objects.filter(estudiante__institucion=user_inst).exclude(Q(tipo_situacion_ia='NINGUNO') | Q(tipo_situacion_ia__isnull=True)).count()
         
         total_estudiantes_activos = Estudiante.objects.filter(institucion=user_inst, activo=True).count()
-        presentes_hoy = RegistroAsistencia.objects.filter(institucion=user_inst, fecha__date=timezone.now().date(), estado='PRESENTE', curso__isnull=True).values('estudiante').distinct().count()
+        presentes_hoy = RegistroAsistencia.objects.filter(institucion=user_inst, fecha_solo=timezone.localdate(), estado='PRESENTE', curso__isnull=True).values('estudiante').distinct().count()
         if total_estudiantes_activos > 0:
             porcentaje_asistencia_hoy = round((presentes_hoy / total_estudiantes_activos) * 100)
         
@@ -6719,20 +6738,29 @@ def get_cursos_por_grado_partial(request, grado_id):
 @login_required
 def lista_notificaciones_view(request):
     """
-    Muestra todas las notificaciones del usuario y las marca como leídas.
+    Muestra las notificaciones del usuario paginadas y las marca como leídas.
+    Sin paginación, la bandeja cargaba TODO el historial (crece sin límite y
+    con el tiempo hacía lenta una pantalla de uso diario).
     """
-    # Buscamos todas las notificaciones para el usuario logueado, de la más nueva a la más antigua.
-    notificaciones = Notificacion.objects.filter(destinatario=request.user).order_by('-fecha_creacion')
-    
-    # Marcamos todas las notificaciones no leídas como leídas.
-    # El método .update() es muy eficiente para actualizar muchos objetos a la vez.
-    notificaciones.filter(leido=False).update(leido=True, fecha_leido=timezone.now())
-    
+    from django.core.paginator import Paginator
+
+    notificaciones_qs = Notificacion.objects.filter(
+        destinatario=request.user
+    ).order_by('-fecha_creacion')
+
+    # Marcamos todas las no leídas como leídas (comportamiento de siempre:
+    # entrar a la bandeja limpia el contador de la campana).
+    notificaciones_qs.filter(leido=False).update(leido=True, fecha_leido=timezone.now())
+
+    paginador = Paginator(notificaciones_qs, 25)
+    pagina = paginador.get_page(request.GET.get('page'))
+
     context = {
         'titulo_pagina': "Mis Notificaciones",
-        'notificaciones': notificaciones
+        'notificaciones': pagina,           # objeto Page: se itera igual en la plantilla
+        'total_notificaciones': paginador.count,
     }
-    
+
     return render(request, 'gestion_academica/notificaciones_lista.html', context)        
 
 def dashboard_bienestar_view(request):
@@ -8679,7 +8707,7 @@ def api_dashboard_coordinador_data(request):
         hoy = timezone.localdate()
         registros_hoy = RegistroAsistencia.objects.filter(
             estudiante__institucion=user_inst,
-            fecha__date=hoy
+            fecha_solo=hoy
         ) if user_inst else RegistroAsistencia.objects.none()
         
         presentes = registros_hoy.filter(estado='PRESENTE').count()
@@ -8809,7 +8837,7 @@ def api_asistencia_diaria_data(request):
         # Registros de asistencia del día
         registros_dia = RegistroAsistencia.objects.filter(
             estudiante__institucion=user_inst,
-            fecha__date=fecha_consulta
+            fecha_solo=fecha_consulta
         ).select_related('estudiante__usuario', 'estudiante__grado_actual', 'curso__materia')
 
         # Agrupar por grado
@@ -9207,7 +9235,7 @@ def api_admin_asistencia_diaria(request):
     if not user_inst: return Response({'error': 'Usuario no asociado a una institución.'}, status=400)
 
     hoy = timezone.localdate()
-    registros_hoy = RegistroAsistencia.objects.filter(estudiante__institucion=user_inst, fecha__date=hoy)
+    registros_hoy = RegistroAsistencia.objects.filter(estudiante__institucion=user_inst, fecha_solo=hoy)
     
     total_estudiantes = Estudiante.objects.filter(institucion=user_inst, usuario__is_active=True).count()
     presentes = registros_hoy.filter(estado='PRESENTE').count()
@@ -9278,7 +9306,7 @@ def api_admin_asistencia_diaria(request):
     if not user_inst: return Response({'error': 'Usuario no asociado a una institución.'}, status=400)
     
     hoy = timezone.localdate()
-    registros_hoy = RegistroAsistencia.objects.filter(estudiante__institucion=user_inst, fecha__date=hoy)
+    registros_hoy = RegistroAsistencia.objects.filter(estudiante__institucion=user_inst, fecha_solo=hoy)
     total_estudiantes = Estudiante.objects.filter(institucion=user_inst, usuario__is_active=True).count()
     presentes = registros_hoy.filter(estado='PRESENTE').count()
     
@@ -12556,7 +12584,7 @@ def reporte_estadistica_asistencia_diaria(request):
         #    Contamos estudiantes DISTINTOS por estado: un alumno presente puede
         #    tener varias filas (una por curso del día) y no debe inflar el total.
         conteo_estados = RegistroAsistencia.objects.filter(
-            fecha__date=fecha_seleccionada,
+            fecha_solo=fecha_seleccionada,
             institucion=institucion
         ).values('estado').annotate(total=Count('estudiante', distinct=True))
         
@@ -13367,7 +13395,7 @@ def pasar_lista_view(request, curso_pk):
         registro, created = RegistroAsistencia.objects.get_or_create(
             estudiante=est,
             curso=curso,
-            fecha__date=hoy,
+            fecha_solo=hoy,
             defaults={
                 'estado': 'AUSENTE',
                 'institucion': curso.institucion,

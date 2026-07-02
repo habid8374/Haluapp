@@ -179,7 +179,7 @@ def crear_registros_asistencia_por_clase(sender, instance, created, **kwargs):
             RegistroAsistencia.objects.filter(
                 estudiante=estudiante,
                 curso__in=cursos_del_dia,
-                fecha__date=fecha_dia,
+                fecha_solo=fecha_dia,
             ).values_list('curso_id', flat=True)
         )
         faltantes = [c for c in cursos_del_dia if c.pk not in ya_registrados]
@@ -400,7 +400,7 @@ def _connect_pago_signal():
 
         pago_pk = instance.pk
         transaction.on_commit(
-            lambda pk=pago_pk: notificar_pago_recibido.delay(pk)
+            lambda pk=pago_pk: _delay_seguro(notificar_pago_recibido, pk)
         )
 
     # weak=False: el receptor es una función local; sin esto el recolector
@@ -445,7 +445,7 @@ def enviar_correo_inasistencia(sender, instance, created, **kwargs):
 
     registro_pk = instance.pk
     transaction.on_commit(
-        lambda pk=registro_pk: notificar_inasistencia.delay(pk)
+        lambda pk=registro_pk: _delay_seguro(notificar_inasistencia, pk)
     )
 
 
@@ -540,7 +540,7 @@ def notificar_familiares_nuevo_deber(sender, instance, created, **kwargs):
         # Notificación in-app + WebSocket
         _notificar_familiares_nueva_tarea(curso_pk, inst_pk, titulo, "deber", fecha_str)
         # Correo por Celery
-        notificar_nueva_tarea_familiares.delay(curso_pk, inst_pk, titulo, "deber", fecha_str)
+        _delay_seguro(notificar_nueva_tarea_familiares, curso_pk, inst_pk, titulo, "deber", fecha_str)
 
     transaction.on_commit(_on_commit)
 
@@ -564,6 +564,6 @@ def notificar_familiares_nueva_actividad(sender, instance, created, **kwargs):
         # Notificación in-app + WebSocket
         _notificar_familiares_nueva_tarea(curso_pk, inst_pk, titulo, "actividad", fecha_str)
         # Correo por Celery
-        notificar_nueva_tarea_familiares.delay(curso_pk, inst_pk, titulo, "actividad", fecha_str)
+        _delay_seguro(notificar_nueva_tarea_familiares, curso_pk, inst_pk, titulo, "actividad", fecha_str)
 
     transaction.on_commit(_on_commit)

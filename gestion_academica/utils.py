@@ -168,23 +168,90 @@ def analizar_riesgo_academico_curso(curso, estudiante):
 ESTADOS_RIESGO_ACADEMICO_CURSO = frozenset({"En Riesgo", "Situación Crítica"})
 
 
+def analizar_riesgo_academico_en_lote(estudiantes_qs, cursos_qs):
+    """
+    Versión EN LOTE de ``analizar_riesgo_academico_curso``: calcula el estado de
+    riesgo de todos los pares (estudiante, curso) con 2 consultas en total, en
+    lugar de 2 consultas por par (con 40 alumnos × 12 materias eran ~960
+    consultas por carga del dashboard del director de grupo).
+
+    Replica exactamente la misma lógica de negocio (categorías con porcentaje,
+    promedio por categoría, nota requerida sobre el porcentaje restante).
+
+    Devuelve: dict {(estudiante_id, curso_id): {'estado': str, 'nota_requerida': Decimal|None}}
+    """
+    if hasattr(cursos_qs, 'select_related'):
+        cursos = list(cursos_qs.select_related('institucion'))
+    else:
+        cursos = list(cursos_qs)
+    if hasattr(estudiantes_qs, 'values_list'):
+        estudiante_ids = list(estudiantes_qs.values_list('pk', flat=True))
+    else:
+        estudiante_ids = [e.pk for e in estudiantes_qs]
+
+    if not cursos or not estudiante_ids:
+        return {}
+
+    curso_ids = [c.pk for c in cursos]
+
+    # Consulta 1: todas las actividades (con su categoría) de todos los cursos.
+    categorias_por_curso = defaultdict(lambda: defaultdict(list))  # curso_id -> categoria -> [act_id]
+    for act in ActividadCalificable.objects.filter(
+        curso_id__in=curso_ids
+    ).select_related('tipo_actividad'):
+        if act.tipo_actividad and act.tipo_actividad.porcentaje is not None:
+            categorias_por_curso[act.curso_id][act.tipo_actividad].append(act.id)
+
+    # Consulta 2: todas las calificaciones numéricas de todos los pares.
+    notas = {}  # (estudiante_id, actividad_id) -> valor
+    for est_id, act_id, valor in Calificacion.objects.filter(
+        estudiante_id__in=estudiante_ids,
+        actividad_calificable__curso_id__in=curso_ids,
+        valor_numerico__isnull=False,
+    ).values_list('estudiante_id', 'actividad_calificable_id', 'valor_numerico'):
+        notas[(est_id, act_id)] = valor
+
+    resultados = {}
+    for curso in cursos:
+        NOTA_OBJETIVO = getattr(curso.institucion, 'nota_minima_aprobacion', Decimal('3.0'))
+        categorias = categorias_por_curso.get(curso.pk, {})
+        for est_id in estudiante_ids:
+            puntos_acumulados = Decimal('0.0')
+            porcentaje_evaluado = Decimal('0.0')
+            for categoria, act_ids in categorias.items():
+                notas_categoria = [notas[(est_id, a)] for a in act_ids if (est_id, a) in notas]
+                if notas_categoria:
+                    promedio = sum(notas_categoria) / len(notas_categoria)
+                    puntos_acumulados += promedio * (categoria.porcentaje / Decimal('100.0'))
+                    porcentaje_evaluado += categoria.porcentaje
+
+            porcentaje_restante = Decimal('100.0') - porcentaje_evaluado
+            resultado = {'estado': 'OK', 'nota_requerida': None}
+            if porcentaje_restante <= Decimal('0.01'):
+                resultado['estado'] = "Aprobado" if puntos_acumulados >= NOTA_OBJETIVO else "Reprobado"
+            else:
+                puntos_necesarios = NOTA_OBJETIVO - puntos_acumulados
+                if puntos_necesarios > 0:
+                    nota_requerida = (puntos_necesarios * Decimal('100.0')) / porcentaje_restante
+                    resultado['nota_requerida'] = nota_requerida
+                    if nota_requerida > 5.0:
+                        resultado['estado'] = "Situación Crítica"
+                    elif nota_requerida >= NOTA_OBJETIVO:
+                        resultado['estado'] = "En Riesgo"
+            resultados[(est_id, curso.pk)] = resultado
+    return resultados
+
+
 def contar_pares_estudiante_curso_en_riesgo_academico(estudiantes_qs, cursos_qs):
     """
-    Cuenta pares (estudiante, curso) donde ``analizar_riesgo_academico_curso`` indica
-    riesgo inmediato. Misma regla en vista web y API del docente.
-
-    Materializa ``cursos_qs`` una vez y usa ``iterator`` en estudiantes para limitar memoria.
+    Cuenta pares (estudiante, curso) en riesgo inmediato. Misma regla en vista
+    web y API del docente. Usa la versión en lote (2 consultas totales).
     """
-    cursos = list(cursos_qs)
-    if not cursos:
-        return 0
-    total = 0
-    for estudiante in estudiantes_qs.iterator(chunk_size=200):
-        for curso in cursos:
-            estado = analizar_riesgo_academico_curso(curso, estudiante)["estado"]
-            if estado in ESTADOS_RIESGO_ACADEMICO_CURSO:
-                total += 1
-    return total
+    resultados = analizar_riesgo_academico_en_lote(estudiantes_qs, cursos_qs)
+    return sum(
+        1 for r in resultados.values()
+        if r['estado'] in ESTADOS_RIESGO_ACADEMICO_CURSO
+    )
 
 
 def obtener_desempeno(nota, institucion):
@@ -442,7 +509,7 @@ def get_absent_students_by_grade(nombre_grado: str, institucion_id: int) -> str:
         grado = Grado.objects.get(nombre__iexact=nombre_grado, institucion_id=institucion_id)
         
         estudiantes_ausentes_ids = RegistroAsistencia.objects.filter(
-            fecha__date=hoy,
+            fecha_solo=hoy,
             estudiante__grado_actual=grado,
             estado='AUSENTE'
         ).values_list('estudiante_id', flat=True)
