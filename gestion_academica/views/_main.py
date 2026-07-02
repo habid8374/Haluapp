@@ -2412,9 +2412,13 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
 
     # 3. Verifica los permisos de acceso al boletín
     es_el_mismo_estudiante = (request.user.pk == estudiante_actual.usuario.pk)
-    es_staff = request.user.is_staff
+    # A01: is_staff por sí solo NO es frontera de institución; exigir misma institución.
+    es_staff = request.user.is_staff and (
+        request.user.is_superuser
+        or getattr(request.user, 'institucion_asociada_id', None) == estudiante_actual.institucion_id
+    )
     es_familiar = hasattr(request.user, 'familiar') and request.user.familiar.estudiantes_asociados.filter(pk=estudiante_pk).exists()
-    
+
     if not (es_el_mismo_estudiante or es_staff or es_familiar):
         messages.error(request, "No tienes permiso para ver este boletín.")
         return redirect('gestion_academica:inicio_academico') # Ajusta esta URL si es necesario
@@ -5083,8 +5087,9 @@ def generar_mencion_pdf(request, mencion_pk):
     Genera un certificado en PDF para una mención de honor específica.
     """
     try:
-        # Obtenemos la mención con todos los datos relacionados para optimizar
-        mencion = MencionReconocimiento.objects.select_related(
+        # A01: acotar por institución del usuario (get_filtered_queryset respeta
+        # superusuario). Evita que un staff de otra institución la lea por pk.
+        mencion = get_filtered_queryset(MencionReconocimiento, request.user).select_related(
             'estudiante__usuario',
             'otorgado_por__usuario',
             'institucion'
@@ -7411,7 +7416,8 @@ def seleccionar_estudiante_certificado_view(request):
 @permission_required('gestion_academica.view_estudiante')
 def generar_certificado_estudios_view(request, estudiante_pk):
     try:
-        estudiante = Estudiante.objects.select_related(
+        # A01: el permiso Django es global; acotar por institución del usuario.
+        estudiante = get_filtered_queryset(Estudiante, request.user).select_related(
             'usuario', 'grado_actual', 'institucion'
         ).get(pk=estudiante_pk)
     except Estudiante.DoesNotExist:
@@ -7477,7 +7483,10 @@ def normalizar(texto):
 @permission_required('gestion_academica.view_estudiante')
 def generar_constancia_matricula_view(request, estudiante_pk):
     try:
-        estudiante = Estudiante.objects.select_related('usuario', 'grado_actual', 'institucion').get(pk=estudiante_pk)
+        # A01: el permiso Django es global; acotar por institución del usuario.
+        estudiante = get_filtered_queryset(Estudiante, request.user).select_related(
+            'usuario', 'grado_actual', 'institucion'
+        ).get(pk=estudiante_pk)
     except Estudiante.DoesNotExist:
         return HttpResponse("Estudiante no encontrado.", status=404)
 
@@ -7621,9 +7630,13 @@ def promocion_anual_view(request):
             return redirect(request.path_info)
 
         estudiantes_promovidos = 0
+        # A01 (IDOR): los pks vienen crudos del POST. Restringir a la institución
+        # del usuario evita promover/crear cuentas de cobro a estudiantes ajenos.
+        estudiantes_a_promover = get_filtered_queryset(Estudiante, request.user).filter(
+            pk__in=estudiantes_a_promover_ids
+        )
         with transaction.atomic():
-            for est_id in estudiantes_a_promover_ids:
-                estudiante = Estudiante.objects.get(pk=est_id)
+            for estudiante in estudiantes_a_promover:
                 if estudiante.grado_actual and estudiante.grado_actual.siguiente_grado:
                     estudiante.grado_actual = estudiante.grado_actual.siguiente_grado
                     estudiante.save(update_fields=['grado_actual'])
