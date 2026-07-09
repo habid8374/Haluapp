@@ -1,7 +1,5 @@
 {% load static %}
-{# Banner de instalación de la PWA. Se muestra solo si el navegador considera
-   la app instalable (Chrome/Edge/Android) o en Safari de iPhone con una
-   instrucción manual. Es descartable y recuerda la decisión del usuario. #}
+{% comment %}Banner de instalación de la PWA: se muestra solo si el navegador considera la app instalable (Chrome/Edge/Android) o en Safari de iPhone con instrucción manual. Es descartable y recuerda la decisión del usuario.{% endcomment %}
 <div id="halu-pwa-install" class="halu-pwa-install" role="dialog" aria-live="polite" hidden>
   <img class="halu-pwa-ico" src="{% static 'images/icon-192.png' %}" alt="Halu" width="44" height="44">
   <div class="halu-pwa-txt">
