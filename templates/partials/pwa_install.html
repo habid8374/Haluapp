@@ -1,0 +1,103 @@
+{% load static %}
+{# Banner de instalación de la PWA. Se muestra solo si el navegador considera
+   la app instalable (Chrome/Edge/Android) o en Safari de iPhone con una
+   instrucción manual. Es descartable y recuerda la decisión del usuario. #}
+<div id="halu-pwa-install" class="halu-pwa-install" role="dialog" aria-live="polite" hidden>
+  <img class="halu-pwa-ico" src="{% static 'images/icon-192.png' %}" alt="Halu" width="44" height="44">
+  <div class="halu-pwa-txt">
+    <strong>Instala Halu en tu dispositivo</strong>
+    <span class="halu-pwa-sub">Acceso directo desde tu pantalla de inicio, como una app.</span>
+    <span class="halu-pwa-ios" hidden>Toca <b>Compartir</b> y luego <b>“Añadir a pantalla de inicio”</b>.</span>
+  </div>
+  <div class="halu-pwa-actions">
+    <button type="button" id="halu-pwa-btn" class="halu-pwa-btn">Instalar</button>
+    <button type="button" id="halu-pwa-close" class="halu-pwa-close" aria-label="Cerrar">&times;</button>
+  </div>
+</div>
+
+<style>
+.halu-pwa-install{
+  position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%) translateY(20px);
+  z-index: 2147483000; display: flex; align-items: center; gap: .8rem;
+  width: calc(100% - 24px); max-width: 460px;
+  background: #ffffff; color: #0f172a;
+  border: 1px solid #e2e8f0; border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(15,23,42,.18);
+  padding: .8rem .9rem; opacity: 0; transition: opacity .25s ease, transform .25s ease;
+  font-family: inherit;
+}
+.halu-pwa-install.is-visible{ opacity: 1; transform: translateX(-50%) translateY(0); }
+.halu-pwa-ico{ border-radius: 10px; flex-shrink: 0; }
+.halu-pwa-txt{ flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.halu-pwa-txt strong{ font-size: .92rem; color: #1e3a8a; }
+.halu-pwa-sub, .halu-pwa-ios{ font-size: .8rem; color: #475569; }
+.halu-pwa-actions{ display: flex; align-items: center; gap: .35rem; flex-shrink: 0; }
+.halu-pwa-btn{
+  background: #1e3a8a; color: #fff; border: none; border-radius: 9px;
+  padding: .5rem .95rem; font-size: .85rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap;
+}
+.halu-pwa-btn:hover{ background: #17306e; }
+.halu-pwa-close{
+  background: transparent; border: none; color: #94a3b8; font-size: 1.4rem;
+  line-height: 1; cursor: pointer; padding: 0 .25rem;
+}
+.halu-pwa-close:hover{ color: #475569; }
+</style>
+
+<script>
+(function () {
+  var KEY = 'halu_pwa_dismissed_v1';
+  var banner = document.getElementById('halu-pwa-install');
+  if (!banner) return;
+  var btn = document.getElementById('halu-pwa-btn');
+  var closeBtn = document.getElementById('halu-pwa-close');
+  var iosHint = banner.querySelector('.halu-pwa-ios');
+  var sub = banner.querySelector('.halu-pwa-sub');
+  var deferred = null;
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+  function dismissed() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
+  function remember() { try { localStorage.setItem(KEY, '1'); } catch (e) {} }
+  function show() { banner.hidden = false; setTimeout(function () { banner.classList.add('is-visible'); }, 50); }
+  function hide() { banner.classList.remove('is-visible'); setTimeout(function () { banner.hidden = true; }, 260); }
+
+  // No molestar si ya está instalada o si el usuario cerró el aviso antes.
+  if (isStandalone() || dismissed()) return;
+
+  // Chrome / Edge / Android: capturamos el evento y mostramos nuestro botón.
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferred = e;
+    if (iosHint) iosHint.hidden = true;
+    if (sub) sub.hidden = false;
+    btn.style.display = '';
+    show();
+  });
+
+  btn.addEventListener('click', function () {
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then(function (choice) {
+      if (choice && choice.outcome === 'accepted') { remember(); hide(); }
+      deferred = null;
+    });
+  });
+
+  closeBtn.addEventListener('click', function () { remember(); hide(); });
+  window.addEventListener('appinstalled', function () { remember(); hide(); });
+
+  // iPhone/iPad con Safari: no existe botón automático -> mostramos la instrucción.
+  var ua = window.navigator.userAgent.toLowerCase();
+  var isIOS = /iphone|ipad|ipod/.test(ua);
+  var isSafari = /safari/.test(ua) && !/crios|fxios|android/.test(ua);
+  if (isIOS && isSafari) {
+    btn.style.display = 'none';
+    if (sub) sub.hidden = true;
+    if (iosHint) iosHint.hidden = false;
+    show();
+  }
+})();
+</script>
