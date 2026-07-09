@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)
     'django_ratelimit',
     'corsheaders',  # Para permitir CORS desde la app móvil
+    'pwa',  # PWA: manifest + service worker (instalable como app)
     'import_export',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -333,6 +334,32 @@ STATICFILES_DIRS = [
 
 # La RUTA ABSOLUTA donde collectstatic recolectará todos los archivos estáticos para producción.
 STATIC_ROOT = BASE_DIR / 'staticfiles_collected' # Usando pathlib.Path
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  PWA — Aplicación Web Progresiva (django-pwa)
+#  Genera el manifest y el service worker para que Halu sea instalable como app
+#  desde el navegador. Los iconos reales viven en static/images/ y se sirven
+#  desde /static/images/. El manifest y el service worker los sirve pwa.urls.
+# ─────────────────────────────────────────────────────────────────────────────
+PWA_APP_NAME             = 'Halu Plataforma Escolar'
+PWA_APP_SHORT_NAME       = 'Halu'   # nombre corto (se aplica vía templates/manifest.json)
+PWA_APP_DESCRIPTION      = 'Plataforma de gestión académica, financiera y de admisiones.'
+PWA_APP_THEME_COLOR      = '#1e3a8a'   # azul oscuro (barra de la app)
+PWA_APP_BACKGROUND_COLOR = '#ffffff'   # fondo del splash de arranque
+PWA_APP_DISPLAY          = 'standalone'  # se abre como app, sin barra del navegador
+PWA_APP_SCOPE            = '/'
+PWA_APP_ORIENTATION      = 'any'
+PWA_APP_START_URL        = '/accounts/login/'
+PWA_APP_STATUS_BAR_COLOR = 'default'
+PWA_APP_DIR              = 'ltr'
+PWA_APP_LANG             = 'es-CO'
+PWA_APP_ICONS = [
+    {'src': '/static/images/icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any maskable'},
+    {'src': '/static/images/icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any maskable'},
+]
+PWA_APP_ICONS_APPLE = [
+    {'src': '/static/images/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
+]
 
 # --- CONFIGURACIÓN DE ARCHIVOS MEDIA ---
 # Si se configuran variables S3/R2, usa almacenamiento en la nube (necesario en

@@ -46,6 +46,9 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     # ======================================================= #
 
+    # PWA: sirve /manifest.json, /serviceworker.js y /offline/ desde la raíz.
+    path('', include('pwa.urls')),
+
     path('accounts/', include('allauth.urls')),
     path('elearning/', include('elearning.urls')),
     re_path(

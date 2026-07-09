@@ -1,9 +1,11 @@
 {% load static %}
+{% load pwa %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% progressive_web_app_meta %}  {# PWA: manifest + theme-color + iconos apple #}
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <title>{% block titulo %}{{ branding.NOMBRE|default:"Plataforma Escolar" }}{% endblock %}</title>
     <!-- Open Graph / vista previa al compartir (WhatsApp, Facebook, etc.) -->
