@@ -70,3 +70,27 @@ duplicar tareas.
 Los puntos de Fase B (Daphne multi-worker, PgBouncer, HA de PostgreSQL) son justo
 lo que un escalón tipo **Render** ofrece de forma más limpia que Railway. Ver la
 propuesta de infraestructura para 500–1.000 estudiantes.
+
+## Plan a ~3 meses: migración a DigitalOcean + Fase B
+
+Decisión (fecha del commit): cuando llegue el momento de escalar, migrar a
+**DigitalOcean** y hacer allí la Fase B. Notas para ese día:
+
+- **Cómputo:** App Platform (PaaS, trae balanceador + réplicas, similar a
+  Railway) o Droplets + Managed Databases (más control). El multi-worker web
+  (Gunicorn + workers uvicorn) es un cambio de Dockerfile, ya contemplado.
+- **PostgreSQL gestionado de DO → incluye PgBouncer (connection pooling).**
+  Resuelve nativamente el pendiente de pooling de la Fase B; solo apuntar
+  `DB_HOST`/puerto al pool.
+- **Redis gestionado de DO** (o Valkey) para caché, sesiones (`cached_db`),
+  rate-limit y channel layer. Solo repuntar `REDIS_URL` / `CELERY_BROKER_URL`.
+- **Almacenamiento:** se puede **conservar Cloudflare R2** (funciona desde
+  cualquier nube; no hay que migrar archivos). Alternativa: DO Spaces.
+- **Candados a resolver en la migración (ya documentados arriba):**
+  1) sacar `migrate` del arranque por-instancia (paso único de release),
+  2) confirmar media en R2/Spaces (no disco local),
+  3) separar Celery Beat del worker (`railway.beat.json` sirve de molde),
+  4) apuntar el balanceador y subir réplicas del web.
+- **Datos:** `pg_dump` de PostgreSQL → restaurar en el Managed DB de DO;
+  Redis es efímero (no requiere migración de datos); mover variables de entorno
+  y DNS al final.
