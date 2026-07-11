@@ -10492,18 +10492,23 @@ def proceso_graduacion_view(request):
     )
 
     if request.method == 'POST':
-        # --- LÓGICA ASÍNCRONA (RECOMENDADO PARA PRODUCCIÓN) ---
-        # iniciar_proceso_graduacion_task.delay(institucion.id, ultimo_grado.id)
-        # messages.success(request, "El proceso de graduación ha comenzado. Recibirás una notificación cuando termine.")
-        
-        # --- LÓGICA SÍNCRONA (PARA PROBAR AHORA CON POCOS ESTUDIANTES) ---
-        # Advertencia: Esto puede causar un 'timeout' si hay muchos estudiantes.
-        try:
-            graduar_estudiantes(institucion.id, ultimo_grado.id)
-            messages.success(request, f"Proceso completado. Se han graduado {estudiantes_a_graduar.count()} estudiantes.")
-        except Exception as e:
-            messages.error(request, f"Ocurrió un error durante el proceso: {e}")
-        
+        # Proceso pesado (genera un boletín PDF por egresado y lo archiva).
+        # Se ejecuta en SEGUNDO PLANO con Celery para no bloquear la petición
+        # ni arriesgar timeout con grados grandes. El usuario recibe una
+        # notificación cuando termina. (transaction.on_commit ya viene del
+        # import de módulo; NO importar transaction localmente aquí.)
+        from ..signals import _delay_seguro
+        from ..tasks import iniciar_proceso_graduacion_task
+        _n = estudiantes_a_graduar.count()
+        _inst_id, _grado_id, _user_id = institucion.id, ultimo_grado.id, request.user.pk
+        transaction.on_commit(
+            lambda: _delay_seguro(iniciar_proceso_graduacion_task, _inst_id, _grado_id, _user_id)
+        )
+        messages.success(
+            request,
+            f"El proceso de graduación de {_n} estudiante(s) ha comenzado en segundo plano. "
+            "Recibirás una notificación cuando termine y los boletines finales queden archivados."
+        )
         return redirect('gestion_academica:proceso_graduacion')
 
     context = {

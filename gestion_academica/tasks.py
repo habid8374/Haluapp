@@ -1230,3 +1230,43 @@ def analizar_observacion_convivencia_task(anotacion_id):
             _crear_caso_convivencia(anotacion, tipo_situacion, ai_data)
     except Exception as e:
         logger.error("ERROR en análisis de convivencia (task) para anotación %s: %s", anotacion_id, e, exc_info=True)
+
+
+@shared_task
+def iniciar_proceso_graduacion_task(institucion_id, ultimo_grado_id, solicitado_por_id=None):
+    """Ejecuta el proceso de graduación anual en segundo plano.
+
+    Genera un boletín PDF por cada egresado y lo archiva (ArchivoHistorico).
+    Antes corría síncrono en el request y podía dar timeout con grados grandes;
+    ahora va por Celery. Reutiliza la lógica existente sin cambiarla.
+    Notifica al usuario que lo solicitó cuando termina (o si falla).
+    """
+    from finanzas.models import InstitucionEducativa
+
+    def _avisar(mensaje):
+        if not solicitado_por_id:
+            return
+        try:
+            inst = InstitucionEducativa.objects.filter(pk=institucion_id).first()
+            Notificacion.objects.create(
+                destinatario_id=solicitado_por_id,
+                mensaje=mensaje,
+                enlace=reverse('gestion_academica:proceso_graduacion'),
+                institucion=inst,
+            )
+        except Exception:
+            logger.exception("No se pudo crear la notificación de graduación (usuario %s).", solicitado_por_id)
+
+    try:
+        # Import diferido para evitar import circular (views importa tasks).
+        from gestion_academica.views._main import graduar_estudiantes
+        graduar_estudiantes(institucion_id, ultimo_grado_id)
+        _avisar("El proceso de graduación anual terminó. Los boletines finales de los egresados ya quedaron archivados.")
+        return f"Graduación completada (institución {institucion_id}, grado {ultimo_grado_id})."
+    except Exception as exc:
+        logger.error(
+            "Error en proceso de graduación (institución %s, grado %s): %s",
+            institucion_id, ultimo_grado_id, exc, exc_info=True,
+        )
+        _avisar(f"El proceso de graduación no se pudo completar: {exc}. Revisa e intenta de nuevo, o contacta a soporte.")
+        raise
