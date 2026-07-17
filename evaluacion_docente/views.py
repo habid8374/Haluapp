@@ -226,7 +226,12 @@ def resultados_docente(request, campana_pk, docente_pk):
         })
 
     from gestion_academica.models import Docente
-    docente = get_object_or_404(Docente.objects.select_related('usuario'), pk=docente_pk)
+    # Aislamiento multi-institución: el docente debe pertenecer a la misma
+    # institución de la campaña (evita fuga de nombres cross-tenant vía URL).
+    docente = get_object_or_404(
+        Docente.objects.select_related('usuario'),
+        pk=docente_pk, institucion=campana.institucion,
+    )
     global_prom = respuestas.aggregate(p=Avg('valoraciones__valor'))['p']
 
     return render(request, 'evaluacion_docente/resultados_docente.html', {
@@ -346,7 +351,9 @@ def evaluar(request, campana_pk, docente_pk, curso_pk, estudiante_pk):
                         campana=campana, institucion=campana.institucion,
                         docente=docente, curso=curso, estudiante=estudiante, familiar=familiar,
                         anonimo=(request.POST.get('anonimo') == 'on'),
-                        comentario=(request.POST.get('comentario') or '').strip(),
+                        # Acotamos el comentario en el servidor (defensa A04): el
+                        # cliente puede omitir el maxlength del textarea.
+                        comentario=(request.POST.get('comentario') or '').strip()[:2000],
                     )
                     ValoracionCriterio.objects.bulk_create([
                         ValoracionCriterio(respuesta=resp, criterio_id=cid, valor=val)
