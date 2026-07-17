@@ -1,0 +1,46 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+  <div>
+    <h2 style="color:#fff;" class="mb-1"><i class="bi bi-person-badge"></i> {{ docente.usuario.get_full_name|default:docente.usuario.username }}</h2>
+    <p style="color:#fff;" class="mb-0">{{ campana.titulo }} · {{ total_respuestas }} respuesta(s) · Promedio global:
+      <b>{{ promedio_global|floatformat:2|default:"—" }}</b> / 5</p>
+  </div>
+  <a href="{% url 'evaluacion_docente:campana_resultados' campana.pk %}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> Volver</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card h-100" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+      <div class="card-body">
+        <h6 class="fw-800 mb-3">Promedio por criterio</h6>
+        {% for c in por_criterio %}
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="font-size:.9rem;">{{ c.criterio__texto }}</span>
+            <span class="badge {% if c.promedio >= 4 %}bg-success{% elif c.promedio >= 3 %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ c.promedio|floatformat:2 }}</span>
+          </div>
+          <div class="progress mb-3" style="height:6px;"><div class="progress-bar" style="width:{% widthratio c.promedio 5 100 %}%;background:#7c3aed;"></div></div>
+        {% empty %}
+          <p class="text-muted mb-0">Sin datos.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+      <div class="card-body">
+        <h6 class="fw-800 mb-3">Comentarios de las familias</h6>
+        {% for com in comentarios %}
+          <div class="mb-3 pb-2 border-bottom">
+            <p class="mb-1" style="font-size:.9rem;">"{{ com.texto }}"</p>
+            <small class="text-muted"><i class="bi bi-person-circle me-1"></i>{{ com.autor }} · {{ com.fecha|date:"d/m/Y" }}</small>
+          </div>
+        {% empty %}
+          <p class="text-muted mb-0">No hay comentarios escritos.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

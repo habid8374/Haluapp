@@ -1,0 +1,45 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #0d3b66 0%, #1d4ed8 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem;">
+  <h2 style="color:#fff;"><i class="bi bi-star"></i> {{ titulo_pagina }}</h2>
+  <p style="color:#fff;">Tu opinión ayuda a mejorar. Evalúa a los docentes de tu(s) hijo(s). Puedes hacerlo de forma anónima si lo prefieres.</p>
+</div>
+
+{% for b in bloques %}
+  <div class="card mb-4" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center" style="border-radius:14px 14px 0 0;">
+      <h5 class="fw-800 mb-0">{{ b.campana.titulo }}</h5>
+      {% if b.pendientes %}<span class="badge bg-warning text-dark">{{ b.pendientes }} pendiente(s)</span>{% else %}<span class="badge bg-success">¡Todo listo!</span>{% endif %}
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light"><tr><th class="ps-3">Docente</th><th>Materia</th><th>Estudiante</th><th class="text-end pe-3"></th></tr></thead>
+          <tbody>
+          {% for it in b.items %}
+            <tr>
+              <td class="ps-3 fw-700">{{ it.docente.usuario.get_full_name|default:it.docente.usuario.username }}</td>
+              <td>{{ it.curso.materia.nombre_materia }}</td>
+              <td class="text-muted" style="font-size:.85rem;">{{ it.estudiante.usuario.get_full_name }}</td>
+              <td class="text-end pe-3">
+                {% if it.respondida %}
+                  <span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Evaluado</span>
+                {% else %}
+                  <a href="{% url 'evaluacion_docente:evaluar' b.campana.pk it.docente.pk it.curso.pk it.estudiante.pk %}" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square me-1"></i>Evaluar</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% empty %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-inbox" style="font-size:2.5rem;"></i>
+    <p class="mt-2">No hay evaluaciones disponibles en este momento. Cuando el colegio abra una, aparecerá aquí.</p>
+  </div>
+{% endfor %}
+{% endblock %}
