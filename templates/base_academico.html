@@ -765,6 +765,12 @@
           <i class="bi bi-clipboard2-check"></i> Evaluación de Docentes
         </a>
       </li>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if '/autoevaluacion/' in request.path %}active{% endif %}"
+           href="{% url 'autoevaluacion_institucional:panel' %}">
+          <i class="bi bi-building-check"></i> Autoevaluación Institucional
+        </a>
+      </li>
       <li class="nav-item item-color-2">
         <a class="nav-link {% if '/recursos/' in request.path %}active{% endif %}"
            href="{% url 'recursos_educativos:lista' %}">
