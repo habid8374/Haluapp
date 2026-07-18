@@ -31,6 +31,14 @@ def branding_processor(request):
     }
 
 
+def turnstile_processor(request):
+    """Expone la configuración pública de Cloudflare Turnstile a las plantillas."""
+    return {
+        'TURNSTILE_ENABLED': getattr(settings, 'TURNSTILE_ENABLED', False),
+        'TURNSTILE_SITE_KEY': getattr(settings, 'TURNSTILE_SITE_KEY', ''),
+    }
+
+
 def _get_banners_activos(user, institucion):
     try:
         from gestion_academica.models import Noticia

@@ -1,10 +1,60 @@
 # proyecto_colegio/middleware.py
+import requests
 from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
 from django.urls import reverse # Necesario para resolver URLs por nombre
 from django.conf import settings # Para acceder a STATIC_URL, MEDIA_URL
 from django.contrib import messages
 from django.contrib.auth import logout
+
+
+class TurnstileMiddleware:
+    """
+    Verifica el desafío de Cloudflare Turnstile ("no soy un robot") en los
+    formularios de login antes de que la vista procese la petición.
+
+    Diseño:
+    - Latente: si no hay claves configuradas (TURNSTILE_ENABLED=False), no hace
+      absolutamente nada — el login funciona igual que sin este middleware.
+    - Solo actúa sobre POST a las rutas de login declaradas en settings.
+    - A prueba de caídas: si Cloudflare no responde, NO bloquea el acceso (el
+      límite de intentos sigue protegiendo). Disponibilidad > rigidez para un
+      colegio. Un token ausente o rechazado explícitamente sí bloquea.
+    """
+    SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if (getattr(settings, 'TURNSTILE_ENABLED', False)
+                and request.method == 'POST'
+                and request.path in getattr(settings, 'TURNSTILE_LOGIN_PATHS', [])):
+            if not self._verificar(request):
+                messages.error(
+                    request,
+                    "No pudimos confirmar la verificación de seguridad. "
+                    "Marca la casilla «No soy un robot» e inténtalo de nuevo.",
+                )
+                return redirect(request.get_full_path())
+        return self.get_response(request)
+
+    def _verificar(self, request):
+        token = request.POST.get('cf-turnstile-response', '')
+        if not token:
+            return False
+        xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
+        ip = xff.split(',')[0].strip() if xff else request.META.get('REMOTE_ADDR', '')
+        try:
+            resp = requests.post(self.SITEVERIFY, data={
+                'secret': settings.TURNSTILE_SECRET_KEY,
+                'response': token,
+                'remoteip': ip,
+            }, timeout=5)
+            return bool(resp.json().get('success'))
+        except Exception:
+            # Cloudflare inaccesible: no dejamos a nadie por fuera del sistema.
+            return True
 
 class RedireccionRegistroInicialMiddleware:
     def __init__(self, get_response):

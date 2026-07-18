@@ -156,6 +156,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'auditoria.middleware.AuditoriaMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'proyecto_colegio.middleware.TurnstileMiddleware',  # Verifica "no soy robot" en logins
     'proyecto_colegio.middleware.InstitucionActivaMiddleware', # <-- AÑADE ESTA LÍNEA AQUÍ
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
@@ -166,6 +167,17 @@ MIDDLEWARE = [
     # descomenta esta línea después de crear el archivo proyecto_colegio/middleware.py
     #'proyecto_colegio.middleware.RedireccionRegistroInicialMiddleware', # ¡AÑADIDO!
 ]
+
+# --- Cloudflare Turnstile ("no soy un robot") en los formularios de login ---
+# La Site Key es PÚBLICA (aparece en el HTML), por eso puede ir aquí por defecto.
+# La Secret Key es PRIVADA: se configura SOLO como variable de entorno en el
+# servidor y NUNCA se escribe en el código. El sistema se activa automáticamente
+# cuando ambas están presentes; si falta la secreta, todo funciona igual que hoy.
+TURNSTILE_SITE_KEY = os.environ.get('TURNSTILE_SITE_KEY', '0x4AAAAAAD4Nf9TH3loGkNmc')
+TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '')
+TURNSTILE_ENABLED = bool(TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY)
+# Rutas de login protegidas (login principal + panel superadmin).
+TURNSTILE_LOGIN_PATHS = ['/login/', '/accounts/login/', '/halu-control/login/']
 
 REST_FRAMEWORK = {
     # Define los métodos de autenticación por defecto en el orden que se probarán.
@@ -200,7 +212,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'gestion_academica.context_processors.branding_processor',
-                
+                'gestion_academica.context_processors.turnstile_processor',
+
             ],
         },
     },

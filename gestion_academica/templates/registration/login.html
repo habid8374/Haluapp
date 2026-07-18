@@ -445,11 +445,18 @@
           <label for="id_password">Contraseña</label>
           <i class="bi bi-eye pw-toggle fi-ico" id="pw-toggle"></i>
         </div>
+        {% if TURNSTILE_ENABLED %}
+        <div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY }}"
+             style="display:flex;justify-content:center;margin:0 0 1rem;"></div>
+        {% endif %}
         <button type="submit" class="btn-ingresar" id="btn-ingresar">
           <span class="btn-text"><i class="bi bi-door-open me-2"></i>Ingresar a HALU</span>
           <span class="btn-spin"><span class="spin-ring"></span></span>
         </button>
       </form>
+      {% if TURNSTILE_ENABLED %}
+      <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+      {% endif %}
       {% google_socialapp_configured as show_google_login %}
       {% if show_google_login %}
       <div class="or-div">o continúa con</div>

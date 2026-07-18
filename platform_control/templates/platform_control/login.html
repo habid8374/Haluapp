@@ -56,12 +56,19 @@
                            placeholder="Contraseña"
                            autocomplete="current-password">
                 </div>
+                {% if TURNSTILE_ENABLED %}
+                <div class="cf-turnstile mt-3" data-sitekey="{{ TURNSTILE_SITE_KEY }}"
+                     style="display:flex;justify-content:center;"></div>
+                {% endif %}
                 <div class="d-grid mt-3">
                     <button type="submit" class="btn btn-dark btn-lg fw-700" style="border-radius:10px;">
                         <i class="bi bi-unlock-fill me-2"></i>Acceder al Panel
                     </button>
                 </div>
             </form>
+            {% if TURNSTILE_ENABLED %}
+            <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+            {% endif %}
         </div>
     </div>
 </div>
