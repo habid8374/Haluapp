@@ -88,7 +88,9 @@
   background-attachment: local, local, scroll, scroll;
 }
 .ln-table {
-  width: 100%; border-collapse: collapse; min-width: 580px;
+  /* separate (no collapse) para que position:sticky funcione en las celdas
+     también en Safari iOS y WebView de PWA, donde collapse rompe el sticky. */
+  width: 100%; border-collapse: separate; border-spacing: 0; min-width: 580px;
 }
 .ln-table th, .ln-table td {
   padding: .5rem .65rem; text-align: center;
@@ -301,7 +303,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
   overflow: hidden; box-shadow: 0 4px 18px rgba(11,94,215,.08); margin-bottom: 1.5rem;
 }
 .la-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.la-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+.la-table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 500px; }
 .la-table th, .la-table td {
   padding: .55rem .75rem; text-align: center;
   border-bottom: 1px solid #f1f5f9; font-size: .84rem; vertical-align: middle;
@@ -411,6 +413,25 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
 @media (max-width: 680px) {
   .la-table-card   { display: none; }
   .la-mobile-cards { display: block; }
+}
+/* ═══════════════════════════════════════════════════
+   MÓVIL — Libro de notas: columna de nombres angosta
+   pero SIEMPRE fija, para ver a la vez el estudiante y
+   la nota/actividad al rodar el scroll horizontal.
+═══════════════════════════════════════════════════ */
+@media (max-width: 680px) {
+  .ln-cell-name,
+  .ln-cat-hdr.name-col,
+  .ln-act-hdr.name-col-2 {
+    min-width: 116px !important; max-width: 134px !important; width: 134px;
+  }
+  .ln-cell-name {
+    white-space: normal; word-break: break-word; line-height: 1.12;
+    font-size: .74rem; padding-left: .55rem !important;
+  }
+  .ln-cat-hdr.name-col,
+  .ln-act-hdr.name-col-2 { padding-left: .55rem; }
+  .ln-table th, .ln-table td { padding-left: .38rem; padding-right: .38rem; }
 }
 </style>
 {% endblock extrastyles %}
