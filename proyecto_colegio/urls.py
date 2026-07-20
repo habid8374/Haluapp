@@ -85,6 +85,7 @@ urlpatterns = [
     path('crucigramas/', include('crucigramas.urls', namespace='crucigramas')),
     path('sopa-letras/', include('sopa_letras.urls', namespace='sopa_letras')),
     path('memoria/', include('memoria.urls', namespace='memoria')),
+    path('flashcards/', include('flashcards.urls', namespace='flashcards')),
 ]
 
 # --- 2. CONFIGURACIÓN PARA ARCHIVOS EN DESARROLLO ---

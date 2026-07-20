@@ -1,0 +1,138 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+.fc-card { max-width:560px; margin:0 auto; border-radius:16px; border:none;
+  box-shadow:0 4px 18px rgba(0,0,0,.08); overflow:hidden; }
+.fc-img { width:100%; max-height:280px; object-fit:contain; background:#f8fafc; }
+.fc-pista { font-size:1.02rem; color:#334155; }
+.fc-input { font-size:1.1rem; font-weight:700; text-align:center; }
+.fc-feedback { border-radius:12px; padding:.8rem 1rem; font-weight:700; }
+.fc-feedback.ok { background:#dcfce7; color:#15803d; }
+.fc-feedback.bad { background:#fee2e2; color:#b91c1c; }
+.fc-audio-btn { border-radius:2rem; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #c2410c 0%, #f59e0b 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem;">
+  <h2 style="color:#fff;" class="mb-1"><i class="bi bi-card-image"></i> {{ mazo.titulo }}</h2>
+  <p style="color:#fff;" class="mb-0">{% if mazo.instrucciones %}{{ mazo.instrucciones }} · {% endif %}Mira la imagen y la pista, y escribe tu respuesta. ¡Solo tienes una oportunidad por tarjeta!</p>
+</div>
+
+{{ tarjetas_json|json_script:"tarjetas-data" }}
+<form class="d-none">{% csrf_token %}</form>
+
+<div class="d-flex justify-content-center mb-3">
+  <span class="badge bg-warning text-dark" style="font-size:.9rem;"><i class="bi bi-collection me-1"></i>Tarjeta <span id="num-actual">1</span> de {{ total }}</span>
+</div>
+
+<div class="card fc-card">
+  <img id="fc-imagen" class="fc-img d-none" src="" alt="tarjeta">
+  <div class="card-body text-center">
+    <p id="fc-pista" class="fc-pista mb-2"></p>
+    <button type="button" id="fc-audio-btn" class="btn btn-outline-primary btn-sm fc-audio-btn d-none mb-3">
+      <i class="bi bi-volume-up-fill me-1"></i> Escuchar pista
+    </button>
+
+    <div id="zona-respuesta">
+      <input type="text" id="fc-respuesta" class="form-control fc-input mb-2" maxlength="80"
+             placeholder="Escribe tu respuesta aquí…" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+      <button type="button" id="btn-comprobar" class="btn btn-warning fw-700 px-4"><i class="bi bi-check2-circle me-1"></i> Comprobar</button>
+    </div>
+
+    <div id="zona-feedback" class="d-none">
+      <div id="fc-feedback" class="fc-feedback mb-3"></div>
+      <button type="button" id="btn-siguiente" class="btn btn-primary fw-700 px-4">Siguiente <i class="bi bi-arrow-right ms-1"></i></button>
+    </div>
+  </div>
+</div>
+
+<div class="text-center mt-3">
+  <a href="{% url 'flashcards:mis_mazos' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Salir (tu avance se guarda)</a>
+</div>
+
+<script>
+(function(){
+  const tarjetas = JSON.parse(document.getElementById('tarjetas-data').textContent);
+  const urlResponder = '{{ url_responder }}';
+  const urlResultado = '{{ url_resultado }}';
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const pendientes = tarjetas.filter(function(t){ return !t.respondida; });
+  const respondidasPrevias = tarjetas.length - pendientes.length;
+  let idx = 0;
+  const player = new Audio();
+
+  if (!pendientes.length){ window.location.href = urlResultado; return; }
+
+  function mostrar(){
+    const t = pendientes[idx];
+    document.getElementById('num-actual').textContent = respondidasPrevias + idx + 1;
+    const img = document.getElementById('fc-imagen');
+    if (t.imagen){ img.src = t.imagen; img.classList.remove('d-none'); }
+    else { img.classList.add('d-none'); }
+    document.getElementById('fc-pista').textContent = t.pista || '';
+    const ab = document.getElementById('fc-audio-btn');
+    if (t.audio){ ab.classList.remove('d-none'); ab.dataset.src = t.audio; }
+    else { ab.classList.add('d-none'); }
+    document.getElementById('fc-respuesta').value = '';
+    document.getElementById('zona-respuesta').classList.remove('d-none');
+    document.getElementById('zona-feedback').classList.add('d-none');
+    document.getElementById('fc-respuesta').focus();
+  }
+
+  document.getElementById('fc-audio-btn').addEventListener('click', function(){
+    try { player.src = this.dataset.src; player.play(); } catch (e) {}
+  });
+
+  let enviando = false;
+  async function comprobar(){
+    if (enviando) return;
+    const texto = document.getElementById('fc-respuesta').value.trim();
+    if (!texto) { document.getElementById('fc-respuesta').focus(); return; }
+    enviando = true;
+    try {
+      const resp = await fetch(urlResponder, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+        body: JSON.stringify({ tarjeta: pendientes[idx].id, respuesta: texto }),
+      });
+      const datos = await resp.json();
+      if (datos.error){ mostrarFeedback(false, datos.error, false); return; }
+      pendientes[idx].terminado = datos.terminado;
+      if (datos.correcto){
+        mostrarFeedback(true, '¡Correcto! 🎉', datos.terminado);
+      } else {
+        mostrarFeedback(false, 'La respuesta era: «' + datos.respuesta_correcta + '»', datos.terminado);
+      }
+    } catch (e) {
+      mostrarFeedback(false, 'No pudimos enviar tu respuesta. Revisa tu conexión e inténtalo de nuevo.', false);
+      enviando = false; return;
+    }
+    enviando = false;
+  }
+
+  function mostrarFeedback(ok, texto, terminado){
+    document.getElementById('zona-respuesta').classList.add('d-none');
+    const f = document.getElementById('fc-feedback');
+    f.textContent = texto;
+    f.className = 'fc-feedback mb-3 ' + (ok ? 'ok' : 'bad');
+    const btn = document.getElementById('btn-siguiente');
+    btn.innerHTML = terminado ? '<i class="bi bi-award me-1"></i> Ver mi nota' : 'Siguiente <i class="bi bi-arrow-right ms-1"></i>';
+    document.getElementById('zona-feedback').classList.remove('d-none');
+  }
+
+  document.getElementById('btn-comprobar').addEventListener('click', comprobar);
+  document.getElementById('fc-respuesta').addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); comprobar(); }
+  });
+  document.getElementById('btn-siguiente').addEventListener('click', function(){
+    if (pendientes[idx].terminado){ window.location.href = urlResultado; return; }
+    idx++;
+    if (idx >= pendientes.length){ window.location.href = urlResultado; return; }
+    mostrar();
+  });
+
+  mostrar();
+})();
+</script>
+{% endblock %}
