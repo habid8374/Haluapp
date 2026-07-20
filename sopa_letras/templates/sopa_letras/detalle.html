@@ -32,7 +32,16 @@
     <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCerrar"><i class="bi bi-stop-circle me-1"></i> Cerrar</button>
   {% endif %}
   <a href="{% url 'sopa_letras:resultados' sopa.pk %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> Resultados</a>
+  <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalFechas"><i class="bi bi-calendar-range me-1"></i> Fechas</button>
   <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"><i class="bi bi-trash me-1"></i> Eliminar</button>
+</div>
+
+<div class="alert alert-light border d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.88rem;">
+  <i class="bi bi-calendar-range text-success"></i>
+  <span>
+    <b>Disponible desde:</b> {{ sopa.fecha_inicio|date:"d/m/Y H:i"|default:"sin límite" }} ·
+    <b>Plazo final:</b> {{ sopa.fecha_fin|date:"d/m/Y H:i"|default:"sin límite" }}
+  </span>
 </div>
 
 <div class="row g-3">
@@ -73,6 +82,26 @@
       <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
       <form method="post" action="{% url 'sopa_letras:cerrar' sopa.pk %}">{% csrf_token %}<button class="btn btn-secondary">Sí, cerrar</button></form>
     </div>
+  </div></div>
+</div>
+
+<!-- Modal fechas -->
+<div class="modal fade" id="modalFechas" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{% url 'sopa_letras:editar_fechas' sopa.pk %}">{% csrf_token %}
+    <div class="modal-header"><h5 class="modal-title fw-800">Rango de fechas</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-3"><label class="form-label">Disponible desde</label>
+        <input type="datetime-local" name="fecha_inicio" class="form-control" value="{{ sopa.fecha_inicio|date:'Y-m-d\TH:i' }}"></div>
+      <div class="mb-2"><label class="form-label">Plazo final</label>
+        <input type="datetime-local" name="fecha_fin" class="form-control" value="{{ sopa.fecha_fin|date:'Y-m-d\TH:i' }}"></div>
+      <p class="text-muted mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>Déjalas vacías para que no haya límite. Fuera de este rango los estudiantes no pueden resolverla.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <button class="btn btn-success">Guardar fechas</button>
+    </div>
+    </form>
   </div></div>
 </div>
 

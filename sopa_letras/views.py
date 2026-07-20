@@ -2,16 +2,28 @@
 import json
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
 
 from .layout import generar_sopa, normalizar
 from .models import IntentoSopa, PalabraSopa, Sopa
+
+
+def _parse_dt(valor):
+    """Convierte 'YYYY-MM-DDTHH:MM' del formulario a datetime consciente de zona."""
+    if not valor:
+        return None
+    dt = parse_datetime(valor)
+    if dt and settings.USE_TZ and timezone.is_naive(dt):
+        dt = timezone.make_aware(dt, timezone.get_current_timezone())
+    return dt
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -136,6 +148,8 @@ def crear(request):
 
         curso = get_object_or_404(cursos, pk=curso_id) if curso_id else None
         tipo = get_object_or_404(tipos, pk=tipo_id) if tipo_id else None
+        fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
+        fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
 
         textos = request.POST.getlist('palabra')
         palabras_validas = [t.strip() for t in textos if t.strip() and len(normalizar(t)) >= 2]
@@ -150,6 +164,7 @@ def crear(request):
                     institucion=curso.institucion, curso=curso, titulo=titulo,
                     instrucciones=instrucciones, tipo_actividad=tipo,
                     nota_maxima=nota_maxima, creado_por=request.user,
+                    fecha_inicio=fecha_inicio, fecha_fin=fecha_fin,
                 )
                 PalabraSopa.objects.bulk_create([
                     PalabraSopa(sopa=sopa, texto=t, orden=i)
@@ -236,6 +251,18 @@ def cerrar(request, pk):
 
 @require_POST
 @login_required
+def editar_fechas(request, pk):
+    _solo_docente_coord(request.user)
+    sopa = get_object_or_404(_scope(Sopa.objects.all(), request.user), pk=pk)
+    sopa.fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
+    sopa.fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
+    sopa.save(update_fields=['fecha_inicio', 'fecha_fin'])
+    messages.success(request, "Fechas actualizadas.")
+    return redirect('sopa_letras:detalle', pk=sopa.pk)
+
+
+@require_POST
+@login_required
 def eliminar(request, pk):
     _solo_docente_coord(request.user)
     sopa = get_object_or_404(_scope(Sopa.objects.all(), request.user), pk=pk)
@@ -282,7 +309,10 @@ def mis_sopas(request):
         i.sopa_id: i for i in
         IntentoSopa.objects.filter(estudiante=estudiante, sopa__in=sopas)
     }
-    items = [{'sopa': s, 'intento': hechos.get(s.id)} for s in sopas]
+    items = []
+    for s in sopas:
+        disp, msg = s.estado_disponibilidad()
+        items.append({'sopa': s, 'intento': hechos.get(s.id), 'disp': disp, 'msg': msg})
     return render(request, 'sopa_letras/mis_sopas.html', {
         'titulo_pagina': 'Sopas de letras', 'items': items,
     })
@@ -303,6 +333,11 @@ def resolver(request, pk):
     intento = IntentoSopa.objects.filter(sopa=sopa, estudiante=estudiante).first()
     if intento and intento.completado:
         return redirect('sopa_letras:resultado', pk=sopa.pk)
+
+    disp, msg = sopa.estado_disponibilidad()
+    if disp != 'disponible':
+        messages.warning(request, msg)
+        return redirect('sopa_letras:mis_sopas')
 
     if request.method == 'POST':
         try:

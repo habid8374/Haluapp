@@ -45,6 +45,9 @@ class Sopa(models.Model):
         max_length=10, choices=Estado.choices, default=Estado.BORRADOR,
         verbose_name="Estado",
     )
+    # Ventana de disponibilidad para los estudiantes (opcional).
+    fecha_inicio = models.DateTimeField(null=True, blank=True, verbose_name="Disponible desde")
+    fecha_fin = models.DateTimeField(null=True, blank=True, verbose_name="Plazo final")
     fecha_cierre = models.DateTimeField(null=True, blank=True, verbose_name="Cierre")
 
     # Cuadrícula generada (se calcula al publicar). grid = lista de filas (strings).
@@ -64,6 +67,18 @@ class Sopa(models.Model):
 
     def __str__(self):
         return f"{self.titulo} ({self.get_estado_display()})"
+
+    def estado_disponibilidad(self):
+        """('disponible'|'proximo'|'vencido'|'cerrado', mensaje) para el estudiante."""
+        from django.utils import timezone
+        if self.estado != self.Estado.PUBLICADO:
+            return ('cerrado', 'No disponible')
+        ahora = timezone.now()
+        if self.fecha_inicio and ahora < self.fecha_inicio:
+            return ('proximo', f"Disponible desde el {timezone.localtime(self.fecha_inicio):%d/%m/%Y %H:%M}")
+        if self.fecha_fin and ahora > self.fecha_fin:
+            return ('vencido', f"El plazo venció el {timezone.localtime(self.fecha_fin):%d/%m/%Y %H:%M}")
+        return ('disponible', 'Disponible')
 
 
 class PalabraSopa(models.Model):

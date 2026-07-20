@@ -1,16 +1,28 @@
 """Vistas del módulo de Crucigramas (actividad calificable por curso)."""
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
 
 from .layout import generar_layout, normalizar
 from .models import Crucigrama, IntentoCrucigrama, PalabraCrucigrama
+
+
+def _parse_dt(valor):
+    """Convierte 'YYYY-MM-DDTHH:MM' del formulario a datetime consciente de zona."""
+    if not valor:
+        return None
+    dt = parse_datetime(valor)
+    if dt and settings.USE_TZ and timezone.is_naive(dt):
+        dt = timezone.make_aware(dt, timezone.get_current_timezone())
+    return dt
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -137,6 +149,8 @@ def crear(request):
 
         curso = get_object_or_404(cursos, pk=curso_id) if curso_id else None
         tipo = get_object_or_404(tipos, pk=tipo_id) if tipo_id else None
+        fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
+        fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
 
         respuestas = request.POST.getlist('respuesta')
         pistas = request.POST.getlist('pista')
@@ -155,6 +169,7 @@ def crear(request):
                     institucion=curso.institucion, curso=curso, titulo=titulo,
                     instrucciones=instrucciones, tipo_actividad=tipo,
                     nota_maxima=nota_maxima, creado_por=request.user,
+                    fecha_inicio=fecha_inicio, fecha_fin=fecha_fin,
                 )
                 PalabraCrucigrama.objects.bulk_create([
                     PalabraCrucigrama(crucigrama=cruc, respuesta=r, pista=p, orden=i)
@@ -237,6 +252,18 @@ def cerrar(request, pk):
 
 @require_POST
 @login_required
+def editar_fechas(request, pk):
+    _solo_docente_coord(request.user)
+    cruc = get_object_or_404(_scope(Crucigrama.objects.all(), request.user), pk=pk)
+    cruc.fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
+    cruc.fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
+    cruc.save(update_fields=['fecha_inicio', 'fecha_fin'])
+    messages.success(request, "Fechas actualizadas.")
+    return redirect('crucigramas:detalle', pk=cruc.pk)
+
+
+@require_POST
+@login_required
 def eliminar(request, pk):
     _solo_docente_coord(request.user)
     cruc = get_object_or_404(_scope(Crucigrama.objects.all(), request.user), pk=pk)
@@ -286,7 +313,10 @@ def mis_crucigramas(request):
         i.crucigrama_id: i for i in
         IntentoCrucigrama.objects.filter(estudiante=estudiante, crucigrama__in=crucigramas)
     }
-    items = [{'crucigrama': c, 'intento': hechos.get(c.id)} for c in crucigramas]
+    items = []
+    for c in crucigramas:
+        disp, msg = c.estado_disponibilidad()
+        items.append({'crucigrama': c, 'intento': hechos.get(c.id), 'disp': disp, 'msg': msg})
     return render(request, 'crucigramas/mis_crucigramas.html', {
         'titulo_pagina': 'Crucigramas',
         'items': items,
@@ -309,6 +339,11 @@ def resolver(request, pk):
     intento = IntentoCrucigrama.objects.filter(crucigrama=cruc, estudiante=estudiante).first()
     if intento and intento.completado:
         return redirect('crucigramas:resultado', pk=cruc.pk)
+
+    disp, msg = cruc.estado_disponibilidad()
+    if disp != 'disponible':
+        messages.warning(request, msg)
+        return redirect('crucigramas:mis_crucigramas')
 
     if request.method == 'POST':
         palabras = list(cruc.palabras.all())
