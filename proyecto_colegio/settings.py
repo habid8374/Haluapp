@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     'evaluacion_docente.apps.EvaluacionDocenteConfig',
     'autoevaluacion_institucional.apps.AutoevaluacionInstitucionalConfig',
     'crucigramas.apps.CrucigramasConfig',
+    'sopa_letras.apps.SopaLetrasConfig',
 
 
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)

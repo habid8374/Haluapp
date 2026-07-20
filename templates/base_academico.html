@@ -313,6 +313,11 @@
           <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
         </a>
       </li>
+      <li class="nav-item item-color-4">
+        <a class="nav-link {% if '/sopa-letras/' in request.path %}active{% endif %}" href="{% url 'sopa_letras:mis_sopas' %}">
+          <i class="bi bi-search-heart"></i> Sopas de Letras
+        </a>
+      </li>
     {% endif %}
     {% if user.is_staff %}
       {% if perms.admisiones.view_aspirante %}
@@ -652,6 +657,12 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link sub-item {% if '/sopa-letras/' in request.path %}active{% endif %}"
+                 href="{% url 'sopa_letras:lista' %}">
+                <i class="bi bi-search-heart"></i> Sopas de Letras
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link sub-item {% if 'piar' in request.path %}active{% endif %}"
                  href="{% url 'piar:lista_piars' %}">
                 <i class="bi bi-person-hearts"></i> PIARs / Inclusión
@@ -774,6 +785,12 @@
         <a class="nav-link {% if '/crucigramas/' in request.path %}active{% endif %}"
            href="{% url 'crucigramas:lista' %}">
           <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+        </a>
+      </li>
+      <li class="nav-item item-color-4">
+        <a class="nav-link {% if '/sopa-letras/' in request.path %}active{% endif %}"
+           href="{% url 'sopa_letras:lista' %}">
+          <i class="bi bi-search-heart"></i> Sopas de Letras
         </a>
       </li>
       <li class="nav-item item-color-1">
