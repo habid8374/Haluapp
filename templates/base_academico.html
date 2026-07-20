@@ -309,19 +309,32 @@
         </a>
       </li>
       <li class="nav-item item-color-4">
-        <a class="nav-link {% if '/crucigramas/' in request.path %}active{% endif %}" href="{% url 'crucigramas:mis_crucigramas' %}">
-          <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+        <a class="nav-link {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path %}{% else %}collapsed{% endif %}"
+           href="#recursosInteractivosEst" data-bs-toggle="collapse" role="button"
+           aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path %}true{% else %}false{% endif %}"
+           aria-controls="recursosInteractivosEst">
+          <i class="bi bi-controller"></i> Recursos Interactivos
+          <i class="bi bi-chevron-down float-end"></i>
         </a>
-      </li>
-      <li class="nav-item item-color-4">
-        <a class="nav-link {% if '/sopa-letras/' in request.path %}active{% endif %}" href="{% url 'sopa_letras:mis_sopas' %}">
-          <i class="bi bi-search-heart"></i> Sopas de Letras
-        </a>
-      </li>
-      <li class="nav-item item-color-4">
-        <a class="nav-link {% if '/memoria/' in request.path %}active{% endif %}" href="{% url 'memoria:mis_juegos' %}">
-          <i class="bi bi-images"></i> Juegos de Memoria
-        </a>
+        <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path %}show{% endif %}" id="recursosInteractivosEst">
+          <ul class="nav flex-column ps-3">
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}" href="{% url 'crucigramas:mis_crucigramas' %}">
+                <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/sopa-letras/' in request.path %}active{% endif %}" href="{% url 'sopa_letras:mis_sopas' %}">
+                <i class="bi bi-search-heart"></i> Sopas de Letras
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/memoria/' in request.path %}active{% endif %}" href="{% url 'memoria:mis_juegos' %}">
+                <i class="bi bi-images"></i> Juegos de Memoria
+              </a>
+            </li>
+          </ul>
+        </div>
       </li>
     {% endif %}
     {% if user.is_staff %}
@@ -656,24 +669,6 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}"
-                 href="{% url 'crucigramas:lista' %}">
-                <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link sub-item {% if '/sopa-letras/' in request.path %}active{% endif %}"
-                 href="{% url 'sopa_letras:lista' %}">
-                <i class="bi bi-search-heart"></i> Sopas de Letras
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link sub-item {% if '/memoria/' in request.path %}active{% endif %}"
-                 href="{% url 'memoria:lista' %}">
-                <i class="bi bi-images"></i> Juegos de Memoria
-              </a>
-            </li>
-            <li class="nav-item">
               <a class="nav-link sub-item {% if 'piar' in request.path %}active{% endif %}"
                  href="{% url 'piar:lista_piars' %}">
                 <i class="bi bi-person-hearts"></i> PIARs / Inclusión
@@ -688,18 +683,6 @@
               <a class="nav-link sub-item {% if '/evaluacion-docente/' in request.path %}active{% endif %}"
                  href="{% url 'evaluacion_docente:mi_desempeno' %}">
                 <i class="bi bi-graph-up-arrow"></i> Mi Evaluación
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link sub-item {% if 'galeria' in request.path %}active{% endif %}"
-                 href="{% url 'recursos_educativos:galeria_directa' %}">
-                <i class="bi bi-images"></i> Galería 3D
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link sub-item {% if request.path == '/academico/recursos/' or '/recursos/crear' in request.path or '/entregas' in request.path %}active{% endif %}"
-                 href="{% url 'recursos_educativos:lista' %}">
-                <i class="bi bi-boxes"></i> Actividades 3D
               </a>
             </li>
             <li class="nav-item">
@@ -735,6 +718,49 @@
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_para_lecciones' %}">
                 <i class="bi bi-calendar-week"></i> Historial de Lecciones
+              </a>
+            </li>
+          </ul>
+        </div>
+      </li>
+      <li class="nav-item item-color-4">
+        <a class="nav-link {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}{% else %}collapsed{% endif %}"
+           href="#recursosInteractivosDoc" data-bs-toggle="collapse" role="button"
+           aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}true{% else %}false{% endif %}"
+           aria-controls="recursosInteractivosDoc">
+          <i class="bi bi-controller"></i> Recursos Interactivos
+          <i class="bi bi-chevron-down float-end"></i>
+        </a>
+        <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}show{% endif %}" id="recursosInteractivosDoc">
+          <ul class="nav flex-column ps-3">
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}"
+                 href="{% url 'crucigramas:lista' %}">
+                <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/sopa-letras/' in request.path %}active{% endif %}"
+                 href="{% url 'sopa_letras:lista' %}">
+                <i class="bi bi-search-heart"></i> Sopas de Letras
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/memoria/' in request.path %}active{% endif %}"
+                 href="{% url 'memoria:lista' %}">
+                <i class="bi bi-images"></i> Juegos de Memoria
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if 'galeria' in request.path %}active{% endif %}"
+                 href="{% url 'recursos_educativos:galeria_directa' %}">
+                <i class="bi bi-images"></i> Galería 3D
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if request.path == '/academico/recursos/' or '/recursos/crear' in request.path or '/entregas' in request.path %}active{% endif %}"
+                 href="{% url 'recursos_educativos:lista' %}">
+                <i class="bi bi-boxes"></i> Actividades 3D
               </a>
             </li>
           </ul>
@@ -793,22 +819,41 @@
         </a>
       </li>
       <li class="nav-item item-color-4">
-        <a class="nav-link {% if '/crucigramas/' in request.path %}active{% endif %}"
-           href="{% url 'crucigramas:lista' %}">
-          <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+        <a class="nav-link {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/recursos/' in request.path %}{% else %}collapsed{% endif %}"
+           href="#recursosInteractivosCoord" data-bs-toggle="collapse" role="button"
+           aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/recursos/' in request.path %}true{% else %}false{% endif %}"
+           aria-controls="recursosInteractivosCoord">
+          <i class="bi bi-controller"></i> Recursos Interactivos
+          <i class="bi bi-chevron-down float-end"></i>
         </a>
-      </li>
-      <li class="nav-item item-color-4">
-        <a class="nav-link {% if '/sopa-letras/' in request.path %}active{% endif %}"
-           href="{% url 'sopa_letras:lista' %}">
-          <i class="bi bi-search-heart"></i> Sopas de Letras
-        </a>
-      </li>
-      <li class="nav-item item-color-4">
-        <a class="nav-link {% if '/memoria/' in request.path %}active{% endif %}"
-           href="{% url 'memoria:lista' %}">
-          <i class="bi bi-images"></i> Juegos de Memoria
-        </a>
+        <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/recursos/' in request.path %}show{% endif %}" id="recursosInteractivosCoord">
+          <ul class="nav flex-column ps-3">
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}"
+                 href="{% url 'crucigramas:lista' %}">
+                <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/sopa-letras/' in request.path %}active{% endif %}"
+                 href="{% url 'sopa_letras:lista' %}">
+                <i class="bi bi-search-heart"></i> Sopas de Letras
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/memoria/' in request.path %}active{% endif %}"
+                 href="{% url 'memoria:lista' %}">
+                <i class="bi bi-images"></i> Juegos de Memoria
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/recursos/' in request.path %}active{% endif %}"
+                 href="{% url 'recursos_educativos:lista' %}">
+                <i class="bi bi-boxes"></i> Actividades 3D
+              </a>
+            </li>
+          </ul>
+        </div>
       </li>
       <li class="nav-item item-color-1">
         <a class="nav-link {% if '/evaluacion-docente/' in request.path %}active{% endif %}"
@@ -820,12 +865,6 @@
         <a class="nav-link {% if '/autoevaluacion/' in request.path %}active{% endif %}"
            href="{% url 'autoevaluacion_institucional:panel' %}">
           <i class="bi bi-building-check"></i> Autoevaluación Institucional
-        </a>
-      </li>
-      <li class="nav-item item-color-2">
-        <a class="nav-link {% if '/recursos/' in request.path %}active{% endif %}"
-           href="{% url 'recursos_educativos:lista' %}">
-          <i class="bi bi-boxes"></i> Actividades 3D
         </a>
       </li>
       <li class="nav-item item-color-5">
