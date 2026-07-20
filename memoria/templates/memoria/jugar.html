@@ -48,6 +48,7 @@
 <form method="post" id="mem-form" class="d-none">{% csrf_token %}
   <input type="hidden" name="movimientos" id="movimientos" value="0">
 </form>
+<button type="button" id="trigger-fin" class="d-none" data-bs-toggle="modal" data-bs-target="#modalFin"></button>
 
 <div class="text-center mt-3">
   <a href="{% url 'memoria:mis_juegos' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Salir sin terminar</a>
@@ -106,8 +107,8 @@
   function terminar(){
     document.getElementById('movimientos').value = movimientos;
     document.getElementById('fin-mov').textContent = movimientos;
-    const modal = new bootstrap.Modal(document.getElementById('modalFin'));
-    setTimeout(function(){ modal.show(); }, 500);
+    // Disparador declarativo: no depende del momento en que cargue bootstrap.
+    setTimeout(function(){ document.getElementById('trigger-fin').click(); }, 500);
   }
   document.getElementById('btn-ver-nota').addEventListener('click', function(){
     document.getElementById('mem-form').submit();
