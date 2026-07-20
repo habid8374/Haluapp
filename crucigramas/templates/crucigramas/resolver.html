@@ -40,7 +40,8 @@
                 {% if cel %}
                 <div class="cg-cell">
                   {% if cel.numero %}<span class="cg-num">{{ cel.numero }}</span>{% endif %}
-                  <input type="text" maxlength="1" autocomplete="off" inputmode="text"
+                  <input type="text" maxlength="1" autocomplete="off" autocapitalize="characters"
+                         autocorrect="off" spellcheck="false" inputmode="text"
                          id="cell_{{ cel.r }}_{{ cel.c }}" data-cell="{{ cel.r }}_{{ cel.c }}">
                 </div>
                 {% else %}<div class="cg-cell empty"></div>{% endif %}
@@ -55,13 +56,13 @@
       <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
         <div class="card-header bg-white border-0 fw-800"><i class="bi bi-arrow-right me-1"></i>Horizontales</div>
         <div class="card-body py-2">
-          {% for p in horizontales %}<div class="cg-clue"><b>{{ p.numero }}.</b> {{ p.pista }} <span class="text-muted">({{ p.longitud }})</span></div>{% empty %}<p class="text-muted mb-0">—</p>{% endfor %}
+          {% for p in horizontales %}<div class="cg-clue" data-pid="{{ p.id }}" style="cursor:pointer;"><b>{{ p.numero }}.</b> {{ p.pista }} <span class="text-muted">({{ p.longitud }})</span></div>{% empty %}<p class="text-muted mb-0">—</p>{% endfor %}
         </div>
       </div>
       <div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
         <div class="card-header bg-white border-0 fw-800"><i class="bi bi-arrow-down me-1"></i>Verticales</div>
         <div class="card-body py-2">
-          {% for p in verticales %}<div class="cg-clue"><b>{{ p.numero }}.</b> {{ p.pista }} <span class="text-muted">({{ p.longitud }})</span></div>{% empty %}<p class="text-muted mb-0">—</p>{% endfor %}
+          {% for p in verticales %}<div class="cg-clue" data-pid="{{ p.id }}" style="cursor:pointer;"><b>{{ p.numero }}.</b> {{ p.pista }} <span class="text-muted">({{ p.longitud }})</span></div>{% empty %}<p class="text-muted mb-0">—</p>{% endfor %}
         </div>
       </div>
     </div>
@@ -88,11 +89,50 @@
 <script>
 (function(){
   const celdas = JSON.parse(document.getElementById('celdas-data').textContent);
+  const porId = {};
+  celdas.forEach(function(p){ porId[p.id] = p; });
+  let activo = null; // celdas [[r,c],...] de la palabra en la que se está escribiendo
 
-  // Autoavance dentro de la palabra al escribir.
-  document.querySelectorAll('.cg-cell input').forEach(function(inp){
-    inp.addEventListener('input', function(){
+  function inp(r,c){ return document.getElementById('cell_' + r + '_' + c); }
+  function enfocar(rc){ const el = inp(rc[0], rc[1]); if(el){ el.focus(); el.select && el.select(); } }
+  function coordDe(el){ const p = el.id.split('_'); return [parseInt(p[1]), parseInt(p[2])]; }
+
+  // Tocar una pista: enfoca la primera casilla vacía de esa palabra.
+  document.querySelectorAll('.cg-clue').forEach(function(clue){
+    clue.addEventListener('click', function(){
+      const p = porId[this.dataset.pid];
+      if(!p) return;
+      activo = p.celdas;
+      let destino = p.celdas[0];
+      for(const rc of p.celdas){ const el = inp(rc[0], rc[1]); if(el && !el.value){ destino = rc; break; } }
+      enfocar(destino);
+    });
+  });
+
+  document.querySelectorAll('.cg-cell input').forEach(function(box){
+    // Al enfocar una casilla, fija como activa una palabra que la contenga.
+    box.addEventListener('focus', function(){
+      const rc = coordDe(this);
+      if(!activo || !activo.some(function(x){ return x[0]===rc[0] && x[1]===rc[1]; })){
+        for(const p of celdas){ if(p.celdas.some(function(x){ return x[0]===rc[0] && x[1]===rc[1]; })){ activo = p.celdas; break; } }
+      }
+    });
+    // Escribir: mayúscula + avanzar a la siguiente casilla de la palabra activa.
+    box.addEventListener('input', function(){
       this.value = this.value.toUpperCase().slice(0,1);
+      if(this.value && activo){
+        const rc = coordDe(this);
+        const idx = activo.findIndex(function(x){ return x[0]===rc[0] && x[1]===rc[1]; });
+        if(idx >= 0 && idx < activo.length - 1) enfocar(activo[idx+1]);
+      }
+    });
+    // Retroceso en casilla vacía: vuelve a la anterior.
+    box.addEventListener('keydown', function(e){
+      if(e.key === 'Backspace' && !this.value && activo){
+        const rc = coordDe(this);
+        const idx = activo.findIndex(function(x){ return x[0]===rc[0] && x[1]===rc[1]; });
+        if(idx > 0){ enfocar(activo[idx-1]); }
+      }
     });
   });
 

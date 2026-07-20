@@ -2,12 +2,12 @@
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
-.sl-grid { display:inline-block; user-select:none; touch-action:manipulation; }
+.sl-grid { display:inline-block; user-select:none; -webkit-user-select:none; touch-action:none; }
 .sl-row { display:flex; }
 .sl-cell { width:34px; height:34px; border:1px solid #e2e8f0; display:flex; align-items:center;
   justify-content:center; font-weight:800; font-size:.9rem; color:#334155; text-transform:uppercase;
-  cursor:pointer; background:#fff; }
-.sl-cell.start { background:#fde68a; color:#92400e; outline:2px solid #f59e0b; outline-offset:-2px; }
+  cursor:pointer; background:#fff; touch-action:none; }
+.sl-cell.preview { background:#fde68a; color:#92400e; }
 .sl-cell.found { background:#ccfbf1; color:#0f766e; border-color:#5eead4; }
 .sl-word { padding:.3rem .1rem; font-size:.92rem; font-weight:600; }
 .sl-word.tachada { text-decoration:line-through; color:#94a3b8; }
@@ -17,7 +17,7 @@
 {% block contenido %}
 <div style="background: linear-gradient(135deg, #c2410c 0%, #f59e0b 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem;">
   <h2 style="color:#fff;" class="mb-1"><i class="bi bi-search-heart"></i> {{ sopa.titulo }}</h2>
-  <p style="color:#fff;" class="mb-0">{% if sopa.instrucciones %}{{ sopa.instrucciones }}{% else %}Encuentra las palabras: toca la <b>primera</b> y luego la <b>última</b> letra de cada una.{% endif %}</p>
+  <p style="color:#fff;" class="mb-0">{% if sopa.instrucciones %}{{ sopa.instrucciones }} · {% endif %}Encuentra las palabras <b>arrastrando el dedo</b> (o el mouse) desde la primera hasta la última letra.</p>
 </div>
 
 {{ palabras_norm|json_script:"palabras-data" }}
@@ -76,50 +76,77 @@
   const total = palabras.length;
   const encontradas = new Set();
   const selecciones = [];
-  let start = null;
+  const gridEl = document.getElementById('sl-grid');
+
+  let arrastrando = false, inicio = null, preview = [];
 
   function cell(r,c){ return document.getElementById('c_'+r+'_'+c); }
-  function limpiarStart(){ if(start){ const el=cell(start.r,start.c); if(el && !el.classList.contains('found')) el.classList.remove('start'); } start=null; }
-
-  function lineaCeldas(r1,c1,r2,c2){
-    const dr=r2-r1, dc=c2-c1, adr=Math.abs(dr), adc=Math.abs(dc);
-    if(dr===0 && dc===0) return null;
-    if(!(dr===0 || dc===0 || adr===adc)) return null;
-    const pasos=Math.max(adr,adc);
-    const sr=Math.sign(dr), sc=Math.sign(dc);
-    const celdas=[];
-    for(let i=0;i<=pasos;i++) celdas.push([r1+sr*i, c1+sc*i]);
-    return celdas;
+  function rcDe(el){
+    if(!el) return null;
+    const c = el.closest ? el.closest('.sl-cell') : null;
+    if(!c) return null;
+    return {r: parseInt(c.dataset.r), c: parseInt(c.dataset.c)};
+  }
+  function lineaCeldas(a,b){
+    const dr=b.r-a.r, dc=b.c-a.c, adr=Math.abs(dr), adc=Math.abs(dc);
+    if(dr===0 && dc===0) return [[a.r,a.c]];
+    if(!(dr===0 || dc===0 || adr===adc)) return null; // solo recto o diagonal 45°
+    const pasos=Math.max(adr,adc), sr=Math.sign(dr), sc=Math.sign(dc), out=[];
+    for(let i=0;i<=pasos;i++) out.push([a.r+sr*i, a.c+sc*i]);
+    return out;
+  }
+  function limpiarPreview(){
+    preview.forEach(function(rc){ const el=cell(rc[0],rc[1]); if(el && !el.classList.contains('found')) el.classList.remove('preview'); });
+    preview = [];
+  }
+  function mostrarPreview(celdas){
+    limpiarPreview();
+    preview = celdas || [];
+    preview.forEach(function(rc){ const el=cell(rc[0],rc[1]); if(el) el.classList.add('preview'); });
+  }
+  function finalizar(){
+    if(preview.length >= 2){
+      let texto=''; preview.forEach(function(rc){ const el=cell(rc[0],rc[1]); texto += el ? el.textContent.trim() : ''; });
+      const rev = texto.split('').reverse().join('');
+      let match=null;
+      for(const w of palabras){ if((w===texto || w===rev) && !encontradas.has(w)){ match=w; break; } }
+      if(match){
+        encontradas.add(match);
+        const first=preview[0], last=preview[preview.length-1];
+        preview.forEach(function(rc){ const el=cell(rc[0],rc[1]); if(el){ el.classList.add('found'); el.classList.remove('preview'); } });
+        document.querySelectorAll('.sl-word[data-word="'+match+'"]').forEach(function(el){ el.classList.add('tachada'); });
+        selecciones.push({r1:first[0], c1:first[1], r2:last[0], c2:last[1]});
+        document.getElementById('contador').textContent = encontradas.size + '/' + total;
+      }
+    }
+    limpiarPreview();
   }
 
-  function marcarPalabra(norm){
-    document.querySelectorAll('.sl-word[data-word="'+norm+'"]').forEach(function(el){ el.classList.add('tachada'); });
-  }
-
-  document.getElementById('sl-grid').addEventListener('click', function(e){
-    const c = e.target.closest('.sl-cell');
-    if(!c) return;
-    const r = parseInt(c.dataset.r), col = parseInt(c.dataset.c);
-    if(start === null){
-      start = {r:r, c:col};
-      c.classList.add('start');
-      return;
-    }
-    const celdas = lineaCeldas(start.r, start.c, r, col);
-    if(!celdas){ limpiarStart(); return; }
-    let texto='';
-    celdas.forEach(function(rc){ const el=cell(rc[0],rc[1]); texto += el ? el.textContent.trim() : ''; });
-    const rev = texto.split('').reverse().join('');
-    let match=null;
-    for(const w of palabras){ if((w===texto || w===rev) && !encontradas.has(w)){ match=w; break; } }
-    if(match){
-      encontradas.add(match);
-      celdas.forEach(function(rc){ const el=cell(rc[0],rc[1]); if(el){ el.classList.add('found'); el.classList.remove('start'); } });
-      marcarPalabra(match);
-      selecciones.push({r1:start.r, c1:start.c, r2:r, c2:col});
-      document.getElementById('contador').textContent = encontradas.size + '/' + total;
-    }
-    limpiarStart();
+  gridEl.addEventListener('pointerdown', function(e){
+    const rc = rcDe(e.target);
+    if(!rc) return;
+    arrastrando = true; inicio = rc;
+    mostrarPreview([[rc.r, rc.c]]);
+    e.preventDefault();
+  });
+  gridEl.addEventListener('pointermove', function(e){
+    if(!arrastrando) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const rc = rcDe(el);
+    if(!rc) return;
+    const celdas = lineaCeldas(inicio, rc);
+    if(celdas) mostrarPreview(celdas);
+    e.preventDefault();
+  });
+  window.addEventListener('pointerup', function(){
+    if(!arrastrando) return;
+    arrastrando = false;
+    finalizar();
+  });
+  window.addEventListener('pointercancel', function(){
+    if(!arrastrando) return;
+    arrastrando = false;
+    limpiarPreview();
   });
 
   const modal = new bootstrap.Modal(document.getElementById('modalEnviar'));
