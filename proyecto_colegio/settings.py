@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'piar.apps.PiarConfig',
     'evaluacion_docente.apps.EvaluacionDocenteConfig',
     'autoevaluacion_institucional.apps.AutoevaluacionInstitucionalConfig',
+    'crucigramas.apps.CrucigramasConfig',
 
 
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)

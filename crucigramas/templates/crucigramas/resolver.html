@@ -1,0 +1,119 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+.cg-grid { display:inline-block; }
+.cg-row { display:flex; }
+.cg-cell { width:38px; height:38px; position:relative; }
+.cg-cell.empty { background:transparent; }
+.cg-cell input {
+  width:38px; height:38px; border:1px solid #cbd5e1; text-align:center;
+  font-weight:800; font-size:1rem; text-transform:uppercase; color:#0f3f90;
+  padding:0; background:#fff; border-radius:0;
+}
+.cg-cell input:focus { outline:2px solid #f59e0b; outline-offset:-2px; background:#fff7ed; }
+.cg-num { position:absolute; top:0; left:1px; font-size:.52rem; font-weight:700; color:#94a3b8; z-index:2; pointer-events:none; }
+.cg-clue { padding:.4rem .2rem; border-bottom:1px solid #f1f5f9; font-size:.9rem; }
+.cg-clue b { color:#c2410c; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #c2410c 0%, #f59e0b 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem;">
+  <h2 style="color:#fff;" class="mb-1"><i class="bi bi-grid-3x3-gap-fill"></i> {{ crucigrama.titulo }}</h2>
+  <p style="color:#fff;" class="mb-0">{% if crucigrama.instrucciones %}{{ crucigrama.instrucciones }}{% else %}Completa la cuadrícula usando las pistas. Cuando termines, envía para ver tu nota.{% endif %}</p>
+</div>
+
+{{ celdas_json|json_script:"celdas-data" }}
+
+<form method="post" id="cg-form">{% csrf_token %}
+  {% for p in horizontales %}<input type="hidden" name="palabra_{{ p.id }}" id="hp_{{ p.id }}">{% endfor %}
+  {% for p in verticales %}<input type="hidden" name="palabra_{{ p.id }}" id="hp_{{ p.id }}">{% endfor %}
+
+  <div class="row g-3">
+    <div class="col-lg-7">
+      <div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+        <div class="card-body text-center" style="overflow-x:auto;">
+          <div class="cg-grid">
+            {% for fila in grilla %}
+            <div class="cg-row">
+              {% for cel in fila %}
+                {% if cel %}
+                <div class="cg-cell">
+                  {% if cel.numero %}<span class="cg-num">{{ cel.numero }}</span>{% endif %}
+                  <input type="text" maxlength="1" autocomplete="off" inputmode="text"
+                         id="cell_{{ cel.r }}_{{ cel.c }}" data-cell="{{ cel.r }}_{{ cel.c }}">
+                </div>
+                {% else %}<div class="cg-cell empty"></div>{% endif %}
+              {% endfor %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+        <div class="card-header bg-white border-0 fw-800"><i class="bi bi-arrow-right me-1"></i>Horizontales</div>
+        <div class="card-body py-2">
+          {% for p in horizontales %}<div class="cg-clue"><b>{{ p.numero }}.</b> {{ p.pista }} <span class="text-muted">({{ p.longitud }})</span></div>{% empty %}<p class="text-muted mb-0">—</p>{% endfor %}
+        </div>
+      </div>
+      <div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+        <div class="card-header bg-white border-0 fw-800"><i class="bi bi-arrow-down me-1"></i>Verticales</div>
+        <div class="card-body py-2">
+          {% for p in verticales %}<div class="cg-clue"><b>{{ p.numero }}.</b> {{ p.pista }} <span class="text-muted">({{ p.longitud }})</span></div>{% empty %}<p class="text-muted mb-0">—</p>{% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2 mt-3">
+    <a href="{% url 'crucigramas:mis_crucigramas' %}" class="btn btn-outline-secondary">Salir</a>
+    <button type="button" id="btn-enviar" class="btn btn-warning fw-700"><i class="bi bi-check2-circle me-1"></i> Enviar respuestas</button>
+  </div>
+</form>
+
+<!-- Modal confirmación -->
+<div class="modal fade" id="modalEnviar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title fw-800">¿Enviar tus respuestas?</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p class="mb-0">Se corregirá automáticamente y quedará registrada tu nota. Solo tienes un intento.</p></div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Seguir resolviendo</button>
+      <button type="button" id="btn-confirmar" class="btn btn-warning fw-700">Sí, enviar</button>
+    </div>
+  </div></div>
+</div>
+
+<script>
+(function(){
+  const celdas = JSON.parse(document.getElementById('celdas-data').textContent);
+
+  // Autoavance dentro de la palabra al escribir.
+  document.querySelectorAll('.cg-cell input').forEach(function(inp){
+    inp.addEventListener('input', function(){
+      this.value = this.value.toUpperCase().slice(0,1);
+    });
+  });
+
+  function recolectar(){
+    celdas.forEach(function(p){
+      let txt = '';
+      p.celdas.forEach(function(rc){
+        const el = document.getElementById('cell_' + rc[0] + '_' + rc[1]);
+        txt += (el && el.value ? el.value : '');
+      });
+      const hidden = document.getElementById('hp_' + p.id);
+      if (hidden) hidden.value = txt;
+    });
+  }
+
+  const modal = new bootstrap.Modal(document.getElementById('modalEnviar'));
+  document.getElementById('btn-enviar').addEventListener('click', function(){ modal.show(); });
+  document.getElementById('btn-confirmar').addEventListener('click', function(){
+    recolectar();
+    document.getElementById('cg-form').submit();
+  });
+})();
+</script>
+{% endblock %}

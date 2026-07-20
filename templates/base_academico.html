@@ -308,6 +308,11 @@
           <i class="bi bi-journal-check"></i> Mis Simulacros
         </a>
       </li>
+      <li class="nav-item item-color-4">
+        <a class="nav-link {% if '/crucigramas/' in request.path %}active{% endif %}" href="{% url 'crucigramas:mis_crucigramas' %}">
+          <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+        </a>
+      </li>
     {% endif %}
     {% if user.is_staff %}
       {% if perms.admisiones.view_aspirante %}
@@ -641,6 +646,12 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}"
+                 href="{% url 'crucigramas:lista' %}">
+                <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link sub-item {% if 'piar' in request.path %}active{% endif %}"
                  href="{% url 'piar:lista_piars' %}">
                 <i class="bi bi-person-hearts"></i> PIARs / Inclusión
@@ -757,6 +768,12 @@
         <a class="nav-link {% if 'piar' in request.path %}active{% endif %}"
            href="{% url 'piar:lista_piars' %}">
           <i class="bi bi-person-hearts"></i> PIARs / Inclusión
+        </a>
+      </li>
+      <li class="nav-item item-color-4">
+        <a class="nav-link {% if '/crucigramas/' in request.path %}active{% endif %}"
+           href="{% url 'crucigramas:lista' %}">
+          <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
         </a>
       </li>
       <li class="nav-item item-color-1">
