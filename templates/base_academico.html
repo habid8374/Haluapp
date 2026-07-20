@@ -318,6 +318,11 @@
           <i class="bi bi-search-heart"></i> Sopas de Letras
         </a>
       </li>
+      <li class="nav-item item-color-4">
+        <a class="nav-link {% if '/memoria/' in request.path %}active{% endif %}" href="{% url 'memoria:mis_juegos' %}">
+          <i class="bi bi-images"></i> Juegos de Memoria
+        </a>
+      </li>
     {% endif %}
     {% if user.is_staff %}
       {% if perms.admisiones.view_aspirante %}
@@ -663,6 +668,12 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link sub-item {% if '/memoria/' in request.path %}active{% endif %}"
+                 href="{% url 'memoria:lista' %}">
+                <i class="bi bi-images"></i> Juegos de Memoria
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link sub-item {% if 'piar' in request.path %}active{% endif %}"
                  href="{% url 'piar:lista_piars' %}">
                 <i class="bi bi-person-hearts"></i> PIARs / Inclusión
@@ -791,6 +802,12 @@
         <a class="nav-link {% if '/sopa-letras/' in request.path %}active{% endif %}"
            href="{% url 'sopa_letras:lista' %}">
           <i class="bi bi-search-heart"></i> Sopas de Letras
+        </a>
+      </li>
+      <li class="nav-item item-color-4">
+        <a class="nav-link {% if '/memoria/' in request.path %}active{% endif %}"
+           href="{% url 'memoria:lista' %}">
+          <i class="bi bi-images"></i> Juegos de Memoria
         </a>
       </li>
       <li class="nav-item item-color-1">

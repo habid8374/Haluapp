@@ -1,0 +1,117 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+.mem-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); gap:.6rem; }
+.mem-card { position:relative; aspect-ratio:3/4; border-radius:12px; cursor:pointer;
+  perspective:600px; -webkit-tap-highlight-color:transparent; }
+.mem-inner { position:absolute; inset:0; transition:transform .35s; transform-style:preserve-3d; }
+.mem-card.open .mem-inner, .mem-card.matched .mem-inner { transform:rotateY(180deg); }
+.mem-face { position:absolute; inset:0; border-radius:12px; display:flex; align-items:center;
+  justify-content:center; backface-visibility:hidden; -webkit-backface-visibility:hidden; overflow:hidden; }
+.mem-back { background:linear-gradient(135deg,#7e22ce,#d946ef); color:#fff; font-size:1.6rem; }
+.mem-front { background:#fff; border:2px solid #e9d5ff; transform:rotateY(180deg); padding:.3rem; }
+.mem-front img { max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; }
+.mem-front span { font-weight:800; color:#6b21a8; text-align:center; font-size:.85rem; word-break:break-word; }
+.mem-card.matched .mem-front { border-color:#4ade80; box-shadow:0 0 0 2px #4ade80; }
+.mem-card.matched { cursor:default; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #c2410c 0%, #f59e0b 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem;">
+  <h2 style="color:#fff;" class="mb-1"><i class="bi bi-images"></i> {{ juego.titulo }}</h2>
+  <p style="color:#fff;" class="mb-0">{% if juego.instrucciones %}{{ juego.instrucciones }} · {% endif %}Voltea 2 tarjetas y encuentra todas las parejas. Si una tarjeta tiene sonido, escúchalo con atención. 🎧</p>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+  <span class="badge bg-warning text-dark" style="font-size:.9rem;"><i class="bi bi-stars me-1"></i>Parejas: <span id="cont-parejas">0</span>/{{ total_parejas }}</span>
+  <span class="badge bg-light text-dark border" style="font-size:.9rem;"><i class="bi bi-arrow-repeat me-1"></i>Intentos: <span id="cont-mov">0</span></span>
+</div>
+
+<div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+  <div class="card-body">
+    <div class="mem-grid" id="mem-grid">
+      {% for c in cartas %}
+      <div class="mem-card" data-p="{{ c.pareja }}" {% if c.audio %}data-audio="{{ c.audio }}"{% endif %}>
+        <div class="mem-inner">
+          <div class="mem-face mem-back"><i class="bi bi-question-lg"></i></div>
+          <div class="mem-face mem-front">
+            {% if c.imagen %}<img src="{{ c.imagen }}" alt="tarjeta">{% else %}<span>{{ c.texto }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<form method="post" id="mem-form" class="d-none">{% csrf_token %}
+  <input type="hidden" name="movimientos" id="movimientos" value="0">
+</form>
+
+<div class="text-center mt-3">
+  <a href="{% url 'memoria:mis_juegos' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Salir sin terminar</a>
+</div>
+
+<!-- Modal de finalización -->
+<div class="modal fade" id="modalFin" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:16px;">
+    <div class="modal-body text-center py-4">
+      <div style="font-size:3rem;">🎉</div>
+      <h4 class="fw-800 mb-1">¡Encontraste todas las parejas!</h4>
+      <p class="text-muted mb-3">Lo lograste en <b id="fin-mov"></b> intentos.</p>
+      <button type="button" id="btn-ver-nota" class="btn btn-warning fw-700 px-4"><i class="bi bi-award me-1"></i>Ver mi nota</button>
+    </div>
+  </div></div>
+</div>
+
+<script>
+(function(){
+  const total = {{ total_parejas }};
+  let abiertas = [], movimientos = 0, parejas = 0, bloqueo = false;
+  const player = new Audio();
+
+  document.getElementById('mem-grid').addEventListener('click', function(e){
+    const card = e.target.closest('.mem-card');
+    if (!card || bloqueo) return;
+    if (card.classList.contains('open') || card.classList.contains('matched')) return;
+
+    card.classList.add('open');
+    if (card.dataset.audio){
+      try { player.src = card.dataset.audio; player.play(); } catch (err) {}
+    }
+    abiertas.push(card);
+    if (abiertas.length < 2) return;
+
+    movimientos++;
+    document.getElementById('cont-mov').textContent = movimientos;
+    const a = abiertas[0], b = abiertas[1];
+    abiertas = [];
+
+    if (a.dataset.p === b.dataset.p){
+      a.classList.add('matched'); b.classList.add('matched');
+      a.classList.remove('open'); b.classList.remove('open');
+      parejas++;
+      document.getElementById('cont-parejas').textContent = parejas;
+      if (parejas >= total) terminar();
+    } else {
+      bloqueo = true;
+      setTimeout(function(){
+        a.classList.remove('open'); b.classList.remove('open');
+        bloqueo = false;
+      }, 900);
+    }
+  });
+
+  function terminar(){
+    document.getElementById('movimientos').value = movimientos;
+    document.getElementById('fin-mov').textContent = movimientos;
+    const modal = new bootstrap.Modal(document.getElementById('modalFin'));
+    setTimeout(function(){ modal.show(); }, 500);
+  }
+  document.getElementById('btn-ver-nota').addEventListener('click', function(){
+    document.getElementById('mem-form').submit();
+  });
+})();
+</script>
+{% endblock %}

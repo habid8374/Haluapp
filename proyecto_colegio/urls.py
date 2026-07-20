@@ -84,6 +84,7 @@ urlpatterns = [
     path('autoevaluacion/', include('autoevaluacion_institucional.urls', namespace='autoevaluacion_institucional')),
     path('crucigramas/', include('crucigramas.urls', namespace='crucigramas')),
     path('sopa-letras/', include('sopa_letras.urls', namespace='sopa_letras')),
+    path('memoria/', include('memoria.urls', namespace='memoria')),
 ]
 
 # --- 2. CONFIGURACIÓN PARA ARCHIVOS EN DESARROLLO ---
