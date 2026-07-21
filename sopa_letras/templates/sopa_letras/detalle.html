@@ -32,9 +32,17 @@
     <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCerrar"><i class="bi bi-stop-circle me-1"></i> Cerrar</button>
   {% endif %}
   <a href="{% url 'sopa_letras:resultados' sopa.pk %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> Resultados</a>
+  <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalDatos"><i class="bi bi-pencil-square me-1"></i> Editar datos</button>
   <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalFechas"><i class="bi bi-calendar-range me-1"></i> Fechas</button>
   <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"><i class="bi bi-trash me-1"></i> Eliminar</button>
 </div>
+
+{% if sopa.estado != 'BORRADOR' %}
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.85rem;">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <span>Esta sopa ya está publicada. Si editas las palabras, la sopa se rehace y puede cambiar para estudiantes que aún no la han resuelto (las notas ya registradas se conservan).</span>
+</div>
+{% endif %}
 
 <div class="alert alert-light border d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.88rem;">
   <i class="bi bi-calendar-range text-success"></i>
@@ -65,9 +73,20 @@
     <div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
       <div class="card-header bg-white border-0 fw-800">Palabras ({{ palabras|length }})</div>
       <div class="card-body">
-        <div class="d-flex flex-wrap gap-2">
-          {% for p in palabras %}<span class="badge bg-light text-dark border" style="font-size:.85rem;">{{ p.texto }}</span>{% endfor %}
-        </div>
+        {% for p in palabras %}
+          <form method="post" action="{% url 'sopa_letras:editar_palabra' sopa.pk p.pk %}" class="d-flex gap-1 align-items-center mb-2">{% csrf_token %}
+            <input type="text" name="texto" class="form-control form-control-sm fw-700" value="{{ p.texto }}">
+            <button class="btn btn-sm btn-outline-success" title="Guardar"><i class="bi bi-check-lg"></i></button>
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar"
+                    data-bs-toggle="modal" data-bs-target="#modalBorrarPalabra"
+                    data-action="{% url 'sopa_letras:eliminar_palabra' sopa.pk p.pk %}"><i class="bi bi-trash"></i></button>
+          </form>
+        {% endfor %}
+        <hr>
+        <form method="post" action="{% url 'sopa_letras:agregar_palabra' sopa.pk %}" class="d-flex gap-1 align-items-center">{% csrf_token %}
+          <input type="text" name="texto" class="form-control form-control-sm" placeholder="Nueva palabra">
+          <button class="btn btn-sm btn-success"><i class="bi bi-plus-lg me-1"></i>Agregar</button>
+        </form>
       </div>
     </div>
   </div>
@@ -104,6 +123,54 @@
     </form>
   </div></div>
 </div>
+
+<!-- Modal editar datos -->
+<div class="modal fade" id="modalDatos" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{% url 'sopa_letras:editar_datos' sopa.pk %}">{% csrf_token %}
+    <div class="modal-header"><h5 class="modal-title fw-800">Editar datos</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Título</label>
+        <input type="text" name="titulo" class="form-control" value="{{ sopa.titulo }}" required></div>
+      <div class="mb-2"><label class="form-label">Instrucciones</label>
+        <input type="text" name="instrucciones" class="form-control" value="{{ sopa.instrucciones }}"></div>
+      <div class="row g-2">
+        <div class="col-7"><label class="form-label">Categoría (libro de notas)</label>
+          <select name="tipo_actividad" class="form-select">
+            {% for t in tipos %}<option value="{{ t.pk }}" {% if t.pk == sopa.tipo_actividad_id %}selected{% endif %}>{{ t.nombre }}</option>{% endfor %}
+          </select></div>
+        <div class="col-5"><label class="form-label">Nota máxima</label>
+          <input type="number" step="0.1" min="1" max="5" name="nota_maxima" class="form-control" value="{{ sopa.nota_maxima|floatformat:'-2' }}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <button class="btn btn-primary">Guardar</button>
+    </div>
+    </form>
+  </div></div>
+</div>
+
+<!-- Modal borrar palabra -->
+<div class="modal fade" id="modalBorrarPalabra" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header border-0 pb-0">
+      <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i></div>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body pt-2"><h5 class="fw-800 mb-1">¿Eliminar esta palabra?</h5></div>
+    <div class="modal-footer border-0">
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+      <form id="form-borrar-palabra" method="post">{% csrf_token %}<button class="btn btn-danger btn-sm">Sí, eliminar</button></form>
+    </div>
+  </div></div>
+</div>
+<script>
+document.querySelectorAll('[data-bs-target="#modalBorrarPalabra"]').forEach(function(b){
+  b.addEventListener('click', function(){ document.getElementById('form-borrar-palabra').action = this.dataset.action; });
+});
+</script>
 
 <!-- Modal eliminar -->
 <div class="modal fade" id="modalEliminar" tabindex="-1">

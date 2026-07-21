@@ -194,11 +194,14 @@ def detalle(request, pk):
     grilla = celdas = horizontales = verticales = None
     if cruc.estado != Crucigrama.Estado.BORRADOR:
         grilla, celdas, horizontales, verticales = _grid_data(cruc, con_letras=True)
+    from gestion_academica.models import TipoActividad
+    tipos = TipoActividad.objects.filter(institucion=cruc.institucion)
     return render(request, 'crucigramas/detalle.html', {
         'titulo_pagina': cruc.titulo,
         'crucigrama': cruc,
         'palabras': cruc.palabras.all(),
         'grilla': grilla, 'horizontales': horizontales, 'verticales': verticales,
+        'tipos': tipos,
     })
 
 
@@ -247,6 +250,109 @@ def cerrar(request, pk):
     cruc.fecha_cierre = timezone.now()
     cruc.save(update_fields=['estado', 'fecha_cierre'])
     messages.success(request, "Crucigrama cerrado. Los estudiantes ya no pueden resolverlo.")
+    return redirect('crucigramas:detalle', pk=cruc.pk)
+
+
+def _regenerar_layout(cruc):
+    """Recalcula la cuadrícula (tras editar palabras en un crucigrama publicado)."""
+    palabras = list(cruc.palabras.all())
+    if len(palabras) < 3:
+        return
+    placements, filas, columnas = generar_layout(
+        [{'id': p.id, 'respuesta': p.respuesta} for p in palabras]
+    )
+    by_id = {pl['id']: pl for pl in placements}
+    for p in palabras:
+        pl = by_id.get(p.id)
+        if pl:
+            p.fila, p.columna = pl['fila'], pl['columna']
+            p.direccion, p.numero = pl['direccion'], pl['numero']
+            p.save(update_fields=['fila', 'columna', 'direccion', 'numero'])
+    cruc.filas, cruc.columnas = filas, columnas
+    cruc.save(update_fields=['filas', 'columnas'])
+
+
+@require_POST
+@login_required
+def editar_datos(request, pk):
+    _solo_docente_coord(request.user)
+    from gestion_academica.models import TipoActividad
+    cruc = get_object_or_404(_scope(Crucigrama.objects.all(), request.user), pk=pk)
+    titulo = (request.POST.get('titulo') or '').strip()
+    if not titulo:
+        messages.error(request, "El título no puede quedar vacío.")
+        return redirect('crucigramas:detalle', pk=cruc.pk)
+    cruc.titulo = titulo
+    cruc.instrucciones = (request.POST.get('instrucciones') or '').strip()
+    try:
+        cruc.nota_maxima = Decimal(request.POST.get('nota_maxima') or cruc.nota_maxima)
+    except Exception:
+        pass
+    tipo_id = request.POST.get('tipo_actividad')
+    if tipo_id:
+        cruc.tipo_actividad = get_object_or_404(TipoActividad, pk=tipo_id, institucion=cruc.institucion)
+    cruc.save(update_fields=['titulo', 'instrucciones', 'nota_maxima', 'tipo_actividad'])
+    if cruc.actividad_calificable_id:
+        act = cruc.actividad_calificable
+        act.titulo = cruc.titulo
+        act.tipo_actividad = cruc.tipo_actividad
+        act.descripcion = cruc.instrucciones or None
+        act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
+    messages.success(request, "Datos actualizados.")
+    return redirect('crucigramas:detalle', pk=cruc.pk)
+
+
+@require_POST
+@login_required
+def agregar_palabra(request, pk):
+    _solo_docente_coord(request.user)
+    cruc = get_object_or_404(_scope(Crucigrama.objects.all(), request.user), pk=pk)
+    respuesta = (request.POST.get('respuesta') or '').strip()
+    pista = (request.POST.get('pista') or '').strip()
+    if not respuesta or not pista or len(normalizar(respuesta)) < 2:
+        messages.error(request, "Escribe la palabra (2 letras o más) y su pista.")
+        return redirect('crucigramas:detalle', pk=cruc.pk)
+    ultimo = cruc.palabras.order_by('-orden').first()
+    PalabraCrucigrama.objects.create(
+        crucigrama=cruc, respuesta=respuesta, pista=pista,
+        orden=(ultimo.orden + 1) if ultimo else 1,
+    )
+    if cruc.estado == Crucigrama.Estado.PUBLICADO:
+        _regenerar_layout(cruc)
+    messages.success(request, "Palabra agregada.")
+    return redirect('crucigramas:detalle', pk=cruc.pk)
+
+
+@require_POST
+@login_required
+def editar_palabra(request, pk, palabra_pk):
+    _solo_docente_coord(request.user)
+    cruc = get_object_or_404(_scope(Crucigrama.objects.all(), request.user), pk=pk)
+    palabra = get_object_or_404(PalabraCrucigrama, pk=palabra_pk, crucigrama=cruc)
+    respuesta = (request.POST.get('respuesta') or '').strip()
+    pista = (request.POST.get('pista') or '').strip()
+    if not respuesta or not pista or len(normalizar(respuesta)) < 2:
+        messages.error(request, "Escribe la palabra (2 letras o más) y su pista.")
+        return redirect('crucigramas:detalle', pk=cruc.pk)
+    palabra.respuesta = respuesta
+    palabra.pista = pista
+    palabra.save(update_fields=['respuesta', 'pista'])
+    if cruc.estado == Crucigrama.Estado.PUBLICADO:
+        _regenerar_layout(cruc)
+    messages.success(request, "Palabra actualizada.")
+    return redirect('crucigramas:detalle', pk=cruc.pk)
+
+
+@require_POST
+@login_required
+def eliminar_palabra(request, pk, palabra_pk):
+    _solo_docente_coord(request.user)
+    cruc = get_object_or_404(_scope(Crucigrama.objects.all(), request.user), pk=pk)
+    palabra = get_object_or_404(PalabraCrucigrama, pk=palabra_pk, crucigrama=cruc)
+    palabra.delete()
+    if cruc.estado == Crucigrama.Estado.PUBLICADO:
+        _regenerar_layout(cruc)
+    messages.success(request, "Palabra eliminada.")
     return redirect('crucigramas:detalle', pk=cruc.pk)
 
 

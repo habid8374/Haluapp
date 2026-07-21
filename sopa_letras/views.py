@@ -189,11 +189,14 @@ def detalle(request, pk):
     grilla = None
     if sopa.estado != Sopa.Estado.BORRADOR and sopa.grid:
         grilla = _grid_view(sopa, con_solucion=True)
+    from gestion_academica.models import TipoActividad
+    tipos = TipoActividad.objects.filter(institucion=sopa.institucion)
     return render(request, 'sopa_letras/detalle.html', {
         'titulo_pagina': sopa.titulo,
         'sopa': sopa,
         'palabras': sopa.palabras.all(),
         'grilla': grilla,
+        'tipos': tipos,
     })
 
 
@@ -246,6 +249,103 @@ def cerrar(request, pk):
     sopa.fecha_cierre = timezone.now()
     sopa.save(update_fields=['estado', 'fecha_cierre'])
     messages.success(request, "Sopa cerrada.")
+    return redirect('sopa_letras:detalle', pk=sopa.pk)
+
+
+def _regenerar_sopa(sopa):
+    """Recalcula la sopa (tras editar palabras en una sopa publicada)."""
+    palabras = list(sopa.palabras.all())
+    if len(palabras) < 3:
+        return
+    grid, placements, tamano = generar_sopa([{'id': p.id, 'texto': p.texto} for p in palabras])
+    if not grid:
+        return
+    by_id = {pl['id']: pl for pl in placements}
+    for p in palabras:
+        pl = by_id.get(p.id)
+        if pl:
+            p.fila, p.columna, p.df, p.dc = pl['fila'], pl['columna'], pl['df'], pl['dc']
+            p.save(update_fields=['fila', 'columna', 'df', 'dc'])
+    sopa.grid = grid
+    sopa.tamano = tamano
+    sopa.save(update_fields=['grid', 'tamano'])
+
+
+@require_POST
+@login_required
+def editar_datos(request, pk):
+    _solo_docente_coord(request.user)
+    from gestion_academica.models import TipoActividad
+    sopa = get_object_or_404(_scope(Sopa.objects.all(), request.user), pk=pk)
+    titulo = (request.POST.get('titulo') or '').strip()
+    if not titulo:
+        messages.error(request, "El título no puede quedar vacío.")
+        return redirect('sopa_letras:detalle', pk=sopa.pk)
+    sopa.titulo = titulo
+    sopa.instrucciones = (request.POST.get('instrucciones') or '').strip()
+    try:
+        sopa.nota_maxima = Decimal(request.POST.get('nota_maxima') or sopa.nota_maxima)
+    except Exception:
+        pass
+    tipo_id = request.POST.get('tipo_actividad')
+    if tipo_id:
+        sopa.tipo_actividad = get_object_or_404(TipoActividad, pk=tipo_id, institucion=sopa.institucion)
+    sopa.save(update_fields=['titulo', 'instrucciones', 'nota_maxima', 'tipo_actividad'])
+    if sopa.actividad_calificable_id:
+        act = sopa.actividad_calificable
+        act.titulo = sopa.titulo
+        act.tipo_actividad = sopa.tipo_actividad
+        act.descripcion = sopa.instrucciones or None
+        act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
+    messages.success(request, "Datos actualizados.")
+    return redirect('sopa_letras:detalle', pk=sopa.pk)
+
+
+@require_POST
+@login_required
+def agregar_palabra(request, pk):
+    _solo_docente_coord(request.user)
+    sopa = get_object_or_404(_scope(Sopa.objects.all(), request.user), pk=pk)
+    texto = (request.POST.get('texto') or '').strip()
+    if not texto or len(normalizar(texto)) < 2:
+        messages.error(request, "Escribe una palabra de 2 letras o más (sin espacios).")
+        return redirect('sopa_letras:detalle', pk=sopa.pk)
+    ultimo = sopa.palabras.order_by('-orden').first()
+    PalabraSopa.objects.create(sopa=sopa, texto=texto, orden=(ultimo.orden + 1) if ultimo else 1)
+    if sopa.estado == Sopa.Estado.PUBLICADO:
+        _regenerar_sopa(sopa)
+    messages.success(request, "Palabra agregada.")
+    return redirect('sopa_letras:detalle', pk=sopa.pk)
+
+
+@require_POST
+@login_required
+def editar_palabra(request, pk, palabra_pk):
+    _solo_docente_coord(request.user)
+    sopa = get_object_or_404(_scope(Sopa.objects.all(), request.user), pk=pk)
+    palabra = get_object_or_404(PalabraSopa, pk=palabra_pk, sopa=sopa)
+    texto = (request.POST.get('texto') or '').strip()
+    if not texto or len(normalizar(texto)) < 2:
+        messages.error(request, "Escribe una palabra de 2 letras o más (sin espacios).")
+        return redirect('sopa_letras:detalle', pk=sopa.pk)
+    palabra.texto = texto
+    palabra.save(update_fields=['texto'])
+    if sopa.estado == Sopa.Estado.PUBLICADO:
+        _regenerar_sopa(sopa)
+    messages.success(request, "Palabra actualizada.")
+    return redirect('sopa_letras:detalle', pk=sopa.pk)
+
+
+@require_POST
+@login_required
+def eliminar_palabra(request, pk, palabra_pk):
+    _solo_docente_coord(request.user)
+    sopa = get_object_or_404(_scope(Sopa.objects.all(), request.user), pk=pk)
+    palabra = get_object_or_404(PalabraSopa, pk=palabra_pk, sopa=sopa)
+    palabra.delete()
+    if sopa.estado == Sopa.Estado.PUBLICADO:
+        _regenerar_sopa(sopa)
+    messages.success(request, "Palabra eliminada.")
     return redirect('sopa_letras:detalle', pk=sopa.pk)
 
 
