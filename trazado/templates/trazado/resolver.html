@@ -77,7 +77,9 @@
     ctx.fillStyle = '#e2e8f0';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const txt = pendientes[idx].texto || '';
+    // En cursiva la guía va en MINÚSCULA (lo que se traza en 1° y 2°).
+    let txt = pendientes[idx].texto || '';
+    if (estilo === 'CURSIVA') txt = txt.toLowerCase();
     // La cursiva ocupa más ancho al ligarse: se reduce un poco.
     const base = estilo === 'CURSIVA' ? 360 : 420;
     let size = txt.length <= 1 ? base : Math.max(80, (estilo === 'CURSIVA' ? 460 : 520) / txt.length);
