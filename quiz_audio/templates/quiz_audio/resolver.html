@@ -1,0 +1,157 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+.qa-play { border:none; border-radius:50%; width:130px; height:130px; font-size:3rem; color:#fff;
+  background:linear-gradient(135deg,#0369a1,#38bdf8); box-shadow:0 8px 22px rgba(3,105,161,.35);
+  cursor:pointer; transition:transform .12s; }
+.qa-play:active { transform:scale(.94); }
+.qa-play.sonando { animation:latido 1s infinite; }
+@keyframes latido { 50% { transform:scale(1.06); } }
+.qa-opciones { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:1rem; max-width:640px; margin:1.4rem auto 0; }
+.qa-op { border:3px solid #e2e8f0; border-radius:18px; background:#fff; cursor:pointer; padding:.6rem;
+  aspect-ratio:1/1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition:transform .12s, border-color .2s, opacity .3s; -webkit-tap-highlight-color:transparent; }
+.qa-op:active { transform:scale(.96); }
+.qa-op img { max-width:100%; max-height:78%; object-fit:contain; }
+.qa-op span { font-weight:800; color:#334155; margin-top:.3rem; text-align:center; }
+.qa-op.correcta { border-color:#22c55e; box-shadow:0 0 0 4px rgba(34,197,94,.25); }
+.qa-op.incorrecta { opacity:.4; border-color:#fca5a5; }
+.qa-op.bloqueada { pointer-events:none; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #c2410c 0%, #f59e0b 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem; text-align:center;">
+  <h2 style="color:#fff;" class="mb-1"><i class="bi bi-volume-up-fill"></i> {{ quiz.titulo }}</h2>
+  <p style="color:#fff;" class="mb-0">{% if quiz.instrucciones %}{{ quiz.instrucciones }} · {% endif %}Escucha el audio y toca la imagen correcta.</p>
+</div>
+
+{{ preguntas_json|json_script:"preguntas-data" }}
+<form class="d-none">{% csrf_token %}</form>
+
+<div class="d-flex justify-content-center mb-3">
+  <span class="badge bg-warning text-dark" style="font-size:.95rem;"><i class="bi bi-collection me-1"></i>Pregunta <span id="num-actual">1</span> de {{ total }}</span>
+</div>
+
+<div class="text-center">
+  <p id="qa-enunciado" class="fw-700 mb-3" style="font-size:1.1rem;color:#334155;"></p>
+  <button type="button" id="qa-play" class="qa-play"><i class="bi bi-play-fill"></i></button>
+  <div class="text-muted mt-2" style="font-size:.85rem;">Toca para escuchar</div>
+  <div class="qa-opciones" id="qa-opciones"></div>
+</div>
+
+<div class="text-center mt-4">
+  <button type="button" id="btn-siguiente" class="btn btn-primary btn-lg fw-700 px-4 d-none">Siguiente <i class="bi bi-arrow-right ms-1"></i></button>
+</div>
+
+<div class="text-center mt-3">
+  <a href="{% url 'quiz_audio:mis_quices' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Salir (tu avance se guarda)</a>
+</div>
+
+<script>
+(function(){
+  const preguntas = JSON.parse(document.getElementById('preguntas-data').textContent);
+  const urlResponder = '{{ url_responder }}';
+  const urlResultado = '{{ url_resultado }}';
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const respondidasPrevias = {{ respondidas }};
+  let idx = 0, bloqueo = false;
+  const player = new Audio();
+  const playBtn = document.getElementById('qa-play');
+  function ding(){
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.start(); osc.stop(ctx.currentTime + 0.36);
+    } catch (e) {}
+  }
+
+  player.addEventListener('playing', function(){ playBtn.classList.add('sonando'); });
+  player.addEventListener('ended', function(){ playBtn.classList.remove('sonando'); });
+  player.addEventListener('pause', function(){ playBtn.classList.remove('sonando'); });
+
+  function mostrar(){
+    const p = preguntas[idx];
+    document.getElementById('num-actual').textContent = respondidasPrevias + idx + 1;
+    document.getElementById('qa-enunciado').textContent = p.enunciado || '';
+    document.getElementById('btn-siguiente').classList.add('d-none');
+    const cont = document.getElementById('qa-opciones');
+    cont.textContent = '';
+    p.opciones.forEach(function(o){
+      const div = document.createElement('div');
+      div.className = 'qa-op';
+      div.dataset.op = o.id;
+      if (o.imagen){
+        const img = document.createElement('img');
+        img.src = o.imagen; img.alt = 'opción';
+        div.appendChild(img);
+      }
+      if (o.texto){
+        const sp = document.createElement('span');
+        sp.textContent = o.texto;
+        div.appendChild(sp);
+      }
+      cont.appendChild(div);
+    });
+    bloqueo = false;
+    // Reproduce el audio automáticamente al mostrar la pregunta.
+    reproducir();
+  }
+
+  function reproducir(){
+    const p = preguntas[idx];
+    if (!p.audio) return;
+    try { player.src = p.audio; player.play(); } catch (e) {}
+  }
+  playBtn.addEventListener('click', reproducir);
+
+  document.getElementById('qa-opciones').addEventListener('click', async function(e){
+    const op = e.target.closest('.qa-op');
+    if (!op || bloqueo) return;
+    bloqueo = true;
+    document.querySelectorAll('.qa-op').forEach(function(o){ o.classList.add('bloqueada'); });
+    try {
+      const resp = await fetch(urlResponder, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+        body: JSON.stringify({ pregunta: preguntas[idx].id, opcion: parseInt(op.dataset.op) }),
+      });
+      const datos = await resp.json();
+      if (datos.error){ alert(datos.error); window.location.href = urlResultado; return; }
+      if (datos.correcto){
+        op.classList.add('correcta');
+        ding();
+      } else {
+        op.classList.add('incorrecta');
+        const buena = document.querySelector('.qa-op[data-op="' + datos.opcion_correcta + '"]');
+        if (buena) buena.classList.add('correcta');
+      }
+      preguntas[idx].terminado = datos.terminado;
+      const btn = document.getElementById('btn-siguiente');
+      btn.innerHTML = datos.terminado ? '<i class="bi bi-award me-1"></i> Ver mi nota' : 'Siguiente <i class="bi bi-arrow-right ms-1"></i>';
+      btn.classList.remove('d-none');
+    } catch (err) {
+      alert('No pudimos enviar tu respuesta. Revisa tu conexión.');
+      bloqueo = false;
+      document.querySelectorAll('.qa-op').forEach(function(o){ o.classList.remove('bloqueada'); });
+    }
+  });
+
+  document.getElementById('btn-siguiente').addEventListener('click', function(){
+    if (preguntas[idx].terminado){ window.location.href = urlResultado; return; }
+    idx++;
+    if (idx >= preguntas.length){ window.location.href = urlResultado; return; }
+    mostrar();
+  });
+
+  mostrar();
+})();
+</script>
+{% endblock %}

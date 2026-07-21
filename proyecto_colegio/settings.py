@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     'sopa_letras.apps.SopaLetrasConfig',
     'memoria.apps.MemoriaConfig',
     'flashcards.apps.FlashcardsConfig',
+    'quiz_audio.apps.QuizAudioConfig',
 
 
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)

@@ -1,0 +1,148 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+.qa-thumb { width:60px; height:60px; object-fit:cover; border-radius:8px; border:2px solid #e2e8f0; }
+.qa-thumb.ok { border-color:#22c55e; box-shadow:0 0 0 2px #22c55e; }
+.qa-txt { display:inline-flex; align-items:center; justify-content:center; min-width:60px; height:60px;
+  border-radius:8px; border:2px solid #e2e8f0; background:#f8fafc; font-weight:700; padding:0 .4rem; font-size:.75rem; }
+.qa-txt.ok { border-color:#22c55e; }
+audio.mini { height:30px; max-width:200px; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #0369a1 0%, #38bdf8 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+  <div>
+    <h2 style="color:#fff;" class="mb-1"><i class="bi bi-volume-up-fill"></i> {{ quiz.titulo }}</h2>
+    <p style="color:#fff;" class="mb-0">
+      {{ quiz.curso.materia.nombre_materia }} · {{ quiz.curso.grado.nombre }} ·
+      {% if quiz.estado == 'PUBLICADO' %}<span class="badge bg-light text-success">Publicado</span>
+      {% elif quiz.estado == 'CERRADO' %}<span class="badge bg-light text-secondary">Cerrado</span>
+      {% else %}<span class="badge bg-light text-dark">Borrador</span>{% endif %}
+    </p>
+  </div>
+  <a href="{% url 'quiz_audio:lista' %}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> Volver</a>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+  {% if quiz.estado == 'BORRADOR' %}
+    <form method="post" action="{% url 'quiz_audio:publicar' quiz.pk %}">{% csrf_token %}
+      <button class="btn btn-success"><i class="bi bi-send me-1"></i> Publicar</button>
+    </form>
+  {% elif quiz.estado == 'PUBLICADO' %}
+    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCerrar"><i class="bi bi-stop-circle me-1"></i> Cerrar</button>
+  {% endif %}
+  <a href="{% url 'quiz_audio:resultados' quiz.pk %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> Resultados</a>
+  <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalFechas"><i class="bi bi-calendar-range me-1"></i> Fechas</button>
+  <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"><i class="bi bi-trash me-1"></i> Eliminar</button>
+</div>
+
+<div class="alert alert-light border d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.88rem;">
+  <i class="bi bi-calendar-range text-success"></i>
+  <span><b>Disponible desde:</b> {{ quiz.fecha_inicio|date:"d/m/Y H:i"|default:"sin límite" }} · <b>Plazo final:</b> {{ quiz.fecha_fin|date:"d/m/Y H:i"|default:"sin límite" }}</span>
+</div>
+
+<div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+  <div class="card-header bg-white border-0 fw-800">Preguntas ({{ preguntas|length }})</div>
+  <div class="card-body">
+    {% for p in preguntas %}
+    <div class="border rounded p-2 mb-2">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div class="flex-grow-1">
+          <div class="fw-700 mb-1"><span class="badge" style="background:#0369a1;">{{ forloop.counter }}</span> {{ p.enunciado|default:"(sin texto)" }}</div>
+          <audio controls class="mini mb-2" src="{{ p.audio.url }}"></audio>
+          <div class="d-flex flex-wrap gap-2">
+            {% for o in p.opciones.all %}
+              {% if o.imagen %}<img src="{{ o.imagen.url }}" class="qa-thumb {% if o.es_correcta %}ok{% endif %}" alt="">
+              {% else %}<span class="qa-txt {% if o.es_correcta %}ok{% endif %}">{{ o.texto }}</span>{% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% if quiz.estado == 'BORRADOR' %}
+        <button type="button" class="btn btn-sm btn-outline-danger"
+                data-bs-toggle="modal" data-bs-target="#modalEliminarPregunta"
+                data-action="{% url 'quiz_audio:eliminar_pregunta' quiz.pk p.pk %}">
+          <i class="bi bi-trash"></i>
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+      <p class="text-center py-3 text-muted mb-0">Sin preguntas todavía.</p>
+    {% endfor %}
+    <p class="text-muted mt-2 mb-0" style="font-size:.8rem;"><i class="bi bi-lightbulb me-1"></i>El borde verde marca la opción correcta. Para agregar más preguntas, crea otro quiz (o elimina y vuelve a crear).</p>
+  </div>
+</div>
+
+<!-- Modales -->
+<div class="modal fade" id="modalCerrar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title fw-800">¿Cerrar el quiz?</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p class="mb-0">Los estudiantes ya no podrán resolverlo. Las notas registradas se conservan.</p></div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <form method="post" action="{% url 'quiz_audio:cerrar' quiz.pk %}">{% csrf_token %}<button class="btn btn-secondary">Sí, cerrar</button></form>
+    </div>
+  </div></div>
+</div>
+
+<div class="modal fade" id="modalFechas" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{% url 'quiz_audio:editar_fechas' quiz.pk %}">{% csrf_token %}
+    <div class="modal-header"><h5 class="modal-title fw-800">Rango de fechas</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-3"><label class="form-label">Disponible desde</label>
+        <input type="datetime-local" name="fecha_inicio" class="form-control" value="{{ quiz.fecha_inicio|date:'Y-m-d\TH:i' }}"></div>
+      <div class="mb-2"><label class="form-label">Plazo final</label>
+        <input type="datetime-local" name="fecha_fin" class="form-control" value="{{ quiz.fecha_fin|date:'Y-m-d\TH:i' }}"></div>
+      <p class="text-muted mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>Déjalas vacías para que no haya límite.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <button class="btn btn-success">Guardar fechas</button>
+    </div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="modalEliminarPregunta" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header border-0 pb-0">
+      <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i></div>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body pt-2"><h5 class="fw-800 mb-1">¿Eliminar esta pregunta?</h5></div>
+    <div class="modal-footer border-0">
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+      <form id="form-eliminar-pregunta" method="post">{% csrf_token %}<button class="btn btn-danger btn-sm">Sí, eliminar</button></form>
+    </div>
+  </div></div>
+</div>
+
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header border-0 pb-0">
+      <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i></div>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body pt-2">
+      <h5 class="fw-800 mb-1">¿Eliminar este quiz?</h5>
+      <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>Se eliminarán también los intentos. Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-footer border-0">
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+      <form method="post" action="{% url 'quiz_audio:eliminar' quiz.pk %}">{% csrf_token %}<button class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>Sí, eliminar</button></form>
+    </div>
+  </div></div>
+</div>
+
+<script>
+document.querySelectorAll('[data-bs-target="#modalEliminarPregunta"]').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.getElementById('form-eliminar-pregunta').action = this.dataset.action;
+  });
+});
+</script>
+{% endblock %}
