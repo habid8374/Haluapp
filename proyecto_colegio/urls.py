@@ -87,6 +87,8 @@ urlpatterns = [
     path('memoria/', include('memoria.urls', namespace='memoria')),
     path('flashcards/', include('flashcards.urls', namespace='flashcards')),
     path('quiz-audio/', include('quiz_audio.urls', namespace='quiz_audio')),
+    path('secuencias/', include('secuencias.urls', namespace='secuencias')),
+    path('trazado/', include('trazado.urls', namespace='trazado')),
 ]
 
 # --- 2. CONFIGURACIÓN PARA ARCHIVOS EN DESARROLLO ---

@@ -90,6 +90,8 @@ INSTALLED_APPS = [
     'memoria.apps.MemoriaConfig',
     'flashcards.apps.FlashcardsConfig',
     'quiz_audio.apps.QuizAudioConfig',
+    'secuencias.apps.SecuenciasConfig',
+    'trazado.apps.TrazadoConfig',
 
 
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)
