@@ -9,6 +9,7 @@
       {% if tablero.estado == 'PUBLICADO' %}<span class="badge bg-light text-success">Publicado</span>
       {% elif tablero.estado == 'CERRADO' %}<span class="badge bg-light text-secondary">Cerrado</span>
       {% else %}<span class="badge bg-light text-dark">Borrador</span>{% endif %}
+      · <span class="badge bg-light text-dark"><i class="bi bi-fonts me-1"></i>{{ tablero.get_estilo_letra_display }}</span>
     </p>
   </div>
   <a href="{% url 'trazado:lista' %}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> Volver</a>

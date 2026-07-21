@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
@@ -55,6 +56,21 @@
   const player = new Audio();
   let idx = 0, dibujando = false, ultimo = null, guardando = false;
 
+  // Fuente de la guía: cursiva ligada (1° y 2°) o imprenta.
+  const estilo = '{{ tablero.estilo_letra }}';
+  const FAMILIA_CURSIVA = 'HaluCursiva';
+  let fuenteLista = false;
+  if (estilo === 'CURSIVA' && window.FontFace){
+    try {
+      const ff = new FontFace(FAMILIA_CURSIVA, "url({% static 'fonts/dancing-script.ttf' %})");
+      ff.load().then(function(f){ document.fonts.add(f); fuenteLista = true; guia(); }).catch(function(){});
+    } catch (e) {}
+  }
+  function fuenteGuia(size){
+    if (estilo === 'CURSIVA') return '700 ' + size + 'px ' + (fuenteLista ? FAMILIA_CURSIVA : 'cursive');
+    return '900 ' + size + 'px Arial';
+  }
+
   function guia(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
@@ -62,8 +78,10 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const txt = pendientes[idx].texto || '';
-    let size = txt.length <= 1 ? 420 : Math.max(90, 520 / txt.length);
-    ctx.font = '900 ' + size + 'px Arial';
+    // La cursiva ocupa más ancho al ligarse: se reduce un poco.
+    const base = estilo === 'CURSIVA' ? 360 : 420;
+    let size = txt.length <= 1 ? base : Math.max(80, (estilo === 'CURSIVA' ? 460 : 520) / txt.length);
+    ctx.font = fuenteGuia(size);
     ctx.fillText(txt, canvas.width / 2, canvas.height / 2);
     ctx.restore();
   }

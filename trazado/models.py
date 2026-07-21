@@ -20,6 +20,15 @@ class TableroTrazado(models.Model):
         PUBLICADO = 'PUBLICADO', 'Publicado'
         CERRADO = 'CERRADO', 'Cerrado'
 
+    class EstiloLetra(models.TextChoices):
+        CURSIVA = 'CURSIVA', 'Cursiva (ligada)'
+        IMPRENTA = 'IMPRENTA', 'Imprenta (palo)'
+
+    estilo_letra = models.CharField(
+        max_length=10, choices=EstiloLetra.choices, default=EstiloLetra.CURSIVA,
+        verbose_name="Tipo de letra de la guía",
+    )
+
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
         related_name='tableros_trazado', verbose_name="Institución",

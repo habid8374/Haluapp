@@ -128,6 +128,9 @@ def crear(request):
         curso_id = request.POST.get('curso')
         tipo_id = request.POST.get('tipo_actividad')
         instrucciones = (request.POST.get('instrucciones') or '').strip()
+        estilo = request.POST.get('estilo_letra')
+        if estilo not in TableroTrazado.EstiloLetra.values:
+            estilo = TableroTrazado.EstiloLetra.CURSIVA
         try:
             nota_maxima = Decimal(request.POST.get('nota_maxima') or '5')
         except Exception:
@@ -150,7 +153,7 @@ def crear(request):
                 tablero = TableroTrazado.objects.create(
                     institucion=curso.institucion, curso=curso, titulo=titulo,
                     instrucciones=instrucciones, tipo_actividad=tipo,
-                    nota_maxima=nota_maxima, creado_por=request.user,
+                    nota_maxima=nota_maxima, estilo_letra=estilo, creado_por=request.user,
                     fecha_inicio=fecha_inicio, fecha_fin=fecha_fin,
                 )
                 for n, p in enumerate(plantillas, start=1):
