@@ -304,19 +304,6 @@
     .form-foot { margin-top: 1.5rem; text-align: center; }
     .form-foot a { color: #1d4ed8; font-size: .82rem; font-weight: 600; text-decoration: none; }
     .form-foot a:hover { text-decoration: underline; }
-    .form-foot .reg-link {
-      display: inline-flex; align-items: center; gap: 5px;
-      margin-top: .8rem;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 8px;
-      padding: .45rem 1rem;
-      color: #1d4ed8;
-      font-size: .8rem;
-      font-weight: 700;
-      transition: background .18s;
-    }
-    .form-foot .reg-link:hover { background: #dbeafe; }
     /* ══════════════════════════════
        RESPONSIVE — MOBILE
     ══════════════════════════════ */
@@ -507,12 +494,6 @@
       {% endif %}
       <div class="form-foot">
         <a href="{% url 'password_reset' %}"><i class="bi bi-key me-1"></i>¿Olvidaste tu contraseña?</a>
-        {% if not HAY_USUARIOS_REGISTRADOS %}
-        <br>
-        <a href="{% url 'gestion_academica:registro_inicial' %}" class="reg-link">
-          <i class="bi bi-building-add"></i> Registrar institución
-        </a>
-        {% endif %}
       </div>
     </div>
   </div>
