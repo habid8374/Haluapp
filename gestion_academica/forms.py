@@ -1500,9 +1500,13 @@ class UserPasswordChangeForm(forms.Form):
         return password_2            
 
 # ── Restablecimiento de contraseña con la cuenta Brevo/SMTP de cada colegio ──
+import logging as _logging
+
 from django.contrib.auth.forms import PasswordResetForm as _PasswordResetForm
 from django.template import loader as _loader
 from django.utils.html import escape as _escape
+
+_logger_reset = _logging.getLogger(__name__)
 
 
 class HaluPasswordResetForm(_PasswordResetForm):
@@ -1516,21 +1520,21 @@ class HaluPasswordResetForm(_PasswordResetForm):
     incluido — sin variables de entorno nuevas y sin tocar ni consumir el
     plan de ninguna otra institución.
 
-    Si el usuario no tiene institución asociada (ej. un superusuario), se usa
-    el envío estándar de Django (EMAIL_BACKEND / respaldo compartido Brevo).
+    Si el usuario no tiene institución asociada (ej. un superusuario), se
+    intenta el respaldo Brevo compartido (settings.BREVO_API_KEY, el mismo
+    que ya usa enviar_correo_dinamico para instituciones sin cuenta propia);
+    si tampoco existe, cae al envío estándar de Django.
+
+    Importante: un fallo de entrega (ej. SMTP bloqueado en el hosting) NUNCA
+    debe tumbar esta vista — además de ser mala experiencia, el flujo de
+    reseteo de contraseña no debe revelar por un error si el correo existe o
+    no. Todo intento de envío va protegido con try/except.
     """
 
     def send_mail(self, subject_template_name, email_template_name, context,
                   from_email, to_email, html_email_template_name=None):
         user = context.get('user')
         institucion = getattr(user, 'institucion_asociada', None) if user else None
-
-        if institucion is None:
-            super().send_mail(
-                subject_template_name, email_template_name, context,
-                from_email, to_email, html_email_template_name=html_email_template_name,
-            )
-            return
 
         subject = _loader.render_to_string(subject_template_name, context)
         subject = ''.join(subject.splitlines())  # el asunto no admite saltos de línea
@@ -1545,11 +1549,33 @@ class HaluPasswordResetForm(_PasswordResetForm):
                 + _escape(texto_plano) + '</pre>'
             )
 
-        from admisiones.utils import enviar_correo_dinamico
-        enviar_correo_dinamico(
-            institucion=institucion,
-            asunto=subject,
-            destinatarios=[to_email],
-            html_content=html_content,
-            texto_plano=texto_plano,
-        )
+        try:
+            if institucion is not None:
+                from admisiones.utils import enviar_correo_dinamico
+                enviar_correo_dinamico(
+                    institucion=institucion,
+                    asunto=subject,
+                    destinatarios=[to_email],
+                    html_content=html_content,
+                    texto_plano=texto_plano,
+                )
+                return
+
+            # Usuario sin institución (ej. superusuario): respaldo Brevo
+            # compartido si existe (mismo recurso que ya usan las instituciones
+            # sin cuenta propia); si no, envío estándar de Django.
+            from django.conf import settings as _dj_settings
+            brevo_key = getattr(_dj_settings, 'BREVO_API_KEY', '')
+            if brevo_key:
+                from admisiones.utils import _enviar_via_brevo_api
+                _enviar_via_brevo_api(brevo_key, None, [to_email], subject, html_content)
+            else:
+                super().send_mail(
+                    subject_template_name, email_template_name, context,
+                    from_email, to_email, html_email_template_name=html_email_template_name,
+                )
+        except Exception:
+            _logger_reset.exception(
+                "HaluPasswordResetForm: no se pudo enviar el correo de "
+                "restablecimiento a %s.", to_email,
+            )
