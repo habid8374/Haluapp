@@ -59,6 +59,21 @@ Cada módulo, vista, modelo o modificación DEBE respetar el aislamiento por ins
 
 ---
 
+## ⚠️ REGLA CRÍTICA: CREDENCIALES DE COMUNICACIÓN — SIEMPRE POR INSTITUCIÓN, NUNCA COMPARTIDAS
+
+**Extensión directa de la regla multi-institución de arriba, aplicada a cualquier canal de comunicación con el usuario final: correo, SMS, WhatsApp, o lo que se agregue en el futuro.**
+
+Cuando se envíe cualquier comunicación EN NOMBRE de una institución (correos transaccionales, notificaciones, recuperación de contraseña de sus usuarios, futuros SMS, etc.), **SIEMPRE** se deben usar las credenciales que ESA institución tiene guardadas (`InstitucionEducativa.brevo_api_key`, su propio SMTP, etc.), nunca una cuenta o "respaldo" compartido entre instituciones.
+
+- ✅ Si la institución configuró su propia cuenta (Brevo, SMTP, etc.), se usa esa — punto.
+- ✅ Si la institución **no** configuró nada, el envío simplemente **no se realiza** (se registra en el log como advertencia). Eso es lo correcto: cada colegio es responsable de configurar su propio canal, y su plan/cuota nunca debe verse afectado por otro colegio ni por el sistema.
+- ❌ **NUNCA** usar una clave/cuenta "de respaldo compartido" ni "del sistema" para enviar algo en nombre de una institución o de uno de sus usuarios — así sea para una función tan básica como el reseteo de contraseña.
+- ❌ **NUNCA** crear variables de entorno nuevas tipo `SISTEMA_BREVO_*` u otra cuenta "global" pensada para sustituir la credencial de una institución. Si de verdad no hay institución involucrada (ej. un superusuario de la plataforma sin institución asociada), se usa el `EMAIL_BACKEND` genérico de Django/la plataforma — nunca una cuenta Brevo de terceros ni el respaldo compartido existente (`BREVO_API_KEY` global, que ya está pensado únicamente para usarlo `enviar_correo_dinamico` cuando falta configuración, no para reutilizarlo desde otros flujos).
+
+> Ejemplo ya corregido: `gestion_academica.forms.HaluPasswordResetForm` — el correo de "¿Olvidaste tu contraseña?" se envía con `institucion_asociada` del usuario que lo solicita (vía `admisiones.utils.enviar_correo_dinamico`), nunca con una cuenta separada ni con el respaldo compartido.
+
+---
+
 ## Stack Tecnológico
 
 - **Backend**: Django 5.2, Python 3.12

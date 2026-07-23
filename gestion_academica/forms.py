@@ -1520,10 +1520,18 @@ class HaluPasswordResetForm(_PasswordResetForm):
     incluido — sin variables de entorno nuevas y sin tocar ni consumir el
     plan de ninguna otra institución.
 
+    REGLA INNEGOCIABLE: NUNCA se usa un respaldo/cuenta compartida entre
+    instituciones (ni BREVO_API_KEY global, ni ninguna otra credencial
+    "de sistema"). El correo de un usuario siempre se envía con las
+    credenciales de SU PROPIA institución (institucion.brevo_api_key /
+    SMTP propio). Si su institución no tiene nada configurado, el correo
+    simplemente no se envía (se registra en el log) — jamás se usa una
+    cuenta ajena. Ver CLAUDE.md.
+
     Si el usuario no tiene institución asociada (ej. un superusuario), se
-    intenta el respaldo Brevo compartido (settings.BREVO_API_KEY, el mismo
-    que ya usa enviar_correo_dinamico para instituciones sin cuenta propia);
-    si tampoco existe, cae al envío estándar de Django.
+    usa el envío estándar de Django (EMAIL_BACKEND global de la
+    plataforma, que no es de ninguna institución) — nunca el respaldo
+    Brevo compartido.
 
     Importante: un fallo de entrega (ej. SMTP bloqueado en el hosting) NUNCA
     debe tumbar esta vista — además de ser mala experiencia, el flujo de
@@ -1551,6 +1559,10 @@ class HaluPasswordResetForm(_PasswordResetForm):
 
         try:
             if institucion is not None:
+                # SIEMPRE las credenciales de ESTA institución. enviar_correo_dinamico
+                # ya prioriza institucion.brevo_api_key/SMTP propio; si la institución
+                # no tiene nada configurado, no envía nada (no hay credencial ajena
+                # de respaldo) — comportamiento correcto, no se toca.
                 from admisiones.utils import enviar_correo_dinamico
                 enviar_correo_dinamico(
                     institucion=institucion,
@@ -1561,19 +1573,14 @@ class HaluPasswordResetForm(_PasswordResetForm):
                 )
                 return
 
-            # Usuario sin institución (ej. superusuario): respaldo Brevo
-            # compartido si existe (mismo recurso que ya usan las instituciones
-            # sin cuenta propia); si no, envío estándar de Django.
-            from django.conf import settings as _dj_settings
-            brevo_key = getattr(_dj_settings, 'BREVO_API_KEY', '')
-            if brevo_key:
-                from admisiones.utils import _enviar_via_brevo_api
-                _enviar_via_brevo_api(brevo_key, None, [to_email], subject, html_content)
-            else:
-                super().send_mail(
-                    subject_template_name, email_template_name, context,
-                    from_email, to_email, html_email_template_name=html_email_template_name,
-                )
+            # Usuario sin institución (ej. superusuario): no hay una cuenta de
+            # colegio de la cual tomar credenciales, así que se usa el envío
+            # estándar de Django (EMAIL_BACKEND de la plataforma). NUNCA se
+            # intenta el respaldo Brevo compartido entre instituciones.
+            super().send_mail(
+                subject_template_name, email_template_name, context,
+                from_email, to_email, html_email_template_name=html_email_template_name,
+            )
         except Exception:
             _logger_reset.exception(
                 "HaluPasswordResetForm: no se pudo enviar el correo de "
