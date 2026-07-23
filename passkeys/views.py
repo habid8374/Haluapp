@@ -15,6 +15,7 @@ La librería `webauthn` se importa de forma diferida: si no está instalada, sol
 fallan estos endpoints (con un mensaje claro), no el resto del sitio.
 """
 import json
+import logging
 
 from django.conf import settings
 from django.contrib import messages
@@ -26,6 +27,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .models import CredencialWebAuthn
+
+logger = logging.getLogger(__name__)
 
 
 # ── Configuración RP (Relying Party) ─────────────────────────────────────────
@@ -116,7 +119,9 @@ def opciones_registro(request):
         exclude_credentials=existentes,
         authenticator_selection=AuthenticatorSelectionCriteria(
             authenticator_attachment=AuthenticatorAttachment.PLATFORM,
-            resident_key=ResidentKeyRequirement.PREFERRED,
+            # REQUIRED: la credencial queda "descubrible" en el dispositivo, para
+            # poder iniciar sesión sin escribir usuario ("Ingresar con huella").
+            resident_key=ResidentKeyRequirement.REQUIRED,
             user_verification=UserVerificationRequirement.REQUIRED,
         ),
     )
@@ -152,7 +157,8 @@ def verificar_registro(request):
             require_user_verification=True,
         )
     except Exception as exc:
-        return _error(f"No se pudo verificar el dispositivo: {exc}")
+        logger.warning("WebAuthn registro fallido (user %s): %s", request.user.pk, exc)
+        return _error("No se pudo verificar el dispositivo. Inténtalo de nuevo.")
 
     cred_id_b64 = bytes_to_base64url(verificacion.credential_id)
     if CredencialWebAuthn.objects.filter(credential_id=cred_id_b64).exists():
@@ -237,7 +243,8 @@ def verificar_login(request):
             require_user_verification=True,
         )
     except Exception as exc:
-        return _error(f"No se pudo verificar la firma: {exc}")
+        logger.warning("WebAuthn login fallido (cred %s): %s", credencial.pk, exc)
+        return _error("No se pudo verificar la huella. Inténtalo de nuevo.")
 
     usuario = credencial.usuario
     if not usuario.is_active:
