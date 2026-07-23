@@ -275,6 +275,12 @@
         <i class="bi bi-house-door-fill"></i> Inicio
       </a>
     </li>
+    <li class="nav-item item-color-3">
+      <a class="nav-link {% if '/passkeys/' in request.path %}active{% endif %}"
+         href="{% url 'passkeys:gestionar' %}">
+        <i class="bi bi-fingerprint"></i> Ingreso con huella
+      </a>
+    </li>
     {% if user.rol == 'estudiante' %}
       <hr class="menu-divider">
       <h5 class="menu-section-title">Mi Espacio</h5>

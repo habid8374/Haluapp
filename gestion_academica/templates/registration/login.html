@@ -454,9 +454,44 @@
           <span class="btn-spin"><span class="spin-ring"></span></span>
         </button>
       </form>
+
+      <button type="button" id="btn-huella" class="btn-ingresar d-none"
+              style="margin-top:.7rem;background:#0d3b66;">
+        <span class="btn-text"><i class="bi bi-fingerprint me-2"></i>Ingresar con huella</span>
+      </button>
+      <div id="huella-msg" class="text-center mt-2" style="font-size:.85rem;"></div>
+
       {% if TURNSTILE_ENABLED %}
       <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
       {% endif %}
+      <script src="{% static 'js/webauthn_halu.js' %}"></script>
+      <script>
+      (function(){
+        const btn = document.getElementById('btn-huella');
+        const msg = document.getElementById('huella-msg');
+        const form = document.getElementById('login-form');
+        const csrfInput = form ? form.querySelector('[name=csrfmiddlewaretoken]') : null;
+        const csrf = csrfInput ? csrfInput.value : '';
+        const opcUrl = "{% url 'passkeys:opciones_login' %}";
+        const verUrl = "{% url 'passkeys:verificar_login' %}";
+        if (!window.HaluPasskeys) return;
+        // Mostrar el botón solo si el dispositivo soporta biometría de plataforma.
+        HaluPasskeys.soportado().then(function(ok){ if (ok) btn.classList.remove('d-none'); });
+        btn.addEventListener('click', async function(){
+          msg.innerHTML = '<span class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Verifica tu identidad…</span>';
+          btn.disabled = true;
+          try {
+            const r = await HaluPasskeys.login(opcUrl, verUrl, csrf);
+            if (r && r.ok) { window.location.href = r.redirect || '/'; return; }
+            msg.innerHTML = '<span class="text-danger">' + ((r && r.error) || 'No se pudo iniciar sesión.') + '</span>';
+            btn.disabled = false;
+          } catch (err) {
+            msg.innerHTML = '<span class="text-danger">' + HaluPasskeys.mensajeError(err) + '</span>';
+            btn.disabled = false;
+          }
+        });
+      })();
+      </script>
       {% google_socialapp_configured as show_google_login %}
       {% if show_google_login %}
       <div class="or-div">o continúa con</div>

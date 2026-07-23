@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'quiz_audio.apps.QuizAudioConfig',
     'secuencias.apps.SecuenciasConfig',
     'trazado.apps.TrazadoConfig',
+    'passkeys.apps.PasskeysConfig',
 
 
     # 2. APPS DE TERCEROS DESPUÉS (si tienes más, van aquí)
@@ -185,6 +186,13 @@ TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '')
 TURNSTILE_ENABLED = bool(TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY)
 # Rutas de login protegidas (login principal + panel superadmin).
 TURNSTILE_LOGIN_PATHS = ['/login/', '/accounts/login/', '/halu-control/login/']
+
+# --- WebAuthn / Passkeys (login con huella o rostro) ---
+# RP_ID = dominio SIN esquema ni puerto. ORIGIN = URL completa con https.
+# En desarrollo local usa 'localhost' y 'http://localhost:8000'.
+WEBAUTHN_RP_ID = os.environ.get('WEBAUTHN_RP_ID', 'app.haluplataform.com')
+WEBAUTHN_RP_NAME = os.environ.get('WEBAUTHN_RP_NAME', 'Halu Plataforma Escolar')
+WEBAUTHN_ORIGIN = os.environ.get('WEBAUTHN_ORIGIN', 'https://app.haluplataform.com')
 
 REST_FRAMEWORK = {
     # Define los métodos de autenticación por defecto en el orden que se probarán.

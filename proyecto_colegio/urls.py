@@ -89,6 +89,7 @@ urlpatterns = [
     path('quiz-audio/', include('quiz_audio.urls', namespace='quiz_audio')),
     path('secuencias/', include('secuencias.urls', namespace='secuencias')),
     path('trazado/', include('trazado.urls', namespace='trazado')),
+    path('passkeys/', include('passkeys.urls', namespace='passkeys')),
 ]
 
 # --- 2. CONFIGURACIÓN PARA ARCHIVOS EN DESARROLLO ---
