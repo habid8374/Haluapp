@@ -14,6 +14,7 @@ Cada documento cubre un aspecto distinto del despliegue y mantenimiento.
 | [`FEEDBACK_TAREAS_IA.md`](FEEDBACK_TAREAS_IA.md) | Patrón de feedback en vivo para tareas IA (Celery + polling + toasts) |
 | [`ACCESO_ACTIVIDADES_Y_CUESTIONARIOS.md`](ACCESO_ACTIVIDADES_Y_CUESTIONARIOS.md) | Reglas compartidas de acceso: actividades calificables, APIs y cuestionarios |
 | [`GEMINI_SDK.md`](GEMINI_SDK.md) | Aviso deprecación `google.generativeai` y plan de migración a `google.genai` |
+| [`PRESUPUESTO.md`](PRESUPUESTO.md) | Gastos fijos de la plataforma vs. gastos variables por institución (Gemini, Claude, Brevo, Mercado Pago) |
 
 ## Documentación específica por módulo
 
