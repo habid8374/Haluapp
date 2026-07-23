@@ -33,9 +33,17 @@ audio.mini { height:30px; max-width:200px; }
     <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCerrar"><i class="bi bi-stop-circle me-1"></i> Cerrar</button>
   {% endif %}
   <a href="{% url 'quiz_audio:resultados' quiz.pk %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> Resultados</a>
+  <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalDatos"><i class="bi bi-pencil-square me-1"></i> Editar datos</button>
   <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalFechas"><i class="bi bi-calendar-range me-1"></i> Fechas</button>
   <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"><i class="bi bi-trash me-1"></i> Eliminar</button>
 </div>
+
+{% if quiz.estado != 'BORRADOR' %}
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.85rem;">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <span>Este quiz ya está publicado. Puedes editarlo, pero los cambios pueden afectar a estudiantes que ya respondieron (las notas ya registradas se conservan).</span>
+</div>
+{% endif %}
 
 <div class="alert alert-light border d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.88rem;">
   <i class="bi bi-calendar-range text-success"></i>
@@ -43,38 +51,104 @@ audio.mini { height:30px; max-width:200px; }
 </div>
 
 <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
-  <div class="card-header bg-white border-0 fw-800">Preguntas ({{ preguntas|length }})</div>
+  <div class="card-header bg-white border-0 fw-800">Preguntas ({{ preguntas|length }}) — editables</div>
   <div class="card-body">
     {% for p in preguntas %}
-    <div class="border rounded p-2 mb-2">
-      <div class="d-flex justify-content-between align-items-start gap-2">
-        <div class="flex-grow-1">
-          <div class="fw-700 mb-1"><span class="badge" style="background:#0369a1;">{{ forloop.counter }}</span> {{ p.enunciado|default:"(sin texto)" }}</div>
-          <audio controls class="mini mb-2" src="{{ p.audio.url }}"></audio>
-          <div class="d-flex flex-wrap gap-2">
-            {% for o in p.opciones.all %}
-              {% if o.imagen %}<img src="{{ o.imagen.url }}" class="qa-thumb {% if o.es_correcta %}ok{% endif %}" alt="">
-              {% else %}<span class="qa-txt {% if o.es_correcta %}ok{% endif %}">{{ o.texto }}</span>{% endif %}
-            {% endfor %}
+    <form method="post" enctype="multipart/form-data" action="{% url 'quiz_audio:editar_pregunta' quiz.pk p.pk %}" class="border rounded p-2 mb-3">{% csrf_token %}
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="badge" style="background:#0369a1;">Pregunta {{ forloop.counter }}</span>
+        <div>
+          <button class="btn btn-sm btn-outline-success" title="Guardar"><i class="bi bi-check-lg me-1"></i>Guardar</button>
+          <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar"
+                  data-bs-toggle="modal" data-bs-target="#modalEliminarPregunta"
+                  data-action="{% url 'quiz_audio:eliminar_pregunta' quiz.pk p.pk %}"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-7"><input type="text" name="enunciado" class="form-control form-control-sm" value="{{ p.enunciado }}" placeholder="Texto de la pregunta (opcional)" maxlength="200"></div>
+        <div class="col-md-5">
+          <div class="d-flex align-items-center gap-1">
+            <audio controls class="mini" src="{{ p.audio.url }}"></audio>
+            <div class="rec-widget d-flex align-items-center gap-1">
+              <input type="file" name="audio" class="d-none rec-input" accept="audio/*">
+              <button type="button" class="btn btn-sm btn-outline-danger rec-btn" title="Regrabar audio"><i class="bi bi-mic-fill"></i></button>
+              <audio controls class="d-none rec-audio" style="height:30px;max-width:130px;"></audio>
+              <button type="button" class="btn btn-sm btn-outline-secondary rec-clear d-none"><i class="bi bi-x"></i></button>
+            </div>
           </div>
         </div>
-        {% if quiz.estado == 'BORRADOR' %}
-        <button type="button" class="btn btn-sm btn-outline-danger"
-                data-bs-toggle="modal" data-bs-target="#modalEliminarPregunta"
-                data-action="{% url 'quiz_audio:eliminar_pregunta' quiz.pk p.pk %}">
-          <i class="bi bi-trash"></i>
-        </button>
-        {% endif %}
       </div>
-    </div>
+      <div class="row g-2">
+        {% for o in p.opciones.all %}
+        <div class="col-6 col-md-3"><div class="border rounded p-1" style="background:#f8fafc;">
+          <div class="form-check mb-1"><input class="form-check-input" type="radio" name="correcta" value="{{ o.id }}" {% if o.es_correcta %}checked{% endif %}> <label class="form-check-label" style="font-size:.75rem;">Correcta</label></div>
+          {% if o.imagen %}<img src="{{ o.imagen.url }}" class="qa-thumb mb-1" alt=""><div class="form-check" style="font-size:.7rem;"><input type="checkbox" name="opquitar_{{ o.id }}" class="form-check-input"> quitar</div>{% endif %}
+          <input type="file" name="opimg_{{ o.id }}" class="form-control form-control-sm mb-1" accept="image/*">
+          <input type="text" name="optxt_{{ o.id }}" class="form-control form-control-sm" value="{{ o.texto }}" placeholder="Texto (opc.)" maxlength="60">
+        </div></div>
+        {% endfor %}
+      </div>
+    </form>
     {% empty %}
       <p class="text-center py-3 text-muted mb-0">Sin preguntas todavía.</p>
     {% endfor %}
-    <p class="text-muted mt-2 mb-0" style="font-size:.8rem;"><i class="bi bi-lightbulb me-1"></i>El borde verde marca la opción correcta. Para agregar más preguntas, crea otro quiz (o elimina y vuelve a crear).</p>
+  </div>
+</div>
+
+<div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+  <div class="card-header bg-white border-0 fw-800"><i class="bi bi-plus-circle me-1"></i> Agregar pregunta</div>
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data" action="{% url 'quiz_audio:agregar_pregunta' quiz.pk %}">{% csrf_token %}
+      <input type="hidden" name="pregunta" value="0">
+      <div class="row g-2 mb-2">
+        <div class="col-md-7"><input type="text" name="enunciado_0" class="form-control form-control-sm" placeholder="Texto de la pregunta (opcional)" maxlength="200"></div>
+        <div class="col-md-5"><div class="d-flex align-items-center gap-1 rec-widget">
+          <input type="file" name="audio_0" class="d-none rec-input" accept="audio/*">
+          <button type="button" class="btn btn-sm btn-outline-danger rec-btn"><i class="bi bi-mic-fill me-1"></i>Grabar audio *</button>
+          <audio controls class="d-none rec-audio" style="height:30px;max-width:150px;"></audio>
+          <button type="button" class="btn btn-sm btn-outline-secondary rec-clear d-none"><i class="bi bi-x"></i></button>
+        </div></div>
+      </div>
+      <div class="row g-2">
+        {% for j in RANGO_OPCIONES %}
+        <div class="col-6 col-md-3"><div class="border rounded p-1" style="background:#f8fafc;">
+          <div class="form-check mb-1"><input class="form-check-input" type="radio" name="correcta_0" value="{{ j }}"> <label class="form-check-label" style="font-size:.75rem;">Correcta</label></div>
+          <input type="file" name="img_0_{{ j }}" class="form-control form-control-sm mb-1" accept="image/*">
+          <input type="text" name="txt_0_{{ j }}" class="form-control form-control-sm" placeholder="Texto (opc.)" maxlength="60">
+        </div></div>
+        {% endfor %}
+      </div>
+      <button class="btn btn-sm mt-2" style="background:#0369a1;color:#fff;"><i class="bi bi-plus-lg me-1"></i>Agregar pregunta</button>
+    </form>
   </div>
 </div>
 
 <!-- Modales -->
+<div class="modal fade" id="modalDatos" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{% url 'quiz_audio:editar_datos' quiz.pk %}">{% csrf_token %}
+    <div class="modal-header"><h5 class="modal-title fw-800">Editar datos</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Título</label>
+        <input type="text" name="titulo" class="form-control" value="{{ quiz.titulo }}" required></div>
+      <div class="mb-2"><label class="form-label">Instrucciones</label>
+        <input type="text" name="instrucciones" class="form-control" value="{{ quiz.instrucciones }}"></div>
+      <div class="row g-2">
+        <div class="col-7"><label class="form-label">Categoría (libro de notas)</label>
+          <select name="tipo_actividad" class="form-select">
+            {% for t in tipos %}<option value="{{ t.pk }}" {% if t.pk == quiz.tipo_actividad_id %}selected{% endif %}>{{ t.nombre }}</option>{% endfor %}
+          </select></div>
+        <div class="col-5"><label class="form-label">Nota máxima</label>
+          <input type="number" step="0.1" min="1" max="5" name="nota_maxima" class="form-control" value="{{ quiz.nota_maxima|floatformat:'-2' }}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <button class="btn btn-primary">Guardar</button>
+    </div>
+    </form>
+  </div></div>
+</div>
 <div class="modal fade" id="modalCerrar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title fw-800">¿Cerrar el quiz?</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
@@ -144,5 +218,42 @@ document.querySelectorAll('[data-bs-target="#modalEliminarPregunta"]').forEach(f
     document.getElementById('form-eliminar-pregunta').action = this.dataset.action;
   });
 });
+// Grabadora de audio (micrófono) para editar/agregar preguntas
+(function(){
+  let mediaRecorder = null, chunks = [], widgetActivo = null;
+  document.addEventListener('click', async function(e){
+    const recBtn = e.target.closest('.rec-btn');
+    const clearBtn = e.target.closest('.rec-clear');
+    if (clearBtn){
+      const w = clearBtn.closest('.rec-widget');
+      w.querySelector('.rec-input').value = '';
+      const au = w.querySelector('.rec-audio'); au.src = ''; au.classList.add('d-none');
+      clearBtn.classList.add('d-none'); return;
+    }
+    if (!recBtn) return;
+    const w = recBtn.closest('.rec-widget');
+    if (mediaRecorder && mediaRecorder.state === 'recording'){ mediaRecorder.stop(); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      widgetActivo = w; chunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = function(ev){ if (ev.data.size) chunks.push(ev.data); };
+      mediaRecorder.onstop = function(){
+        stream.getTracks().forEach(function(t){ t.stop(); });
+        const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+        const file = new File([blob], 'audio-pregunta.webm', { type: blob.type });
+        const dt = new DataTransfer(); dt.items.add(file);
+        widgetActivo.querySelector('.rec-input').files = dt.files;
+        const au = widgetActivo.querySelector('.rec-audio');
+        au.src = URL.createObjectURL(blob); au.classList.remove('d-none');
+        widgetActivo.querySelector('.rec-clear').classList.remove('d-none');
+        const b = widgetActivo.querySelector('.rec-btn'); b.innerHTML = '<i class="bi bi-mic-fill"></i>';
+        widgetActivo = null;
+      };
+      mediaRecorder.start();
+      recBtn.innerHTML = '<i class="bi bi-stop-fill"></i>';
+    } catch (err) {}
+  });
+})();
 </script>
 {% endblock %}

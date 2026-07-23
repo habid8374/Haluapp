@@ -208,10 +208,14 @@ def detalle(request, pk):
         _scope(QuizAudio.objects.all(), request.user).select_related('curso__materia', 'curso__grado'),
         pk=pk,
     )
+    from gestion_academica.models import TipoActividad
+    tipos = TipoActividad.objects.filter(institucion=quiz.institucion)
     return render(request, 'quiz_audio/detalle.html', {
         'titulo_pagina': quiz.titulo, 'quiz': quiz,
         'preguntas': quiz.preguntas.prefetch_related('opciones'),
         'MIN_PREGUNTAS': MIN_PREGUNTAS,
+        'tipos': tipos,
+        'RANGO_OPCIONES': range(MAX_OPCIONES),
     })
 
 
@@ -220,12 +224,92 @@ def detalle(request, pk):
 def eliminar_pregunta(request, pk, pregunta_pk):
     _solo_docente_coord(request.user)
     quiz = get_object_or_404(_scope(QuizAudio.objects.all(), request.user), pk=pk)
-    if quiz.estado != QuizAudio.Estado.BORRADOR:
-        messages.error(request, "Solo puedes modificar las preguntas mientras el quiz está en borrador.")
-        return redirect('quiz_audio:detalle', pk=quiz.pk)
     pregunta = get_object_or_404(PreguntaAudio, pk=pregunta_pk, quiz=quiz)
     pregunta.delete()
     messages.success(request, "Pregunta eliminada.")
+    return redirect('quiz_audio:detalle', pk=quiz.pk)
+
+
+@require_POST
+@login_required
+def editar_datos(request, pk):
+    from gestion_academica.models import TipoActividad
+    _solo_docente_coord(request.user)
+    quiz = get_object_or_404(_scope(QuizAudio.objects.all(), request.user), pk=pk)
+    titulo = (request.POST.get('titulo') or '').strip()
+    if not titulo:
+        messages.error(request, "El título no puede quedar vacío.")
+        return redirect('quiz_audio:detalle', pk=quiz.pk)
+    quiz.titulo = titulo
+    quiz.instrucciones = (request.POST.get('instrucciones') or '').strip()
+    try:
+        quiz.nota_maxima = Decimal(request.POST.get('nota_maxima') or quiz.nota_maxima)
+    except Exception:
+        pass
+    tipo_id = request.POST.get('tipo_actividad')
+    if tipo_id:
+        quiz.tipo_actividad = get_object_or_404(TipoActividad, pk=tipo_id, institucion=quiz.institucion)
+    quiz.save(update_fields=['titulo', 'instrucciones', 'nota_maxima', 'tipo_actividad'])
+    if quiz.actividad_calificable_id:
+        act = quiz.actividad_calificable
+        act.titulo = quiz.titulo
+        act.tipo_actividad = quiz.tipo_actividad
+        act.descripcion = quiz.instrucciones or None
+        act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
+    messages.success(request, "Datos actualizados.")
+    return redirect('quiz_audio:detalle', pk=quiz.pk)
+
+
+@require_POST
+@login_required
+def agregar_pregunta(request, pk):
+    _solo_docente_coord(request.user)
+    quiz = get_object_or_404(_scope(QuizAudio.objects.all(), request.user), pk=pk)
+    preguntas, error = _leer_preguntas(request)
+    if error:
+        messages.error(request, error)
+    elif not preguntas:
+        messages.error(request, "La pregunta está incompleta (audio + al menos 2 opciones y marca la correcta).")
+    elif quiz.preguntas.count() + len(preguntas) > MAX_PREGUNTAS:
+        messages.error(request, f"Máximo {MAX_PREGUNTAS} preguntas por quiz.")
+    else:
+        base = quiz.preguntas.count()
+        _crear_preguntas(quiz, preguntas, base_orden=base)
+        messages.success(request, "Pregunta agregada.")
+    return redirect('quiz_audio:detalle', pk=quiz.pk)
+
+
+@require_POST
+@login_required
+def editar_pregunta(request, pk, pregunta_pk):
+    _solo_docente_coord(request.user)
+    quiz = get_object_or_404(_scope(QuizAudio.objects.all(), request.user), pk=pk)
+    pregunta = get_object_or_404(PreguntaAudio, pk=pregunta_pk, quiz=quiz)
+    pregunta.enunciado = (request.POST.get('enunciado') or '').strip()[:200]
+    audio = request.FILES.get('audio')
+    if audio:
+        if not _audio_valido(audio):
+            messages.error(request, "El audio debe pesar máximo 3 MB.")
+            return redirect('quiz_audio:detalle', pk=quiz.pk)
+        pregunta.audio = audio
+    pregunta.save()
+    correcta_id = request.POST.get('correcta')
+    for op in pregunta.opciones.all():
+        op.texto = (request.POST.get(f'optxt_{op.id}') or '').strip()[:60]
+        img = request.FILES.get(f'opimg_{op.id}')
+        if img:
+            if not _imagen_valida(img):
+                messages.error(request, "Cada imagen debe pesar máximo 2 MB.")
+                return redirect('quiz_audio:detalle', pk=quiz.pk)
+            op.imagen = img
+        elif request.POST.get(f'opquitar_{op.id}') == 'on':
+            op.imagen = None
+        op.es_correcta = (str(op.id) == str(correcta_id))
+        op.save()
+    if not pregunta.opciones.filter(es_correcta=True).exists():
+        messages.warning(request, "Ojo: no marcaste ninguna opción como correcta en esa pregunta.")
+    else:
+        messages.success(request, "Pregunta actualizada.")
     return redirect('quiz_audio:detalle', pk=quiz.pk)
 
 
