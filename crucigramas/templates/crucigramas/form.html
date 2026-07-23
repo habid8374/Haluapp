@@ -9,7 +9,7 @@
   <a href="{% url 'crucigramas:lista' %}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> Volver</a>
 </div>
 
-<form method="post">{% csrf_token %}
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
   <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
     <div class="card-body">
       <div class="row g-3">
@@ -40,17 +40,9 @@
   <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
     <div class="card-header bg-white border-0 fw-800" style="border-radius:14px 14px 0 0;"><i class="bi bi-list-ol me-1"></i> Palabras y pistas (mínimo 3)</div>
     <div class="card-body">
-      <div id="filas-palabras">
-        {% for i in "1234" %}
-        <div class="row g-2 mb-2 fila-palabra">
-          <div class="col-md-4"><input type="text" name="respuesta" class="form-control" placeholder="Palabra (respuesta)"></div>
-          <div class="col-md-7"><input type="text" name="pista" class="form-control" placeholder="Pista"></div>
-          <div class="col-md-1 d-grid"><button type="button" class="btn btn-outline-danger quitar-fila"><i class="bi bi-x-lg"></i></button></div>
-        </div>
-        {% endfor %}
-      </div>
+      <div id="filas-palabras"></div>
       <button type="button" id="agregar-fila" class="btn btn-outline-success btn-sm mt-1"><i class="bi bi-plus-circle me-1"></i> Agregar palabra</button>
-      <p class="text-muted mt-2 mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>Usa palabras de una sola palabra (sin espacios), de 2 letras o más. Entre más letras compartan, mejor se cruzan.</p>
+      <p class="text-muted mt-2 mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>Usa palabras de una sola palabra (sin espacios), de 2 letras o más. Entre más letras compartan, mejor se cruzan. La <b>imagen es opcional</b>: se muestra al estudiante junto a la pista (ideal para primaria). Máximo 2 MB.</p>
     </div>
   </div>
 
@@ -63,14 +55,25 @@
 <script>
 (function(){
   const cont = document.getElementById('filas-palabras');
-  document.getElementById('agregar-fila').addEventListener('click', function(){
-    const div = document.createElement('div');
-    div.className = 'row g-2 mb-2 fila-palabra';
-    div.innerHTML = '<div class="col-md-4"><input type="text" name="respuesta" class="form-control" placeholder="Palabra (respuesta)"></div>'
-      + '<div class="col-md-7"><input type="text" name="pista" class="form-control" placeholder="Pista"></div>'
+  let idx = 0;
+
+  function filaHtml(i){
+    return '<input type="hidden" name="fila" value="' + i + '">'
+      + '<div class="col-md-3"><input type="text" name="respuesta_' + i + '" class="form-control" placeholder="Palabra (respuesta)"></div>'
+      + '<div class="col-md-5"><input type="text" name="pista_' + i + '" class="form-control" placeholder="Pista"></div>'
+      + '<div class="col-md-3"><input type="file" name="imagen_' + i + '" class="form-control form-control-sm" accept="image/*" title="Imagen de pista (opcional)"></div>'
       + '<div class="col-md-1 d-grid"><button type="button" class="btn btn-outline-danger quitar-fila"><i class="bi bi-x-lg"></i></button></div>';
+  }
+
+  function agregarFila(){
+    const div = document.createElement('div');
+    div.className = 'row g-2 mb-2 fila-palabra align-items-center';
+    div.innerHTML = filaHtml(idx++);
     cont.appendChild(div);
-  });
+  }
+  for (let k = 0; k < 4; k++) agregarFila();
+
+  document.getElementById('agregar-fila').addEventListener('click', agregarFila);
   cont.addEventListener('click', function(e){
     const btn = e.target.closest('.quitar-fila');
     if (btn && cont.querySelectorAll('.fila-palabra').length > 1) {

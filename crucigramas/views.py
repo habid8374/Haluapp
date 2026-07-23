@@ -14,6 +14,12 @@ from django.views.decorators.http import require_POST
 from .layout import generar_layout, normalizar
 from .models import Crucigrama, IntentoCrucigrama, PalabraCrucigrama
 
+MAX_IMAGEN = 2 * 1024 * 1024  # 2 MB
+
+
+def _imagen_valida(f):
+    return f.size <= MAX_IMAGEN and (getattr(f, 'content_type', '') or '').startswith('image/')
+
 
 def _parse_dt(valor):
     """Convierte 'YYYY-MM-DDTHH:MM' del formulario a datetime consciente de zona."""
@@ -85,6 +91,7 @@ def _grid_data(cruc, con_letras=False):
         celdas_por_palabra.append({
             'id': p.id, 'numero': p.numero, 'direccion': p.direccion,
             'pista': p.pista, 'longitud': len(w),
+            'imagen': p.imagen.url if p.imagen else '',
             'celdas': [[r, c] for (r, c) in celdas],
         })
 
@@ -152,15 +159,31 @@ def crear(request):
         fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
         fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
 
-        respuestas = request.POST.getlist('respuesta')
-        pistas = request.POST.getlist('pista')
-        palabras_validas = [
-            (r.strip(), p.strip()) for r, p in zip(respuestas, pistas)
-            if r.strip() and p.strip() and len(normalizar(r)) >= 2
-        ]
+        # Los inputs de archivo vacíos no generan entrada en FILES, así que no
+        # se pueden alinear por índice con listas paralelas (getlist). Se usa
+        # un índice de fila explícito: respuesta_<i>, pista_<i>, imagen_<i>.
+        indices = []
+        for i in request.POST.getlist('fila'):
+            if i.isdigit() and i not in indices:
+                indices.append(i)
+
+        error_imagen = False
+        palabras_validas = []
+        for i in indices:
+            r = (request.POST.get(f'respuesta_{i}') or '').strip()
+            p = (request.POST.get(f'pista_{i}') or '').strip()
+            img = request.FILES.get(f'imagen_{i}')
+            if not r or not p or len(normalizar(r)) < 2:
+                continue
+            if img and not _imagen_valida(img):
+                error_imagen = True
+                continue
+            palabras_validas.append((r, p, img))
 
         if not titulo or not curso or not tipo:
             messages.error(request, "Completa el título, el curso y la categoría.")
+        elif error_imagen:
+            messages.error(request, "Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
         elif len(palabras_validas) < 3:
             messages.error(request, "Agrega al menos 3 palabras con su pista (de 2 letras o más).")
         else:
@@ -171,10 +194,10 @@ def crear(request):
                     nota_maxima=nota_maxima, creado_por=request.user,
                     fecha_inicio=fecha_inicio, fecha_fin=fecha_fin,
                 )
-                PalabraCrucigrama.objects.bulk_create([
-                    PalabraCrucigrama(crucigrama=cruc, respuesta=r, pista=p, orden=i)
-                    for i, (r, p) in enumerate(palabras_validas, start=1)
-                ])
+                for i, (r, p, img) in enumerate(palabras_validas, start=1):
+                    PalabraCrucigrama.objects.create(
+                        crucigrama=cruc, respuesta=r, pista=p, imagen=img, orden=i,
+                    )
             messages.success(request, "Crucigrama creado. Revísalo y publícalo para que los estudiantes lo resuelvan.")
             return redirect('crucigramas:detalle', pk=cruc.pk)
 
@@ -312,9 +335,13 @@ def agregar_palabra(request, pk):
     if not respuesta or not pista or len(normalizar(respuesta)) < 2:
         messages.error(request, "Escribe la palabra (2 letras o más) y su pista.")
         return redirect('crucigramas:detalle', pk=cruc.pk)
+    imagen = request.FILES.get('imagen')
+    if imagen and not _imagen_valida(imagen):
+        messages.error(request, "La imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
+        return redirect('crucigramas:detalle', pk=cruc.pk)
     ultimo = cruc.palabras.order_by('-orden').first()
     PalabraCrucigrama.objects.create(
-        crucigrama=cruc, respuesta=respuesta, pista=pista,
+        crucigrama=cruc, respuesta=respuesta, pista=pista, imagen=imagen,
         orden=(ultimo.orden + 1) if ultimo else 1,
     )
     if cruc.estado == Crucigrama.Estado.PUBLICADO:
@@ -334,9 +361,17 @@ def editar_palabra(request, pk, palabra_pk):
     if not respuesta or not pista or len(normalizar(respuesta)) < 2:
         messages.error(request, "Escribe la palabra (2 letras o más) y su pista.")
         return redirect('crucigramas:detalle', pk=cruc.pk)
+    imagen = request.FILES.get('imagen')
+    if imagen:
+        if not _imagen_valida(imagen):
+            messages.error(request, "La imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
+            return redirect('crucigramas:detalle', pk=cruc.pk)
+        palabra.imagen = imagen
+    elif request.POST.get('quitar_imagen') == 'on':
+        palabra.imagen = None
     palabra.respuesta = respuesta
     palabra.pista = pista
-    palabra.save(update_fields=['respuesta', 'pista'])
+    palabra.save()
     if cruc.estado == Crucigrama.Estado.PUBLICADO:
         _regenerar_layout(cruc)
     messages.success(request, "Palabra actualizada.")

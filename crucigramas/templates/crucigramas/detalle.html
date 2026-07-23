@@ -79,7 +79,7 @@
       <div class="card-header bg-white border-0 fw-800">Palabras y pistas ({{ palabras|length }})</div>
       <div class="card-body">
         {% for p in palabras %}
-          <form method="post" action="{% url 'crucigramas:editar_palabra' crucigrama.pk p.pk %}" class="row g-1 align-items-center mb-2">{% csrf_token %}
+          <form method="post" enctype="multipart/form-data" action="{% url 'crucigramas:editar_palabra' crucigrama.pk p.pk %}" class="row g-1 align-items-center mb-2 pb-2 border-bottom">{% csrf_token %}
             <div class="col-auto" style="width:44px;">{% if p.numero %}<span class="badge bg-success">{{ p.numero }}{{ p.direccion }}</span>{% endif %}</div>
             <div class="col-3"><input type="text" name="respuesta" class="form-control form-control-sm fw-700" value="{{ p.respuesta }}"></div>
             <div class="col"><input type="text" name="pista" class="form-control form-control-sm" value="{{ p.pista }}"></div>
@@ -89,15 +89,31 @@
                       data-bs-toggle="modal" data-bs-target="#modalBorrarPalabra"
                       data-action="{% url 'crucigramas:eliminar_palabra' crucigrama.pk p.pk %}"><i class="bi bi-trash"></i></button>
             </div>
+            <div class="col-12 d-flex align-items-center gap-2 mt-1" style="padding-left:44px;">
+              {% if p.imagen %}
+                <img src="{{ p.imagen.url }}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;">
+                <div class="form-check" style="font-size:.72rem;">
+                  <input type="checkbox" name="quitar_imagen" class="form-check-input" id="quitar_img_{{ p.pk }}">
+                  <label class="form-check-label" for="quitar_img_{{ p.pk }}">quitar imagen</label>
+                </div>
+              {% else %}
+                <span class="text-muted" style="font-size:.75rem;"><i class="bi bi-image me-1"></i>Sin imagen</span>
+              {% endif %}
+              <input type="file" name="imagen" class="form-control form-control-sm" accept="image/*" style="max-width:220px;">
+            </div>
           </form>
         {% endfor %}
         <hr>
-        <form method="post" action="{% url 'crucigramas:agregar_palabra' crucigrama.pk %}" class="row g-1 align-items-center">{% csrf_token %}
+        <form method="post" enctype="multipart/form-data" action="{% url 'crucigramas:agregar_palabra' crucigrama.pk %}" class="row g-1 align-items-center">{% csrf_token %}
           <div class="col-auto" style="width:44px;"><i class="bi bi-plus-circle text-success"></i></div>
           <div class="col-3"><input type="text" name="respuesta" class="form-control form-control-sm" placeholder="Palabra"></div>
           <div class="col"><input type="text" name="pista" class="form-control form-control-sm" placeholder="Pista"></div>
           <div class="col-auto"><button class="btn btn-sm btn-success"><i class="bi bi-plus-lg me-1"></i>Agregar</button></div>
+          <div class="col-12 mt-1" style="padding-left:44px;">
+            <input type="file" name="imagen" class="form-control form-control-sm" accept="image/*" style="max-width:220px;" title="Imagen de pista (opcional)">
+          </div>
         </form>
+        <p class="text-muted mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>La imagen es opcional (máx. 2 MB) y se muestra al estudiante junto a la pista.</p>
       </div>
     </div>
   </div>

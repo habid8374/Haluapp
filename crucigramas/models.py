@@ -93,6 +93,7 @@ class PalabraCrucigrama(models.Model):
     )
     respuesta = models.CharField(max_length=40, verbose_name="Respuesta")
     pista = models.CharField(max_length=300, verbose_name="Pista")
+    imagen = models.ImageField(upload_to='crucigramas/pistas/', null=True, blank=True, verbose_name="Imagen de pista (opcional)")
     orden = models.PositiveIntegerField(default=0)
 
     # Posición en la cuadrícula (tras generar el layout).
