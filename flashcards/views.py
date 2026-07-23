@@ -198,12 +198,82 @@ def detalle(request, pk):
         _scope(MazoFlashcard.objects.all(), request.user).select_related('curso__materia', 'curso__grado'),
         pk=pk,
     )
+    from gestion_academica.models import TipoActividad
+    tipos = TipoActividad.objects.filter(institucion=mazo.institucion)
     return render(request, 'flashcards/detalle.html', {
         'titulo_pagina': mazo.titulo,
         'mazo': mazo,
         'tarjetas': mazo.tarjetas.all(),
         'MIN_TARJETAS': MIN_TARJETAS,
+        'tipos': tipos,
     })
+
+
+@require_POST
+@login_required
+def editar_datos(request, pk):
+    from gestion_academica.models import TipoActividad
+    _solo_docente_coord(request.user)
+    mazo = get_object_or_404(_scope(MazoFlashcard.objects.all(), request.user), pk=pk)
+    titulo = (request.POST.get('titulo') or '').strip()
+    if not titulo:
+        messages.error(request, "El título no puede quedar vacío.")
+        return redirect('flashcards:detalle', pk=mazo.pk)
+    mazo.titulo = titulo
+    mazo.instrucciones = (request.POST.get('instrucciones') or '').strip()
+    try:
+        mazo.nota_maxima = Decimal(request.POST.get('nota_maxima') or mazo.nota_maxima)
+    except Exception:
+        pass
+    tipo_id = request.POST.get('tipo_actividad')
+    if tipo_id:
+        mazo.tipo_actividad = get_object_or_404(TipoActividad, pk=tipo_id, institucion=mazo.institucion)
+    mazo.save(update_fields=['titulo', 'instrucciones', 'nota_maxima', 'tipo_actividad'])
+    if mazo.actividad_calificable_id:
+        act = mazo.actividad_calificable
+        act.titulo = mazo.titulo
+        act.tipo_actividad = mazo.tipo_actividad
+        act.descripcion = mazo.instrucciones or None
+        act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
+    messages.success(request, "Datos actualizados.")
+    return redirect('flashcards:detalle', pk=mazo.pk)
+
+
+@require_POST
+@login_required
+def editar_tarjeta(request, pk, tarjeta_pk):
+    _solo_docente_coord(request.user)
+    mazo = get_object_or_404(_scope(MazoFlashcard.objects.all(), request.user), pk=pk)
+    tarjeta = get_object_or_404(TarjetaFlashcard, pk=tarjeta_pk, mazo=mazo)
+    respuesta = (request.POST.get('respuesta') or '').strip()[:80]
+    pista = (request.POST.get('pista') or '').strip()[:300]
+    if not respuesta:
+        messages.error(request, "La respuesta no puede quedar vacía.")
+        return redirect('flashcards:detalle', pk=mazo.pk)
+    imagen = request.FILES.get('imagen')
+    if imagen and not _imagen_valida(imagen):
+        messages.error(request, "La imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
+        return redirect('flashcards:detalle', pk=mazo.pk)
+    audio = request.FILES.get('audio')
+    if audio and not _audio_valido(audio):
+        messages.error(request, "El audio debe pesar máximo 3 MB.")
+        return redirect('flashcards:detalle', pk=mazo.pk)
+    tarjeta.respuesta = respuesta
+    tarjeta.pista = pista
+    if imagen:
+        tarjeta.imagen = imagen
+    elif request.POST.get('quitar_imagen') == 'on':
+        tarjeta.imagen = None
+    if audio:
+        tarjeta.audio = audio
+    elif request.POST.get('quitar_audio') == 'on':
+        tarjeta.audio = None
+    if not tarjeta.pista and not tarjeta.imagen:
+        messages.error(request, "Cada tarjeta necesita una imagen o una descripción/pista.")
+        return redirect('flashcards:detalle', pk=mazo.pk)
+    tarjeta.save()
+    messages.success(request, "Tarjeta actualizada.")
+    return redirect('flashcards:detalle', pk=mazo.pk)
 
 
 @require_POST
@@ -211,9 +281,6 @@ def detalle(request, pk):
 def agregar_tarjeta(request, pk):
     _solo_docente_coord(request.user)
     mazo = get_object_or_404(_scope(MazoFlashcard.objects.all(), request.user), pk=pk)
-    if mazo.estado != MazoFlashcard.Estado.BORRADOR:
-        messages.error(request, "Solo puedes modificar las tarjetas mientras el mazo está en borrador.")
-        return redirect('flashcards:detalle', pk=mazo.pk)
     tarjetas, error = _leer_tarjetas(request)
     if error:
         messages.error(request, error)
@@ -235,9 +302,6 @@ def agregar_tarjeta(request, pk):
 def eliminar_tarjeta(request, pk, tarjeta_pk):
     _solo_docente_coord(request.user)
     mazo = get_object_or_404(_scope(MazoFlashcard.objects.all(), request.user), pk=pk)
-    if mazo.estado != MazoFlashcard.Estado.BORRADOR:
-        messages.error(request, "Solo puedes modificar las tarjetas mientras el mazo está en borrador.")
-        return redirect('flashcards:detalle', pk=mazo.pk)
     tarjeta = get_object_or_404(TarjetaFlashcard, pk=tarjeta_pk, mazo=mazo)
     tarjeta.delete()
     messages.success(request, "Tarjeta eliminada.")

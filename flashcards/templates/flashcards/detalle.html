@@ -32,9 +32,17 @@ audio.mini { height:30px; max-width:160px; }
     <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCerrar"><i class="bi bi-stop-circle me-1"></i> Cerrar</button>
   {% endif %}
   <a href="{% url 'flashcards:resultados' mazo.pk %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> Resultados</a>
+  <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalDatos"><i class="bi bi-pencil-square me-1"></i> Editar datos</button>
   <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalFechas"><i class="bi bi-calendar-range me-1"></i> Fechas</button>
   <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"><i class="bi bi-trash me-1"></i> Eliminar</button>
 </div>
+
+{% if mazo.estado != 'BORRADOR' %}
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.85rem;">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <span>Este mazo ya está publicado. Puedes editarlo, pero los cambios pueden afectar a estudiantes que ya lo resolvieron (las notas ya registradas se conservan).</span>
+</div>
+{% endif %}
 
 <div class="alert alert-light border d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.88rem;">
   <i class="bi bi-calendar-range text-success"></i>
@@ -45,40 +53,40 @@ audio.mini { height:30px; max-width:160px; }
 </div>
 
 <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
-  <div class="card-header bg-white border-0 fw-800">Tarjetas ({{ tarjetas|length }})</div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table mb-0 align-middle">
-        <tbody>
-        {% for t in tarjetas %}
-          <tr>
-            <td class="ps-3 text-center" style="width:44px;"><span class="badge" style="background:#0369a1;">{{ forloop.counter }}</span></td>
-            <td style="width:86px;">{% if t.imagen %}<img src="{{ t.imagen.url }}" class="fc-thumb" alt="">{% endif %}</td>
-            <td>
-              <div style="font-size:.9rem;">{{ t.pista|default:"—" }}</div>
-              {% if t.audio %}<audio controls class="mini mt-1" src="{{ t.audio.url }}"></audio>{% endif %}
-            </td>
-            <td class="fw-700" style="color:#0369a1;">{{ t.respuesta }}</td>
-            <td class="text-end pe-3" style="width:60px;">
-              {% if mazo.estado == 'BORRADOR' %}
-              <button type="button" class="btn btn-sm btn-outline-danger"
-                      data-bs-toggle="modal" data-bs-target="#modalEliminarTarjeta"
-                      data-action="{% url 'flashcards:eliminar_tarjeta' mazo.pk t.pk %}">
-                <i class="bi bi-trash"></i>
-              </button>
-              {% endif %}
-            </td>
-          </tr>
-        {% empty %}
-          <tr><td class="text-center py-4 text-muted">Sin tarjetas todavía.</td></tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
+  <div class="card-header bg-white border-0 fw-800">Tarjetas ({{ tarjetas|length }}) — editables</div>
+  <div class="card-body">
+    {% for t in tarjetas %}
+      <form method="post" enctype="multipart/form-data" action="{% url 'flashcards:editar_tarjeta' mazo.pk t.pk %}" class="fc-box mb-2">{% csrf_token %}
+        <div class="row g-2 align-items-start">
+          <div class="col-auto text-center" style="width:96px;">
+            {% if t.imagen %}<img src="{{ t.imagen.url }}" class="fc-thumb mb-1" alt=""><div class="form-check" style="font-size:.72rem;"><input type="checkbox" name="quitar_imagen" class="form-check-input"> quitar</div>{% endif %}
+            <input type="file" name="imagen" class="form-control form-control-sm" accept="image/*">
+          </div>
+          <div class="col">
+            <input type="text" name="pista" class="form-control form-control-sm mb-1" value="{{ t.pista }}" placeholder="Descripción / pista">
+            <input type="text" name="respuesta" class="form-control form-control-sm fw-700" value="{{ t.respuesta }}" placeholder="Respuesta *" style="color:#0369a1;">
+            <div class="d-flex align-items-center gap-1 mt-1 rec-widget">
+              {% if t.audio %}<audio controls class="mini" src="{{ t.audio.url }}"></audio><span class="form-check ms-1" style="font-size:.72rem;"><input type="checkbox" name="quitar_audio" class="form-check-input"> quitar</span>{% endif %}
+              <input type="file" name="audio" class="d-none rec-input" accept="audio/*">
+              <button type="button" class="btn btn-sm btn-outline-danger rec-btn"><i class="bi bi-mic-fill"></i></button>
+              <audio controls class="d-none rec-audio" style="height:30px;max-width:150px;"></audio>
+              <button type="button" class="btn btn-sm btn-outline-secondary rec-clear d-none"><i class="bi bi-x"></i></button>
+            </div>
+          </div>
+          <div class="col-auto d-flex flex-column gap-1">
+            <button class="btn btn-sm btn-outline-success" title="Guardar cambios"><i class="bi bi-check-lg"></i></button>
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar"
+                    data-bs-toggle="modal" data-bs-target="#modalEliminarTarjeta"
+                    data-action="{% url 'flashcards:eliminar_tarjeta' mazo.pk t.pk %}"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      </form>
+    {% empty %}
+      <p class="text-center py-3 text-muted mb-0">Sin tarjetas todavía.</p>
+    {% endfor %}
   </div>
 </div>
 
-{% if mazo.estado == 'BORRADOR' %}
 <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
   <div class="card-header bg-white border-0 fw-800"><i class="bi bi-plus-circle me-1"></i> Agregar tarjeta</div>
   <div class="card-body">
@@ -104,9 +112,33 @@ audio.mini { height:30px; max-width:160px; }
     </form>
   </div>
 </div>
-{% endif %}
 
 <!-- Modales -->
+<div class="modal fade" id="modalDatos" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{% url 'flashcards:editar_datos' mazo.pk %}">{% csrf_token %}
+    <div class="modal-header"><h5 class="modal-title fw-800">Editar datos</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Título</label>
+        <input type="text" name="titulo" class="form-control" value="{{ mazo.titulo }}" required></div>
+      <div class="mb-2"><label class="form-label">Instrucciones</label>
+        <input type="text" name="instrucciones" class="form-control" value="{{ mazo.instrucciones }}"></div>
+      <div class="row g-2">
+        <div class="col-7"><label class="form-label">Categoría (libro de notas)</label>
+          <select name="tipo_actividad" class="form-select">
+            {% for t in tipos %}<option value="{{ t.pk }}" {% if t.pk == mazo.tipo_actividad_id %}selected{% endif %}>{{ t.nombre }}</option>{% endfor %}
+          </select></div>
+        <div class="col-5"><label class="form-label">Nota máxima</label>
+          <input type="number" step="0.1" min="1" max="5" name="nota_maxima" class="form-control" value="{{ mazo.nota_maxima|floatformat:'-2' }}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <button class="btn btn-primary">Guardar</button>
+    </div>
+    </form>
+  </div></div>
+</div>
 <div class="modal fade" id="modalCerrar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title fw-800">¿Cerrar el mazo?</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>

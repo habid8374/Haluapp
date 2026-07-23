@@ -36,9 +36,17 @@ audio.mini { height:30px; max-width:160px; }
     <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCerrar"><i class="bi bi-stop-circle me-1"></i> Cerrar</button>
   {% endif %}
   <a href="{% url 'memoria:resultados' juego.pk %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> Resultados</a>
+  <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalDatos"><i class="bi bi-pencil-square me-1"></i> Editar datos</button>
   <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalFechas"><i class="bi bi-calendar-range me-1"></i> Fechas</button>
   <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"><i class="bi bi-trash me-1"></i> Eliminar</button>
 </div>
+
+{% if juego.estado != 'BORRADOR' %}
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.85rem;">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <span>Este juego ya está publicado. Puedes editarlo, pero los cambios pueden afectar a estudiantes que ya lo jugaron (las notas ya registradas se conservan).</span>
+</div>
+{% endif %}
 
 <div class="alert alert-light border d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.88rem;">
   <i class="bi bi-calendar-range text-success"></i>
@@ -49,45 +57,45 @@ audio.mini { height:30px; max-width:160px; }
 </div>
 
 <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
-  <div class="card-header bg-white border-0 fw-800">Parejas ({{ parejas|length }})</div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table mb-0 align-middle">
-        <tbody>
-        {% for p in parejas %}
-          <tr>
-            <td class="ps-3 text-center" style="width:44px;"><span class="badge" style="background:#7e22ce;">{{ forloop.counter }}</span></td>
-            <td>
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                {% if p.imagen_a %}<img src="{{ p.imagen_a.url }}" class="mem-thumb" alt="">{% endif %}
-                {% if p.texto_a %}<span class="mem-texto">{{ p.texto_a }}</span>{% endif %}
-                {% if p.audio_a %}<audio controls class="mini" src="{{ p.audio_a.url }}"></audio>{% endif %}
-                <i class="bi bi-arrow-left-right text-muted"></i>
-                {% if p.imagen_b %}<img src="{{ p.imagen_b.url }}" class="mem-thumb" alt="">{% endif %}
-                {% if p.texto_b %}<span class="mem-texto">{{ p.texto_b }}</span>{% endif %}
-                {% if p.audio_b %}<audio controls class="mini" src="{{ p.audio_b.url }}"></audio>{% endif %}
-              </div>
-            </td>
-            <td class="text-end pe-3" style="width:60px;">
-              {% if juego.estado == 'BORRADOR' %}
-              <button type="button" class="btn btn-sm btn-outline-danger"
-                      data-bs-toggle="modal" data-bs-target="#modalEliminarPareja"
-                      data-action="{% url 'memoria:eliminar_pareja' juego.pk p.pk %}">
-                <i class="bi bi-trash"></i>
-              </button>
-              {% endif %}
-            </td>
-          </tr>
-        {% empty %}
-          <tr><td class="text-center py-4 text-muted">Sin parejas todavía.</td></tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
+  <div class="card-header bg-white border-0 fw-800">Parejas ({{ parejas|length }}) — editables</div>
+  <div class="card-body">
+    {% for p in parejas %}
+      <form method="post" enctype="multipart/form-data" action="{% url 'memoria:editar_pareja' juego.pk p.pk %}" class="border rounded p-2 mb-2">{% csrf_token %}
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="badge" style="background:#7e22ce;">Pareja {{ forloop.counter }}</span>
+          <div>
+            <button class="btn btn-sm btn-outline-success" title="Guardar"><i class="bi bi-check-lg me-1"></i>Guardar</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar"
+                    data-bs-toggle="modal" data-bs-target="#modalEliminarPareja"
+                    data-action="{% url 'memoria:eliminar_pareja' juego.pk p.pk %}"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+        <div class="row g-2">
+          {% for lado in 'ab' %}
+          <div class="col-md-6"><div class="mem-card-box">
+            <div class="fw-700 mb-1" style="font-size:.8rem;color:#7e22ce;">Tarjeta {{ forloop.counter }}</div>
+            {% if lado == 'a' and p.imagen_a %}<img src="{{ p.imagen_a.url }}" class="mem-thumb mb-1"><div class="form-check" style="font-size:.72rem;"><input type="checkbox" name="quitar_imagen_a" class="form-check-input"> quitar imagen</div>{% endif %}
+            {% if lado == 'b' and p.imagen_b %}<img src="{{ p.imagen_b.url }}" class="mem-thumb mb-1"><div class="form-check" style="font-size:.72rem;"><input type="checkbox" name="quitar_imagen_b" class="form-check-input"> quitar imagen</div>{% endif %}
+            <input type="file" name="imagen_{{ lado }}" class="form-control form-control-sm mb-1" accept="image/*">
+            <input type="text" name="texto_{{ lado }}" class="form-control form-control-sm mb-1" maxlength="60" placeholder="Texto (opc. si hay imagen)" value="{% if lado == 'a' %}{{ p.texto_a }}{% else %}{{ p.texto_b }}{% endif %}">
+            <div class="d-flex align-items-center gap-1 rec-widget">
+              {% if lado == 'a' and p.audio_a %}<audio controls class="mini" src="{{ p.audio_a.url }}"></audio><span class="form-check ms-1" style="font-size:.72rem;"><input type="checkbox" name="quitar_audio_a" class="form-check-input"> quitar</span>{% endif %}
+              {% if lado == 'b' and p.audio_b %}<audio controls class="mini" src="{{ p.audio_b.url }}"></audio><span class="form-check ms-1" style="font-size:.72rem;"><input type="checkbox" name="quitar_audio_b" class="form-check-input"> quitar</span>{% endif %}
+              <input type="file" name="audio_{{ lado }}" class="d-none rec-input" accept="audio/*">
+              <button type="button" class="btn btn-sm btn-outline-danger rec-btn"><i class="bi bi-mic-fill"></i></button>
+              <audio controls class="d-none rec-audio" style="height:30px;max-width:150px;"></audio>
+              <button type="button" class="btn btn-sm btn-outline-secondary rec-clear d-none"><i class="bi bi-x"></i></button>
+            </div>
+          </div></div>
+          {% endfor %}
+        </div>
+      </form>
+    {% empty %}
+      <p class="text-center py-3 text-muted mb-0">Sin parejas todavía.</p>
+    {% endfor %}
   </div>
 </div>
 
-{% if juego.estado == 'BORRADOR' %}
 <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
   <div class="card-header bg-white border-0 fw-800"><i class="bi bi-plus-circle me-1"></i> Agregar pareja</div>
   <div class="card-body">
@@ -121,9 +129,37 @@ audio.mini { height:30px; max-width:160px; }
     </form>
   </div>
 </div>
-{% endif %}
 
 <!-- Modales -->
+<div class="modal fade" id="modalDatos" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{% url 'memoria:editar_datos' juego.pk %}">{% csrf_token %}
+    <div class="modal-header"><h5 class="modal-title fw-800">Editar datos</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Título</label>
+        <input type="text" name="titulo" class="form-control" value="{{ juego.titulo }}" required></div>
+      <div class="mb-2"><label class="form-label">Instrucciones</label>
+        <input type="text" name="instrucciones" class="form-control" value="{{ juego.instrucciones }}"></div>
+      <div class="mb-2"><label class="form-label">¿Cómo se califica?</label>
+        <select name="modo_nota" class="form-select">
+          {% for valor, etiqueta in MODOS %}<option value="{{ valor }}" {% if valor == juego.modo_nota %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+        </select></div>
+      <div class="row g-2">
+        <div class="col-7"><label class="form-label">Categoría (libro de notas)</label>
+          <select name="tipo_actividad" class="form-select">
+            {% for t in tipos %}<option value="{{ t.pk }}" {% if t.pk == juego.tipo_actividad_id %}selected{% endif %}>{{ t.nombre }}</option>{% endfor %}
+          </select></div>
+        <div class="col-5"><label class="form-label">Nota máxima</label>
+          <input type="number" step="0.1" min="1" max="5" name="nota_maxima" class="form-control" value="{{ juego.nota_maxima|floatformat:'-2' }}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <button class="btn btn-primary">Guardar</button>
+    </div>
+    </form>
+  </div></div>
+</div>
 <div class="modal fade" id="modalCerrar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title fw-800">¿Cerrar el juego?</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>

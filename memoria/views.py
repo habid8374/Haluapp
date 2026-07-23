@@ -195,12 +195,83 @@ def detalle(request, pk):
         _scope(JuegoMemoria.objects.all(), request.user).select_related('curso__materia', 'curso__grado'),
         pk=pk,
     )
+    from gestion_academica.models import TipoActividad
+    tipos = TipoActividad.objects.filter(institucion=juego.institucion)
     return render(request, 'memoria/detalle.html', {
         'titulo_pagina': juego.titulo,
         'juego': juego,
         'parejas': juego.parejas.all(),
         'MIN_PAREJAS': MIN_PAREJAS,
+        'tipos': tipos,
+        'MODOS': JuegoMemoria.ModoNota.choices,
     })
+
+
+@require_POST
+@login_required
+def editar_datos(request, pk):
+    from gestion_academica.models import TipoActividad
+    _solo_docente_coord(request.user)
+    juego = get_object_or_404(_scope(JuegoMemoria.objects.all(), request.user), pk=pk)
+    titulo = (request.POST.get('titulo') or '').strip()
+    if not titulo:
+        messages.error(request, "El título no puede quedar vacío.")
+        return redirect('memoria:detalle', pk=juego.pk)
+    juego.titulo = titulo
+    juego.instrucciones = (request.POST.get('instrucciones') or '').strip()
+    modo = request.POST.get('modo_nota')
+    if modo in JuegoMemoria.ModoNota.values:
+        juego.modo_nota = modo
+    try:
+        juego.nota_maxima = Decimal(request.POST.get('nota_maxima') or juego.nota_maxima)
+    except Exception:
+        pass
+    tipo_id = request.POST.get('tipo_actividad')
+    if tipo_id:
+        juego.tipo_actividad = get_object_or_404(TipoActividad, pk=tipo_id, institucion=juego.institucion)
+    juego.save(update_fields=['titulo', 'instrucciones', 'modo_nota', 'nota_maxima', 'tipo_actividad'])
+    if juego.actividad_calificable_id:
+        act = juego.actividad_calificable
+        act.titulo = juego.titulo
+        act.tipo_actividad = juego.tipo_actividad
+        act.descripcion = juego.instrucciones or None
+        act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
+    messages.success(request, "Datos actualizados.")
+    return redirect('memoria:detalle', pk=juego.pk)
+
+
+@require_POST
+@login_required
+def editar_pareja(request, pk, pareja_pk):
+    _solo_docente_coord(request.user)
+    juego = get_object_or_404(_scope(JuegoMemoria.objects.all(), request.user), pk=pk)
+    pareja = get_object_or_404(ParejaMemoria, pk=pareja_pk, juego=juego)
+    for lado in ('a', 'b'):
+        texto = (request.POST.get(f'texto_{lado}') or '').strip()[:60]
+        setattr(pareja, f'texto_{lado}', texto)
+        imagen = request.FILES.get(f'imagen_{lado}')
+        if imagen:
+            if not _imagen_valida(imagen):
+                messages.error(request, "Cada imagen debe pesar máximo 2 MB.")
+                return redirect('memoria:detalle', pk=juego.pk)
+            setattr(pareja, f'imagen_{lado}', imagen)
+        elif request.POST.get(f'quitar_imagen_{lado}') == 'on':
+            setattr(pareja, f'imagen_{lado}', None)
+        audio = request.FILES.get(f'audio_{lado}')
+        if audio:
+            if not _audio_valido(audio):
+                messages.error(request, "Cada audio debe pesar máximo 3 MB.")
+                return redirect('memoria:detalle', pk=juego.pk)
+            setattr(pareja, f'audio_{lado}', audio)
+        elif request.POST.get(f'quitar_audio_{lado}') == 'on':
+            setattr(pareja, f'audio_{lado}', None)
+    # Cada tarjeta de la pareja necesita imagen o texto.
+    if (not pareja.texto_a and not pareja.imagen_a) or (not pareja.texto_b and not pareja.imagen_b):
+        messages.error(request, "Cada tarjeta de la pareja necesita una imagen o un texto.")
+        return redirect('memoria:detalle', pk=juego.pk)
+    pareja.save()
+    messages.success(request, "Pareja actualizada.")
+    return redirect('memoria:detalle', pk=juego.pk)
 
 
 @require_POST
@@ -208,9 +279,6 @@ def detalle(request, pk):
 def agregar_pareja(request, pk):
     _solo_docente_coord(request.user)
     juego = get_object_or_404(_scope(JuegoMemoria.objects.all(), request.user), pk=pk)
-    if juego.estado != JuegoMemoria.Estado.BORRADOR:
-        messages.error(request, "Solo puedes modificar las parejas mientras el juego está en borrador.")
-        return redirect('memoria:detalle', pk=juego.pk)
     parejas, error = _leer_parejas(request)
     if error:
         messages.error(request, error)
@@ -232,9 +300,6 @@ def agregar_pareja(request, pk):
 def eliminar_pareja(request, pk, pareja_pk):
     _solo_docente_coord(request.user)
     juego = get_object_or_404(_scope(JuegoMemoria.objects.all(), request.user), pk=pk)
-    if juego.estado != JuegoMemoria.Estado.BORRADOR:
-        messages.error(request, "Solo puedes modificar las parejas mientras el juego está en borrador.")
-        return redirect('memoria:detalle', pk=juego.pk)
     pareja = get_object_or_404(ParejaMemoria, pk=pareja_pk, juego=juego)
     pareja.delete()
     messages.success(request, "Pareja eliminada.")
