@@ -24,6 +24,7 @@
     <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCerrar"><i class="bi bi-stop-circle me-1"></i> Cerrar</button>
   {% endif %}
   <a href="{% url 'trazado:resultados' tablero.pk %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> Resultados</a>
+  <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalDatos"><i class="bi bi-pencil-square me-1"></i> Editar datos</button>
   <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalFechas"><i class="bi bi-calendar-range me-1"></i> Fechas</button>
   <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"><i class="bi bi-trash me-1"></i> Eliminar</button>
 </div>
@@ -34,17 +35,84 @@
 </div>
 
 <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
-  <div class="card-header bg-white border-0 fw-800">Letras / palabras ({{ plantillas|length }})</div>
+  <div class="card-header bg-white border-0 fw-800">Letras / palabras ({{ plantillas|length }}) — editables</div>
   <div class="card-body">
-    <div class="d-flex flex-wrap gap-2">
-      {% for p in plantillas %}
-        <span class="badge bg-light text-dark border d-flex align-items-center gap-1" style="font-size:1rem;padding:.5rem .8rem;">
-          {{ p.texto }}{% if p.audio %}<i class="bi bi-volume-up-fill text-primary"></i>{% endif %}
-        </span>
-      {% endfor %}
-    </div>
-    <p class="text-muted mt-3 mb-0" style="font-size:.8rem;"><i class="bi bi-lightbulb me-1"></i>Para cambiar las letras, crea otro tablero (o elimina y vuelve a crear). En «Resultados» ves los dibujos de cada niño.</p>
+    {% for p in plantillas %}
+      <form method="post" enctype="multipart/form-data" action="{% url 'trazado:editar_plantilla' tablero.pk p.pk %}" class="d-flex align-items-center gap-2 flex-wrap mb-2 tz-fila-e" style="border:1px solid #fed7aa;border-radius:10px;padding:.4rem;">{% csrf_token %}
+        <input type="text" name="texto" class="form-control form-control-sm" value="{{ p.texto }}" maxlength="20" style="max-width:150px;">
+        <div class="d-flex align-items-center gap-1 rec-widget">
+          {% if p.audio %}<audio controls src="{{ p.audio.url }}" style="height:30px;max-width:150px;"></audio><span class="form-check ms-1" style="font-size:.72rem;"><input type="checkbox" name="quitar_audio" class="form-check-input"> quitar</span>{% endif %}
+          <input type="file" name="audio" class="d-none rec-input" accept="audio/*">
+          <button type="button" class="btn btn-sm btn-outline-danger rec-btn"><i class="bi bi-mic-fill"></i></button>
+          <audio controls class="d-none rec-audio" style="height:30px;max-width:150px;"></audio>
+          <button type="button" class="btn btn-sm btn-outline-secondary rec-clear d-none"><i class="bi bi-x"></i></button>
+        </div>
+        <button class="btn btn-sm btn-outline-success ms-auto" title="Guardar"><i class="bi bi-check-lg"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar"
+                data-bs-toggle="modal" data-bs-target="#modalBorrarPlantilla"
+                data-action="{% url 'trazado:eliminar_plantilla' tablero.pk p.pk %}"><i class="bi bi-trash"></i></button>
+      </form>
+    {% empty %}
+      <p class="text-center py-2 text-muted mb-0">Sin letras todavía.</p>
+    {% endfor %}
+    <hr>
+    <form method="post" enctype="multipart/form-data" action="{% url 'trazado:agregar_plantilla' tablero.pk %}" class="d-flex align-items-center gap-2 flex-wrap">{% csrf_token %}
+      <input type="text" name="texto" class="form-control form-control-sm" placeholder="Nueva letra / palabra" maxlength="20" style="max-width:180px;">
+      <div class="d-flex align-items-center gap-1 rec-widget">
+        <input type="file" name="audio" class="d-none rec-input" accept="audio/*">
+        <button type="button" class="btn btn-sm btn-outline-danger rec-btn"><i class="bi bi-mic-fill me-1"></i>Audio</button>
+        <audio controls class="d-none rec-audio" style="height:30px;max-width:150px;"></audio>
+        <button type="button" class="btn btn-sm btn-outline-secondary rec-clear d-none"><i class="bi bi-x"></i></button>
+      </div>
+      <button class="btn btn-sm" style="background:#ea580c;color:#fff;"><i class="bi bi-plus-lg me-1"></i>Agregar</button>
+    </form>
   </div>
+</div>
+
+<div class="modal fade" id="modalDatos" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{% url 'trazado:editar_datos' tablero.pk %}">{% csrf_token %}
+    <div class="modal-header"><h5 class="modal-title fw-800">Editar datos</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Título</label>
+        <input type="text" name="titulo" class="form-control" value="{{ tablero.titulo }}" required></div>
+      <div class="mb-2"><label class="form-label">Instrucciones</label>
+        <input type="text" name="instrucciones" class="form-control" value="{{ tablero.instrucciones }}"></div>
+      <div class="mb-2"><label class="form-label">Tipo de letra</label>
+        <select name="estilo_letra" class="form-select">
+          <option value="CURSIVA" {% if tablero.estilo_letra == 'CURSIVA' %}selected{% endif %}>Cursiva (ligada) — minúscula</option>
+          <option value="IMPRENTA" {% if tablero.estilo_letra == 'IMPRENTA' %}selected{% endif %}>Imprenta (palo)</option>
+        </select></div>
+      <div class="row g-2">
+        <div class="col-7"><label class="form-label">Categoría (libro de notas)</label>
+          <select name="tipo_actividad" class="form-select">
+            {% for t in tipos %}<option value="{{ t.pk }}" {% if t.pk == tablero.tipo_actividad_id %}selected{% endif %}>{{ t.nombre }}</option>{% endfor %}
+          </select></div>
+        <div class="col-5"><label class="form-label">Nota máxima</label>
+          <input type="number" step="0.1" min="1" max="5" name="nota_maxima" class="form-control" value="{{ tablero.nota_maxima|floatformat:'-2' }}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <button class="btn btn-primary">Guardar</button>
+    </div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="modalBorrarPlantilla" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header border-0 pb-0">
+      <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i></div>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body pt-2"><h5 class="fw-800 mb-1">¿Eliminar esta letra?</h5></div>
+    <div class="modal-footer border-0">
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+      <form id="form-borrar-plantilla" method="post">{% csrf_token %}<button class="btn btn-danger btn-sm">Sí, eliminar</button></form>
+    </div>
+  </div></div>
 </div>
 
 <div class="modal fade" id="modalCerrar" tabindex="-1">
@@ -92,4 +160,48 @@
     </div>
   </div></div>
 </div>
+
+<script>
+document.querySelectorAll('[data-bs-target="#modalBorrarPlantilla"]').forEach(function(b){
+  b.addEventListener('click', function(){ document.getElementById('form-borrar-plantilla').action = this.dataset.action; });
+});
+// Grabadora de audio (micrófono) para las filas de plantilla
+(function(){
+  let mediaRecorder = null, chunks = [], widgetActivo = null;
+  document.addEventListener('click', async function(e){
+    const recBtn = e.target.closest('.rec-btn');
+    const clearBtn = e.target.closest('.rec-clear');
+    if (clearBtn){
+      const w = clearBtn.closest('.rec-widget');
+      w.querySelector('.rec-input').value = '';
+      const au = w.querySelector('.rec-audio'); au.src = ''; au.classList.add('d-none');
+      clearBtn.classList.add('d-none'); return;
+    }
+    if (!recBtn) return;
+    const w = recBtn.closest('.rec-widget');
+    if (mediaRecorder && mediaRecorder.state === 'recording'){ mediaRecorder.stop(); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      widgetActivo = w; chunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = function(ev){ if (ev.data.size) chunks.push(ev.data); };
+      mediaRecorder.onstop = function(){
+        stream.getTracks().forEach(function(t){ t.stop(); });
+        const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+        const file = new File([blob], 'guia.webm', { type: blob.type });
+        const dt = new DataTransfer(); dt.items.add(file);
+        widgetActivo.querySelector('.rec-input').files = dt.files;
+        const au = widgetActivo.querySelector('.rec-audio');
+        au.src = URL.createObjectURL(blob); au.classList.remove('d-none');
+        widgetActivo.querySelector('.rec-clear').classList.remove('d-none');
+        const b = widgetActivo.querySelector('.rec-btn');
+        b.innerHTML = '<i class="bi bi-mic-fill"></i>';
+        widgetActivo = null;
+      };
+      mediaRecorder.start();
+      recBtn.innerHTML = '<i class="bi bi-stop-fill"></i>';
+    } catch (err) {}
+  });
+})();
+</script>
 {% endblock %}

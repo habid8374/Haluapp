@@ -30,9 +30,17 @@
     <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCerrar"><i class="bi bi-stop-circle me-1"></i> Cerrar</button>
   {% endif %}
   <a href="{% url 'secuencias:resultados' actividad.pk %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> Resultados</a>
+  <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalDatos"><i class="bi bi-pencil-square me-1"></i> Editar datos</button>
   <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalFechas"><i class="bi bi-calendar-range me-1"></i> Fechas</button>
   <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"><i class="bi bi-trash me-1"></i> Eliminar</button>
 </div>
+
+{% if actividad.estado != 'BORRADOR' %}
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.85rem;">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <span>Esta secuencia ya está publicada. Puedes editarla, pero los cambios pueden afectar a estudiantes que aún no la han resuelto (las notas ya registradas se conservan).</span>
+</div>
+{% endif %}
 
 <div class="alert alert-light border d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.88rem;">
   <i class="bi bi-calendar-range text-success"></i>
@@ -40,22 +48,89 @@
 </div>
 
 <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
-  <div class="card-header bg-white border-0 fw-800">Orden correcto ({{ items|length }} elementos)</div>
+  <div class="card-header bg-white border-0 fw-800">Orden correcto ({{ items|length }}) — editable</div>
   <div class="card-body">
-    <div class="d-flex flex-wrap align-items-center gap-2">
-      {% for it in items %}
-        <div class="text-center">
-          <div class="badge mb-1" style="background:#7e22ce;">{{ it.posicion_correcta }}</div><br>
-          {% if it.imagen %}<img src="{{ it.imagen.url }}" class="seq-thumb" alt="">{% else %}<span class="seq-txt">{{ it.texto }}</span>{% endif %}
+    {% for it in items %}
+      <div class="d-flex align-items-center gap-2 mb-2" style="border:1px solid #e9d5ff;border-radius:10px;padding:.4rem;">
+        <div class="d-flex flex-column">
+          <span class="badge mb-1" style="background:#7e22ce;">{{ it.posicion_correcta }}</span>
+          <form method="post" action="{% url 'secuencias:mover_item' actividad.pk it.pk %}" class="d-flex flex-column gap-1">{% csrf_token %}
+            <button name="dir" value="subir" class="btn btn-sm btn-outline-secondary py-0" {% if forloop.first %}disabled{% endif %}><i class="bi bi-chevron-up"></i></button>
+            <button name="dir" value="bajar" class="btn btn-sm btn-outline-secondary py-0" {% if forloop.last %}disabled{% endif %}><i class="bi bi-chevron-down"></i></button>
+          </form>
         </div>
-        {% if not forloop.last %}<i class="bi bi-arrow-right text-muted"></i>{% endif %}
-      {% endfor %}
-    </div>
-    <p class="text-muted mt-3 mb-0" style="font-size:.8rem;"><i class="bi bi-lightbulb me-1"></i>Para cambiar el orden o los elementos, crea otra secuencia (o elimina y vuelve a crear).</p>
+        {% if it.imagen %}<img src="{{ it.imagen.url }}" class="seq-thumb" alt="">{% endif %}
+        <form method="post" enctype="multipart/form-data" action="{% url 'secuencias:editar_item' actividad.pk it.pk %}" class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">{% csrf_token %}
+          <input type="text" name="texto" class="form-control form-control-sm" value="{{ it.texto }}" placeholder="Texto (opc.)" style="max-width:160px;">
+          <input type="file" name="imagen" class="form-control form-control-sm" accept="image/*" style="max-width:170px;">
+          {% if it.imagen %}<span class="form-check" style="font-size:.72rem;"><input type="checkbox" name="quitar_imagen" class="form-check-input"> quitar</span>{% endif %}
+          <button class="btn btn-sm btn-outline-success ms-auto" title="Guardar"><i class="bi bi-check-lg"></i></button>
+        </form>
+        <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar"
+                data-bs-toggle="modal" data-bs-target="#modalBorrarItem"
+                data-action="{% url 'secuencias:eliminar_item' actividad.pk it.pk %}"><i class="bi bi-trash"></i></button>
+      </div>
+    {% empty %}
+      <p class="text-center py-2 text-muted mb-0">Sin elementos todavía.</p>
+    {% endfor %}
+    <hr>
+    <form method="post" enctype="multipart/form-data" action="{% url 'secuencias:agregar_item' actividad.pk %}" class="d-flex align-items-center gap-2 flex-wrap">{% csrf_token %}
+      <i class="bi bi-plus-circle text-success"></i>
+      <input type="text" name="texto" class="form-control form-control-sm" placeholder="Texto (opc.)" style="max-width:160px;">
+      <input type="file" name="imagen" class="form-control form-control-sm" accept="image/*" style="max-width:170px;">
+      <button class="btn btn-sm" style="background:#7e22ce;color:#fff;"><i class="bi bi-plus-lg me-1"></i>Agregar al final</button>
+    </form>
+    <p class="text-muted mt-2 mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>El número es la posición correcta. Usa las flechas para reordenar.</p>
   </div>
 </div>
 
 <!-- Modales -->
+<div class="modal fade" id="modalDatos" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <form method="post" action="{% url 'secuencias:editar_datos' actividad.pk %}">{% csrf_token %}
+    <div class="modal-header"><h5 class="modal-title fw-800">Editar datos</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Título</label>
+        <input type="text" name="titulo" class="form-control" value="{{ actividad.titulo }}" required></div>
+      <div class="mb-2"><label class="form-label">Instrucciones</label>
+        <input type="text" name="instrucciones" class="form-control" value="{{ actividad.instrucciones }}"></div>
+      <div class="row g-2">
+        <div class="col-7"><label class="form-label">Categoría (libro de notas)</label>
+          <select name="tipo_actividad" class="form-select">
+            {% for t in tipos %}<option value="{{ t.pk }}" {% if t.pk == actividad.tipo_actividad_id %}selected{% endif %}>{{ t.nombre }}</option>{% endfor %}
+          </select></div>
+        <div class="col-5"><label class="form-label">Nota máxima</label>
+          <input type="number" step="0.1" min="1" max="5" name="nota_maxima" class="form-control" value="{{ actividad.nota_maxima|floatformat:'-2' }}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <button class="btn btn-primary">Guardar</button>
+    </div>
+    </form>
+  </div></div>
+</div>
+
+<div class="modal fade" id="modalBorrarItem" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header border-0 pb-0">
+      <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i></div>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body pt-2"><h5 class="fw-800 mb-1">¿Eliminar este elemento?</h5></div>
+    <div class="modal-footer border-0">
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+      <form id="form-borrar-item" method="post">{% csrf_token %}<button class="btn btn-danger btn-sm">Sí, eliminar</button></form>
+    </div>
+  </div></div>
+</div>
+<script>
+document.querySelectorAll('[data-bs-target="#modalBorrarItem"]').forEach(function(b){
+  b.addEventListener('click', function(){ document.getElementById('form-borrar-item').action = this.dataset.action; });
+});
+</script>
+
 <div class="modal fade" id="modalCerrar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title fw-800">¿Cerrar la secuencia?</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>

@@ -166,10 +166,131 @@ def detalle(request, pk):
         _scope(SecuenciaActividad.objects.all(), request.user).select_related('curso__materia', 'curso__grado'),
         pk=pk,
     )
+    from gestion_academica.models import TipoActividad
+    tipos = TipoActividad.objects.filter(institucion=act.institucion)
     return render(request, 'secuencias/detalle.html', {
         'titulo_pagina': act.titulo, 'actividad': act,
         'items': act.items.all(), 'MIN_ITEMS': MIN_ITEMS,
+        'tipos': tipos,
     })
+
+
+def _renumerar(act):
+    """Reasigna posicion_correcta 1..N por el orden actual (contiguo)."""
+    for i, it in enumerate(act.items.order_by('posicion_correcta', 'id'), start=1):
+        if it.posicion_correcta != i:
+            it.posicion_correcta = i
+            it.save(update_fields=['posicion_correcta'])
+
+
+@require_POST
+@login_required
+def editar_datos(request, pk):
+    from gestion_academica.models import TipoActividad
+    _solo_docente_coord(request.user)
+    act = get_object_or_404(_scope(SecuenciaActividad.objects.all(), request.user), pk=pk)
+    titulo = (request.POST.get('titulo') or '').strip()
+    if not titulo:
+        messages.error(request, "El título no puede quedar vacío.")
+        return redirect('secuencias:detalle', pk=act.pk)
+    act.titulo = titulo
+    act.instrucciones = (request.POST.get('instrucciones') or '').strip()
+    try:
+        act.nota_maxima = Decimal(request.POST.get('nota_maxima') or act.nota_maxima)
+    except Exception:
+        pass
+    tipo_id = request.POST.get('tipo_actividad')
+    if tipo_id:
+        act.tipo_actividad = get_object_or_404(TipoActividad, pk=tipo_id, institucion=act.institucion)
+    act.save(update_fields=['titulo', 'instrucciones', 'nota_maxima', 'tipo_actividad'])
+    if act.actividad_calificable_id:
+        a = act.actividad_calificable
+        a.titulo = act.titulo
+        a.tipo_actividad = act.tipo_actividad
+        a.descripcion = act.instrucciones or None
+        a.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
+    messages.success(request, "Datos actualizados.")
+    return redirect('secuencias:detalle', pk=act.pk)
+
+
+@require_POST
+@login_required
+def agregar_item(request, pk):
+    _solo_docente_coord(request.user)
+    act = get_object_or_404(_scope(SecuenciaActividad.objects.all(), request.user), pk=pk)
+    texto = (request.POST.get('texto') or '').strip()[:60]
+    imagen = request.FILES.get('imagen')
+    if not texto and not imagen:
+        messages.error(request, "El elemento necesita imagen o texto.")
+        return redirect('secuencias:detalle', pk=act.pk)
+    if imagen and not _imagen_valida(imagen):
+        messages.error(request, "La imagen debe pesar máximo 2 MB.")
+        return redirect('secuencias:detalle', pk=act.pk)
+    if act.items.count() >= MAX_ITEMS:
+        messages.error(request, f"Máximo {MAX_ITEMS} elementos por secuencia.")
+        return redirect('secuencias:detalle', pk=act.pk)
+    ultimo = act.items.order_by('-posicion_correcta').first()
+    ItemSecuencia.objects.create(
+        actividad=act, posicion_correcta=(ultimo.posicion_correcta + 1) if ultimo else 1,
+        texto=texto, imagen=imagen,
+    )
+    messages.success(request, "Elemento agregado al final.")
+    return redirect('secuencias:detalle', pk=act.pk)
+
+
+@require_POST
+@login_required
+def editar_item(request, pk, item_pk):
+    _solo_docente_coord(request.user)
+    act = get_object_or_404(_scope(SecuenciaActividad.objects.all(), request.user), pk=pk)
+    item = get_object_or_404(ItemSecuencia, pk=item_pk, actividad=act)
+    texto = (request.POST.get('texto') or '').strip()[:60]
+    item.texto = texto
+    imagen = request.FILES.get('imagen')
+    if imagen:
+        if not _imagen_valida(imagen):
+            messages.error(request, "La imagen debe pesar máximo 2 MB.")
+            return redirect('secuencias:detalle', pk=act.pk)
+        item.imagen = imagen
+    elif request.POST.get('quitar_imagen') == 'on':
+        item.imagen = None
+    if not item.texto and not item.imagen:
+        messages.error(request, "El elemento necesita imagen o texto.")
+        return redirect('secuencias:detalle', pk=act.pk)
+    item.save()
+    messages.success(request, "Elemento actualizado.")
+    return redirect('secuencias:detalle', pk=act.pk)
+
+
+@require_POST
+@login_required
+def mover_item(request, pk, item_pk):
+    _solo_docente_coord(request.user)
+    act = get_object_or_404(_scope(SecuenciaActividad.objects.all(), request.user), pk=pk)
+    _renumerar(act)
+    item = get_object_or_404(ItemSecuencia, pk=item_pk, actividad=act)
+    direccion = request.POST.get('dir')
+    if direccion == 'subir':
+        vecino = act.items.filter(posicion_correcta__lt=item.posicion_correcta).order_by('-posicion_correcta').first()
+    else:
+        vecino = act.items.filter(posicion_correcta__gt=item.posicion_correcta).order_by('posicion_correcta').first()
+    if vecino:
+        item.posicion_correcta, vecino.posicion_correcta = vecino.posicion_correcta, item.posicion_correcta
+        item.save(update_fields=['posicion_correcta'])
+        vecino.save(update_fields=['posicion_correcta'])
+    return redirect('secuencias:detalle', pk=act.pk)
+
+
+@require_POST
+@login_required
+def eliminar_item(request, pk, item_pk):
+    _solo_docente_coord(request.user)
+    act = get_object_or_404(_scope(SecuenciaActividad.objects.all(), request.user), pk=pk)
+    item = get_object_or_404(ItemSecuencia, pk=item_pk, actividad=act)
+    item.delete()
+    _renumerar(act)
+    messages.success(request, "Elemento eliminado.")
+    return redirect('secuencias:detalle', pk=act.pk)
 
 
 @require_POST

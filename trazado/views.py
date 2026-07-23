@@ -175,10 +175,105 @@ def detalle(request, pk):
         _scope(TableroTrazado.objects.all(), request.user).select_related('curso__materia', 'curso__grado'),
         pk=pk,
     )
+    from gestion_academica.models import TipoActividad
+    tipos = TipoActividad.objects.filter(institucion=tablero.institucion)
     return render(request, 'trazado/detalle.html', {
         'titulo_pagina': tablero.titulo, 'tablero': tablero,
         'plantillas': tablero.plantillas.all(),
+        'tipos': tipos,
     })
+
+
+@require_POST
+@login_required
+def editar_datos(request, pk):
+    from gestion_academica.models import TipoActividad
+    _solo_docente_coord(request.user)
+    tablero = get_object_or_404(_scope(TableroTrazado.objects.all(), request.user), pk=pk)
+    titulo = (request.POST.get('titulo') or '').strip()
+    if not titulo:
+        messages.error(request, "El título no puede quedar vacío.")
+        return redirect('trazado:detalle', pk=tablero.pk)
+    tablero.titulo = titulo
+    tablero.instrucciones = (request.POST.get('instrucciones') or '').strip()
+    estilo = request.POST.get('estilo_letra')
+    if estilo in TableroTrazado.EstiloLetra.values:
+        tablero.estilo_letra = estilo
+    try:
+        tablero.nota_maxima = Decimal(request.POST.get('nota_maxima') or tablero.nota_maxima)
+    except Exception:
+        pass
+    tipo_id = request.POST.get('tipo_actividad')
+    if tipo_id:
+        tablero.tipo_actividad = get_object_or_404(TipoActividad, pk=tipo_id, institucion=tablero.institucion)
+    tablero.save(update_fields=['titulo', 'instrucciones', 'estilo_letra', 'nota_maxima', 'tipo_actividad'])
+    if tablero.actividad_calificable_id:
+        act = tablero.actividad_calificable
+        act.titulo = tablero.titulo
+        act.tipo_actividad = tablero.tipo_actividad
+        act.descripcion = tablero.instrucciones or None
+        act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
+    messages.success(request, "Datos actualizados.")
+    return redirect('trazado:detalle', pk=tablero.pk)
+
+
+@require_POST
+@login_required
+def agregar_plantilla(request, pk):
+    _solo_docente_coord(request.user)
+    tablero = get_object_or_404(_scope(TableroTrazado.objects.all(), request.user), pk=pk)
+    texto = (request.POST.get('texto') or '').strip()[:20]
+    audio = request.FILES.get('audio')
+    if not texto:
+        messages.error(request, "Escribe la letra o palabra a trazar.")
+        return redirect('trazado:detalle', pk=tablero.pk)
+    if audio and not _audio_valido(audio):
+        messages.error(request, "El audio debe pesar máximo 3 MB.")
+        return redirect('trazado:detalle', pk=tablero.pk)
+    if tablero.plantillas.count() >= MAX_PLANTILLAS:
+        messages.error(request, f"Máximo {MAX_PLANTILLAS} letras/palabras por tablero.")
+        return redirect('trazado:detalle', pk=tablero.pk)
+    ultimo = tablero.plantillas.order_by('-orden').first()
+    PlantillaTrazado.objects.create(
+        tablero=tablero, orden=(ultimo.orden + 1) if ultimo else 1, texto=texto, audio=audio,
+    )
+    messages.success(request, "Agregado.")
+    return redirect('trazado:detalle', pk=tablero.pk)
+
+
+@require_POST
+@login_required
+def editar_plantilla(request, pk, plantilla_pk):
+    _solo_docente_coord(request.user)
+    tablero = get_object_or_404(_scope(TableroTrazado.objects.all(), request.user), pk=pk)
+    plantilla = get_object_or_404(PlantillaTrazado, pk=plantilla_pk, tablero=tablero)
+    texto = (request.POST.get('texto') or '').strip()[:20]
+    if not texto:
+        messages.error(request, "La letra o palabra no puede quedar vacía.")
+        return redirect('trazado:detalle', pk=tablero.pk)
+    plantilla.texto = texto
+    audio = request.FILES.get('audio')
+    if audio:
+        if not _audio_valido(audio):
+            messages.error(request, "El audio debe pesar máximo 3 MB.")
+            return redirect('trazado:detalle', pk=tablero.pk)
+        plantilla.audio = audio
+    elif request.POST.get('quitar_audio') == 'on':
+        plantilla.audio = None
+    plantilla.save()
+    messages.success(request, "Actualizado.")
+    return redirect('trazado:detalle', pk=tablero.pk)
+
+
+@require_POST
+@login_required
+def eliminar_plantilla(request, pk, plantilla_pk):
+    _solo_docente_coord(request.user)
+    tablero = get_object_or_404(_scope(TableroTrazado.objects.all(), request.user), pk=pk)
+    plantilla = get_object_or_404(PlantillaTrazado, pk=plantilla_pk, tablero=tablero)
+    plantilla.delete()
+    messages.success(request, "Eliminado.")
+    return redirect('trazado:detalle', pk=tablero.pk)
 
 
 @require_POST
