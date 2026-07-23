@@ -70,7 +70,37 @@ class Usuario(AbstractUser):
         verbose_name="Foto de Perfil"
     )
 
-    
+    # ---- Aceptación de la Política de Tratamiento de Datos Personales ----
+    # Se completa exclusivamente desde la vista de aceptación (nunca editable
+    # a mano) para que quede como evidencia verificable — ver
+    # gestion_academica.legal y proyecto_colegio.middleware.PoliticaDatosMiddleware.
+    acepto_tratamiento_datos = models.BooleanField(
+        default=False,
+        verbose_name="Aceptó la Política de Tratamiento de Datos",
+    )
+    fecha_aceptacion_tratamiento_datos = models.DateTimeField(
+        null=True, blank=True,
+        verbose_name="Fecha de aceptación",
+    )
+    version_politica_aceptada = models.CharField(
+        max_length=20, blank=True, default="",
+        verbose_name="Versión de la política aceptada",
+    )
+    hash_politica_aceptada = models.CharField(
+        max_length=64, blank=True, default="",
+        verbose_name="Huella (SHA-256) del texto aceptado",
+        help_text="Identifica de forma única el contenido exacto que el usuario aceptó, para poder demostrarlo aunque la política cambie después.",
+    )
+    ip_aceptacion_politica = models.GenericIPAddressField(
+        null=True, blank=True,
+        verbose_name="IP registrada al aceptar",
+    )
+    user_agent_aceptacion_politica = models.TextField(
+        blank=True, default="",
+        verbose_name="Navegador/dispositivo registrado al aceptar",
+    )
+
+
     def get_full_name(self):
         if self.first_name and self.last_name:
             return f"{self.first_name} {self.last_name}"

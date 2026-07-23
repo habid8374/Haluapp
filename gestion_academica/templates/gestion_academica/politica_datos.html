@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block titulo %}Política de Tratamiento de Datos Personales{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .politica-hero h2, .politica-hero p { color: #fff; }
+  .politica-seccion h5 { color: #0b5ed7; font-weight: 800; }
+  .politica-seccion p { white-space: pre-line; }
+  .politica-aceptar-bar {
+    position: sticky; bottom: 0; background: #fff; border-top: 1px solid var(--border-color);
+    padding: 1rem 1.25rem; box-shadow: 0 -6px 16px rgba(18,45,92,.08); border-radius: 14px 14px 0 0;
+    margin-top: 1.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container" style="max-width: 860px;">
+  <div class="politica-hero" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:18px; padding:2rem; margin-bottom:1.5rem;">
+    <h2><i class="bi bi-shield-lock-fill"></i> Política de Tratamiento de Datos Personales</h2>
+    <p class="mb-0">Halu Plataforma Escolar EDIE — Axentia Technologies · Versión {{ version }}</p>
+  </div>
+
+  {% if modo_aceptacion %}
+  <div class="alert alert-info d-flex align-items-start gap-2" role="alert">
+    <i class="bi bi-info-circle-fill mt-1"></i>
+    <div>Antes de continuar necesitamos que leas esta política y confirmes que la aceptas. Solo se pide una vez por versión — si la actualizamos, te la mostraremos de nuevo.</div>
+  </div>
+  {% endif %}
+
+  {% if modo_aceptacion %}<form method="post">{% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+    {% for titulo, contenido in secciones %}
+    <div class="card shadow-sm mb-3 politica-seccion">
+      <div class="card-body">
+        <h5 class="mb-2">{{ titulo }}</h5>
+        <p class="mb-0 text-muted">{{ contenido }}</p>
+      </div>
+    </div>
+    {% endfor %}
+
+    <p class="text-muted small">
+      <i class="bi bi-info-circle me-1"></i>
+      ¿Dudas sobre tus datos? Escribe a <strong>haluplataformaescolar@gmail.com</strong>.
+    </p>
+
+    {% if modo_aceptacion %}
+    <div class="politica-aceptar-bar d-flex flex-column flex-md-row align-items-md-center gap-3">
+      <div class="form-check flex-grow-1">
+        <input class="form-check-input" type="checkbox" name="acepto" value="si" id="checkAceptoPolitica" required>
+        <label class="form-check-label" for="checkAceptoPolitica">
+          He leído y acepto la Política de Tratamiento de Datos Personales.
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle-fill me-1"></i> Aceptar y continuar
+      </button>
+    </div>
+  </form>
+  {% else %}
+    <div class="text-center mt-3 mb-4">
+      {% if user.is_authenticated %}
+      <a href="{% url 'gestion_academica:ver_mi_perfil' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Volver a mi perfil
+      </a>
+      {% else %}
+      <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Volver al inicio de sesión
+      </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

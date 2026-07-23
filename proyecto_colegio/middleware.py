@@ -130,4 +130,53 @@ class InstitucionActivaMiddleware:
             return redirect('login')
 
         # Si todo está en orden, la petición continúa normalmente
-        return self.get_response(request)    
+        return self.get_response(request)
+
+
+class PoliticaDatosMiddleware:
+    """
+    Obliga a todo usuario autenticado a aceptar la Política de Tratamiento
+    de Datos Personales vigente antes de usar el resto de la plataforma.
+
+    Se activa en el primer login y, si se sube la versión de la política
+    (gestion_academica.legal.POLITICA_TRATAMIENTO_DATOS_VERSION), vuelve a
+    activarse para todos hasta que la re-acepten.
+
+    No aplica a superusuarios (dueño de la plataforma) ni a /admin/, /api/,
+    logout ni archivos estáticos/media, para no bloquear flujos técnicos.
+    """
+
+    RUTAS_EXENTAS_PREFIJOS = (
+        '/academico/politica-datos/aceptar/',
+        '/logout/',
+        '/accounts/logout/',
+        '/admin/',
+        '/academico/api/',  # Endpoints de la app móvil — no se bloquean con una redirección HTML
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if self._requiere_aceptacion(request):
+            from urllib.parse import quote
+            from django.urls import reverse
+            return redirect(reverse('gestion_academica:aceptar_politica_datos') + f'?next={quote(request.path)}')
+        return self.get_response(request)
+
+    def _requiere_aceptacion(self, request):
+        user = request.user
+        if not user.is_authenticated or user.is_superuser:
+            return False
+
+        current_path = request.path_info
+        if current_path.startswith(self.RUTAS_EXENTAS_PREFIJOS) or \
+           current_path.startswith(settings.STATIC_URL) or \
+           current_path.startswith(settings.MEDIA_URL):
+            return False
+
+        from gestion_academica.legal import POLITICA_TRATAMIENTO_DATOS_VERSION
+        return not (
+            user.acepto_tratamiento_datos
+            and user.version_politica_aceptada == POLITICA_TRATAMIENTO_DATOS_VERSION
+        )

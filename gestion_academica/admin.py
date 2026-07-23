@@ -49,12 +49,28 @@ class UsuarioAdmin(InstitucionScopedAdminMixin, BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Roles e Institución', {'fields': ('rol', 'institucion_asociada')}),
         ('Conexiones Externas', {'fields': ('google_calendar_id',)}),
+        ('Aceptación de Política de Tratamiento de Datos', {
+            'fields': (
+                'acepto_tratamiento_datos',
+                'fecha_aceptacion_tratamiento_datos',
+                'version_politica_aceptada',
+                'hash_politica_aceptada',
+                'ip_aceptacion_politica',
+                'user_agent_aceptacion_politica',
+            ),
+            'description': (
+                'Registro de evidencia de la aceptación — se completa únicamente desde la '
+                'pantalla de aceptación en la plataforma, nunca editable a mano. La huella '
+                '(hash SHA-256) identifica el texto exacto que el usuario aceptó, incluso si '
+                'la política se actualiza después.'
+            ),
+        }),
     )
     # --- FIN DE LA CORRECCIÓN CLAVE ---
 
     # Tus configuraciones de list_display y list_filter se mantienen igual
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'rol')
-    list_filter = BaseUserAdmin.list_filter + ('rol', 'institucion_asociada')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'rol', 'acepto_tratamiento_datos')
+    list_filter = BaseUserAdmin.list_filter + ('rol', 'institucion_asociada', 'acepto_tratamiento_datos')
 
     def get_queryset(self, request):
         """Además del filtro por institución del mixin, un usuario staff
@@ -66,6 +82,18 @@ class UsuarioAdmin(InstitucionScopedAdminMixin, BaseUserAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         ro = list(super().get_readonly_fields(request, obj))
+        # El registro de aceptación de la política es evidencia — jamás editable a mano,
+        # ni siquiera para el superusuario. Solo lo escribe la vista de aceptación.
+        for campo in (
+            'acepto_tratamiento_datos',
+            'fecha_aceptacion_tratamiento_datos',
+            'version_politica_aceptada',
+            'hash_politica_aceptada',
+            'ip_aceptacion_politica',
+            'user_agent_aceptacion_politica',
+        ):
+            if campo not in ro:
+                ro.append(campo)
         if not request.user.is_superuser:
             for campo in ('is_staff', 'is_superuser', 'groups', 'user_permissions', 'rol'):
                 if campo not in ro:

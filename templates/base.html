@@ -304,6 +304,7 @@
     {% endif %}
     <footer class="container mt-auto py-3 text-center">
         <p class="mb-0">© {% now "Y" %} {{ branding.NOMBRE }} - {{ branding.LEMA }}. Todos los derechos reservados.</p>
+        <p class="mb-0"><a href="{% url 'gestion_academica:ver_politica_datos' %}" class="text-muted small">Política de Tratamiento de Datos Personales</a></p>
     </footer>
     {% include 'partials/asistente_halu.html' %}
     <!-- 1. Script de Bootstrap (cargado una sola vez) -->
