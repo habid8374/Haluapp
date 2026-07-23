@@ -7,6 +7,8 @@ from django.http import JsonResponse
 from allauth.account.views import LoginView
 from django_ratelimit.decorators import ratelimit
 
+from gestion_academica.forms import HaluPasswordResetForm
+
 from django.contrib.auth import views as auth_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -40,13 +42,15 @@ urlpatterns = [
         LoginView.as_view(template_name='registration/login.html')
     ), name='login'),
 
-    # 1.b Restablecimiento de contraseña con plantillas propias (HALU PULSE) y
-    #     correo enviado vía Brevo (email_backend.BrevoApiEmailBackend cuando
-    #     está configurado). Debe ir ANTES del include de abajo para que gane
-    #     esta definición sobre la de Django por defecto.
+    # 1.b Restablecimiento de contraseña con plantillas propias (HALU PULSE).
+    #     HaluPasswordResetForm envía el correo con la cuenta Brevo/SMTP que
+    #     cada institución ya tiene configurada (ver gestion_academica.forms),
+    #     no con una cuenta global del sistema. Debe ir ANTES del include de
+    #     abajo para que gane esta definición sobre la de Django por defecto.
     path('accounts/password_reset/', ratelimit(key='ip', rate='5/m', method='POST', block=True)(
         auth_views.PasswordResetView.as_view(
             template_name='registration/password_reset_form.html',
+            form_class=HaluPasswordResetForm,
             email_template_name='registration/password_reset_email.txt',
             html_email_template_name='registration/password_reset_email.html',
             subject_template_name='registration/password_reset_subject.txt',

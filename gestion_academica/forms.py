@@ -1498,3 +1498,58 @@ class UserPasswordChangeForm(forms.Form):
         if password_1 and password_2 and password_1 != password_2:
             raise forms.ValidationError("Las contraseñas no coinciden.")
         return password_2            
+
+# ── Restablecimiento de contraseña con la cuenta Brevo/SMTP de cada colegio ──
+from django.contrib.auth.forms import PasswordResetForm as _PasswordResetForm
+from django.template import loader as _loader
+from django.utils.html import escape as _escape
+
+
+class HaluPasswordResetForm(_PasswordResetForm):
+    """Igual al PasswordResetForm de Django, pero envía el correo con las
+    credenciales que la institución del usuario YA TIENE configuradas (su
+    propia cuenta Brevo o su propio SMTP, vía
+    admisiones.utils.enviar_correo_dinamico) en vez del EMAIL_BACKEND global.
+
+    Así, cada colegio que configure su cuenta Brevo la usa para todo lo que
+    envíe la plataforma en su nombre — restablecimiento de contraseña
+    incluido — sin variables de entorno nuevas y sin tocar ni consumir el
+    plan de ninguna otra institución.
+
+    Si el usuario no tiene institución asociada (ej. un superusuario), se usa
+    el envío estándar de Django (EMAIL_BACKEND / respaldo compartido Brevo).
+    """
+
+    def send_mail(self, subject_template_name, email_template_name, context,
+                  from_email, to_email, html_email_template_name=None):
+        user = context.get('user')
+        institucion = getattr(user, 'institucion_asociada', None) if user else None
+
+        if institucion is None:
+            super().send_mail(
+                subject_template_name, email_template_name, context,
+                from_email, to_email, html_email_template_name=html_email_template_name,
+            )
+            return
+
+        subject = _loader.render_to_string(subject_template_name, context)
+        subject = ''.join(subject.splitlines())  # el asunto no admite saltos de línea
+        texto_plano = _loader.render_to_string(email_template_name, context)
+        html_content = (
+            _loader.render_to_string(html_email_template_name, context)
+            if html_email_template_name else None
+        )
+        if html_content is None:
+            html_content = (
+                '<pre style="white-space:pre-wrap;font-family:inherit;">'
+                + _escape(texto_plano) + '</pre>'
+            )
+
+        from admisiones.utils import enviar_correo_dinamico
+        enviar_correo_dinamico(
+            institucion=institucion,
+            asunto=subject,
+            destinatarios=[to_email],
+            html_content=html_content,
+            texto_plano=texto_plano,
+        )
