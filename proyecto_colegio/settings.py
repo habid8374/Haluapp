@@ -437,18 +437,41 @@ SOFTWARE_SLOGAN = "Conectando mentes, creando futuros."
 SOFTWARE_CONTACT_EMAIL = "haluplataformaescolar@gmail.com"
 
 # --- CONFIGURACIÓN DE ENVÍO DE CORREO ELECTRÓNICO (solo infraestructura Django) ---
-# Los correos transaccionales por colegio usan SMTP definido en InstitucionEducativa
-# (admisiones.utils.enviar_correo_dinamico, señales, etc.); no hay DEFAULT_FROM_EMAIL ni
-# credenciales de tenant en este archivo.
+# Los correos transaccionales por colegio usan SUS PROPIAS credenciales guardadas
+# en InstitucionEducativa (institucion.brevo_api_key / SMTP propio), vía
+# admisiones.utils.enviar_correo_dinamico. Ese flujo NO se toca aquí.
 #
+# BREVO_API_KEY / BREVO_SENDER_EMAIL (abajo) son el RESPALDO COMPARTIDO que usa
+# enviar_correo_dinamico SOLO cuando una institución no configuró su propia
+# cuenta Brevo — es decir, sigue siendo un recurso "por institución", solo que
+# con fallback. NO se debe reutilizar para nada que no sea correo de un colegio.
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+BREVO_SENDER_EMAIL = os.environ.get('BREVO_SENDER_EMAIL', '')
+BREVO_SENDER_NAME = os.environ.get('BREVO_SENDER_NAME', 'Halu Plataforma')
+
+# --- Correo DEL SISTEMA (sin institución): password reset, allauth, alertas
+# internas de la plataforma. Usa una cuenta Brevo TOTALMENTE APARTE y exclusiva
+# del propietario de la plataforma — nunca la de un colegio, ni el respaldo
+# compartido de arriba, para no consumir el plan de ninguna institución.
+SISTEMA_BREVO_API_KEY = os.environ.get('SISTEMA_BREVO_API_KEY', '')
+SISTEMA_BREVO_SENDER_EMAIL = os.environ.get('SISTEMA_BREVO_SENDER_EMAIL', '')
+SISTEMA_BREVO_SENDER_NAME = os.environ.get('SISTEMA_BREVO_SENDER_NAME', 'Halu Plataforma')
+
 # El backend global se usa para mensajes SIN contexto de institución: allauth,
 # password reset, alertas internas, etc. Por defecto:
-#   - DEBUG=True  -> console.EmailBackend (los correos se imprimen en consola).
-#   - DEBUG=False -> smtp.EmailBackend (envía por SMTP global).
-# Puedes forzar con la variable de entorno EMAIL_BACKEND.
+#   - DEBUG=True                                -> console.EmailBackend (se imprimen en consola).
+#   - DEBUG=False + SISTEMA_BREVO_API_KEY listo -> BrevoApiEmailBackend (HTTPS, con la
+#                                                  cuenta Brevo EXCLUSIVA del sistema;
+#                                                  SMTP está bloqueado en Railway).
+#   - DEBUG=False sin SISTEMA_BREVO_API_KEY     -> smtp.EmailBackend (mejor esfuerzo).
+# Puedes forzar cualquier backend con la variable de entorno EMAIL_BACKEND.
 _DEFAULT_EMAIL_BACKEND = (
     'django.core.mail.backends.console.EmailBackend' if DEBUG
-    else 'django.core.mail.backends.smtp.EmailBackend'
+    else (
+        'proyecto_colegio.email_backend.BrevoApiEmailBackend'
+        if (SISTEMA_BREVO_API_KEY and SISTEMA_BREVO_SENDER_EMAIL)
+        else 'django.core.mail.backends.smtp.EmailBackend'
+    )
 )
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', _DEFAULT_EMAIL_BACKEND)
 
@@ -458,16 +481,8 @@ EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587') or 587)
 EMAIL_USE_TLS = (os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes', 'on'))
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@halu.com')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', SISTEMA_BREVO_SENDER_EMAIL or EMAIL_HOST_USER or 'no-reply@halu.com')
 EMAIL_TIMEOUT = 15  # segundos — evita que conexiones SMTP lentas bloqueen indefinidamente
-# Brevo API (alternativa a SMTP en Railway donde los puertos SMTP están bloqueados).
-# Cuando está presente, todos los correos transaccionales se envían vía HTTPS.
-BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
-# Email verificado en Brevo como remitente (ej: haluplataformaescolar@gmail.com).
-# Obligatorio cuando BREVO_API_KEY está activo; debe coincidir con un remitente
-# verificado en la cuenta Brevo (NO usar el usuario SMTP de Brevo: xxxxxx@smtp-brevo.com).
-BREVO_SENDER_EMAIL = os.environ.get('BREVO_SENDER_EMAIL', '')
-BREVO_SENDER_NAME = os.environ.get('BREVO_SENDER_NAME', 'Halu Plataforma')
 
 # Para correos a usuarios finales seguimos usando el SMTP por InstitucionEducativa
 # (multi-tenant), vía admisiones.utils.enviar_correo_dinamico.

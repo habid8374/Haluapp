@@ -39,8 +39,20 @@ urlpatterns = [
     path('login/', ratelimit(key='ip', rate='10/m', method='POST', block=True)(
         LoginView.as_view(template_name='registration/login.html')
     ), name='login'),
-    
-    
+
+    # 1.b Restablecimiento de contraseña con plantillas propias (HALU PULSE) y
+    #     correo enviado vía Brevo (email_backend.BrevoApiEmailBackend cuando
+    #     está configurado). Debe ir ANTES del include de abajo para que gane
+    #     esta definición sobre la de Django por defecto.
+    path('accounts/password_reset/', ratelimit(key='ip', rate='5/m', method='POST', block=True)(
+        auth_views.PasswordResetView.as_view(
+            template_name='registration/password_reset_form.html',
+            email_template_name='registration/password_reset_email.txt',
+            html_email_template_name='registration/password_reset_email.html',
+            subject_template_name='registration/password_reset_subject.txt',
+        )
+    ), name='password_reset'),
+
     # 2. Incluimos el resto de las URLs de autenticación de Django (logout, password_reset, etc.)
     #    Estas quedarán bajo el prefijo /accounts/ (ej: /accounts/logout/)
     path('accounts/', include('django.contrib.auth.urls')),
