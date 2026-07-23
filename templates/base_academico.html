@@ -180,6 +180,23 @@
       display: none;
     }
   }
+  /* ── FIX: menús del navbar flotantes en móvil (notificaciones y perfil) ──
+     Por defecto, en un navbar colapsado Bootstrap los posiciona ESTÁTICOS y
+     eso agranda la barra. Los forzamos a flotar por encima del contenido
+     (como un modal aéreo), anclados arriba a la derecha. Igual en todos los
+     portales/dashboards porque este CSS es compartido. */
+  @media (max-width: 575.98px) {
+    body.layout-academico .top-navbar .navbar-nav .nav-item.dropdown { position: static !important; }
+    body.layout-academico .top-navbar .navbar-nav .dropdown-menu {
+      position: absolute !important;
+      top: 100% !important;
+      right: .4rem !important;
+      left: auto !important;
+      margin-top: .35rem !important;
+      z-index: 1200 !important;
+      box-shadow: 0 12px 30px rgba(0,0,0,.22) !important;
+    }
+  }
 </style>
 {% endblock extrastyles %}
 {% block navbar_brand %}
