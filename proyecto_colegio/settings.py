@@ -440,12 +440,17 @@ SOFTWARE_CONTACT_EMAIL = "haluplataformaescolar@gmail.com"
 # Los correos transaccionales por colegio usan SUS PROPIAS credenciales guardadas
 # en InstitucionEducativa (institucion.brevo_api_key / SMTP propio), vía
 # admisiones.utils.enviar_correo_dinamico. El restablecimiento de contraseña
-# también pasa por ahí (ver gestion_academica.forms.HaluPasswordResetForm): cada
-# colegio usa la cuenta Brevo/SMTP que ya tiene configurada — no se agregan
-# variables de entorno nuevas ni se toca el correo de ninguna institución.
+# también pasa por ahí (ver gestion_academica.forms.HaluPasswordResetForm).
+#
+# REGLA CRÍTICA (ver CLAUDE.md): NO existe ningún respaldo/cuenta Brevo
+# compartida entre instituciones. Si un colegio no configuró su propia cuenta
+# Brevo, sus correos simplemente no se envían — nunca se usa la cuenta de otro
+# colegio ni una cuenta "del sistema". Por eso aquí NO hay BREVO_API_KEY ni
+# variables Brevo globales: esa credencial vive únicamente en
+# InstitucionEducativa.brevo_api_key, por institución.
 #
 # Este EMAIL_BACKEND global solo aplica a lo que Django/allauth envíen por su
-# cuenta (fuera del flujo anterior). Por defecto:
+# cuenta (fuera del flujo anterior, y sin institución involucrada). Por defecto:
 #   - DEBUG=True  -> console.EmailBackend (los correos se imprimen en consola).
 #   - DEBUG=False -> smtp.EmailBackend (envía por SMTP global).
 # Puedes forzar con la variable de entorno EMAIL_BACKEND.
@@ -463,18 +468,6 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@halu.com')
 EMAIL_TIMEOUT = 15  # segundos — evita que conexiones SMTP lentas bloqueen indefinidamente
-# Brevo API (alternativa a SMTP en Railway donde los puertos SMTP están bloqueados).
-# Respaldo COMPARTIDO por institución: enviar_correo_dinamico lo usa solo cuando
-# una institución no configuró su propia cuenta Brevo (institucion.brevo_api_key).
-BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
-# Email verificado en Brevo como remitente (ej: haluplataformaescolar@gmail.com).
-# Obligatorio cuando BREVO_API_KEY está activo; debe coincidir con un remitente
-# verificado en la cuenta Brevo (NO usar el usuario SMTP de Brevo: xxxxxx@smtp-brevo.com).
-BREVO_SENDER_EMAIL = os.environ.get('BREVO_SENDER_EMAIL', '')
-BREVO_SENDER_NAME = os.environ.get('BREVO_SENDER_NAME', 'Halu Plataforma')
-
-# Para correos a usuarios finales seguimos usando el SMTP por InstitucionEducativa
-# (multi-tenant), vía admisiones.utils.enviar_correo_dinamico.
 
 # --- (Opcional) CONFIGURACIÓN DE SIMPLE JWT ---
 # Puedes añadir esto para configurar la duración de los tokens, etc.

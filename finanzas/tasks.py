@@ -154,8 +154,9 @@ def _link_callback_pdf(uri, rel):
 def enviar_avisos_cobro_masivo_task(self, cuenta_ids: list, institucion_id: int, portal_url: str, domain: str):
     """Envía avisos de cobro con PDF adjunto a acudientes/estudiantes tras una facturación masiva.
 
-    Usa Brevo API si está configurada en la institución (o como fallback global).
-    En modo SMTP reutiliza una única conexión para todo el lote.
+    Usa la cuenta Brevo propia de la institución si está configurada (nunca un
+    respaldo global — ver regla crítica en CLAUDE.md). En modo SMTP reutiliza
+    una única conexión para todo el lote.
     """
     from xhtml2pdf import pisa
     from finanzas.models import CuentaPorCobrarEstudiante, InstitucionEducativa
@@ -163,11 +164,7 @@ def enviar_avisos_cobro_masivo_task(self, cuenta_ids: list, institucion_id: int,
 
     institucion = InstitucionEducativa.objects.get(pk=institucion_id)
 
-    _brevo_key = (
-        getattr(institucion, 'brevo_api_key', '') or
-        getattr(settings, 'BREVO_API_KEY', '') or
-        ''
-    )
+    _brevo_key = getattr(institucion, 'brevo_api_key', '') or ''
     _tiene_smtp = bool(institucion.email_host_user and institucion.email_host_password)
 
     if not _brevo_key and not _tiene_smtp:

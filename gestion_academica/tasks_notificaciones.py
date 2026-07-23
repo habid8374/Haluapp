@@ -929,13 +929,10 @@ def notificar_recibo_pago_manual(self, pago_id: int) -> None:
         return
 
     from admisiones.utils import enviar_correo_dinamico as _enviar_correo
-    from django.conf import settings as _s
 
     institucion = pago.institucion
-    _tiene_brevo = bool(
-        getattr(institucion, 'brevo_api_key', '') or
-        getattr(_s, 'BREVO_API_KEY', '')
-    )
+    # SIEMPRE la cuenta Brevo de ESTA institución — nunca un respaldo global.
+    _tiene_brevo = bool(getattr(institucion, 'brevo_api_key', ''))
     _tiene_smtp = bool(institucion.email_host_user and institucion.email_host_password)
     if not _tiene_brevo and not _tiene_smtp:
         logger.info(

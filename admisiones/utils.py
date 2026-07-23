@@ -93,10 +93,10 @@ def _email_valido(direccion: str) -> bool:
 def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_content, attachments=None):
     """Envía correo vía Brevo HTTP API (HTTPS/443). Funciona en Railway sin restricciones SMTP.
 
-    El remitente se resuelve así (en orden de prioridad):
+    El remitente SIEMPRE es el de la institución (nunca un respaldo global —
+    ver regla crítica en CLAUDE.md: cada colegio usa SU PROPIA cuenta Brevo):
     1. brevo_sender_email de la institución (campo por institución)
     2. email_host_user de la institución (si es un email verificado en Brevo)
-    3. BREVO_SENDER_EMAIL en settings (variable de entorno global — fallback)
 
     attachments: lista opcional de tuplas (nombre_archivo, bytes_content, mimetype)
 
@@ -104,18 +104,15 @@ def _enviar_via_brevo_api(api_key, institucion, destinatarios, asunto, html_cont
     """
     import base64
     import requests as _req
-    from django.conf import settings as _s
-    # Resolución del remitente: institución tiene prioridad sobre settings global
+    # Remitente: SIEMPRE de la institución, nunca un respaldo/cuenta global.
     from_email = (
         getattr(institucion, 'brevo_sender_email', '') or
         getattr(institucion, 'email_host_user', '') or
-        getattr(_s, 'BREVO_SENDER_EMAIL', '') or
         ''
     )
     from_name = (
         getattr(institucion, 'brevo_sender_name', '') or
         getattr(institucion, 'nombre', '') or
-        getattr(_s, 'BREVO_SENDER_NAME', '') or
         'Halu Plataforma'
     )
     if not from_email:
@@ -173,13 +170,10 @@ def enviar_correo_dinamico(institucion, asunto, destinatarios, html_content, tex
         logger.error("enviar_correo_dinamico: se requiere institución.")
         return False
 
-    # Brevo API tiene prioridad — clave por institución, con fallback al env global
-    from django.conf import settings as _settings
-    _brevo_key = (
-        getattr(institucion, 'brevo_api_key', '') or
-        getattr(_settings, 'BREVO_API_KEY', '') or
-        ''
-    )
+    # Brevo API tiene prioridad sobre SMTP, pero SIEMPRE la clave de ESTA
+    # institución — nunca un respaldo compartido entre instituciones (ver
+    # regla crítica en CLAUDE.md).
+    _brevo_key = getattr(institucion, 'brevo_api_key', '') or ''
     if _brevo_key:
         return _enviar_via_brevo_api(_brevo_key, institucion, destinatarios, asunto, html_content, attachments=attachments)
 

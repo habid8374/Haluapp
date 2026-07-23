@@ -75,16 +75,13 @@ def _crear_conexion_smtp(institucion):
     Si la institución no tiene credenciales, devuelve None y la tarea simplemente
     omite el envío de correos (manteniendo el registro en BD).
 
-    Si BREVO_API_KEY está configurado, devuelve _BREVO_API_ACTIVO (sentinel) para
-    indicar que los correos se enviarán vía HTTP API sin necesidad de SMTP.
+    Si la institución tiene su propia Brevo API Key configurada, devuelve
+    _BREVO_API_ACTIVO (sentinel) para indicar que los correos se enviarán vía
+    HTTP API sin necesidad de SMTP.
     """
-    from django.conf import settings as _s
-    # Clave Brevo por institución tiene prioridad; fallback al env global
-    _brevo_key = (
-        getattr(institucion, 'brevo_api_key', '') or
-        getattr(_s, 'BREVO_API_KEY', '') or
-        ''
-    )
+    # SIEMPRE la clave Brevo de ESTA institución — nunca un respaldo global
+    # (ver regla crítica en CLAUDE.md).
+    _brevo_key = getattr(institucion, 'brevo_api_key', '') or ''
     if _brevo_key:
         return _BREVO_API_ACTIVO
 
@@ -466,11 +463,8 @@ def procesar_importacion_aspirantes_task(self, lote_id):
         # 4) SMTP reutilizable solo si NO es dry-run
         _smtp_advertencia_general = None
         if not lote.dry_run:
-            from django.conf import settings as _s
-            _brevo_activo = bool(
-                getattr(institucion, 'brevo_api_key', '') or
-                getattr(_s, 'BREVO_API_KEY', '')
-            )
+            # SIEMPRE la clave Brevo de ESTA institución — nunca un respaldo global.
+            _brevo_activo = bool(getattr(institucion, 'brevo_api_key', ''))
             _tiene_credenciales_smtp = bool(
                 getattr(institucion, "email_host_user", None)
                 and getattr(institucion, "email_host_password", None)
@@ -818,16 +812,12 @@ def reenviar_correos_bienvenida_lote(lote_id: int, user_id: int = None) -> dict:
 
     smtp = _crear_conexion_smtp(institucion)
     if smtp is None:
-        from django.conf import settings as _s
-        _brevo_key_en_este_servicio = (
-            getattr(institucion, 'brevo_api_key', '') or
-            getattr(_s, 'BREVO_API_KEY', '') or
-            ''
-        )
+        # SIEMPRE la clave Brevo de ESTA institución — nunca un respaldo global.
+        _brevo_key_en_este_servicio = getattr(institucion, 'brevo_api_key', '') or ''
         if not _brevo_key_en_este_servicio:
             _motivo_msg = (
-                "Brevo API Key no está configurada en esta institución ni en las variables de entorno. "
-                "Configura el campo 'Brevo API Key' en el panel de administración de la institución."
+                "Esta institución aún no tiene configurada su cuenta de correo (Brevo). "
+                "Ve a Configuración › Correo y completa el campo 'Brevo API Key'."
             )
         else:
             _motivo_msg = (
@@ -849,9 +839,8 @@ def reenviar_correos_bienvenida_lote(lote_id: int, user_id: int = None) -> dict:
             "warning",
         )
         logger.warning(
-            "reenviar_correos: institución %s sin SMTP/Brevo configurado. BREVO_API_KEY presente: %s",
+            "reenviar_correos: institución %s sin SMTP/Brevo propio configurado.",
             getattr(institucion, "nombre", institucion),
-            bool(_brevo_key_en_este_servicio),
         )
         return resumen
 

@@ -570,17 +570,12 @@ def descargar_plantilla_importacion(request):
 @require_POST
 def test_smtp(request):
     """Prueba la configuración de correo (Brevo API o SMTP según lo configurado)."""
-    from django.conf import settings as _s
     institucion = getattr(request.user, 'institucion_asociada', None)
     if not institucion:
         return JsonResponse({'ok': False, 'error': 'Usuario sin institución asociada.'})
 
-    # Brevo API: clave por institución tiene prioridad sobre env global
-    brevo_key = (
-        getattr(institucion, 'brevo_api_key', '') or
-        getattr(_s, 'BREVO_API_KEY', '') or
-        ''
-    )
+    # Brevo API: SIEMPRE la clave de ESTA institución, nunca un respaldo global.
+    brevo_key = getattr(institucion, 'brevo_api_key', '') or ''
     if brevo_key:
         import requests as _req
         try:
