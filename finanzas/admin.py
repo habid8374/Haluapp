@@ -84,6 +84,7 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
             'fields': (
                 'google_calendar_embed_code',
                 'google_api_key',
+                'claude_api_key',
             ),
         }),
         # --- FIN DEL NUEVO FIELDSET ---

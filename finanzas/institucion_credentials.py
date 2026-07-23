@@ -16,6 +16,14 @@ def google_api_key(institucion: Optional["InstitucionEducativa"]) -> Optional[st
     return key or None
 
 
+def claude_api_key(institucion: Optional["InstitucionEducativa"]) -> Optional[str]:
+    """API key Claude/Anthropic para la institución; None si no está configurada."""
+    if not institucion:
+        return None
+    key = (getattr(institucion, "claude_api_key", None) or "").strip()
+    return key or None
+
+
 def mp_webhook_secret(institucion: Optional["InstitucionEducativa"]) -> Optional[str]:
     """Secret de firma de webhooks Mercado Pago para la institución."""
     if not institucion:

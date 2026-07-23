@@ -104,6 +104,12 @@ class InstitucionEducativa(models.Model):
         verbose_name="Google API Key (Gemini)",
         help_text="Clave de la API de Google AI / Gemini para esta institución (obligatoria para funciones de IA).",
     )
+    claude_api_key = EncryptedCharField(
+        blank=True,
+        null=True,
+        verbose_name="Claude API Key (Anthropic)",
+        help_text="Clave de la API de Claude (Anthropic) para esta institución. Opcional: se usa como respaldo automático si Gemini falla.",
+    )
     # ---- Brevo API (prioridad sobre SMTP) ----
     brevo_api_key = EncryptedCharField(
         blank=True,

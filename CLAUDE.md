@@ -578,15 +578,16 @@ async_to_sync(channel_layer.group_send)(
 | `EMAIL_USE_TLS` | Usar TLS | `True` |
 | `EMAIL_HOST_USER` | Usuario SMTP | `''` |
 | `EMAIL_HOST_PASSWORD` | Password SMTP | `''` |
-| `BREVO_API_KEY` | API key de Brevo (email transaccional) | `''` |
-| `BREVO_SENDER_EMAIL` | Email verificado en Brevo | `''` |
-| `BREVO_SENDER_NAME` | Nombre del remitente Brevo | `Halu Plataforma` |
 | `SENTRY_DSN` | URL de Sentry para monitoreo de errores | `''` |
 | `GIT_COMMIT` | Tag de release (para Sentry) | `unknown` |
 | `CELERY_WORKER_CONCURRENCY` | Procesos worker Celery | `4` |
 | `CELERY_WORKER_PREFETCH_MULTIPLIER` | Prefetch de tareas | `1` |
 
+> **No existen `BREVO_API_KEY`/`BREVO_SENDER_EMAIL`/`BREVO_SENDER_NAME` globales:** fueron eliminadas de `settings.py` a propósito (ver regla de credenciales de comunicación arriba). Brevo es 100% por institución (`InstitucionEducativa.brevo_api_key`, `brevo_sender_email`, `brevo_sender_name`).
+
 > **Nota sobre Gemini:** Cada institución almacena su propia `google_api_key` en la BD (campo cifrado con Fernet), NO en variables de entorno globales. Se obtiene con `finanzas.institucion_credentials.google_api_key(institucion)`.
+
+> **Nota sobre Claude (Anthropic):** Igual que Gemini — cada institución puede almacenar opcionalmente su propia `claude_api_key` en la BD (campo cifrado con Fernet, `InstitucionEducativa.claude_api_key`), NO en variables de entorno globales. Se obtiene con `finanzas.institucion_credentials.claude_api_key(institucion)`. Pensado como respaldo automático de Gemini (no reemplazo): si Gemini falla y la institución configuró su Claude API key, el sistema puede reintentar con Claude en vez de fallar. Se configura desde el admin de Django (`Instituciones Educativas › Integraciones Externas`), igual que `google_api_key` — es opcional, a diferencia de Gemini que es obligatorio.
 
 ---
 
