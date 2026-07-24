@@ -3,15 +3,19 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from xhtml2pdf import pisa
 
 from gestion_academica.legal import (
     POLITICA_TRATAMIENTO_DATOS_SECCIONES,
     POLITICA_TRATAMIENTO_DATOS_VERSION,
     hash_politica_vigente,
 )
+from ._main import link_callback
 
 
 def _es_coordinador_o_admin(user):
@@ -129,3 +133,45 @@ def reporte_aceptacion_politica(request):
         'version_vigente': version_vigente,
         'es_superuser': es_superuser,
     })
+
+
+@login_required
+def constancia_aceptacion_politica(request, usuario_id=None):
+    """Constancia en PDF (imprimible/descargable) de que un usuario aceptó
+    la política de tratamiento de datos — sirve como prueba formal ante una
+    solicitud del titular (art. 8 Ley 1581 de 2012) sin tener que entrar al
+    admin. Sin `usuario_id` genera la propia (autoservicio desde "Mi
+    perfil"); con `usuario_id`, solo coordinador/administrador de la misma
+    institución (o superusuario) puede generarla para otro usuario."""
+    from gestion_academica.models import Usuario
+
+    if usuario_id is None:
+        objetivo = request.user
+    else:
+        objetivo = get_object_or_404(Usuario, pk=usuario_id)
+        if objetivo.pk != request.user.pk:
+            if not _es_coordinador_o_admin(request.user):
+                raise PermissionDenied
+            if not request.user.is_superuser:
+                institucion = getattr(request.user, 'institucion_asociada', None)
+                if not institucion or objetivo.institucion_asociada_id != institucion.id:
+                    raise PermissionDenied
+
+    if not objetivo.acepto_tratamiento_datos:
+        messages.error(request, "Este usuario todavía no ha aceptado la política de tratamiento de datos — no hay constancia que generar.")
+        if usuario_id is None:
+            return redirect('gestion_academica:ver_mi_perfil')
+        return redirect('gestion_academica:reporte_aceptacion_politica')
+
+    template = get_template('gestion_academica/constancia_aceptacion_politica.html')
+    html = template.render({
+        'objetivo': objetivo,
+        'fecha_generacion': timezone.now(),
+    })
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Constancia_Aceptacion_Politica_{objetivo.username}.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
+    if pisa_status.err:
+        return HttpResponse('Error al generar el PDF. Por favor, inténtelo de nuevo.', status=500)
+    return response

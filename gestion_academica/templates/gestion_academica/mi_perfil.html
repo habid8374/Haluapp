@@ -133,6 +133,9 @@
                             el {{ user.fecha_aceptacion_tratamiento_datos|date:"d/m/Y H:i" }}.
                         </p>
                         <p class="text-muted small mb-3">Este registro queda guardado como evidencia (fecha, versión e identificación del dispositivo desde el que aceptaste).</p>
+                        <a href="{% url 'gestion_academica:constancia_aceptacion_politica' %}" class="btn btn-outline-primary btn-sm mb-2" target="_blank">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>Descargar constancia (PDF)
+                        </a>
                     {% else %}
                         <p class="text-muted mb-3">Aún no has aceptado la política vigente.</p>
                     {% endif %}

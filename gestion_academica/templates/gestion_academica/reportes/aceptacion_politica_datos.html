@@ -97,6 +97,7 @@
             <th class="text-center">Fecha de aceptación</th>
             <th class="text-center">Versión</th>
             <th class="text-center">IP</th>
+            <th class="text-center">Constancia</th>
           </tr>
         </thead>
         <tbody>
@@ -117,9 +118,18 @@
             <td class="text-center" style="font-size:.82rem;">{{ u.fecha_aceptacion_tratamiento_datos|date:"d/m/Y H:i"|default:"—" }}</td>
             <td class="text-center" style="font-size:.82rem;">{{ u.version_politica_aceptada|default:"—" }}</td>
             <td class="text-center" style="font-size:.8rem;">{{ u.ip_aceptacion_politica|default:"—" }}</td>
+            <td class="text-center">
+              {% if u.acepto_tratamiento_datos %}
+                <a href="{% url 'gestion_academica:constancia_aceptacion_politica' usuario_id=u.pk %}" class="btn btn-sm btn-outline-primary" target="_blank" title="Descargar constancia en PDF">
+                  <i class="bi bi-file-earmark-pdf"></i>
+                </a>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
           </tr>
         {% empty %}
-          <tr><td colspan="7" class="text-center py-4 text-muted">No hay usuarios para mostrar.</td></tr>
+          <tr><td colspan="8" class="text-center py-4 text-muted">No hay usuarios para mostrar.</td></tr>
         {% endfor %}
         </tbody>
       </table>

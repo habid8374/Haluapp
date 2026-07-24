@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Constancia de Aceptación - Política de Tratamiento de Datos</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 10pt; color: #1f2937; line-height: 1.4; }
+  .header-title { text-align:center; font-size:15pt; font-weight:bold; color:#4f46e5; margin-bottom:2px; }
+  .header-sub { text-align:center; font-size:9pt; color:#6b7280; margin-bottom:20px; }
+  .box { border:1px solid #c7d2fe; padding:10px 14px; margin-bottom:14px; }
+  .box-title { font-weight:bold; font-size:10.5pt; color:#4338ca; margin-bottom:6px; border-bottom:1px solid #e0e7ff; padding-bottom:4px; }
+  table.datos { width:100%; }
+  table.datos td { padding:3px 6px; vertical-align:top; font-size:9.5pt; }
+  table.datos td.label { color:#6b7280; width:38%; }
+  table.datos td.valor { font-weight:bold; }
+  .hash-label { font-size:9pt; margin:10px 0 4px 0; }
+  .hash-box { font-family: 'Courier New', monospace; font-size:8pt; word-break:break-all; background-color:#f3f4f6; padding:6px 8px; border:1px solid #e5e7eb; }
+  .legal { font-size:8.5pt; color:#4b5563; margin-top:20px; border-top:1px solid #e5e7eb; padding-top:10px; }
+  .footer { text-align:center; font-size:8pt; color:#9ca3af; margin-top:30px; }
+</style>
+</head>
+<body>
+  <div class="header-title">Constancia de Aceptación</div>
+  <div class="header-sub">Política de Tratamiento de Datos Personales &mdash; Halu Plataforma Escolar EDIE (Axentia Technologies)</div>
+
+  <div class="box">
+    <div class="box-title">Datos del titular</div>
+    <table class="datos">
+      <tr><td class="label">Nombre completo:</td><td class="valor">{{ objetivo.get_full_name|default:objetivo.username }}</td></tr>
+      <tr><td class="label">Usuario / correo:</td><td class="valor">{{ objetivo.email|default:objetivo.username }}</td></tr>
+      <tr><td class="label">Rol en la plataforma:</td><td class="valor">{{ objetivo.get_rol_display }}</td></tr>
+      <tr><td class="label">Institución educativa:</td><td class="valor">{{ objetivo.institucion_asociada.nombre|default:"&mdash;" }}</td></tr>
+    </table>
+  </div>
+
+  <div class="box">
+    <div class="box-title">Datos de la aceptación</div>
+    <table class="datos">
+      <tr><td class="label">Versión de la política aceptada:</td><td class="valor">{{ objetivo.version_politica_aceptada }}</td></tr>
+      <tr><td class="label">Fecha y hora de aceptación:</td><td class="valor">{{ objetivo.fecha_aceptacion_tratamiento_datos|date:"d/m/Y H:i" }}</td></tr>
+      <tr><td class="label">Dirección IP registrada:</td><td class="valor">{{ objetivo.ip_aceptacion_politica|default:"&mdash;" }}</td></tr>
+      <tr><td class="label">Navegador / dispositivo:</td><td class="valor" style="font-size:8pt;">{{ objetivo.user_agent_aceptacion_politica|default:"&mdash;"|truncatechars:120 }}</td></tr>
+    </table>
+    <p class="hash-label">Huella digital (SHA-256) del texto exacto aceptado &mdash; permite comprobar que el contenido no ha sido alterado desde la aceptación:</p>
+    <div class="hash-box">{{ objetivo.hash_politica_aceptada }}</div>
+  </div>
+
+  <div class="legal">
+    Esta constancia se expide como prueba de la autorización otorgada por el titular para el
+    tratamiento de sus datos personales, en los términos del artículo 8 de la Ley Estatutaria
+    1581 de 2012 y el Decreto Reglamentario 1377 de 2013. El registro fue generado
+    automáticamente por la plataforma en el momento de la aceptación y no ha sido modificado
+    desde entonces &mdash; la huella digital de arriba permite verificarlo en cualquier momento.
+  </div>
+
+  <div class="footer">
+    Documento generado el {{ fecha_generacion|date:"d/m/Y H:i" }} &middot; Halu Plataforma Escolar EDIE &mdash; Axentia Technologies &middot; haluplataformaescolar@gmail.com
+  </div>
+</body>
+</html>
