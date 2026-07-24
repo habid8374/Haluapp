@@ -152,6 +152,11 @@ class PoliticaDatosMiddleware:
         '/accounts/logout/',
         '/admin/',
         '/academico/api/',  # Endpoints de la app móvil — no se bloquean con una redirección HTML
+        # Verificación 2FA (autenticacion_2fa.middleware.Verificacion2FAMiddleware):
+        # si no se exceptúa, un usuario con 2FA activo que aún no acepta la
+        # política queda en un bucle infinito 2fa -> política -> 2fa -> ...
+        # (cada middleware redirige a la página del otro sin reconocerla).
+        '/2fa/',
     )
 
     def __init__(self, get_response):
