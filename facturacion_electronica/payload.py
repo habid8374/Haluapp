@@ -3,7 +3,9 @@
 Probado contra https://api-sandbox.factus.com.co/v2/bills/validate (status 201).
 
 Notas clave del esquema v2:
-  * ``payment_details`` es un ARRAY: [{payment_form, payment_method_code, amount}]
+  * ``payment_details`` es un ARRAY: [{payment_form, payment_method_code, amount, due_date}]
+    — ``due_date`` es OBLIGATORIO dentro de cada item (no basta con el
+    ``payment_due_date`` de nivel raíz), formato "YYYY-MM-DD".
   * Cliente usa ``identification_document_code`` con CÓDIGOS DIAN (13=CC, 31=NIT…)
   * Ítems requieren ``unit_measure_code``, ``standard_code`` y ``taxes``:[{code, rate}]
   * Educación formal: EXCLUIDA de IVA → is_excluded=1 + taxes [{code:'01', rate:'0.00'}]
@@ -168,7 +170,12 @@ def construir_payload_desde_pago(factura, config) -> dict:
         "operation_type": "10",       # 10 = estándar
         "send_email": True,           # Factus envía PDF + XML al correo del acudiente
         "payment_details": [
-            {"payment_form": forma_pago, "payment_method_code": metodo_code, "amount": valor},
+            {
+                "payment_form": forma_pago,
+                "payment_method_code": metodo_code,
+                "amount": valor,
+                "due_date": vence.strftime("%Y-%m-%d"),
+            },
         ],
         "customer": customer,
         "items": [item],
@@ -208,6 +215,9 @@ def construir_payload_nota(factura_nota, factura_origen, numbering_range_id, cor
     base = factura_origen.json_enviado or {}
     customer = base.get("customer", {})
     metodo_code = (base.get("payment_method_code") or "10")
+    # Factus exige due_date dentro de payment_details — se reutiliza el de la
+    # factura original si quedó guardado, o se calcula uno por defecto.
+    vence_str = base.get("payment_due_date") or (date.today() + timedelta(days=30)).strftime("%Y-%m-%d")
 
     if monto is not None:
         items = [{
@@ -238,7 +248,12 @@ def construir_payload_nota(factura_nota, factura_origen, numbering_range_id, cor
         "observation": f"{factura_nota.get_tipo_display()} sobre {factura_origen.numero}",
         "send_email": True,           # Factus envía PDF + XML al correo del acudiente
         "payment_details": [
-            {"payment_form": "1", "payment_method_code": metodo_code, "amount": total},
+            {
+                "payment_form": "1",
+                "payment_method_code": metodo_code,
+                "amount": total,
+                "due_date": vence_str,
+            },
         ],
         "customer": customer,
         "items": items,
