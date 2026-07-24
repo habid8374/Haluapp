@@ -163,10 +163,13 @@ def constancia_aceptacion_politica(request, usuario_id=None):
             return redirect('gestion_academica:ver_mi_perfil')
         return redirect('gestion_academica:reporte_aceptacion_politica')
 
+    from django.conf import settings
+
     template = get_template('gestion_academica/constancia_aceptacion_politica.html')
     html = template.render({
         'objetivo': objetivo,
         'fecha_generacion': timezone.now(),
+        'logo_url': getattr(settings, 'SOFTWARE_LOGO_URL', 'core/img/logo_mi_software.png'),
     })
 
     response = HttpResponse(content_type='application/pdf')
