@@ -1559,7 +1559,7 @@ class HistorialEntregasView(LoginRequiredMixin, View):
             ).distinct().order_by('-fecha_fin')
 
         context = {
-            'titulo_pagina': 'Historial de Entregas y Evaluaciones',
+            'titulo_pagina': _('Historial de Entregas y Evaluaciones'),
             'entregas': todas_las_entregas,
             'intentos': todos_los_intentos
         }

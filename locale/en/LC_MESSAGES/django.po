@@ -219,6 +219,9 @@ msgstr "Required supports"
 msgid "Aprobado"
 msgstr "Approved"
 
+msgid "Aquí puedes ver un historial completo de todas las actividades entregadas por tus estudiantes y acceder a su revisión."
+msgstr "Here you can see a complete history of all the work your students have submitted and access its review."
+
 msgid "Archivadas"
 msgstr "Archived"
 
@@ -614,6 +617,9 @@ msgstr "Crossword deleted."
 
 msgid "Crucigramas"
 msgstr "Crosswords"
+
+msgid "Cuestionario"
+msgstr "Quiz"
 
 msgid "Cuestionario guardado correctamente."
 msgstr "Quiz saved successfully."
@@ -1398,6 +1404,12 @@ msgstr "Facts"
 msgid "Historial de Anotaciones"
 msgstr "Entry History"
 
+msgid "Historial de Cuestionarios"
+msgstr "Quiz History"
+
+msgid "Historial de Entregas y Evaluaciones"
+msgstr "Submission and Assessment History"
+
 msgid "Historial de Lecciones"
 msgstr "Lesson History"
 
@@ -1805,6 +1817,9 @@ msgstr "No categories configured yet."
 
 msgid "No hay categorías configuradas. Crea una en <strong>Tipos de Actividad</strong> primero."
 msgstr "No categories configured. Create one in <strong>Activity Types</strong> first."
+
+msgid "No hay cuestionarios finalizados en tus cursos."
+msgstr "There are no finished quizzes in your courses."
 
 msgid "No hay cursos para el período seleccionado."
 msgstr "There are no courses for the selected period."
@@ -2850,6 +2865,9 @@ msgstr "View all"
 msgid "Ver todos"
 msgstr "View all"
 
+msgid "Ver y Gestionar"
+msgstr "View and Manage"
+
 msgid "Verdadero"
 msgstr "True"
 
@@ -2930,6 +2948,9 @@ msgstr "{{ counter }} item"
 
 msgid "{{ counter }} contenidos"
 msgstr "{{ counter }} items"
+
+msgid "{{ estudiante }} en '{{ titulo }}'"
+msgstr "{{ estudiante }} on '{{ titulo }}'"
 
 msgid "{{ materia }} del grado {{ grado }} (Periodo: {{ periodo }})"
 msgstr "{{ materia }} for grade {{ grado }} (Period: {{ periodo }})"
@@ -3080,6 +3101,9 @@ msgstr "Are you sure you want to delete the activity \"<strong>{{ titulo }}</str
 
 msgid "¿Estás seguro de que deseas eliminar la mención \"<strong>{{ tipo }}</strong>\" otorgada a <strong>{{ estudiante }}</strong>?"
 msgstr "Are you sure you want to delete the recognition \"<strong>{{ tipo }}</strong>\" awarded to <strong>{{ estudiante }}</strong>?"
+
+msgid "¿Estás seguro de que deseas eliminar permanentemente el intento de:"
+msgstr "Are you sure you want to permanently delete the attempt by:"
 
 msgid "¿Qué debe hacer el estudiante?"
 msgstr "What should the student do?"
