@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -147,7 +148,7 @@ def lista(request):
         docente = getattr(request.user, 'docente', None)
         quices = quices.filter(curso__docentes_asignados=docente) if docente else quices.none()
     return render(request, 'quiz_audio/lista.html', {
-        'titulo_pagina': 'Quiz de Audio', 'quices': quices,
+        'titulo_pagina': _('Quiz de Audio'), 'quices': quices,
     })
 
 
@@ -178,11 +179,11 @@ def crear(request):
 
         preguntas, error = _leer_preguntas(request)
         if not titulo or not curso or not tipo:
-            messages.error(request, "Completa el título, el curso y la categoría.")
+            messages.error(request, _("Completa el título, el curso y la categoría."))
         elif error:
             messages.error(request, error)
         elif preguntas is None or len(preguntas) < MIN_PREGUNTAS:
-            messages.error(request, f"Agrega al menos {MIN_PREGUNTAS} preguntas completas.")
+            messages.error(request, _("Agrega al menos %(min_preguntas)s preguntas completas.") % {'min_preguntas': MIN_PREGUNTAS})
         else:
             with transaction.atomic():
                 quiz = QuizAudio.objects.create(
@@ -192,11 +193,11 @@ def crear(request):
                     fecha_inicio=fecha_inicio, fecha_fin=fecha_fin,
                 )
                 _crear_preguntas(quiz, preguntas)
-            messages.success(request, "Quiz creado. Revísalo y publícalo para los estudiantes.")
+            messages.success(request, _("Quiz creado. Revísalo y publícalo para los estudiantes."))
             return redirect('quiz_audio:detalle', pk=quiz.pk)
 
     return render(request, 'quiz_audio/form.html', {
-        'titulo_pagina': 'Nuevo quiz de audio', 'cursos': cursos, 'tipos': tipos,
+        'titulo_pagina': _('Nuevo quiz de audio'), 'cursos': cursos, 'tipos': tipos,
         'RANGO_OPCIONES': range(MAX_OPCIONES),
     })
 
@@ -226,7 +227,7 @@ def eliminar_pregunta(request, pk, pregunta_pk):
     quiz = get_object_or_404(_scope(QuizAudio.objects.all(), request.user), pk=pk)
     pregunta = get_object_or_404(PreguntaAudio, pk=pregunta_pk, quiz=quiz)
     pregunta.delete()
-    messages.success(request, "Pregunta eliminada.")
+    messages.success(request, _("Pregunta eliminada."))
     return redirect('quiz_audio:detalle', pk=quiz.pk)
 
 
@@ -238,7 +239,7 @@ def editar_datos(request, pk):
     quiz = get_object_or_404(_scope(QuizAudio.objects.all(), request.user), pk=pk)
     titulo = (request.POST.get('titulo') or '').strip()
     if not titulo:
-        messages.error(request, "El título no puede quedar vacío.")
+        messages.error(request, _("El título no puede quedar vacío."))
         return redirect('quiz_audio:detalle', pk=quiz.pk)
     quiz.titulo = titulo
     quiz.instrucciones = (request.POST.get('instrucciones') or '').strip()
@@ -256,7 +257,7 @@ def editar_datos(request, pk):
         act.tipo_actividad = quiz.tipo_actividad
         act.descripcion = quiz.instrucciones or None
         act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
-    messages.success(request, "Datos actualizados.")
+    messages.success(request, _("Datos actualizados."))
     return redirect('quiz_audio:detalle', pk=quiz.pk)
 
 
@@ -269,13 +270,13 @@ def agregar_pregunta(request, pk):
     if error:
         messages.error(request, error)
     elif not preguntas:
-        messages.error(request, "La pregunta está incompleta (audio + al menos 2 opciones y marca la correcta).")
+        messages.error(request, _("La pregunta está incompleta (audio + al menos 2 opciones y marca la correcta)."))
     elif quiz.preguntas.count() + len(preguntas) > MAX_PREGUNTAS:
-        messages.error(request, f"Máximo {MAX_PREGUNTAS} preguntas por quiz.")
+        messages.error(request, _("Máximo %(max_preguntas)s preguntas por quiz.") % {'max_preguntas': MAX_PREGUNTAS})
     else:
         base = quiz.preguntas.count()
         _crear_preguntas(quiz, preguntas, base_orden=base)
-        messages.success(request, "Pregunta agregada.")
+        messages.success(request, _("Pregunta agregada."))
     return redirect('quiz_audio:detalle', pk=quiz.pk)
 
 
@@ -289,7 +290,7 @@ def editar_pregunta(request, pk, pregunta_pk):
     audio = request.FILES.get('audio')
     if audio:
         if not _audio_valido(audio):
-            messages.error(request, "El audio debe pesar máximo 3 MB.")
+            messages.error(request, _("El audio debe pesar máximo 3 MB."))
             return redirect('quiz_audio:detalle', pk=quiz.pk)
         pregunta.audio = audio
     pregunta.save()
@@ -299,7 +300,7 @@ def editar_pregunta(request, pk, pregunta_pk):
         img = request.FILES.get(f'opimg_{op.id}')
         if img:
             if not _imagen_valida(img):
-                messages.error(request, "Cada imagen debe pesar máximo 2 MB.")
+                messages.error(request, _("Cada imagen debe pesar máximo 2 MB."))
                 return redirect('quiz_audio:detalle', pk=quiz.pk)
             op.imagen = img
         elif request.POST.get(f'opquitar_{op.id}') == 'on':
@@ -307,9 +308,9 @@ def editar_pregunta(request, pk, pregunta_pk):
         op.es_correcta = (str(op.id) == str(correcta_id))
         op.save()
     if not pregunta.opciones.filter(es_correcta=True).exists():
-        messages.warning(request, "Ojo: no marcaste ninguna opción como correcta en esa pregunta.")
+        messages.warning(request, _("Ojo: no marcaste ninguna opción como correcta en esa pregunta."))
     else:
-        messages.success(request, "Pregunta actualizada.")
+        messages.success(request, _("Pregunta actualizada."))
     return redirect('quiz_audio:detalle', pk=quiz.pk)
 
 
@@ -319,7 +320,7 @@ def publicar(request, pk):
     _solo_docente_coord(request.user)
     quiz = get_object_or_404(_scope(QuizAudio.objects.all(), request.user), pk=pk)
     if quiz.preguntas.count() < MIN_PREGUNTAS:
-        messages.error(request, f"Necesitas al menos {MIN_PREGUNTAS} preguntas para publicar.")
+        messages.error(request, _("Necesitas al menos %(min_preguntas)s preguntas para publicar.") % {'min_preguntas': MIN_PREGUNTAS})
         return redirect('quiz_audio:detalle', pk=quiz.pk)
     from gestion_academica.models import ActividadCalificable
     with transaction.atomic():
@@ -332,7 +333,7 @@ def publicar(request, pk):
             quiz.actividad_calificable = act
         quiz.estado = QuizAudio.Estado.PUBLICADO
         quiz.save(update_fields=['actividad_calificable', 'estado'])
-    messages.success(request, "¡Quiz publicado! Ya aparece a los estudiantes del curso.")
+    messages.success(request, _("¡Quiz publicado! Ya aparece a los estudiantes del curso."))
     return redirect('quiz_audio:detalle', pk=quiz.pk)
 
 
@@ -344,7 +345,7 @@ def cerrar(request, pk):
     quiz.estado = QuizAudio.Estado.CERRADO
     quiz.fecha_cierre = timezone.now()
     quiz.save(update_fields=['estado', 'fecha_cierre'])
-    messages.success(request, "Quiz cerrado.")
+    messages.success(request, _("Quiz cerrado."))
     return redirect('quiz_audio:detalle', pk=quiz.pk)
 
 
@@ -356,7 +357,7 @@ def editar_fechas(request, pk):
     quiz.fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
     quiz.fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
     quiz.save(update_fields=['fecha_inicio', 'fecha_fin'])
-    messages.success(request, "Fechas actualizadas.")
+    messages.success(request, _("Fechas actualizadas."))
     return redirect('quiz_audio:detalle', pk=quiz.pk)
 
 
@@ -366,7 +367,7 @@ def eliminar(request, pk):
     _solo_docente_coord(request.user)
     quiz = get_object_or_404(_scope(QuizAudio.objects.all(), request.user), pk=pk)
     quiz.delete()
-    messages.success(request, "Quiz eliminado.")
+    messages.success(request, _("Quiz eliminado."))
     return redirect('quiz_audio:lista')
 
 
@@ -379,7 +380,7 @@ def resultados(request, pk):
     intentos = quiz.intentos.select_related('estudiante__usuario').order_by(
         '-porcentaje', 'estudiante__usuario__first_name')
     return render(request, 'quiz_audio/resultados.html', {
-        'titulo_pagina': f'Resultados: {quiz.titulo}', 'quiz': quiz, 'intentos': intentos,
+        'titulo_pagina': _('Resultados: %(quiz_titulo)s') % {'quiz_titulo': quiz.titulo}, 'quiz': quiz, 'intentos': intentos,
     })
 
 
@@ -395,7 +396,7 @@ def mis_quices(request):
         raise PermissionDenied
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'quiz_audio/mis_quices.html', {'titulo_pagina': 'Quiz de Audio', 'items': []})
+        return render(request, 'quiz_audio/mis_quices.html', {'titulo_pagina': _('Quiz de Audio'), 'items': []})
 
     quices = QuizAudio.objects.filter(
         institucion=estudiante.institucion,
@@ -411,7 +412,7 @@ def mis_quices(request):
         disp, msg = q.estado_disponibilidad()
         items.append({'quiz': q, 'intento': hechos.get(q.id), 'disp': disp, 'msg': msg})
     return render(request, 'quiz_audio/mis_quices.html', {
-        'titulo_pagina': 'Quiz de Audio', 'items': items,
+        'titulo_pagina': _('Quiz de Audio'), 'items': items,
     })
 
 
@@ -567,5 +568,5 @@ def resultado(request, pk):
     quiz = get_object_or_404(QuizAudio, pk=pk, institucion=estudiante.institucion)
     intento = get_object_or_404(IntentoQuizAudio, quiz=quiz, estudiante=estudiante, completado=True)
     return render(request, 'quiz_audio/resultado.html', {
-        'titulo_pagina': f'Resultado: {quiz.titulo}', 'quiz': quiz, 'intento': intento,
+        'titulo_pagina': _('Resultado: %(quiz_titulo)s') % {'quiz_titulo': quiz.titulo}, 'quiz': quiz, 'intento': intento,
     })

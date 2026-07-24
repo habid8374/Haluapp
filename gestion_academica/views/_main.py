@@ -9,6 +9,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin 
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.utils.decorators import method_decorator
 from django.contrib.staticfiles import finders
 from django.db import transaction, IntegrityError
@@ -1574,7 +1575,7 @@ class DeberListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = "Listado de Deberes / Tareas"
+        context['titulo_pagina'] = _("Listado de Deberes / Tareas")
         return context
 
 class DeberDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
@@ -1591,7 +1592,7 @@ class DeberDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = f"Detalle del Deber: {self.object.titulo}"
+        context['titulo_pagina'] = _("Detalle del Deber: %(self_object_titulo)s") % {'self_object_titulo': self.object.titulo}
         return context
 
 class DeberCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -1621,14 +1622,14 @@ class DeberCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         self.object = deber
         # --- FIN DE LA CORRECCIÓN CLAVE ---
         
-        messages.success(self.request, f"Deber '{deber.titulo}' creado exitosamente.")
+        messages.success(self.request, _("Deber '%(deber_titulo)s' creado exitosamente.") % {'deber_titulo': deber.titulo})
         
         # Ahora la redirección funcionará porque self.object ya no es nulo
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_formulario'] = "Crear Nuevo Deber / Tarea"
+        context['titulo_formulario'] = _("Crear Nuevo Deber / Tarea")
         return context
     
 
@@ -1640,12 +1641,12 @@ class DeberUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     permission_required = 'gestion_academica.change_deber'
 
     def form_valid(self, form):
-        messages.success(self.request, f"Deber '{form.cleaned_data['titulo']}' actualizado exitosamente.") # CORRECCIÓN: self.request usado para messages
+        messages.success(self.request, _("Deber '%(form_cleaned_data_ti)s' actualizado exitosamente.") % {'form_cleaned_data_ti': form.cleaned_data['titulo']}) # CORRECCIÓN: self.request usado para messages
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_formulario'] = "Editar Deber / Tarea"
+        context['titulo_formulario'] = _("Editar Deber / Tarea")
         return context
     
     def get_form_kwargs(self):
@@ -1666,12 +1667,12 @@ class DeberDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 
     def delete(self, request, *args, **kwargs):
         deber_eliminado = self.get_object()
-        messages.success(request, f"El deber '{deber_eliminado.titulo}' ha sido eliminado.") 
+        messages.success(request, _("El deber '%(titulo)s' ha sido eliminado.") % {'titulo': deber_eliminado.titulo})
         return super().delete(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = "Confirmar Eliminación de Deber"
+        context['titulo_pagina'] = _("Confirmar Eliminación de Deber")
         return context
 
 def calcular_nota_final_curso(curso, estudiante):
@@ -3005,12 +3006,12 @@ def docente_seleccionar_curso_libro_notas(request):
     periodo académico.
     """
     if not hasattr(request.user, 'docente'):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect('gestion_academica:inicio_academico')
 
     docente = request.user.docente
     institucion = request.user.institucion_asociada
-    
+
     # Obtenemos todos los periodos de la institución para el filtro
     periodos_disponibles = PeriodoAcademico.objects.filter(institucion=institucion).order_by('-año_escolar', '-fecha_inicio')
     
@@ -3033,7 +3034,7 @@ def docente_seleccionar_curso_libro_notas(request):
         'cursos': cursos_del_docente,
         'periodos_disponibles': periodos_disponibles,
         'periodo_seleccionado': periodo_a_mostrar,
-        'titulo_pagina': "Seleccionar Curso para Calificar"
+        'titulo_pagina': _("Seleccionar Curso para Calificar")
     }
     return render(request, 'gestion_academica/seleccionar_curso_libro_notas.html', context)
 
@@ -4253,12 +4254,12 @@ def dashboard_docente(request):
     try:
         docente = request.user.docente
     except (AttributeError, Docente.DoesNotExist):
-        messages.error(request, "Acceso denegado. Esta sección es solo para docentes.")
+        messages.error(request, _("Acceso denegado. Esta sección es solo para docentes."))
         return redirect('gestion_academica:inicio_academico')
 
     institucion = request.user.institucion_asociada
     periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=institucion).first()
-    
+
     hoy_inicio = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     fin_rango = hoy_inicio + timedelta(days=7)
 
@@ -4311,7 +4312,7 @@ def dashboard_docente(request):
         'docente': docente,
         'periodo_activo': periodo_activo,
         'es_director_de_grupo': bool(direccion_grupo),
-        'titulo_pagina': "Panel de Docente",
+        'titulo_pagina': _("Panel de Docente"),
         'cursos_asignados': [],
         'entregas_pendientes_calificar': 0,
         'lecciones_sin_registrar_hoy': [],
@@ -4798,7 +4799,7 @@ class DocenteMaterialListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = "Mis Archivos y Materiales"
+        context['titulo_pagina'] = _("Mis Archivos y Materiales")
         return context
 
 class DocenteMaterialCreateView(LoginRequiredMixin, CreateView):
@@ -4820,12 +4821,12 @@ class DocenteMaterialCreateView(LoginRequiredMixin, CreateView):
         # Asignamos automáticamente el docente y la institución antes de guardar
         form.instance.subido_por = self.request.user
         form.instance.institucion = self.request.user.institucion_asociada
-        messages.success(self.request, "¡Material subido exitosamente!")
+        messages.success(self.request, _("¡Material subido exitosamente!"))
         return super().form_valid(form)
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_formulario'] = "Subir Nuevo Material"
+        context['titulo_formulario'] = _("Subir Nuevo Material")
         return context
 
 class DocenteMaterialUpdateView(LoginRequiredMixin, UpdateView):
@@ -4847,12 +4848,12 @@ class DocenteMaterialUpdateView(LoginRequiredMixin, UpdateView):
         return kwargs
 
     def form_valid(self, form):
-        messages.success(self.request, "Material actualizado exitosamente.")
+        messages.success(self.request, _("Material actualizado exitosamente."))
         return super().form_valid(form)
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_formulario'] = "Editar Material"
+        context['titulo_formulario'] = _("Editar Material")
         return context
 
 class DocenteMaterialDeleteView(LoginRequiredMixin, DeleteView):
@@ -4869,8 +4870,8 @@ class DocenteMaterialDeleteView(LoginRequiredMixin, DeleteView):
         return ArchivoPlanAcademico.objects.filter(subido_por=self.request.user)
 
     def form_valid(self, form):
-        messages.success(self.request, f"El archivo '{self.object.nombre_archivo_descriptivo}' ha sido eliminado.")
-        return super().form_valid(form)     
+        messages.success(self.request, _("El archivo '%(nombre)s' ha sido eliminado.") % {'nombre': self.object.nombre_archivo_descriptivo})
+        return super().form_valid(form)
     
 class DocenteDescriptorListView(LoginRequiredMixin, ListView):
     model = DescriptorLogro
@@ -4906,7 +4907,7 @@ class DocenteDescriptorListView(LoginRequiredMixin, ListView):
         """
         form = UploadFileForm(request.POST, request.FILES)
         if not form.is_valid():
-            messages.error(request, "Error en el formulario. Por favor, intenta de nuevo.")
+            messages.error(request, _("Error en el formulario. Por favor, intenta de nuevo."))
             return redirect('gestion_academica:docente_lista_descriptores')
 
         archivo = request.FILES['file']
@@ -4915,7 +4916,7 @@ class DocenteDescriptorListView(LoginRequiredMixin, ListView):
             df = pd.read_excel(archivo, sheet_name="PLANTILLA_BANCO_DE_LOGROS")
             required_cols = ['CODIGO_ASIGNATURA', 'PERIODO', 'TEXTO_DESCRIPTOR']
             if not all(col in df.columns for col in required_cols):
-                messages.error(request, f"El archivo no tiene las columnas requeridas: {required_cols}.")
+                messages.error(request, _("El archivo no tiene las columnas requeridas: %(required_cols)s.") % {'required_cols': required_cols})
                 return redirect('gestion_academica:docente_lista_descriptores')
 
             institucion_actual = request.user.docente.institucion
@@ -4943,19 +4944,19 @@ class DocenteDescriptorListView(LoginRequiredMixin, ListView):
                     logros_creados_con_exito += 1
                 
                 except Materia.DoesNotExist:
-                    messages.warning(request, f"Fila {index + 2}: La materia con código '{row['CODIGO_ASIGNATURA']}' no existe en tu institución.")
+                    messages.warning(request, _("Fila %(index_2)s: La materia con código '%(row_codigo_asignatur)s' no existe en tu institución.") % {'index_2': index + 2, 'row_codigo_asignatur': row['CODIGO_ASIGNATURA']})
                 except PeriodoAcademico.DoesNotExist:
-                    messages.warning(request, f"Fila {index + 2}: El periodo '{periodo_str}' no existe en tu institución.")
+                    messages.warning(request, _("Fila %(index_2)s: El periodo '%(periodo_str)s' no existe en tu institución.") % {'index_2': index + 2, 'periodo_str': periodo_str})
                 except Exception as e:
-                    messages.error(request, f"Fila {index + 2}: Ocurrió un error inesperado al procesar esta fila. Error: {e}")
+                    messages.error(request, _("Fila %(index_2)s: Ocurrió un error inesperado al procesar esta fila. Error: %(e)s") % {'index_2': index + 2, 'e': e})
             
             if logros_creados_con_exito > 0:
-                messages.success(request, f"¡Éxito! Se han importado {logros_creados_con_exito} descriptores.")
+                messages.success(request, _("¡Éxito! Se han importado %(logros_creados_con_e)s descriptores.") % {'logros_creados_con_e': logros_creados_con_exito})
             else:
-                messages.info(request, "Proceso finalizado. No se importaron descriptores nuevos.")
+                messages.info(request, _("Proceso finalizado. No se importaron descriptores nuevos."))
 
         except Exception as e:
-            messages.error(request, f"No se pudo procesar el archivo. Error: {e}")
+            messages.error(request, _("No se pudo procesar el archivo. Error: %(e)s") % {'e': e})
         
         return redirect('gestion_academica:docente_lista_descriptores')
 
@@ -4972,7 +4973,7 @@ class DocenteDescriptorCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.creado_por = self.request.user
-        messages.success(self.request, "Descriptor de logro creado exitosamente.")
+        messages.success(self.request, _("Descriptor de logro creado exitosamente."))
         return super().form_valid(form)
 
 class DocenteDescriptorUpdateView(LoginRequiredMixin, UpdateView):
@@ -5025,7 +5026,7 @@ class DocenteMencionCreateView(LoginRequiredMixin, CreateView):
         # Asigna automáticamente el docente y la institución
         form.instance.otorgado_por = self.request.user.docente
         form.instance.institucion = self.request.user.institucion_asociada
-        messages.success(self.request, "Mención creada exitosamente.")
+        messages.success(self.request, _("Mención creada exitosamente."))
         return super().form_valid(form)
 
 class DocenteMencionUpdateView(LoginRequiredMixin, UpdateView):
@@ -5165,7 +5166,7 @@ def seleccionar_estudiante_observador(request):
     le hará una anotación en el observador.
     """
     if not hasattr(request.user, 'docente'):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect('gestion_academica:dashboard_docente')
 
     docente = request.user.docente
@@ -5182,7 +5183,7 @@ def seleccionar_estudiante_observador(request):
 
     context = {
         'estudiantes': estudiantes,
-        'titulo_pagina': 'Seleccionar Estudiante para Observador'
+        'titulo_pagina': _('Seleccionar Estudiante para Observador')
     }
     return render(request, 'gestion_academica/seleccionar_estudiante_observador.html', context)
 
@@ -5207,7 +5208,7 @@ def historial_observador_estudiante(request, estudiante_pk):
             # Al hacer .save(), el signal se disparará automáticamente
             anotacion.save()
             
-            messages.success(request, f"Anotación para {estudiante} registrada. Halu Sentinel la está analizando.")
+            messages.success(request, _("Anotación para %(estudiante)s registrada. Halu Sentinel la está analizando.") % {'estudiante': estudiante})
             return redirect('gestion_academica:historial_observador', estudiante_pk=estudiante.pk)
     else:
         form = AnotacionObservadorForm(request=request)
@@ -5218,7 +5219,7 @@ def historial_observador_estudiante(request, estudiante_pk):
         'estudiante': estudiante,
         'form': form,
         'anotaciones': anotaciones,
-        'titulo_pagina': f"Observador de {estudiante}"
+        'titulo_pagina': _("Observador de %(estudiante)s") % {'estudiante': estudiante}
     }
     return render(request, 'gestion_academica/historial_observador_estudiante.html', context)
 
@@ -5339,7 +5340,7 @@ class DocenteActividadCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.institucion = self.request.user.institucion_asociada
         # El campo 'porcentaje_en_periodo' ya no se usa aquí, se usará el de la categoría.
-        messages.success(self.request, "Actividad creada exitosamente.")
+        messages.success(self.request, _("Actividad creada exitosamente."))
         return super().form_valid(form)
 
 class DocenteActividadUpdateView(LoginRequiredMixin, UpdateView):
@@ -5391,7 +5392,7 @@ class DocenteTipoActividadListView(LoginRequiredMixin, ListView):
         
         # --- FIN DE LA NUEVA LÓGICA ---
         
-        context['titulo_pagina'] = "Gestionar Categorías de Calificación"
+        context['titulo_pagina'] = _("Gestionar Categorías de Calificación")
         return context
 
 
@@ -5403,7 +5404,7 @@ class DocenteTipoActividadCreateView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
         messages.warning(
             request,
-            "La creación de categorías de calificación es exclusiva del coordinador académico."
+            _("La creación de categorías de calificación es exclusiva del coordinador académico.")
         )
         return redirect('gestion_academica:docente_lista_tipos_actividad')
 
@@ -5415,7 +5416,7 @@ class DocenteTipoActividadUpdateView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
         messages.warning(
             request,
-            "La edición de categorías de calificación es exclusiva del coordinador académico."
+            _("La edición de categorías de calificación es exclusiva del coordinador académico.")
         )
         return redirect('gestion_academica:docente_lista_tipos_actividad')
 
@@ -5427,7 +5428,7 @@ class DocenteTipoActividadDeleteView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
         messages.warning(
             request,
-            "La eliminación de categorías de calificación es exclusiva del coordinador académico."
+            _("La eliminación de categorías de calificación es exclusiva del coordinador académico.")
         )
         return redirect('gestion_academica:docente_lista_tipos_actividad')
 
@@ -5438,7 +5439,7 @@ def seleccionar_curso_reporte_nota_minima(request):
     periodo académico, para generar el reporte de nota mínima.
     """
     if not hasattr(request.user, 'docente'):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect('gestion_academica:dashboard_docente')
 
     docente = request.user.docente
@@ -5466,7 +5467,7 @@ def seleccionar_curso_reporte_nota_minima(request):
         'cursos': cursos_del_docente,
         'periodos_disponibles': periodos_disponibles,
         'periodo_seleccionado': periodo_a_mostrar,
-        'titulo_pagina': "Generar Reporte de Nota Mínima"
+        'titulo_pagina': _("Generar Reporte de Nota Mínima")
     }
     return render(request, 'gestion_academica/seleccionar_curso_reporte.html', context)
 
@@ -6062,10 +6063,10 @@ def reporte_riesgo_global_view(request):
         docente = user.docente
         periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=user.institucion_asociada).first()
         if not periodo_activo or not DirectorCurso.objects.filter(docente=docente, periodo_academico=periodo_activo).exists():
-            messages.error(request, "Acceso denegado. Esta sección es solo para personal directivo o directores de curso.")
+            messages.error(request, _("Acceso denegado. Esta sección es solo para personal directivo o directores de curso."))
             return redirect('gestion_academica:dashboard_docente')
     else:
-        messages.error(request, "No tienes permiso para acceder a esta sección.")
+        messages.error(request, _("No tienes permiso para acceder a esta sección."))
         return redirect('gestion_academica:inicio_academico')
 
     # --- Obtención de filtros ---
@@ -6092,7 +6093,7 @@ def reporte_riesgo_global_view(request):
 
     # --- Contexto para la plantilla ---
     context = {
-        'titulo_pagina': "HALU Sentinel - Reporte de Riesgo",
+        'titulo_pagina': _("HALU Sentinel - Reporte de Riesgo"),
         'predicciones': predicciones_qs, # Pasamos la lista plana y filtrada
         'periodos': periodos,
         'grados': grados,

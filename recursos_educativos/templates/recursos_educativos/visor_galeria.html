@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
 {% block extrastyles %}
@@ -84,11 +85,11 @@
 <!-- Barra de contexto HALU -->
 <div class="r3d-context-bar">
   <a href="{% url 'gestion_academica:inicio_academico' %}">
-    <i class="bi bi-house-fill"></i> Inicio
+    <i class="bi bi-house-fill"></i> {% trans "Inicio" %}
   </a>
   <span class="r3d-sep">›</span>
   <span style="color:#4f46e5; font-weight:700;">
-    <i class="bi bi-images me-1"></i>Galería 3D — Cuerpo Humano
+    <i class="bi bi-images me-1"></i>{% trans "Galería 3D — Cuerpo Humano" %}
   </span>
 </div>
 
@@ -97,7 +98,7 @@
   <main class="workspace">
 
     <aside class="card organ-card">
-      <h2 class="card__title">Órganos y sistemas</h2>
+      <h2 class="card__title">{% trans "Órganos y sistemas" %}</h2>
       <div class="organ-list" id="organ-list"></div>
     </aside>
 
@@ -109,7 +110,7 @@
             <p id="viewer-system">—</p>
           </div>
           <div class="viewer-mode">
-            <div class="viewer-mode__label">Modo de vista</div>
+            <div class="viewer-mode__label">{% trans "Modo de vista" %}</div>
             <div class="viewer-mode__tabs" id="mode-tabs">
               <button class="is-active" data-mode="3d">3D</button>
               <button data-mode="ar">AR</button>
@@ -117,18 +118,18 @@
             </div>
             <label class="viewer-mode__toggle">
               <span class="switch is-on" id="anatomy-switch" role="switch" aria-checked="true"></span>
-              Fondo anatómico
+              {% trans "Fondo anatómico" %}
             </label>
           </div>
         </div>
 
         <div class="viewer-stage with-anatomy" id="viewer-stage">
           <div class="viewer-stage__art" aria-hidden="true"></div>
-          <div class="viewer-stage__loading">Cargando modelo 3D…</div>
+          <div class="viewer-stage__loading">{% trans "Cargando modelo 3D…" %}</div>
 
           <model-viewer
             id="model-viewer"
-            alt="Modelo 3D del órgano seleccionado"
+            alt="{% trans 'Modelo 3D del órgano seleccionado' %}"
             camera-controls
             touch-action="pan-y"
             shadow-intensity="0.8"
@@ -252,7 +253,7 @@
   <div class="modal__panel modal__panel--image">
     <div class="modal__head">
       <h2 id="modal-image-title">Galería</h2>
-      <button class="modal__close" data-close aria-label="Cerrar">
+      <button class="modal__close" data-close aria-label="{% trans "Cerrar" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -265,7 +266,7 @@
   <div class="modal__panel">
     <div class="modal__head">
       <h2>Comparar órganos</h2>
-      <button class="modal__close" data-close aria-label="Cerrar">
+      <button class="modal__close" data-close aria-label="{% trans "Cerrar" %}">
         <i data-lucide="x"></i>
       </button>
     </div>
@@ -277,7 +278,7 @@
   <div class="modal__panel">
     <div class="modal__head">
       <h2 id="modal-view-title">—</h2>
-      <button class="modal__close" data-close aria-label="Cerrar">
+      <button class="modal__close" data-close aria-label="{% trans "Cerrar" %}">
         <i data-lucide="x"></i>
       </button>
     </div>

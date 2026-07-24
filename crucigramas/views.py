@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -129,7 +130,7 @@ def lista(request):
         docente = getattr(request.user, 'docente', None)
         crucigramas = crucigramas.filter(curso__docentes_asignados=docente) if docente else crucigramas.none()
     return render(request, 'crucigramas/lista.html', {
-        'titulo_pagina': 'Crucigramas',
+        'titulo_pagina': _('Crucigramas'),
         'crucigramas': crucigramas,
     })
 
@@ -181,11 +182,11 @@ def crear(request):
             palabras_validas.append((r, p, img))
 
         if not titulo or not curso or not tipo:
-            messages.error(request, "Completa el título, el curso y la categoría.")
+            messages.error(request, _("Completa el título, el curso y la categoría."))
         elif error_imagen:
-            messages.error(request, "Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
+            messages.error(request, _("Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen."))
         elif len(palabras_validas) < 3:
-            messages.error(request, "Agrega al menos 3 palabras con su pista (de 2 letras o más).")
+            messages.error(request, _("Agrega al menos 3 palabras con su pista (de 2 letras o más)."))
         else:
             with transaction.atomic():
                 cruc = Crucigrama.objects.create(
@@ -198,11 +199,11 @@ def crear(request):
                     PalabraCrucigrama.objects.create(
                         crucigrama=cruc, respuesta=r, pista=p, imagen=img, orden=i,
                     )
-            messages.success(request, "Crucigrama creado. Revísalo y publícalo para que los estudiantes lo resuelvan.")
+            messages.success(request, _("Crucigrama creado. Revísalo y publícalo para que los estudiantes lo resuelvan."))
             return redirect('crucigramas:detalle', pk=cruc.pk)
 
     return render(request, 'crucigramas/form.html', {
-        'titulo_pagina': 'Nuevo crucigrama',
+        'titulo_pagina': _('Nuevo crucigrama'),
         'cursos': cursos, 'tipos': tipos, 'crucigrama': None,
     })
 
@@ -235,7 +236,7 @@ def publicar(request, pk):
     cruc = get_object_or_404(_scope(Crucigrama.objects.all(), request.user), pk=pk)
     palabras = list(cruc.palabras.all())
     if len(palabras) < 3:
-        messages.error(request, "Necesitas al menos 3 palabras para publicar.")
+        messages.error(request, _("Necesitas al menos 3 palabras para publicar."))
         return redirect('crucigramas:detalle', pk=cruc.pk)
 
     from gestion_academica.models import ActividadCalificable
@@ -260,7 +261,7 @@ def publicar(request, pk):
             cruc.actividad_calificable = act
         cruc.estado = Crucigrama.Estado.PUBLICADO
         cruc.save(update_fields=['filas', 'columnas', 'actividad_calificable', 'estado'])
-    messages.success(request, "¡Crucigrama publicado! Ya aparece a los estudiantes del curso.")
+    messages.success(request, _("¡Crucigrama publicado! Ya aparece a los estudiantes del curso."))
     return redirect('crucigramas:detalle', pk=cruc.pk)
 
 
@@ -272,7 +273,7 @@ def cerrar(request, pk):
     cruc.estado = Crucigrama.Estado.CERRADO
     cruc.fecha_cierre = timezone.now()
     cruc.save(update_fields=['estado', 'fecha_cierre'])
-    messages.success(request, "Crucigrama cerrado. Los estudiantes ya no pueden resolverlo.")
+    messages.success(request, _("Crucigrama cerrado. Los estudiantes ya no pueden resolverlo."))
     return redirect('crucigramas:detalle', pk=cruc.pk)
 
 
@@ -303,7 +304,7 @@ def editar_datos(request, pk):
     cruc = get_object_or_404(_scope(Crucigrama.objects.all(), request.user), pk=pk)
     titulo = (request.POST.get('titulo') or '').strip()
     if not titulo:
-        messages.error(request, "El título no puede quedar vacío.")
+        messages.error(request, _("El título no puede quedar vacío."))
         return redirect('crucigramas:detalle', pk=cruc.pk)
     cruc.titulo = titulo
     cruc.instrucciones = (request.POST.get('instrucciones') or '').strip()
@@ -321,7 +322,7 @@ def editar_datos(request, pk):
         act.tipo_actividad = cruc.tipo_actividad
         act.descripcion = cruc.instrucciones or None
         act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
-    messages.success(request, "Datos actualizados.")
+    messages.success(request, _("Datos actualizados."))
     return redirect('crucigramas:detalle', pk=cruc.pk)
 
 
@@ -333,11 +334,11 @@ def agregar_palabra(request, pk):
     respuesta = (request.POST.get('respuesta') or '').strip()
     pista = (request.POST.get('pista') or '').strip()
     if not respuesta or not pista or len(normalizar(respuesta)) < 2:
-        messages.error(request, "Escribe la palabra (2 letras o más) y su pista.")
+        messages.error(request, _("Escribe la palabra (2 letras o más) y su pista."))
         return redirect('crucigramas:detalle', pk=cruc.pk)
     imagen = request.FILES.get('imagen')
     if imagen and not _imagen_valida(imagen):
-        messages.error(request, "La imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
+        messages.error(request, _("La imagen debe pesar máximo 2 MB y ser un archivo de imagen."))
         return redirect('crucigramas:detalle', pk=cruc.pk)
     ultimo = cruc.palabras.order_by('-orden').first()
     PalabraCrucigrama.objects.create(
@@ -346,7 +347,7 @@ def agregar_palabra(request, pk):
     )
     if cruc.estado == Crucigrama.Estado.PUBLICADO:
         _regenerar_layout(cruc)
-    messages.success(request, "Palabra agregada.")
+    messages.success(request, _("Palabra agregada."))
     return redirect('crucigramas:detalle', pk=cruc.pk)
 
 
@@ -359,12 +360,12 @@ def editar_palabra(request, pk, palabra_pk):
     respuesta = (request.POST.get('respuesta') or '').strip()
     pista = (request.POST.get('pista') or '').strip()
     if not respuesta or not pista or len(normalizar(respuesta)) < 2:
-        messages.error(request, "Escribe la palabra (2 letras o más) y su pista.")
+        messages.error(request, _("Escribe la palabra (2 letras o más) y su pista."))
         return redirect('crucigramas:detalle', pk=cruc.pk)
     imagen = request.FILES.get('imagen')
     if imagen:
         if not _imagen_valida(imagen):
-            messages.error(request, "La imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
+            messages.error(request, _("La imagen debe pesar máximo 2 MB y ser un archivo de imagen."))
             return redirect('crucigramas:detalle', pk=cruc.pk)
         palabra.imagen = imagen
     elif request.POST.get('quitar_imagen') == 'on':
@@ -374,7 +375,7 @@ def editar_palabra(request, pk, palabra_pk):
     palabra.save()
     if cruc.estado == Crucigrama.Estado.PUBLICADO:
         _regenerar_layout(cruc)
-    messages.success(request, "Palabra actualizada.")
+    messages.success(request, _("Palabra actualizada."))
     return redirect('crucigramas:detalle', pk=cruc.pk)
 
 
@@ -387,7 +388,7 @@ def eliminar_palabra(request, pk, palabra_pk):
     palabra.delete()
     if cruc.estado == Crucigrama.Estado.PUBLICADO:
         _regenerar_layout(cruc)
-    messages.success(request, "Palabra eliminada.")
+    messages.success(request, _("Palabra eliminada."))
     return redirect('crucigramas:detalle', pk=cruc.pk)
 
 
@@ -399,7 +400,7 @@ def editar_fechas(request, pk):
     cruc.fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
     cruc.fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
     cruc.save(update_fields=['fecha_inicio', 'fecha_fin'])
-    messages.success(request, "Fechas actualizadas.")
+    messages.success(request, _("Fechas actualizadas."))
     return redirect('crucigramas:detalle', pk=cruc.pk)
 
 
@@ -409,7 +410,7 @@ def eliminar(request, pk):
     _solo_docente_coord(request.user)
     cruc = get_object_or_404(_scope(Crucigrama.objects.all(), request.user), pk=pk)
     cruc.delete()
-    messages.success(request, "Crucigrama eliminado.")
+    messages.success(request, _("Crucigrama eliminado."))
     return redirect('crucigramas:lista')
 
 
@@ -422,7 +423,7 @@ def resultados(request, pk):
     )
     intentos = cruc.intentos.select_related('estudiante__usuario').order_by('-porcentaje', 'estudiante__usuario__first_name')
     return render(request, 'crucigramas/resultados.html', {
-        'titulo_pagina': f'Resultados: {cruc.titulo}',
+        'titulo_pagina': _('Resultados: %(cruc_titulo)s') % {'cruc_titulo': cruc.titulo},
         'crucigrama': cruc,
         'intentos': intentos,
     })
@@ -441,7 +442,7 @@ def mis_crucigramas(request):
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
         return render(request, 'crucigramas/mis_crucigramas.html', {
-            'titulo_pagina': 'Crucigramas', 'items': [],
+            'titulo_pagina': _('Crucigramas'), 'items': [],
         })
 
     crucigramas = Crucigrama.objects.filter(
@@ -459,7 +460,7 @@ def mis_crucigramas(request):
         disp, msg = c.estado_disponibilidad()
         items.append({'crucigrama': c, 'intento': hechos.get(c.id), 'disp': disp, 'msg': msg})
     return render(request, 'crucigramas/mis_crucigramas.html', {
-        'titulo_pagina': 'Crucigramas',
+        'titulo_pagina': _('Crucigramas'),
         'items': items,
     })
 
@@ -510,7 +511,7 @@ def resolver(request, pk):
                 },
             )
             _registrar_calificacion(cruc, estudiante, puntaje, aciertos, total)
-        messages.success(request, "¡Enviado! Aquí está tu resultado.")
+        messages.success(request, _("¡Enviado! Aquí está tu resultado."))
         return redirect('crucigramas:resultado', pk=cruc.pk)
 
     grilla, celdas, horizontales, verticales = _grid_data(cruc, con_letras=False)
@@ -548,7 +549,7 @@ def resultado(request, pk):
     cruc = get_object_or_404(Crucigrama, pk=pk, institucion=estudiante.institucion)
     intento = get_object_or_404(IntentoCrucigrama, crucigrama=cruc, estudiante=estudiante)
     return render(request, 'crucigramas/resultado.html', {
-        'titulo_pagina': f'Resultado: {cruc.titulo}',
+        'titulo_pagina': _('Resultado: %(cruc_titulo)s') % {'cruc_titulo': cruc.titulo},
         'crucigrama': cruc,
         'intento': intento,
     })

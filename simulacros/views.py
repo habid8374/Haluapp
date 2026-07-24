@@ -3,6 +3,7 @@ import json
 import logging
 
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q
@@ -40,7 +41,7 @@ def _es_estudiante(user):
 @login_required
 def banco_preguntas(request):
     if not _es_docente_o_coordinador(request.user):
-        messages.error(request, "Acceso restringido.")
+        messages.error(request, _("Acceso restringido."))
         return redirect('gestion_academica:inicio_academico')
 
     institucion = _get_institucion(request)
@@ -75,7 +76,7 @@ def banco_preguntas(request):
         'areas': BancoPregunta.Area.choices,
         'filtros': {'grado': grado, 'area': area, 'q': q, 'solo_mias': solo_mias},
         'total': qs.count(),
-        'titulo_pagina': 'Banco de Preguntas Saber',
+        'titulo_pagina': _('Banco de Preguntas Saber'),
     })
 
 
@@ -91,7 +92,7 @@ def crear_pregunta(request):
         'grados': BancoPregunta.GradoNivel.choices,
         'areas': BancoPregunta.Area.choices,
         'dificultades': BancoPregunta.Dificultad.choices,
-        'titulo_pagina': 'Nueva Pregunta',
+        'titulo_pagina': _('Nueva Pregunta'),
         'accion': 'Crear',
     })
 
@@ -121,7 +122,7 @@ def editar_pregunta(request, pk):
         'grados': BancoPregunta.GradoNivel.choices,
         'areas': BancoPregunta.Area.choices,
         'dificultades': BancoPregunta.Dificultad.choices,
-        'titulo_pagina': 'Editar Pregunta',
+        'titulo_pagina': _('Editar Pregunta'),
         'accion': 'Guardar',
     })
 
@@ -133,13 +134,13 @@ def _guardar_pregunta(request, pregunta_existente):
 
     enunciado = (p.get('enunciado') or '').strip()
     if not enunciado:
-        messages.error(request, "El enunciado no puede estar vacío.")
+        messages.error(request, _("El enunciado no puede estar vacío."))
         return redirect(request.path)
 
     correcta = p.get('correcta', 'A')
     opciones_texto = {l: (p.get(f'opcion_{l}') or '').strip() for l in 'ABCD'}
     if not all(opciones_texto.values()):
-        messages.error(request, "Debes completar las 4 opciones.")
+        messages.error(request, _("Debes completar las 4 opciones."))
         return redirect(request.path)
 
     if pregunta_existente is None:
@@ -156,13 +157,13 @@ def _guardar_pregunta(request, pregunta_existente):
     if imagen_url:
         parsed_img = urlparse(imagen_url)
         if parsed_img.scheme not in ('http', 'https'):
-            messages.error(request, "La URL de imagen debe comenzar con http:// o https://")
+            messages.error(request, _("La URL de imagen debe comenzar con http:// o https://"))
             return redirect(request.path)
         hostname = parsed_img.hostname or ''
         try:
             ip = ipaddress.ip_address(hostname)
             if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
-                messages.error(request, "La URL de imagen no puede apuntar a una dirección IP interna.")
+                messages.error(request, _("La URL de imagen no puede apuntar a una dirección IP interna."))
                 return redirect(request.path)
         except ValueError:
             pass  # Es un nombre de dominio, no una IP — permitido
@@ -190,7 +191,7 @@ def _guardar_pregunta(request, pregunta_existente):
             es_correcta=(letra == correcta),
         )
 
-    messages.success(request, "Pregunta guardada correctamente.")
+    messages.success(request, _("Pregunta guardada correctamente."))
     return redirect('simulacros:banco_preguntas')
 
 
@@ -205,7 +206,7 @@ def eliminar_pregunta(request, pk):
         **({} if request.user.is_superuser else {'institucion': institucion, 'es_publica': False}),
     )
     pregunta.delete()
-    messages.success(request, "Pregunta eliminada.")
+    messages.success(request, _("Pregunta eliminada."))
     return redirect('simulacros:banco_preguntas')
 
 
@@ -222,12 +223,12 @@ def importar_preguntas(request):
         return render(request, 'simulacros/importar_preguntas.html', {
             'grados': BancoPregunta.GradoNivel.choices,
             'areas': BancoPregunta.Area.choices,
-            'titulo_pagina': 'Importar Preguntas desde Excel',
+            'titulo_pagina': _('Importar Preguntas desde Excel'),
         })
 
     archivo = request.FILES.get('archivo')
     if not archivo:
-        messages.error(request, "Selecciona un archivo Excel (.xlsx).")
+        messages.error(request, _("Selecciona un archivo Excel (.xlsx)."))
         return redirect('simulacros:importar_preguntas')
 
     # A08 — validación de tipo, extensión y tamaño antes de procesar
@@ -237,13 +238,13 @@ def importar_preguntas(request):
     }
     MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
     if not archivo.name.lower().endswith('.xlsx'):
-        messages.error(request, "Solo se aceptan archivos Excel con extensión .xlsx")
+        messages.error(request, _("Solo se aceptan archivos Excel con extensión .xlsx"))
         return redirect('simulacros:importar_preguntas')
     if archivo.content_type not in ALLOWED_CONTENT_TYPES:
-        messages.error(request, "Tipo de archivo no permitido. Sube un archivo .xlsx válido.")
+        messages.error(request, _("Tipo de archivo no permitido. Sube un archivo .xlsx válido."))
         return redirect('simulacros:importar_preguntas')
     if archivo.size > MAX_UPLOAD_BYTES:
-        messages.error(request, "El archivo supera el límite de 5 MB.")
+        messages.error(request, _("El archivo supera el límite de 5 MB."))
         return redirect('simulacros:importar_preguntas')
 
     try:
@@ -291,14 +292,14 @@ def importar_preguntas(request):
                 errores.append(f"Fila {i}: datos incorrectos o incompletos.")
 
         if creadas:
-            messages.success(request, f"✅ {creadas} pregunta(s) importada(s) correctamente.")
+            messages.success(request, _("✅ %(creadas)s pregunta(s) importada(s) correctamente.") % {'creadas': creadas})
         if errores:
             for e in errores[:5]:
                 messages.warning(request, e)
 
     except Exception as exc:
         logger.error("importar_preguntas error leyendo archivo: %s", exc, exc_info=True)
-        messages.error(request, "El archivo no pudo procesarse. Verifica que sea un .xlsx válido.")
+        messages.error(request, _("El archivo no pudo procesarse. Verifica que sea un .xlsx válido."))
 
     return redirect('simulacros:banco_preguntas')
 
@@ -508,7 +509,7 @@ def lista_simulacros(request):
 
     return render(request, 'simulacros/lista_simulacros.html', {
         'simulacros': simulacros,
-        'titulo_pagina': 'Simulacros Saber',
+        'titulo_pagina': _('Simulacros Saber'),
     })
 
 
@@ -529,7 +530,7 @@ def crear_simulacro(request):
         'grados': BancoPregunta.GradoNivel.choices,
         'preguntas_banco': preguntas_banco,
         'areas': BancoPregunta.Area.choices,
-        'titulo_pagina': 'Nuevo Simulacro',
+        'titulo_pagina': _('Nuevo Simulacro'),
         'accion': 'Crear',
     })
 
@@ -556,7 +557,7 @@ def editar_simulacro(request, pk):
         'preguntas_banco': preguntas_banco,
         'seleccionadas': seleccionadas,
         'areas': BancoPregunta.Area.choices,
-        'titulo_pagina': 'Editar Simulacro',
+        'titulo_pagina': _('Editar Simulacro'),
         'accion': 'Guardar',
     })
 
@@ -567,14 +568,14 @@ def _guardar_simulacro(request, simulacro_existente):
 
     titulo = (p.get('titulo') or '').strip()
     if not titulo:
-        messages.error(request, "El título es obligatorio.")
+        messages.error(request, _("El título es obligatorio."))
         return redirect(request.path)
 
     from django.utils.dateparse import parse_datetime
     fecha_inicio = parse_datetime(p.get('fecha_inicio', ''))
     fecha_cierre = parse_datetime(p.get('fecha_cierre', ''))
     if not fecha_inicio or not fecha_cierre:
-        messages.error(request, "Las fechas son obligatorias.")
+        messages.error(request, _("Las fechas son obligatorias."))
         return redirect(request.path)
 
     if simulacro_existente is None:
@@ -606,7 +607,7 @@ def _guardar_simulacro(request, simulacro_existente):
                 simulacro=simulacro_existente, pregunta=pregunta, orden=orden
             )
 
-    messages.success(request, f"Simulacro '{titulo}' guardado con {len(ids_seleccionados)} pregunta(s).")
+    messages.success(request, _("Simulacro '%(titulo)s' guardado con %(len_ids_seleccionado)s pregunta(s).") % {'titulo': titulo, 'len_ids_seleccionado': len(ids_seleccionados)})
     return redirect('simulacros:lista_simulacros')
 
 
@@ -621,7 +622,7 @@ def cambiar_estado_simulacro(request, pk):
     if nuevo_estado in dict(Simulacro.Estado.choices):
         simulacro.estado = nuevo_estado
         simulacro.save(update_fields=['estado'])
-        messages.success(request, f"Simulacro '{simulacro.titulo}' ahora está {simulacro.get_estado_display()}.")
+        messages.success(request, _("Simulacro '%(simulacro_titulo)s' ahora está %(simulacro_get_estado)s.") % {'simulacro_titulo': simulacro.titulo, 'simulacro_get_estado': simulacro.get_estado_display()})
     return redirect('simulacros:lista_simulacros')
 
 
@@ -633,7 +634,7 @@ def eliminar_simulacro(request, pk):
     institucion = _get_institucion(request)
     simulacro = get_object_or_404(Simulacro, pk=pk, institucion=institucion)
     simulacro.delete()
-    messages.success(request, "Simulacro eliminado.")
+    messages.success(request, _("Simulacro eliminado."))
     return redirect('simulacros:lista_simulacros')
 
 
@@ -672,7 +673,7 @@ def resultados_simulacro(request, pk):
         'intentos': intentos,
         'stats_preguntas': stats_preguntas,
         'puntaje_promedio': puntaje_promedio,
-        'titulo_pagina': f'Resultados — {simulacro.titulo}',
+        'titulo_pagina': _('Resultados — %(simulacro_titulo)s') % {'simulacro_titulo': simulacro.titulo},
     })
 
 
@@ -683,7 +684,7 @@ def resultados_simulacro(request, pk):
 @login_required
 def simulacros_estudiante(request):
     if not _es_estudiante(request.user):
-        messages.error(request, "Esta sección es solo para estudiantes.")
+        messages.error(request, _("Esta sección es solo para estudiantes."))
         return redirect('gestion_academica:inicio_academico')
 
     institucion = _get_institucion(request)
@@ -710,7 +711,7 @@ def simulacros_estudiante(request):
 
     return render(request, 'simulacros/simulacros_estudiante.html', {
         'simulacros_info': simulacros_info,
-        'titulo_pagina': 'Simulacros Saber',
+        'titulo_pagina': _('Simulacros Saber'),
     })
 
 
@@ -722,7 +723,7 @@ def resolver_simulacro(request, pk):
     institucion = _get_institucion(request)
     estudiante  = getattr(request.user, 'estudiante', None)
     if not estudiante:
-        messages.error(request, "No tienes perfil de estudiante.")
+        messages.error(request, _("No tienes perfil de estudiante."))
         return redirect('gestion_academica:inicio_academico')
 
     simulacro = get_object_or_404(
@@ -733,7 +734,7 @@ def resolver_simulacro(request, pk):
     )
 
     if not simulacro.esta_disponible():
-        messages.warning(request, "Este simulacro no está disponible en este momento.")
+        messages.warning(request, _("Este simulacro no está disponible en este momento."))
         return redirect('simulacros:simulacros_estudiante')
 
     # Obtener o crear intento
@@ -785,7 +786,7 @@ def resultado_intento(request, pk):
 
     # Verificar acceso: el estudiante solo ve su propio intento
     if _es_estudiante(request.user) and (not estudiante or intento.estudiante != estudiante):
-        messages.error(request, "No tienes acceso a este resultado.")
+        messages.error(request, _("No tienes acceso a este resultado."))
         return redirect('simulacros:simulacros_estudiante')
 
     respuestas = intento.respuestas.select_related(
@@ -796,5 +797,5 @@ def resultado_intento(request, pk):
         'intento': intento,
         'simulacro': intento.simulacro,
         'respuestas': respuestas,
-        'titulo_pagina': f'Resultado — {intento.simulacro.titulo}',
+        'titulo_pagina': _('Resultado — %(intento_simulacro_ti)s') % {'intento_simulacro_ti': intento.simulacro.titulo},
     })

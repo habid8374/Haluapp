@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
 {% block contenido %}
@@ -77,13 +78,13 @@
   <div class="ps-hero">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
-        <h1 class="ps-hero-title"><i class="bi bi-body-text me-2" style="opacity:.85"></i>Recursos Educativos 3D</h1>
-        <p class="ps-hero-sub">Actividades del Cuerpo Humano 3D asignadas a tus cursos</p>
+        <h1 class="ps-hero-title"><i class="bi bi-body-text me-2" style="opacity:.85"></i>{% trans "Recursos Educativos 3D" %}</h1>
+        <p class="ps-hero-sub">{% trans "Actividades del Cuerpo Humano 3D asignadas a tus cursos" %}</p>
       </div>
       <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="ps-hero-badge"><i class="bi bi-mortarboard me-1"></i>{{ recursos|length }} actividad{{ recursos|length|pluralize:"es" }}</span>
+        <span class="ps-hero-badge"><i class="bi bi-mortarboard me-1"></i>{% blocktrans count counter=recursos|length %}{{ counter }} actividad{% plural %}{{ counter }} actividades{% endblocktrans %}</span>
         <a href="{% url 'recursos_educativos:crear' %}" class="ps-btn-add">
-          <i class="bi bi-plus-circle-fill"></i> Nueva Actividad 3D
+          <i class="bi bi-plus-circle-fill"></i> {% trans "Nueva Actividad 3D" %}
         </a>
       </div>
     </div>
@@ -99,9 +100,9 @@
               <div style="flex:1; min-width:0;">
                 <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                   <span class="r3d-modo-badge r3d-modo-{{ recurso.modo }}">
-                    {% if recurso.modo == 'galeria' %}<i class="bi bi-images"></i> Solo Galería
-                    {% elif recurso.modo == 'studio' %}<i class="bi bi-boxes"></i> Solo Studio
-                    {% else %}<i class="bi bi-collection"></i> Galería + Studio{% endif %}
+                    {% if recurso.modo == 'galeria' %}<i class="bi bi-images"></i> {% trans "Solo Galería" %}
+                    {% elif recurso.modo == 'studio' %}<i class="bi bi-boxes"></i> {% trans "Solo Studio" %}
+                    {% else %}<i class="bi bi-collection"></i> {% trans "Galería + Studio" %}{% endif %}
                   </span>
                   <span style="font-size:.78rem; color:#94a3b8;">
                     {{ recurso.actividad.curso.materia.nombre_materia }} · {{ recurso.actividad.curso.grado.nombre }}
@@ -112,29 +113,29 @@
                   <p style="font-size:.85rem; color:#64748b; margin:0 0 .5rem;">{{ recurso.actividad.descripcion|truncatechars:120 }}</p>
                 {% endif %}
                 <div class="d-flex gap-3 flex-wrap" style="font-size:.78rem; color:#94a3b8;">
-                  <span><i class="bi bi-calendar3 me-1"></i>Publicado: {{ recurso.actividad.fecha_publicacion|date:"d/m/Y" }}</span>
+                  <span><i class="bi bi-calendar3 me-1"></i>{% trans "Publicado:" %} {{ recurso.actividad.fecha_publicacion|date:"d/m/Y" }}</span>
                   {% if recurso.actividad.fecha_entrega_limite %}
-                    <span><i class="bi bi-clock me-1"></i>Límite: {{ recurso.actividad.fecha_entrega_limite|date:"d/m/Y" }}</span>
+                    <span><i class="bi bi-clock me-1"></i>{% trans "Límite:" %} {{ recurso.actividad.fecha_entrega_limite|date:"d/m/Y" }}</span>
                   {% endif %}
-                  <span><i class="bi bi-trophy me-1"></i>Nota máx: {{ recurso.valor_maximo }}</span>
+                  <span><i class="bi bi-trophy me-1"></i>{% trans "Nota máx:" %} {{ recurso.valor_maximo }}</span>
                 </div>
               </div>
 
               <div class="d-flex align-items-center gap-4">
                 <div class="r3d-stat">
                   <div class="r3d-stat-num">{{ recurso.total_entregas }}</div>
-                  <div class="r3d-stat-label">Accesos</div>
+                  <div class="r3d-stat-label">{% trans "Accesos" %}</div>
                 </div>
                 <div class="r3d-stat">
                   <div class="r3d-stat-num" style="color:#15803d;">{{ recurso.entregas_completas }}</div>
-                  <div class="r3d-stat-label">Completaron</div>
+                  <div class="r3d-stat-label">{% trans "Completaron" %}</div>
                 </div>
                 <div class="d-flex gap-2 align-items-center">
-                  <a href="{% url 'recursos_educativos:galeria' recurso.pk %}" class="ps-ia" style="background:#f0f0ff;color:#3730a3;border:1.5px solid #c7d2fe;" title="Abrir galería para proyectar en clase">
-                    <i class="bi bi-projector-fill"></i> Proyectar
+                  <a href="{% url 'recursos_educativos:galeria' recurso.pk %}" class="ps-ia" style="background:#f0f0ff;color:#3730a3;border:1.5px solid #c7d2fe;" title="{% trans 'Abrir galería para proyectar en clase' %}">
+                    <i class="bi bi-projector-fill"></i> {% trans "Proyectar" %}
                   </a>
                   <a href="{% url 'recursos_educativos:entregas' recurso.pk %}" class="ps-ia ps-ia-view">
-                    <i class="bi bi-people-fill"></i> Ver entregas
+                    <i class="bi bi-people-fill"></i> {% trans "Ver entregas" %}
                   </a>
                 </div>
               </div>
@@ -147,10 +148,10 @@
   {% else %}
     <div class="ps-empty">
       <i class="bi bi-body-text"></i>
-      <p class="mb-1 fw-bold" style="color:#475569;">Aún no has creado actividades 3D.</p>
-      <p class="mb-3" style="font-size:.88rem;">Asigna el Cuerpo Humano 3D como actividad calificable a uno de tus cursos.</p>
+      <p class="mb-1 fw-bold" style="color:#475569;">{% trans "Aún no has creado actividades 3D." %}</p>
+      <p class="mb-3" style="font-size:.88rem;">{% trans "Asigna el Cuerpo Humano 3D como actividad calificable a uno de tus cursos." %}</p>
       <a href="{% url 'recursos_educativos:crear' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle-fill me-1"></i> Crear primera actividad
+        <i class="bi bi-plus-circle-fill me-1"></i> {% trans "Crear primera actividad" %}
       </a>
     </div>
   {% endif %}

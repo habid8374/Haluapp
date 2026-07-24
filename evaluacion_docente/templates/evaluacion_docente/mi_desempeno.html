@@ -1,16 +1,17 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div style="background: linear-gradient(135deg, #14532d 0%, #16a34a 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem;">
   <h2 style="color:#fff;"><i class="bi bi-graph-up-arrow"></i> {{ titulo_pagina }}</h2>
-  <p style="color:#fff;">Resultado de las evaluaciones que las familias hicieron sobre tu desempeño (campañas cerradas).</p>
+  <p style="color:#fff;">{% trans "Resultado de las evaluaciones que las familias hicieron sobre tu desempeño (campañas cerradas)." %}</p>
 </div>
 
 <div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
   <div class="card-body p-0">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light"><tr><th class="ps-3">Campaña</th><th class="text-center">Respuestas</th><th class="text-center">Promedio</th></tr></thead>
+        <thead class="table-light"><tr><th class="ps-3">{% trans "Campaña" %}</th><th class="text-center">{% trans "Respuestas" %}</th><th class="text-center">{% trans "Promedio" %}</th></tr></thead>
         <tbody>
         {% for c in campanas %}
           <tr>
@@ -19,7 +20,7 @@
             <td class="text-center"><span class="badge {% if c.promedio >= 4 %}bg-success{% elif c.promedio >= 3 %}bg-warning text-dark{% else %}bg-danger{% endif %}" style="font-size:.9rem;">{{ c.promedio|floatformat:2 }} / 5</span></td>
           </tr>
         {% empty %}
-          <tr><td colspan="3" class="text-center py-4 text-muted">Aún no tienes resultados publicados.</td></tr>
+          <tr><td colspan="3" class="text-center py-4 text-muted">{% trans "Aún no tienes resultados publicados." %}</td></tr>
         {% endfor %}
         </tbody>
       </table>

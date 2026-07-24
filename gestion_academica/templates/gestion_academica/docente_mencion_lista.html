@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
-{% block titulo %}Mis Menciones Otorgadas{% endblock %}
+{% load i18n %}
+{% block titulo %}{% trans "Mis Menciones Otorgadas" %}{% endblock %}
 {% block contenido %}
 <!-- Hero -->
 <div style="background:linear-gradient(135deg,#7c2d12 0%,#ea580c 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
@@ -7,13 +8,13 @@
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
     <div>
       <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
-        <i class="bi bi-award-fill me-1"></i>Reconocimientos
+        <i class="bi bi-award-fill me-1"></i>{% trans "Reconocimientos" %}
       </div>
-      <h2 class="mb-1 fw-800" style="font-size:1.4rem;">Mis Menciones Otorgadas</h2>
-      <p class="mb-0" style="opacity:.82;font-size:.88rem;">Reconocimientos y distinciones entregados a tus estudiantes</p>
+      <h2 class="mb-1 fw-800" style="font-size:1.4rem;">{% trans "Mis Menciones Otorgadas" %}</h2>
+      <p class="mb-0" style="opacity:.82;font-size:.88rem;">{% trans "Reconocimientos y distinciones entregados a tus estudiantes" %}</p>
     </div>
     <a href="{% url 'gestion_academica:docente_crear_mencion' %}" class="btn btn-light btn-sm fw-600">
-      <i class="bi bi-award-fill me-1"></i>Otorgar Mención
+      <i class="bi bi-award-fill me-1"></i>{% trans "Otorgar Mención" %}
     </a>
   </div>
 </div>
@@ -24,10 +25,10 @@
       <table class="table table-hover align-middle mb-0">
         <thead style="background:#fff7f0;">
           <tr>
-            <th class="ps-4 py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">Estudiante</th>
-            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">Tipo de Mención</th>
-            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">Fecha</th>
-            <th class="py-3 text-center pe-4" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">Acciones</th>
+            <th class="ps-4 py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">{% trans "Estudiante" %}</th>
+            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">{% trans "Tipo de Mención" %}</th>
+            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">{% trans "Fecha" %}</th>
+            <th class="py-3 text-center pe-4" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #fed7aa;">{% trans "Acciones" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -51,10 +52,10 @@
             </td>
             <td class="py-3 pe-4 text-center">
               <div class="btn-group btn-group-sm" role="group">
-                <a href="{% url 'gestion_academica:docente_editar_mencion' pk=mencion.pk %}" class="btn btn-warning" title="Editar mención">
+                <a href="{% url 'gestion_academica:docente_editar_mencion' pk=mencion.pk %}" class="btn btn-warning" title="{% trans 'Editar mención' %}">
                   <i class="bi bi-pencil-fill"></i>
                 </a>
-                <a href="{% url 'gestion_academica:docente_eliminar_mencion' pk=mencion.pk %}" class="btn btn-danger" title="Eliminar mención">
+                <a href="{% url 'gestion_academica:docente_eliminar_mencion' pk=mencion.pk %}" class="btn btn-danger" title="{% trans 'Eliminar mención' %}">
                   <i class="bi bi-trash-fill"></i>
                 </a>
               </div>
@@ -64,7 +65,7 @@
           <tr>
             <td colspan="4" class="text-center py-5" style="color:#9ca3af;">
               <i class="bi bi-award" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-              Aún no has otorgado ninguna mención.
+              {% trans "Aún no has otorgado ninguna mención." %}
             </td>
           </tr>
           {% endfor %}
@@ -74,9 +75,9 @@
     {% else %}
     <div class="text-center py-5" style="color:#9ca3af;">
       <i class="bi bi-award" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
-      <p class="mb-3">Aún no has otorgado ninguna mención.</p>
+      <p class="mb-3">{% trans "Aún no has otorgado ninguna mención." %}</p>
       <a href="{% url 'gestion_academica:docente_crear_mencion' %}" class="btn btn-warning btn-sm">
-        <i class="bi bi-award-fill me-1"></i>Otorgar primera mención
+        <i class="bi bi-award-fill me-1"></i>{% trans "Otorgar primera mención" %}
       </a>
     </div>
     {% endif %}

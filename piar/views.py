@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db import IntegrityError
@@ -35,7 +36,7 @@ def _es_docente_o_superior(user):
 @login_required
 def lista_piars(request):
     if not _es_docente_o_superior(request.user):
-        messages.error(request, 'No tienes permiso para acceder a los PIARs.')
+        messages.error(request, _('No tienes permiso para acceder a los PIARs.'))
         return redirect('gestion_academica:inicio_academico')
 
     institucion = _get_institucion(request)
@@ -72,7 +73,7 @@ def lista_piars(request):
     filtros = {'año': año, 'estado': estado, 'grado_id': grado_id}
 
     return render(request, 'piar/lista_piars.html', {
-        'titulo_pagina': 'PIARs — Planes de Ajustes Razonables',
+        'titulo_pagina': _('PIARs — Planes de Ajustes Razonables'),
         'piars': piars,
         'grados': grados,
         'años': años,
@@ -88,7 +89,7 @@ def lista_piars(request):
 @login_required
 def crear_piar(request):
     if not _es_coordinador_o_admin(request.user):
-        messages.error(request, 'Solo coordinadores pueden crear PIARs.')
+        messages.error(request, _('Solo coordinadores pueden crear PIARs.'))
         return redirect('piar:lista_piars')
 
     institucion = _get_institucion(request)
@@ -155,15 +156,15 @@ def crear_piar(request):
                 estado=estado,
                 observaciones_generales=observaciones_generales,
             )
-            messages.success(request, f'PIAR creado exitosamente para {estudiante}.')
+            messages.success(request, _('PIAR creado exitosamente para %(estudiante)s.') % {'estudiante': estudiante})
             return redirect('piar:detalle_piar', pk=piar.pk)
         except IntegrityError:
-            messages.error(request, 'Este estudiante ya tiene PIAR para ese año.')
+            messages.error(request, _('Este estudiante ya tiene PIAR para ese año.'))
         except Exception as e:
-            messages.error(request, f'Error al crear el PIAR: {e}')
+            messages.error(request, _('Error al crear el PIAR: %(e)s') % {'e': e})
 
     return render(request, 'piar/form_piar.html', {
-        'titulo_pagina': 'Nuevo PIAR',
+        'titulo_pagina': _('Nuevo PIAR'),
         'estudiantes': estudiantes,
         'grados': grados,
         'materias': materias,
@@ -182,7 +183,7 @@ def crear_piar(request):
 @login_required
 def detalle_piar(request, pk):
     if not _es_docente_o_superior(request.user):
-        messages.error(request, 'No tienes permiso para ver este PIAR.')
+        messages.error(request, _('No tienes permiso para ver este PIAR.'))
         return redirect('gestion_academica:inicio_academico')
 
     institucion = _get_institucion(request)
@@ -197,7 +198,7 @@ def detalle_piar(request, pk):
     materias = Materia.objects.filter(institucion=institucion).order_by('nombre_materia')
 
     return render(request, 'piar/detalle_piar.html', {
-        'titulo_pagina': f'PIAR {piar.año_lectivo} — {piar.estudiante}',
+        'titulo_pagina': _('PIAR %(piar_a_o_lectivo)s — %(piar_estudiante)s') % {'piar_a_o_lectivo': piar.año_lectivo, 'piar_estudiante': piar.estudiante},
         'piar': piar,
         'ajustes_por_periodo': ajustes_por_periodo,
         'materias': materias,
@@ -211,7 +212,7 @@ def detalle_piar(request, pk):
 @login_required
 def editar_piar(request, pk):
     if not _es_coordinador_o_admin(request.user):
-        messages.error(request, 'Solo coordinadores pueden editar PIARs.')
+        messages.error(request, _('Solo coordinadores pueden editar PIARs.'))
         return redirect('piar:lista_piars')
 
     institucion = _get_institucion(request)
@@ -250,11 +251,11 @@ def editar_piar(request, pk):
             piar.docente_lider = None
 
         piar.save()
-        messages.success(request, 'PIAR actualizado exitosamente.')
+        messages.success(request, _('PIAR actualizado exitosamente.'))
         return redirect('piar:detalle_piar', pk=piar.pk)
 
     return render(request, 'piar/form_piar.html', {
-        'titulo_pagina': f'Editar PIAR — {piar.estudiante}',
+        'titulo_pagina': _('Editar PIAR — %(piar_estudiante)s') % {'piar_estudiante': piar.estudiante},
         'piar': piar,
         'grados': grados,
         'docentes': docentes,
@@ -272,14 +273,14 @@ def editar_piar(request, pk):
 @require_POST
 def eliminar_piar(request, pk):
     if not _es_coordinador_o_admin(request.user):
-        messages.error(request, 'Solo coordinadores pueden eliminar PIARs.')
+        messages.error(request, _('Solo coordinadores pueden eliminar PIARs.'))
         return redirect('piar:lista_piars')
 
     institucion = _get_institucion(request)
     piar = get_object_or_404(PIAR, pk=pk, institucion=institucion)
     nombre = str(piar)
     piar.delete()
-    messages.success(request, f'PIAR "{nombre}" eliminado.')
+    messages.success(request, _('PIAR "%(nombre)s" eliminado.') % {'nombre': nombre})
     return redirect('piar:lista_piars')
 
 
@@ -291,7 +292,7 @@ def eliminar_piar(request, pk):
 @require_POST
 def crear_ajuste(request, piar_pk):
     if not _es_docente_o_superior(request.user):
-        messages.error(request, 'No tienes permiso para agregar ajustes.')
+        messages.error(request, _('No tienes permiso para agregar ajustes.'))
         return redirect('piar:lista_piars')
 
     institucion = _get_institucion(request)
@@ -317,7 +318,7 @@ def crear_ajuste(request, piar_pk):
         ajuste_evaluativo=ajuste_evaluativo,
         recursos_apoyo=recursos_apoyo,
     )
-    messages.success(request, 'Ajuste agregado exitosamente.')
+    messages.success(request, _('Ajuste agregado exitosamente.'))
     return redirect('piar:detalle_piar', pk=piar_pk)
 
 
@@ -328,7 +329,7 @@ def crear_ajuste(request, piar_pk):
 @login_required
 def editar_ajuste(request, piar_pk, ajuste_pk):
     if not _es_docente_o_superior(request.user):
-        messages.error(request, 'No tienes permiso para editar ajustes.')
+        messages.error(request, _('No tienes permiso para editar ajustes.'))
         return redirect('piar:lista_piars')
 
     institucion = _get_institucion(request)
@@ -347,11 +348,11 @@ def editar_ajuste(request, piar_pk, ajuste_pk):
         ajuste.seguimiento = request.POST.get('seguimiento', ajuste.seguimiento)
         ajuste.alcanzado = request.POST.get('alcanzado') == 'on'
         ajuste.save()
-        messages.success(request, 'Ajuste actualizado exitosamente.')
+        messages.success(request, _('Ajuste actualizado exitosamente.'))
         return redirect('piar:detalle_piar', pk=piar_pk)
 
     return render(request, 'piar/form_ajuste.html', {
-        'titulo_pagina': 'Editar Ajuste PIAR',
+        'titulo_pagina': _('Editar Ajuste PIAR'),
         'piar': piar,
         'ajuste': ajuste,
         'materias': materias,
@@ -367,13 +368,13 @@ def editar_ajuste(request, piar_pk, ajuste_pk):
 @require_POST
 def eliminar_ajuste(request, piar_pk, ajuste_pk):
     if not _es_docente_o_superior(request.user):  # A07 — verificar rol antes de eliminar
-        messages.error(request, 'No tienes permiso para eliminar ajustes.')
+        messages.error(request, _('No tienes permiso para eliminar ajustes.'))
         return redirect('piar:lista_piars')
     institucion = _get_institucion(request)
     piar = get_object_or_404(PIAR, pk=piar_pk, institucion=institucion)
     ajuste = get_object_or_404(AjustePIAR, pk=ajuste_pk, piar=piar)
     ajuste.delete()
-    messages.success(request, 'Ajuste eliminado.')
+    messages.success(request, _('Ajuste eliminado.'))
     return redirect('piar:detalle_piar', pk=piar_pk)
 
 

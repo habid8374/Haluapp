@@ -13,6 +13,7 @@ import decimal
 import json
 
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -96,13 +97,13 @@ def lista_recursos_docente(request):
     """
     institucion = _get_institucion(request)
     if not institucion:
-        messages.error(request, 'Tu cuenta no está asociada a ninguna institución.')
+        messages.error(request, _('Tu cuenta no está asociada a ninguna institución.'))
         return redirect('gestion_academica:inicio_academico')
 
     es_coord = _es_coord_o_admin(request.user)
     docente = Docente.objects.filter(usuario=request.user, institucion=institucion).first()
     if not docente and not es_coord:
-        messages.error(request, 'No tienes un perfil de docente en esta institución.')
+        messages.error(request, _('No tienes un perfil de docente en esta institución.'))
         return redirect('gestion_academica:inicio_academico')
 
     recursos = (
@@ -123,7 +124,7 @@ def lista_recursos_docente(request):
     return render(request, 'recursos_educativos/lista_docente.html', {
         'recursos': recursos,
         'docente': docente,
-        'titulo_pagina': 'Recursos Educativos 3D',
+        'titulo_pagina': _('Recursos Educativos 3D'),
     })
 
 
@@ -135,13 +136,13 @@ def crear_recurso_3d(request):
     """
     institucion = _get_institucion(request)
     if not institucion:
-        messages.error(request, 'Tu cuenta no está asociada a ninguna institución.')
+        messages.error(request, _('Tu cuenta no está asociada a ninguna institución.'))
         return redirect('gestion_academica:inicio_academico')
 
     es_coord = _es_coord_o_admin(request.user)
     docente = Docente.objects.filter(usuario=request.user, institucion=institucion).first()
     if not docente and not es_coord:
-        messages.error(request, 'No tienes un perfil de docente en esta institución.')
+        messages.error(request, _('No tienes un perfil de docente en esta institución.'))
         return redirect('gestion_academica:inicio_academico')
 
     # Coordinación/admin puede asignar a cualquier curso de la institución;
@@ -198,7 +199,7 @@ def crear_recurso_3d(request):
                 'cursos': cursos,
                 'modos': RecursoEducativo3D.MODO_CHOICES,
                 'tipos_actividad': tipos_actividad,
-                'titulo_pagina': 'Crear Recurso 3D',
+                'titulo_pagina': _('Crear Recurso 3D'),
                 'post_data': request.POST,
             })
 
@@ -206,7 +207,7 @@ def crear_recurso_3d(request):
         try:
             curso = cursos.get(pk=curso_id)
         except Curso.DoesNotExist:
-            messages.error(request, 'Curso no válido.')
+            messages.error(request, _('Curso no válido.'))
             return redirect('recursos_educativos:crear')
 
         # ── Resolver tipo de actividad ────────────────────────────
@@ -262,7 +263,7 @@ def crear_recurso_3d(request):
                 severity='info',
             )
 
-        messages.success(request, f'Actividad 3D "{titulo}" creada correctamente.')
+        messages.success(request, _('Actividad 3D "%(titulo)s" creada correctamente.') % {'titulo': titulo})
         return redirect('recursos_educativos:lista')
 
     # ── GET ────────────────────────────────────────────────────────
@@ -274,7 +275,7 @@ def crear_recurso_3d(request):
         'cursos': cursos,
         'modos': RecursoEducativo3D.MODO_CHOICES,
         'tipos_actividad': tipos_actividad,
-        'titulo_pagina': 'Crear Recurso 3D',
+        'titulo_pagina': _('Crear Recurso 3D'),
         'post_data': {},
     })
 
@@ -290,7 +291,7 @@ def ver_entregas_recurso(request, pk):
     es_coord = _es_coord_o_admin(request.user)
     docente = Docente.objects.filter(usuario=request.user, institucion=institucion).first()
     if not docente and not es_coord:
-        messages.error(request, 'Acceso no autorizado.')
+        messages.error(request, _('Acceso no autorizado.'))
         return redirect('recursos_educativos:lista')
 
     if es_coord:
@@ -326,9 +327,9 @@ def ver_entregas_recurso(request, pk):
                     'observaciones': 'Nota ajustada manualmente por el docente.',
                 },
             )
-            messages.success(request, f'Nota actualizada para {estudiante.usuario.get_full_name()}.')
+            messages.success(request, _('Nota actualizada para %(estudiante_usuario_g)s.') % {'estudiante_usuario_g': estudiante.usuario.get_full_name()})
         except (Estudiante.DoesNotExist, decimal.InvalidOperation, ValueError) as e:
-            messages.error(request, f'Error al guardar la nota: {e}')
+            messages.error(request, _('Error al guardar la nota: %(e)s') % {'e': e})
 
         return redirect('recursos_educativos:entregas', pk=pk)
 
@@ -369,7 +370,7 @@ def ver_entregas_recurso(request, pk):
     return render(request, 'recursos_educativos/ver_entregas.html', {
         'recurso': recurso,
         'filas': filas,
-        'titulo_pagina': f'Entregas — {recurso.actividad.titulo}',
+        'titulo_pagina': _('Entregas — %(recurso_actividad_ti)s') % {'recurso_actividad_ti': recurso.actividad.titulo},
     })
 
 
@@ -391,11 +392,11 @@ def galeria_directa(request):
     institucion = _get_institucion(request)
     es_docente = Docente.objects.filter(usuario=request.user, institucion=institucion).exists()
     if not es_docente and not _es_coord_o_admin(request.user):
-        messages.error(request, 'Solo docentes y coordinación pueden acceder a este recurso.')
+        messages.error(request, _('Solo docentes y coordinación pueden acceder a este recurso.'))
         return redirect('gestion_academica:inicio_academico')
 
     return render(request, 'recursos_educativos/visor_galeria.html', {
-        'titulo_pagina': 'Galería 3D — Cuerpo Humano',
+        'titulo_pagina': _('Galería 3D — Cuerpo Humano'),
         'actividad': None,
         'recurso': None,
     })
@@ -410,11 +411,11 @@ def abrir_visor_galeria(request, pk):
     # Docentes y coordinación pueden abrir la galería (para proyección en clase)
     es_docente = Docente.objects.filter(usuario=request.user, institucion=institucion).exists()
     if not es_docente and not _es_coord_o_admin(request.user):
-        messages.error(request, 'El visor de Galería 3D es solo para docentes y coordinación.')
+        messages.error(request, _('El visor de Galería 3D es solo para docentes y coordinación.'))
         return redirect('gestion_academica:inicio_academico')
 
     if not recurso.tiene_galeria():
-        messages.error(request, 'Esta actividad no incluye el modo Galería.')
+        messages.error(request, _('Esta actividad no incluye el modo Galería.'))
         return redirect('recursos_educativos:lista')
 
     return render(request, 'recursos_educativos/visor_galeria.html', {
@@ -432,12 +433,12 @@ def abrir_visor_studio(request, pk):
     recurso = get_object_or_404(RecursoEducativo3D, pk=pk, institucion=institucion)
 
     if not recurso.tiene_studio():
-        messages.error(request, 'Esta actividad no incluye el modo Studio.')
+        messages.error(request, _('Esta actividad no incluye el modo Studio.'))
         return redirect('gestion_academica:dashboard_estudiante')
 
     estudiante = _get_estudiante_o_403(request, institucion)
     if not estudiante:
-        messages.error(request, 'No tienes un perfil de estudiante en esta institución.')
+        messages.error(request, _('No tienes un perfil de estudiante en esta institución.'))
         return redirect('gestion_academica:inicio_academico')
 
     entrega, _ = EntregaRecurso3D.objects.get_or_create(
@@ -450,7 +451,7 @@ def abrir_visor_studio(request, pk):
         'recurso': recurso,
         'actividad': recurso.actividad,
         'entrega': entrega,
-        'titulo_pagina': f'Studio 3D — {recurso.actividad.titulo}',
+        'titulo_pagina': _('Studio 3D — %(recurso_actividad_ti)s') % {'recurso_actividad_ti': recurso.actividad.titulo},
     })
 
 

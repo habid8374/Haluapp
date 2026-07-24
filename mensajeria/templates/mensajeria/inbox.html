@@ -1,6 +1,7 @@
 {% extends "base_academico.html" %}
 {% load static %}
-{% block titulo %}Mensajes{% endblock %}
+{% load i18n %}
+{% block titulo %}{% trans "Mensajes" %}{% endblock %}
 {% block extra_js %}
 {{ block.super }}
 <script>
@@ -27,18 +28,18 @@
 {% block contenido %}
 <div class="container-fluid mt-3">
   <div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="h4 mb-0"><i class="bi bi-chat-dots-fill me-2 text-primary"></i>Mensajes</h2>
+    <h2 class="h4 mb-0"><i class="bi bi-chat-dots-fill me-2 text-primary"></i>{% trans "Mensajes" %}</h2>
     <div class="d-flex gap-2">
       <a href="{% url 'mensajeria:nuevo' %}" class="btn btn-sm btn-primary">
-        <i class="bi bi-pencil-square me-1"></i>Nuevo mensaje
+        <i class="bi bi-pencil-square me-1"></i>{% trans "Nuevo mensaje" %}
       </a>
       {% if mostrar_archivadas %}
         <a href="{% url 'mensajeria:inbox' %}" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-inbox-fill"></i> Bandeja principal
+          <i class="bi bi-inbox-fill"></i> {% trans "Bandeja principal" %}
         </a>
       {% else %}
         <a href="{% url 'mensajeria:inbox' %}?archivadas=1" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-archive"></i> Archivadas
+          <i class="bi bi-archive"></i> {% trans "Archivadas" %}
         </a>
       {% endif %}
     </div>
@@ -59,7 +60,7 @@
             <div class="d-flex justify-content-between">
               <span class="text-truncate">{{ otro.get_full_name }}</span>
               <small class="text-muted text-nowrap ms-2">
-                {{ conv.ultimo_mensaje_en|timesince }} atrás
+                {% blocktrans with tiempo=conv.ultimo_mensaje_en|timesince %}{{ tiempo }} atrás{% endblocktrans %}
               </small>
             </div>
             {% if conv.estudiante_contexto %}
@@ -77,7 +78,7 @@
             {% csrf_token %}
             <button type="submit"
                     class="btn btn-sm btn-outline-secondary border-0"
-                    title="{% if item.archivada %}Desarchivar{% else %}Archivar{% endif %}">
+                    title="{% if item.archivada %}{% trans 'Desarchivar' %}{% else %}{% trans 'Archivar' %}{% endif %}">
               <i class="bi bi-{% if item.archivada %}inbox{% else %}archive{% endif %}"></i>
             </button>
           </form>
@@ -90,9 +91,9 @@
       <i class="bi bi-chat-square-text" style="font-size:3rem;"></i>
       <p class="mt-3">
         {% if mostrar_archivadas %}
-          No tienes conversaciones archivadas.
+          {% trans "No tienes conversaciones archivadas." %}
         {% else %}
-          No tienes conversaciones activas. Inicia un chat desde el perfil de un docente o familiar.
+          {% trans "No tienes conversaciones activas. Inicia un chat desde el perfil de un docente o familiar." %}
         {% endif %}
       </p>
     </div>

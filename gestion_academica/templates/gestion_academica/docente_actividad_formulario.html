@@ -1,16 +1,17 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load crispy_forms_tags %}
-{% block titulo %}Formulario de Actividad Evaluativa{% endblock %}
+{% block titulo %}{% trans "Formulario de Actividad Evaluativa" %}{% endblock %}
 {% block contenido %}
 <!-- Hero -->
 <div style="background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;overflow:hidden;">
   <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);top:-70px;right:-30px;pointer-events:none;"></div>
   <div>
     <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
-      <i class="bi bi-clipboard2-check me-1"></i>Evaluación Académica
+      <i class="bi bi-clipboard2-check me-1"></i>{% trans "Evaluación Académica" %}
     </div>
-    <h2 class="mb-1 fw-800" style="font-size:1.35rem;">Actividad Evaluativa</h2>
-    <p class="mb-0" style="opacity:.82;font-size:.85rem;">Crea una actividad y asígnala a una categoría con su peso porcentual</p>
+    <h2 class="mb-1 fw-800" style="font-size:1.35rem;">{% trans "Actividad Evaluativa" %}</h2>
+    <p class="mb-0" style="opacity:.82;font-size:.85rem;">{% trans "Crea una actividad y asígnala a una categoría con su peso porcentual" %}</p>
   </div>
 </div>
 <div class="card shadow-sm border-0" style="border-radius:14px;">
@@ -20,10 +21,10 @@
       {{ form|crispy }}
       <div class="d-flex gap-2 justify-content-end mt-3">
         <a href="{% url 'gestion_academica:docente_lista_actividades' %}" class="btn btn-outline-secondary">
-          <i class="bi bi-x-circle me-1"></i>Cancelar
+          <i class="bi bi-x-circle me-1"></i>{% trans "Cancelar" %}
         </a>
         <button type="submit" class="btn btn-primary">
-          <i class="bi bi-check-circle-fill me-1"></i>Guardar Actividad
+          <i class="bi bi-check-circle-fill me-1"></i>{% trans "Guardar Actividad" %}
         </button>
       </div>
     </form>

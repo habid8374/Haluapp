@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load crispy_forms_tags %}
 {% block titulo %}{{ titulo_formulario }}{% endblock %}
 {% block contenido %}
@@ -7,10 +8,10 @@
   <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);top:-70px;right:-30px;pointer-events:none;"></div>
   <div>
     <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
-      <i class="bi bi-folder2-open me-1"></i>Recursos Didácticos
+      <i class="bi bi-folder2-open me-1"></i>{% trans "Recursos Didácticos" %}
     </div>
     <h2 class="mb-1 fw-800" style="font-size:1.35rem;">{{ titulo_formulario }}</h2>
-    <p class="mb-0" style="opacity:.82;font-size:.85rem;">Sube archivos y recursos de apoyo para tus estudiantes</p>
+    <p class="mb-0" style="opacity:.82;font-size:.85rem;">{% trans "Sube archivos y recursos de apoyo para tus estudiantes" %}</p>
   </div>
 </div>
 <div class="card shadow-sm border-0" style="border-radius:14px;">
@@ -20,10 +21,10 @@
       {{ form|crispy }}
       <div class="d-flex gap-2 justify-content-end mt-3">
         <a href="{% url 'gestion_academica:docente_lista_materiales' %}" class="btn btn-outline-secondary">
-          <i class="bi bi-x-circle me-1"></i>Cancelar
+          <i class="bi bi-x-circle me-1"></i>{% trans "Cancelar" %}
         </a>
         <button type="submit" class="btn btn-success">
-          <i class="bi bi-cloud-upload-fill me-1"></i>Guardar Material
+          <i class="bi bi-cloud-upload-fill me-1"></i>{% trans "Guardar Material" %}
         </button>
       </div>
     </form>

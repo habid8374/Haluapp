@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -135,7 +136,7 @@ def lista(request):
         docente = getattr(request.user, 'docente', None)
         mazos = mazos.filter(curso__docentes_asignados=docente) if docente else mazos.none()
     return render(request, 'flashcards/lista.html', {
-        'titulo_pagina': 'Flash Cards',
+        'titulo_pagina': _('Flash Cards'),
         'mazos': mazos,
     })
 
@@ -167,11 +168,11 @@ def crear(request):
 
         tarjetas, error = _leer_tarjetas(request)
         if not titulo or not curso or not tipo:
-            messages.error(request, "Completa el título, el curso y la categoría.")
+            messages.error(request, _("Completa el título, el curso y la categoría."))
         elif error:
             messages.error(request, error)
         elif tarjetas is None or len(tarjetas) < MIN_TARJETAS:
-            messages.error(request, f"Agrega al menos {MIN_TARJETAS} tarjetas completas.")
+            messages.error(request, _("Agrega al menos %(min_tarjetas)s tarjetas completas.") % {'min_tarjetas': MIN_TARJETAS})
         else:
             with transaction.atomic():
                 mazo = MazoFlashcard.objects.create(
@@ -182,11 +183,11 @@ def crear(request):
                 )
                 for n, t in enumerate(tarjetas, start=1):
                     TarjetaFlashcard.objects.create(mazo=mazo, orden=n, **t)
-            messages.success(request, "Mazo creado. Revísalo y publícalo para los estudiantes.")
+            messages.success(request, _("Mazo creado. Revísalo y publícalo para los estudiantes."))
             return redirect('flashcards:detalle', pk=mazo.pk)
 
     return render(request, 'flashcards/form.html', {
-        'titulo_pagina': 'Nuevo mazo de flash cards',
+        'titulo_pagina': _('Nuevo mazo de flash cards'),
         'cursos': cursos, 'tipos': tipos,
     })
 
@@ -217,7 +218,7 @@ def editar_datos(request, pk):
     mazo = get_object_or_404(_scope(MazoFlashcard.objects.all(), request.user), pk=pk)
     titulo = (request.POST.get('titulo') or '').strip()
     if not titulo:
-        messages.error(request, "El título no puede quedar vacío.")
+        messages.error(request, _("El título no puede quedar vacío."))
         return redirect('flashcards:detalle', pk=mazo.pk)
     mazo.titulo = titulo
     mazo.instrucciones = (request.POST.get('instrucciones') or '').strip()
@@ -235,7 +236,7 @@ def editar_datos(request, pk):
         act.tipo_actividad = mazo.tipo_actividad
         act.descripcion = mazo.instrucciones or None
         act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
-    messages.success(request, "Datos actualizados.")
+    messages.success(request, _("Datos actualizados."))
     return redirect('flashcards:detalle', pk=mazo.pk)
 
 
@@ -248,15 +249,15 @@ def editar_tarjeta(request, pk, tarjeta_pk):
     respuesta = (request.POST.get('respuesta') or '').strip()[:80]
     pista = (request.POST.get('pista') or '').strip()[:300]
     if not respuesta:
-        messages.error(request, "La respuesta no puede quedar vacía.")
+        messages.error(request, _("La respuesta no puede quedar vacía."))
         return redirect('flashcards:detalle', pk=mazo.pk)
     imagen = request.FILES.get('imagen')
     if imagen and not _imagen_valida(imagen):
-        messages.error(request, "La imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
+        messages.error(request, _("La imagen debe pesar máximo 2 MB y ser un archivo de imagen."))
         return redirect('flashcards:detalle', pk=mazo.pk)
     audio = request.FILES.get('audio')
     if audio and not _audio_valido(audio):
-        messages.error(request, "El audio debe pesar máximo 3 MB.")
+        messages.error(request, _("El audio debe pesar máximo 3 MB."))
         return redirect('flashcards:detalle', pk=mazo.pk)
     tarjeta.respuesta = respuesta
     tarjeta.pista = pista
@@ -269,10 +270,10 @@ def editar_tarjeta(request, pk, tarjeta_pk):
     elif request.POST.get('quitar_audio') == 'on':
         tarjeta.audio = None
     if not tarjeta.pista and not tarjeta.imagen:
-        messages.error(request, "Cada tarjeta necesita una imagen o una descripción/pista.")
+        messages.error(request, _("Cada tarjeta necesita una imagen o una descripción/pista."))
         return redirect('flashcards:detalle', pk=mazo.pk)
     tarjeta.save()
-    messages.success(request, "Tarjeta actualizada.")
+    messages.success(request, _("Tarjeta actualizada."))
     return redirect('flashcards:detalle', pk=mazo.pk)
 
 
@@ -285,15 +286,15 @@ def agregar_tarjeta(request, pk):
     if error:
         messages.error(request, error)
     elif not tarjetas:
-        messages.error(request, "La tarjeta está incompleta: necesita respuesta y una imagen o pista.")
+        messages.error(request, _("La tarjeta está incompleta: necesita respuesta y una imagen o pista."))
     elif mazo.tarjetas.count() + len(tarjetas) > MAX_TARJETAS:
-        messages.error(request, f"Máximo {MAX_TARJETAS} tarjetas por mazo.")
+        messages.error(request, _("Máximo %(max_tarjetas)s tarjetas por mazo.") % {'max_tarjetas': MAX_TARJETAS})
     else:
         ultimo = mazo.tarjetas.order_by('-orden').first()
         base = (ultimo.orden if ultimo else 0)
         for n, t in enumerate(tarjetas, start=1):
             TarjetaFlashcard.objects.create(mazo=mazo, orden=base + n, **t)
-        messages.success(request, "Tarjeta agregada.")
+        messages.success(request, _("Tarjeta agregada."))
     return redirect('flashcards:detalle', pk=mazo.pk)
 
 
@@ -304,7 +305,7 @@ def eliminar_tarjeta(request, pk, tarjeta_pk):
     mazo = get_object_or_404(_scope(MazoFlashcard.objects.all(), request.user), pk=pk)
     tarjeta = get_object_or_404(TarjetaFlashcard, pk=tarjeta_pk, mazo=mazo)
     tarjeta.delete()
-    messages.success(request, "Tarjeta eliminada.")
+    messages.success(request, _("Tarjeta eliminada."))
     return redirect('flashcards:detalle', pk=mazo.pk)
 
 
@@ -314,7 +315,7 @@ def publicar(request, pk):
     _solo_docente_coord(request.user)
     mazo = get_object_or_404(_scope(MazoFlashcard.objects.all(), request.user), pk=pk)
     if mazo.tarjetas.count() < MIN_TARJETAS:
-        messages.error(request, f"Necesitas al menos {MIN_TARJETAS} tarjetas para publicar.")
+        messages.error(request, _("Necesitas al menos %(min_tarjetas)s tarjetas para publicar.") % {'min_tarjetas': MIN_TARJETAS})
         return redirect('flashcards:detalle', pk=mazo.pk)
     from gestion_academica.models import ActividadCalificable
     with transaction.atomic():
@@ -327,7 +328,7 @@ def publicar(request, pk):
             mazo.actividad_calificable = act
         mazo.estado = MazoFlashcard.Estado.PUBLICADO
         mazo.save(update_fields=['actividad_calificable', 'estado'])
-    messages.success(request, "¡Mazo publicado! Ya aparece a los estudiantes del curso.")
+    messages.success(request, _("¡Mazo publicado! Ya aparece a los estudiantes del curso."))
     return redirect('flashcards:detalle', pk=mazo.pk)
 
 
@@ -339,7 +340,7 @@ def cerrar(request, pk):
     mazo.estado = MazoFlashcard.Estado.CERRADO
     mazo.fecha_cierre = timezone.now()
     mazo.save(update_fields=['estado', 'fecha_cierre'])
-    messages.success(request, "Mazo cerrado.")
+    messages.success(request, _("Mazo cerrado."))
     return redirect('flashcards:detalle', pk=mazo.pk)
 
 
@@ -351,7 +352,7 @@ def editar_fechas(request, pk):
     mazo.fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
     mazo.fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
     mazo.save(update_fields=['fecha_inicio', 'fecha_fin'])
-    messages.success(request, "Fechas actualizadas.")
+    messages.success(request, _("Fechas actualizadas."))
     return redirect('flashcards:detalle', pk=mazo.pk)
 
 
@@ -361,7 +362,7 @@ def eliminar(request, pk):
     _solo_docente_coord(request.user)
     mazo = get_object_or_404(_scope(MazoFlashcard.objects.all(), request.user), pk=pk)
     mazo.delete()
-    messages.success(request, "Mazo eliminado.")
+    messages.success(request, _("Mazo eliminado."))
     return redirect('flashcards:lista')
 
 
@@ -374,7 +375,7 @@ def resultados(request, pk):
     intentos = mazo.intentos.select_related('estudiante__usuario').order_by(
         '-porcentaje', 'estudiante__usuario__first_name')
     return render(request, 'flashcards/resultados.html', {
-        'titulo_pagina': f'Resultados: {mazo.titulo}',
+        'titulo_pagina': _('Resultados: %(mazo_titulo)s') % {'mazo_titulo': mazo.titulo},
         'mazo': mazo,
         'intentos': intentos,
     })
@@ -392,7 +393,7 @@ def mis_mazos(request):
         raise PermissionDenied
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'flashcards/mis_mazos.html', {'titulo_pagina': 'Flash Cards', 'items': []})
+        return render(request, 'flashcards/mis_mazos.html', {'titulo_pagina': _('Flash Cards'), 'items': []})
 
     mazos = MazoFlashcard.objects.filter(
         institucion=estudiante.institucion,
@@ -408,7 +409,7 @@ def mis_mazos(request):
         disp, msg = m.estado_disponibilidad()
         items.append({'mazo': m, 'intento': hechos.get(m.id), 'disp': disp, 'msg': msg})
     return render(request, 'flashcards/mis_mazos.html', {
-        'titulo_pagina': 'Flash Cards', 'items': items,
+        'titulo_pagina': _('Flash Cards'), 'items': items,
     })
 
 
@@ -558,7 +559,7 @@ def resultado(request, pk):
     mazo = get_object_or_404(MazoFlashcard, pk=pk, institucion=estudiante.institucion)
     intento = get_object_or_404(IntentoFlashcard, mazo=mazo, estudiante=estudiante, completado=True)
     return render(request, 'flashcards/resultado.html', {
-        'titulo_pagina': f'Resultado: {mazo.titulo}',
+        'titulo_pagina': _('Resultado: %(mazo_titulo)s') % {'mazo_titulo': mazo.titulo},
         'mazo': mazo,
         'intento': intento,
     })

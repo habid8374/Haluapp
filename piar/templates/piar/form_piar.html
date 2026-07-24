@@ -1,10 +1,11 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container mt-3" style="max-width:900px;">
   <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem;color:#fff;margin-bottom:1.5rem;">
     <h2 class="fw-bold mb-1" style="font-size:1.35rem;color:#fff;"><i class="bi bi-person-hearts me-2"></i>{{ titulo_pagina }}</h2>
-    <p class="mb-0" style="opacity:.85;font-size:.88rem;color:#fff;">Decreto 1421 de 2017 · Plan Individual de Ajustes Razonables</p>
+    <p class="mb-0" style="opacity:.85;font-size:.88rem;color:#fff;">{% trans "Decreto 1421 de 2017 · Plan Individual de Ajustes Razonables" %}</p>
   </div>
   {% if messages %}{% for m in messages %}
   <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
@@ -14,15 +15,15 @@
     <!-- Sección 1: Datos básicos -->
     <div class="card shadow-sm mb-3">
       <div class="card-header fw-bold" style="background:#f8fafc;font-size:.9rem;">
-        <i class="bi bi-person-fill me-2 text-primary"></i>1. Datos del Estudiante y Condición
+        <i class="bi bi-person-fill me-2 text-primary"></i>{% trans "1. Datos del Estudiante y Condición" %}
       </div>
       <div class="card-body">
         <div class="row g-3">
           {% if not piar %}
           <div class="col-md-8">
-            <label class="form-label small fw-bold">Estudiante <span class="text-danger">*</span></label>
+            <label class="form-label small fw-bold">{% trans "Estudiante" %} <span class="text-danger">*</span></label>
             <select name="estudiante" class="form-select" required>
-              <option value="">— Selecciona un estudiante —</option>
+              <option value="">{% trans "— Selecciona un estudiante —" %}</option>
               {% for e in estudiantes %}
               <option value="{{ e.pk }}">{{ e.usuario.get_full_name }}{% if e.grado_actual %} ({{ e.grado_actual.nombre }}){% endif %}</option>
               {% endfor %}
@@ -30,20 +31,20 @@
           </div>
           {% endif %}
           <div class="col-md-4">
-            <label class="form-label small fw-bold">Año lectivo <span class="text-danger">*</span></label>
+            <label class="form-label small fw-bold">{% trans "Año lectivo" %} <span class="text-danger">*</span></label>
             <input type="number" name="año_lectivo" class="form-control" value="{{ piar.año_lectivo|default:año_actual }}" min="2020" max="2040" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label small fw-bold">Grado</label>
+            <label class="form-label small fw-bold">{% trans "Grado" %}</label>
             <select name="grado" class="form-select">
-              <option value="">— Automático (desde el estudiante) —</option>
+              <option value="">{% trans "— Automático (desde el estudiante) —" %}</option>
               {% for g in grados %}
               <option value="{{ g.pk }}" {% if piar and piar.grado_id == g.pk %}selected{% endif %}>{{ g.nombre }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-6">
-            <label class="form-label small fw-bold">Tipo de condición <span class="text-danger">*</span></label>
+            <label class="form-label small fw-bold">{% trans "Tipo de condición" %} <span class="text-danger">*</span></label>
             <select name="condicion" class="form-select" required>
               {% for val, label in condiciones %}
               <option value="{{ val }}" {% if piar and piar.condicion == val %}selected{% endif %}>{{ label }}</option>
@@ -51,8 +52,8 @@
             </select>
           </div>
           <div class="col-12">
-            <label class="form-label small fw-bold">Descripción diagnóstica</label>
-            <textarea name="condicion_descripcion" class="form-control form-control-sm" rows="2" placeholder="Diagnóstico médico o psicopedagógico, código CIE-10 si aplica...">{{ piar.condicion_descripcion|default:'' }}</textarea>
+            <label class="form-label small fw-bold">{% trans "Descripción diagnóstica" %}</label>
+            <textarea name="condicion_descripcion" class="form-control form-control-sm" rows="2" placeholder="{% trans 'Diagnóstico médico o psicopedagógico, código CIE-10 si aplica...' %}">{{ piar.condicion_descripcion|default:'' }}</textarea>
           </div>
         </div>
       </div>
@@ -60,20 +61,20 @@
     <!-- Sección 2: Caracterización pedagógica -->
     <div class="card shadow-sm mb-3">
       <div class="card-header fw-bold" style="background:#f8fafc;font-size:.9rem;">
-        <i class="bi bi-lightbulb-fill me-2 text-warning"></i>2. Caracterización Pedagógica
+        <i class="bi bi-lightbulb-fill me-2 text-warning"></i>{% trans "2. Caracterización Pedagógica" %}
       </div>
       <div class="card-body row g-3">
         <div class="col-md-4">
-          <label class="form-label small fw-bold">Fortalezas del estudiante <span class="text-danger">*</span></label>
-          <textarea name="fortalezas" class="form-control form-control-sm" rows="4" placeholder="Habilidades, intereses, destrezas que el estudiante posee..." required>{{ piar.fortalezas|default:'' }}</textarea>
+          <label class="form-label small fw-bold">{% trans "Fortalezas del estudiante" %} <span class="text-danger">*</span></label>
+          <textarea name="fortalezas" class="form-control form-control-sm" rows="4" placeholder="{% trans 'Habilidades, intereses, destrezas que el estudiante posee...' %}" required>{{ piar.fortalezas|default:'' }}</textarea>
         </div>
         <div class="col-md-4">
-          <label class="form-label small fw-bold">Barreras de aprendizaje <span class="text-danger">*</span></label>
-          <textarea name="barreras" class="form-control form-control-sm" rows="4" placeholder="Obstáculos físicos, comunicativos, actitudinales..." required>{{ piar.barreras|default:'' }}</textarea>
+          <label class="form-label small fw-bold">{% trans "Barreras de aprendizaje" %} <span class="text-danger">*</span></label>
+          <textarea name="barreras" class="form-control form-control-sm" rows="4" placeholder="{% trans 'Obstáculos físicos, comunicativos, actitudinales...' %}" required>{{ piar.barreras|default:'' }}</textarea>
         </div>
         <div class="col-md-4">
-          <label class="form-label small fw-bold">Apoyos requeridos <span class="text-danger">*</span></label>
-          <textarea name="apoyos" class="form-control form-control-sm" rows="4" placeholder="Materiales, tecnologías, personas de apoyo..." required>{{ piar.apoyos|default:'' }}</textarea>
+          <label class="form-label small fw-bold">{% trans "Apoyos requeridos" %} <span class="text-danger">*</span></label>
+          <textarea name="apoyos" class="form-control form-control-sm" rows="4" placeholder="{% trans 'Materiales, tecnologías, personas de apoyo...' %}" required>{{ piar.apoyos|default:'' }}</textarea>
         </div>
       </div>
     </div>
@@ -135,9 +136,9 @@
       </div>
     </div>
     <div class="d-flex gap-2 justify-content-end mt-3 mb-4">
-      <a href="{% url 'piar:lista_piars' %}" class="btn btn-outline-secondary">Cancelar</a>
+      <a href="{% url 'piar:lista_piars' %}" class="btn btn-outline-secondary">{% trans "Cancelar" %}</a>
       <button type="submit" class="btn btn-primary fw-bold">
-        <i class="bi bi-save me-1"></i>{% if piar %}Guardar cambios{% else %}Crear PIAR{% endif %}
+        <i class="bi bi-save me-1"></i>{% if piar %}{% trans "Guardar cambios" %}{% else %}{% trans "Crear PIAR" %}{% endif %}
       </button>
     </div>
   </form>

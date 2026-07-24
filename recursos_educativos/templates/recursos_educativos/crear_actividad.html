@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
 {% block contenido %}
@@ -52,8 +53,8 @@
         <i class="bi bi-arrow-left-circle-fill" style="font-size:1.4rem;"></i>
       </a>
       <div>
-        <h1 class="ps-hero-title"><i class="bi bi-plus-circle-fill me-2" style="opacity:.85"></i>Nueva Actividad 3D</h1>
-        <p class="ps-hero-sub">Asigna el visor del Cuerpo Humano a uno de tus cursos</p>
+        <h1 class="ps-hero-title"><i class="bi bi-plus-circle-fill me-2" style="opacity:.85"></i>{% trans "Nueva Actividad 3D" %}</h1>
+        <p class="ps-hero-sub">{% trans "Asigna el visor del Cuerpo Humano a uno de tus cursos" %}</p>
       </div>
     </div>
   </div>
@@ -64,9 +65,9 @@
 
       <!-- Curso -->
       <div class="mb-4">
-        <label class="ps-label" for="curso">Curso <span>*</span></label>
+        <label class="ps-label" for="curso">{% trans "Curso" %} <span>*</span></label>
         <select name="curso" id="curso" class="ps-input" required>
-          <option value="">— Selecciona un curso —</option>
+          <option value="">— {% trans "Selecciona un curso" %} —</option>
           {% for c in cursos %}
             <option value="{{ c.pk }}" {% if post_data.curso == c.pk|stringformat:"s" %}selected{% endif %}>
               {{ c.materia.nombre_materia }} · {{ c.grado.nombre }}
@@ -74,30 +75,30 @@
           {% endfor %}
         </select>
         {% if not cursos %}
-          <p class="mt-1" style="font-size:.8rem;color:#ef4444;">No tienes cursos asignados en esta institución.</p>
+          <p class="mt-1" style="font-size:.8rem;color:#ef4444;">{% trans "No tienes cursos asignados en esta institución." %}</p>
         {% endif %}
       </div>
 
       <!-- Título -->
       <div class="mb-4">
-        <label class="ps-label" for="titulo">Título de la actividad <span>*</span></label>
+        <label class="ps-label" for="titulo">{% trans "Título de la actividad" %} <span>*</span></label>
         <input type="text" name="titulo" id="titulo" class="ps-input"
-               placeholder="ej: Explora los órganos del cuerpo humano"
+               placeholder="{% trans 'ej: Explora los órganos del cuerpo humano' %}"
                value="{{ post_data.titulo|default:'' }}" required maxlength="200">
       </div>
 
       <!-- Descripción -->
       <div class="mb-4">
-        <label class="ps-label" for="descripcion">Descripción / Instrucciones</label>
+        <label class="ps-label" for="descripcion">{% trans "Descripción / Instrucciones" %}</label>
         <textarea name="descripcion" id="descripcion" class="ps-input"
-                  placeholder="Instrucciones para los estudiantes...">{{ post_data.descripcion|default:'' }}</textarea>
+                  placeholder="{% trans 'Instrucciones para los estudiantes...' %}">{{ post_data.descripcion|default:'' }}</textarea>
       </div>
 
       <!-- Categoría / Tipo de actividad -->
       <div class="mb-4">
-        <label class="ps-label" for="tipo_actividad">Categoría <span>*</span></label>
+        <label class="ps-label" for="tipo_actividad">{% trans "Categoría" %} <span>*</span></label>
         <select name="tipo_actividad" id="tipo_actividad" class="ps-input" {% if tipos_actividad %}required{% endif %}>
-          <option value="">— Selecciona una categoría —</option>
+          <option value="">— {% trans "Selecciona una categoría" %} —</option>
           {% for tipo in tipos_actividad %}
             <option value="{{ tipo.pk }}"
               {% if post_data.tipo_actividad == tipo.pk|stringformat:"s" %}selected{% endif %}>
@@ -107,14 +108,14 @@
         </select>
         {% if not tipos_actividad %}
           <p class="mt-1" style="font-size:.8rem;color:#ef4444;">
-            No hay categorías configuradas. Crea una en <strong>Tipos de Actividad</strong> primero.
+            {% blocktrans %}No hay categorías configuradas. Crea una en <strong>Tipos de Actividad</strong> primero.{% endblocktrans %}
           </p>
         {% endif %}
       </div>
 
       <!-- Modo del recurso 3D -->
       <div class="mb-4">
-        <label class="ps-label" for="modo">Modo de la actividad <span>*</span></label>
+        <label class="ps-label" for="modo">{% trans "Modo de la actividad" %} <span>*</span></label>
         <select name="modo" id="modo" class="ps-input" required>
           {% for valor, etiqueta in modos %}
             <option value="{{ valor }}"
@@ -124,24 +125,24 @@
           {% endfor %}
         </select>
         <small style="font-size:.75rem;color:#94a3b8;">
-          <strong>Galería</strong>: el docente proyecta y explora los órganos en clase ·
-          <strong>Studio</strong>: el estudiante ubica los 13 órganos y se autocalifica al completarlos.
+          {% blocktrans %}<strong>Galería</strong>: el docente proyecta y explora los órganos en clase ·
+          <strong>Studio</strong>: el estudiante ubica los 13 órganos y se autocalifica al completarlos.{% endblocktrans %}
         </small>
       </div>
 
       <!-- Nota máxima + Fecha límite -->
       <div class="row g-3 mb-4">
         <div class="col-sm-6">
-          <label class="ps-label" for="valor_maximo">Nota máxima <span>*</span></label>
+          <label class="ps-label" for="valor_maximo">{% trans "Nota máxima" %} <span>*</span></label>
           <input type="number" name="valor_maximo" id="valor_maximo" class="ps-input"
                  step="0.01" min="0.01" max="100"
                  value="{{ post_data.valor_maximo|default:'5.00' }}" required>
           <small style="font-size:.75rem;color:#94a3b8;">
-            Nota máxima que puede obtener el estudiante al completar la actividad.
+            {% trans "Nota máxima que puede obtener el estudiante al completar la actividad." %}
           </small>
         </div>
         <div class="col-sm-6">
-          <label class="ps-label" for="fecha_entrega_limite">Fecha límite de entrega</label>
+          <label class="ps-label" for="fecha_entrega_limite">{% trans "Fecha límite de entrega" %}</label>
           <input type="date" name="fecha_entrega_limite" id="fecha_entrega_limite" class="ps-input"
                  value="{{ post_data.fecha_entrega_limite|default:'' }}">
         </div>
@@ -149,10 +150,10 @@
 
       <div class="d-flex align-items-center gap-3 pt-2">
         <button type="submit" class="ps-btn-submit" {% if not cursos %}disabled{% endif %}>
-          <i class="bi bi-check-circle-fill"></i> Crear actividad y notificar estudiantes
+          <i class="bi bi-check-circle-fill"></i> {% trans "Crear actividad y notificar estudiantes" %}
         </button>
         <a href="{% url 'recursos_educativos:lista' %}" style="font-size:.88rem;color:#64748b;text-decoration:none;">
-          Cancelar
+          {% trans "Cancelar" %}
         </a>
       </div>
 

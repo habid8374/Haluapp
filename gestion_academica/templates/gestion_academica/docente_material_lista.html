@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <!-- Hero -->
@@ -7,13 +8,13 @@
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
     <div>
       <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
-        <i class="bi bi-folder2-open me-1"></i>Recursos Didácticos
+        <i class="bi bi-folder2-open me-1"></i>{% trans "Recursos Didácticos" %}
       </div>
       <h2 class="mb-1 fw-800" style="font-size:1.4rem;">{{ titulo_pagina }}</h2>
-      <p class="mb-0" style="opacity:.82;font-size:.88rem;">Archivos y materiales de apoyo para tus estudiantes</p>
+      <p class="mb-0" style="opacity:.82;font-size:.88rem;">{% trans "Archivos y materiales de apoyo para tus estudiantes" %}</p>
     </div>
     <a href="{% url 'gestion_academica:docente_crear_material' %}" class="btn btn-light btn-sm fw-600">
-      <i class="bi bi-cloud-upload-fill me-1"></i>Subir Material
+      <i class="bi bi-cloud-upload-fill me-1"></i>{% trans "Subir Material" %}
     </a>
   </div>
 </div>
@@ -24,11 +25,11 @@
       <table class="table table-hover align-middle mb-0">
         <thead style="background:#f0fdf4;">
           <tr>
-            <th class="ps-4 py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">Archivo</th>
-            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">Tipo</th>
-            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">Curso</th>
-            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">Fecha</th>
-            <th class="py-3 text-center pe-4" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">Acciones</th>
+            <th class="ps-4 py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">{% trans "Archivo" %}</th>
+            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">{% trans "Tipo" %}</th>
+            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">{% trans "Curso" %}</th>
+            <th class="py-3" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">{% trans "Fecha" %}</th>
+            <th class="py-3 text-center pe-4" style="font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid #bbf7d0;">{% trans "Acciones" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -49,19 +50,20 @@
                 {{ archivo.tipo_documento|default:"N/A" }}
               </span>
             </td>
-            <td class="py-3" style="color:#6b7280;font-size:.85rem;">{{ archivo.curso_asociado|default:"General" }}</td>
+            {% trans "General" as csl_general_label %}
+            <td class="py-3" style="color:#6b7280;font-size:.85rem;">{{ archivo.curso_asociado|default:csl_general_label }}</td>
             <td class="py-3" style="color:#6b7280;font-size:.85rem;">
               <i class="bi bi-calendar3 me-1"></i>{{ archivo.fecha_subida|date:"d M, Y" }}
             </td>
             <td class="py-3 pe-4 text-center">
               <div class="btn-group btn-group-sm" role="group">
-                <a href="{{ archivo.archivo.url }}" target="_blank" class="btn btn-outline-secondary" title="Descargar archivo">
+                <a href="{{ archivo.archivo.url }}" target="_blank" class="btn btn-outline-secondary" title="{% trans 'Descargar archivo' %}">
                   <i class="bi bi-download"></i>
                 </a>
-                <a href="{% url 'gestion_academica:docente_editar_material' pk=archivo.pk %}" class="btn btn-warning" title="Editar material">
+                <a href="{% url 'gestion_academica:docente_editar_material' pk=archivo.pk %}" class="btn btn-warning" title="{% trans 'Editar material' %}">
                   <i class="bi bi-pencil-fill"></i>
                 </a>
-                <a href="{% url 'gestion_academica:docente_eliminar_material' pk=archivo.pk %}" class="btn btn-danger" title="Eliminar material">
+                <a href="{% url 'gestion_academica:docente_eliminar_material' pk=archivo.pk %}" class="btn btn-danger" title="{% trans 'Eliminar material' %}">
                   <i class="bi bi-trash-fill"></i>
                 </a>
               </div>
@@ -71,7 +73,7 @@
           <tr>
             <td colspan="5" class="text-center py-5" style="color:#9ca3af;">
               <i class="bi bi-folder2" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-              Aún no has subido ningún material.
+              {% trans "Aún no has subido ningún material." %}
             </td>
           </tr>
           {% endfor %}
@@ -81,9 +83,9 @@
     {% else %}
     <div class="text-center py-5" style="color:#9ca3af;">
       <i class="bi bi-folder2" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
-      <p class="mb-3">Aún no has subido ningún material de apoyo.</p>
+      <p class="mb-3">{% trans "Aún no has subido ningún material de apoyo." %}</p>
       <a href="{% url 'gestion_academica:docente_crear_material' %}" class="btn btn-success btn-sm">
-        <i class="bi bi-cloud-upload-fill me-1"></i>Subir primer material
+        <i class="bi bi-cloud-upload-fill me-1"></i>{% trans "Subir primer material" %}
       </a>
     </div>
     {% endif %}

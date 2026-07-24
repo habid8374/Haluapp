@@ -1,35 +1,36 @@
 {% extends "base_academico.html" %}
-{% block titulo %}Gestión de Mi Banco de Descriptores{% endblock %}
+{% load i18n %}
+{% block titulo %}{% trans "Gestión de Mi Banco de Descriptores" %}{% endblock %}
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-        <h1 class="mb-0 h2">Mi Banco de Descriptores</h1>
+        <h1 class="mb-0 h2">{% trans "Mi Banco de Descriptores" %}</h1>
         <a href="{% url 'gestion_academica:docente_crear_descriptor' %}" class="btn btn-outline-primary">
-            <i class="bi bi-plus-circle me-1"></i>Crear uno por uno
+            <i class="bi bi-plus-circle me-1"></i>{% trans "Crear uno por uno" %}
         </a>
     </div>
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-light">
-            <h3 class="mb-0 h5">Gestión por Plantilla (Carga Masiva)</h3>
+            <h3 class="mb-0 h5">{% trans "Gestión por Plantilla (Carga Masiva)" %}</h3>
         </div>
         <div class="card-body">
-            <p class="text-muted small">Ahorra tiempo creando todos tus descriptores a la vez desde un archivo Excel.</p>
+            <p class="text-muted small">{% trans "Ahorra tiempo creando todos tus descriptores a la vez desde un archivo Excel." %}</p>
             <div class="row">
                 <div class="col-md-6 border-end-md">
-                    <h5>Paso 1: Descargar</h5>
-                    <p>Obtén la plantilla personalizada. Contendrá solo las materias que tienes asignadas.</p>
+                    <h5>{% trans "Paso 1: Descargar" %}</h5>
+                    <p>{% trans "Obtén la plantilla personalizada. Contendrá solo las materias que tienes asignadas." %}</p>
                     <a href="{% url 'gestion_academica:docente_descargar_plantilla' %}" class="btn btn-success">
-                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Descargar Plantilla
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> {% trans "Descargar Plantilla" %}
                     </a>
                 </div>
                 <div class="col-md-6 mt-3 mt-md-0">
-                    <h5>Paso 2: Importar</h5>
-                    <p>Una vez llena, sube la plantilla aquí para añadirla a tu banco de descriptores.</p>
+                    <h5>{% trans "Paso 2: Importar" %}</h5>
+                    <p>{% trans "Una vez llena, sube la plantilla aquí para añadirla a tu banco de descriptores." %}</p>
                     <form method="post" enctype="multipart/form-data" action="{% url 'gestion_academica:docente_lista_descriptores' %}">
                         {% csrf_token %}
                         {{ upload_form.file }}
                         <button type="submit" class="btn btn-primary mt-2">
-                            <i class="bi bi-upload me-1"></i> Importar Archivo
+                            <i class="bi bi-upload me-1"></i> {% trans "Importar Archivo" %}
                         </button>
                     </form>
                 </div>
@@ -44,16 +45,16 @@
             </div>
         {% endfor %}
     {% endif %}
-    <h3 class="mb-3 h4">Listado Actual</h3>
+    <h3 class="mb-3 h4">{% trans "Listado Actual" %}</h3>
     <div class="card shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Descripción</th>
-                        <th>Materia</th>
-                        <th>Periodo</th>
-                        <th class="text-end">Acciones</th>
+                        <th>{% trans "Descripción" %}</th>
+                        <th>{% trans "Materia" %}</th>
+                        <th>{% trans "Periodo" %}</th>
+                        <th class="text-end">{% trans "Acciones" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -63,15 +64,15 @@
                         <td>{{ item.materia.nombre_materia }}</td>
                         <td>{{ item.periodo_academico }}</td>
                         <td class="text-end">
-                            <a href="{% url 'gestion_academica:docente_editar_descriptor' pk=item.pk %}" class="btn btn-sm btn-warning" title="Editar"><i class="bi bi-pencil-fill"></i></a>
-                            <a href="{% url 'gestion_academica:docente_eliminar_descriptor' pk=item.pk %}" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash-fill"></i></a>
+                            <a href="{% url 'gestion_academica:docente_editar_descriptor' pk=item.pk %}" class="btn btn-sm btn-warning" title="{% trans 'Editar' %}"><i class="bi bi-pencil-fill"></i></a>
+                            <a href="{% url 'gestion_academica:docente_eliminar_descriptor' pk=item.pk %}" class="btn btn-sm btn-danger" title="{% trans 'Eliminar' %}"><i class="bi bi-trash-fill"></i></a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td colspan="4" class="text-center text-muted p-4">
-                            Aún no has creado ningún descriptor. <br>
-                            Usa el botón "Crear uno por uno" o la plantilla de carga masiva para empezar.
+                            {% blocktrans %}Aún no has creado ningún descriptor. <br>
+                            Usa el botón "Crear uno por uno" o la plantilla de carga masiva para empezar.{% endblocktrans %}
                         </td>
                     </tr>
                     {% endfor %}

@@ -1,21 +1,22 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
 {% block contenido %}
 <div class="container mt-4">
-    <div id="cuestionario-app" 
+    <div id="cuestionario-app"
          data-intento-id="{{ intento.pk }}"
          data-actividad-id="{{ cuestionario.actividad_calificable.pk }}"
          data-tiempo-limite="{{ cuestionario.tiempo_limite }}"
          data-submit-url="{% url 'cuestionarios:resolver_api' intento.pk %}"
          data-api-url="{% url 'cuestionarios:api_cuestionario' cuestionario.actividad_calificable.pk %}"
          data-csrf-token="{{ csrf_token }}">
-        
+
         <div class="text-center">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando cuestionario...</span>
+                <span class="visually-hidden">{% trans "Cargando cuestionario..." %}</span>
             </div>
-            <p class="mt-2">Cargando cuestionario...</p>
+            <p class="mt-2">{% trans "Cargando cuestionario..." %}</p>
         </div>
 
     </div>
@@ -226,15 +227,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(res => res.json())
         .then(data => {
             if (data.error) {
-                app.innerHTML = `<div class="alert alert-danger"><h4>Error</h4><p>${esc(data.error)}</p></div>`;
+                app.innerHTML = `<div class="alert alert-danger"><h4>{% trans "Error" %}</h4><p>${esc(data.error)}</p></div>`;
                 return;
             }
             app.innerHTML = `
                 <div class="alert alert-success text-center">
-                    <h4>¡Cuestionario Finalizado!</h4>
+                    <h4>{% trans "¡Cuestionario Finalizado!" %}</h4>
                     <p>${esc(data.mensaje)}</p>
-                    <p class="fs-4">Tu puntaje: <strong>${data.puntaje_obtenido} / ${data.puntaje_maximo}</strong></p>
-                    <a href="{% url 'gestion_academica:dashboard_estudiante' %}" class="btn btn-primary mt-3">Volver al Dashboard</a>
+                    <p class="fs-4">{% trans "Tu puntaje:" %} <strong>${data.puntaje_obtenido} / ${data.puntaje_maximo}</strong></p>
+                    <a href="{% url 'gestion_academica:dashboard_estudiante' %}" class="btn btn-primary mt-3">{% trans "Volver al Dashboard" %}</a>
                 </div>
             `;
         })
@@ -254,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
             renderizarCuestionario();
         })
         .catch(error => {
-            app.innerHTML = `<div class="alert alert-danger"><h4>Error</h4><p>${esc(error.message)}</p></div>`;
+            app.innerHTML = `<div class="alert alert-danger"><h4>{% trans "Error" %}</h4><p>${esc(error.message)}</p></div>`;
         });
 });
 </script>

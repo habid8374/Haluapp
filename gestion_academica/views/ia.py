@@ -18,6 +18,7 @@ from django.views.generic import View, ListView, CreateView, UpdateView, DeleteV
 from django.http import JsonResponse, HttpResponse
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
 from django.db.models import Avg, Count, Q, Prefetch
@@ -999,7 +1000,7 @@ def planeacion_clases_view(request):
     try:
         docente = request.user.docente
     except AttributeError:
-        messages.error(request, "Acceso denegado. Esta sección es solo para docentes.")
+        messages.error(request, _("Acceso denegado. Esta sección es solo para docentes."))
         return redirect('gestion_academica:inicio_academico')
 
     if request.method == 'POST':
@@ -1021,8 +1022,8 @@ def planeacion_clases_view(request):
             generar_contenido_planeacion_task.delay(planeacion.pk)
             
             # 5. Redirige al usuario DIRECTAMENTE a la página de detalle
-            messages.info(request, "La generación de la planeación ha comenzado. La página se actualizará automáticamente.")
-            return redirect('gestion_academica:planeacion_detalle', pk=planeacion.pk) 
+            messages.info(request, _("La generación de la planeación ha comenzado. La página se actualizará automáticamente."))
+            return redirect('gestion_academica:planeacion_detalle', pk=planeacion.pk)
             # --- FIN DE LA CORRECCIÓN CLAVE ---
 
     else:
@@ -1031,7 +1032,7 @@ def planeacion_clases_view(request):
     planeaciones_existentes = PlaneacionClase.objects.filter(docente=docente).select_related('curso__materia', 'curso__grado')
 
     context = {
-        'titulo_pagina': "Planeador de Clases con IA",
+        'titulo_pagina': _("Planeador de Clases con IA"),
         'form': form,
         'planeaciones': planeaciones_existentes
     }
@@ -1055,13 +1056,13 @@ def planeacion_detalle_view(request, pk):
 
         # Despachamos la tarea a Celery. Esto es instantáneo.
         generar_contenido_planeacion_task.delay(planeacion.id)
-        
-        messages.info(request, "La IA ha comenzado a generar tu planeación. La página se actualizará automáticamente cuando esté lista.")
+
+        messages.info(request, _("La IA ha comenzado a generar tu planeación. La página se actualizará automáticamente cuando esté lista."))
         # Redirigimos de vuelta a la misma página para mostrar el estado "Generando..."
         return redirect('gestion_academica:planeacion_detalle', pk=pk)
 
     context = {
-        'titulo_pagina': f"Planeación: {planeacion.titulo}",
+        'titulo_pagina': _("Planeación: %(titulo)s") % {'titulo': planeacion.titulo},
         'planeacion': planeacion,
     }
     return render(request, 'gestion_academica/planeacion_detalle.html', context)
@@ -1081,9 +1082,9 @@ def cancelar_generacion_planeacion(request, pk):
         planeacion.estado_generacion = PlaneacionClase.EstadoGeneracion.FALLIDO
         planeacion.error_generacion = "El proceso de generación fue cancelado manualmente por el usuario."
         planeacion.save()
-        messages.warning(request, "El proceso de generación de la planeación ha sido detenido.")
+        messages.warning(request, _("El proceso de generación de la planeación ha sido detenido."))
     else:
-        messages.info(request, "Esta planeación no se estaba generando activamente.")
+        messages.info(request, _("Esta planeación no se estaba generando activamente."))
 
     return redirect('gestion_academica:planeacion_detalle', pk=planeacion.pk)    
 

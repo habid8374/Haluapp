@@ -17,6 +17,7 @@ from django.db.models import Count, Prefetch
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from ..models import (
@@ -450,7 +451,7 @@ def mis_planes_semanales(request):
     try:
         docente = request.user.docente
     except Exception:
-        messages.error(request, 'Solo los docentes pueden acceder a los planes semanales.')
+        messages.error(request, _('Solo los docentes pueden acceder a los planes semanales.'))
         return redirect('gestion_academica:inicio_academico')
 
     institucion = _get_institucion(request)
@@ -480,7 +481,7 @@ def mis_planes_semanales(request):
     ]
 
     context = {
-        'titulo_pagina': 'Mis Planes Semanales',
+        'titulo_pagina': _('Mis Planes Semanales'),
         'planes_con_label': planes_con_label,
         'cursos': cursos,
         'semana_actual_inicio': lunes,
@@ -518,10 +519,10 @@ def plan_semanal_crear(request):
                 },
             )
             if not created:
-                messages.info(request, 'Ya tienes un plan para esa semana y curso.')
+                messages.info(request, _('Ya tienes un plan para esa semana y curso.'))
             return redirect('gestion_academica:plan_semanal_detalle', pk=plan.pk)
         except Exception as e:
-            messages.error(request, f'Error al crear el plan: {e}')
+            messages.error(request, _('Error al crear el plan: %(error)s') % {'error': e})
             return redirect('gestion_academica:mis_planes_semanales')
 
     return redirect('gestion_academica:mis_planes_semanales')
@@ -542,7 +543,7 @@ def plan_semanal_detalle(request, pk):
     items = plan.items.select_related('item_malla', 'deber', 'actividad').order_by('fecha', 'orden')
     dias = {}
     dia = plan.semana_inicio
-    DIAS_NOMBRES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
+    DIAS_NOMBRES = [_('Lunes'), _('Martes'), _('Miércoles'), _('Jueves'), _('Viernes')]
     for i, nombre in enumerate(DIAS_NOMBRES):
         d = plan.semana_inicio + timedelta(days=i)
         dias[d] = {'nombre': nombre, 'items': []}
@@ -564,7 +565,7 @@ def plan_semanal_detalle(request, pk):
     label = _label_semana(plan.semana_inicio, plan.semana_fin)
 
     context = {
-        'titulo_pagina': f'Plan Semanal · {label}',
+        'titulo_pagina': _('Plan Semanal · %(label)s') % {'label': label},
         'plan': plan,
         'label': label,
         'dias': dias,
@@ -588,7 +589,7 @@ def item_plan_add(request, pk):
     plan = get_object_or_404(PlanSemanal, pk=pk, docente=docente, institucion=institucion)
 
     if plan.estado not in (PlanSemanal.Estado.BORRADOR, PlanSemanal.Estado.CON_OBSERVACIONES):
-        messages.error(request, 'No puedes modificar un plan ya enviado/aprobado.')
+        messages.error(request, _('No puedes modificar un plan ya enviado/aprobado.'))
         return redirect('gestion_academica:plan_semanal_detalle', pk=pk)
 
     fecha_s    = request.POST.get('fecha')
@@ -597,13 +598,13 @@ def item_plan_add(request, pk):
     item_malla_id = request.POST.get('item_malla')
 
     if not titulo or not fecha_s:
-        messages.error(request, 'Fecha y título son obligatorios.')
+        messages.error(request, _('Fecha y título son obligatorios.'))
         return redirect('gestion_academica:plan_semanal_detalle', pk=pk)
 
     try:
         fecha = date.fromisoformat(fecha_s)
     except ValueError:
-        messages.error(request, 'Fecha inválida.')
+        messages.error(request, _('Fecha inválida.'))
         return redirect('gestion_academica:plan_semanal_detalle', pk=pk)
 
     item_malla = None
@@ -617,7 +618,7 @@ def item_plan_add(request, pk):
         descripcion=descripcion or None,
         item_malla=item_malla,
     )
-    messages.success(request, 'Clase añadida al plan.')
+    messages.success(request, _('Clase añadida al plan.'))
     return redirect('gestion_academica:plan_semanal_detalle', pk=pk)
 
 
@@ -635,9 +636,9 @@ def item_plan_delete(request, item_pk):
     plan_pk = item.plan_id
     if item.plan.estado in (PlanSemanal.Estado.BORRADOR, PlanSemanal.Estado.CON_OBSERVACIONES):
         item.delete()
-        messages.success(request, 'Ítem eliminado.')
+        messages.success(request, _('Ítem eliminado.'))
     else:
-        messages.error(request, 'No puedes eliminar ítems de un plan ya enviado.')
+        messages.error(request, _('No puedes eliminar ítems de un plan ya enviado.'))
     return redirect('gestion_academica:plan_semanal_detalle', pk=plan_pk)
 
 
@@ -659,7 +660,7 @@ def item_plan_edit(request, item_pk):
     )
 
     if item.plan.estado not in (PlanSemanal.Estado.BORRADOR, PlanSemanal.Estado.CON_OBSERVACIONES):
-        messages.error(request, 'No puedes editar ítems de un plan ya enviado.')
+        messages.error(request, _('No puedes editar ítems de un plan ya enviado.'))
         return redirect('gestion_academica:plan_semanal_detalle', pk=item.plan_id)
 
     titulo      = request.POST.get('titulo', '').strip()
@@ -667,7 +668,7 @@ def item_plan_edit(request, item_pk):
     item_malla_id = request.POST.get('item_malla')
 
     if not titulo:
-        messages.error(request, 'El título es obligatorio.')
+        messages.error(request, _('El título es obligatorio.'))
         return redirect('gestion_academica:plan_semanal_detalle', pk=item.plan_id)
 
     item.titulo      = titulo
@@ -677,7 +678,7 @@ def item_plan_edit(request, item_pk):
         if item_malla_id else None
     )
     item.save(update_fields=['titulo', 'descripcion', 'item_malla'])
-    messages.success(request, 'Clase actualizada.')
+    messages.success(request, _('Clase actualizada.'))
     return redirect('gestion_academica:plan_semanal_detalle', pk=item.plan_id)
 
 
@@ -693,7 +694,7 @@ def item_plan_crear_deber(request, item_pk):
     item = get_object_or_404(ItemPlanSemanal, pk=item_pk, plan__docente=docente, plan__institucion=institucion)
 
     if item.deber:
-        messages.info(request, 'Este ítem ya tiene un deber creado.')
+        messages.info(request, _('Este ítem ya tiene un deber creado.'))
         return redirect('gestion_academica:plan_semanal_detalle', pk=item.plan_id)
 
     if request.method == 'POST':
@@ -702,9 +703,9 @@ def item_plan_crear_deber(request, item_pk):
         fecha_entrega = request.POST.get('fecha_entrega')
 
         if not fecha_entrega:
-            messages.error(request, 'La fecha de entrega es obligatoria.')
+            messages.error(request, _('La fecha de entrega es obligatoria.'))
             return render(request, 'gestion_academica/item_plan_crear_deber.html', {
-                'titulo_pagina': 'Crear Deber desde Plan',
+                'titulo_pagina': _('Crear Deber desde Plan'),
                 'item': item,
             })
 
@@ -718,11 +719,11 @@ def item_plan_crear_deber(request, item_pk):
         )
         item.deber = deber
         item.save(update_fields=['deber'])
-        messages.success(request, f'Deber "{deber.titulo}" creado y vinculado al plan.')
+        messages.success(request, _('Deber "%(titulo)s" creado y vinculado al plan.') % {'titulo': deber.titulo})
         return redirect('gestion_academica:plan_semanal_detalle', pk=item.plan_id)
 
     context = {
-        'titulo_pagina': 'Convertir a Deber',
+        'titulo_pagina': _('Convertir a Deber'),
         'item': item,
     }
     return render(request, 'gestion_academica/item_plan_crear_deber.html', context)
@@ -740,7 +741,7 @@ def item_plan_crear_actividad(request, item_pk):
     item = get_object_or_404(ItemPlanSemanal, pk=item_pk, plan__docente=docente, plan__institucion=institucion)
 
     if item.actividad:
-        messages.info(request, 'Este ítem ya tiene una actividad evaluativa creada.')
+        messages.info(request, _('Este ítem ya tiene una actividad evaluativa creada.'))
         return redirect('gestion_academica:plan_semanal_detalle', pk=item.plan_id)
 
     tipos = TipoActividad.objects.filter(institucion=institucion)
@@ -764,11 +765,11 @@ def item_plan_crear_actividad(request, item_pk):
         )
         item.actividad = actividad
         item.save(update_fields=['actividad'])
-        messages.success(request, f'Actividad "{actividad.titulo}" creada y vinculada al plan.')
+        messages.success(request, _('Actividad "%(titulo)s" creada y vinculada al plan.') % {'titulo': actividad.titulo})
         return redirect('gestion_academica:plan_semanal_detalle', pk=item.plan_id)
 
     context = {
-        'titulo_pagina': 'Convertir a Actividad Evaluativa',
+        'titulo_pagina': _('Convertir a Actividad Evaluativa'),
         'item': item,
         'tipos': tipos,
     }
@@ -788,11 +789,11 @@ def plan_semanal_enviar(request, pk):
     plan = get_object_or_404(PlanSemanal, pk=pk, docente=docente, institucion=institucion)
 
     if plan.estado not in (PlanSemanal.Estado.BORRADOR, PlanSemanal.Estado.CON_OBSERVACIONES):
-        messages.warning(request, 'El plan ya fue enviado anteriormente.')
+        messages.warning(request, _('El plan ya fue enviado anteriormente.'))
         return redirect('gestion_academica:plan_semanal_detalle', pk=pk)
 
     if not plan.items.exists():
-        messages.error(request, 'El plan no tiene ítems. Agrega al menos una clase antes de enviar.')
+        messages.error(request, _('El plan no tiene ítems. Agrega al menos una clase antes de enviar.'))
         return redirect('gestion_academica:plan_semanal_detalle', pk=pk)
 
     es_reenvio = plan.estado == PlanSemanal.Estado.CON_OBSERVACIONES
@@ -839,7 +840,7 @@ def plan_semanal_enviar(request, pk):
             severity='warning' if es_reenvio else 'info',
         )
 
-    messages.success(request, 'Plan enviado al coordinador para revisión.')
+    messages.success(request, _('Plan enviado al coordinador para revisión.'))
     return redirect('gestion_academica:plan_semanal_detalle', pk=pk)
 
 

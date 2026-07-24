@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.translation import gettext as _
 import json
 import logging
 from django.views.generic import DetailView
@@ -76,7 +77,7 @@ class EditorCuestionarioView(LoginRequiredMixin, View):
         return render(request, self.template_name, {
             'actividad': actividad,
             'cuestionario': cuestionario,
-            'titulo_pagina': f"Editor: {actividad.titulo}"
+            'titulo_pagina': _("Editor: %(actividad_titulo)s") % {'actividad_titulo': actividad.titulo}
         })
 
 
@@ -264,7 +265,7 @@ class IniciarCuestionarioView(LoginRequiredMixin, View):
         if redir:
             return redir
         if not hasattr(request.user, 'estudiante'):
-            messages.error(request, "Solo los estudiantes pueden iniciar esta evaluación.")
+            messages.error(request, _("Solo los estudiantes pueden iniciar esta evaluación."))
             return redirect('gestion_academica:inicio_academico')
 
         actividad = get_object_or_404(
@@ -272,7 +273,7 @@ class IniciarCuestionarioView(LoginRequiredMixin, View):
             pk=actividad_pk,
         )
         if not estudiante_en_curso_actividad(request.user.estudiante, actividad):
-            messages.error(request, "No tienes acceso a esta actividad.")
+            messages.error(request, _("No tienes acceso a esta actividad."))
             return redirect('gestion_academica:dashboard_estudiante')
 
         cuestionario = get_object_or_404(Cuestionario, actividad_calificable=actividad)
@@ -280,7 +281,7 @@ class IniciarCuestionarioView(LoginRequiredMixin, View):
         context = {
             'actividad': actividad,
             'cuestionario': cuestionario,
-            'titulo_pagina': f"Iniciar: {cuestionario.titulo}"
+            'titulo_pagina': _("Iniciar: %(cuestionario_titulo)s") % {'cuestionario_titulo': cuestionario.titulo}
         }
         return render(request, 'cuestionarios/iniciar_cuestionario.html', context)
 
@@ -293,7 +294,7 @@ class IniciarCuestionarioView(LoginRequiredMixin, View):
         if redir:
             return redir
         if not hasattr(request.user, 'estudiante'):
-            messages.error(request, "Solo los estudiantes pueden iniciar esta evaluación.")
+            messages.error(request, _("Solo los estudiantes pueden iniciar esta evaluación."))
             return redirect('gestion_academica:inicio_academico')
 
         estudiante = request.user.estudiante
@@ -302,7 +303,7 @@ class IniciarCuestionarioView(LoginRequiredMixin, View):
             pk=actividad_pk,
         )
         if not estudiante_en_curso_actividad(estudiante, actividad):
-            messages.error(request, "No tienes acceso a esta actividad.")
+            messages.error(request, _("No tienes acceso a esta actividad."))
             return redirect('gestion_academica:dashboard_estudiante')
 
         cuestionario = get_object_or_404(
@@ -330,7 +331,7 @@ class IniciarCuestionarioView(LoginRequiredMixin, View):
         
         # 4. Comparamos los intentos realizados con el límite real.
         if intentos_realizados >= limite_real:
-            messages.error(request, f"Has alcanzado el límite de {cuestionario.intentos_permitidos} intento(s) para este cuestionario.")
+            messages.error(request, _("Has alcanzado el límite de %(cuestionario_intento)s intento(s) para este cuestionario.") % {'cuestionario_intento': cuestionario.intentos_permitidos})
             return redirect('gestion_academica:dashboard_estudiante')
         
         # 5. Si se va a usar un intento extra, lo "gastamos" para que no se pueda volver a usar.
@@ -356,7 +357,7 @@ class ResolverCuestionarioView(LoginRequiredMixin, View):
         if redir:
             return redir
         if not hasattr(request.user, 'estudiante'):
-            messages.error(request, "Solo los estudiantes pueden resolver cuestionarios aquí.")
+            messages.error(request, _("Solo los estudiantes pueden resolver cuestionarios aquí."))
             return redirect('gestion_academica:inicio_academico')
         intento = get_object_or_404(
             IntentoCuestionario.objects.select_related(
@@ -369,12 +370,12 @@ class ResolverCuestionarioView(LoginRequiredMixin, View):
         )
         actividad = intento.cuestionario.actividad_calificable
         if not estudiante_en_curso_actividad(request.user.estudiante, actividad):
-            messages.error(request, "No tienes acceso a este intento.")
+            messages.error(request, _("No tienes acceso a este intento."))
             return redirect('gestion_academica:dashboard_estudiante')
         context = {
             'intento': intento,
             'cuestionario': intento.cuestionario,
-            'titulo_pagina': f"Resolviendo: {intento.cuestionario.titulo}"
+            'titulo_pagina': _("Resolviendo: %(intento_cuestionario)s") % {'intento_cuestionario': intento.cuestionario.titulo}
         }
         return render(request, 'cuestionarios/resolver_cuestionario.html', context)
 
@@ -488,7 +489,7 @@ class HabilitarIntentoExtraView(LoginRequiredMixin, View):
         intento.intento_extra_habilitado = True
         intento.save()
 
-        messages.success(request, f"Se ha habilitado un intento adicional para el estudiante {intento.estudiante}.")
+        messages.success(request, _("Se ha habilitado un intento adicional para el estudiante %(intento_estudiante)s.") % {'intento_estudiante': intento.estudiante})
         return redirect('cuestionarios:revisar_intento', intento_pk=intento.pk)   
 
 class RevisarIntentoView(LoginRequiredMixin, DetailView):
@@ -519,7 +520,7 @@ class RevisarIntentoView(LoginRequiredMixin, DetailView):
             })
         
         context['preguntas_con_respuestas'] = preguntas_con_respuestas
-        context['titulo_pagina'] = f"Revisión de {intento.estudiante}"
+        context['titulo_pagina'] = _("Revisión de %(estudiante)s") % {'estudiante': intento.estudiante}
         return context
 
     def post(self, request, *args, **kwargs):
@@ -566,7 +567,7 @@ class RevisarIntentoView(LoginRequiredMixin, DetailView):
             }
         )
 
-        messages.success(request, 'La calificación ha sido actualizada correctamente.')
+        messages.success(request, _('La calificación ha sido actualizada correctamente.'))
         return redirect(request.path)     
 
 class EliminarIntentoView(LoginRequiredMixin, View):
@@ -589,7 +590,7 @@ class EliminarIntentoView(LoginRequiredMixin, View):
         # Eliminamos el objeto de la base de datos
         intento.delete()
         
-        messages.success(request, f"El intento de '{estudiante_nombre}' en el cuestionario '{cuestionario_titulo}' ha sido eliminado exitosamente.")
+        messages.success(request, _("El intento de '%(estudiante_nombre)s' en el cuestionario '%(cuestionario_titulo)s' ha sido eliminado exitosamente.") % {'estudiante_nombre': estudiante_nombre, 'cuestionario_titulo': cuestionario_titulo})
         
         # Redirigimos de vuelta al historial
         return redirect(reverse_lazy('gestion_academica:historial_entregas'))   

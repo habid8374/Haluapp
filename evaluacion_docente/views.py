@@ -7,6 +7,7 @@ from django.db.models import Avg, Count
 from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from .models import (
@@ -388,6 +389,6 @@ def mi_desempeno(request):
         .order_by('-campana__creada_en')
     )
     return render(request, 'evaluacion_docente/mi_desempeno.html', {
-        'titulo_pagina': 'Mi Evaluación Docente',
+        'titulo_pagina': _('Mi Evaluación Docente'),
         'campanas': campanas,
     })

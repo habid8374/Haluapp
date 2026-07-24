@@ -1,7 +1,8 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block titulo %}Editor — {{ actividad.titulo }}{% endblock %}
+{% block titulo %}{% blocktrans with titulo=actividad.titulo %}Editor — {{ titulo }}{% endblocktrans %}{% endblock %}
 
 {% block extrastyles %}{{ block.super }}
 <style>
@@ -227,20 +228,20 @@ textarea.eq-input { resize: vertical; }
 
   <div id="loading-overlay" class="d-none">
     <div class="spinner-border mb-1" role="status" style="width:2.8rem;height:2.8rem;"></div>
-    <h4><i class="bi bi-robot me-2"></i>HALU está generando las preguntas…</h4>
-    <p>Esto puede tardar unos segundos.</p>
+    <h4><i class="bi bi-robot me-2"></i>{% trans "HALU está generando las preguntas…" %}</h4>
+    <p>{% trans "Esto puede tardar unos segundos." %}</p>
   </div>
 
   <!-- Hero -->
   <div class="eq-hero">
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
       <div style="flex:1;min-width:0;">
-        <div class="eq-badge"><i class="bi bi-pencil-square me-1"></i>Editor de Cuestionario</div>
+        <div class="eq-badge"><i class="bi bi-pencil-square me-1"></i>{% trans "Editor de Cuestionario" %}</div>
         <div class="eq-title">{{ actividad.titulo }}</div>
-        <div class="eq-sub">Diseña preguntas, configura parámetros y genera con IA</div>
+        <div class="eq-sub">{% trans "Diseña preguntas, configura parámetros y genera con IA" %}</div>
       </div>
       <a href="{% url 'cuestionarios:lista' %}" class="eq-back">
-        <i class="bi bi-arrow-left"></i> Volver
+        <i class="bi bi-arrow-left"></i> {% trans "Volver" %}
       </a>
     </div>
   </div>
@@ -252,11 +253,11 @@ textarea.eq-input { resize: vertical; }
   <!-- Sección: Configuración -->
   <div class="eq-section">
     <div class="eq-section-hdr">
-      <h2><i class="bi bi-sliders me-2" style="color:#0b5ed7;"></i>Configuración del Cuestionario</h2>
+      <h2><i class="bi bi-sliders me-2" style="color:#0b5ed7;"></i>{% trans "Configuración del Cuestionario" %}</h2>
       <div class="eq-toggle-wrap">
         <div class="form-check form-switch mb-0">
           <input class="form-check-input" type="checkbox" id="toggle-activo">
-          <label class="form-check-label eq-toggle-label" for="toggle-activo">Activo</label>
+          <label class="form-check-label eq-toggle-label" for="toggle-activo">{% trans "Activo" %}</label>
         </div>
       </div>
     </div>
@@ -264,26 +265,26 @@ textarea.eq-input { resize: vertical; }
       <form id="form-cuestionario">
         <div class="row g-3">
           <div class="col-sm-7">
-            <label class="eq-label" for="titulo">Título del cuestionario</label>
-            <input type="text" class="eq-input" id="titulo" required placeholder="Ej: Evaluación Bimestral — Biología">
+            <label class="eq-label" for="titulo">{% trans "Título del cuestionario" %}</label>
+            <input type="text" class="eq-input" id="titulo" required placeholder="{% trans 'Ej: Evaluación Bimestral — Biología' %}">
           </div>
           <div class="col-sm-5">
-            <label class="eq-label" for="tiempo-limite">Tiempo límite (minutos)</label>
-            <input type="number" class="eq-input" id="tiempo-limite" min="0" step="5" placeholder="0 = sin límite">
+            <label class="eq-label" for="tiempo-limite">{% trans "Tiempo límite (minutos)" %}</label>
+            <input type="number" class="eq-input" id="tiempo-limite" min="0" step="5" placeholder="{% trans '0 = sin límite' %}">
           </div>
           <div class="col-12">
-            <label class="eq-label" for="descripcion">Descripción / instrucciones</label>
-            <textarea class="eq-input" id="descripcion" rows="2" placeholder="Instrucciones para el estudiante…"></textarea>
+            <label class="eq-label" for="descripcion">{% trans "Descripción / instrucciones" %}</label>
+            <textarea class="eq-input" id="descripcion" rows="2" placeholder="{% trans 'Instrucciones para el estudiante…' %}"></textarea>
           </div>
           <div class="col-sm-4">
-            <label class="eq-label" for="intentos-permitidos">Intentos permitidos</label>
+            <label class="eq-label" for="intentos-permitidos">{% trans "Intentos permitidos" %}</label>
             <input type="number" class="eq-input" id="intentos-permitidos" min="1" value="1">
           </div>
           <div class="col-sm-8 d-flex align-items-end">
             <div class="form-check mb-1">
               <input class="form-check-input" type="checkbox" id="mostrar-respuestas">
               <label class="form-check-label" for="mostrar-respuestas" style="font-size:.85rem;color:#374151;">
-                Mostrar respuestas correctas al finalizar
+                {% trans "Mostrar respuestas correctas al finalizar" %}
               </label>
             </div>
           </div>
@@ -295,12 +296,12 @@ textarea.eq-input { resize: vertical; }
   <!-- Sección: Preguntas -->
   <div class="eq-section">
     <div class="eq-section-hdr">
-      <h2><i class="bi bi-list-ol me-2" style="color:#0b5ed7;"></i>Preguntas</h2>
+      <h2><i class="bi bi-list-ol me-2" style="color:#0b5ed7;"></i>{% trans "Preguntas" %}</h2>
     </div>
     <div class="eq-section-body">
       <div id="editor-preguntas"></div>
       <button class="btn-add-question" id="btn-agregar-pregunta" type="button">
-        <i class="bi bi-plus-circle-fill"></i> Agregar pregunta
+        <i class="bi bi-plus-circle-fill"></i> {% trans "Agregar pregunta" %}
       </button>
     </div>
   </div>
@@ -308,7 +309,7 @@ textarea.eq-input { resize: vertical; }
   <!-- Vista previa -->
   <div id="vista-previa-container" class="eq-section d-none">
     <div class="eq-section-hdr">
-      <h2><i class="bi bi-eye me-2" style="color:#0b5ed7;"></i>Vista Previa</h2>
+      <h2><i class="bi bi-eye me-2" style="color:#0b5ed7;"></i>{% trans "Vista Previa" %}</h2>
     </div>
     <div class="eq-section-body" id="vista-previa-body"></div>
   </div>
@@ -316,17 +317,17 @@ textarea.eq-input { resize: vertical; }
   <!-- Barra de acciones -->
   <div class="eq-action-bar">
     <a href="{% url 'cuestionarios:lista' %}" class="eq-btn eq-btn-secondary">
-      <i class="bi bi-arrow-left"></i> Volver a la lista
+      <i class="bi bi-arrow-left"></i> {% trans "Volver a la lista" %}
     </a>
     <div class="eq-action-bar-right">
       <button type="button" class="eq-btn eq-btn-ia" data-bs-toggle="modal" data-bs-target="#iaGenerateModal">
-        <i class="bi bi-robot"></i> Generar con IA
+        <i class="bi bi-robot"></i> {% trans "Generar con IA" %}
       </button>
       <button class="eq-btn eq-btn-outline" id="btn-vista-previa" type="button">
-        <i class="bi bi-eye"></i> Vista previa
+        <i class="bi bi-eye"></i> {% trans "Vista previa" %}
       </button>
       <button class="eq-btn eq-btn-primary" id="btn-guardar" type="button">
-        <i class="bi bi-save-fill"></i> Guardar
+        <i class="bi bi-save-fill"></i> {% trans "Guardar" %}
       </button>
     </div>
   </div>
@@ -343,7 +344,7 @@ textarea.eq-input { resize: vertical; }
       </div>
       <div class="modal-body" id="notificationModalBody"></div>
       <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cerrar" %}</button>
       </div>
     </div>
   </div>
@@ -354,41 +355,41 @@ textarea.eq-input { resize: vertical; }
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="border-radius:.9rem;overflow:hidden;">
       <div class="ia-modal-hdr">
-        <h5><i class="bi bi-robot me-2"></i>Generador de Preguntas con IA</h5>
+        <h5><i class="bi bi-robot me-2"></i>{% trans "Generador de Preguntas con IA" %}</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
         <form id="ia-form">
           <div class="mb-3">
-            <label for="ia-tema" class="eq-label">Tema principal de la evaluación <span class="text-danger">*</span></label>
-            <input type="text" class="eq-input" id="ia-tema" placeholder="Ej: La Célula y sus partes" required>
+            <label for="ia-tema" class="eq-label">{% trans "Tema principal de la evaluación" %} <span class="text-danger">*</span></label>
+            <input type="text" class="eq-input" id="ia-tema" placeholder="{% trans 'Ej: La Célula y sus partes' %}" required>
           </div>
           <div class="mb-3">
-            <label for="ia-objetivos" class="eq-label">Objetivos de aprendizaje <span style="font-weight:400;color:#9ca3af;">(opcional)</span></label>
-            <textarea class="eq-input" id="ia-objetivos" rows="2" placeholder="Ej: Identificar el núcleo, la membrana y el citoplasma."></textarea>
+            <label for="ia-objetivos" class="eq-label">{% trans "Objetivos de aprendizaje" %} <span style="font-weight:400;color:#9ca3af;">({% trans "opcional" %})</span></label>
+            <textarea class="eq-input" id="ia-objetivos" rows="2" placeholder="{% trans 'Ej: Identificar el núcleo, la membrana y el citoplasma.' %}"></textarea>
           </div>
           <hr class="my-3">
-          <p class="eq-label mb-2">¿Cuántas preguntas de cada tipo?</p>
+          <p class="eq-label mb-2">{% trans "¿Cuántas preguntas de cada tipo?" %}</p>
           <div class="ia-count-grid">
             <div>
-              <label for="ia-num-multiple">Opción única</label>
+              <label for="ia-num-multiple">{% trans "Opción única" %}</label>
               <input type="number" class="eq-input text-center" id="ia-num-multiple" value="3" min="0" max="10">
             </div>
             <div>
-              <label for="ia-num-vf">Verdadero / Falso</label>
+              <label for="ia-num-vf">{% trans "Verdadero / Falso" %}</label>
               <input type="number" class="eq-input text-center" id="ia-num-vf" value="2" min="0" max="10">
             </div>
             <div>
-              <label for="ia-num-abierta">Abierta</label>
+              <label for="ia-num-abierta">{% trans "Abierta" %}</label>
               <input type="number" class="eq-input text-center" id="ia-num-abierta" value="1" min="0" max="10">
             </div>
           </div>
         </form>
       </div>
       <div class="modal-footer border-0 pt-0 px-4 pb-4">
-        <button type="button" class="eq-btn eq-btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="eq-btn eq-btn-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
         <button type="button" id="generate-ia-btn" class="eq-btn eq-btn-ia" style="flex:1;justify-content:center;">
-          <i class="bi bi-stars"></i> Generar preguntas
+          <i class="bi bi-stars"></i> {% trans "Generar preguntas" %}
         </button>
       </div>
     </div>
@@ -446,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function () {
               <input type="text" class="opcion-texto" value="${opcion.texto || ''}" placeholder="Elemento A" style="min-width:0;flex:1;">
               <span style="color:#9ca3af;font-size:.9rem;flex-shrink:0;"><i class="bi bi-arrow-left-right"></i></span>
               <input type="text" class="opcion-emparejamiento" value="${opcion.emparejamiento || ''}" placeholder="Elemento B" style="min-width:0;flex:1;">
-              <button class="btn-del-opcion btn-eliminar-opcion" type="button" title="Eliminar"><i class="bi bi-trash3-fill"></i></button>
+              <button class="btn-del-opcion btn-eliminar-opcion" type="button" title="{% trans "Eliminar" %}"><i class="bi bi-trash3-fill"></i></button>
             </div>`;
         }
 
@@ -454,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="opcion-item" data-opcion-id="${opcionId}">
           <input class="form-check-input mt-0" type="${inputType}" name="${inputName}" ${checked} style="accent-color:#0b5ed7;">
           <input type="text" class="opcion-texto" value="${opcion.texto || ''}" placeholder="Texto de la opción">
-          <button class="btn-del-opcion btn-eliminar-opcion" type="button" title="Eliminar"><i class="bi bi-trash3-fill"></i></button>
+          <button class="btn-del-opcion btn-eliminar-opcion" type="button" title="{% trans "Eliminar" %}"><i class="bi bi-trash3-fill"></i></button>
         </div>`;
     }
 
@@ -470,35 +471,35 @@ document.addEventListener('DOMContentLoaded', function () {
         card.dataset.preguntaId = preguntaId;
         card.innerHTML = `
           <div class="pregunta-card-header">
-            <span class="pregunta-num">Pregunta</span>
+            <span class="pregunta-num">{% trans "Pregunta" %}</span>
             <button class="btn-del-pregunta btn-eliminar-pregunta" type="button">
-              <i class="bi bi-trash3-fill"></i> Eliminar
+              <i class="bi bi-trash3-fill"></i> {% trans "Eliminar" %}
             </button>
           </div>
-          <textarea class="pregunta-enunciado enunciado" placeholder="Escribe el enunciado de la pregunta…">${pregunta.enunciado || ''}</textarea>
+          <textarea class="pregunta-enunciado enunciado" placeholder="{% trans "Escribe el enunciado de la pregunta…" %}">${pregunta.enunciado || ''}</textarea>
           <div class="pregunta-meta">
             <div>
-              <label>Tipo de pregunta</label>
+              <label>{% trans "Tipo de pregunta" %}</label>
               <select class="tipo-pregunta">
-                <option value="opcion_multiple"   ${pregunta.tipo==='opcion_multiple'   ?'selected':''}>Opción única</option>
-                <option value="seleccion_multiple"${pregunta.tipo==='seleccion_multiple'?'selected':''}>Selección múltiple</option>
-                <option value="verdadero_falso"   ${pregunta.tipo==='verdadero_falso'   ?'selected':''}>Verdadero / Falso</option>
-                <option value="texto_libre"       ${pregunta.tipo==='texto_libre'       ?'selected':''}>Texto libre</option>
-                <option value="emparejamiento"    ${pregunta.tipo==='emparejamiento'    ?'selected':''}>Emparejamiento</option>
+                <option value="opcion_multiple"   ${pregunta.tipo==='opcion_multiple'   ?'selected':''}>{% trans "Opción única" %}</option>
+                <option value="seleccion_multiple"${pregunta.tipo==='seleccion_multiple'?'selected':''}>{% trans "Selección múltiple" %}</option>
+                <option value="verdadero_falso"   ${pregunta.tipo==='verdadero_falso'   ?'selected':''}>{% trans "Verdadero / Falso" %}</option>
+                <option value="texto_libre"       ${pregunta.tipo==='texto_libre'       ?'selected':''}>{% trans "Texto libre" %}</option>
+                <option value="emparejamiento"    ${pregunta.tipo==='emparejamiento'    ?'selected':''}>{% trans "Emparejamiento" %}</option>
               </select>
             </div>
             <div style="max-width:110px;">
-              <label>Puntaje</label>
+              <label>{% trans "Puntaje" %}</label>
               <input type="number" class="puntaje" value="${pregunta.puntaje || 1}" min="1">
             </div>
           </div>
           <div class="rubrica-container ${showRubrica ? '' : 'd-none'} mb-2">
-            <span class="rubrica-label"><i class="bi bi-journal-check me-1"></i>Rúbrica / respuesta ideal (para corrección IA)</span>
-            <textarea class="rubrica-textarea respuesta-correcta-abierta" rows="2" placeholder="Describe la respuesta ideal aquí…">${pregunta.respuesta_correcta_abierta || ''}</textarea>
+            <span class="rubrica-label"><i class="bi bi-journal-check me-1"></i>{% trans "Rúbrica / respuesta ideal (para corrección IA)" %}</span>
+            <textarea class="rubrica-textarea respuesta-correcta-abierta" rows="2" placeholder="{% trans "Describe la respuesta ideal aquí…" %}">${pregunta.respuesta_correcta_abierta || ''}</textarea>
           </div>
           <div class="opciones-container ${showOptions ? '' : 'd-none'}">${opcionesHtml}</div>
           <button class="btn-agregar-opcion btn-agregar-opcion ${showOptions ? '' : 'd-none'}" type="button">
-            <i class="bi bi-plus-circle"></i> Agregar opción
+            <i class="bi bi-plus-circle"></i> {% trans "Agregar opción" %}
           </button>
         `;
         editorPreguntas.appendChild(card);
@@ -507,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renumerarPreguntas() {
         document.querySelectorAll('.pregunta-card').forEach((card, i) => {
-            card.querySelector('.pregunta-num').textContent = `Pregunta #${i + 1}`;
+            card.querySelector('.pregunta-num').textContent = `{% trans "Pregunta" %} #${i + 1}`;
         });
     }
 
@@ -539,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function guardarCuestionario() {
         btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Guardando…';
+        btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> {% trans "Guardando…" %}';
 
         const data = {
             titulo: document.getElementById('titulo').value,
@@ -584,16 +585,16 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(r => r.json())
         .then(d => {
             if (d.status === 'success') {
-                showNotification('Guardado', 'Cuestionario guardado correctamente.', true);
+                showNotification('{% trans "Guardado" %}', '{% trans "Cuestionario guardado correctamente." %}', true);
                 notificationModalEl.addEventListener('hidden.bs.modal', () => window.location.reload(), {once:true});
             } else {
-                showNotification('Error al guardar', d.message, false);
+                showNotification('{% trans "Error al guardar" %}', d.message, false);
             }
         })
-        .catch(() => showNotification('Error de red', 'No se pudo conectar. Revisa tu conexión.', false))
+        .catch(() => showNotification('{% trans "Error de red" %}', '{% trans "No se pudo conectar. Revisa tu conexión." %}', false))
         .finally(() => {
             btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="bi bi-save-fill"></i> Guardar';
+            btnGuardar.innerHTML = '<i class="bi bi-save-fill"></i> {% trans "Guardar" %}';
         });
     }
 
@@ -604,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.pregunta-card').forEach((card, i) => {
                 const enunciado = card.querySelector('.enunciado').value;
                 const tipo = card.querySelector('.tipo-pregunta').value;
-                html += `<div class="mb-4"><p class="fw-700 mb-2">${i+1}. ${enunciado || '<em>Sin enunciado</em>'}</p>`;
+                html += `<div class="mb-4"><p class="fw-700 mb-2">${i+1}. ${enunciado || '<em>{% trans "Sin enunciado" %}</em>'}</p>`;
                 if (tipo !== 'texto_libre') {
                     card.querySelectorAll('.opcion-item').forEach(el => {
                         const txt = el.querySelector('.opcion-texto')?.value || '';
@@ -612,11 +613,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         html += `<div class="form-check ms-2"><input class="form-check-input" type="${t}" disabled><label class="form-check-label">${txt}</label></div>`;
                     });
                 } else {
-                    html += `<textarea class="form-control mt-1" rows="2" disabled placeholder="Espacio de respuesta…"></textarea>`;
+                    html += `<textarea class="form-control mt-1" rows="2" disabled placeholder="{% trans "Espacio de respuesta…" %}"></textarea>`;
                 }
                 html += `</div>`;
             });
-            vistaPreviaBody.innerHTML = html || '<p class="text-muted">Aún no hay preguntas.</p>';
+            vistaPreviaBody.innerHTML = html || '<p class="text-muted">{% trans "Aún no hay preguntas." %}</p>';
         }
     }
 
@@ -632,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function () {
         generateIaBtn.addEventListener('click', function () {
             const tema = document.getElementById('ia-tema').value.trim();
             if (!tema) {
-                showNotification('Campo requerido', 'Introduce el tema principal de la evaluación.', false);
+                showNotification('{% trans "Campo requerido" %}', '{% trans "Introduce el tema principal de la evaluación." %}', false);
                 return;
             }
             const payload = {
@@ -653,15 +654,15 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(result => {
                 loadingOverlay.classList.add('d-none');
                 if (result.status === 'success') {
-                    showNotification('¡Preguntas generadas!', result.message, true);
+                    showNotification('{% trans "¡Preguntas generadas!" %}', result.message, true);
                     notificationModalEl.addEventListener('hidden.bs.modal', () => window.location.reload(), {once:true});
                 } else {
-                    showNotification('Error al generar', result.message, false);
+                    showNotification('{% trans "Error al generar" %}', result.message, false);
                 }
             })
             .catch(() => {
                 loadingOverlay.classList.add('d-none');
-                showNotification('Error de red', 'No se pudo conectar con el generador IA.', false);
+                showNotification('{% trans "Error de red" %}', '{% trans "No se pudo conectar con el generador IA." %}', false);
             });
         });
     }
@@ -703,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let opciones = [];
         if (tipo === 'verdadero_falso') {
-            opciones = [{texto:'Verdadero', es_correcta:true, orden:0},{texto:'Falso', es_correcta:false, orden:1}];
+            opciones = [{texto:'{% trans "Verdadero" %}', es_correcta:true, orden:0},{texto:'{% trans "Falso" %}', es_correcta:false, orden:1}];
         } else if (tipo === 'emparejamiento') {
             opciones = [{texto:'', emparejamiento:'', orden:0},{texto:'', emparejamiento:'', orden:1}];
         } else if (['opcion_multiple','seleccion_multiple'].includes(tipo)) {

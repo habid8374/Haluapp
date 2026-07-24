@@ -1,8 +1,9 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% load horario_filters %}
 {% load tz %}
-{% block titulo %}{{ titulo_pagina|default:"Panel de Docente" }}{% endblock %}
+{% block titulo %}{% trans "Panel de Docente" as titulo_docente_default %}{{ titulo_pagina|default:titulo_docente_default }}{% endblock %}
 {% block extrastyles %}
 {{ block.super }}
 <style>
@@ -371,25 +372,25 @@
 {% block contenido %}
 <div class="container-fluid mt-3">
   <div class="doc-hero">
-    <div class="hero-badge"><i class="bi bi-person-video3"></i> Docente · Panel de Control</div>
+    <div class="hero-badge"><i class="bi bi-person-video3"></i> {% trans "Docente · Panel de Control" %}</div>
     <div class="hero-greeting">
       {% now "H" as hora_int %}
-      {% if hora_int < "12" %}Buenos días{% elif hora_int < "19" %}Buenas tardes{% else %}Buenas noches{% endif %},
-      Prof. {{ docente.usuario.first_name|default:docente.usuario.get_full_name }} 👨‍🏫
+      {% if hora_int < "12" %}{% trans "Buenos días" %}{% elif hora_int < "19" %}{% trans "Buenas tardes" %}{% else %}{% trans "Buenas noches" %}{% endif %},
+      {% trans "Prof." %} {{ docente.usuario.first_name|default:docente.usuario.get_full_name }} 👨‍🏫
     </div>
-    <div class="hero-sub" id="doc-live-date">Cargando fecha…</div>
+    <div class="hero-sub" id="doc-live-date">{% trans "Cargando fecha…" %}</div>
     <div class="hero-actions">
       <a href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}" class="doc-ha-btn ha-white">
-        <i class="bi bi-people-fill"></i> Pasar Asistencia
+        <i class="bi bi-people-fill"></i> {% trans "Pasar Asistencia" %}
       </a>
       <a href="{% url 'gestion_academica:centro_gestion_docente' %}" class="doc-ha-btn ha-green">
-        <i class="bi bi-tools"></i> Centro de Gestión
+        <i class="bi bi-tools"></i> {% trans "Centro de Gestión" %}
       </a>
       <a href="{% url 'gestion_academica:docente_mis_citas' %}" class="doc-ha-btn">
-        <i class="bi bi-calendar2-heart-fill"></i> Mis Citas
+        <i class="bi bi-calendar2-heart-fill"></i> {% trans "Mis Citas" %}
       </a>
       <a href="{% url 'gestion_academica:planeador_clases' %}" class="doc-ha-btn">
-        <i class="bi bi-robot"></i> Planeador IA
+        <i class="bi bi-robot"></i> {% trans "Planeador IA" %}
       </a>
     </div>
   </div>
@@ -402,14 +403,14 @@
         <i class="bi bi-exclamation-triangle-fill"></i>
       </div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:.7rem;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:.06em;">Plan devuelto — acción requerida</div>
+        <div style="font-size:.7rem;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:.06em;">{% trans "Plan devuelto — acción requerida" %}</div>
         <div style="font-size:.98rem;font-weight:800;margin:.1rem 0;">{{ plan.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and plan.curso.materia.nombre_idioma_secundario %} / {{ plan.curso.materia.nombre_idioma_secundario }}{% endif %} · {{ plan.curso.grado.nombre }}</div>
         {% if plan.observaciones_coordinador %}
         <div style="font-size:.77rem;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">"{{ plan.observaciones_coordinador|truncatechars:90 }}"</div>
         {% endif %}
       </div>
       <div style="background:#fff;color:#92400e;font-weight:800;font-size:.8rem;padding:.4rem .85rem;border-radius:.55rem;flex-shrink:0;white-space:nowrap;">
-        <i class="bi bi-pencil-fill me-1"></i>Corregir y reenviar
+        <i class="bi bi-pencil-fill me-1"></i>{% trans "Corregir y reenviar" %}
       </div>
     </a>
     {% endfor %}
@@ -419,45 +420,45 @@
     <a href="{% url 'gestion_academica:tareas_por_calificar' %}" class="doc-kpi-card dkc-amber">
       <div class="dkc-icon"><i class="bi bi-pencil-square"></i></div>
       <div class="dkc-num">{{ entregas_pendientes_calificar }}</div>
-      <div class="dkc-label">Tareas por calificar</div>
-      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Calificar ahora</div>
+      <div class="dkc-label">{% trans "Tareas por calificar" %}</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> {% trans "Calificar ahora" %}</div>
     </a>
     <a href="#cursos-asignados-lista" class="doc-kpi-card dkc-blue">
       <div class="dkc-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
       <div class="dkc-num">{{ cursos_asignados|length }}</div>
-      <div class="dkc-label">Cursos asignados</div>
-      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver cursos</div>
+      <div class="dkc-label">{% trans "Cursos asignados" %}</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> {% trans "Ver cursos" %}</div>
     </a>
     <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="doc-kpi-card dkc-red">
       <div class="dkc-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
       <div class="dkc-num">{{ cantidad_estudiantes_riesgo }}</div>
-      <div class="dkc-label">Alerta de grupo</div>
-      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver reporte</div>
+      <div class="dkc-label">{% trans "Alerta de grupo" %}</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> {% trans "Ver reporte" %}</div>
     </a>
     <a href="{% url 'gestion_academica:lista_notificaciones' %}" class="doc-kpi-card dkc-cyan">
       <div class="dkc-icon"><i class="bi bi-bell-fill"></i></div>
       <div class="dkc-num">{{ notificaciones_sin_leer|length }}</div>
-      <div class="dkc-label">Notificaciones</div>
-      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver todas</div>
+      <div class="dkc-label">{% trans "Notificaciones" %}</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> {% trans "Ver todas" %}</div>
     </a>
     <a href="{% url 'gestion_academica:docente_mis_citas' %}" class="doc-kpi-card dkc-green">
       <div class="dkc-icon"><i class="bi bi-calendar2-check-fill"></i></div>
       <div class="dkc-num">{{ citas_proxima_semana }}</div>
-      <div class="dkc-label">Citas próximas</div>
-      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Ver agenda</div>
+      <div class="dkc-label">{% trans "Citas próximas" %}</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> {% trans "Ver agenda" %}</div>
     </a>
     <a href="{% url 'gestion_academica:historial_entregas' %}" class="doc-kpi-card dkc-slate">
       <div class="dkc-icon"><i class="bi bi-archive-fill"></i></div>
-      <div class="dkc-num" style="font-size:.85rem;padding-top:.5rem;line-height:1.4;">Historial de entregas</div>
-      <div class="dkc-label">Trabajos recibidos</div>
-      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> Revisar</div>
+      <div class="dkc-num" style="font-size:.85rem;padding-top:.5rem;line-height:1.4;">{% trans "Historial de entregas" %}</div>
+      <div class="dkc-label">{% trans "Trabajos recibidos" %}</div>
+      <div class="dkc-link"><i class="bi bi-arrow-right-short"></i> {% trans "Revisar" %}</div>
     </a>
   </div>
   <div class="doc-panel-duo">
     <div class="doc-cuestion-card">
       <div class="dcc-header">
-        <h6><i class="bi bi-pencil-square me-2"></i>Mis Cuestionarios Recientes</h6>
-        <a href="{% url 'cuestionarios:lista' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+        <h6><i class="bi bi-pencil-square me-2"></i>{% trans "Mis Cuestionarios Recientes" %}</h6>
+        <a href="{% url 'cuestionarios:lista' %}" class="btn btn-sm btn-outline-secondary">{% trans "Ver todos" %}</a>
       </div>
       <div class="dcc-body">
         {% for cuestionario in ultimos_cuestionarios %}
@@ -465,49 +466,49 @@
           <div class="dci-dot"></div>
           <div>
             <div class="dci-title">{{ cuestionario.titulo }}</div>
-            <div class="dci-meta">{{ cuestionario.actividad_calificable.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and cuestionario.actividad_calificable.curso.materia.nombre_idioma_secundario %} / {{ cuestionario.actividad_calificable.curso.materia.nombre_idioma_secundario }}{% endif %} · {{ cuestionario.preguntas.count }} preguntas</div>
+            <div class="dci-meta">{{ cuestionario.actividad_calificable.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and cuestionario.actividad_calificable.curso.materia.nombre_idioma_secundario %} / {{ cuestionario.actividad_calificable.curso.materia.nombre_idioma_secundario }}{% endif %} · {% blocktrans with n=cuestionario.preguntas.count %}{{ n }} preguntas{% endblocktrans %}</div>
           </div>
         </a>
         {% empty %}
         <div class="text-center text-muted fst-italic p-4" style="font-size:.85rem;">
           <i class="bi bi-pencil-square d-block mb-2" style="font-size:1.6rem;opacity:.4;"></i>
-          Aún no has creado ningún cuestionario.
+          {% trans "Aún no has creado ningún cuestionario." %}
         </div>
         {% endfor %}
       </div>
     </div>
     <div class="doc-qa-card">
       <div class="dqc-header">
-        <h6><i class="bi bi-lightning-charge-fill me-2"></i>Acciones Rápidas</h6>
+        <h6><i class="bi bi-lightning-charge-fill me-2"></i>{% trans "Acciones Rápidas" %}</h6>
       </div>
       <div class="doc-qa-grid">
         <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="doc-qa-btn dqb-blue">
           <div class="dqb-icon"><i class="bi bi-pencil-square"></i></div>
-          <div class="dqb-label">Libro de Notas</div>
+          <div class="dqb-label">{% trans "Libro de Notas" %}</div>
         </a>
         <a href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}" class="doc-qa-btn dqb-green">
           <div class="dqb-icon"><i class="bi bi-people-fill"></i></div>
-          <div class="dqb-label">Pasar Asistencia</div>
+          <div class="dqb-label">{% trans "Pasar Asistencia" %}</div>
         </a>
         <a href="{% url 'gestion_academica:lista_deberes' %}" class="doc-qa-btn dqb-amber">
           <div class="dqb-icon"><i class="bi bi-journal-check"></i></div>
-          <div class="dqb-label">Gestionar Deberes</div>
+          <div class="dqb-label">{% trans "Gestionar Deberes" %}</div>
         </a>
         <a href="{% url 'gestion_academica:gestionar_disponibilidad' %}" class="doc-qa-btn dqb-teal">
           <div class="dqb-icon"><i class="bi bi-clock-history"></i></div>
-          <div class="dqb-label">Mi Disponibilidad</div>
+          <div class="dqb-label">{% trans "Mi Disponibilidad" %}</div>
         </a>
         <a href="{% url 'gestion_academica:planeador_clases' %}" class="doc-qa-btn dqb-purple">
           <div class="dqb-icon"><i class="bi bi-robot"></i></div>
-          <div class="dqb-label">Planeador IA</div>
+          <div class="dqb-label">{% trans "Planeador IA" %}</div>
         </a>
         <a href="{% url 'gestion_academica:docente_lista_menciones' %}" class="doc-qa-btn dqb-red">
           <div class="dqb-icon"><i class="bi bi-award-fill"></i></div>
-          <div class="dqb-label">Menciones</div>
+          <div class="dqb-label">{% trans "Menciones" %}</div>
         </a>
         <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}?tab=anual" class="doc-qa-btn dqb-indigo">
           <div class="dqb-icon"><i class="bi bi-bar-chart-steps"></i></div>
-          <div class="dqb-label">Vista Anual</div>
+          <div class="dqb-label">{% trans "Vista Anual" %}</div>
         </a>
       </div>
     </div>
@@ -515,7 +516,7 @@
   {% if citas_reunion_hoy %}
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar-heart"></i></div>
-    <h2>Citas con Familias — Hoy</h2>
+    <h2>{% trans "Citas con Familias — Hoy" %}</h2>
   </div>
   <div class="row g-3 mb-2">
     {% for cita in citas_reunion_hoy %}
@@ -528,7 +529,7 @@
         </div>
         <div class="pch-asunto">{{ cita.asunto|truncatechars:120 }}</div>
         <a href="{% url 'gestion_academica:gestionar_cita' cita.pk %}" class="btn btn-sm btn-outline-success align-self-start">
-          <i class="bi bi-arrow-right-circle me-1"></i>Gestionar cita
+          <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Gestionar cita" %}
         </a>
       </div>
     </div>
@@ -537,7 +538,7 @@
   {% endif %}
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#fefce8;color:#d97706;"><i class="bi bi-check2-square"></i></div>
-    <h2>Mis Clases de Hoy</h2>
+    <h2>{% trans "Mis Clases de Hoy" %}</h2>
   </div>
   <div class="row g-3 mb-2">
     {% for curso in cursos_de_hoy %}
@@ -552,20 +553,20 @@
         {% endfor %}
         <div class="mt-auto pt-3 text-center">
           <a href="{% url 'gestion_academica:pasar_lista' curso.pk %}" class="btn btn-primary btn-sm w-100">
-            <i class="bi bi-person-check-fill me-1"></i>Pasar Lista
+            <i class="bi bi-person-check-fill me-1"></i>{% trans "Pasar Lista" %}
           </a>
         </div>
       </div>
     </div>
     {% empty %}
     <div class="col-12">
-      <div class="pulse-empty"><i class="bi bi-calendar-x"></i>No tienes clases programadas para el día de hoy.</div>
+      <div class="pulse-empty"><i class="bi bi-calendar-x"></i>{% trans "No tienes clases programadas para el día de hoy." %}</div>
     </div>
     {% endfor %}
   </div>
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar-week"></i></div>
-    <h2>Mi Horario Semanal</h2>
+    <h2>{% trans "Mi Horario Semanal" %}</h2>
   </div>
   <div class="pulse-horario-wrap mb-2">
     <div>
@@ -602,7 +603,7 @@
               </div>
             </div>
             {% empty %}
-            <div class="text-center text-muted fst-italic p-4">No tienes clases programadas para este día.</div>
+            <div class="text-center text-muted fst-italic p-4">{% trans "No tienes clases programadas para este día." %}</div>
             {% endfor %}
           {% endwith %}
         </div>
@@ -612,19 +613,19 @@
   </div>
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar2-heart-fill"></i></div>
-    <h2>Agenda de Reuniones con Familias</h2>
+    <h2>{% trans "Agenda de Reuniones con Familias" %}</h2>
     <div class="ms-auto d-flex gap-2">
       <a href="{% url 'gestion_academica:docente_mis_citas' %}" class="btn btn-sm btn-outline-success">
-        <i class="bi bi-list-ul me-1"></i>Ver todas
+        <i class="bi bi-list-ul me-1"></i>{% trans "Ver todas" %}
       </a>
       <a href="{% url 'gestion_academica:gestionar_disponibilidad' %}" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-clock-history me-1"></i>Disponibilidad
+        <i class="bi bi-clock-history me-1"></i>{% trans "Disponibilidad" %}
       </a>
     </div>
   </div>
   {% if citas_proximas_lista %}
     <div class="mb-2">
-      <span class="agenda-subsection-title pendiente"><i class="bi bi-hourglass-split"></i> Pendientes de confirmación</span>
+      <span class="agenda-subsection-title pendiente"><i class="bi bi-hourglass-split"></i> {% trans "Pendientes de confirmación" %}</span>
       {% for cita in citas_proximas_lista %}
         {% if cita.estado == 'PENDIENTE' %}
         <div class="pulse-agenda-row pendiente">
@@ -634,13 +635,13 @@
           </div>
           <div class="flex-grow-1 overflow-hidden">
             <div class="fw-semibold text-truncate"><i class="bi bi-person-fill me-1 text-muted"></i>{{ cita.estudiante.usuario.get_full_name|default:cita.estudiante.usuario.username }}</div>
-            <small class="text-muted d-block text-truncate">Familiar: {{ cita.familiar.usuario.get_full_name|default:cita.familiar.usuario.username }}</small>
+            <small class="text-muted d-block text-truncate">{% trans "Familiar:" %} {{ cita.familiar.usuario.get_full_name|default:cita.familiar.usuario.username }}</small>
             <small class="d-block text-truncate">{{ cita.asunto|truncatechars:100 }}</small>
           </div>
           <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
-            <span class="badge bg-warning text-dark">Pendiente</span>
+            <span class="badge bg-warning text-dark">{% trans "Pendiente" %}</span>
             <a href="{% url 'gestion_academica:gestionar_cita' cita.pk %}" class="btn btn-sm btn-warning mt-1">
-              <i class="bi bi-check2-circle me-1"></i>Confirmar
+              <i class="bi bi-check2-circle me-1"></i>{% trans "Confirmar" %}
             </a>
           </div>
         </div>
@@ -648,7 +649,7 @@
       {% endfor %}
     </div>
     <div class="mb-3">
-      <span class="agenda-subsection-title confirmada"><i class="bi bi-calendar-check-fill"></i> Confirmadas</span>
+      <span class="agenda-subsection-title confirmada"><i class="bi bi-calendar-check-fill"></i> {% trans "Confirmadas" %}</span>
       {% for cita in citas_proximas_lista %}
         {% if cita.estado == 'CONFIRMADA' %}
         <div class="pulse-agenda-row confirmada">
@@ -658,18 +659,18 @@
           </div>
           <div class="flex-grow-1 overflow-hidden">
             <div class="fw-semibold text-truncate"><i class="bi bi-person-fill me-1 text-muted"></i>{{ cita.estudiante.usuario.get_full_name|default:cita.estudiante.usuario.username }}</div>
-            <small class="text-muted d-block text-truncate">Familiar: {{ cita.familiar.usuario.get_full_name|default:cita.familiar.usuario.username }}</small>
+            <small class="text-muted d-block text-truncate">{% trans "Familiar:" %} {{ cita.familiar.usuario.get_full_name|default:cita.familiar.usuario.username }}</small>
             <small class="d-block text-truncate">{{ cita.asunto|truncatechars:100 }}</small>
             {% if cita.enlace_virtual %}
             <a href="{{ cita.enlace_virtual }}" target="_blank" rel="noopener" class="small text-primary">
-              <i class="bi bi-camera-video-fill me-1"></i>Enlace virtual
+              <i class="bi bi-camera-video-fill me-1"></i>{% trans "Enlace virtual" %}
             </a>
             {% endif %}
           </div>
           <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
-            <span class="badge bg-success">Confirmada</span>
+            <span class="badge bg-success">{% trans "Confirmada" %}</span>
             <a href="{% url 'gestion_academica:gestionar_cita' cita.pk %}" class="btn btn-sm btn-outline-success mt-1">
-              <i class="bi bi-pencil-square me-1"></i>Gestionar
+              <i class="bi bi-pencil-square me-1"></i>{% trans "Gestionar" %}
             </a>
           </div>
         </div>
@@ -679,18 +680,18 @@
   {% else %}
     <div class="pulse-empty mb-3">
       <i class="bi bi-calendar2-x"></i>
-      <p class="mb-1 fw-semibold text-muted">No tienes reuniones programadas en los próximos 28 días</p>
-      <p class="small text-muted mb-2">Configura tu disponibilidad para que las familias puedan agendarte.</p>
+      <p class="mb-1 fw-semibold text-muted">{% trans "No tienes reuniones programadas en los próximos 28 días" %}</p>
+      <p class="small text-muted mb-2">{% trans "Configura tu disponibilidad para que las familias puedan agendarte." %}</p>
       <a href="{% url 'gestion_academica:gestionar_disponibilidad' %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-clock-history me-1"></i>Gestionar disponibilidad
+        <i class="bi bi-clock-history me-1"></i>{% trans "Gestionar disponibilidad" %}
       </a>
     </div>
   {% endif %}
   <div class="pulse-sec-hdr" id="cursos-asignados-lista">
     <div class="psh-icon"><i class="bi bi-list-task"></i></div>
-    <h2>Mis Cursos y Acciones</h2>
+    <h2>{% trans "Mis Cursos y Acciones" %}</h2>
     <a href="{% url 'gestion_academica:docente_hub_reportes' %}" class="ms-auto btn btn-sm btn-outline-primary">
-      <i class="bi bi-bar-chart-line me-1"></i>Reportes
+      <i class="bi bi-bar-chart-line me-1"></i>{% trans "Reportes" %}
     </a>
   </div>
   <div class="row g-3 mb-4">
@@ -708,38 +709,38 @@
           <div class="pcc-actions">
             {% if curso.grado.tipo_evaluacion == 'CUALITATIVO' %}
             <a href="{% url 'gestion_academica:gestionar_curso_cualitativo' curso_pk=curso.pk %}" class="pca-btn pca-success">
-              <i class="bi bi-sliders"></i> Gestionar Curso
+              <i class="bi bi-sliders"></i> {% trans "Gestionar Curso" %}
             </a>
             <a href="{% url 'gestion_academica:evaluar_logros_curso' curso_pk=curso.pk %}" class="pca-btn pca-info">
-              <i class="bi bi-check2-square"></i> Evaluar Logros
+              <i class="bi bi-check2-square"></i> {% trans "Evaluar Logros" %}
             </a>
             <a href="{% url 'gestion_academica:lista_escala_cualitativa' %}" class="pca-btn pca-slate">
-              <i class="bi bi-star-fill"></i> Escala
+              <i class="bi bi-star-fill"></i> {% trans "Escala" %}
             </a>
             {% else %}
             <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=curso.pk %}" class="pca-btn pca-primary">
-              <i class="bi bi-pencil-square"></i> Libro de Notas
+              <i class="bi bi-pencil-square"></i> {% trans "Libro de Notas" %}
             </a>
             <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' curso_pk=curso.pk %}?tab=anual" class="pca-btn pca-indigo">
-              <i class="bi bi-bar-chart-steps"></i> Vista Anual
+              <i class="bi bi-bar-chart-steps"></i> {% trans "Vista Anual" %}
             </a>
             {% endif %}
             <a href="{% url 'gestion_academica:escaner_asistencia' curso_pk=curso.pk %}" class="pca-btn pca-danger">
-              <i class="bi bi-qr-code-scan"></i> Pasar Lista
+              <i class="bi bi-qr-code-scan"></i> {% trans "Pasar Lista" %}
             </a>
             <a href="{% url 'gestion_academica:registrar_leccion' curso_pk=curso.pk %}" class="pca-btn pca-info">
-              <i class="bi bi-journal-plus"></i> Lección
+              <i class="bi bi-journal-plus"></i> {% trans "Lección" %}
             </a>
             <a href="{% url 'gestion_academica:gestionar_observaciones' grado_pk=curso.grado.pk periodo_pk=curso.periodo_academico.pk %}" class="pca-btn pca-warning">
-              <i class="bi bi-chat-left-text-fill"></i> Observaciones
+              <i class="bi bi-chat-left-text-fill"></i> {% trans "Observaciones" %}
             </a>
             {% if es_director_de_grupo %}
             <a href="{% url 'gestion_academica:panel_director_grupo' %}" class="pca-btn pca-teal">
-              <i class="bi bi-person-video3"></i> Panel Director
+              <i class="bi bi-person-video3"></i> {% trans "Panel Director" %}
             </a>
             {% endif %}
             <a href="{% url 'gestion_academica:centro_gestion_docente' %}" class="pca-btn pca-slate">
-              <i class="bi bi-tools"></i> Centro Gestión
+              <i class="bi bi-tools"></i> {% trans "Centro Gestión" %}
             </a>
           </div>
         </div>
@@ -749,7 +750,7 @@
     <div class="col-12">
       <div class="pulse-empty">
         <i class="bi bi-journal-x"></i>
-        <p class="mb-0">No tienes cursos asignados para el periodo académico activo.</p>
+        <p class="mb-0">{% trans "No tienes cursos asignados para el periodo académico activo." %}</p>
       </div>
     </div>
     {% endfor %}
@@ -757,7 +758,7 @@
   {% if mallas_docente %}
   <div class="pulse-sec-hdr" id="malla-curricular-docente">
     <div class="psh-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
-    <h2>Malla Curricular {{ año_malla }}</h2>
+    <h2>{% blocktrans %}Malla Curricular {{ año_malla }}{% endblocktrans %}</h2>
   </div>
   <style>
     .mc-acc-item { border: 1.5px solid #e0e7ff; border-radius: 12px; margin-bottom: .75rem; overflow: hidden; }
@@ -794,7 +795,7 @@
               aria-controls="mc-collapse-{{ malla.pk }}">
         <span class="mc-grado-chip">{{ malla.grado.nombre }}</span>
         <span class="mc-materia">{{ malla.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and malla.materia.nombre_idioma_secundario %} / {{ malla.materia.nombre_idioma_secundario }}{% endif %}</span>
-        <span class="mc-items-chip">{{ total_items }} contenido{% if total_items != 1 %}s{% endif %}</span>
+        <span class="mc-items-chip">{% blocktrans count counter=total_items %}{{ counter }} contenido{% plural %}{{ counter }} contenidos{% endblocktrans %}</span>
         <i class="bi bi-chevron-down mc-chevron"></i>
       </button>
       <div class="collapse" id="mc-collapse-{{ malla.pk }}">
@@ -803,18 +804,18 @@
           <p class="text-muted mt-2 mb-1" style="font-size:.82rem; border-left:3px solid #4f46e5; padding-left:.6rem;">{{ malla.descripcion_general }}</p>
           {% endif %}
           <a href="{% url 'gestion_academica:malla_docente_imprimir' malla.pk %}" target="_blank" class="mc-btn-print">
-            <i class="bi bi-printer-fill"></i> Imprimir malla
+            <i class="bi bi-printer-fill"></i> {% trans "Imprimir malla" %}
           </a>
           {% for periodo_num, items in pp.items %}
-          <div class="mc-per-hdr">{{ periodo_num }}° Período Académico</div>
+          <div class="mc-per-hdr">{% blocktrans %}{{ periodo_num }}° Período Académico{% endblocktrans %}</div>
           {% if items %}
           <div class="table-responsive">
             <table class="mc-tbl">
               <thead><tr>
-                <th style="width:13%;">Eje Temático</th><th style="width:13%;">Logro</th>
-                <th style="width:9%;">Competencias</th><th style="width:11%;">EBC / DBA</th>
-                <th style="width:22%;">Indicadores de Desempeño</th><th style="width:10%;">Metodología</th>
-                <th style="width:9%;">Recursos</th><th style="width:9%;">Evaluación</th><th style="width:4%;">Sem.</th>
+                <th style="width:13%;">{% trans "Eje Temático" %}</th><th style="width:13%;">{% trans "Logro" %}</th>
+                <th style="width:9%;">{% trans "Competencias" %}</th><th style="width:11%;">{% trans "EBC / DBA" %}</th>
+                <th style="width:22%;">{% trans "Indicadores de Desempeño" %}</th><th style="width:10%;">{% trans "Metodología" %}</th>
+                <th style="width:9%;">{% trans "Recursos" %}</th><th style="width:9%;">{% trans "Evaluación" %}</th><th style="width:4%;">{% trans "Sem." %}</th>
               </tr></thead>
               <tbody>
                 {% for item in items %}
@@ -828,10 +829,10 @@
                     {% if not item.ebc and not item.dba %}—{% endif %}
                   </td>
                   <td>
-                    {% if item.indicador_bajo %}<div><span class="mc-nivel mc-nv-bajo">Bajo</span> {{ item.indicador_bajo }}</div>{% endif %}
-                    {% if item.indicador_basico %}<div><span class="mc-nivel mc-nv-basico">Básico</span> {{ item.indicador_basico }}</div>{% endif %}
-                    {% if item.indicador_alto %}<div><span class="mc-nivel mc-nv-alto">Alto</span> {{ item.indicador_alto }}</div>{% endif %}
-                    {% if item.indicador_superior %}<div><span class="mc-nivel mc-nv-superior">Superior</span> {{ item.indicador_superior }}</div>{% endif %}
+                    {% if item.indicador_bajo %}<div><span class="mc-nivel mc-nv-bajo">{% trans "Bajo" %}</span> {{ item.indicador_bajo }}</div>{% endif %}
+                    {% if item.indicador_basico %}<div><span class="mc-nivel mc-nv-basico">{% trans "Básico" %}</span> {{ item.indicador_basico }}</div>{% endif %}
+                    {% if item.indicador_alto %}<div><span class="mc-nivel mc-nv-alto">{% trans "Alto" %}</span> {{ item.indicador_alto }}</div>{% endif %}
+                    {% if item.indicador_superior %}<div><span class="mc-nivel mc-nv-superior">{% trans "Superior" %}</span> {{ item.indicador_superior }}</div>{% endif %}
                     {% if not item.indicador_bajo and not item.indicador_basico and not item.indicador_alto and not item.indicador_superior %}—{% endif %}
                   </td>
                   <td>{{ item.metodologia|default:"—" }}</td>
@@ -844,7 +845,7 @@
             </table>
           </div>
           {% else %}
-          <div class="mc-vacio"><i class="bi bi-inbox me-1"></i>Sin contenido en el {{ periodo_num }}° Período.</div>
+          <div class="mc-vacio"><i class="bi bi-inbox me-1"></i>{% blocktrans %}Sin contenido en el {{ periodo_num }}° Período.{% endblocktrans %}</div>
           {% endif %}
           {% endfor %}
         </div>

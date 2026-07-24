@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
@@ -13,12 +14,12 @@
   <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
       <div>
-        <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-person-hearts me-2"></i>PIARs — Planes de Ajustes Razonables</h2>
-        <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">Decreto 1421 de 2017 · Inclusión educativa y ajustes razonables · {{ piars|length }} plan(es)</p>
+        <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-person-hearts me-2"></i>{% trans "PIARs — Planes de Ajustes Razonables" %}</h2>
+        <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">{% blocktrans with contador=piars|length %}Decreto 1421 de 2017 · Inclusión educativa y ajustes razonables · {{ contador }} plan(es){% endblocktrans %}</p>
       </div>
       {% if request.user.rol == 'coordinador' or request.user.rol == 'administrador' or request.user.is_superuser %}
       <a href="{% url 'piar:crear_piar' %}" class="btn btn-warning fw-bold">
-        <i class="bi bi-plus-circle-fill me-1"></i>Nuevo PIAR
+        <i class="bi bi-plus-circle-fill me-1"></i>{% trans "Nuevo PIAR" %}
       </a>
       {% endif %}
     </div>
@@ -30,25 +31,25 @@
   <form method="get" class="row g-2 mb-3 p-3" style="background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
     <div class="col-md-3">
       <select name="año" class="form-select form-select-sm">
-        <option value="">Todos los años</option>
+        <option value="">{% trans "Todos los años" %}</option>
         {% for a in años %}<option value="{{ a }}" {% if filtros.año == a|stringformat:"s" %}selected{% endif %}>{{ a }}</option>{% endfor %}
       </select>
     </div>
     <div class="col-md-3">
       <select name="estado" class="form-select form-select-sm">
-        <option value="">Todos los estados</option>
+        <option value="">{% trans "Todos los estados" %}</option>
         {% for val, label in estados %}<option value="{{ val }}" {% if filtros.estado == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
     </div>
     <div class="col-md-3">
       <select name="grado_id" class="form-select form-select-sm">
-        <option value="">Todos los grados</option>
+        <option value="">{% trans "Todos los grados" %}</option>
         {% for g in grados %}<option value="{{ g.pk }}" {% if filtros.grado_id == g.pk|stringformat:"s" %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
       </select>
     </div>
     <div class="col-md-3 d-flex gap-1">
-      <button type="submit" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-search me-1"></i>Filtrar</button>
-      <a href="{% url 'piar:lista_piars' %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+      <button type="submit" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-search me-1"></i>{% trans "Filtrar" %}</button>
+      <a href="{% url 'piar:lista_piars' %}" class="btn btn-outline-secondary btn-sm">{% trans "Limpiar" %}</a>
     </div>
   </form>
   <!-- LISTA -->
@@ -65,15 +66,15 @@
               <span class="condicion-badge">{{ piar.get_condicion_display }}</span>
             </div>
             <div class="d-flex gap-3 flex-wrap" style="font-size:.8rem;color:#64748b;">
-              <span><i class="bi bi-calendar me-1"></i>Año {{ piar.año_lectivo }}</span>
+              <span><i class="bi bi-calendar me-1"></i>{% blocktrans with anio=piar.año_lectivo %}Año {{ anio }}{% endblocktrans %}</span>
               <span><i class="bi bi-pencil-fill me-1"></i>{{ piar.fecha_elaboracion|date:"d/m/Y" }}</span>
               {% if piar.docente_lider %}<span><i class="bi bi-person-badge me-1"></i>{{ piar.docente_lider.get_full_name }}</span>{% endif %}
-              <span><i class="bi bi-card-list me-1"></i>{{ piar.ajustes.count }} ajuste(s)</span>
+              <span><i class="bi bi-card-list me-1"></i>{% blocktrans with n=piar.ajustes.count %}{{ n }} ajuste(s){% endblocktrans %}</span>
             </div>
           </div>
           <div class="d-flex gap-1 align-items-center">
             <a href="{% url 'piar:detalle_piar' piar.pk %}" class="btn btn-sm btn-outline-primary fw-bold">
-              <i class="bi bi-eye me-1"></i>Ver
+              <i class="bi bi-eye me-1"></i>{% trans "Ver" %}
             </a>
             {% if request.user.rol == 'coordinador' or request.user.rol == 'administrador' or request.user.is_superuser %}
             <a href="{% url 'piar:editar_piar' piar.pk %}" class="btn btn-sm btn-outline-secondary">
@@ -93,9 +94,9 @@
     {% empty %}
     <div class="text-center py-5 text-muted">
       <i class="bi bi-person-hearts" style="font-size:3rem;opacity:.3;"></i>
-      <p class="mt-2">No hay PIARs registrados con estos filtros.</p>
+      <p class="mt-2">{% trans "No hay PIARs registrados con estos filtros." %}</p>
       {% if request.user.rol == 'coordinador' or request.user.rol == 'administrador' or request.user.is_superuser %}
-      <a href="{% url 'piar:crear_piar' %}" class="btn btn-primary mt-1"><i class="bi bi-plus-circle me-1"></i>Crear primer PIAR</a>
+      <a href="{% url 'piar:crear_piar' %}" class="btn btn-primary mt-1"><i class="bi bi-plus-circle me-1"></i>{% trans "Crear primer PIAR" %}</a>
       {% endif %}
     </div>
     {% endfor %}
@@ -112,15 +113,15 @@
         <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body pt-2">
-        <h5 class="fw-bold mb-1">¿Eliminar este PIAR?</h5>
+        <h5 class="fw-bold mb-1">{% trans "¿Eliminar este PIAR?" %}</h5>
         <p id="modal-piar-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
-        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>Se eliminarán también todos los ajustes asociados. Esta acción no se puede deshacer.</p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Se eliminarán también todos los ajustes asociados. Esta acción no se puede deshacer." %}</p>
       </div>
       <div class="modal-footer border-0">
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
         <form id="form-eliminar-piar" method="post">
           {% csrf_token %}
-          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>Sí, eliminar</button>
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button>
         </form>
       </div>
     </div>

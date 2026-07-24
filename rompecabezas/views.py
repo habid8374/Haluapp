@@ -4,6 +4,8 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib import messages
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -17,10 +19,13 @@ from .models import IntentoRompecabezas, Rompecabezas
 MAX_IMAGEN = 2 * 1024 * 1024  # 2 MB
 
 # Presets de dificultad ofrecidos al docente — (etiqueta, filas, columnas).
+# Usa gettext_lazy (no gettext): esta lista se evalúa una sola vez al cargar
+# el módulo, así que con gettext normal quedaría congelada en el idioma
+# activo en ese momento en vez de traducirse por cada request.
 DIFICULTADES = [
-    ('facil', 'Fácil (3 x 3 — 9 piezas)', 3, 3),
-    ('medio', 'Medio (4 x 4 — 16 piezas)', 4, 4),
-    ('dificil', 'Difícil (5 x 5 — 25 piezas)', 5, 5),
+    ('facil', _lazy('Fácil (3 x 3 — 9 piezas)'), 3, 3),
+    ('medio', _lazy('Medio (4 x 4 — 16 piezas)'), 4, 4),
+    ('dificil', _lazy('Difícil (5 x 5 — 25 piezas)'), 5, 5),
 ]
 DIFICULTADES_MAP = {clave: (filas, columnas) for clave, _, filas, columnas in DIFICULTADES}
 
@@ -90,7 +95,7 @@ def lista(request):
         docente = getattr(request.user, 'docente', None)
         rompecabezas_qs = rompecabezas_qs.filter(curso__docentes_asignados=docente) if docente else rompecabezas_qs.none()
     return render(request, 'rompecabezas/lista.html', {
-        'titulo_pagina': 'Rompecabezas',
+        'titulo_pagina': _('Rompecabezas'),
         'items': rompecabezas_qs,
     })
 
@@ -124,11 +129,11 @@ def crear(request):
         filas, columnas = DIFICULTADES_MAP.get(dificultad, (3, 3))
 
         if not titulo or not curso or not tipo:
-            messages.error(request, "Completa el título, el curso y la categoría.")
+            messages.error(request, _("Completa el título, el curso y la categoría."))
         elif not imagen:
-            messages.error(request, "Sube una imagen para armar el rompecabezas.")
+            messages.error(request, _("Sube una imagen para armar el rompecabezas."))
         elif not _imagen_valida(imagen):
-            messages.error(request, "La imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
+            messages.error(request, _("La imagen debe pesar máximo 2 MB y ser un archivo de imagen."))
         else:
             rc = Rompecabezas.objects.create(
                 institucion=curso.institucion, curso=curso, titulo=titulo,
@@ -137,11 +142,11 @@ def crear(request):
                 tipo_actividad=tipo, nota_maxima=nota_maxima, creado_por=request.user,
                 fecha_inicio=fecha_inicio, fecha_fin=fecha_fin,
             )
-            messages.success(request, "Rompecabezas creado. Revísalo y publícalo para los estudiantes.")
+            messages.success(request, _("Rompecabezas creado. Revísalo y publícalo para los estudiantes."))
             return redirect('rompecabezas:detalle', pk=rc.pk)
 
     return render(request, 'rompecabezas/form.html', {
-        'titulo_pagina': 'Nuevo rompecabezas',
+        'titulo_pagina': _('Nuevo rompecabezas'),
         'cursos': cursos, 'tipos': tipos, 'dificultades': DIFICULTADES,
     })
 
@@ -179,7 +184,7 @@ def publicar(request, pk):
             rc.actividad_calificable = act
         rc.estado = Rompecabezas.Estado.PUBLICADO
         rc.save(update_fields=['actividad_calificable', 'estado'])
-    messages.success(request, "¡Rompecabezas publicado! Ya aparece a los estudiantes del curso.")
+    messages.success(request, _("¡Rompecabezas publicado! Ya aparece a los estudiantes del curso."))
     return redirect('rompecabezas:detalle', pk=rc.pk)
 
 
@@ -191,7 +196,7 @@ def cerrar(request, pk):
     rc.estado = Rompecabezas.Estado.CERRADO
     rc.fecha_cierre = timezone.now()
     rc.save(update_fields=['estado', 'fecha_cierre'])
-    messages.success(request, "Rompecabezas cerrado.")
+    messages.success(request, _("Rompecabezas cerrado."))
     return redirect('rompecabezas:detalle', pk=rc.pk)
 
 
@@ -203,7 +208,7 @@ def editar_datos(request, pk):
     rc = get_object_or_404(_scope(Rompecabezas.objects.all(), request.user), pk=pk)
     titulo = (request.POST.get('titulo') or '').strip()
     if not titulo:
-        messages.error(request, "El título no puede quedar vacío.")
+        messages.error(request, _("El título no puede quedar vacío."))
         return redirect('rompecabezas:detalle', pk=rc.pk)
     rc.titulo = titulo
     rc.instrucciones = (request.POST.get('instrucciones') or '').strip()
@@ -221,7 +226,7 @@ def editar_datos(request, pk):
         act.tipo_actividad = rc.tipo_actividad
         act.descripcion = rc.instrucciones or None
         act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
-    messages.success(request, "Datos actualizados.")
+    messages.success(request, _("Datos actualizados."))
     return redirect('rompecabezas:detalle', pk=rc.pk)
 
 
@@ -233,7 +238,7 @@ def editar_fechas(request, pk):
     rc.fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
     rc.fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
     rc.save(update_fields=['fecha_inicio', 'fecha_fin'])
-    messages.success(request, "Fechas actualizadas.")
+    messages.success(request, _("Fechas actualizadas."))
     return redirect('rompecabezas:detalle', pk=rc.pk)
 
 
@@ -243,7 +248,7 @@ def eliminar(request, pk):
     _solo_docente_coord(request.user)
     rc = get_object_or_404(_scope(Rompecabezas.objects.all(), request.user), pk=pk)
     rc.delete()
-    messages.success(request, "Rompecabezas eliminado.")
+    messages.success(request, _("Rompecabezas eliminado."))
     return redirect('rompecabezas:lista')
 
 
@@ -256,7 +261,7 @@ def resultados(request, pk):
     intentos = rc.intentos.select_related('estudiante__usuario').order_by(
         '-puntaje', 'estudiante__usuario__first_name')
     return render(request, 'rompecabezas/resultados.html', {
-        'titulo_pagina': f'Resultados: {rc.titulo}',
+        'titulo_pagina': _('Resultados: %(rc_titulo)s') % {'rc_titulo': rc.titulo},
         'rc': rc,
         'intentos': intentos,
     })
@@ -274,7 +279,7 @@ def mis_rompecabezas(request):
         raise PermissionDenied
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'rompecabezas/mis_rompecabezas.html', {'titulo_pagina': 'Rompecabezas', 'items': []})
+        return render(request, 'rompecabezas/mis_rompecabezas.html', {'titulo_pagina': _('Rompecabezas'), 'items': []})
 
     rompecabezas_qs = Rompecabezas.objects.filter(
         institucion=estudiante.institucion,
@@ -290,7 +295,7 @@ def mis_rompecabezas(request):
         disp, msg = rc.estado_disponibilidad()
         items.append({'rc': rc, 'intento': hechos.get(rc.id), 'disp': disp, 'msg': msg})
     return render(request, 'rompecabezas/mis_rompecabezas.html', {
-        'titulo_pagina': 'Rompecabezas', 'items': items,
+        'titulo_pagina': _('Rompecabezas'), 'items': items,
     })
 
 
@@ -335,7 +340,7 @@ def resolver(request, pk):
         correcto = isinstance(orden, list) and orden == list(range(n))
 
         if not correcto:
-            messages.error(request, "Las piezas todavía no están en el orden correcto. Sigue intentando.")
+            messages.error(request, _("Las piezas todavía no están en el orden correcto. Sigue intentando."))
             return redirect('rompecabezas:resolver', pk=rc.pk)
 
         puntaje = rc.nota_maxima
@@ -350,7 +355,7 @@ def resolver(request, pk):
                 },
             )
             _registrar_calificacion(rc, estudiante, puntaje)
-        messages.success(request, "¡Rompecabezas armado! Aquí está tu resultado.")
+        messages.success(request, _("¡Rompecabezas armado! Aquí está tu resultado."))
         return redirect('rompecabezas:resultado', pk=rc.pk)
 
     return render(request, 'rompecabezas/resolver.html', {
@@ -384,7 +389,7 @@ def resultado(request, pk):
     rc = get_object_or_404(Rompecabezas, pk=pk, institucion=estudiante.institucion)
     intento = get_object_or_404(IntentoRompecabezas, rompecabezas=rc, estudiante=estudiante)
     return render(request, 'rompecabezas/resultado.html', {
-        'titulo_pagina': f'Resultado: {rc.titulo}',
+        'titulo_pagina': _('Resultado: %(rc_titulo)s') % {'rc_titulo': rc.titulo},
         'rc': rc,
         'intento': intento,
     })

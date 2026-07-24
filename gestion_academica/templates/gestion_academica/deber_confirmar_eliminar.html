@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Deber" }}{% endblock titulo %}
 {% block contenido %}
 <div class="container mt-4">
@@ -7,40 +8,40 @@
     <hr>
     {% if deber %}
         <div class="alert alert-warning shadow-sm" role="alert">
-            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
-            <p>¿Estás seguro de que deseas eliminar el deber / tarea:</p>
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> {% trans "¡Advertencia!" %}</h4>
+            <p>{% trans "¿Estás seguro de que deseas eliminar el deber / tarea:" %}</p>
             <p class="mb-1">
-                <strong>Título:</strong> {{ deber.titulo }}
+                <strong>{% trans "Título:" %}</strong> {{ deber.titulo }}
             </p>
             <p class="mb-0">
-                <strong>Curso:</strong> {{ deber.curso.materia.nombre_materia }} del grado {{ deber.curso.grado.nombre }} (Periodo: {{ deber.curso.periodo_academico.nombre }})
+                <strong>{% trans "Curso:" %}</strong> {% blocktrans with materia=deber.curso.materia.nombre_materia grado=deber.curso.grado.nombre periodo=deber.curso.periodo_academico.nombre %}{{ materia }} del grado {{ grado }} (Periodo: {{ periodo }}){% endblocktrans %}
             </p>
             <hr>
             {% if deber.material_adjunto %}
-                <p class="text-muted">Este deber tiene un material adjunto: <a href="{{ deber.material_adjunto.url }}" target="_blank" class="fw-bold">{{ deber.material_adjunto.name|cut:"deberes_materiales/" }} <i class="bi bi-box-arrow-up-right"></i></a></p>
+                <p class="text-muted">{% blocktrans with nombre=deber.material_adjunto.name|cut:"deberes_materiales/" %}Este deber tiene un material adjunto:{% endblocktrans %} <a href="{{ deber.material_adjunto.url }}" target="_blank" class="fw-bold">{{ deber.material_adjunto.name|cut:"deberes_materiales/" }} <i class="bi bi-box-arrow-up-right"></i></a></p>
             {% endif %}
             {% if deber.entregas.exists %}
                 <p class="text-danger">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este deber ya tiene **{{ deber.entregas.count }} entrega(s)** de estudiantes. Eliminarlo también **borrará permanentemente** estas entregas y cualquier archivo adjunto por los estudiantes.
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i> {% blocktrans count counter=deber.entregas.count %}**¡Importante!** Este deber ya tiene **{{ counter }} entrega** de estudiantes. Eliminarlo también **borrará permanentemente** estas entregas y cualquier archivo adjunto por los estudiantes.{% plural %}**¡Importante!** Este deber ya tiene **{{ counter }} entregas** de estudiantes. Eliminarlo también **borrará permanentemente** estas entregas y cualquier archivo adjunto por los estudiantes.{% endblocktrans %}
                 </p>
             {% endif %}
-            <p class="mb-0 mt-3 text-danger">Esta acción es **irreversible**.</p>
+            <p class="mb-0 mt-3 text-danger">{% trans "Esta acción es **irreversible**." %}</p>
         </div>
         <form method="post" class="mt-4">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger me-2">
-                <i class="bi bi-trash-fill"></i> Sí, Eliminar Deber
+                <i class="bi bi-trash-fill"></i> {% trans "Sí, Eliminar Deber" %}
             </button>
             <a href="{% url 'gestion_academica:lista_deberes' %}" class="btn btn-secondary">
-                <i class="bi bi-x-circle-fill"></i> No, Cancelar
+                <i class="bi bi-x-circle-fill"></i> {% trans "No, Cancelar" %}
             </a>
         </form>
     {% else %}
         <div class="alert alert-warning text-center" role="alert">
-            <i class="bi bi-info-circle-fill me-2"></i> No se encontró el deber/tarea a eliminar.
+            <i class="bi bi-info-circle-fill me-2"></i> {% trans "No se encontró el deber/tarea a eliminar." %}
         </div>
         <a href="{% url 'gestion_academica:lista_deberes' %}" class="btn btn-primary mt-2">
-            <i class="bi bi-arrow-left-circle-fill"></i> Volver al Listado
+            <i class="bi bi-arrow-left-circle-fill"></i> {% trans "Volver al Listado" %}
         </a>
     {% endif %}
 </div>

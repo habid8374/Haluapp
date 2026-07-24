@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -127,7 +128,7 @@ def lista(request):
         docente = getattr(request.user, 'docente', None)
         juegos = juegos.filter(curso__docentes_asignados=docente) if docente else juegos.none()
     return render(request, 'memoria/lista.html', {
-        'titulo_pagina': 'Juegos de Memoria',
+        'titulo_pagina': _('Juegos de Memoria'),
         'juegos': juegos,
     })
 
@@ -162,11 +163,11 @@ def crear(request):
 
         parejas, error = _leer_parejas(request)
         if not titulo or not curso or not tipo:
-            messages.error(request, "Completa el título, el curso y la categoría.")
+            messages.error(request, _("Completa el título, el curso y la categoría."))
         elif error:
             messages.error(request, error)
         elif parejas is None or len(parejas) < MIN_PAREJAS:
-            messages.error(request, f"Agrega al menos {MIN_PAREJAS} parejas completas.")
+            messages.error(request, _("Agrega al menos %(min_parejas)s parejas completas.") % {'min_parejas': MIN_PAREJAS})
         else:
             with transaction.atomic():
                 juego = JuegoMemoria.objects.create(
@@ -178,11 +179,11 @@ def crear(request):
                 )
                 for n, p in enumerate(parejas, start=1):
                     ParejaMemoria.objects.create(juego=juego, orden=n, **p)
-            messages.success(request, "Juego creado. Revísalo y publícalo para los estudiantes.")
+            messages.success(request, _("Juego creado. Revísalo y publícalo para los estudiantes."))
             return redirect('memoria:detalle', pk=juego.pk)
 
     return render(request, 'memoria/form.html', {
-        'titulo_pagina': 'Nuevo juego de memoria',
+        'titulo_pagina': _('Nuevo juego de memoria'),
         'cursos': cursos, 'tipos': tipos,
         'MODOS': JuegoMemoria.ModoNota.choices,
     })
@@ -215,7 +216,7 @@ def editar_datos(request, pk):
     juego = get_object_or_404(_scope(JuegoMemoria.objects.all(), request.user), pk=pk)
     titulo = (request.POST.get('titulo') or '').strip()
     if not titulo:
-        messages.error(request, "El título no puede quedar vacío.")
+        messages.error(request, _("El título no puede quedar vacío."))
         return redirect('memoria:detalle', pk=juego.pk)
     juego.titulo = titulo
     juego.instrucciones = (request.POST.get('instrucciones') or '').strip()
@@ -236,7 +237,7 @@ def editar_datos(request, pk):
         act.tipo_actividad = juego.tipo_actividad
         act.descripcion = juego.instrucciones or None
         act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
-    messages.success(request, "Datos actualizados.")
+    messages.success(request, _("Datos actualizados."))
     return redirect('memoria:detalle', pk=juego.pk)
 
 
@@ -252,7 +253,7 @@ def editar_pareja(request, pk, pareja_pk):
         imagen = request.FILES.get(f'imagen_{lado}')
         if imagen:
             if not _imagen_valida(imagen):
-                messages.error(request, "Cada imagen debe pesar máximo 2 MB.")
+                messages.error(request, _("Cada imagen debe pesar máximo 2 MB."))
                 return redirect('memoria:detalle', pk=juego.pk)
             setattr(pareja, f'imagen_{lado}', imagen)
         elif request.POST.get(f'quitar_imagen_{lado}') == 'on':
@@ -260,17 +261,17 @@ def editar_pareja(request, pk, pareja_pk):
         audio = request.FILES.get(f'audio_{lado}')
         if audio:
             if not _audio_valido(audio):
-                messages.error(request, "Cada audio debe pesar máximo 3 MB.")
+                messages.error(request, _("Cada audio debe pesar máximo 3 MB."))
                 return redirect('memoria:detalle', pk=juego.pk)
             setattr(pareja, f'audio_{lado}', audio)
         elif request.POST.get(f'quitar_audio_{lado}') == 'on':
             setattr(pareja, f'audio_{lado}', None)
     # Cada tarjeta de la pareja necesita imagen o texto.
     if (not pareja.texto_a and not pareja.imagen_a) or (not pareja.texto_b and not pareja.imagen_b):
-        messages.error(request, "Cada tarjeta de la pareja necesita una imagen o un texto.")
+        messages.error(request, _("Cada tarjeta de la pareja necesita una imagen o un texto."))
         return redirect('memoria:detalle', pk=juego.pk)
     pareja.save()
-    messages.success(request, "Pareja actualizada.")
+    messages.success(request, _("Pareja actualizada."))
     return redirect('memoria:detalle', pk=juego.pk)
 
 
@@ -283,15 +284,15 @@ def agregar_pareja(request, pk):
     if error:
         messages.error(request, error)
     elif not parejas:
-        messages.error(request, "La pareja está incompleta: cada tarjeta necesita imagen o texto.")
+        messages.error(request, _("La pareja está incompleta: cada tarjeta necesita imagen o texto."))
     elif juego.parejas.count() + len(parejas) > MAX_PAREJAS:
-        messages.error(request, f"Máximo {MAX_PAREJAS} parejas por juego.")
+        messages.error(request, _("Máximo %(max_parejas)s parejas por juego.") % {'max_parejas': MAX_PAREJAS})
     else:
         ultimo = juego.parejas.order_by('-orden').first()
         base = (ultimo.orden if ultimo else 0)
         for n, p in enumerate(parejas, start=1):
             ParejaMemoria.objects.create(juego=juego, orden=base + n, **p)
-        messages.success(request, "Pareja agregada.")
+        messages.success(request, _("Pareja agregada."))
     return redirect('memoria:detalle', pk=juego.pk)
 
 
@@ -302,7 +303,7 @@ def eliminar_pareja(request, pk, pareja_pk):
     juego = get_object_or_404(_scope(JuegoMemoria.objects.all(), request.user), pk=pk)
     pareja = get_object_or_404(ParejaMemoria, pk=pareja_pk, juego=juego)
     pareja.delete()
-    messages.success(request, "Pareja eliminada.")
+    messages.success(request, _("Pareja eliminada."))
     return redirect('memoria:detalle', pk=juego.pk)
 
 
@@ -312,7 +313,7 @@ def publicar(request, pk):
     _solo_docente_coord(request.user)
     juego = get_object_or_404(_scope(JuegoMemoria.objects.all(), request.user), pk=pk)
     if juego.parejas.count() < MIN_PAREJAS:
-        messages.error(request, f"Necesitas al menos {MIN_PAREJAS} parejas para publicar.")
+        messages.error(request, _("Necesitas al menos %(min_parejas)s parejas para publicar.") % {'min_parejas': MIN_PAREJAS})
         return redirect('memoria:detalle', pk=juego.pk)
     from gestion_academica.models import ActividadCalificable
     with transaction.atomic():
@@ -325,7 +326,7 @@ def publicar(request, pk):
             juego.actividad_calificable = act
         juego.estado = JuegoMemoria.Estado.PUBLICADO
         juego.save(update_fields=['actividad_calificable', 'estado'])
-    messages.success(request, "¡Juego publicado! Ya aparece a los estudiantes del curso.")
+    messages.success(request, _("¡Juego publicado! Ya aparece a los estudiantes del curso."))
     return redirect('memoria:detalle', pk=juego.pk)
 
 
@@ -337,7 +338,7 @@ def cerrar(request, pk):
     juego.estado = JuegoMemoria.Estado.CERRADO
     juego.fecha_cierre = timezone.now()
     juego.save(update_fields=['estado', 'fecha_cierre'])
-    messages.success(request, "Juego cerrado.")
+    messages.success(request, _("Juego cerrado."))
     return redirect('memoria:detalle', pk=juego.pk)
 
 
@@ -349,7 +350,7 @@ def editar_fechas(request, pk):
     juego.fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
     juego.fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
     juego.save(update_fields=['fecha_inicio', 'fecha_fin'])
-    messages.success(request, "Fechas actualizadas.")
+    messages.success(request, _("Fechas actualizadas."))
     return redirect('memoria:detalle', pk=juego.pk)
 
 
@@ -359,7 +360,7 @@ def eliminar(request, pk):
     _solo_docente_coord(request.user)
     juego = get_object_or_404(_scope(JuegoMemoria.objects.all(), request.user), pk=pk)
     juego.delete()
-    messages.success(request, "Juego eliminado.")
+    messages.success(request, _("Juego eliminado."))
     return redirect('memoria:lista')
 
 
@@ -372,7 +373,7 @@ def resultados(request, pk):
     intentos = juego.intentos.select_related('estudiante__usuario').order_by(
         '-puntaje', 'movimientos')
     return render(request, 'memoria/resultados.html', {
-        'titulo_pagina': f'Resultados: {juego.titulo}',
+        'titulo_pagina': _('Resultados: %(juego_titulo)s') % {'juego_titulo': juego.titulo},
         'juego': juego,
         'intentos': intentos,
     })
@@ -390,7 +391,7 @@ def mis_juegos(request):
         raise PermissionDenied
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'memoria/mis_juegos.html', {'titulo_pagina': 'Juegos de Memoria', 'items': []})
+        return render(request, 'memoria/mis_juegos.html', {'titulo_pagina': _('Juegos de Memoria'), 'items': []})
 
     juegos = JuegoMemoria.objects.filter(
         institucion=estudiante.institucion,
@@ -406,7 +407,7 @@ def mis_juegos(request):
         disp, msg = j.estado_disponibilidad()
         items.append({'juego': j, 'intento': hechos.get(j.id), 'disp': disp, 'msg': msg})
     return render(request, 'memoria/mis_juegos.html', {
-        'titulo_pagina': 'Juegos de Memoria', 'items': items,
+        'titulo_pagina': _('Juegos de Memoria'), 'items': items,
     })
 
 
@@ -461,7 +462,7 @@ def jugar(request, pk):
                 },
             )
             _registrar_calificacion(juego, estudiante, puntaje, movimientos, total)
-        messages.success(request, "¡Muy bien! Aquí está tu resultado.")
+        messages.success(request, _("¡Muy bien! Aquí está tu resultado."))
         return redirect('memoria:resultado', pk=juego.pk)
 
     # Construir el mazo: 2 tarjetas por pareja, barajadas.
@@ -511,7 +512,7 @@ def resultado(request, pk):
     juego = get_object_or_404(JuegoMemoria, pk=pk, institucion=estudiante.institucion)
     intento = get_object_or_404(IntentoMemoria, juego=juego, estudiante=estudiante)
     return render(request, 'memoria/resultado.html', {
-        'titulo_pagina': f'Resultado: {juego.titulo}',
+        'titulo_pagina': _('Resultado: %(juego_titulo)s') % {'juego_titulo': juego.titulo},
         'juego': juego,
         'intento': intento,
     })

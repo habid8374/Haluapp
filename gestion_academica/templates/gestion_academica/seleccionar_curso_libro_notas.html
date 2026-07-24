@@ -1,6 +1,7 @@
 {% extends "base_academico.html" %}
 {% load static %}
-{% block titulo %}Seleccionar Curso — Libro de Notas{% endblock %}
+{% load i18n %}
+{% block titulo %}{% trans "Seleccionar Curso — Libro de Notas" %}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
 .csl-hero {
@@ -72,9 +73,9 @@
 <div class="container-fluid mt-3">
   <!-- Hero -->
   <div class="csl-hero">
-    <div class="csl-badge"><i class="bi bi-journal-richtext me-1"></i>Coordinación Académica</div>
-    <div class="csl-title">Libro de Notas por Curso</div>
-    <div class="csl-sub">Supervisión de notas y vista anual de todos los cursos de la institución</div>
+    <div class="csl-badge"><i class="bi bi-journal-richtext me-1"></i>{% trans "Coordinación Académica" %}</div>
+    <div class="csl-title">{% trans "Libro de Notas por Curso" %}</div>
+    <div class="csl-sub">{% trans "Supervisión de notas y vista anual de todos los cursos de la institución" %}</div>
   </div>
   {% if messages %}
     {% for message in messages %}
@@ -93,12 +94,12 @@
       {% endif %}
       <div class="col-sm-auto">
         <label for="periodo" class="form-label fw-600 mb-1" style="font-size:.82rem;color:#374151;">
-          <i class="bi bi-calendar-check-fill me-1 text-primary"></i>Período académico:
+          <i class="bi bi-calendar-check-fill me-1 text-primary"></i>{% trans "Período académico:" %}
         </label>
         <select name="periodo" id="periodo" class="form-select form-select-sm" onchange="this.form.submit()">
           {% for periodo in periodos_disponibles %}
           <option value="{{ periodo.pk }}" {% if periodo.pk == periodo_seleccionado.pk %}selected{% endif %}>
-            {{ periodo.nombre }} ({{ periodo.año_escolar }})
+            {% blocktrans with nombre=periodo.nombre anio=periodo.año_escolar %}{{ nombre }} ({{ anio }}){% endblocktrans %}
           </option>
           {% endfor %}
         </select>
@@ -119,7 +120,7 @@
     <div class="d-flex align-items-center gap-2 mb-3 p-3"
          style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.75rem;font-size:.83rem;color:#1e40af;">
       <i class="bi bi-eye-fill flex-shrink-0"></i>
-      <span><strong>Modo supervisión:</strong> Puedes consultar el libro de notas y la Vista Anual de cualquier curso. Las notas solo pueden ser modificadas por el docente asignado.</span>
+      <span>{% blocktrans %}<strong>Modo supervisión:</strong> Puedes consultar el libro de notas y la Vista Anual de cualquier curso. Las notas solo pueden ser modificadas por el docente asignado.{% endblocktrans %}</span>
     </div>
     <div class="csl-grid">
       {% for curso in cursos %}
@@ -134,31 +135,31 @@
         <div class="csl-actions">
           <a href="{% url 'gestion_academica:redirigir_libro_notas' curso_pk=curso.pk %}"
              class="btn-ln-notas">
-            <i class="bi bi-pencil-square"></i> Ver Notas
+            <i class="bi bi-pencil-square"></i> {% trans "Ver Notas" %}
           </a>
           <a href="{% url 'gestion_academica:redirigir_libro_notas' curso_pk=curso.pk %}?tab=anual"
              class="btn-ln-anual">
-            <i class="bi bi-bar-chart-steps"></i> Vista Anual
+            <i class="bi bi-bar-chart-steps"></i> {% trans "Vista Anual" %}
           </a>
         </div>
       </div>
       {% empty %}
       <div class="text-center py-5" style="color:#9ca3af;">
         <i class="bi bi-journal-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
-        <p class="mb-0 fw-600">No hay cursos registrados para este período.</p>
+        <p class="mb-0 fw-600">{% trans "No hay cursos registrados para este período." %}</p>
       </div>
       {% endfor %}
     </div>
     {% else %}
     <div class="text-center py-5" style="color:#9ca3af;">
       <i class="bi bi-journal-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
-      <p class="mb-0 fw-600">No hay cursos para el período seleccionado.</p>
+      <p class="mb-0 fw-600">{% trans "No hay cursos para el período seleccionado." %}</p>
     </div>
     {% endif %}
   {% else %}
   <div class="alert alert-warning d-flex align-items-center gap-2">
     <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
-    <span>No hay períodos académicos disponibles en el sistema.</span>
+    <span>{% trans "No hay períodos académicos disponibles en el sistema." %}</span>
   </div>
   {% endif %}
 </div>

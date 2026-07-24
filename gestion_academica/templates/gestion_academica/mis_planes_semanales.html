@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
@@ -48,24 +49,24 @@
 <div class="container-fluid px-2 px-md-3 pb-5" style="max-width:1100px;">
   <div class="ps-hero">
     <div style="position:relative;z-index:1;">
-      <div class="ps-hero-badge mb-2"><i class="bi bi-calendar-week-fill"></i> Docente</div>
+      <div class="ps-hero-badge mb-2"><i class="bi bi-calendar-week-fill"></i> {% trans "Docente" %}</div>
       <div class="ps-hero-title"><i class="bi bi-journal-text me-2"></i>{{ titulo_pagina }}</div>
-      <div class="ps-hero-sub">Registra, organiza y envía tus planes de clase semana a semana.</div>
+      <div class="ps-hero-sub">{% trans "Registra, organiza y envía tus planes de clase semana a semana." %}</div>
     </div>
   </div>
   <!-- Semana actual -->
   <div class="ps-current-week">
     <div>
-      <div class="ps-cw-label">Semana actual</div>
+      <div class="ps-cw-label">{% trans "Semana actual" %}</div>
       <div class="ps-cw-week"><i class="bi bi-calendar3 me-2"></i>{{ semana_actual_label }}</div>
     </div>
     {% if plan_semana_actual %}
       <a href="{% url 'gestion_academica:plan_semanal_detalle' plan_semana_actual.pk %}" class="ps-cw-btn">
-        <i class="bi bi-arrow-right-circle-fill"></i> Ir al plan de esta semana
+        <i class="bi bi-arrow-right-circle-fill"></i> {% trans "Ir al plan de esta semana" %}
       </a>
     {% else %}
       <button type="button" class="ps-cw-btn" data-bs-toggle="modal" data-bs-target="#modalCrearPlan">
-        <i class="bi bi-plus-circle-fill"></i> Crear plan de esta semana
+        <i class="bi bi-plus-circle-fill"></i> {% trans "Crear plan de esta semana" %}
       </button>
     {% endif %}
   </div>
@@ -76,10 +77,10 @@
         <div class="ps-panel-header">
           <h2 class="ps-panel-title">
             <span class="ico ico-indigo"><i class="bi bi-list-ul"></i></span>
-            Historial de Planes
+            {% trans "Historial de Planes" %}
           </h2>
           <button type="button" class="btn btn-sm" style="background:#e0e7ff;color:#3730a3;font-size:.75rem;font-weight:600;border-radius:.5rem;" data-bs-toggle="modal" data-bs-target="#modalCrearPlan">
-            <i class="bi bi-plus-lg me-1"></i>Nuevo Plan
+            <i class="bi bi-plus-lg me-1"></i>{% trans "Nuevo Plan" %}
           </button>
         </div>
         {% if planes_con_label %}
@@ -94,34 +95,34 @@
                 <div class="ps-plan-week"><i class="bi bi-calendar3 me-1"></i>{{ label }}</div>
               </div>
               <div class="ps-plan-count">
-                <i class="bi bi-list-check me-1"></i>{{ plan.total_items }} clase{{ plan.total_items|pluralize:"s" }}
+                <i class="bi bi-list-check me-1"></i>{% blocktrans count counter=plan.total_items %}{{ counter }} clase{% plural %}{{ counter }} clases{% endblocktrans %}
               </div>
             </a>
             <div class="ps-plan-actions">
               {% if plan.estado == 'BORRADOR' %}
-                <span class="ps-badge ps-badge-borrador"><i class="bi bi-pencil-fill"></i> Borrador</span>
+                <span class="ps-badge ps-badge-borrador"><i class="bi bi-pencil-fill"></i> {% trans "Borrador" %}</span>
                 <button type="button"
                         class="btn-accion-plan"
                         style="display:inline-flex;align-items:center;gap:.3rem;background:linear-gradient(135deg,var(--ps-mid),var(--ps-light));color:#fff;border:none;border-radius:.45rem;padding:.28rem .7rem;font-size:.73rem;font-weight:700;cursor:pointer;white-space:nowrap;"
                         data-bs-toggle="modal" data-bs-target="#modalEnviarPlanLista"
                         data-action="{% url 'gestion_academica:plan_semanal_enviar' plan.pk %}"
                         data-info="{{ plan.curso.materia.nombre_materia }} · {{ label }}">
-                  <i class="bi bi-send-fill"></i> Enviar
+                  <i class="bi bi-send-fill"></i> {% trans "Enviar" %}
                 </button>
               {% elif plan.estado == 'CON_OBSERVACIONES' %}
-                <span class="ps-badge ps-badge-obs"><i class="bi bi-exclamation-circle-fill"></i> Con obs.</span>
+                <span class="ps-badge ps-badge-obs"><i class="bi bi-exclamation-circle-fill"></i> {% trans "Con obs." %}</span>
                 <a href="{% url 'gestion_academica:plan_semanal_detalle' plan.pk %}"
                    style="display:inline-flex;align-items:center;gap:.3rem;background:linear-gradient(135deg,#92400e,#b45309,#d97706);color:#fff;text-decoration:none;border-radius:.45rem;padding:.28rem .7rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
-                  <i class="bi bi-arrow-repeat"></i> Corregir y reenviar
+                  <i class="bi bi-arrow-repeat"></i> {% trans "Corregir y reenviar" %}
                 </a>
               {% elif plan.estado == 'ENVIADO' %}
-                <span class="ps-badge ps-badge-enviado"><i class="bi bi-send-fill"></i> Enviado</span>
-                <span style="font-size:.68rem;color:#94a3b8;white-space:nowrap;">En revisión…</span>
+                <span class="ps-badge ps-badge-enviado"><i class="bi bi-send-fill"></i> {% trans "Enviado" %}</span>
+                <span style="font-size:.68rem;color:#94a3b8;white-space:nowrap;">{% trans "En revisión…" %}</span>
               {% elif plan.estado == 'APROBADO' %}
-                <span class="ps-badge ps-badge-aprobado"><i class="bi bi-check-circle-fill"></i> Aprobado</span>
+                <span class="ps-badge ps-badge-aprobado"><i class="bi bi-check-circle-fill"></i> {% trans "Aprobado" %}</span>
                 <a href="{% url 'gestion_academica:plan_semanal_detalle' plan.pk %}"
                    style="display:inline-flex;align-items:center;gap:.3rem;background:#f1f5f9;color:#475569;text-decoration:none;border-radius:.45rem;padding:.28rem .7rem;font-size:.73rem;font-weight:600;white-space:nowrap;">
-                  <i class="bi bi-eye"></i> Ver
+                  <i class="bi bi-eye"></i> {% trans "Ver" %}
                 </a>
               {% endif %}
             </div>
@@ -130,8 +131,8 @@
         {% else %}
           <div class="ps-empty">
             <i class="bi bi-journal-x"></i>
-            <p class="fw-semibold mb-1">Sin planes registrados</p>
-            <p class="small mb-0">Crea tu primer plan semanal usando el botón de arriba.</p>
+            <p class="fw-semibold mb-1">{% trans "Sin planes registrados" %}</p>
+            <p class="small mb-0">{% trans "Crea tu primer plan semanal usando el botón de arriba." %}</p>
           </div>
         {% endif %}
       </div>
@@ -140,24 +141,24 @@
     <div class="col-12 col-lg-4">
       <div class="ps-panel">
         <div class="ps-panel-header">
-          <h2 class="ps-panel-title"><span class="ico ico-indigo"><i class="bi bi-info-circle-fill"></i></span> Estados del Plan</h2>
+          <h2 class="ps-panel-title"><span class="ico ico-indigo"><i class="bi bi-info-circle-fill"></i></span> {% trans "Estados del Plan" %}</h2>
         </div>
         <div style="padding:1rem 1.2rem;">
           <div class="d-flex align-items-start gap-2 mb-3">
-            <span class="ps-badge ps-badge-borrador"><i class="bi bi-pencil-fill"></i> Borrador</span>
-            <p class="mb-0" style="font-size:.78rem;color:#475569;">Plan en edición. Puedes agregar y modificar ítems.</p>
+            <span class="ps-badge ps-badge-borrador"><i class="bi bi-pencil-fill"></i> {% trans "Borrador" %}</span>
+            <p class="mb-0" style="font-size:.78rem;color:#475569;">{% trans "Plan en edición. Puedes agregar y modificar ítems." %}</p>
           </div>
           <div class="d-flex align-items-start gap-2 mb-3">
-            <span class="ps-badge ps-badge-enviado"><i class="bi bi-send-fill"></i> Enviado</span>
-            <p class="mb-0" style="font-size:.78rem;color:#475569;">Enviado al coordinador para revisión. No editable.</p>
+            <span class="ps-badge ps-badge-enviado"><i class="bi bi-send-fill"></i> {% trans "Enviado" %}</span>
+            <p class="mb-0" style="font-size:.78rem;color:#475569;">{% trans "Enviado al coordinador para revisión. No editable." %}</p>
           </div>
           <div class="d-flex align-items-start gap-2 mb-3">
-            <span class="ps-badge ps-badge-aprobado"><i class="bi bi-check-circle-fill"></i> Aprobado</span>
-            <p class="mb-0" style="font-size:.78rem;color:#475569;">El coordinador lo revisó y aprobó. ¡Listo!</p>
+            <span class="ps-badge ps-badge-aprobado"><i class="bi bi-check-circle-fill"></i> {% trans "Aprobado" %}</span>
+            <p class="mb-0" style="font-size:.78rem;color:#475569;">{% trans "El coordinador lo revisó y aprobó. ¡Listo!" %}</p>
           </div>
           <div class="d-flex align-items-start gap-2">
-            <span class="ps-badge ps-badge-obs" style="white-space:nowrap;"><i class="bi bi-exclamation-circle-fill"></i> Obs.</span>
-            <p class="mb-0" style="font-size:.78rem;color:#475569;">Devuelto con observaciones. Corrígelo y reenvía.</p>
+            <span class="ps-badge ps-badge-obs" style="white-space:nowrap;"><i class="bi bi-exclamation-circle-fill"></i> {% trans "Obs." %}</span>
+            <p class="mb-0" style="font-size:.78rem;color:#475569;">{% trans "Devuelto con observaciones. Corrígelo y reenvía." %}</p>
           </div>
         </div>
       </div>
@@ -169,27 +170,27 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="border-radius:.85rem;border:none;">
       <div class="modal-header" style="background:linear-gradient(135deg,var(--ps-mid),var(--ps-light));color:#fff;border-radius:.85rem .85rem 0 0;border:none;">
-        <h5 class="modal-title fw-800"><i class="bi bi-plus-circle-fill me-2"></i>Nuevo Plan Semanal</h5>
+        <h5 class="modal-title fw-800"><i class="bi bi-plus-circle-fill me-2"></i>{% trans "Nuevo Plan Semanal" %}</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
         <form method="post" action="{% url 'gestion_academica:plan_semanal_crear' %}">
           {% csrf_token %}
           <div class="mb-3">
-            <label class="form-label fw-semibold" style="font-size:.83rem;">Curso</label>
+            <label class="form-label fw-semibold" style="font-size:.83rem;">{% trans "Curso" %}</label>
             <select name="curso" class="form-select" required>
-              <option value="">— Selecciona un curso —</option>
+              <option value="">{% trans "— Selecciona un curso —" %}</option>
               {% for c in cursos %}
               <option value="{{ c.pk }}">{{ c.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and c.materia.nombre_idioma_secundario %} / {{ c.materia.nombre_idioma_secundario }}{% endif %} · {{ c.grado.nombre }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold" style="font-size:.83rem;">Semana (selecciona cualquier día de esa semana)</label>
+            <label class="form-label fw-semibold" style="font-size:.83rem;">{% trans "Semana (selecciona cualquier día de esa semana)" %}</label>
             <input type="date" name="semana_inicio" class="form-control" value="{{ semana_actual_inicio|date:'Y-m-d' }}" required>
-            <div class="form-text">El sistema buscará el lunes de esa semana automáticamente.</div>
+            <div class="form-text">{% trans "El sistema buscará el lunes de esa semana automáticamente." %}</div>
           </div>
-          <button type="submit" class="ps-create-btn"><i class="bi bi-calendar-plus-fill"></i> Crear Plan</button>
+          <button type="submit" class="ps-create-btn"><i class="bi bi-calendar-plus-fill"></i> {% trans "Crear Plan" %}</button>
         </form>
       </div>
     </div>
@@ -204,21 +205,21 @@
           <i class="bi bi-send-fill"></i>
         </div>
         <div>
-          <h5 style="font-weight:800;margin:0;font-size:1rem;">Enviar plan al coordinador</h5>
+          <h5 style="font-weight:800;margin:0;font-size:1rem;">{% trans "Enviar plan al coordinador" %}</h5>
           <p id="modal-enviar-info" style="font-size:.8rem;opacity:.88;margin:0;"></p>
         </div>
       </div>
       <div style="padding:1.2rem;">
         <div style="background:#eef2ff;border-left:4px solid #4f46e5;border-radius:0 .5rem .5rem 0;padding:.65rem 1rem;font-size:.82rem;color:#3730a3;margin-bottom:1rem;">
           <i class="bi bi-info-circle-fill me-1"></i>
-          Una vez enviado, <strong>no podrás editarlo</strong> hasta que el coordinador lo revise.
+          {% blocktrans %}Una vez enviado, <strong>no podrás editarlo</strong> hasta que el coordinador lo revise.{% endblocktrans %}
         </div>
         <div class="d-flex gap-2">
-          <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal" style="border-radius:.6rem;font-size:.84rem;font-weight:600;">Cancelar</button>
+          <button type="button" class="btn btn-outline-secondary flex-fill" data-bs-dismiss="modal" style="border-radius:.6rem;font-size:.84rem;font-weight:600;">{% trans "Cancelar" %}</button>
           <form id="form-enviar-lista" method="post" style="flex:1;">
             {% csrf_token %}
             <button type="submit" class="btn w-100" style="background:linear-gradient(135deg,#3730a3,#4f46e5);color:#fff;border-radius:.6rem;font-size:.84rem;font-weight:700;">
-              <i class="bi bi-send-fill me-1"></i>Sí, enviar
+              <i class="bi bi-send-fill me-1"></i>{% trans "Sí, enviar" %}
             </button>
           </form>
         </div>

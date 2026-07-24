@@ -1,10 +1,11 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">{{ titulo_pagina }}</h1>
-        <a href="{% url 'gestion_academica:planeador_clases' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Volver al Planeador</a>
+        <a href="{% url 'gestion_academica:planeador_clases' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>{% trans "Volver al Planeador" %}</a>
     </div>
     <p class="lead text-muted">{{ planeacion.curso.materia.nombre_materia }} - {{ planeacion.curso.grado.nombre }}</p>
     <hr>
@@ -12,20 +13,20 @@
         <!-- ESTADO 1: CONTENIDO GENERADO CON ÉXITO -->
         <div class="row">
             <div class="col-lg-8">
-                <h4 class="mb-3">Detalle de Clases</h4>
+                <h4 class="mb-3">{% trans "Detalle de Clases" %}</h4>
                 <div class="accordion" id="accordionClases">
                     {% for detalle in planeacion.detalles_clase.all %}
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="heading{{ detalle.pk }}">
                             <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ detalle.pk }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ detalle.pk }}">
-                                <strong>Clase {{ detalle.numero_clase }}:</strong> &nbsp;{{ detalle.tema_clase }}
+                                <strong>{% blocktrans with numero=detalle.numero_clase %}Clase {{ numero }}:{% endblocktrans %}</strong> &nbsp;{{ detalle.tema_clase }}
                             </button>
                         </h2>
                         <div id="collapse{{ detalle.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ detalle.pk }}" data-bs-parent="#accordionClases">
                             <div class="accordion-body">
-                                <h6>Actividades de Inicio</h6><p>{{ detalle.actividades_inicio|linebreaksbr }}</p><hr>
-                                <h6>Actividades de Desarrollo</h6><p>{{ detalle.actividades_desarrollo|linebreaksbr }}</p><hr>
-                                <h6>Actividades de Cierre</h6><p>{{ detalle.actividades_cierre|linebreaksbr }}</p>
+                                <h6>{% trans "Actividades de Inicio" %}</h6><p>{{ detalle.actividades_inicio|linebreaksbr }}</p><hr>
+                                <h6>{% trans "Actividades de Desarrollo" %}</h6><p>{{ detalle.actividades_desarrollo|linebreaksbr }}</p><hr>
+                                <h6>{% trans "Actividades de Cierre" %}</h6><p>{{ detalle.actividades_cierre|linebreaksbr }}</p>
                             </div>
                         </div>
                     </div>
@@ -35,20 +36,20 @@
             <div class="col-lg-4">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title">Información General</h5>
-                        <h6><i class="bi bi-bullseye text-primary me-2"></i>Objetivos</h6><p>{{ planeacion.objetivos_aprendizaje }}</p>
-                        <h6><i class="bi bi-tools text-primary me-2"></i>Recursos</h6><p>{{ planeacion.recursos_necesarios }}</p>
-                        <h6><i class="bi bi-clipboard-check-fill text-primary me-2"></i>Evaluación</h6><p>{{ planeacion.criterios_evaluacion }}</p>
+                        <h5 class="card-title">{% trans "Información General" %}</h5>
+                        <h6><i class="bi bi-bullseye text-primary me-2"></i>{% trans "Objetivos" %}</h6><p>{{ planeacion.objetivos_aprendizaje }}</p>
+                        <h6><i class="bi bi-tools text-primary me-2"></i>{% trans "Recursos" %}</h6><p>{{ planeacion.recursos_necesarios }}</p>
+                        <h6><i class="bi bi-clipboard-check-fill text-primary me-2"></i>{% trans "Evaluación" %}</h6><p>{{ planeacion.criterios_evaluacion }}</p>
                         <!-- SECCIÓN DE ACCIONES -->
                         <hr>
-                        <h5 class="card-title mt-3">Acciones</h5>
+                        <h5 class="card-title mt-3">{% trans "Acciones" %}</h5>
                         <div class="d-grid gap-2">
                             <a href="{% url 'gestion_academica:generar_planeacion_pdf' pk=planeacion.pk %}" class="btn btn-outline-danger" target="_blank">
-                                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Descargar PDF
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i>{% trans "Descargar PDF" %}
                             </a>
                             <!-- Este botón ahora abre el modal -->
                             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmAddLeccionesModal">
-                                <i class="bi bi-calendar-plus-fill me-2"></i>Añadir a Clases Diarias
+                                <i class="bi bi-calendar-plus-fill me-2"></i>{% trans "Añadir a Clases Diarias" %}
                             </button>
                         </div>
                     </div>
@@ -63,11 +64,11 @@
              data-status-url="{% url 'gestion_academica:api_get_planeacion_status' pk=planeacion.pk %}">
             <div class="card-body">
                 <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-                <h4 class="card-title mt-2 mb-1">La IA está generando tu planeación…</h4>
-                <p id="ia-mensaje-rotativo" class="text-primary fw-semibold mt-2 mb-1">Conectando con la IA…</p>
+                <h4 class="card-title mt-2 mb-1">{% trans "La IA está generando tu planeación…" %}</h4>
+                <p id="ia-mensaje-rotativo" class="text-primary fw-semibold mt-2 mb-1">{% trans "Conectando con la IA…" %}</p>
                 <p class="text-muted small mb-3">
-                    Tiempo transcurrido: <strong id="ia-timer">0</strong>s
-                    &middot; Tiempo estimado: 15–60s
+                    {% trans "Tiempo transcurrido:" %} <strong id="ia-timer">0</strong>s
+                    &middot; {% trans "Tiempo estimado: 15–60s" %}
                 </p>
                 <div class="progress mb-3" style="height: 8px;">
                     <div id="ia-progress-bar"
@@ -76,11 +77,11 @@
                          style="width: 5%;"></div>
                 </div>
                 <hr>
-                <p class="text-muted small">Si el proceso parece atascado (más de 3 minutos), puedes detenerlo.</p>
+                <p class="text-muted small">{% trans "Si el proceso parece atascado (más de 3 minutos), puedes detenerlo." %}</p>
                 <form action="{% url 'gestion_academica:cancelar_generacion_planeacion' pk=planeacion.pk %}" method="post">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-danger btn-sm">
-                        <i class="bi bi-stop-circle-fill me-2"></i>Detener Generación
+                        <i class="bi bi-stop-circle-fill me-2"></i>{% trans "Detener Generación" %}
                     </button>
                 </form>
             </div>
@@ -94,15 +95,15 @@
         <div class="card shadow-sm text-center p-5 border-danger">
             <div class="card-body">
                 <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
-                <h4 class="card-title mt-3">Ocurrió un Error</h4>
-                <p>La IA no pudo completar la generación de la planeación.</p>
+                <h4 class="card-title mt-3">{% trans "Ocurrió un Error" %}</h4>
+                <p>{% trans "La IA no pudo completar la generación de la planeación." %}</p>
                 <div class="alert alert-danger text-start">
-                    <strong>Detalle del error:</strong> {{ planeacion.error_generacion }}
+                    <strong>{% trans "Detalle del error:" %}</strong> {{ planeacion.error_generacion }}
                 </div>
                 <form method="post" class="mt-3">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-warning btn-lg">
-                        <i class="bi bi-arrow-clockwise me-2"></i>Reintentar Generación
+                        <i class="bi bi-arrow-clockwise me-2"></i>{% trans "Reintentar Generación" %}
                     </button>
                 </form>
             </div>
@@ -112,11 +113,11 @@
         <div class="card shadow-sm text-center p-5">
             <div class="card-body">
                 <i class="bi bi-robot" style="font-size: 4rem; color: var(--bs-primary);"></i>
-                <h4 class="card-title mt-3">Esta planeación está lista para ser generada</h4>
+                <h4 class="card-title mt-3">{% trans "Esta planeación está lista para ser generada" %}</h4>
                 <form method="post">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="bi bi-magic me-2"></i>Generar Planeación con IA
+                        <i class="bi bi-magic me-2"></i>{% trans "Generar Planeación con IA" %}
                     </button>
                 </form>
             </div>
@@ -130,19 +131,19 @@
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title" id="confirmAddLeccionesModalLabel">
-                    <i class="bi bi-check-circle-fill me-2"></i>Confirmar Acción
+                    <i class="bi bi-check-circle-fill me-2"></i>{% trans "Confirmar Acción" %}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>¿Estás seguro de que deseas añadir esta planeación a tus clases diarias?</p>
-                <p class="text-muted">Se crearán automáticamente <strong>{{ planeacion.duracion_clases }} registro(s) de lección diaria</strong> en las próximas fechas disponibles de tu horario para el curso <strong>{{ planeacion.curso }}</strong>.</p>
+                <p>{% trans "¿Estás seguro de que deseas añadir esta planeación a tus clases diarias?" %}</p>
+                <p class="text-muted">{% blocktrans with cantidad=planeacion.duracion_clases curso=planeacion.curso %}Se crearán automáticamente <strong>{{ cantidad }} registro(s) de lección diaria</strong> en las próximas fechas disponibles de tu horario para el curso <strong>{{ curso }}</strong>.{% endblocktrans %}</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
                 <form action="{% url 'gestion_academica:anadir_planeacion_a_lecciones' pk=planeacion.pk %}" method="post" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success">Sí, estoy seguro</button>
+                    <button type="submit" class="btn btn-success">{% trans "Sí, estoy seguro" %}</button>
                 </form>
             </div>
         </div>
@@ -215,7 +216,7 @@
                                 <strong>${titulo}</strong><br>${mensaje}
                             </div>
                             <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                                    data-bs-dismiss="toast" aria-label="Cerrar"></button>
+                                    data-bs-dismiss="toast" aria-label="{% trans "Cerrar" %}"></button>
                         </div>
                     </div>`;
                 $toasts.insertAdjacentHTML('beforeend', html);

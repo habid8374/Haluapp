@@ -1,13 +1,14 @@
 {% extends "base_academico.html" %}
-{% block titulo %}Confirmar Eliminación{% endblock %}
+{% load i18n %}
+{% block titulo %}{% trans "Confirmar Eliminación" %}{% endblock %}
 {% block contenido %}
 <div class="container mt-4">
-    <h1>Confirmar Eliminación</h1>
-    <p>¿Estás seguro de que deseas eliminar la mención "<strong>{{ mencion.tipo }}</strong>" otorgada a <strong>{{ mencion.estudiante }}</strong>?</p>
+    <h1>{% trans "Confirmar Eliminación" %}</h1>
+    <p>{% blocktrans with tipo=mencion.tipo estudiante=mencion.estudiante %}¿Estás seguro de que deseas eliminar la mención "<strong>{{ tipo }}</strong>" otorgada a <strong>{{ estudiante }}</strong>?{% endblocktrans %}</p>
     <form method="post">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
-        <a href="{% url 'gestion_academica:docente_lista_menciones' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">{% trans "Sí, Eliminar" %}</button>
+        <a href="{% url 'gestion_academica:docente_lista_menciones' %}" class="btn btn-secondary">{% trans "Cancelar" %}</a>
     </form>
 </div>
 {% endblock %}

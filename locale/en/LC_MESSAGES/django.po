@@ -1,0 +1,3031 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Halu Plataforma Escolar\n"
+"Report-Msgid-Bugs-To: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "**¡Importante!** Este deber ya tiene **{{ counter }} entrega** de estudiantes. Eliminarlo también **borrará permanentemente** estas entregas y cualquier archivo adjunto por los estudiantes."
+msgid_plural "**¡Importante!** Este deber ya tiene **{{ counter }} entregas** de estudiantes. Eliminarlo también **borrará permanentemente** estas entregas y cualquier archivo adjunto por los estudiantes."
+msgstr[0] "**Important!** This assignment already has **{{ counter }} submission** from students. Deleting it will also **permanently erase** these submissions and any files students attached."
+msgstr[1] "**Important!** This assignment already has **{{ counter }} submissions** from students. Deleting it will also **permanently erase** these submissions and any files students attached."
+
+msgid "{{ counter }} clase"
+msgid_plural "{{ counter }} clases"
+msgstr[0] "{{ counter }} class"
+msgstr[1] "{{ counter }} classes"
+
+msgid "{{ counter }} clase planificada"
+msgid_plural "{{ counter }} clases planificadas"
+msgstr[0] "{{ counter }} class planned"
+msgstr[1] "{{ counter }} classes planned"
+
+msgid "<i class=\"bi bi-list-check me-1\"></i>{{ counter }} clase"
+msgid_plural "<i class=\"bi bi-list-check me-1\"></i>{{ counter }} clases"
+msgstr[0] "<i class=\"bi bi-list-check me-1\"></i>{{ counter }} class"
+msgstr[1] "<i class=\"bi bi-list-check me-1\"></i>{{ counter }} classes"
+
+msgid "{{ counter }} semana"
+msgid_plural "{{ counter }} semanas"
+msgstr[0] "{{ counter }} week"
+msgstr[1] "{{ counter }} weeks"
+
+msgid "(Máx: {{ maximo }})"
+msgstr "(Max: {{ maximo }})"
+
+msgid "0 = sin límite"
+msgstr "0 = no limit"
+
+msgid "1. Datos del Estudiante y Condición"
+msgstr "1. Student Information and Condition"
+
+msgid "10 preguntas"
+msgstr "10 questions"
+
+msgid "2. Caracterización Pedagógica"
+msgstr "2. Pedagogical Profile"
+
+msgid "3 preguntas"
+msgstr "3 questions"
+
+msgid "5 preguntas"
+msgstr "5 questions"
+
+msgid "<strong>Galería</strong>: el docente proyecta y explora los órganos en clase ·\n          <strong>Studio</strong>: el estudiante ubica los 13 órganos y se autocalifica al completarlos."
+msgstr "<strong>Gallery</strong>: the teacher projects and explores the organs in class ·\n          <strong>Studio</strong>: the student places the 13 organs and is graded automatically upon completion."
+
+msgid "<strong>Marco Legal:</strong> Las anotaciones se registran de forma permanente en cumplimiento\n            del <strong>Decreto 1860/1994</strong>, la <strong>Ley 1620/2013</strong> (Convivencia Escolar)\n            y el <strong>Decreto 1965/2013</strong>. HALU Sentinel analiza automáticamente cada registro."
+msgstr "<strong>Legal framework:</strong> Entries are recorded permanently in compliance\n            with <strong>Decree 1860/1994</strong>, <strong>Law 1620/2013</strong> (School Coexistence)\n            and <strong>Decree 1965/2013</strong>. HALU Sentinel automatically analyzes every entry."
+
+msgid "<strong>Modo supervisión:</strong> Puedes consultar el libro de notas y la Vista Anual de cualquier curso. Las notas solo pueden ser modificadas por el docente asignado."
+msgstr "<strong>Supervision mode:</strong> You can view the gradebook and the Annual View of any course. Grades can only be changed by the assigned teacher."
+
+msgid "Abierta"
+msgstr "Open"
+
+msgid "Abrir galería para proyectar en clase"
+msgstr "Open gallery to project in class"
+
+msgid "Académica"
+msgstr "Academic"
+
+msgid "Académicas"
+msgstr "Academic"
+
+msgid "Acceso denegado."
+msgstr "Access denied."
+
+msgid "Acceso denegado. Esta sección es solo para docentes."
+msgstr "Access denied. This section is for teachers only."
+
+msgid "Acceso denegado. Esta sección es solo para personal directivo o directores de curso."
+msgstr "Access denied. This section is for school leadership or homeroom teachers only."
+
+msgid "Acceso no autorizado."
+msgstr "Unauthorized access."
+
+msgid "Acceso restringido."
+msgstr "Restricted access."
+
+msgid "Accesos"
+msgstr "Visits"
+
+msgid "Acciones"
+msgstr "Actions"
+
+msgid "Acciones Administrativas"
+msgstr "Administrative Actions"
+
+msgid "Acciones Rápidas"
+msgstr "Quick Actions"
+
+msgid "Actividad"
+msgstr "Activity"
+
+msgid "Actividad \"%(titulo)s\" creada y vinculada al plan."
+msgstr "Activity \"%(titulo)s\" created and linked to the plan."
+
+msgid "Actividad 3D \"%(titulo)s\" creada correctamente."
+msgstr "3D Activity \"%(titulo)s\" created successfully."
+
+msgid "Actividad Evaluativa"
+msgstr "Graded Activity"
+
+msgid "Actividad creada exitosamente."
+msgstr "Activity created successfully."
+
+msgid "Actividad vinculada"
+msgstr "Activity linked"
+
+msgid "Actividades de Cierre"
+msgstr "Closing Activities"
+
+msgid "Actividades de Desarrollo"
+msgstr "Development Activities"
+
+msgid "Actividades de Inicio"
+msgstr "Opening Activities"
+
+msgid "Actividades del Cuerpo Humano 3D asignadas a tus cursos"
+msgstr "3D Human Body activities assigned to your courses"
+
+msgid "Activo"
+msgstr "Active"
+
+msgid "Actualizado."
+msgstr "Updated."
+
+msgid "Agenda de Reuniones con Familias"
+msgstr "Family Meetings Agenda"
+
+msgid "Agrega al menos %(min_parejas)s parejas completas."
+msgstr "Add at least %(min_parejas)s complete pairs."
+
+msgid "Agrega al menos %(min_preguntas)s preguntas completas."
+msgstr "Add at least %(min_preguntas)s complete questions."
+
+msgid "Agrega al menos %(min_tarjetas)s tarjetas completas."
+msgstr "Add at least %(min_tarjetas)s complete cards."
+
+msgid "Agrega al menos 3 palabras con su pista (de 2 letras o más)."
+msgstr "Add at least 3 words with their clues (2 letters or more)."
+
+msgid "Agrega al menos una letra o palabra para trazar."
+msgstr "Add at least one letter or word to trace."
+
+msgid "Agregado."
+msgstr "Added."
+
+msgid "Agregar"
+msgstr "Add"
+
+msgid "Agregar Clase"
+msgstr "Add Class"
+
+msgid "Agregar opción"
+msgstr "Add option"
+
+msgid "Agregar palabra"
+msgstr "Add word"
+
+msgid "Agregar pareja"
+msgstr "Add pair"
+
+msgid "Agregar pregunta"
+msgstr "Add question"
+
+msgid "Agregar primera pregunta"
+msgstr "Add first question"
+
+msgid "Agregar tarjeta"
+msgstr "Add card"
+
+msgid "Ahorra tiempo creando todos tus descriptores a la vez desde un archivo Excel."
+msgstr "Save time by creating all your descriptors at once from an Excel file."
+
+msgid "Ajuste actualizado exitosamente."
+msgstr "Adjustment updated successfully."
+
+msgid "Ajuste agregado exitosamente."
+msgstr "Adjustment added successfully."
+
+msgid "Ajuste eliminado."
+msgstr "Adjustment deleted."
+
+msgid "Alerta de grupo"
+msgstr "Group alert"
+
+msgid "Alto"
+msgstr "High"
+
+msgid "Alto (4.0–4.5)"
+msgstr "High (4.0–4.5)"
+
+msgid "Anotación para %(estudiante)s registrada. Halu Sentinel la está analizando."
+msgstr "Entry for %(estudiante)s recorded. Halu Sentinel is analyzing it."
+
+msgid "Apoyos requeridos"
+msgstr "Required supports"
+
+msgid "Aprobado"
+msgstr "Approved"
+
+msgid "Archivadas"
+msgstr "Archived"
+
+msgid "Archivar"
+msgstr "Archive"
+
+msgid "Archivo"
+msgstr "File"
+
+msgid "Archivos y materiales de apoyo para tus estudiantes"
+msgstr "Files and support materials for your students"
+
+msgid "Asegúrate de haber atendido <strong>todas las observaciones</strong> antes de reenviar."
+msgstr "Make sure you have addressed <strong>all the feedback</strong> before resubmitting."
+
+msgid "Asigna el Cuerpo Humano 3D como actividad calificable a uno de tus cursos."
+msgstr "Assign the 3D Human Body as a graded activity to one of your courses."
+
+msgid "Asigna el visor del Cuerpo Humano a uno de tus cursos"
+msgstr "Assign the Human Body viewer to one of your courses"
+
+msgid "Asignar Puntaje"
+msgstr "Assign Score"
+
+msgid "Audio"
+msgstr "Audio"
+
+msgid "Audio de la pregunta *"
+msgstr "Question audio *"
+
+msgid "Añadir a Clases Diarias"
+msgstr "Add to Daily Classes"
+
+msgid "Añadir al Plan"
+msgstr "Add to Plan"
+
+msgid "Año lectivo"
+msgstr "School year"
+
+msgid "Año {{ anio }}"
+msgstr "Year {{ anio }}"
+
+msgid "Aún no has creado actividades 3D."
+msgstr "You haven't created any 3D activities yet."
+
+msgid "Aún no has creado crucigramas. ¡Crea el primero!"
+msgstr "You haven't created any crossword puzzles yet. Create the first one!"
+
+msgid "Aún no has creado juegos de memoria. ¡Crea el primero!"
+msgstr "You haven't created any memory games yet. Create the first one!"
+
+msgid "Aún no has creado mazos de flash cards. ¡Crea el primero!"
+msgstr "You haven't created any flash card decks yet. Create the first one!"
+
+msgid "Aún no has creado ninguna actividad evaluativa."
+msgstr "You haven't created any graded activities yet."
+
+msgid "Aún no has creado ninguna planeación."
+msgstr "You haven't created any lesson plans yet."
+
+msgid "Aún no has creado ningún cuestionario."
+msgstr "You haven't created any quiz yet."
+
+msgid "Aún no has creado ningún descriptor. <br>\n                            Usa el botón \"Crear uno por uno\" o la plantilla de carga masiva para empezar."
+msgstr "You haven't created any descriptors yet. <br>\n                            Use the \"Create one by one\" button or the bulk upload template to get started."
+
+msgid "Aún no has creado ningún simulacro."
+msgstr "You haven't created any mock exams yet."
+
+msgid "Aún no has creado quices de audio. ¡Crea el primero!"
+msgstr "You haven't created any audio quizzes yet. Create the first one!"
+
+msgid "Aún no has creado rompecabezas. ¡Crea el primero!"
+msgstr "You haven't created any jigsaw puzzles yet. Create the first one!"
+
+msgid "Aún no has creado tableros de trazado. ¡Crea el primero!"
+msgstr "You haven't created any tracing boards yet. Create the first one!"
+
+msgid "Aún no has otorgado ninguna mención."
+msgstr "You haven't awarded any recognitions yet."
+
+msgid "Aún no has subido ningún material de apoyo."
+msgstr "You haven't uploaded any support materials yet."
+
+msgid "Aún no has subido ningún material."
+msgstr "You haven't uploaded any materials yet."
+
+msgid "Aún no hay preguntas."
+msgstr "No questions yet."
+
+msgid "Aún no tienes resultados publicados."
+msgstr "You don't have any published results yet."
+
+msgid "Bajo"
+msgstr "Low"
+
+msgid "Bajo (1.0–2.9)"
+msgstr "Low (1.0–2.9)"
+
+msgid "Banco de Preguntas"
+msgstr "Question Bank"
+
+msgid "Banco de Preguntas Saber"
+msgstr "Saber Question Bank"
+
+msgid "Bandeja principal"
+msgstr "Inbox"
+
+msgid "Barreras de aprendizaje"
+msgstr "Learning barriers"
+
+msgid "Borrador"
+msgstr "Draft"
+
+msgid "Buenas noches"
+msgstr "Good evening"
+
+msgid "Buenas tardes"
+msgstr "Good afternoon"
+
+msgid "Buenos días"
+msgstr "Good morning"
+
+msgid "Buscar en enunciado..."
+msgstr "Search in question text..."
+
+msgid "Básico"
+msgstr "Basic"
+
+msgid "Básico (3.0–3.9)"
+msgstr "Basic (3.0–3.9)"
+
+msgid "Cada audio debe pesar máximo 3 MB."
+msgstr "Each audio file must be at most 3 MB."
+
+msgid "Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen."
+msgstr "Each image must be at most 2 MB and be an image file."
+
+msgid "Cada imagen debe pesar máximo 2 MB."
+msgstr "Each image must be at most 2 MB."
+
+msgid "Cada pareja son 2 tarjetas: imagen o texto, con audio de guía opcional (ideal para los más pequeños)."
+msgstr "Each pair is 2 cards: image or text, with optional guide audio (ideal for younger students)."
+
+msgid "Cada pregunta necesita audio y al menos 2 opciones (imagen o texto). Marca el círculo de la opción correcta. Imágenes hasta 2 MB, audios hasta 3 MB."
+msgstr "Each question needs audio and at least 2 options (image or text). Mark the circle of the correct option. Images up to 2 MB, audio up to 3 MB."
+
+msgid "Cada tarjeta de la pareja necesita una imagen o un texto."
+msgstr "Each card in the pair needs an image or text."
+
+msgid "Cada tarjeta necesita <b>imagen o texto</b>. El audio es opcional: pulsa <b>🎙 Grabar</b>, habla, y pulsa <b>Detener</b> — sonará cuando el niño voltee esa tarjeta. Imágenes hasta 2 MB."
+msgstr "Each card needs <b>an image or text</b>. Audio is optional: press <b>🎙 Record</b>, speak, then press <b>Stop</b> — it will play when the child flips that card. Images up to 2 MB."
+
+msgid "Cada tarjeta necesita una imagen o una descripción/pista."
+msgstr "Each card needs an image or a description/clue."
+
+msgid "Cada tarjeta: imagen y/o pista que guía + la respuesta que el estudiante debe escribir. Audio de guía opcional."
+msgstr "Each card: an image and/or a guiding clue + the answer the student must type. Guide audio is optional."
+
+msgid "Calificar ahora"
+msgstr "Grade now"
+
+msgid "Campaña"
+msgstr "Campaign"
+
+msgid "Campo requerido"
+msgstr "Required field"
+
+msgid "Cancelar"
+msgstr "Cancel"
+
+msgid "Cantidad"
+msgstr "Quantity"
+
+msgid "Cargando cuestionario..."
+msgstr "Loading quiz..."
+
+msgid "Cargando cursos..."
+msgstr "Loading courses..."
+
+msgid "Cargando fecha…"
+msgstr "Loading date…"
+
+msgid "Cargando modelo 3D…"
+msgstr "Loading 3D model…"
+
+msgid "Categoría"
+msgstr "Category"
+
+msgid "Categoría (libro de notas)"
+msgstr "Category (gradebook)"
+
+msgid "Categorías de Calificación"
+msgstr "Grading Categories"
+
+msgid "Centro Gestión"
+msgstr "Management Center"
+
+msgid "Centro de Gestión"
+msgstr "Management Center"
+
+msgid "Cerrado"
+msgstr "Closed"
+
+msgid "Cerrar"
+msgstr "Close"
+
+msgid "Citar"
+msgstr "Schedule"
+
+msgid "Citar acudiente"
+msgstr "Schedule with guardian"
+
+msgid "Citas con Familias — Hoy"
+msgstr "Family Meetings — Today"
+
+msgid "Citas próximas"
+msgstr "Upcoming meetings"
+
+msgid "Clase actualizada."
+msgstr "Class updated."
+
+msgid "Clase añadida al plan."
+msgstr "Class added to the plan."
+
+msgid "Clase {{ numero }}:"
+msgstr "Class {{ numero }}:"
+
+msgid "Clases de la Semana"
+msgstr "This Week's Classes"
+
+msgid "Comenzar Intento"
+msgstr "Start Attempt"
+
+msgid "Competencias"
+msgstr "Competencies"
+
+msgid "Completa el título, el curso y la categoría."
+msgstr "Fill in the title, course, and category."
+
+msgid "Completaron"
+msgstr "Completed"
+
+msgid "Con Observaciones"
+msgstr "With Feedback"
+
+msgid "Con obs."
+msgstr "With feedback"
+
+msgid "Conectando con la IA…"
+msgstr "Connecting to AI…"
+
+msgid "Configura tu disponibilidad para que las familias puedan agendarte."
+msgstr "Set up your availability so families can book a meeting with you."
+
+msgid "Configuración del Cuestionario"
+msgstr "Quiz Settings"
+
+msgid "Confirmada"
+msgstr "Confirmed"
+
+msgid "Confirmadas"
+msgstr "Confirmed"
+
+msgid "Confirmar"
+msgstr "Confirm"
+
+msgid "Confirmar Acción"
+msgstr "Confirm Action"
+
+msgid "Confirmar Eliminación"
+msgstr "Confirm Deletion"
+
+msgid "Confirmar Eliminación de Deber"
+msgstr "Confirm Assignment Deletion"
+
+msgid "Convertir a Actividad Evaluativa"
+msgstr "Convert to Graded Activity"
+
+msgid "Convertir a Deber"
+msgstr "Convert to Assignment"
+
+msgid "Convertir en Actividad Evaluativa"
+msgstr "Convert to Graded Activity"
+
+msgid "Convertir en Deber"
+msgstr "Convert to Assignment"
+
+msgid "Convivencia"
+msgstr "Coexistence"
+
+msgid "Coordinación Académica"
+msgstr "Academic Coordination"
+
+msgid "Correcciones requeridas — plan editable"
+msgstr "Corrections needed — plan is editable"
+
+msgid "Correcta"
+msgstr "Correct"
+
+msgid "Corregir y reenviar"
+msgstr "Fix and resubmit"
+
+msgid "Crea crucigramas escribiendo solo las palabras y sus pistas; el sistema arma la cuadrícula solo. Los estudiantes lo resuelven en pantalla y la nota llega al libro de notas."
+msgstr "Create crossword puzzles by just typing the words and their clues; the system builds the grid for you. Students solve it on screen and the grade goes straight to the gradebook."
+
+msgid "Crea tu primer plan semanal usando el botón de arriba."
+msgstr "Create your first weekly plan using the button above."
+
+msgid "Crea una actividad calificable directamente desde este ítem del plan."
+msgstr "Create a gradable activity directly from this plan item."
+
+msgid "Crea una actividad y asígnala a una categoría con su peso porcentual"
+msgstr "Create an activity and assign it to a category with its percentage weight"
+
+msgid "Crea y gestiona simulacros para tus estudiantes"
+msgstr "Create and manage mock exams for your students"
+
+msgid "Crear Actividad y Vincular al Plan"
+msgstr "Create Activity and Link to Plan"
+
+msgid "Crear Deber desde Plan"
+msgstr "Create Assignment from Plan"
+
+msgid "Crear Deber y Vincular al Plan"
+msgstr "Create Assignment and Link to Plan"
+
+msgid "Crear Nueva Actividad/Cuestionario"
+msgstr "Create New Activity/Quiz"
+
+msgid "Crear Nueva Planeación"
+msgstr "Create New Lesson Plan"
+
+msgid "Crear Nuevo Deber"
+msgstr "Create New Assignment"
+
+msgid "Crear Nuevo Deber / Tarea"
+msgstr "Create New Assignment"
+
+msgid "Crear PIAR"
+msgstr "Create Individual Learning Plan"
+
+msgid "Crear Plan"
+msgstr "Create Plan"
+
+msgid "Crear Recurso 3D"
+msgstr "Create 3D Resource"
+
+msgid "Crear actividad y notificar estudiantes"
+msgstr "Create activity and notify students"
+
+msgid "Crear plan de esta semana"
+msgstr "Create this week's plan"
+
+msgid "Crear primer PIAR"
+msgstr "Create first Individual Learning Plan"
+
+msgid "Crear primer simulacro"
+msgstr "Create first mock exam"
+
+msgid "Crear primera actividad"
+msgstr "Create first activity"
+
+msgid "Crear uno por uno"
+msgstr "Create one by one"
+
+msgid "Crucigrama cerrado. Los estudiantes ya no pueden resolverlo."
+msgstr "Crossword closed. Students can no longer solve it."
+
+msgid "Crucigrama creado. Revísalo y publícalo para que los estudiantes lo resuelvan."
+msgstr "Crossword created. Review it and publish it so students can solve it."
+
+msgid "Crucigrama eliminado."
+msgstr "Crossword deleted."
+
+msgid "Crucigramas"
+msgstr "Crosswords"
+
+msgid "Cuestionario guardado correctamente."
+msgstr "Quiz saved successfully."
+
+msgid "Cursiva (ligada) — minúscula"
+msgstr "Cursive (joined) — lowercase"
+
+msgid "Cursiva (ligada) — recomendada 1° y 2°"
+msgstr "Cursive (joined) — recommended for 1st and 2nd grade"
+
+msgid "Curso"
+msgstr "Course"
+
+msgid "Curso no válido."
+msgstr "Invalid course."
+
+msgid "Curso:"
+msgstr "Course:"
+
+msgid "Cursos asignados"
+msgstr "Assigned courses"
+
+msgid "Da clic en cada día para ver las clases planificadas."
+msgstr "Click each day to see the planned classes."
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Datos actualizados."
+msgstr "Data updated."
+
+msgid "Deber"
+msgstr "Assignment"
+
+msgid "Deber \"%(titulo)s\" creado y vinculado al plan."
+msgstr "Assignment \"%(titulo)s\" created and linked to the plan."
+
+msgid "Deber '%(deber_titulo)s' creado exitosamente."
+msgstr "Assignment '%(deber_titulo)s' created successfully."
+
+msgid "Deber '%(form_cleaned_data_ti)s' actualizado exitosamente."
+msgstr "Assignment '%(form_cleaned_data_ti)s' updated successfully."
+
+msgid "Deber vinculado"
+msgstr "Assignment linked"
+
+msgid "Debes completar las 4 opciones."
+msgstr "You must fill in all 4 options."
+
+msgid "Decreto 1290 de 2009 · MEN"
+msgstr "Decree 1290 of 2009 · Ministry of Education"
+
+msgid "Decreto 1421 de 2017 · Inclusión educativa y ajustes razonables · {{ contador }} plan(es)"
+msgstr "Decree 1421 of 2017 · Educational inclusion and reasonable accommodations · {{ contador }} plan(s)"
+
+msgid "Decreto 1421 de 2017 · Plan Individual de Ajustes Razonables"
+msgstr "Decree 1421 of 2017 · Individual Reasonable Accommodations Plan"
+
+msgid "Define los parámetros básicos y la IA generará una planeación detallada para ti."
+msgstr "Set the basic parameters and the AI will generate a detailed lesson plan for you."
+
+msgid "Desarchivar"
+msgstr "Unarchive"
+
+msgid "Descargar"
+msgstr "Download"
+
+msgid "Descargar PDF"
+msgstr "Download PDF"
+
+msgid "Descargar Plantilla"
+msgstr "Download Template"
+
+msgid "Descargar archivo"
+msgstr "Download file"
+
+msgid "Descargar material"
+msgstr "Download material"
+
+msgid "Describe la respuesta ideal aquí…"
+msgstr "Describe the ideal answer here…"
+
+msgid "Descripción"
+msgstr "Description"
+
+msgid "Descripción / Actividades"
+msgstr "Description / Activities"
+
+msgid "Descripción / Instrucciones"
+msgstr "Description / Instructions"
+
+msgid "Descripción / Instrucciones:"
+msgstr "Description / Instructions:"
+
+msgid "Descripción / instrucciones"
+msgstr "Description / instructions"
+
+msgid "Descripción / pista"
+msgstr "Description / clue"
+
+msgid "Descripción diagnóstica"
+msgstr "Diagnostic description"
+
+msgid "Descriptor de logro creado exitosamente."
+msgstr "Achievement descriptor created successfully."
+
+msgid "Desde aquí puedes gestionar las preguntas de tus actividades evaluativas. Primero crea una actividad y luego edita su cuestionario."
+msgstr "From here you can manage the questions in your graded activities. First create an activity, then edit its quiz."
+
+msgid "Detalle de Clases"
+msgstr "Class Detail"
+
+msgid "Detalle del Deber: %(self_object_titulo)s"
+msgstr "Assignment Detail: %(self_object_titulo)s"
+
+msgid "Detalle del error:"
+msgstr "Error detail:"
+
+msgid "Detener"
+msgstr "Stop"
+
+msgid "Detener Generación"
+msgstr "Stop Generation"
+
+msgid "Devuelto con observaciones. Corrígelo y reenvía."
+msgstr "Returned with feedback. Fix it and resubmit."
+
+msgid "Diagnóstico médico o psicopedagógico, código CIE-10 si aplica..."
+msgstr "Medical or psycho-pedagogical diagnosis, ICD-10 code if applicable..."
+
+msgid "Dificultad"
+msgstr "Difficulty"
+
+msgid "Diseña preguntas, configura parámetros y genera con IA"
+msgstr "Design questions, configure parameters, and generate with AI"
+
+msgid "Disponibilidad"
+msgstr "Availability"
+
+msgid "Disponible desde"
+msgstr "Available from"
+
+msgid "Disponible desde:"
+msgstr "Available from:"
+
+msgid "Docente"
+msgstr "Teacher"
+
+msgid "Docente · Panel de Control"
+msgstr "Teacher · Control Panel"
+
+msgid "Déjalas vacías para que no haya límite."
+msgstr "Leave them empty for no limit."
+
+msgid "Déjalas vacías para que no haya límite. Fuera de este rango los estudiantes no pueden resolverlo."
+msgstr "Leave them empty for no limit. Outside this range students cannot solve it."
+
+msgid "Día"
+msgstr "Day"
+
+msgid "EBC / DBA"
+msgstr "EBC / DBA"
+
+msgid "Editar"
+msgstr "Edit"
+
+msgid "Editar Ajuste PIAR"
+msgstr "Edit Accommodation"
+
+msgid "Editar Clase"
+msgstr "Edit Class"
+
+msgid "Editar Cuestionario"
+msgstr "Edit Quiz"
+
+msgid "Editar Deber"
+msgstr "Edit Assignment"
+
+msgid "Editar Deber / Tarea"
+msgstr "Edit Assignment"
+
+msgid "Editar Material"
+msgstr "Edit Material"
+
+msgid "Editar PIAR — %(piar_estudiante)s"
+msgstr "Edit Individual Learning Plan — %(piar_estudiante)s"
+
+msgid "Editar Pregunta"
+msgstr "Edit Question"
+
+msgid "Editar Simulacro"
+msgstr "Edit Mock Exam"
+
+msgid "Editar actividad"
+msgstr "Edit activity"
+
+msgid "Editar datos"
+msgstr "Edit details"
+
+msgid "Editar material"
+msgstr "Edit material"
+
+msgid "Editar mención"
+msgstr "Edit recognition"
+
+msgid "Editor de Cuestionario"
+msgstr "Quiz Editor"
+
+msgid "Editor de cuestionario"
+msgstr "Quiz editor"
+
+msgid "Editor — {{ titulo }}"
+msgstr "Editor — {{ titulo }}"
+
+msgid "Editor: %(actividad_titulo)s"
+msgstr "Editor: %(actividad_titulo)s"
+
+msgid "Ej. Animales y sus sonidos"
+msgstr "E.g. Animals and their sounds"
+
+msgid "Ej. Arma la imagen del ciclo del agua."
+msgstr "E.g. Assemble the image of the water cycle."
+
+msgid "Ej. Completa el crucigrama con los conceptos vistos en clase."
+msgstr "E.g. Complete the crossword with the concepts covered in class."
+
+msgid "Ej. El ciclo del agua"
+msgstr "E.g. The water cycle"
+
+msgid "Ej. Encuentra cada animal con su sonido."
+msgstr "E.g. Match each animal with its sound."
+
+msgid "Ej. Es el planeta rojo del sistema solar"
+msgstr "E.g. It is the red planet of the solar system"
+
+msgid "Ej. Escucha y toca el animal correcto."
+msgstr "E.g. Listen and tap the correct animal."
+
+msgid "Ej. Las vocales"
+msgstr "E.g. The vowels"
+
+msgid "Ej. Las vocales / Los planetas"
+msgstr "E.g. The vowels / The planets"
+
+msgid "Ej. Los sonidos de los animales"
+msgstr "E.g. Animal sounds"
+
+msgid "Ej. Marte"
+msgstr "E.g. Mars"
+
+msgid "Ej. Observa cada imagen y escribe su nombre."
+msgstr "E.g. Look at each image and write its name."
+
+msgid "Ej. Repasa cada vocal con tu dedo."
+msgstr "E.g. Trace each vowel with your finger."
+
+msgid "Ej. Repaso de célula"
+msgstr "E.g. Cell review"
+
+msgid "Ej. «A», «e», «5», «mamá». Audio de guía opcional (🎙): sonará cuando el niño abra esa letra."
+msgstr "E.g. \"A\", \"e\", \"5\", \"mom\". Guide audio is optional (🎙): it will play when the child opens that letter."
+
+msgid "Ej. ¿Qué animal hace este sonido?"
+msgstr "E.g. Which animal makes this sound?"
+
+msgid "Ej: Ecuaciones de primer grado"
+msgstr "E.g: First-degree equations"
+
+msgid "Ej: Evaluación Bimestral — Biología"
+msgstr "E.g: Bimonthly Assessment — Biology"
+
+msgid "Ej: Identificar el núcleo, la membrana y el citoplasma."
+msgstr "E.g: Identify the nucleus, membrane, and cytoplasm."
+
+msgid "Ej: La Célula y sus partes"
+msgstr "E.g: The Cell and its parts"
+
+msgid "Eje Temático"
+msgstr "Thematic Axis"
+
+msgid "El archivo '%(nombre)s' ha sido eliminado."
+msgstr "The file '%(nombre)s' has been deleted."
+
+msgid "El archivo no pudo procesarse. Verifica que sea un .xlsx válido."
+msgstr "The file could not be processed. Check that it is a valid .xlsx file."
+
+msgid "El archivo no tiene las columnas requeridas: %(required_cols)s."
+msgstr "The file is missing required columns: %(required_cols)s."
+
+msgid "El archivo supera el límite de 5 MB."
+msgstr "The file exceeds the 5 MB limit."
+
+msgid "El audio debe pesar máximo 3 MB."
+msgstr "The audio file must be at most 3 MB."
+
+msgid "El coordinador académico debe crear las categorías antes de asignarlas a actividades."
+msgstr "The academic coordinator must create the categories before assigning them to activities."
+
+msgid "El coordinador lo revisó y aprobó. ¡Listo!"
+msgstr "The coordinator reviewed and approved it. All set!"
+
+msgid "El deber '%(titulo)s' ha sido eliminado."
+msgstr "The assignment '%(titulo)s' has been deleted."
+
+msgid "El enunciado no puede estar vacío."
+msgstr "The question text cannot be empty."
+
+msgid "El intento de '%(estudiante_nombre)s' en el cuestionario '%(cuestionario_titulo)s' ha sido eliminado exitosamente."
+msgstr "The attempt by '%(estudiante_nombre)s' on the quiz '%(cuestionario_titulo)s' has been deleted successfully."
+
+msgid "El niño repasa letras sobre una guía en el canvas. Sus dibujos se guardan para que los revises."
+msgstr "The child traces letters over a guide on the canvas. Their drawings are saved for you to review."
+
+msgid "El plan no tiene ítems. Agrega al menos una clase antes de enviar."
+msgstr "The plan has no items. Add at least one class before submitting."
+
+msgid "El plan ya fue enviado anteriormente."
+msgstr "The plan has already been submitted."
+
+msgid "El proceso de generación de la planeación ha sido detenido."
+msgstr "The lesson plan generation process has been stopped."
+
+msgid "El sistema buscará el lunes de esa semana automáticamente."
+msgstr "The system will automatically find the Monday of that week."
+
+msgid "El sistema de evaluación y la ponderación por categorías se rige bajo este decreto del Ministerio de Educación Nacional."
+msgstr "The grading system and category weighting are governed by this decree from the National Ministry of Education."
+
+msgid "El trazo es un dibujo, así que la nota es por <b>completar</b> (terminar todas = nota máxima). Podrás ver los dibujos en «Resultados» y ajustar la nota en el libro si lo deseas."
+msgstr "Tracing is a drawing activity, so the grade is by <b>completion</b> (finishing all = maximum grade). You can view the drawings in \"Results\" and adjust the grade in the gradebook if you wish."
+
+msgid "El título es obligatorio."
+msgstr "The title is required."
+
+msgid "El título no puede quedar vacío."
+msgstr "The title cannot be empty."
+
+msgid "El visor de Galería 3D es solo para docentes y coordinación."
+msgstr "The 3D Gallery viewer is for teachers and coordination only."
+
+msgid "Eliminado."
+msgstr "Deleted."
+
+msgid "Eliminar"
+msgstr "Delete"
+
+msgid "Eliminar Deber"
+msgstr "Delete Assignment"
+
+msgid "Eliminar actividad"
+msgstr "Delete activity"
+
+msgid "Eliminar clase"
+msgstr "Delete class"
+
+msgid "Eliminar material"
+msgstr "Delete material"
+
+msgid "Eliminar mención"
+msgstr "Delete recognition"
+
+msgid "Emparejamiento"
+msgstr "Matching"
+
+msgid "En cursiva la guía se muestra en <b>minúscula</b> (lo que se traza en 1° y 2°)."
+msgstr "In cursive, the guide is shown in <b>lowercase</b> (what is traced in 1st and 2nd grade)."
+
+msgid "En revisión…"
+msgstr "Under review…"
+
+msgid "Enlace virtual"
+msgstr "Virtual link"
+
+msgid "Entregas — %(recurso_actividad_ti)s"
+msgstr "Submissions — %(recurso_actividad_ti)s"
+
+msgid "Enviado"
+msgstr "Submitted"
+
+msgid "Enviado al coordinador para revisión. No editable."
+msgstr "Submitted to the coordinator for review. Not editable."
+
+msgid "Enviar"
+msgstr "Submit"
+
+msgid "Enviar al Coordinador"
+msgstr "Submit to Coordinator"
+
+msgid "Enviar corrección"
+msgstr "Submit correction"
+
+msgid "Enviar plan al coordinador"
+msgstr "Submit plan to coordinator"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Error al cargar cursos"
+msgstr "Error loading courses"
+
+msgid "Error al crear el PIAR: %(e)s"
+msgstr "Error creating the Individual Learning Plan: %(e)s"
+
+msgid "Error al crear el plan: %(error)s"
+msgstr "Error creating the plan: %(error)s"
+
+msgid "Error al generar"
+msgstr "Error generating"
+
+msgid "Error al guardar"
+msgstr "Error saving"
+
+msgid "Error al guardar la nota: %(e)s"
+msgstr "Error saving the grade: %(e)s"
+
+msgid "Error de red"
+msgstr "Network error"
+
+msgid "Error en el formulario. Por favor, intenta de nuevo."
+msgstr "Form error. Please try again."
+
+msgid "Escala"
+msgstr "Scale"
+
+msgid "Escribe cada letra o palabra a trazar. El niño la repasará sobre una guía gris."
+msgstr "Type each letter or word to trace. The child will trace it over a gray guide."
+
+msgid "Escribe cada palabra con su pista. La cuadrícula se arma sola al publicar."
+msgstr "Type each word with its clue. The grid builds itself when you publish."
+
+msgid "Escribe el enunciado de la pregunta…"
+msgstr "Type the question text…"
+
+msgid "Escribe la letra o palabra a trazar."
+msgstr "Enter the letter or word to trace."
+
+msgid "Escribe la palabra (2 letras o más) y su pista."
+msgstr "Enter the word (2 letters or more) and its clue."
+
+msgid "Escucha y elige: el niño oye un audio y toca la imagen correcta. Se corrige solo y la nota llega al libro de notas."
+msgstr "Listen and choose: the child hears an audio clip and taps the correct image. It grades itself and the score goes to the gradebook."
+
+msgid "Espacio de respuesta…"
+msgstr "Answer space…"
+
+msgid "Esperando revisión del coordinador"
+msgstr "Waiting for coordinator review"
+
+msgid "Esta acción es **irreversible**."
+msgstr "This action is **irreversible**."
+
+msgid "Esta acción no se puede deshacer."
+msgstr "This action cannot be undone."
+
+msgid "Esta actividad no incluye el modo Galería."
+msgstr "This activity does not include Gallery mode."
+
+msgid "Esta actividad no incluye el modo Studio."
+msgstr "This activity does not include Studio mode."
+
+msgid "Esta planeación está lista para ser generada"
+msgstr "This lesson plan is ready to be generated"
+
+msgid "Esta planeación no se estaba generando activamente."
+msgstr "This lesson plan was not actively being generated."
+
+msgid "Esta sección es solo para estudiantes."
+msgstr "This section is for students only."
+
+msgid "Estado"
+msgstr "Status"
+
+msgid "Estados del Plan"
+msgstr "Plan Statuses"
+
+msgid "Este crucigrama ya está publicado. Si editas las palabras, la cuadrícula se rehace y puede cambiar para estudiantes que aún no lo han resuelto (las notas ya registradas se conservan)."
+msgstr "This crossword is already published. If you edit the words, the grid is rebuilt and may change for students who have not yet solved it (grades already recorded are kept)."
+
+msgid "Este deber tiene un material adjunto:"
+msgstr "This assignment has an attached file:"
+
+msgid "Este estudiante ya tiene PIAR para ese año."
+msgstr "This student already has an Individual Learning Plan for that year."
+
+msgid "Este plan está bloqueado para edición hasta que el coordinador lo apruebe o devuelva con observaciones."
+msgstr "This plan is locked for editing until the coordinator approves it or returns it with feedback."
+
+msgid "Este simulacro no está disponible en este momento."
+msgstr "This mock exam is not available right now."
+
+msgid "Este ítem del plan quedará vinculado al deber que crees aquí."
+msgstr "This plan item will be linked to the assignment you create here."
+
+msgid "Este ítem ya tiene un deber creado."
+msgstr "This item already has an assignment created."
+
+msgid "Este ítem ya tiene una actividad evaluativa creada."
+msgstr "This item already has a graded activity created."
+
+msgid "Esto puede tardar unos segundos."
+msgstr "This may take a few seconds."
+
+msgid "Estudiante"
+msgstr "Student"
+
+msgid "Estudiante:"
+msgstr "Student:"
+
+msgid "Evaluación"
+msgstr "Evaluation"
+
+msgid "Evaluación Académica"
+msgstr "Academic Evaluation"
+
+msgid "Evaluar Logros"
+msgstr "Assess Achievements"
+
+msgid "Exportar PDF"
+msgstr "Export PDF"
+
+msgid "Factores Clave"
+msgstr "Key Factors"
+
+msgid "Factores clave"
+msgstr "Key factors"
+
+msgid "Falso"
+msgstr "False"
+
+msgid "Familiar:"
+msgstr "Family member:"
+
+msgid "Fecha"
+msgstr "Date"
+
+msgid "Fecha Asignación"
+msgstr "Assigned Date"
+
+msgid "Fecha Límite Entrega"
+msgstr "Due Date"
+
+msgid "Fecha Límite de Entrega"
+msgstr "Due Date"
+
+msgid "Fecha Límite de Entrega:"
+msgstr "Due Date:"
+
+msgid "Fecha de Asignación:"
+msgstr "Assigned Date:"
+
+msgid "Fecha de Entrega *"
+msgstr "Due Date *"
+
+msgid "Fecha de Finalización:"
+msgstr "Completion Date:"
+
+msgid "Fecha inválida."
+msgstr "Invalid date."
+
+msgid "Fecha límite de entrega"
+msgstr "Due date"
+
+msgid "Fecha y título son obligatorios."
+msgstr "Date and title are required."
+
+msgid "Fechas"
+msgstr "Dates"
+
+msgid "Fechas actualizadas."
+msgstr "Dates updated."
+
+msgid "Felicitaciones"
+msgstr "Congratulations"
+
+msgid "Felicitación"
+msgstr "Congratulations"
+
+msgid "Fila %(index_2)s: El periodo '%(periodo_str)s' no existe en tu institución."
+msgstr "Row %(index_2)s: The period '%(periodo_str)s' does not exist in your institution."
+
+msgid "Fila %(index_2)s: La materia con código '%(row_codigo_asignatur)s' no existe en tu institución."
+msgstr "Row %(index_2)s: The subject with code '%(row_codigo_asignatur)s' does not exist in your institution."
+
+msgid "Fila %(index_2)s: Ocurrió un error inesperado al procesar esta fila. Error: %(e)s"
+msgstr "Row %(index_2)s: An unexpected error occurred while processing this row. Error: %(e)s"
+
+msgid "Filtrar"
+msgstr "Filter"
+
+msgid "Filtrar por Periodo Académico:"
+msgstr "Filter by Academic Period:"
+
+msgid "Filtros de búsqueda"
+msgstr "Search filters"
+
+msgid "Flash Cards"
+msgstr "Flash Cards"
+
+msgid "Fondo anatómico"
+msgstr "Anatomical background"
+
+msgid "Formulario de Actividad Evaluativa"
+msgstr "Graded Activity Form"
+
+msgid "Formulario de Descriptor"
+msgstr "Descriptor Form"
+
+msgid "Formulario de Descriptor de Logro"
+msgstr "Achievement Descriptor Form"
+
+msgid "Formulario de Mención"
+msgstr "Recognition Form"
+
+msgid "Fortalezas del estudiante"
+msgstr "Student's strengths"
+
+msgid "Galería + Studio"
+msgstr "Gallery + Studio"
+
+msgid "Galería 3D — Cuerpo Humano"
+msgstr "3D Gallery — Human Body"
+
+msgid "Generador de Preguntas con IA"
+msgstr "AI Question Generator"
+
+msgid "General"
+msgstr "General"
+
+msgid "Generando preguntas con Gemini…"
+msgstr "Generating questions with Gemini…"
+
+msgid "Generar Planeación con IA"
+msgstr "Generate Lesson Plan with AI"
+
+msgid "Generar Reporte de Nota Mínima"
+msgstr "Generate Minimum Grade Report"
+
+msgid "Generar con IA"
+msgstr "Generate with AI"
+
+msgid "Generar preguntas"
+msgstr "Generate questions"
+
+msgid "Generar preguntas con IA (Gemini)"
+msgstr "Generate questions with AI (Gemini)"
+
+msgid "Gestiona las actividades y cuestionarios de tus cursos"
+msgstr "Manage the activities and quizzes for your courses"
+
+msgid "Gestionar"
+msgstr "Manage"
+
+msgid "Gestionar Categorías de Calificación"
+msgstr "Manage Grading Categories"
+
+msgid "Gestionar Curso"
+msgstr "Manage Course"
+
+msgid "Gestionar Deberes"
+msgstr "Manage Assignments"
+
+msgid "Gestionar cita"
+msgstr "Manage meeting"
+
+msgid "Gestionar disponibilidad"
+msgstr "Manage availability"
+
+msgid "Gestionar preguntas"
+msgstr "Manage questions"
+
+msgid "Gestión de Mi Banco de Descriptores"
+msgstr "Manage My Descriptor Bank"
+
+msgid "Gestión por Plantilla (Carga Masiva)"
+msgstr "Manage via Template (Bulk Upload)"
+
+msgid "Grabar"
+msgstr "Record"
+
+msgid "Grabar audio de guía"
+msgstr "Record guide audio"
+
+msgid "Grado"
+msgstr "Grade"
+
+msgid "Grado: {{ grado }}"
+msgstr "Grade: {{ grado }}"
+
+msgid "Guardado"
+msgstr "Saved"
+
+msgid "Guardando…"
+msgstr "Saving…"
+
+msgid "Guardar"
+msgstr "Save"
+
+msgid "Guardar Actividad"
+msgstr "Save Activity"
+
+msgid "Guardar Anotación"
+msgstr "Save Entry"
+
+msgid "Guardar Calificación Revisada"
+msgstr "Save Revised Grade"
+
+msgid "Guardar Deber"
+msgstr "Save Assignment"
+
+msgid "Guardar Material"
+msgstr "Save Material"
+
+msgid "Guardar Mención"
+msgstr "Save Recognition"
+
+msgid "Guardar cambios"
+msgstr "Save changes"
+
+msgid "Guardar crucigrama"
+msgstr "Save crossword"
+
+msgid "Guardar en el banco"
+msgstr "Save to bank"
+
+msgid "Guardar fechas"
+msgstr "Save dates"
+
+msgid "Guardar juego"
+msgstr "Save game"
+
+msgid "Guardar mazo"
+msgstr "Save deck"
+
+msgid "Guardar quiz"
+msgstr "Save quiz"
+
+msgid "Guardar rompecabezas"
+msgstr "Save puzzle"
+
+msgid "Guardar tablero"
+msgstr "Save board"
+
+msgid "Guardar y Continuar"
+msgstr "Save and Continue"
+
+msgid "HALU Sentinel - Reporte de Riesgo"
+msgstr "HALU Sentinel - Risk Report"
+
+msgid "HALU Sentinel · Global"
+msgstr "HALU Sentinel · Global"
+
+msgid "HALU está generando las preguntas…"
+msgstr "HALU is generating the questions…"
+
+msgid "Habilidades, intereses, destrezas que el estudiante posee..."
+msgstr "Skills, interests, abilities the student has..."
+
+msgid "Habilitar 1 Intento Adicional"
+msgstr "Grant 1 Extra Attempt"
+
+msgid "Has alcanzado el límite de %(cuestionario_intento)s intento(s) para este cuestionario."
+msgstr "You have reached the limit of %(cuestionario_intento)s attempt(s) for this quiz."
+
+msgid "Hechos"
+msgstr "Facts"
+
+msgid "Historial de Anotaciones"
+msgstr "Entry History"
+
+msgid "Historial de Planes"
+msgstr "Plan History"
+
+msgid "Historial de entregas"
+msgstr "Submission history"
+
+msgid "Imagen"
+msgstr "Image"
+
+msgid "Imagen (opcional)"
+msgstr "Image (optional)"
+
+msgid "Imagen de pista (opcional)"
+msgstr "Clue image (optional)"
+
+msgid "Imagen del rompecabezas"
+msgstr "Puzzle image"
+
+msgid "Imagen y dificultad"
+msgstr "Image and difficulty"
+
+msgid "Importar Archivo"
+msgstr "Import File"
+
+msgid "Importar Excel"
+msgstr "Import Excel"
+
+msgid "Importar Preguntas desde Excel"
+msgstr "Import Questions from Excel"
+
+msgid "Imprenta (palo)"
+msgstr "Print (block letters)"
+
+msgid "Imprimir malla"
+msgstr "Print curriculum map"
+
+msgid "Indicadores de Desempeño"
+msgstr "Performance Indicators"
+
+msgid "Información General"
+msgstr "General Information"
+
+msgid "Información del Deber"
+msgstr "Assignment Information"
+
+msgid "Iniciar: %(cuestionario_titulo)s"
+msgstr "Start: %(cuestionario_titulo)s"
+
+msgid "Inicio"
+msgstr "Home"
+
+msgid "Instrucciones"
+msgstr "Instructions"
+
+msgid "Instrucciones (opcional)"
+msgstr "Instructions (optional)"
+
+msgid "Instrucciones / Descripción"
+msgstr "Instructions / Description"
+
+msgid "Instrucciones para el estudiante…"
+msgstr "Instructions for the student…"
+
+msgid "Instrucciones para los estudiantes..."
+msgstr "Instructions for students..."
+
+msgid "Intentos Permitidos:"
+msgstr "Attempts Allowed:"
+
+msgid "Intentos permitidos"
+msgstr "Attempts allowed"
+
+msgid "Introduce el tema principal de la evaluación."
+msgstr "Enter the main topic of the assessment."
+
+msgid "Ir al plan de esta semana"
+msgstr "Go to this week's plan"
+
+msgid "Juego cerrado."
+msgstr "Game closed."
+
+msgid "Juego creado. Revísalo y publícalo para los estudiantes."
+msgstr "Game created. Review it and publish it for students."
+
+msgid "Juego de parejas con imágenes, textos y audios de guía. Ideal para preescolar y primaria. La nota llega al libro de notas."
+msgstr "Matching-pairs game with images, text, and guide audio. Ideal for preschool and elementary. The grade goes to the gradebook."
+
+msgid "Juego eliminado."
+msgstr "Game deleted."
+
+msgid "Juegos de Memoria"
+msgstr "Memory Games"
+
+msgid "Jueves"
+msgstr "Thursday"
+
+msgid "Jugados"
+msgstr "Played"
+
+msgid "La <b>respuesta</b> es obligatoria; la corrección ignora mayúsculas y tildes. Cada tarjeta necesita imagen o pista. Audio: pulsa 🎙 Grabar y habla — el estudiante podrá escucharlo. Imágenes hasta 2 MB."
+msgstr "The <b>answer</b> is required; grading ignores capitalization and accents. Each card needs an image or clue. Audio: press 🎙 Record and speak — the student will be able to listen to it. Images up to 2 MB."
+
+msgid "La IA está generando tu planeación…"
+msgstr "The AI is generating your lesson plan…"
+
+msgid "La IA ha comenzado a generar tu planeación. La página se actualizará automáticamente cuando esté lista."
+msgstr "The AI has started generating your lesson plan. The page will update automatically when it is ready."
+
+msgid "La IA no pudo completar la generación de la planeación."
+msgstr "The AI could not finish generating the lesson plan."
+
+msgid "La URL de imagen debe comenzar con http:// o https://"
+msgstr "The image URL must start with http:// or https://"
+
+msgid "La URL de imagen no puede apuntar a una dirección IP interna."
+msgstr "The image URL cannot point to an internal IP address."
+
+msgid "La calificación ha sido actualizada correctamente."
+msgstr "The grade has been updated successfully."
+
+msgid "La creación de categorías de calificación es exclusiva del coordinador académico."
+msgstr "Creating grading categories is exclusive to the academic coordinator."
+
+msgid "La edición de categorías de calificación es exclusiva del coordinador académico."
+msgstr "Editing grading categories is exclusive to the academic coordinator."
+
+msgid "La eliminación de categorías de calificación es exclusiva del coordinador académico."
+msgstr "Deleting grading categories is exclusive to the academic coordinator."
+
+msgid "La fecha de entrega es obligatoria."
+msgstr "The due date is required."
+
+msgid "La generación de la planeación ha comenzado. La página se actualizará automáticamente."
+msgstr "Lesson plan generation has started. The page will update automatically."
+
+msgid "La imagen debe pesar máximo 2 MB y ser un archivo de imagen."
+msgstr "The image must be at most 2 MB and be an image file."
+
+msgid "La imagen es opcional (máx. 2 MB) y se muestra al estudiante junto a la pista."
+msgstr "The image is optional (max. 2 MB) and is shown to the student next to the clue."
+
+msgid "La imagen y la dificultad no se pueden cambiar después de crear el rompecabezas — elimínalo y crea uno nuevo si necesitas otra imagen."
+msgstr "The image and difficulty cannot be changed after creating the puzzle — delete it and create a new one if you need a different image."
+
+msgid "La letra o palabra no puede quedar vacía."
+msgstr "The letter or word cannot be empty."
+
+msgid "La pareja está incompleta: cada tarjeta necesita imagen o texto."
+msgstr "The pair is incomplete: each card needs an image or text."
+
+msgid "La pregunta está incompleta (audio + al menos 2 opciones y marca la correcta)."
+msgstr "The question is incomplete (audio + at least 2 options, with the correct one marked)."
+
+msgid "La respuesta no puede quedar vacía."
+msgstr "The answer cannot be empty."
+
+msgid "La suma de los porcentajes configurados es <strong>{{ total_porcentaje }}%</strong>, superando el 100%. El coordinador debe corregir estos valores."
+msgstr "The sum of the configured percentages is <strong>{{ total_porcentaje }}%</strong>, exceeding 100%. The coordinator needs to fix these values."
+
+msgid "La tarjeta está incompleta: necesita respuesta y una imagen o pista."
+msgstr "The card is incomplete: it needs an answer and an image or clue."
+
+msgid "Las categorías son configuradas por la coordinación."
+msgstr "Categories are configured by coordination."
+
+msgid "Las fechas son obligatorias."
+msgstr "The dates are required."
+
+msgid "Las piezas todavía no están en el orden correcto. Sigue intentando."
+msgstr "The pieces are not in the correct order yet. Keep trying."
+
+msgid "Lección"
+msgstr "Lesson"
+
+msgid "Letra o palabra"
+msgstr "Letter or word"
+
+msgid "Letras"
+msgstr "Letters"
+
+msgid "Letras / palabras (máximo 20)"
+msgstr "Letters / words (maximum 20)"
+
+msgid "Letras / palabras ({{ n }}) — editables"
+msgstr "Letters / words ({{ n }}) — editable"
+
+msgid "Libro de Notas"
+msgstr "Gradebook"
+
+msgid "Libro de Notas por Curso"
+msgstr "Gradebook by Course"
+
+msgid "Limpiar"
+msgstr "Clear"
+
+msgid "Listado Actual"
+msgstr "Current List"
+
+msgid "Listado de Deberes / Tareas"
+msgstr "List of Assignments"
+
+msgid "Llamado de Atención"
+msgstr "Warning Notice"
+
+msgid "Llamados"
+msgstr "Warnings"
+
+msgid "Logro"
+msgstr "Achievement"
+
+msgid "Logro del Período"
+msgstr "Period Achievement"
+
+msgid "Los estudiantes ya no podrán resolverlo. Las notas registradas se conservan."
+msgstr "Students will no longer be able to solve it. Recorded grades are kept."
+
+msgid "Los estudiantes ya no podrán trazar. Los dibujos y notas se conservan."
+msgstr "Students will no longer be able to trace. Drawings and grades are kept."
+
+msgid "Lunes"
+msgstr "Monday"
+
+msgid "Límite:"
+msgstr "Due:"
+
+msgid "Malla Curricular"
+msgstr "Curriculum Map"
+
+msgid "Malla Curricular {{ año_malla }}"
+msgstr "Curriculum Map {{ año_malla }}"
+
+msgid "Malla:"
+msgstr "Curriculum:"
+
+msgid "Martes"
+msgstr "Tuesday"
+
+msgid "Materia"
+msgstr "Subject"
+
+msgid "Material Adjunto"
+msgstr "Attached Material"
+
+msgid "Material actualizado exitosamente."
+msgstr "Material updated successfully."
+
+msgid "Material de Apoyo Adjunto:"
+msgstr "Attached Support Material:"
+
+msgid "Materiales, tecnologías, personas de apoyo..."
+msgstr "Materials, technologies, support staff..."
+
+msgid "Mazo cerrado."
+msgstr "Deck closed."
+
+msgid "Mazo creado. Revísalo y publícalo para los estudiantes."
+msgstr "Deck created. Review it and publish it for students."
+
+msgid "Mazo eliminado."
+msgstr "Deck deleted."
+
+msgid "Medio"
+msgstr "Medium"
+
+msgid "Menciones"
+msgstr "Recognitions"
+
+msgid "Mención creada exitosamente."
+msgstr "Recognition created successfully."
+
+msgid "Mensajes"
+msgstr "Messages"
+
+msgid "Metodología"
+msgstr "Methodology"
+
+msgid "Mi Banco de Descriptores"
+msgstr "My Descriptor Bank"
+
+msgid "Mi Disponibilidad"
+msgstr "My Availability"
+
+msgid "Mi Evaluación Docente"
+msgstr "My Teacher Evaluation"
+
+msgid "Mi Horario Semanal"
+msgstr "My Weekly Schedule"
+
+msgid "Mis Actividades Evaluativas"
+msgstr "My Graded Activities"
+
+msgid "Mis Archivos y Materiales"
+msgstr "My Files and Materials"
+
+msgid "Mis Citas"
+msgstr "My Meetings"
+
+msgid "Mis Clases de Hoy"
+msgstr "Today's Classes"
+
+msgid "Mis Cuestionarios"
+msgstr "My Quizzes"
+
+msgid "Mis Cuestionarios Recientes"
+msgstr "My Recent Quizzes"
+
+msgid "Mis Cursos y Acciones"
+msgstr "My Courses and Actions"
+
+msgid "Mis Menciones Otorgadas"
+msgstr "My Awarded Recognitions"
+
+msgid "Mis Planeaciones Guardadas"
+msgstr "My Saved Lesson Plans"
+
+msgid "Mis Planes"
+msgstr "My Plans"
+
+msgid "Mis Planes Semanales"
+msgstr "My Weekly Plans"
+
+msgid "Mis Simulacros"
+msgstr "My Mock Exams"
+
+msgid "Miércoles"
+msgstr "Wednesday"
+
+msgid "Modelo 3D del órgano seleccionado"
+msgstr "Selected 3D organ model"
+
+msgid "Modo de la actividad"
+msgstr "Activity mode"
+
+msgid "Modo de vista"
+msgstr "View mode"
+
+msgid "Mostrar respuestas correctas al finalizar"
+msgstr "Show correct answers at the end"
+
+msgid "Máximo %(max_parejas)s parejas por juego."
+msgstr "Maximum of %(max_parejas)s pairs per game."
+
+msgid "Máximo %(max_plantillas)s letras/palabras por tablero."
+msgstr "Maximum of %(max_plantillas)s letters/words per board."
+
+msgid "Máximo %(max_preguntas)s preguntas por quiz."
+msgstr "Maximum of %(max_preguntas)s questions per quiz."
+
+msgid "Máximo %(max_tarjetas)s tarjetas por mazo."
+msgstr "Maximum of %(max_tarjetas)s cards per deck."
+
+msgid "Máximo 2 MB. Funciona mejor con fotos cuadradas o apaisadas, sin detalles muy pequeños."
+msgstr "Maximum 2 MB. Works best with square or landscape photos, without very small details."
+
+msgid "Necesitas al menos %(min_parejas)s parejas para publicar."
+msgstr "You need at least %(min_parejas)s pairs to publish."
+
+msgid "Necesitas al menos %(min_preguntas)s preguntas para publicar."
+msgstr "You need at least %(min_preguntas)s questions to publish."
+
+msgid "Necesitas al menos %(min_tarjetas)s tarjetas para publicar."
+msgstr "You need at least %(min_tarjetas)s cards to publish."
+
+msgid "Necesitas al menos 3 palabras para publicar."
+msgstr "You need at least 3 words to publish."
+
+msgid "Necesitas al menos una plantilla para publicar."
+msgstr "You need at least one item to publish."
+
+msgid "Nivel de Riesgo"
+msgstr "Risk Level"
+
+msgid "No adjuntado"
+msgstr "Not attached"
+
+msgid "No has creado actividades evaluativas para el periodo activo."
+msgstr "You haven't created graded activities for the active period."
+
+msgid "No hay PIARs registrados con estos filtros."
+msgstr "There are no Individual Learning Plans registered with these filters."
+
+msgid "No hay categorías configuradas aún."
+msgstr "No categories configured yet."
+
+msgid "No hay categorías configuradas. Crea una en <strong>Tipos de Actividad</strong> primero."
+msgstr "No categories configured. Create one in <strong>Activity Types</strong> first."
+
+msgid "No hay cursos para el período seleccionado."
+msgstr "There are no courses for the selected period."
+
+msgid "No hay cursos registrados para este período."
+msgstr "There are no courses registered for this period."
+
+msgid "No hay deberes o tareas registradas. ¡Puedes crear la primera!"
+msgstr "There are no assignments registered yet. You can create the first one!"
+
+msgid "No hay periodos académicos disponibles. Por favor, crea uno en el panel de administración."
+msgstr "No academic periods available. Please create one in the admin panel."
+
+msgid "No hay períodos académicos disponibles en el sistema."
+msgstr "There are no academic periods available in the system."
+
+msgid "No hay preguntas con esos filtros."
+msgstr "There are no questions matching those filters."
+
+msgid "No pudimos acceder al micrófono. Revisa el permiso del navegador."
+msgstr "We couldn't access the microphone. Check the browser's permission."
+
+msgid "No pudimos acceder al micrófono. Revisa que el navegador tenga permiso para usarlo."
+msgstr "We couldn't access the microphone. Check that the browser has permission to use it."
+
+msgid "No puedes editar ítems de un plan ya enviado."
+msgstr "You cannot edit items of a plan that has already been submitted."
+
+msgid "No puedes eliminar ítems de un plan ya enviado."
+msgstr "You cannot delete items of a plan that has already been submitted."
+
+msgid "No puedes modificar un plan ya enviado/aprobado."
+msgstr "You cannot modify a plan that has already been submitted/approved."
+
+msgid "No se encontraron predicciones con los criterios seleccionados."
+msgstr "No predictions found matching the selected criteria."
+
+msgid "No se encontró el deber/tarea a eliminar."
+msgstr "The assignment to delete was not found."
+
+msgid "No se encontró la información del deber."
+msgstr "The assignment information was not found."
+
+msgid "No se pudo conectar con el generador IA."
+msgstr "Could not connect to the AI generator."
+
+msgid "No se pudo conectar. Revisa tu conexión."
+msgstr "Could not connect. Check your connection."
+
+msgid "No se pudo procesar el archivo. Error: %(e)s"
+msgstr "The file could not be processed. Error: %(e)s"
+
+msgid "No tienes acceso a esta actividad."
+msgstr "You don't have access to this activity."
+
+msgid "No tienes acceso a este intento."
+msgstr "You don't have access to this attempt."
+
+msgid "No tienes acceso a este resultado."
+msgstr "You don't have access to this result."
+
+msgid "No tienes clases programadas para el día de hoy."
+msgstr "You have no classes scheduled for today."
+
+msgid "No tienes clases programadas para este día."
+msgstr "You have no classes scheduled for this day."
+
+msgid "No tienes conversaciones activas. Inicia un chat desde el perfil de un docente o familiar."
+msgstr "You don't have any active conversations. Start a chat from a teacher's or family member's profile."
+
+msgid "No tienes conversaciones archivadas."
+msgstr "You don't have any archived conversations."
+
+msgid "No tienes cursos asignados en esta institución."
+msgstr "You have no courses assigned in this institution."
+
+msgid "No tienes cursos asignados para el periodo académico activo."
+msgstr "You have no courses assigned for the active academic period."
+
+msgid "No tienes cursos asignados para el periodo seleccionado."
+msgstr "You don't have courses assigned for the selected period."
+
+msgid "No tienes estudiantes asignados en el periodo activo."
+msgstr "You don't have students assigned in the active period."
+
+msgid "No tienes perfil de estudiante."
+msgstr "You don't have a student profile."
+
+msgid "No tienes permiso para acceder a esta sección."
+msgstr "You don't have permission to access this section."
+
+msgid "No tienes permiso para acceder a los PIARs."
+msgstr "You don't have permission to access Individual Learning Plans."
+
+msgid "No tienes permiso para agregar ajustes."
+msgstr "You don't have permission to add accommodations."
+
+msgid "No tienes permiso para editar ajustes."
+msgstr "You don't have permission to edit accommodations."
+
+msgid "No tienes permiso para eliminar ajustes."
+msgstr "You don't have permission to delete accommodations."
+
+msgid "No tienes permiso para ver este PIAR."
+msgstr "You don't have permission to view this Individual Learning Plan."
+
+msgid "No tienes reuniones programadas en los próximos 28 días"
+msgstr "You have no meetings scheduled in the next 28 days"
+
+msgid "No tienes un perfil de docente en esta institución."
+msgstr "You don't have a teacher profile in this institution."
+
+msgid "No tienes un perfil de estudiante en esta institución."
+msgstr "You don't have a student profile in this institution."
+
+msgid "No, Cancelar"
+msgstr "No, Cancel"
+
+msgid "Nota actualizada para %(estudiante_usuario_g)s."
+msgstr "Grade updated for %(estudiante_usuario_g)s."
+
+msgid "Nota máx:"
+msgstr "Max grade:"
+
+msgid "Nota máxima"
+msgstr "Maximum grade"
+
+msgid "Nota máxima que puede obtener el estudiante al completar la actividad."
+msgstr "Maximum grade a student can earn upon completing the activity."
+
+msgid "Notificaciones"
+msgstr "Notifications"
+
+msgid "Notificar"
+msgstr "Notify"
+
+msgid "Nueva Actividad"
+msgstr "New Activity"
+
+msgid "Nueva Actividad 3D"
+msgstr "New 3D Activity"
+
+msgid "Nueva Pregunta"
+msgstr "New Question"
+
+msgid "Nueva letra / palabra"
+msgstr "New letter / word"
+
+msgid "Nueva pregunta"
+msgstr "New question"
+
+msgid "Nuevo PIAR"
+msgstr "New Individual Learning Plan"
+
+msgid "Nuevo Plan"
+msgstr "New Plan"
+
+msgid "Nuevo Plan Semanal"
+msgstr "New Weekly Plan"
+
+msgid "Nuevo Simulacro"
+msgstr "New Mock Exam"
+
+msgid "Nuevo crucigrama"
+msgstr "New crossword"
+
+msgid "Nuevo juego"
+msgstr "New game"
+
+msgid "Nuevo juego de memoria"
+msgstr "New memory game"
+
+msgid "Nuevo mazo"
+msgstr "New deck"
+
+msgid "Nuevo mazo de flash cards"
+msgstr "New flash card deck"
+
+msgid "Nuevo mensaje"
+msgstr "New message"
+
+msgid "Nuevo quiz"
+msgstr "New quiz"
+
+msgid "Nuevo quiz de audio"
+msgstr "New audio quiz"
+
+msgid "Nuevo rompecabezas"
+msgstr "New puzzle"
+
+msgid "Nuevo tablero"
+msgstr "New board"
+
+msgid "Nuevo tablero de trazado"
+msgstr "New tracing board"
+
+msgid "Nº de Preguntas"
+msgstr "No. of Questions"
+
+msgid "Objetivos"
+msgstr "Objectives"
+
+msgid "Objetivos de aprendizaje"
+msgstr "Learning objectives"
+
+msgid "Obs."
+msgstr "Feedback"
+
+msgid "Observaciones"
+msgstr "Notes"
+
+msgid "Observaciones del Coordinador"
+msgstr "Coordinator's Feedback"
+
+msgid "Observador de %(estudiante)s"
+msgstr "%(estudiante)s's Behavior Record"
+
+msgid "Observador del Estudiante"
+msgstr "Student's Behavior Record"
+
+msgid "Obstáculos físicos, comunicativos, actitudinales..."
+msgstr "Physical, communicative, attitudinal obstacles..."
+
+msgid "Obtén la plantilla personalizada. Contendrá solo las materias que tienes asignadas."
+msgstr "Get the personalized template. It will only contain the subjects assigned to you."
+
+msgid "Ocurrió un Error"
+msgstr "An Error Occurred"
+
+msgid "Ojo: no marcaste ninguna opción como correcta en esa pregunta."
+msgstr "Heads up: you didn't mark any option as correct on that question."
+
+msgid "Opciones (marca la correcta)"
+msgstr "Options (mark the correct one)"
+
+msgid "Opciones y Respuesta del Estudiante:"
+msgstr "Options and Student's Answer:"
+
+msgid "Opción única"
+msgstr "Single choice"
+
+msgid "Orden"
+msgstr "Order"
+
+msgid "Otorgar Mención"
+msgstr "Award Recognition"
+
+msgid "Otorgar primera mención"
+msgstr "Award first recognition"
+
+msgid "Otro"
+msgstr "Other"
+
+msgid "PIAR \"%(nombre)s\" eliminado."
+msgstr "Individual Learning Plan \"%(nombre)s\" deleted."
+
+msgid "PIAR %(piar_a_o_lectivo)s — %(piar_estudiante)s"
+msgstr "Individual Learning Plan %(piar_a_o_lectivo)s — %(piar_estudiante)s"
+
+msgid "PIAR actualizado exitosamente."
+msgstr "Individual Learning Plan updated successfully."
+
+msgid "PIAR creado exitosamente para %(estudiante)s."
+msgstr "Individual Learning Plan created successfully for %(estudiante)s."
+
+msgid "PIARs — Planes de Ajustes Razonables"
+msgstr "Individual Learning Plans — Reasonable Accommodations"
+
+msgid "Palabra"
+msgstr "Word"
+
+msgid "Palabra actualizada."
+msgstr "Word updated."
+
+msgid "Palabra agregada."
+msgstr "Word added."
+
+msgid "Palabra eliminada."
+msgstr "Word deleted."
+
+msgid "Palabras"
+msgstr "Words"
+
+msgid "Palabras y pistas (mínimo 3)"
+msgstr "Words and clues (minimum 3)"
+
+msgid "Palabras y pistas ({{ n }})"
+msgstr "Words and clues ({{ n }})"
+
+msgid "Panel Director"
+msgstr "Homeroom Panel"
+
+msgid "Panel de Docente"
+msgstr "Teacher Panel"
+
+msgid "Pareja"
+msgstr "Pair"
+
+msgid "Pareja actualizada."
+msgstr "Pair updated."
+
+msgid "Pareja agregada."
+msgstr "Pair added."
+
+msgid "Pareja eliminada."
+msgstr "Pair deleted."
+
+msgid "Parejas"
+msgstr "Pairs"
+
+msgid "Parejas (mínimo 3, máximo 20)"
+msgstr "Pairs (minimum 3, maximum 20)"
+
+msgid "Pasar Asistencia"
+msgstr "Take Attendance"
+
+msgid "Pasar Lista"
+msgstr "Take Attendance"
+
+msgid "Paso 1: Descargar"
+msgstr "Step 1: Download"
+
+msgid "Paso 2: Importar"
+msgstr "Step 2: Import"
+
+msgid "Pendiente"
+msgstr "Pending"
+
+msgid "Pendientes de confirmación"
+msgstr "Pending confirmation"
+
+msgid "Periodo"
+msgstr "Period"
+
+msgid "Periodo Académico"
+msgstr "Academic Period"
+
+msgid "Período académico:"
+msgstr "Academic period:"
+
+msgid "Peso&nbsp;(%)"
+msgstr "Weight&nbsp;(%)"
+
+msgid "Piezas"
+msgstr "Pieces"
+
+msgid "Pista"
+msgstr "Clue"
+
+msgid "Plan Semanal · %(label)s"
+msgstr "Weekly Plan · %(label)s"
+
+msgid "Plan Semanal · {{ label }}"
+msgstr "Weekly Plan · {{ label }}"
+
+msgid "Plan aprobado por el coordinador ✓"
+msgstr "Plan approved by the coordinator ✓"
+
+msgid "Plan devuelto — acción requerida"
+msgstr "Plan returned — action required"
+
+msgid "Plan en edición. Puedes agregar y modificar ítems."
+msgstr "Plan being edited. You can add and modify items."
+
+msgid "Plan enviado al coordinador para revisión."
+msgstr "Plan submitted to the coordinator for review."
+
+msgid "Planeación: %(titulo)s"
+msgstr "Lesson Plan: %(titulo)s"
+
+msgid "Planeador IA"
+msgstr "AI Planner"
+
+msgid "Planeador de Clases con IA"
+msgstr "AI Lesson Planner"
+
+msgid "Plazo final"
+msgstr "Final deadline"
+
+msgid "Plazo final:"
+msgstr "Final deadline:"
+
+msgid "Por cada pregunta: un audio + varias imágenes; marca cuál es la correcta."
+msgstr "For each question: one audio clip + several images; mark which one is correct."
+
+msgid "Predicciones de riesgo académico filtradas por periodo y grado"
+msgstr "Academic risk predictions filtered by period and grade"
+
+msgid "Pregunta"
+msgstr "Question"
+
+msgid "Pregunta actualizada."
+msgstr "Question updated."
+
+msgid "Pregunta agregada."
+msgstr "Question added."
+
+msgid "Pregunta eliminada."
+msgstr "Question deleted."
+
+msgid "Pregunta guardada correctamente."
+msgstr "Question saved successfully."
+
+msgid "Preguntas"
+msgstr "Questions"
+
+msgid "Preguntas (mínimo 2, máximo 15)"
+msgstr "Questions (minimum 2, maximum 15)"
+
+msgid "Proceso finalizado. No se importaron descriptores nuevos."
+msgstr "Process finished. No new descriptors were imported."
+
+msgid "Prof."
+msgstr "Teacher"
+
+msgid "Promedio"
+msgstr "Average"
+
+msgid "Proyectar"
+msgstr "Project"
+
+msgid "Prueba / Grado"
+msgstr "Test / Grade"
+
+msgid "Publicado"
+msgstr "Published"
+
+msgid "Publicado:"
+msgstr "Published:"
+
+msgid "Publicar"
+msgstr "Publish"
+
+msgid "Puedes agregar, eliminar o modificar las clases. Cuando termines, usa <strong>\"Enviar corrección\"</strong> en cualquier clase."
+msgstr "You can add, delete, or modify classes. When you're done, use <strong>\"Submit correction\"</strong> on any class."
+
+msgid "Puntaje"
+msgstr "Score"
+
+msgid "Puntaje Actual:"
+msgstr "Current Score:"
+
+msgid "Puntaje:"
+msgstr "Score:"
+
+msgid "Pág. {{ numero }} de {{ total }}"
+msgstr "Page {{ numero }} of {{ total }}"
+
+msgid "Pública ICFES"
+msgstr "Public ICFES"
+
+msgid "Quitar audio"
+msgstr "Remove audio"
+
+msgid "Quiz cerrado."
+msgstr "Quiz closed."
+
+msgid "Quiz creado. Revísalo y publícalo para los estudiantes."
+msgstr "Quiz created. Review it and publish it for students."
+
+msgid "Quiz de Audio"
+msgstr "Audio Quiz"
+
+msgid "Quiz eliminado."
+msgstr "Quiz deleted."
+
+msgid "Rango de fechas"
+msgstr "Date range"
+
+msgid "Reconoce el esfuerzo y los logros de tus estudiantes"
+msgstr "Recognize your students' effort and achievements"
+
+msgid "Reconocimientos"
+msgstr "Recognitions"
+
+msgid "Reconocimientos y distinciones entregados a tus estudiantes"
+msgstr "Recognitions and awards given to your students"
+
+msgid "Recursos"
+msgstr "Resources"
+
+msgid "Recursos Didácticos"
+msgstr "Teaching Resources"
+
+msgid "Recursos Educativos 3D"
+msgstr "3D Educational Resources"
+
+msgid "Reenviar Plan Corregido"
+msgstr "Resubmit Corrected Plan"
+
+msgid "Registra, organiza y envía tus planes de clase semana a semana."
+msgstr "Record, organize, and submit your lesson plans week by week."
+
+msgid "Registrar Nueva Anotación"
+msgstr "Record New Entry"
+
+msgid "Regrabar"
+msgstr "Re-record"
+
+msgid "Reintentar Generación"
+msgstr "Retry Generation"
+
+msgid "Reportes"
+msgstr "Reports"
+
+msgid "Resolviendo: %(intento_cuestionario)s"
+msgstr "Solving: %(intento_cuestionario)s"
+
+msgid "Respuesta correcta *"
+msgstr "Correct answer *"
+
+msgid "Respuesta del Estudiante:"
+msgstr "Student's Answer:"
+
+msgid "Respuestas"
+msgstr "Answers"
+
+msgid "Resueltos"
+msgstr "Solved"
+
+msgid "Resultado de las evaluaciones que las familias hicieron sobre tu desempeño (campañas cerradas)."
+msgstr "Results of the evaluations families made about your performance (closed campaigns)."
+
+msgid "Resultado — %(intento_simulacro_ti)s"
+msgstr "Result — %(intento_simulacro_ti)s"
+
+msgid "Resultado: %(cruc_titulo)s"
+msgstr "Result: %(cruc_titulo)s"
+
+msgid "Resultado: %(juego_titulo)s"
+msgstr "Result: %(juego_titulo)s"
+
+msgid "Resultado: %(mazo_titulo)s"
+msgstr "Result: %(mazo_titulo)s"
+
+msgid "Resultado: %(quiz_titulo)s"
+msgstr "Result: %(quiz_titulo)s"
+
+msgid "Resultado: %(rc_titulo)s"
+msgstr "Result: %(rc_titulo)s"
+
+msgid "Resultado: %(tablero_titulo)s"
+msgstr "Result: %(tablero_titulo)s"
+
+msgid "Resultados"
+msgstr "Results"
+
+msgid "Resultados — %(simulacro_titulo)s"
+msgstr "Results — %(simulacro_titulo)s"
+
+msgid "Resultados: %(cruc_titulo)s"
+msgstr "Results: %(cruc_titulo)s"
+
+msgid "Resultados: %(juego_titulo)s"
+msgstr "Results: %(juego_titulo)s"
+
+msgid "Resultados: %(mazo_titulo)s"
+msgstr "Results: %(mazo_titulo)s"
+
+msgid "Resultados: %(quiz_titulo)s"
+msgstr "Results: %(quiz_titulo)s"
+
+msgid "Resultados: %(rc_titulo)s"
+msgstr "Results: %(rc_titulo)s"
+
+msgid "Resultados: %(tablero_titulo)s"
+msgstr "Results: %(tablero_titulo)s"
+
+msgid "Resumen del Plan"
+msgstr "Plan Summary"
+
+msgid "Revisar"
+msgstr "Review"
+
+msgid "Revisión de %(estudiante)s"
+msgstr "%(estudiante)s's Review"
+
+msgid "Revisión del Cuestionario: {{ titulo }}"
+msgstr "Quiz Review: {{ titulo }}"
+
+msgid "Rompecabezas"
+msgstr "Puzzles"
+
+msgid "Rompecabezas cerrado."
+msgstr "Puzzle closed."
+
+msgid "Rompecabezas creado. Revísalo y publícalo para los estudiantes."
+msgstr "Puzzle created. Review it and publish it for students."
+
+msgid "Rompecabezas eliminado."
+msgstr "Puzzle deleted."
+
+msgid "Rúbrica / respuesta ideal (para corrección IA)"
+msgstr "Rubric / ideal answer (for AI grading)"
+
+msgid "Se crearán automáticamente <strong>{{ cantidad }} registro(s) de lección diaria</strong> en las próximas fechas disponibles de tu horario para el curso <strong>{{ curso }}</strong>."
+msgstr "<strong>{{ cantidad }} daily lesson record(s)</strong> will be automatically created on the next available dates in your schedule for the course <strong>{{ curso }}</strong>."
+
+msgid "Se eliminarán también los dibujos e intentos. No se puede deshacer."
+msgstr "Drawings and attempts will also be deleted. This cannot be undone."
+
+msgid "Se eliminarán también los intentos. Esta acción no se puede deshacer."
+msgstr "Attempts will also be deleted. This action cannot be undone."
+
+msgid "Se eliminarán también todos los ajustes asociados. Esta acción no se puede deshacer."
+msgstr "All associated accommodations will also be deleted. This action cannot be undone."
+
+msgid "Se eliminarán también todos los intentos y respuestas asociadas."
+msgstr "All associated attempts and answers will also be deleted."
+
+msgid "Se ha habilitado un intento adicional para el estudiante %(intento_estudiante)s."
+msgstr "An extra attempt has been granted to student %(intento_estudiante)s."
+
+msgid "Selecciona el tipo"
+msgstr "Select the type"
+
+msgid "Selecciona un archivo Excel (.xlsx)."
+msgstr "Select an Excel file (.xlsx)."
+
+msgid "Selecciona un curso"
+msgstr "Select a course"
+
+msgid "Selecciona un curso del periodo <strong>{{ nombre }}</strong> para generar el reporte."
+msgstr "Select a course from the <strong>{{ nombre }}</strong> period to generate the report."
+
+msgid "Selecciona una categoría"
+msgstr "Select a category"
+
+msgid "Selecciona una institución primero"
+msgstr "Select an institution first"
+
+msgid "Seleccionada"
+msgstr "Selected"
+
+msgid "Seleccionar Curso para Calificar"
+msgstr "Select Course to Grade"
+
+msgid "Seleccionar Curso — Libro de Notas"
+msgstr "Select Course — Gradebook"
+
+msgid "Seleccionar Estudiante para Observador"
+msgstr "Select Student for Behavior Record"
+
+msgid "Selecciona…"
+msgstr "Select…"
+
+msgid "Selección múltiple"
+msgstr "Multiple choice"
+
+msgid "Sem."
+msgstr "Wks."
+
+msgid "Semana"
+msgstr "Week"
+
+msgid "Semana (selecciona cualquier día de esa semana)"
+msgstr "Week (select any day in that week)"
+
+msgid "Semana actual"
+msgstr "Current week"
+
+msgid "Si el estudiante necesita otra oportunidad por un motivo justificado, puedes habilitar un intento adicional."
+msgstr "If the student needs another chance for a valid reason, you can grant an extra attempt."
+
+msgid "Si el proceso parece atascado (más de 3 minutos), puedes detenerlo."
+msgstr "If the process seems stuck (more than 3 minutes), you can stop it."
+
+msgid "Si necesitas ajustar pesos o añadir un nuevo tipo de actividad, solicítalo al coordinador académico de tu institución."
+msgstr "If you need to adjust weights or add a new activity type, request it from your academic coordinator."
+
+msgid "Simulacro '%(simulacro_titulo)s' ahora está %(simulacro_get_estado)s."
+msgstr "Mock exam '%(simulacro_titulo)s' is now %(simulacro_get_estado)s."
+
+msgid "Simulacro '%(titulo)s' guardado con %(len_ids_seleccionado)s pregunta(s)."
+msgstr "Mock exam '%(titulo)s' saved with %(len_ids_seleccionado)s question(s)."
+
+msgid "Simulacro eliminado."
+msgstr "Mock exam deleted."
+
+msgid "Simulacros Saber"
+msgstr "Saber Mock Exams"
+
+msgid "Sin anotaciones registradas"
+msgstr "No entries recorded"
+
+msgid "Sin clases"
+msgstr "No classes"
+
+msgid "Sin clases planificadas para este día."
+msgstr "No classes planned for this day."
+
+msgid "Sin contenido en el {{ periodo_num }}° Período."
+msgstr "No content in period {{ periodo_num }}."
+
+msgid "Sin enunciado"
+msgstr "No question text"
+
+msgid "Sin imagen"
+msgstr "No image"
+
+msgid "Sin letras todavía."
+msgstr "No letters yet."
+
+msgid "Sin planes registrados"
+msgstr "No plans registered"
+
+msgid "Sin resultados para los filtros aplicados."
+msgstr "No results for the applied filters."
+
+msgid "Sin vínculo"
+msgstr "No link"
+
+msgid "Solo Galería"
+msgstr "Gallery Only"
+
+msgid "Solo Studio"
+msgstr "Studio Only"
+
+msgid "Solo coordinadores pueden crear PIARs."
+msgstr "Only coordinators can create Individual Learning Plans."
+
+msgid "Solo coordinadores pueden editar PIARs."
+msgstr "Only coordinators can edit Individual Learning Plans."
+
+msgid "Solo coordinadores pueden eliminar PIARs."
+msgstr "Only coordinators can delete Individual Learning Plans."
+
+msgid "Solo docentes y coordinación pueden acceder a este recurso."
+msgstr "Only teachers and coordination can access this resource."
+
+msgid "Solo lectura"
+msgstr "Read only"
+
+msgid "Solo los docentes pueden acceder a los planes semanales."
+msgstr "Only teachers can access weekly plans."
+
+msgid "Solo los estudiantes pueden iniciar esta evaluación."
+msgstr "Only students can start this evaluation."
+
+msgid "Solo los estudiantes pueden resolver cuestionarios aquí."
+msgstr "Only students can take quizzes here."
+
+msgid "Solo mías"
+msgstr "Mine only"
+
+msgid "Solo se aceptan archivos Excel con extensión .xlsx"
+msgstr "Only Excel files with .xlsx extension are accepted"
+
+msgid "Studio 3D — %(recurso_actividad_ti)s"
+msgstr "3D Studio — %(recurso_actividad_ti)s"
+
+msgid "Sube archivos y recursos de apoyo para tus estudiantes"
+msgstr "Upload files and support resources for your students"
+
+msgid "Sube una imagen para armar el rompecabezas."
+msgstr "Upload an image to build the puzzle."
+
+msgid "Sube una imagen y elige cuántas piezas tendrá."
+msgstr "Upload an image and choose how many pieces it will have."
+
+msgid "Sube una imagen, elige la dificultad y el sistema arma el rompecabezas solo. Los estudiantes lo resuelven en pantalla y la nota llega al libro de notas."
+msgstr "Upload an image, choose the difficulty, and the system builds the puzzle for you. Students solve it on screen and the grade goes straight to the gradebook."
+
+msgid "Subir Material"
+msgstr "Upload Material"
+
+msgid "Subir Nuevo Material"
+msgstr "Upload New Material"
+
+msgid "Subir primer material"
+msgstr "Upload first material"
+
+msgid "Sugerir Nota con IA"
+msgstr "Suggest Grade with AI"
+
+msgid "Superior"
+msgstr "Superior"
+
+msgid "Superior (4.6–5.0)"
+msgstr "Superior (4.6–5.0)"
+
+msgid "Supervisión de notas y vista anual de todos los cursos de la institución"
+msgstr "Supervision of grades and annual view of all the institution's courses"
+
+msgid "Sí, Eliminar"
+msgstr "Yes, Delete"
+
+msgid "Sí, Eliminar Deber"
+msgstr "Yes, Delete Assignment"
+
+msgid "Sí, cerrar"
+msgstr "Yes, close"
+
+msgid "Sí, eliminar"
+msgstr "Yes, delete"
+
+msgid "Sí, enviar"
+msgstr "Yes, submit"
+
+msgid "Sí, estoy seguro"
+msgstr "Yes, I'm sure"
+
+msgid "Sí, reenviar"
+msgstr "Yes, resubmit"
+
+msgid "Tablero cerrado."
+msgstr "Board closed."
+
+msgid "Tablero creado. Revísalo y publícalo para los estudiantes."
+msgstr "Board created. Review it and publish it for students."
+
+msgid "Tablero eliminado."
+msgstr "Board deleted."
+
+msgid "Tareas por calificar"
+msgstr "Assignments to grade"
+
+msgid "Tarjeta"
+msgstr "Card"
+
+msgid "Tarjeta 1"
+msgstr "Card 1"
+
+msgid "Tarjeta 2"
+msgstr "Card 2"
+
+msgid "Tarjeta actualizada."
+msgstr "Card updated."
+
+msgid "Tarjeta agregada."
+msgstr "Card added."
+
+msgid "Tarjeta eliminada."
+msgstr "Card deleted."
+
+msgid "Tarjetas"
+msgstr "Cards"
+
+msgid "Tarjetas (mínimo 3, máximo 30)"
+msgstr "Cards (minimum 3, maximum 30)"
+
+msgid "Tarjetas con imagen, pista y audio de guía: el estudiante escribe la respuesta y el sistema corrige al instante. La nota llega al libro de notas."
+msgstr "Cards with image, clue, and guide audio: the student types the answer and the system grades it instantly. The grade goes to the gradebook."
+
+msgid "Tema / Título *"
+msgstr "Topic / Title *"
+
+msgid "Tema principal de la evaluación"
+msgstr "Main topic of the assessment"
+
+msgid "Temas de referencia para esta materia y grado:"
+msgstr "Reference topics for this subject and grade:"
+
+msgid "Temas definidos para esta materia y grado:"
+msgstr "Topics defined for this subject and grade:"
+
+msgid "Texto (opc.)"
+msgstr "Text (opt.)"
+
+msgid "Texto de la pregunta (opcional)"
+msgstr "Question text (optional)"
+
+msgid "Texto libre"
+msgstr "Free text"
+
+msgid "Tiempo Límite:"
+msgstr "Time Limit:"
+
+msgid "Tiempo estimado: 15–60s"
+msgstr "Estimated time: 15–60s"
+
+msgid "Tiempo límite (minutos)"
+msgstr "Time limit (minutes)"
+
+msgid "Tiempo transcurrido:"
+msgstr "Time elapsed:"
+
+msgid "Tipo"
+msgstr "Type"
+
+msgid "Tipo / Categoría *"
+msgstr "Type / Category *"
+
+msgid "Tipo de Mención"
+msgstr "Recognition Type"
+
+msgid "Tipo de archivo no permitido. Sube un archivo .xlsx válido."
+msgstr "File type not allowed. Upload a valid .xlsx file."
+
+msgid "Tipo de condición"
+msgstr "Condition type"
+
+msgid "Tipo de letra"
+msgstr "Letter style"
+
+msgid "Tipo de letra de la guía"
+msgstr "Guide letter style"
+
+msgid "Tipo de pregunta"
+msgstr "Question type"
+
+msgid "Tipos de actividad evaluativa definidos por la coordinación para tu institución"
+msgstr "Graded activity types defined by coordination for your institution"
+
+msgid "Toca un día para expandir"
+msgstr "Tap a day to expand"
+
+msgid "Todas las áreas"
+msgstr "All subjects"
+
+msgid "Todos los años"
+msgstr "All years"
+
+msgid "Todos los estados"
+msgstr "All statuses"
+
+msgid "Todos los grados"
+msgstr "All grades"
+
+msgid "Todos los periodos"
+msgstr "All periods"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Total clases"
+msgstr "Total classes"
+
+msgid "Total ponderación:"
+msgstr "Total weight:"
+
+msgid "Trabajos recibidos"
+msgstr "Submissions received"
+
+msgid "Trazado de Letras"
+msgstr "Letter Tracing"
+
+msgid "Tu cuenta no está asociada a ninguna institución."
+msgstr "Your account is not associated with any institution."
+
+msgid "Tu puntaje:"
+msgstr "Your score:"
+
+msgid "Título"
+msgstr "Title"
+
+msgid "Título de la Actividad"
+msgstr "Activity Title"
+
+msgid "Título de la Actividad *"
+msgstr "Activity Title *"
+
+msgid "Título de la actividad"
+msgstr "Activity title"
+
+msgid "Título del Deber"
+msgstr "Assignment Title"
+
+msgid "Título del Deber *"
+msgstr "Assignment Title *"
+
+msgid "Título del cuestionario"
+msgstr "Quiz title"
+
+msgid "Título:"
+msgstr "Title:"
+
+msgid "Una vez enviado, <strong>no podrás editarlo</strong> hasta que el coordinador lo revise."
+msgstr "Once submitted, <strong>you won't be able to edit it</strong> until the coordinator reviews it."
+
+msgid "Una vez llena, sube la plantilla aquí para añadirla a tu banco de descriptores."
+msgstr "Once filled out, upload the template here to add it to your descriptor bank."
+
+msgid "Usa el formulario de la izquierda para empezar."
+msgstr "Use the form on the left to get started."
+
+msgid "Usa el formulario para registrar la primera anotación en el observador."
+msgstr "Use the form to record the first entry in the behavior record."
+
+msgid "Usa palabras de una sola palabra (sin espacios), de 2 letras o más. Entre más letras compartan, mejor se cruzan. La <b>imagen es opcional</b>: se muestra al estudiante junto a la pista (ideal para primaria). Máximo 2 MB."
+msgstr "Use single words (no spaces), 2 letters or more. The more letters they share, the better they cross. The <b>image is optional</b>: it shows next to the clue for the student (ideal for elementary). Maximum 2 MB."
+
+msgid "Vas a reenviar el plan con las correcciones aplicadas. El coordinador lo revisará nuevamente."
+msgstr "You are about to resubmit the plan with the corrections applied. The coordinator will review it again."
+
+msgid "Ver"
+msgstr "View"
+
+msgid "Ver Detalles"
+msgstr "View Details"
+
+msgid "Ver Notas"
+msgstr "View Grades"
+
+msgid "Ver agenda"
+msgstr "View schedule"
+
+msgid "Ver cursos"
+msgstr "View courses"
+
+msgid "Ver decreto completo"
+msgstr "View full decree"
+
+msgid "Ver entregas"
+msgstr "View submissions"
+
+msgid "Ver reporte"
+msgstr "View report"
+
+msgid "Ver resultados"
+msgstr "View results"
+
+msgid "Ver todas"
+msgstr "View all"
+
+msgid "Ver todos"
+msgstr "View all"
+
+msgid "Verdadero"
+msgstr "True"
+
+msgid "Verdadero / Falso"
+msgstr "True / False"
+
+msgid "Viernes"
+msgstr "Friday"
+
+msgid "Vincular a Malla Curricular"
+msgstr "Link to Curriculum Map"
+
+msgid "Vista Anual"
+msgstr "Annual View"
+
+msgid "Vista Previa"
+msgstr "Preview"
+
+msgid "Vista previa"
+msgstr "Preview"
+
+msgid "Vista previa (con respuestas)"
+msgstr "Preview (with answers)"
+
+msgid "Volver"
+msgstr "Back"
+
+msgid "Volver a la lista"
+msgstr "Back to list"
+
+msgid "Volver al Dashboard"
+msgstr "Back to Dashboard"
+
+msgid "Volver al Historial"
+msgstr "Back to History"
+
+msgid "Volver al Listado"
+msgstr "Back to List"
+
+msgid "Volver al Planeador"
+msgstr "Back to Planner"
+
+msgid "Volver al plan"
+msgstr "Back to plan"
+
+msgid "Vínculo Malla Curricular"
+msgstr "Curriculum Map Link"
+
+msgid "Ya se ha habilitado un intento adicional para este estudiante."
+msgstr "An extra attempt has already been granted to this student."
+
+msgid "Ya tienes un plan para esa semana y curso."
+msgstr "You already have a plan for that week and course."
+
+msgid "clase(s)"
+msgstr "class(es)"
+
+msgid "ej: Explora los órganos del cuerpo humano"
+msgstr "e.g: Explore the organs of the human body"
+
+msgid "opcional"
+msgstr "optional"
+
+msgid "quitar"
+msgstr "remove"
+
+msgid "quitar imagen"
+msgstr "remove image"
+
+msgid "{{ counter }} actividad"
+msgstr "{{ counter }} activity"
+
+msgid "{{ counter }} actividades"
+msgstr "{{ counter }} activities"
+
+msgid "{{ counter }} contenido"
+msgstr "{{ counter }} item"
+
+msgid "{{ counter }} contenidos"
+msgstr "{{ counter }} items"
+
+msgid "{{ materia }} del grado {{ grado }} (Periodo: {{ periodo }})"
+msgstr "{{ materia }} for grade {{ grado }} (Period: {{ periodo }})"
+
+msgid "{{ materia }} del grado {{ grado }} ({{ periodo }})"
+msgstr "{{ materia }} for grade {{ grado }} ({{ periodo }})"
+
+msgid "{{ materia }} · {{ grado }} · {{ filas }}x{{ columnas }} piezas ·"
+msgstr "{{ materia }} · {{ grado }} · {{ filas }}x{{ columnas }} pieces ·"
+
+msgid "{{ minutos }} minutos"
+msgstr "{{ minutos }} minutes"
+
+msgid "{{ n }} ajuste(s)"
+msgstr "{{ n }} accommodation(s)"
+
+msgid "{{ n }} intento(s)"
+msgstr "{{ n }} attempt(s)"
+
+msgid "{{ n }} pregunta(s)"
+msgstr "{{ n }} question(s)"
+
+msgid "{{ n }} preguntas"
+msgstr "{{ n }} questions"
+
+msgid "{{ nombre }} ({{ anio }})"
+msgstr "{{ nombre }} ({{ anio }})"
+
+msgid "{{ periodo_num }}° Período Académico"
+msgstr "Academic Period {{ periodo_num }}"
+
+msgid "{{ tiempo }} atrás"
+msgstr "{{ tiempo }} ago"
+
+msgid "{{ total }} pregunta(s) disponibles · Preguntas ICFES oficiales + las de tu institución"
+msgstr "{{ total }} question(s) available · Official ICFES questions + your institution's own"
+
+msgid "¡Advertencia!"
+msgstr "Warning!"
+
+msgid "¡Atención!"
+msgstr "Attention!"
+
+msgid "¡Crucigrama publicado! Ya aparece a los estudiantes del curso."
+msgstr "Crossword published! It now appears to students in the course."
+
+msgid "¡Cuestionario Finalizado!"
+msgstr "Quiz Finished!"
+
+msgid "¡Enviado! Aquí está tu resultado."
+msgstr "Submitted! Here's your result."
+
+msgid "¡Juego publicado! Ya aparece a los estudiantes del curso."
+msgstr "Game published! It now appears to students in the course."
+
+msgid "¡Material subido exitosamente!"
+msgstr "Material uploaded successfully!"
+
+msgid "¡Mazo publicado! Ya aparece a los estudiantes del curso."
+msgstr "Deck published! It now appears to students in the course."
+
+msgid "¡Muy bien! Aquí está tu resultado."
+msgstr "Great! Here's your result."
+
+msgid "¡Preguntas generadas!"
+msgstr "Questions generated!"
+
+msgid "¡Quiz publicado! Ya aparece a los estudiantes del curso."
+msgstr "Quiz published! It now appears to students in the course."
+
+msgid "¡Rompecabezas armado! Aquí está tu resultado."
+msgstr "Puzzle assembled! Here is your result."
+
+msgid "¡Rompecabezas publicado! Ya aparece a los estudiantes del curso."
+msgstr "Puzzle published! It now appears to students in the course."
+
+msgid "¡Tablero publicado! Ya aparece a los estudiantes del curso."
+msgstr "Board published! It now appears to students in the course."
+
+msgid "¡Éxito! Se han importado %(logros_creados_con_e)s descriptores."
+msgstr "Success! %(logros_creados_con_e)s descriptors have been imported."
+
+msgid "«Completar» es ideal para preescolar. «Por eficiencia»: terminar garantiza el 60% y el resto depende de usar pocos intentos."
+msgstr "\"Completion\" is ideal for preschool. \"By efficiency\": finishing guarantees 60% and the rest depends on using fewer attempts."
+
+msgid "¿Cerrar el crucigrama?"
+msgstr "Close the crossword?"
+
+msgid "¿Cerrar el rompecabezas?"
+msgstr "Close the puzzle?"
+
+msgid "¿Cerrar el tablero?"
+msgstr "Close the board?"
+
+msgid "¿Cuántas preguntas de cada tipo?"
+msgstr "How many questions of each type?"
+
+msgid "¿Cómo se califica?"
+msgstr "How is it graded?"
+
+msgid "¿Eliminar esta clase del plan? Esta acción no se puede deshacer."
+msgstr "Delete this class from the plan? This action cannot be undone."
+
+msgid "¿Eliminar esta letra?"
+msgstr "Delete this letter?"
+
+msgid "¿Eliminar esta palabra?"
+msgstr "Delete this word?"
+
+msgid "¿Eliminar esta pregunta?"
+msgstr "Delete this question?"
+
+msgid "¿Eliminar este PIAR?"
+msgstr "Delete this Individual Learning Plan?"
+
+msgid "¿Eliminar este crucigrama?"
+msgstr "Delete this crossword?"
+
+msgid "¿Eliminar este rompecabezas?"
+msgstr "Delete this puzzle?"
+
+msgid "¿Eliminar este simulacro?"
+msgstr "Delete this mock exam?"
+
+msgid "¿Eliminar este tablero?"
+msgstr "Delete this board?"
+
+msgid "¿En qué consiste la actividad?"
+msgstr "What does the activity involve?"
+
+msgid "¿Estás seguro de enviar este plan para revisión?"
+msgstr "Are you sure you want to submit this plan for review?"
+
+msgid "¿Estás seguro de que deseas añadir esta planeación a tus clases diarias?"
+msgstr "Are you sure you want to add this lesson plan to your daily classes?"
+
+msgid "¿Estás seguro de que deseas eliminar el deber / tarea:"
+msgstr "Are you sure you want to delete the assignment:"
+
+msgid "¿Estás seguro de que deseas eliminar el descriptor: \"<strong>{{ descripcion }}</strong>\"?"
+msgstr "Are you sure you want to delete the descriptor: \"<strong>{{ descripcion }}</strong>\"?"
+
+msgid "¿Estás seguro de que deseas eliminar el material \"<strong>{{ nombre }}</strong>\"?"
+msgstr "Are you sure you want to delete the material \"<strong>{{ nombre }}</strong>\"?"
+
+msgid "¿Estás seguro de que deseas eliminar la actividad \"<strong>{{ titulo }}</strong>\"?"
+msgstr "Are you sure you want to delete the activity \"<strong>{{ titulo }}</strong>\"?"
+
+msgid "¿Estás seguro de que deseas eliminar la mención \"<strong>{{ tipo }}</strong>\" otorgada a <strong>{{ estudiante }}</strong>?"
+msgstr "Are you sure you want to delete the recognition \"<strong>{{ tipo }}</strong>\" awarded to <strong>{{ estudiante }}</strong>?"
+
+msgid "¿Qué debe hacer el estudiante?"
+msgstr "What should the student do?"
+
+msgid "¿Qué harán los estudiantes?"
+msgstr "What will the students do?"
+
+msgid "Área"
+msgstr "Subject"
+
+msgid "Ítem de Malla Curricular"
+msgstr "Curriculum Map Item"
+
+msgid "Ítem del plan"
+msgstr "Plan item"
+
+msgid "Ítem eliminado."
+msgstr "Item deleted."
+
+msgid "Órganos y sistemas"
+msgstr "Organs and systems"
+
+msgid "— Automático (desde el estudiante) —"
+msgstr "— Automatic (from student) —"
+
+msgid "— Selecciona un curso —"
+msgstr "— Select a course —"
+
+msgid "— Selecciona un estudiante —"
+msgstr "— Select a student —"
+
+msgid "… y {{ restantes }} más"
+msgstr "… and {{ restantes }} more"
+
+msgid "✅ %(creadas)s pregunta(s) importada(s) correctamente."
+msgstr "✅ %(creadas)s question(s) imported successfully."

@@ -1,8 +1,9 @@
 # Plan: Selector de Idiomas (Plataforma Multi-idioma)
 
-> **Estado: Etapa A (base técnica) YA IMPLEMENTADA.** Etapas B y C (traducir
-> contenido real) siguen PENDIENTES — no se hacen hasta que un colegio
-> bilingüe lo necesite o el propietario lo pida explícitamente.
+> **Estado: Etapa A (base técnica) y Etapa B (piloto — Panel de Docente
+> completo) YA IMPLEMENTADAS e inglés compilado.** Etapa C (expandir a más
+> módulos: coordinador, familiar, estudiante) sigue PENDIENTE — se hace
+> cuando un colegio bilingüe lo necesite o el propietario lo pida.
 
 ## Etapa A — implementada
 
@@ -24,9 +25,39 @@
   el colegio ya usa para marcarse como bilingüe habilita también la interfaz,
   sin pedirle a nadie una configuración nueva.
 
-Nada de esto traduce contenido todavía — un colegio con `es_bilingue=True` y
-`idioma_secundario='en'` ya ve el selector funcionando, pero cambiar a
-"English" hoy no traduce ningún texto (Etapas B/C, más abajo).
+## Etapa B — implementada (piloto: Panel de Docente completo)
+
+Se tradujo al inglés **todo** lo reachable desde "Panel de Docente" en el nav:
+dashboard, planeador IA + planes semanales, deberes, actividades/categorías,
+descriptores, materiales, libro de notas, menciones, observador del
+estudiante, reportes, PIAR, cuestionarios (lista/resolver/editor), simulacros
+Saber, mensajería, mi evaluación, y los seis módulos de "Materiales de
+Apoyo" (crucigramas, memoria, flash cards, quiz de audio, trazado de letras,
+rompecabezas) — creación, edición y gestión completas.
+
+- **~980 cadenas** envueltas en `{% trans %}` / `{% blocktrans %}` (templates)
+  y `gettext`/`gettext_lazy` (`_`/`_lazy`, vistas Python) en 56 templates y
+  14 archivos de vistas.
+- Catálogo de inglés: `locale/en/LC_MESSAGES/django.po` (fuente legible,
+  formato GNU gettext estándar) + `django.mo` (compilado, el que Django
+  realmente carga en producción).
+- El `.mo` de este primer despliegue se compiló con un script Python propio
+  (no había `msgfmt` disponible en el entorno de desarrollo) — en producción,
+  si se vuelve a traducir contenido más adelante, lo normal es regenerar con
+  `django-admin makemessages`/`compilemessages` reales; el `.po` ya sigue el
+  formato estándar así que es 100% compatible.
+
+**Limitación conocida:** algunas etiquetas que vienen de `choices` de modelos
+Django (ej. el nombre de un modo de calificación, el tipo de letra de
+trazado mostrado vía `get_FOO_display()`) siguen en español — están
+definidas como texto plano en los modelos, no en las vistas/templates que se
+tradujeron esta vez. Arreglarlas requiere tocar `models.py` de cada app con
+`gettext_lazy` (no `gettext`, porque son evaluadas una sola vez al cargar el
+módulo) — queda para una siguiente pasada si hace falta.
+
+Lo que **no** se tradujo (fuera de alcance del piloto, por ahora): pantallas
+exclusivas de coordinador/administrador (gestión de grados, materias, cursos,
+supervisión de planes semanales, etc.), ni las pantallas de estudiante/familiar.
 
 ## Objetivo
 
