@@ -23,3 +23,17 @@ class DispositivoTOTPAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     search_fields = ('usuario__username', 'usuario__email', 'usuario__first_name', 'usuario__last_name')
     fields = ('usuario', 'confirmado', 'creado')
     readonly_fields = ('usuario', 'creado')
+    actions = ['deshabilitar_2fa']
+
+    @admin.action(description="Deshabilitar 2FA (podrá configurar uno nuevo con un QR nuevo)")
+    def deshabilitar_2fa(self, request, queryset):
+        usuarios = list(queryset.values_list('usuario__username', flat=True))
+        total = queryset.count()
+        queryset.delete()
+        self.message_user(
+            request,
+            f"2FA deshabilitado para {total} usuario(s): {', '.join(usuarios)}. "
+            "Ya pueden iniciar sesión sin código, y si más adelante quieren "
+            "activarlo de nuevo, la próxima vez que entren a configurar el 2FA "
+            "verán un QR completamente nuevo.",
+        )
