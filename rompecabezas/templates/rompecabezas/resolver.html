@@ -21,6 +21,8 @@
   transition: transform .12s ease;
 }
 .rc-pieza.seleccionada { outline: 3px solid #f59e0b; outline-offset: -3px; transform: scale(0.94); z-index: 2; }
+.rc-pieza.rc-incorrecta { outline: 3px solid #dc2626; outline-offset: -3px; animation: rc-parpadeo .5s ease-in-out 2; }
+@keyframes rc-parpadeo { 0%, 100% { outline-color: #dc2626; } 50% { outline-color: #fecaca; } }
 .rc-resuelto-msg { display:none; }
 </style>
 {% endblock %}
@@ -49,9 +51,15 @@
   <input type="hidden" name="tiempo_segundos" id="rc-tiempo">
 </form>
 
-<div class="d-flex justify-content-center mt-3">
+<div class="d-flex justify-content-center gap-2 mt-3">
   <a href="{% url 'rompecabezas:mis_rompecabezas' %}" class="btn btn-outline-secondary">Salir</a>
+  <button type="button" id="rc-btn-enviar" class="btn fw-700" style="background:#ec4899;color:#fff;">
+    <i class="bi bi-check2-circle me-1"></i> Enviar
+  </button>
 </div>
+<p class="text-muted text-center mt-2" style="font-size:.82rem;" id="rc-ayuda-enviar">
+  <i class="bi bi-info-circle me-1"></i>Si ya armaste la imagen y no pasa nada solo, presiona "Enviar".
+</p>
 
 <script>
 (function(){
@@ -152,6 +160,31 @@
       document.getElementById('rc-resuelto-msg').style.display = 'block';
       setTimeout(enviar, 700);
     }
+  });
+
+  // Botón manual: por si dos piezas casi idénticas (ej. fondo blanco) quedan
+  // intercambiadas sin que se note a simple vista y el armado automático
+  // nunca se dispara. Si de verdad está resuelto, envía; si no, resalta en
+  // rojo las piezas que están fuera de lugar (aunque se vean parecidas) para
+  // que el estudiante sepa exactamente cuáles mover.
+  document.getElementById('rc-btn-enviar').addEventListener('click', function() {
+    if (resuelto) return;
+    if (verificarResuelto()) {
+      resuelto = true;
+      document.getElementById('rc-resuelto-msg').style.display = 'block';
+      enviar();
+      return;
+    }
+    const ayuda = document.getElementById('rc-ayuda-enviar');
+    let faltan = 0;
+    celdas.forEach(function(div, slot) {
+      if (orden[slot] !== slot) {
+        faltan++;
+        div.classList.add('rc-incorrecta');
+        setTimeout(function(){ div.classList.remove('rc-incorrecta'); }, 1800);
+      }
+    });
+    ayuda.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i>Todavía hay ' + faltan + ' pieza(s) fuera de lugar — se resaltaron en rojo (aunque se vean parecidas a simple vista).';
   });
 })();
 </script>
