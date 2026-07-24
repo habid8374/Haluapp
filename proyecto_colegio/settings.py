@@ -163,6 +163,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'proyecto_colegio.middleware.IdiomaPreferidoMiddleware',  # Activa el idioma preferido del usuario
     'auditoria.middleware.AuditoriaMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'proyecto_colegio.middleware.TurnstileMiddleware',  # Verifica "no soy robot" en logins
@@ -352,6 +353,15 @@ LANGUAGE_CODE = 'es-co' # Más específico para español de Colombia si es tu pr
 TIME_ZONE = 'America/Bogota' # Correcto para Barranquilla
 USE_I18N = True # Para habilitar la internacionalización
 USE_TZ = True # Para habilitar el soporte de zona horaria
+
+# Idiomas de INTERFAZ soportados por la plataforma (selector de idiomas para
+# colegios bilingües — ver docs/PLAN_MULTIIDIOMA.md). Distinto de
+# InstitucionEducativa.idioma_secundario, que es el idioma en que se dictan
+# las materias bilingües en la malla curricular, no el idioma de la interfaz.
+LANGUAGES = [
+    ('es', 'Español'),
+    ('en', 'English'),
+]
 
 
 # Static files (CSS, JavaScript, Images)

@@ -1,8 +1,32 @@
 # Plan: Selector de Idiomas (Plataforma Multi-idioma)
 
-> **Estado: PENDIENTE — no implementar hasta que un colegio bilingüe lo necesite
-> o el propietario lo pida explícitamente.** Este documento es solo la hoja de
-> ruta acordada; ningún código de este plan ha sido escrito todavía.
+> **Estado: Etapa A (base técnica) YA IMPLEMENTADA.** Etapas B y C (traducir
+> contenido real) siguen PENDIENTES — no se hacen hasta que un colegio
+> bilingüe lo necesite o el propietario lo pida explícitamente.
+
+## Etapa A — implementada
+
+- `Usuario.idioma_preferido` (choices `es`/`en`, default `es`) — migración
+  `gestion_academica/migrations/0050_usuario_idioma_preferido.py`.
+- `IdiomaPreferidoMiddleware` (`proyecto_colegio/middleware.py`) — activa ese
+  idioma en cada request del usuario autenticado, registrado en
+  `settings.MIDDLEWARE` justo después de `AuthenticationMiddleware`.
+- `settings.LANGUAGES` restringido a `[('es', 'Español'), ('en', 'English')]`.
+- Vista `gestion_academica.views.idioma.cambiar_idioma` — guarda la preferencia
+  en el usuario y delega en la vista estándar `django.views.i18n.set_language`
+  (cookie + redirección). URL: `academico/idioma/` (`gestion_academica:cambiar_idioma`).
+- Selector en el nav superior de `base_academico.html` (dropdown ES/English,
+  ícono de traducción) — **no se agregó ningún campo nuevo en
+  `InstitucionEducativa`**: se reutilizó el campo ya existente `es_bilingue` +
+  `idioma_secundario` (pensado originalmente para la malla curricular
+  bilingüe). El selector solo aparece si `institucion.es_bilingue` es `True`
+  **y** `institucion.idioma_secundario == 'en'` — así el mismo interruptor que
+  el colegio ya usa para marcarse como bilingüe habilita también la interfaz,
+  sin pedirle a nadie una configuración nueva.
+
+Nada de esto traduce contenido todavía — un colegio con `es_bilingue=True` y
+`idioma_secundario='en'` ya ve el selector funcionando, pero cambiar a
+"English" hoy no traduce ningún texto (Etapas B/C, más abajo).
 
 ## Objetivo
 

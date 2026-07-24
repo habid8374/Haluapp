@@ -46,6 +46,16 @@ class Usuario(AbstractUser):
         ('familiar', 'Familiar'),
     )
     rol = models.CharField(max_length=20, choices=ROLES, default='estudiante', verbose_name="Rol de Usuario")
+
+    IDIOMAS_INTERFAZ = (
+        ('es', 'Español'),
+        ('en', 'English'),
+    )
+    idioma_preferido = models.CharField(
+        max_length=5, choices=IDIOMAS_INTERFAZ, default='es',
+        verbose_name="Idioma de la Plataforma",
+        help_text="En qué idioma ve esta persona la interfaz. Solo aplica en instituciones bilingües.",
+    )
     
     # --- CAMBIO: Se quita null=True, blank=True ---
     # Esto fuerza a que cada usuario se asigne a una institución al crearse.

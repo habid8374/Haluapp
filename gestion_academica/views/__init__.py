@@ -29,6 +29,7 @@ from .cortes_preventivos import *
 from .carga_familiares import *
 from .politica_datos import *
 from .eventos import *
+from .idioma import *
 
 # ── Vistas de Logros (Preescolar) ────────────────────────────────────────────
 # Estas vistas existen tanto en _main.py como en una versión legacy en ia.py.

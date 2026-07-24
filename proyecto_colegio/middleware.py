@@ -6,6 +6,7 @@ from django.urls import reverse # Necesario para resolver URLs por nombre
 from django.conf import settings # Para acceder a STATIC_URL, MEDIA_URL
 from django.contrib import messages
 from django.contrib.auth import logout
+from django.utils import translation
 
 
 class TurnstileMiddleware:
@@ -130,6 +131,29 @@ class InstitucionActivaMiddleware:
             return redirect('login')
 
         # Si todo está en orden, la petición continúa normalmente
+        return self.get_response(request)
+
+
+class IdiomaPreferidoMiddleware:
+    """
+    Activa el idioma preferido guardado en el perfil del usuario autenticado
+    (Usuario.idioma_preferido) en cada petición, para que no dependa solo de
+    la cookie de sesión o del idioma del navegador.
+
+    Va después de LocaleMiddleware (que ya activó un idioma por defecto según
+    la cookie/navegador) y después de AuthenticationMiddleware (necesita
+    request.user). Ver docs/PLAN_MULTIIDIOMA.md.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated:
+            idioma = getattr(request.user, 'idioma_preferido', '') or ''
+            if idioma:
+                translation.activate(idioma)
+                request.LANGUAGE_CODE = translation.get_language()
         return self.get_response(request)
 
 

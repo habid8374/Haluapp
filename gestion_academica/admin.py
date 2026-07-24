@@ -48,6 +48,7 @@ class UsuarioAdmin(InstitucionScopedAdminMixin, BaseUserAdmin):
     # Añadimos la nueva sección "Conexiones Externas" a tus fieldsets existentes.
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Roles e Institución', {'fields': ('rol', 'institucion_asociada')}),
+        ('Preferencias', {'fields': ('idioma_preferido',)}),
         ('Conexiones Externas', {'fields': ('google_calendar_id',)}),
         ('Aceptación de Política de Tratamiento de Datos', {
             'fields': (
