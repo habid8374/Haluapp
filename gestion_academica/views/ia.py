@@ -32,6 +32,7 @@ from celery.result import AsyncResult
 import json
 from google import genai
 from google.genai import types
+from google.genai import errors as genai_errors
 import logging
 
 from ..models import (
@@ -508,13 +509,31 @@ Orienta al acudiente sobre cómo usar la plataforma para hacer seguimiento a sus
 
         return JsonResponse({'respuesta': texto_final, 'historial': nuevo_historial})
 
-    except Exception as e:
-        logger.error(f"Error inesperado en asistente_halu_api: {e}", exc_info=True)
-        err_str = str(e)
-        if '429' in err_str or 'quota' in err_str.lower() or 'rate' in err_str.lower():
+    except genai_errors.APIError as e:
+        # Error real devuelto por la API de Gemini (llegó una respuesta HTTP de Google).
+        # .status trae el nombre exacto que usa Google, p. ej. RESOURCE_EXHAUSTED,
+        # PERMISSION_DENIED, UNAUTHENTICATED, INVALID_ARGUMENT.
+        status = (getattr(e, 'status', '') or '').upper()
+        code = getattr(e, 'code', None)
+        logger.error(
+            f"Error de la API de Gemini en asistente_halu_api (code={code}, status={status}): {getattr(e, 'message', e)}",
+            exc_info=True,
+        )
+        if status == 'RESOURCE_EXHAUSTED' or code == 429:
             msg = "El asistente HALU alcanzó el límite de solicitudes de la API de IA por hoy. Por favor intenta más tarde o contacta al administrador para activar un plan de mayor capacidad en Google AI Studio."
+        elif status in ('PERMISSION_DENIED', 'UNAUTHENTICATED') or code in (401, 403):
+            msg = "Error de configuración: la clave de Google/Gemini de esta institución no es válida o no tiene permisos habilitados. Contacta al administrador de la plataforma."
+        elif code is not None and code >= 500:
+            msg = "El servicio de IA de Google está temporalmente no disponible. Por favor intenta de nuevo en unos minutos."
         else:
             msg = "Ocurrió un error al conectar con el asistente de IA. Por favor intenta de nuevo en unos segundos."
+        return JsonResponse({'respuesta': msg}, status=500)
+
+    except Exception as e:
+        # Cualquier otro error (de red, de nuestro propio código, etc.) — nunca la
+        # petición llegó a Google, así que jamás se debe culpar a la cuota/clave.
+        logger.error(f"Error inesperado en asistente_halu_api ({type(e).__name__}): {e}", exc_info=True)
+        msg = "Ocurrió un error al conectar con el asistente de IA. Por favor intenta de nuevo en unos segundos."
         return JsonResponse({'respuesta': msg}, status=500)
 
 
