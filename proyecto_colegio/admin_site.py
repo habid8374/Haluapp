@@ -35,7 +35,7 @@ CATEGORIAS = [
     ("E-learning", ['elearning']),
     ("Comunicación", ['mensajeria']),
     ("Recursos Educativos 3D", ['recursos_educativos']),
-    ("Seguridad y Auditoría", ['auditoria', 'passkeys']),
+    ("Seguridad y Auditoría", ['auditoria', 'passkeys', 'autenticacion_2fa']),
 ]
 
 _get_app_list_original = admin.AdminSite.get_app_list
