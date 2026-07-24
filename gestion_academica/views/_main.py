@@ -4508,7 +4508,7 @@ def reporte_riesgo_academico_view(request):
     Muestra el dashboard de 'HALU Sentinel' con las predicciones de riesgo.
     """
     if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['administrador', 'coordinador'])):
-        messages.error(request, "No tienes permiso para ver este reporte.")
+        messages.error(request, _("No tienes permiso para ver este reporte."))
         return redirect('gestion_academica:dashboard_coordinador')
         
     ultimo_analisis = AnalisisRiesgo.objects.order_by('-fecha_analisis').first()
@@ -4520,7 +4520,7 @@ def reporte_riesgo_academico_view(request):
         ).order_by('estudiante__usuario__last_name', 'materia__nombre_materia')
 
     context = {
-        'titulo_pagina': "HALU Sentinel - Reporte de Riesgo Académico",
+        'titulo_pagina': _("HALU Sentinel - Reporte de Riesgo Académico"),
         'ultimo_analisis': ultimo_analisis,
         'predicciones': predicciones,
     }
@@ -4586,10 +4586,10 @@ def gestionar_observaciones_curso(request, grado_pk, periodo_pk):
     try:
         director = DirectorCurso.objects.get(grado=grado, periodo_academico=periodo)
         if not request.user.is_superuser and director.docente != request.user.docente:
-            messages.error(request, "No tienes permiso para gestionar las observaciones de este curso.")
+            messages.error(request, _("No tienes permiso para gestionar las observaciones de este curso."))
             return redirect('gestion_academica:dashboard_docente')
     except DirectorCurso.DoesNotExist:
-        messages.error(request, "No hay un director de grupo asignado para este curso y periodo.")
+        messages.error(request, _("No hay un director de grupo asignado para este curso y periodo."))
         return redirect('gestion_academica:dashboard_docente')
 
     # Obtenemos los estudiantes del curso
@@ -4599,7 +4599,7 @@ def gestionar_observaciones_curso(request, grado_pk, periodo_pk):
         'grado': grado,
         'periodo': periodo,
         'estudiantes': estudiantes_del_curso,
-        'titulo_pagina': f"Seleccionar Estudiante para Observaciones | {grado.nombre}"
+        'titulo_pagina': _("Seleccionar Estudiante para Observaciones | %(grado_nombre)s") % {'grado_nombre': grado.nombre}
     }
     # Renderizamos la NUEVA plantilla de lista
     return render(request, 'gestion_academica/gestionar_observaciones_lista.html', context)
@@ -4630,7 +4630,7 @@ def gestionar_observacion_estudiante_form(request, estudiante_pk, periodo_pk):
         form = ObservacionBoletinForm(request.POST, instance=observacion_obj)
         if form.is_valid():
             form.save()
-            messages.success(request, f"Observación para {estudiante.usuario.get_full_name()} guardada exitosamente.")
+            messages.success(request, _("Observación para %(estudiante_usuario_g)s guardada exitosamente.") % {'estudiante_usuario_g': estudiante.usuario.get_full_name()})
             # Regresa a la lista de estudiantes del mismo curso
             return redirect('gestion_academica:gestionar_observaciones', grado_pk=estudiante.grado_actual.pk, periodo_pk=periodo.pk)
     else:
@@ -4640,7 +4640,7 @@ def gestionar_observacion_estudiante_form(request, estudiante_pk, periodo_pk):
         'form': form,
         'estudiante': estudiante,
         'periodo': periodo,
-        'titulo_pagina': f"Observación para {estudiante.usuario.get_full_name()}"
+        'titulo_pagina': _("Observación para %(estudiante_usuario_g)s") % {'estudiante_usuario_g': estudiante.usuario.get_full_name()}
     }
     return render(request, 'gestion_academica/gestionar_observacion_formulario.html', context)
 
@@ -4742,7 +4742,7 @@ class CentroGestionDocenteView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = "Centro de Gestión del Docente"
+        context['titulo_pagina'] = _("Centro de Gestión del Docente")
         return context
 
 @login_required
@@ -4753,7 +4753,7 @@ def docente_hub_reportes(request):
     únicamente si el docente es director en el periodo activo.
     """
     if not hasattr(request.user, 'docente'):
-        messages.error(request, "Acceso denegado. Solo para docentes.")
+        messages.error(request, _("Acceso denegado. Solo para docentes."))
         return redirect('gestion_academica:dashboard_docente')
 
     docente = request.user.docente
@@ -4775,7 +4775,7 @@ def docente_hub_reportes(request):
         )
 
     context = {
-        'titulo_pagina': 'Centro de Reportes',
+        'titulo_pagina': _('Centro de Reportes'),
         'es_director_de_grupo': bool(direccion_grupo),
         'direccion_grupo': direccion_grupo,
         'cursos_asignados': cursos_asignados,
@@ -5574,13 +5574,13 @@ def panel_director_grupo(request):
     try:
         docente = request.user.docente
     except (AttributeError, Docente.DoesNotExist):
-        messages.error(request, "Acceso denegado. Solo para docentes.")
+        messages.error(request, _("Acceso denegado. Solo para docentes."))
         return redirect('gestion_academica:inicio_academico')
 
     periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=docente.institucion).first()
     
     if not periodo_activo:
-        messages.error(request, "No hay un periodo académico activo configurado.")
+        messages.error(request, _("No hay un periodo académico activo configurado."))
         return redirect('gestion_academica:dashboard_docente')
 
     # 1. Buscamos TODAS las direcciones de grupo del docente, no solo la primera.
@@ -5590,7 +5590,7 @@ def panel_director_grupo(request):
     ).select_related('grado')
 
     if not direcciones_de_grupo.exists():
-        messages.warning(request, "No eres director de ningún grupo en el periodo académico activo.")
+        messages.warning(request, _("No eres director de ningún grupo en el periodo académico activo."))
         return redirect('gestion_academica:dashboard_docente')
 
     # 2. Preparamos una lista para guardar los datos de CADA panel de grado
@@ -5630,7 +5630,7 @@ def panel_director_grupo(request):
 
     context = {
         'paneles_data': paneles_data,
-        'titulo_pagina': "Panel del Director de Grupo"
+        'titulo_pagina': _("Panel del Director de Grupo")
     }
     return render(request, 'gestion_academica/panel_director_grupo.html', context)
 
@@ -7082,7 +7082,7 @@ def gestionar_disponibilidad_view(request):
     try:
         docente = request.user.docente
     except (AttributeError, Docente.DoesNotExist):
-        messages.error(request, "Acceso denegado. Esta sección es solo para docentes.")
+        messages.error(request, _("Acceso denegado. Esta sección es solo para docentes."))
         return redirect('gestion_academica:inicio_academico')
 
     if request.method == 'POST':
@@ -7092,10 +7092,10 @@ def gestionar_disponibilidad_view(request):
             disponibilidad.docente = docente
             disponibilidad.institucion = docente.institucion
             disponibilidad.save()
-            messages.success(request, "Nuevo bloque de disponibilidad añadido correctamente.")
+            messages.success(request, _("Nuevo bloque de disponibilidad añadido correctamente."))
             return redirect('gestion_academica:gestionar_disponibilidad')
         else:
-            messages.error(request, "Hubo un error en el formulario. Por favor, revisa los datos.")
+            messages.error(request, _("Hubo un error en el formulario. Por favor, revisa los datos."))
     else:
         form = DisponibilidadDocenteForm()
 
@@ -7103,7 +7103,7 @@ def gestionar_disponibilidad_view(request):
     disponibilidades_actuales = DisponibilidadDocente.objects.filter(docente=docente).order_by('dia_semana', 'hora_inicio')
     
     context = {
-        'titulo_pagina': "Gestionar mi Disponibilidad para Reuniones",
+        'titulo_pagina': _("Gestionar mi Disponibilidad para Reuniones"),
         'form': form,
         'disponibilidades': disponibilidades_actuales,
     }

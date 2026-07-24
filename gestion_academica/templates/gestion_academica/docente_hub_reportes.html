@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina|default:"Centro de Reportes" }}{% endblock %}
 {% block extrastyles %}
 {{ block.super }}
@@ -130,38 +131,38 @@
 {% block contenido %}
 <div class="container-fluid mt-3">
   <div class="rh-hero">
-    <div class="rh-badge"><i class="bi bi-bar-chart-line-fill"></i> Centro de Reportes</div>
-    <div class="rh-title">Informes y Análisis Docente</div>
-    <div class="rh-sub">Toma decisiones basadas en datos: rendimiento, asistencia, convivencia y más.</div>
+    <div class="rh-badge"><i class="bi bi-bar-chart-line-fill"></i> {% trans "Centro de Reportes" %}</div>
+    <div class="rh-title">{% trans "Informes y Análisis Docente" %}</div>
+    <div class="rh-sub">{% trans "Toma decisiones basadas en datos: rendimiento, asistencia, convivencia y más." %}</div>
     <a href="{% url 'gestion_academica:centro_gestion_docente' %}" class="rh-back">
-      <i class="bi bi-arrow-left"></i> Centro de Gestión
+      <i class="bi bi-arrow-left"></i> {% trans "Centro de Gestión" %}
     </a>
   </div>
   {% if es_director_de_grupo %}
   <div class="rh-director-banner">
     <i class="bi bi-person-badge-fill"></i>
     <div>
-      <strong>Eres Director de Grupo{% if direccion_grupo %} — {{ direccion_grupo.grado.nombre }}{% endif %}.</strong>
-      Tienes acceso a reportes adicionales de seguimiento integral del grupo.
+      <strong>{% if direccion_grupo %}{% blocktrans with grado=direccion_grupo.grado.nombre %}Eres Director de Grupo — {{ grado }}.{% endblocktrans %}{% else %}{% trans "Eres Director de Grupo." %}{% endif %}</strong>
+      {% trans "Tienes acceso a reportes adicionales de seguimiento integral del grupo." %}
     </div>
   </div>
   {% endif %}
   <div class="rh-sec">
     <div class="rhs-icon" style="background:#eaf2ff;color:#1d4ed8;"><i class="bi bi-pencil-square"></i></div>
-    <h2>Reportes por Materia</h2>
+    <h2>{% trans "Reportes por Materia" %}</h2>
   </div>
   <div class="row g-3 mb-2">
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-amber">
         <div class="rh-card-top">
-          <span class="rhc-tag"><i class="bi bi-calculator-fill"></i> Notas</span>
+          <span class="rhc-tag"><i class="bi bi-calculator-fill"></i> {% trans "Notas" %}</span>
           <div class="rhc-icon"><i class="bi bi-graph-up-arrow"></i></div>
-          <div class="rhc-title">Nota Mínima para Aprobar</div>
-          <div class="rhc-desc">Calcula la nota que necesita cada estudiante en las actividades restantes para aprobar el periodo. Anticipa reprobaciones.</div>
+          <div class="rhc-title">{% trans "Nota Mínima para Aprobar" %}</div>
+          <div class="rhc-desc">{% trans "Calcula la nota que necesita cada estudiante en las actividades restantes para aprobar el periodo. Anticipa reprobaciones." %}</div>
         </div>
         <div class="rh-card-foot">
           <a href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}" class="rhc-link">
-            Generar Reporte <i class="bi bi-arrow-right-short"></i>
+            {% trans "Generar Reporte" %} <i class="bi bi-arrow-right-short"></i>
           </a>
         </div>
       </div>
@@ -169,14 +170,14 @@
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-red">
         <div class="rh-card-top">
-          <span class="rhc-tag"><i class="bi bi-exclamation-triangle-fill"></i> Riesgo</span>
+          <span class="rhc-tag"><i class="bi bi-exclamation-triangle-fill"></i> {% trans "Riesgo" %}</span>
           <div class="rhc-icon"><i class="bi bi-person-dash-fill"></i></div>
-          <div class="rhc-title">Alertas de Riesgo Académico</div>
-          <div class="rhc-desc">Identifica estudiantes en riesgo de perder tus materias. HALU Sentinel genera alertas automáticas.</div>
+          <div class="rhc-title">{% trans "Alertas de Riesgo Académico" %}</div>
+          <div class="rhc-desc">{% trans "Identifica estudiantes en riesgo de perder tus materias. HALU Sentinel genera alertas automáticas." %}</div>
         </div>
         <div class="rh-card-foot">
           <a href="{% url 'gestion_academica:reporte_riesgo_academico' %}" class="rhc-link">
-            Ver Alertas <i class="bi bi-arrow-right-short"></i>
+            {% trans "Ver Alertas" %} <i class="bi bi-arrow-right-short"></i>
           </a>
         </div>
       </div>
@@ -184,14 +185,14 @@
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-blue">
         <div class="rh-card-top">
-          <span class="rhc-tag"><i class="bi bi-bar-chart-fill"></i> Rendimiento</span>
+          <span class="rhc-tag"><i class="bi bi-bar-chart-fill"></i> {% trans "Rendimiento" %}</span>
           <div class="rhc-icon"><i class="bi bi-table"></i></div>
-          <div class="rhc-title">Consolidado por Materia</div>
-          <div class="rhc-desc">Vista consolidada de promedios y resultados por materia, actividad y periodo académico.</div>
+          <div class="rhc-title">{% trans "Consolidado por Materia" %}</div>
+          <div class="rhc-desc">{% trans "Vista consolidada de promedios y resultados por materia, actividad y periodo académico." %}</div>
         </div>
         <div class="rh-card-foot">
           <a href="{% url 'gestion_academica:reporte_consolidado_materia' %}" class="rhc-link">
-            Ver Consolidado <i class="bi bi-arrow-right-short"></i>
+            {% trans "Ver Consolidado" %} <i class="bi bi-arrow-right-short"></i>
           </a>
         </div>
       </div>
@@ -199,14 +200,14 @@
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-teal">
         <div class="rh-card-top">
-          <span class="rhc-tag"><i class="bi bi-clock-fill"></i> Asistencia</span>
+          <span class="rhc-tag"><i class="bi bi-clock-fill"></i> {% trans "Asistencia" %}</span>
           <div class="rhc-icon"><i class="bi bi-calendar-check-fill"></i></div>
-          <div class="rhc-title">Asistencia por Materia</div>
-          <div class="rhc-desc">Analiza los patrones de asistencia e inasistencia en tus cursos para detectar ausentismo crítico.</div>
+          <div class="rhc-title">{% trans "Asistencia por Materia" %}</div>
+          <div class="rhc-desc">{% trans "Analiza los patrones de asistencia e inasistencia en tus cursos para detectar ausentismo crítico." %}</div>
         </div>
         <div class="rh-card-foot">
           <a href="{% url 'gestion_academica:reporte_asistencia_materia' %}" class="rhc-link">
-            Ver Asistencia <i class="bi bi-arrow-right-short"></i>
+            {% trans "Ver Asistencia" %} <i class="bi bi-arrow-right-short"></i>
           </a>
         </div>
       </div>
@@ -214,14 +215,14 @@
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-purple">
         <div class="rh-card-top">
-          <span class="rhc-tag"><i class="bi bi-bar-chart-steps"></i> Promedio</span>
+          <span class="rhc-tag"><i class="bi bi-bar-chart-steps"></i> {% trans "Promedio" %}</span>
           <div class="rhc-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
-          <div class="rhc-title">Promedio por Materia</div>
-          <div class="rhc-desc">Compara los promedios de tus materias entre periodos y detecta tendencias de rendimiento.</div>
+          <div class="rhc-title">{% trans "Promedio por Materia" %}</div>
+          <div class="rhc-desc">{% trans "Compara los promedios de tus materias entre periodos y detecta tendencias de rendimiento." %}</div>
         </div>
         <div class="rh-card-foot">
           <a href="{% url 'gestion_academica:reporte_promedio_por_materia' %}" class="rhc-link">
-            Ver Promedios <i class="bi bi-arrow-right-short"></i>
+            {% trans "Ver Promedios" %} <i class="bi bi-arrow-right-short"></i>
           </a>
         </div>
       </div>
@@ -229,14 +230,14 @@
     <div class="col-sm-6 col-lg-4">
       <div class="rh-card rhc-green">
         <div class="rh-card-top">
-          <span class="rhc-tag"><i class="bi bi-shield-fill"></i> Convivencia</span>
+          <span class="rhc-tag"><i class="bi bi-shield-fill"></i> {% trans "Convivencia" %}</span>
           <div class="rhc-icon"><i class="bi bi-journal-medical"></i></div>
-          <div class="rhc-title">Reporte de Incidencias</div>
-          <div class="rhc-desc">Visualiza el historial de incidencias de convivencia registradas en el observador de tus estudiantes.</div>
+          <div class="rhc-title">{% trans "Reporte de Incidencias" %}</div>
+          <div class="rhc-desc">{% trans "Visualiza el historial de incidencias de convivencia registradas en el observador de tus estudiantes." %}</div>
         </div>
         <div class="rh-card-foot">
           <a href="{% url 'gestion_academica:reporte_incidencias' %}" class="rhc-link">
-            Ver Incidencias <i class="bi bi-arrow-right-short"></i>
+            {% trans "Ver Incidencias" %} <i class="bi bi-arrow-right-short"></i>
           </a>
         </div>
       </div>
@@ -246,20 +247,20 @@
   <div class="rh-director-section">
     <div class="rh-sec">
       <div class="rhs-icon"><i class="bi bi-person-badge-fill"></i></div>
-      <h2>Director de Grupo{% if direccion_grupo %} — {{ direccion_grupo.grado.nombre }}{% endif %}</h2>
+      <h2>{% if direccion_grupo %}{% blocktrans with grado=direccion_grupo.grado.nombre %}Director de Grupo — {{ grado }}{% endblocktrans %}{% else %}{% trans "Director de Grupo" %}{% endif %}</h2>
     </div>
     <div class="row g-3 mb-4">
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-amber">
           <div class="rh-card-top">
-            <span class="rhc-tag" style="background:#fef9c3;color:#92400e;"><i class="bi bi-person-video3"></i> Director</span>
+            <span class="rhc-tag" style="background:#fef9c3;color:#92400e;"><i class="bi bi-person-video3"></i> {% trans "Director" %}</span>
             <div class="rhc-icon"><i class="bi bi-people-fill"></i></div>
-            <div class="rhc-title">Panel del Director de Grupo</div>
-            <div class="rhc-desc">Vista integral del grupo: asistencia, notas, convivencia y alertas de todos los estudiantes a tu cargo.</div>
+            <div class="rhc-title">{% trans "Panel del Director de Grupo" %}</div>
+            <div class="rhc-desc">{% trans "Vista integral del grupo: asistencia, notas, convivencia y alertas de todos los estudiantes a tu cargo." %}</div>
           </div>
           <div class="rh-card-foot">
             <a href="{% url 'gestion_academica:panel_director_grupo' %}" class="rhc-link">
-              Ir al Panel del Grupo <i class="bi bi-arrow-right-short"></i>
+              {% trans "Ir al Panel del Grupo" %} <i class="bi bi-arrow-right-short"></i>
             </a>
           </div>
         </div>
@@ -267,14 +268,14 @@
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-blue">
           <div class="rh-card-top">
-            <span class="rhc-tag"><i class="bi bi-bar-chart-fill"></i> Grado</span>
+            <span class="rhc-tag"><i class="bi bi-bar-chart-fill"></i> {% trans "Grado" %}</span>
             <div class="rhc-icon"><i class="bi bi-graph-up"></i></div>
-            <div class="rhc-title">Rendimiento por Grado</div>
-            <div class="rhc-desc">Análisis comparativo del rendimiento académico de todos los estudiantes del grupo en cada materia.</div>
+            <div class="rhc-title">{% trans "Rendimiento por Grado" %}</div>
+            <div class="rhc-desc">{% trans "Análisis comparativo del rendimiento académico de todos los estudiantes del grupo en cada materia." %}</div>
           </div>
           <div class="rh-card-foot">
             <a href="{% url 'gestion_academica:reporte_rendimiento_por_grado' %}" class="rhc-link">
-              Ver Rendimiento <i class="bi bi-arrow-right-short"></i>
+              {% trans "Ver Rendimiento" %} <i class="bi bi-arrow-right-short"></i>
             </a>
           </div>
         </div>
@@ -282,14 +283,14 @@
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-green">
           <div class="rh-card-top">
-            <span class="rhc-tag"><i class="bi bi-trophy-fill"></i> Honor</span>
+            <span class="rhc-tag"><i class="bi bi-trophy-fill"></i> {% trans "Honor" %}</span>
             <div class="rhc-icon"><i class="bi bi-trophy-fill"></i></div>
-            <div class="rhc-title">Cuadro de Honor del Grado</div>
-            <div class="rhc-desc">Identifica a los mejores estudiantes del grupo para reconocerlos en el boletín y los actos institucionales.</div>
+            <div class="rhc-title">{% trans "Cuadro de Honor del Grado" %}</div>
+            <div class="rhc-desc">{% trans "Identifica a los mejores estudiantes del grupo para reconocerlos en el boletín y los actos institucionales." %}</div>
           </div>
           <div class="rh-card-foot">
             <a href="{% url 'gestion_academica:cuadro_honor_grado' %}" class="rhc-link">
-              Ver Cuadro de Honor <i class="bi bi-arrow-right-short"></i>
+              {% trans "Ver Cuadro de Honor" %} <i class="bi bi-arrow-right-short"></i>
             </a>
           </div>
         </div>
@@ -297,14 +298,14 @@
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-red">
           <div class="rh-card-top">
-            <span class="rhc-tag"><i class="bi bi-exclamation-octagon-fill"></i> Riesgo Global</span>
+            <span class="rhc-tag"><i class="bi bi-exclamation-octagon-fill"></i> {% trans "Riesgo Global" %}</span>
             <div class="rhc-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
-            <div class="rhc-title">Riesgo Global del Grupo</div>
-            <div class="rhc-desc">Resumen de estudiantes en riesgo académico en todas las materias del grupo para intervención integral.</div>
+            <div class="rhc-title">{% trans "Riesgo Global del Grupo" %}</div>
+            <div class="rhc-desc">{% trans "Resumen de estudiantes en riesgo académico en todas las materias del grupo para intervención integral." %}</div>
           </div>
           <div class="rh-card-foot">
             <a href="{% url 'gestion_academica:reporte_riesgo_global' %}" class="rhc-link">
-              Ver Riesgo Global <i class="bi bi-arrow-right-short"></i>
+              {% trans "Ver Riesgo Global" %} <i class="bi bi-arrow-right-short"></i>
             </a>
           </div>
         </div>
@@ -312,14 +313,14 @@
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-teal">
           <div class="rh-card-top">
-            <span class="rhc-tag"><i class="bi bi-clock-history"></i> Asistencia</span>
+            <span class="rhc-tag"><i class="bi bi-clock-history"></i> {% trans "Asistencia" %}</span>
             <div class="rhc-icon"><i class="bi bi-calendar-week-fill"></i></div>
-            <div class="rhc-title">Estadística de Asistencia Diaria</div>
-            <div class="rhc-desc">Analiza los patrones de asistencia diaria de todo el grupo para detectar ausentismo sistemático.</div>
+            <div class="rhc-title">{% trans "Estadística de Asistencia Diaria" %}</div>
+            <div class="rhc-desc">{% trans "Analiza los patrones de asistencia diaria de todo el grupo para detectar ausentismo sistemático." %}</div>
           </div>
           <div class="rh-card-foot">
             <a href="{% url 'gestion_academica:reporte_asistencia_diaria' %}" class="rhc-link">
-              Ver Asistencia Diaria <i class="bi bi-arrow-right-short"></i>
+              {% trans "Ver Asistencia Diaria" %} <i class="bi bi-arrow-right-short"></i>
             </a>
           </div>
         </div>
@@ -327,14 +328,14 @@
       <div class="col-sm-6 col-lg-4">
         <div class="rh-card rhc-slate">
           <div class="rh-card-top">
-            <span class="rhc-tag"><i class="bi bi-shield-exclamation"></i> Convivencia</span>
+            <span class="rhc-tag"><i class="bi bi-shield-exclamation"></i> {% trans "Convivencia" %}</span>
             <div class="rhc-icon"><i class="bi bi-people"></i></div>
-            <div class="rhc-title">Consolidado de Convivencia</div>
-            <div class="rhc-desc">Resumen de anotaciones del observador por tipo en todo el grupo: felicitaciones, llamados de atención e incidencias.</div>
+            <div class="rhc-title">{% trans "Consolidado de Convivencia" %}</div>
+            <div class="rhc-desc">{% trans "Resumen de anotaciones del observador por tipo en todo el grupo: felicitaciones, llamados de atención e incidencias." %}</div>
           </div>
           <div class="rh-card-foot">
             <a href="{% url 'gestion_academica:reporte_consolidado_convivencia' %}" class="rhc-link">
-              Ver Convivencia <i class="bi bi-arrow-right-short"></i>
+              {% trans "Ver Convivencia" %} <i class="bi bi-arrow-right-short"></i>
             </a>
           </div>
         </div>
@@ -344,12 +345,12 @@
   {% else %}
   <div class="rh-sec" style="margin-top:1.6rem;">
     <div class="rhs-icon" style="background:#f8fafc;color:#94a3b8;"><i class="bi bi-lock-fill"></i></div>
-    <h2 style="color:#94a3b8;">Reportes de Director de Grupo</h2>
+    <h2 style="color:#94a3b8;">{% trans "Reportes de Director de Grupo" %}</h2>
   </div>
   <div class="alert" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:.85rem;color:#64748b;padding:1.2rem 1.4rem;margin-bottom:2rem;">
     <i class="bi bi-info-circle-fill me-2" style="color:#94a3b8;"></i>
-    Estos reportes están disponibles únicamente para docentes asignados como <strong>Director de Grupo</strong>
-    en el periodo académico activo. Contacta a coordinación si crees que esto es un error.
+    {% blocktrans %}Estos reportes están disponibles únicamente para docentes asignados como <strong>Director de Grupo</strong>
+    en el periodo académico activo. Contacta a coordinación si crees que esto es un error.{% endblocktrans %}
   </div>
   {% endif %}
 </div>

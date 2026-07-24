@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
@@ -11,41 +12,41 @@
         <div class="card-body">
             <div class="mb-3">
                 <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "Volver al Dashboard" %}
                 </a>
             </div>
             <form method="get" class="mb-4 p-3 border rounded bg-light">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-5">
-                        <label for="grado" class="form-label fw-bold">Filtrar por Grado (Opcional):</label>
+                        <label for="grado" class="form-label fw-bold">{% trans "Filtrar por Grado (Opcional):" %}</label>
                         <select name="grado" id="grado" class="form-select">
-                            <option value="">--- Todos los Grados ---</option>
+                            <option value="">--- {% trans "Todos los Grados" %} ---</option>
                             {% for g in grados %}<option value="{{ g.id }}" {% if g.id == grado_seleccionado.id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
                         </select>
                     </div>
                     <div class="col-md-5">
-                        <label for="periodo" class="form-label fw-bold">Filtrar por Periodo (Opcional):</label>
+                        <label for="periodo" class="form-label fw-bold">{% trans "Filtrar por Periodo (Opcional):" %}</label>
                         <select name="periodo" id="periodo" class="form-select">
-                            <option value="">--- Todos los Periodos ---</option>
+                            <option value="">--- {% trans "Todos los Periodos" %} ---</option>
                             {% for p in periodos %}<option value="{{ p.id }}" {% if p.id == periodo_seleccionado.id %}selected{% endif %}>{{ p.nombre }} ({{ p.año_escolar }})</option>{% endfor %}
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filtrar</button>
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> {% trans "Filtrar" %}</button>
                     </div>
                 </div>
             </form>
             <div class="row">
                 <div class="col-lg-8">
-                    <h6>Estudiantes con Casos de Convivencia Registrados</h6>
+                    <h6>{% trans "Estudiantes con Casos de Convivencia Registrados" %}</h6>
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Estudiante</th>
-                                    <th>Grado</th>
-                                    <th class="text-center">Total de Casos</th>
-                                    <th>Detalle de Casos</th>
+                                    <th>{% trans "Estudiante" %}</th>
+                                    <th>{% trans "Grado" %}</th>
+                                    <th class="text-center">{% trans "Total de Casos" %}</th>
+                                    <th>{% trans "Detalle de Casos" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -65,14 +66,14 @@
                                     </td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="4" class="text-center">No se encontraron casos de convivencia para los filtros seleccionados.</td></tr>
+                                <tr><td colspan="4" class="text-center">{% trans "No se encontraron casos de convivencia para los filtros seleccionados." %}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
                 <div class="col-lg-4">
-                    <h6>Gráfico de Tipos de Situación</h6>
+                    <h6>{% trans "Gráfico de Tipos de Situación" %}</h6>
                     <canvas id="convivenciaChart"></canvas>
                 </div>
             </div>

@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse
 from django.db.models import Avg, Sum, Count, Q
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from decimal import Decimal
 from datetime import datetime
 import json
@@ -626,7 +627,7 @@ def reporte_rendimiento_por_grado(request):
         reporte_data['chart_data'] = json.dumps(chart_data)
 
     context = {
-        'titulo_pagina': "Rendimiento General por Grado",
+        'titulo_pagina': _("Rendimiento General por Grado"),
         'grados': grados, 'periodos': periodos,
         'grado_seleccionado': grado_seleccionado, 'periodo_seleccionado': periodo_seleccionado,
         'reporte_data': reporte_data,
@@ -901,7 +902,7 @@ def reporte_consolidado_materia(request):
                 }
             
     context = {
-        'titulo_pagina': "Consolidado de Notas por Materia",
+        'titulo_pagina': _("Consolidado de Notas por Materia"),
         'grados': grados, 'periodos': periodos, 'materias_del_grado': materias_del_grado,
         'grado_seleccionado': grado_seleccionado, 'periodo_seleccionado': periodo_seleccionado,
         'materia_seleccionada': materia_seleccionada, 'reporte_data': reporte_data,
@@ -1163,7 +1164,7 @@ def reporte_promedio_por_materia(request):
         }
 
     context = {
-        'titulo_pagina': "Rendimiento Comparativo por Materia",
+        'titulo_pagina': _("Rendimiento Comparativo por Materia"),
         'materias': materias,
         'periodos': periodos,
         'materia_seleccionada': materia_seleccionada,
@@ -1224,7 +1225,7 @@ def cuadro_honor_grado(request):
             reporte_no_aplica = True
 
     context = {
-        'titulo_pagina': "Cuadro de Honor por Grado",
+        'titulo_pagina': _("Cuadro de Honor por Grado"),
         'grados': grados,
         'periodos': periodos,
         'grado_seleccionado': grado_seleccionado,
@@ -1291,7 +1292,7 @@ def reporte_estadistica_asistencia_diaria(request):
         }
 
     context = {
-        'titulo_pagina': "Estadística de Asistencia Diaria",
+        'titulo_pagina': _("Estadística de Asistencia Diaria"),
         'fecha_seleccionada': fecha_seleccionada,
         'reporte_data': reporte_data,
     }
@@ -1361,7 +1362,7 @@ def reporte_asistencia_materia(request):
         }
 
     context = {
-        'titulo_pagina': "Reporte de Asistencia por Materia",
+        'titulo_pagina': _("Reporte de Asistencia por Materia"),
         'grados': grados, 'periodos': periodos, 'materias_del_grado': materias_del_grado,
         'curso_seleccionado': curso_seleccionado,
         'reporte_data': reporte_data
@@ -1409,7 +1410,7 @@ def reporte_incidencias_estudiante(request):
         }
 
     context = {
-        'titulo_pagina': "Reporte de Incidencias y Observador",
+        'titulo_pagina': _("Reporte de Incidencias y Observador"),
         'grados': grados,
         'estudiantes_del_grado': estudiantes_del_grado,
         'grado_seleccionado_id': grado_id,
@@ -1472,7 +1473,7 @@ def reporte_consolidado_convivencia(request):
     }
 
     context = {
-        'titulo_pagina': "Consolidado de Convivencia Escolar (Halu Sentinel)",
+        'titulo_pagina': _("Consolidado de Convivencia Escolar (Halu Sentinel)"),
         'grados': grados,
         'periodos': periodos,
         'grado_seleccionado': grado_seleccionado,

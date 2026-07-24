@@ -1113,11 +1113,11 @@
       </li>
     {% endif %}
     <hr class="menu-divider">
-    <h5 class="menu-section-title">Cuenta</h5>
+    <h5 class="menu-section-title">{% trans "Cuenta" %}</h5>
     <li class="nav-item item-color-2">
       <a class="nav-link {% if request.resolver_match.url_name == 'ver_mi_perfil' %}active{% endif %}"
          href="{% url 'gestion_academica:ver_mi_perfil' %}">
-        <i class="bi bi-person-lines-fill"></i> Mi Perfil
+        <i class="bi bi-person-lines-fill"></i> {% trans "Mi Perfil" %}
       </a>
     </li>
     <li class="nav-item item-color-3">
@@ -1126,15 +1126,15 @@
       </form>
       <a class="nav-link" href="#"
          onclick="event.preventDefault();document.getElementById('logout-form-menu').submit();">
-        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+        <i class="bi bi-box-arrow-right"></i> {% trans "Cerrar Sesión" %}
       </a>
     </li>
   </ul>
 {% endblock floating_menu_content %}
 {% block contenido %}
   <div class="container-fluid mt-4">
-    <h1 class="h4">Bienvenido/a al Módulo Académico</h1>
-    <p class="text-muted">Selecciona una opción del menú lateral para comenzar.</p>
+    <h1 class="h4">{% trans "Bienvenido/a al Módulo Académico" %}</h1>
+    <p class="text-muted">{% trans "Selecciona una opción del menú lateral para comenzar." %}</p>
   </div>
 {% endblock %}
 {% block extra_js %}
@@ -1489,13 +1489,13 @@
              + '<p class="halu-banner-texto-resumen">' + _esc(b.resumen) + '</p>'
              + '<p class="halu-banner-texto-completo">' + _esc(b.completo) + '</p>'
              + (hayMas
-                 ? '<button class="halu-banner-expandir" aria-label="Expandir noticia">'
-                   + '<i class="bi bi-chevron-down"></i><span>Ver más</span>'
+                 ? '<button class="halu-banner-expandir" aria-label="{% trans "Expandir noticia" %}">'
+                   + '<i class="bi bi-chevron-down"></i><span>{% trans "Ver más" %}</span>'
                    + '</button>'
                  : '')
              + '</div>';
     var img = b.imagen ? '<img src="' + _esc(b.imagen) + '" class="halu-banner-img" alt="">' : '';
-    var close = '<button class="halu-banner-close" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>';
+    var close = '<button class="halu-banner-close" aria-label="{% trans "Cerrar" %}"><i class="bi bi-x-lg"></i></button>';
     div.innerHTML = iconDiv + body + img + close;
     div.querySelector('.halu-banner-close').addEventListener('click', function () {
       cerrarBanner(div, b);  // pasa el objeto completo para construir la clave correcta
@@ -1507,7 +1507,7 @@
       btnExp.addEventListener('click', function () {
         var expandido = div.classList.toggle('expandido');
         icnExp.className = expandido ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
-        txtExp.textContent = expandido ? 'Ver menos' : 'Ver más';
+        txtExp.textContent = expandido ? '{% trans "Ver menos" %}' : '{% trans "Ver más" %}';
       });
     }
     return div;

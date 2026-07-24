@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block contenido %}
 <div class="container mt-4">
     <div class="card shadow-sm">
@@ -8,22 +9,22 @@
         <div class="card-body">
             <div class="mb-3">
                 <a href="{% url 'gestion_academica:reportes_dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "Volver al Dashboard" %}
                 </a>
             </div>
             <form method="get" class="mb-4 p-3 border rounded bg-light">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-6">
-                        <label for="grado" class="form-label fw-bold">1. Grado:</label>
+                        <label for="grado" class="form-label fw-bold">{% trans "1. Grado:" %}</label>
                         <select name="grado" id="grado" class="form-select" onchange="this.form.submit();">
-                            <option value="">--- Seleccione un Grado ---</option>
+                            <option value="">--- {% trans "Seleccione un Grado" %} ---</option>
                             {% for g in grados %}<option value="{{ g.id }}" {% if g.id|stringformat:"s" == grado_seleccionado_id %}selected{% endif %}>{{ g.nombre }}</option>{% endfor %}
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label for="estudiante" class="form-label fw-bold">2. Estudiante:</label>
+                        <label for="estudiante" class="form-label fw-bold">{% trans "2. Estudiante:" %}</label>
                         <select name="estudiante" id="estudiante" class="form-select" onchange="this.form.submit();" {% if not estudiantes_del_grado %}disabled{% endif %}>
-                            <option value="">--- Seleccione un Estudiante ---</option>
+                            <option value="">--- {% trans "Seleccione un Estudiante" %} ---</option>
                             {% for e in estudiantes_del_grado %}<option value="{{ e.pk }}" {% if e.pk|stringformat:"s" == estudiante_seleccionado_id %}selected{% endif %}>{{ e.usuario.get_full_name|default:e.usuario.username }}</option>{% endfor %}
                         </select>
                     </div>
@@ -31,11 +32,11 @@
             </form>
             {% if estudiante_seleccionado %}
                 <h5 class="border-bottom pb-2 mb-3">
-                    Historial de: <strong class="text-primary">{{ estudiante_seleccionado.usuario.get_full_name }}</strong>
+                    {% blocktrans with nombre=estudiante_seleccionado.usuario.get_full_name %}Historial de: <strong class="text-primary">{{ nombre }}</strong>{% endblocktrans %}
                 </h5>
                 <div class="row">
                     <div class="col-lg-8">
-                        <h6>Historial de Anotaciones</h6>
+                        <h6>{% trans "Historial de Anotaciones" %}</h6>
                         {% for anotacion in reporte_data.anotaciones %}
                             <div class="card mb-3">
                                 <div class="card-header d-flex justify-content-between">
@@ -46,15 +47,15 @@
                                     <p class="card-text">{{ anotacion.descripcion|linebreaksbr }}</p>
                                 </div>
                                 <div class="card-footer text-muted">
-                                    Registrado por: {{ anotacion.registrado_por.get_full_name|default:"Sistema" }}
+                                    {% trans "Sistema" as sistema %}{% blocktrans with registrador=anotacion.registrado_por.get_full_name|default:sistema %}Registrado por: {{ registrador }}{% endblocktrans %}
                                 </div>
                             </div>
                         {% empty %}
-                            <div class="alert alert-success">Este estudiante no tiene anotaciones en el observador.</div>
+                            <div class="alert alert-success">{% trans "Este estudiante no tiene anotaciones en el observador." %}</div>
                         {% endfor %}
                     </div>
                     <div class="col-lg-4">
-                        <h6>Gráfico Resumen</h6>
+                        <h6>{% trans "Gráfico Resumen" %}</h6>
                         <canvas id="incidenciasChart"></canvas>
                     </div>
                 </div>

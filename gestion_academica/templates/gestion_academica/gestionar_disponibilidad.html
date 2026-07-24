@@ -1,27 +1,28 @@
 {% extends "base_academico.html" %}
 {% load crispy_forms_tags %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h2 mb-0"><i class="bi bi-calendar-plus-fill me-2"></i> {{ titulo_pagina }}</h1>
         <a href="{% url 'gestion_academica:centro_gestion_docente' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Volver al Centro de Gestión
+            <i class="bi bi-arrow-left"></i> {% trans "Volver al Centro de Gestión" %}
         </a>
     </div>
-    <p class="lead text-muted">Define los días y horas de la semana en los que estarás disponible para atender a los acudientes. Estos horarios serán visibles para que ellos puedan solicitar una cita.</p>
+    <p class="lead text-muted">{% trans "Define los días y horas de la semana en los que estarás disponible para atender a los acudientes. Estos horarios serán visibles para que ellos puedan solicitar una cita." %}</p>
     <div class="row g-4">
         <div class="col-md-4">
             <div class="card shadow-sm">
                 <div class="card-header">
-                    Añadir Nuevo Bloque Horario
+                    {% trans "Añadir Nuevo Bloque Horario" %}
                 </div>
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         {{ form|crispy }}
                         <div class="d-grid mt-3">
-                            <button type="submit" class="btn btn-primary">Añadir Disponibilidad</button>
+                            <button type="submit" class="btn btn-primary">{% trans "Añadir Disponibilidad" %}</button>
                         </div>
                     </form>
                 </div>
@@ -30,15 +31,15 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header">
-                    Mis Horarios de Atención Actuales
+                    {% trans "Mis Horarios de Atención Actuales" %}
                 </div>
                 <div class="table-responsive">
                     <table class="table table-striped table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Día</th>
-                                <th>Desde</th>
-                                <th>Hasta</th>
+                                <th>{% trans "Día" %}</th>
+                                <th>{% trans "Desde" %}</th>
+                                <th>{% trans "Hasta" %}</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -50,7 +51,7 @@
                                 <td>{{ disp.hora_fin|time:"h:i A" }}</td>
                                 <td class="text-end">
                                     <button type="button" class="btn btn-sm btn-outline-danger"
-                                            title="Eliminar"
+                                            title="{% trans 'Eliminar' %}"
                                             data-bs-toggle="modal" data-bs-target="#modalEliminarDisp"
                                             data-action="{% url 'gestion_academica:eliminar_disponibilidad' disp.pk %}"
                                             data-label="{{ disp.get_dia_semana_display }} {{ disp.hora_inicio|time:'H:i' }}–{{ disp.hora_fin|time:'H:i' }}">
@@ -61,7 +62,7 @@
                             {% empty %}
                             <tr>
                                 <td colspan="4" class="text-center p-4 text-muted">
-                                    Aún no has definido ningún horario de atención.
+                                    {% trans "Aún no has definido ningún horario de atención." %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -83,20 +84,20 @@
         <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body pt-2">
-        <h5 class="fw-bold mb-1">¿Eliminar este bloque horario?</h5>
+        <h5 class="fw-bold mb-1">{% trans "¿Eliminar este bloque horario?" %}</h5>
         <p class="text-muted mb-0" style="font-size:.88rem;">
-          Bloque: <strong id="disp-label-modal"></strong>
+          {% trans "Bloque:" %} <strong id="disp-label-modal"></strong>
         </p>
         <p class="text-danger mt-2 mb-0" style="font-size:.78rem;">
-          <i class="bi bi-info-circle me-1"></i>Esta acción no se puede deshacer.
+          <i class="bi bi-info-circle me-1"></i>{% trans "Esta acción no se puede deshacer." %}
         </p>
       </div>
       <div class="modal-footer border-0">
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
         <form id="form-eliminar-disp" method="post">
           {% csrf_token %}
           <button type="submit" class="btn btn-danger btn-sm">
-            <i class="bi bi-trash-fill me-1"></i>Sí, eliminar
+            <i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}
           </button>
         </form>
       </div>
