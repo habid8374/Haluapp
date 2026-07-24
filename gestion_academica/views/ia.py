@@ -59,6 +59,7 @@ from ..tasks import (
 )
 from finanzas.models import InstitucionEducativa
 from finanzas.institucion_credentials import google_api_key as institucion_google_api_key
+from cuestionarios.models import IntentoCuestionario
 from ._main import get_filtered_queryset, link_callback
 
 # ── Herramientas (tools) para el Asistente HALU ──────────────────────────────
