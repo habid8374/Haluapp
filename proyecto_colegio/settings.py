@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'quiz_audio.apps.QuizAudioConfig',
     'secuencias.apps.SecuenciasConfig',
     'trazado.apps.TrazadoConfig',
+    'rompecabezas.apps.RompecabezasConfig',
     'passkeys.apps.PasskeysConfig',
 
 

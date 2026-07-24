@@ -332,14 +332,14 @@
         </a>
       </li>
       <li class="nav-item item-color-4">
-        <a class="nav-link {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path %}{% else %}collapsed{% endif %}"
+        <a class="nav-link {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path %}{% else %}collapsed{% endif %}"
            href="#recursosInteractivosEst" data-bs-toggle="collapse" role="button"
-           aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path %}true{% else %}false{% endif %}"
+           aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path %}true{% else %}false{% endif %}"
            aria-controls="recursosInteractivosEst">
           <i class="bi bi-controller"></i> Recursos Interactivos
           <i class="bi bi-chevron-down float-end"></i>
         </a>
-        <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path %}show{% endif %}" id="recursosInteractivosEst">
+        <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path %}show{% endif %}" id="recursosInteractivosEst">
           <ul class="nav flex-column ps-3">
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}" href="{% url 'crucigramas:mis_crucigramas' %}">
@@ -374,6 +374,11 @@
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/trazado/' in request.path %}active{% endif %}" href="{% url 'trazado:mis_tableros' %}">
                 <i class="bi bi-pencil-fill"></i> Trazado de Letras
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/rompecabezas/' in request.path %}active{% endif %}" href="{% url 'rompecabezas:mis_rompecabezas' %}">
+                <i class="bi bi-puzzle-fill"></i> Rompecabezas
               </a>
             </li>
           </ul>
@@ -767,14 +772,14 @@
         </div>
       </li>
       <li class="nav-item item-color-4">
-        <a class="nav-link {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}{% else %}collapsed{% endif %}"
+        <a class="nav-link {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}{% else %}collapsed{% endif %}"
            href="#recursosInteractivosDoc" data-bs-toggle="collapse" role="button"
-           aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}true{% else %}false{% endif %}"
+           aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}true{% else %}false{% endif %}"
            aria-controls="recursosInteractivosDoc">
           <i class="bi bi-controller"></i> Recursos Interactivos
           <i class="bi bi-chevron-down float-end"></i>
         </a>
-        <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}show{% endif %}" id="recursosInteractivosDoc">
+        <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}show{% endif %}" id="recursosInteractivosDoc">
           <ul class="nav flex-column ps-3">
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}"
@@ -816,6 +821,12 @@
               <a class="nav-link sub-item {% if '/trazado/' in request.path %}active{% endif %}"
                  href="{% url 'trazado:lista' %}">
                 <i class="bi bi-pencil-fill"></i> Trazado de Letras
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/rompecabezas/' in request.path %}active{% endif %}"
+                 href="{% url 'rompecabezas:lista' %}">
+                <i class="bi bi-puzzle-fill"></i> Rompecabezas
               </a>
             </li>
             <li class="nav-item">
@@ -886,14 +897,14 @@
         </a>
       </li>
       <li class="nav-item item-color-4">
-        <a class="nav-link {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/recursos/' in request.path %}{% else %}collapsed{% endif %}"
+        <a class="nav-link {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path or '/recursos/' in request.path %}{% else %}collapsed{% endif %}"
            href="#recursosInteractivosCoord" data-bs-toggle="collapse" role="button"
-           aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/recursos/' in request.path %}true{% else %}false{% endif %}"
+           aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path or '/recursos/' in request.path %}true{% else %}false{% endif %}"
            aria-controls="recursosInteractivosCoord">
           <i class="bi bi-controller"></i> Recursos Interactivos
           <i class="bi bi-chevron-down float-end"></i>
         </a>
-        <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/recursos/' in request.path %}show{% endif %}" id="recursosInteractivosCoord">
+        <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path or '/recursos/' in request.path %}show{% endif %}" id="recursosInteractivosCoord">
           <ul class="nav flex-column ps-3">
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}"
@@ -935,6 +946,12 @@
               <a class="nav-link sub-item {% if '/trazado/' in request.path %}active{% endif %}"
                  href="{% url 'trazado:lista' %}">
                 <i class="bi bi-pencil-fill"></i> Trazado de Letras
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if '/rompecabezas/' in request.path %}active{% endif %}"
+                 href="{% url 'rompecabezas:lista' %}">
+                <i class="bi bi-puzzle-fill"></i> Rompecabezas
               </a>
             </li>
             <li class="nav-item">
