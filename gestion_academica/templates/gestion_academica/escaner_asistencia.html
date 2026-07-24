@@ -1,6 +1,7 @@
 {% extends "base_academico.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}
+{{ block.super }}
 <style>
     #qr-reader {
         width: 100%;
@@ -52,6 +53,7 @@
 </div>
 {% endblock %}
 {% block extra_js %}
+{{ block.super }}
 <!-- Librería html5-qrcode con versión fijada (evita roturas por releases nuevas del CDN) -->
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
 <script>

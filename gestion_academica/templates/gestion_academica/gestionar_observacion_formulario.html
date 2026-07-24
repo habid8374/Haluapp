@@ -64,6 +64,7 @@
 </div>
 {% endblock %}
 {% block extra_js %}
+{{ block.super }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const generarBtn = document.getElementById('generarResumenBtn');

@@ -18,7 +18,8 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-    <!-- 1. Cargar las librerías base de React -->
+    {{ block.super }}
+<!-- 1. Cargar las librerías base de React -->
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <!-- 2. Cargar Babel para que el navegador pueda entender la sintaxis JSX -->

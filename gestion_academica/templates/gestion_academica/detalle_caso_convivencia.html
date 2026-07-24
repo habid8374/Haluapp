@@ -307,6 +307,7 @@
 </div>
 {% endblock %}
 {% block extrastyles %}
+{{ block.super }}
 <style>
   .timeline { position: relative; }
   /* ── Todos los widgets del formulario respetan el ancho del contenedor ── */
@@ -334,6 +335,7 @@
 </style>
 {% endblock %}
 {% block extra_js %}
+{{ block.super }}
 <script>
   /* Rota el chevron cuando colapsa/expande */
   document.addEventListener('DOMContentLoaded', function () {

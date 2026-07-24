@@ -3,6 +3,7 @@
 {% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}
+{{ block.super }}
 <style>
     /* Tus estilos personalizados para la tabla se mantienen intactos */
     .table-panel-director th, .table-panel-director td {

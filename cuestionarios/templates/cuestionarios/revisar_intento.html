@@ -111,6 +111,7 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Obtenemos el token CSRF del formulario principal

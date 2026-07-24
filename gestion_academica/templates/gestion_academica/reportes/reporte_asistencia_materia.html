@@ -101,6 +101,7 @@
 </div>
 {% endblock %}
 {% block extra_js %}
+{{ block.super }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% if reporte_data.chart_data %}
 {{ reporte_data.chart_labels|json_script:"chart-labels-data" }}
