@@ -298,6 +298,12 @@
         <i class="bi bi-fingerprint"></i> Ingreso con huella o rostro
       </a>
     </li>
+    <li class="nav-item item-color-4">
+      <a class="nav-link {% if '/eventos/' in request.path %}active{% endif %}"
+         href="{% url 'gestion_academica:cartelera_eventos' %}">
+        <i class="bi bi-calendar-event-fill"></i> Cartelera de Eventos
+      </a>
+    </li>
     {% if user.rol == 'estudiante' %}
       <hr class="menu-divider">
       <h5 class="menu-section-title">Mi Espacio</h5>

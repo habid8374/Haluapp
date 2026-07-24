@@ -25,7 +25,7 @@ from .models import (
     CasoConvivencia, InvolucradoCaso, AccionCaso,
     ConfiguracionCortePreventivo, CortePreventivo,
     ResultadoCorteEstudiante, DetalleMateriaCortePrev,
-    DBAPredefinido,
+    DBAPredefinido, EventoInstitucional,
 )
 from import_export import resources
 
@@ -993,3 +993,11 @@ class DBAPredefinidoAdmin(admin.ModelAdmin):
     def enunciado_corto(self, obj):
         return obj.enunciado[:80] + '…' if len(obj.enunciado) > 80 else obj.enunciado
     enunciado_corto.short_description = 'Enunciado'
+
+
+@admin.register(EventoInstitucional)
+class EventoInstitucionalAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('titulo', 'fecha', 'categoria', 'recurrente_anual', 'activo', 'institucion')
+    list_filter = ('institucion', 'categoria', 'recurrente_anual', 'activo')
+    search_fields = ('titulo', 'descripcion')
+    readonly_fields = ('ultima_alerta_fecha', 'creado_por', 'creado_en')

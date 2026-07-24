@@ -1037,6 +1037,100 @@ def marcar_casos_convivencia_vencidos():
     return f"Sentinel: {actualizados} casos marcados como VENCIDOS."
 
 
+@shared_task(name='gestion_academica.tasks.generar_alertas_eventos_task')
+def generar_alertas_eventos_task():
+    """
+    Tarea diaria: notifica eventos institucionales próximos (según sus días
+    de aviso previo) y cumpleaños de estudiantes/docentes que caen HOY —
+    estos últimos calculados al vuelo, nunca guardados como evento aparte.
+
+    Programar en Celery Beat:
+        'alertas-eventos-cumpleanos-diarias': {
+            'task': 'gestion_academica.tasks.generar_alertas_eventos_task',
+            'schedule': crontab(hour=6, minute=0),  # cada día a las 6am
+        }
+    """
+    from .models import Docente, Estudiante, EventoInstitucional, Notificacion, Usuario
+    from .views.eventos import _proxima_ocurrencia_cumple
+
+    hoy = timezone.localdate()
+    notificados = 0
+
+    # ── Eventos institucionales manuales ─────────────────────────────────
+    eventos = EventoInstitucional.objects.filter(activo=True).select_related('institucion')
+    for ev in eventos:
+        prox = ev.proxima_ocurrencia(desde=hoy)
+        dias_para_evento = (prox - hoy).days
+        ya_avisado = ev.ultima_alerta_fecha == prox
+        if ya_avisado or dias_para_evento > ev.dias_aviso_previo or dias_para_evento < 0:
+            continue
+
+        roles = []
+        if ev.para_docentes:
+            roles.append('docente')
+        if ev.para_estudiantes:
+            roles.append('estudiante')
+        if ev.para_familiares:
+            roles.append('familiar')
+        if ev.para_coordinadores:
+            roles += ['coordinador', 'administrador']
+        if not roles:
+            continue
+
+        destinatarios = Usuario.objects.filter(institucion_asociada=ev.institucion, rol__in=roles, is_active=True)
+        cuando = "hoy" if dias_para_evento == 0 else f"en {dias_para_evento} día(s)"
+        for dest in destinatarios:
+            Notificacion.objects.create(
+                destinatario=dest,
+                institucion=ev.institucion,
+                mensaje=f"📅 {ev.titulo} — {cuando} ({prox.strftime('%d/%m')}).",
+                enlace=reverse('gestion_academica:cartelera_eventos'),
+            )
+            notificados += 1
+
+        ev.ultima_alerta_fecha = prox
+        ev.save(update_fields=['ultima_alerta_fecha'])
+
+    # ── Cumpleaños (estudiantes y docentes) — solo el día exacto ─────────
+    estudiantes = Estudiante.objects.filter(activo=True, fecha_nacimiento__isnull=False).select_related('usuario', 'institucion', 'grado_actual')
+    for est in estudiantes:
+        if _proxima_ocurrencia_cumple(est.fecha_nacimiento, hoy) != hoy:
+            continue
+        nombre = est.usuario.get_full_name() or est.usuario.username
+        destinatarios = Usuario.objects.filter(
+            institucion_asociada=est.institucion, is_active=True,
+            rol__in=['docente', 'coordinador', 'administrador'],
+        )
+        for dest in destinatarios:
+            Notificacion.objects.create(
+                destinatario=dest,
+                institucion=est.institucion,
+                mensaje=f"🎂 ¡Hoy es el cumpleaños de {nombre}!",
+                enlace=reverse('gestion_academica:cartelera_eventos'),
+            )
+            notificados += 1
+
+    docentes = Docente.objects.filter(fecha_nacimiento__isnull=False).select_related('usuario', 'institucion')
+    for doc in docentes:
+        if _proxima_ocurrencia_cumple(doc.fecha_nacimiento, hoy) != hoy:
+            continue
+        nombre = doc.usuario.get_full_name() or doc.usuario.username
+        destinatarios = Usuario.objects.filter(
+            institucion_asociada=doc.institucion, is_active=True,
+            rol__in=['docente', 'coordinador', 'administrador'],
+        ).exclude(pk=doc.usuario_id)
+        for dest in destinatarios:
+            Notificacion.objects.create(
+                destinatario=dest,
+                institucion=doc.institucion,
+                mensaje=f"🎂 ¡Hoy es el cumpleaños de {nombre}!",
+                enlace=reverse('gestion_academica:cartelera_eventos'),
+            )
+            notificados += 1
+
+    return f"Alertas de eventos/cumpleaños: {notificados} notificaciones creadas."
+
+
 @shared_task(name='gestion_academica.tasks.ejecutar_backup_database', bind=True, max_retries=2)
 def ejecutar_backup_database(self):
     """Tarea Celery que ejecuta el management command de backup diario."""

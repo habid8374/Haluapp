@@ -605,8 +605,9 @@ class Docente(models.Model):
 
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True, limit_choices_to={'rol': 'docente'}, verbose_name="Cuenta de Usuario")
     documento_identidad = models.CharField(max_length=20, blank=True, null=True, verbose_name="Documento de Identidad")
-    codigo_docente = models.CharField(max_length=20, blank=True, null=True, verbose_name="Código de Docente") 
+    codigo_docente = models.CharField(max_length=20, blank=True, null=True, verbose_name="Código de Docente")
     especialidad = models.CharField(max_length=100, blank=True, null=True, verbose_name="Especialidad Principal")
+    fecha_nacimiento = models.DateField(null=True, blank=True, verbose_name="Fecha de Nacimiento")
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
     firma_docente = models.ImageField(upload_to='firmas/', blank=True, null=True, verbose_name="Firma del Docente (Imagen)") 
     qr_identifier = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -2739,3 +2740,80 @@ class DBAPredefinido(models.Model):
 
     def __str__(self):
         return f"DBA N.°{self.numero} — {self.get_area_display()} {self.get_grado_display()}"
+
+
+class EventoInstitucional(models.Model):
+    """
+    Evento externo/institucional (festivo local, jornada pedagógica, acto
+    cultural, etc.) creado a mano por coordinación — a diferencia de los
+    cumpleaños, que NUNCA se guardan aquí: se calculan al vuelo desde
+    Estudiante.fecha_nacimiento / Docente.fecha_nacimiento para no duplicar
+    datos que ya existen en la plataforma.
+    """
+    class Categoria(models.TextChoices):
+        CULTURAL = 'CULTURAL', 'Cultural / Cívico'
+        ACADEMICO = 'ACADEMICO', 'Académico'
+        INSTITUCIONAL = 'INSTITUCIONAL', 'Institucional'
+        OTRO = 'OTRO', 'Otro'
+
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='eventos_institucionales', verbose_name="Institución",
+    )
+    titulo = models.CharField(max_length=150, verbose_name="Título del evento")
+    descripcion = models.TextField(blank=True, default='', verbose_name="Descripción")
+    categoria = models.CharField(max_length=20, choices=Categoria.choices, default=Categoria.INSTITUCIONAL)
+    fecha = models.DateField(verbose_name="Fecha (de este año)")
+    recurrente_anual = models.BooleanField(
+        default=False,
+        verbose_name="¿Se repite cada año?",
+        help_text="Actívalo para festivos o celebraciones que caen en la misma fecha todos los años (ej. Amor y Amistad, fiestas patronales).",
+    )
+    dias_aviso_previo = models.PositiveSmallIntegerField(
+        default=3, verbose_name="Días de aviso previo",
+        help_text="Con cuántos días de anticipación se notifica a los destinatarios.",
+    )
+
+    # A quién avisar — checkboxes simples, pensado para coordinación no técnica.
+    para_docentes = models.BooleanField(default=True, verbose_name="Avisar a docentes")
+    para_estudiantes = models.BooleanField(default=True, verbose_name="Avisar a estudiantes")
+    para_familiares = models.BooleanField(default=True, verbose_name="Avisar a familiares")
+    para_coordinadores = models.BooleanField(default=True, verbose_name="Avisar a coordinadores/administrador")
+
+    activo = models.BooleanField(default=True, verbose_name="¿Activo?")
+    ultima_alerta_fecha = models.DateField(
+        null=True, blank=True,
+        verbose_name="Fecha de la última ocurrencia ya avisada",
+        help_text="La usa el sistema para no enviar la misma alerta dos veces — no editar a mano.",
+    )
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='eventos_institucionales_creados',
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['fecha']
+        verbose_name = "Evento Institucional"
+        verbose_name_plural = "Eventos Institucionales"
+
+    def __str__(self):
+        return f"{self.titulo} ({self.fecha:%d/%m})"
+
+    def proxima_ocurrencia(self, desde=None):
+        """Fecha de la próxima vez que cae este evento. Para eventos no
+        recurrentes, es simplemente `fecha`. Para recurrentes, recalcula
+        el mes/día sobre el año actual (o el siguiente, si ya pasó)."""
+        hoy = desde or timezone.localdate()
+        if not self.recurrente_anual:
+            return self.fecha
+        try:
+            candidata = self.fecha.replace(year=hoy.year)
+        except ValueError:
+            candidata = self.fecha.replace(year=hoy.year, day=28)  # 29-feb en año no bisiesto
+        if candidata < hoy:
+            try:
+                candidata = candidata.replace(year=hoy.year + 1)
+            except ValueError:
+                candidata = candidata.replace(year=hoy.year + 1, day=28)
+        return candidata

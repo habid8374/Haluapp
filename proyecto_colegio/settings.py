@@ -663,6 +663,11 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'gestion_academica.tasks.ejecutar_backup_database',
         'schedule': crontab(hour=2, minute=0),
     },
+    # Alertas de eventos institucionales + cumpleaños, 6:00 AM hora Colombia
+    'alertas-eventos-cumpleanos-diarias': {
+        'task': 'gestion_academica.tasks.generar_alertas_eventos_task',
+        'schedule': crontab(hour=6, minute=0),
+    },
 }
 
 # ── SENTRY — monitoreo de errores en producción ───────────────────────────────

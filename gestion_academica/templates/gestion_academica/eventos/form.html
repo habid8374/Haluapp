@@ -1,0 +1,93 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+  <div>
+    <h2 style="color:#fff;" class="mb-1"><i class="bi bi-calendar-event-fill"></i> {{ titulo_pagina }}</h2>
+    <p style="color:#fff;" class="mb-0">Para festivos, actos culturales o fechas institucionales — los cumpleaños se calculan solos.</p>
+  </div>
+  <a href="{% url 'gestion_academica:lista_eventos_admin' %}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> Volver</a>
+</div>
+
+<form method="post">{% csrf_token %}
+  <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label fw-700">Título</label>
+          <input type="text" name="titulo" class="form-control" placeholder="Ej. Fiestas Patronales" value="{{ evento.titulo|default:'' }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-700">Categoría</label>
+          <select name="categoria" class="form-select">
+            <option value="INSTITUCIONAL" {% if evento.categoria == 'INSTITUCIONAL' or not evento %}selected{% endif %}>Institucional</option>
+            <option value="CULTURAL" {% if evento.categoria == 'CULTURAL' %}selected{% endif %}>Cultural / Cívico</option>
+            <option value="ACADEMICO" {% if evento.categoria == 'ACADEMICO' %}selected{% endif %}>Académico</option>
+            <option value="OTRO" {% if evento.categoria == 'OTRO' %}selected{% endif %}>Otro</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-700">Descripción (opcional)</label>
+          <input type="text" name="descripcion" class="form-control" value="{{ evento.descripcion|default:'' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-700">Fecha</label>
+          <input type="date" name="fecha" class="form-control" value="{{ evento.fecha|date:'Y-m-d'|default:'' }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-700">Días de aviso previo</label>
+          <input type="number" min="0" max="60" name="dias_aviso_previo" class="form-control" value="{{ evento.dias_aviso_previo|default:3 }}">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="recurrente_anual" id="recurrente_anual" {% if evento.recurrente_anual %}checked{% endif %}>
+            <label class="form-check-label" for="recurrente_anual">Se repite cada año</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+    <div class="card-header bg-white border-0 fw-800"><i class="bi bi-people-fill me-1"></i> ¿A quién avisar?</div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-6 col-md-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="para_docentes" id="para_docentes" {% if evento.para_docentes or not evento %}checked{% endif %}>
+            <label class="form-check-label" for="para_docentes">Docentes</label>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="para_estudiantes" id="para_estudiantes" {% if evento.para_estudiantes or not evento %}checked{% endif %}>
+            <label class="form-check-label" for="para_estudiantes">Estudiantes</label>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="para_familiares" id="para_familiares" {% if evento.para_familiares or not evento %}checked{% endif %}>
+            <label class="form-check-label" for="para_familiares">Familiares</label>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="para_coordinadores" id="para_coordinadores" {% if evento.para_coordinadores or not evento %}checked{% endif %}>
+            <label class="form-check-label" for="para_coordinadores">Coordinación</label>
+          </div>
+        </div>
+      </div>
+      <hr>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="activo" id="activo" {% if evento.activo or not evento %}checked{% endif %}>
+        <label class="form-check-label" for="activo">Evento activo (desmárcalo para ocultarlo sin borrarlo)</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2">
+    <a href="{% url 'gestion_academica:lista_eventos_admin' %}" class="btn btn-outline-secondary">Cancelar</a>
+    <button type="submit" class="btn" style="background:#b45309;color:#fff;"><i class="bi bi-save me-1"></i> Guardar</button>
+  </div>
+</form>
+{% endblock %}
