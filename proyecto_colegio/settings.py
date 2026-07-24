@@ -363,6 +363,13 @@ LANGUAGES = [
     ('en', 'English'),
 ]
 
+# Catálogos de traducción (.po/.mo) para el selector de idiomas — Etapa B/C
+# del plan (docs/PLAN_MULTIIDIOMA.md). Un solo directorio a nivel de proyecto
+# porque las cadenas traducidas viven fuera de cada app individual.
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
