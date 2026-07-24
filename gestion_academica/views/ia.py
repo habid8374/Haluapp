@@ -439,9 +439,8 @@ Orienta al acudiente sobre cómo usar la plataforma para hacer seguimiento a sus
         else:
             instrucciones_sistema = f"Eres HALU, el asistente virtual amigable de la plataforma escolar en '{institucion.nombre}'. Responde en español de forma amigable y ayuda al usuario a navegar la plataforma."
 
-        # gemini-2.0-flash: 200 req/día free tier (vs 20 de 2.5-flash)
         _chat_config = types.GenerateContentConfig(tools=list(tools_disponibles.values())) if tools_disponibles else None
-        chat = client.chats.create(model='gemini-2.0-flash', config=_chat_config, history=historial_previo)
+        chat = client.chats.create(model='gemini-2.5-pro', config=_chat_config, history=historial_previo)
 
         mensaje_enviar = pregunta
         if not historial_previo:
