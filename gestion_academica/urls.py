@@ -234,6 +234,7 @@ urlpatterns = [
     path('mi-perfil/', views.ver_mi_perfil, name='ver_mi_perfil'),
     path('politica-datos/', views.ver_politica_datos, name='ver_politica_datos'),
     path('politica-datos/aceptar/', views.aceptar_politica_datos, name='aceptar_politica_datos'),
+    path('politica-datos/reporte/', views.reporte_aceptacion_politica, name='reporte_aceptacion_politica'),
     path('dashboard/estudiante/', views.dashboard_estudiante, name='dashboard_estudiante'),
     path('api/calendario/eventos/', views.CalendarioEventosAPIView.as_view(), name='api_calendario_eventos'),
     path('boletin/imprimir/<int:estudiante_pk>/<int:periodo_pk>/', views.boletin_imprimible, name='boletin_imprimible'),  

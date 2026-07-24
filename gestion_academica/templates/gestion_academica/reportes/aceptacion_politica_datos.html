@@ -1,0 +1,167 @@
+{% extends "base_academico.html" %}
+{% load humanize %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .apd-hero h2, .apd-hero p { color:#fff; }
+  .apd-kpi { border:none; border-radius:14px; }
+  .apd-kpi-icon { width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+  .apd-kpi-value { font-size:1.7rem; font-weight:700; line-height:1.1; }
+  .apd-kpi-label { font-size:.75rem; color:#6c757d; margin-top:2px; }
+  .apd-fila-oculta { display:none !important; }
+  .apd-pill { border-radius:20px; font-size:.8rem; padding:.35rem .9rem; }
+  .apd-pill.active { color:#fff; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="apd-hero" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border-radius:18px; padding:2rem; margin-bottom:1.5rem;">
+  <h2><i class="bi bi-shield-lock-fill"></i> Aceptación de Política de Tratamiento de Datos</h2>
+  <p class="mb-0">Versión vigente: <strong>{{ version_vigente }}</strong> · Quién la ha aceptado y quién sigue pendiente{% if not es_superuser %}, en tu institución{% endif %}.</p>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card apd-kpi shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3 py-3 px-3">
+        <div class="apd-kpi-icon bg-primary bg-opacity-10"><i class="bi bi-people-fill text-primary"></i></div>
+        <div><div class="apd-kpi-value text-primary">{{ total }}</div><div class="apd-kpi-label">Usuarios</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card apd-kpi shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3 py-3 px-3">
+        <div class="apd-kpi-icon bg-success bg-opacity-10"><i class="bi bi-check-circle-fill text-success"></i></div>
+        <div><div class="apd-kpi-value text-success">{{ al_dia }}</div><div class="apd-kpi-label">Al día</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card apd-kpi shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3 py-3 px-3">
+        <div class="apd-kpi-icon bg-danger bg-opacity-10"><i class="bi bi-exclamation-triangle-fill text-danger"></i></div>
+        <div><div class="apd-kpi-value text-danger">{{ pendientes }}</div><div class="apd-kpi-label">Pendientes</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card apd-kpi shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3 py-3 px-3">
+        <div class="apd-kpi-icon" style="background:rgba(37,99,235,.12)"><i class="bi bi-graph-up-arrow" style="color:#2563eb"></i></div>
+        <div><div class="apd-kpi-value" style="color:#2563eb">{{ porcentaje }}%</div><div class="apd-kpi-label">Cumplimiento</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-3" style="border-radius:14px;border:none;">
+  <div class="card-body">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" id="apdBuscar" class="form-control border-start-0 ps-0" placeholder="Buscar por nombre…" autocomplete="off">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select id="apdRol" class="form-select">
+          <option value="">Todos los roles</option>
+          <option value="administrador">Administrador</option>
+          <option value="coordinador">Coordinador(a)</option>
+          <option value="docente">Docente</option>
+          <option value="estudiante">Estudiante</option>
+          <option value="familiar">Familiar</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="button" class="btn btn-outline-secondary apd-pill active" data-estado="">Todos</button>
+        <button type="button" class="btn btn-outline-success apd-pill" data-estado="al_dia">Al día</button>
+        <button type="button" class="btn btn-outline-danger apd-pill" data-estado="pendiente">Pendientes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">Nombre</th>
+            <th>Rol</th>
+            {% if es_superuser %}<th>Institución</th>{% endif %}
+            <th class="text-center">Estado</th>
+            <th class="text-center">Fecha de aceptación</th>
+            <th class="text-center">Versión</th>
+            <th class="text-center">IP</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for u in usuarios %}
+          <tr class="apd-fila" data-rol="{{ u.rol }}" data-estado="{% if u.acepto_tratamiento_datos and u.version_politica_aceptada == version_vigente %}al_dia{% else %}pendiente{% endif %}" data-nombre="{{ u.get_full_name|default:u.username|lower }}">
+            <td class="ps-3 fw-700">{{ u.get_full_name|default:u.username }}</td>
+            <td>{{ u.get_rol_display }}</td>
+            {% if es_superuser %}<td style="font-size:.85rem;">{{ u.institucion_asociada.nombre|default:"—" }}</td>{% endif %}
+            <td class="text-center">
+              {% if u.acepto_tratamiento_datos and u.version_politica_aceptada == version_vigente %}
+                <span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Al día</span>
+              {% elif u.acepto_tratamiento_datos %}
+                <span class="badge bg-warning text-dark" title="Aceptó una versión anterior ({{ u.version_politica_aceptada }})">Versión anterior</span>
+              {% else %}
+                <span class="badge bg-danger">Pendiente</span>
+              {% endif %}
+            </td>
+            <td class="text-center" style="font-size:.82rem;">{{ u.fecha_aceptacion_tratamiento_datos|date:"d/m/Y H:i"|default:"—" }}</td>
+            <td class="text-center" style="font-size:.82rem;">{{ u.version_politica_aceptada|default:"—" }}</td>
+            <td class="text-center" style="font-size:.8rem;">{{ u.ip_aceptacion_politica|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center py-4 text-muted">No hay usuarios para mostrar.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p id="apdSinRes" class="text-muted text-center py-4 d-none mb-0"><i class="bi bi-search me-1"></i>Sin resultados.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var buscar = document.getElementById('apdBuscar');
+  var rolSel = document.getElementById('apdRol');
+  var pills = document.querySelectorAll('.apd-pill');
+  var filas = document.querySelectorAll('.apd-fila');
+  var sinRes = document.getElementById('apdSinRes');
+  var estadoActivo = '';
+
+  function aplicarFiltros() {
+    var q = (buscar.value || '').trim().toLowerCase();
+    var rol = rolSel.value;
+    var visibles = 0;
+    filas.forEach(function (fila) {
+      var okNombre = !q || fila.dataset.nombre.indexOf(q) !== -1;
+      var okRol = !rol || fila.dataset.rol === rol;
+      var okEstado = !estadoActivo || fila.dataset.estado === estadoActivo;
+      var ok = okNombre && okRol && okEstado;
+      fila.classList.toggle('apd-fila-oculta', !ok);
+      if (ok) visibles++;
+    });
+    if (sinRes) sinRes.classList.toggle('d-none', visibles !== 0 || filas.length === 0);
+  }
+
+  if (buscar) buscar.addEventListener('input', aplicarFiltros);
+  if (rolSel) rolSel.addEventListener('change', aplicarFiltros);
+  pills.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      pills.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      estadoActivo = btn.dataset.estado || '';
+      aplicarFiltros();
+    });
+  });
+})();
+</script>
+{% endblock %}

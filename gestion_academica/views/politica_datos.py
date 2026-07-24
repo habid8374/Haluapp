@@ -2,6 +2,7 @@
 """Vistas para leer y aceptar la Política de Tratamiento de Datos Personales."""
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -11,6 +12,11 @@ from gestion_academica.legal import (
     POLITICA_TRATAMIENTO_DATOS_VERSION,
     hash_politica_vigente,
 )
+
+
+def _es_coordinador_o_admin(user):
+    rol = getattr(user, 'rol', '') or ''
+    return rol in ('coordinador', 'administrador') or user.is_superuser
 
 
 def _ip_cliente(request):
@@ -84,4 +90,42 @@ def aceptar_politica_datos(request):
         'version': version_vigente,
         'modo_aceptacion': True,
         'next': request.GET.get('next', ''),
+    })
+
+
+@login_required
+def reporte_aceptacion_politica(request):
+    """Reporte visible para coordinador/administrador: quién ha aceptado la
+    política vigente y quién sigue pendiente — reemplaza tener que entrar
+    usuario por usuario en el admin de Django."""
+    if not _es_coordinador_o_admin(request.user):
+        raise PermissionDenied
+
+    from gestion_academica.models import Usuario
+
+    version_vigente = POLITICA_TRATAMIENTO_DATOS_VERSION
+    es_superuser = request.user.is_superuser
+    usuarios = Usuario.objects.exclude(is_superuser=True).select_related('institucion_asociada')
+    if not es_superuser:
+        institucion = getattr(request.user, 'institucion_asociada', None)
+        usuarios = usuarios.filter(institucion_asociada=institucion) if institucion else usuarios.none()
+    usuarios = usuarios.order_by('first_name', 'last_name')
+
+    total = usuarios.count()
+    al_dia = usuarios.filter(
+        acepto_tratamiento_datos=True,
+        version_politica_aceptada=version_vigente,
+    ).count()
+    pendientes = total - al_dia
+    porcentaje = round((al_dia / total * 100), 1) if total else 0
+
+    return render(request, 'gestion_academica/reportes/aceptacion_politica_datos.html', {
+        'titulo_pagina': 'Aceptación de Política de Datos',
+        'usuarios': usuarios,
+        'total': total,
+        'al_dia': al_dia,
+        'pendientes': pendientes,
+        'porcentaje': porcentaje,
+        'version_vigente': version_vigente,
+        'es_superuser': es_superuser,
     })

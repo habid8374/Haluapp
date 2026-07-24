@@ -282,7 +282,7 @@
     <span class="sec-title text-danger">Convivencia &middot; Sentinel</span>
     <div class="sec-line" style="background:#dc3545"></div>
   </div>
-  <div class="row g-3 mb-5">
+  <div class="row g-3 mb-4">
     <div class="col-sm-6 col-lg-4 col-xl-3">
       <div class="card rcard shadow-sm h-100" style="border-left-color:#dc3545">
         <div class="card-body d-flex flex-column gap-2 p-3">
@@ -306,6 +306,25 @@
       </div>
     </div>
   </div>
+  {% if request.user.rol == 'coordinador' or request.user.rol == 'administrador' or request.user.is_superuser %}
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <span class="sec-title" style="color:#2563eb">Cumplimiento &middot; Seguridad</span>
+    <div class="sec-line" style="background:#2563eb"></div>
+  </div>
+  <div class="row g-3 mb-5">
+    <div class="col-sm-6 col-lg-4 col-xl-3">
+      <div class="card rcard shadow-sm h-100" style="border-left-color:#2563eb">
+        <div class="card-body d-flex flex-column gap-2 p-3">
+          <div class="d-flex align-items-start gap-2">
+            <div class="rico" style="background:rgba(37,99,235,.12)"><i class="bi bi-shield-lock-fill" style="color:#2563eb"></i></div>
+            <div><p class="rtitle">Aceptación de Política de Datos</p><p class="rdesc">Quién ha aceptado la política de tratamiento de datos y quién sigue pendiente.</p></div>
+          </div>
+          <div class="mt-auto text-end"><a href="{% url 'gestion_academica:reporte_aceptacion_politica' %}" class="btn rbtn" style="color:#2563eb;border:1px solid #2563eb">Abrir <i class="bi bi-arrow-right"></i></a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 <script>
 (function () {
