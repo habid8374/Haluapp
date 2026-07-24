@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load notificaciones_tags %}
+{% load i18n %}
 {% block titulo %}{{ branding.NOMBRE }}{% endblock %}
 {% block body_class %}layout-academico{% endblock %}
 {% block extrastyles %}
@@ -287,15 +288,15 @@
           </div>
         </li>
         <li><a class="dropdown-item" href="{% url 'gestion_academica:ver_mi_perfil' %}">
-          <i class="bi bi-person-circle me-2 text-primary"></i>Mi Perfil</a></li>
+          <i class="bi bi-person-circle me-2 text-primary"></i>{% trans "Mi Perfil" %}</a></li>
         <li><a class="dropdown-item" href="{% url 'socialaccount_connections' %}">
-          <i class="bi bi-link-45deg me-2 text-secondary"></i>Conexiones de Cuenta</a></li>
+          <i class="bi bi-link-45deg me-2 text-secondary"></i>{% trans "Conexiones de Cuenta" %}</a></li>
         <li><a class="dropdown-item" href="{% url 'password_change' %}">
-          <i class="bi bi-key-fill me-2 text-warning"></i>Cambiar Contraseña</a></li>
+          <i class="bi bi-key-fill me-2 text-warning"></i>{% trans "Cambiar Contraseña" %}</a></li>
         {% if user.is_staff %}
           <li><hr class="dropdown-divider"></li>
           <li><a class="dropdown-item" href="{% url 'admin:index' %}">
-            <i class="bi bi-shield-lock-fill me-2 text-danger"></i>Admin Avanzado</a></li>
+            <i class="bi bi-shield-lock-fill me-2 text-danger"></i>{% trans "Admin Avanzado" %}</a></li>
         {% endif %}
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -304,7 +305,7 @@
           </form>
           <a class="dropdown-item text-danger" href="#"
              onclick="event.preventDefault();document.getElementById('logout-form-navbar').submit();">
-            <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+            <i class="bi bi-box-arrow-right me-2"></i>{% trans "Cerrar Sesión" %}
           </a>
         </li>
       </ul>
@@ -315,26 +316,26 @@
 {% block floating_menu_content %}
   <div class="sidebar-brand-row">
     <i class="bi bi-mortarboard-fill text-primary" style="font-size:1.05rem"></i>
-    <span class="sb-label">Gestión Académica</span>
+    <span class="sb-label">{% trans "Gestión Académica" %}</span>
   </div>
   <ul class="nav flex-column">
-    <h5 class="menu-section-title">Principal</h5>
+    <h5 class="menu-section-title">{% trans "Principal" %}</h5>
     <li class="nav-item item-color-1">
       <a class="nav-link {% if request.resolver_match.url_name == 'inicio_academico' %}active{% endif %}"
          href="{% url 'gestion_academica:inicio_academico' %}">
-        <i class="bi bi-house-door-fill"></i> Inicio
+        <i class="bi bi-house-door-fill"></i> {% trans "Inicio" %}
       </a>
     </li>
     <li class="nav-item item-color-3">
       <a class="nav-link {% if '/passkeys/' in request.path %}active{% endif %}"
          href="{% url 'passkeys:gestionar' %}">
-        <i class="bi bi-fingerprint"></i> Ingreso con huella o rostro
+        <i class="bi bi-fingerprint"></i> {% trans "Ingreso con huella o rostro" %}
       </a>
     </li>
     <li class="nav-item item-color-4">
       <a class="nav-link {% if '/eventos/' in request.path %}active{% endif %}"
          href="{% url 'gestion_academica:cartelera_eventos' %}">
-        <i class="bi bi-calendar-event-fill"></i> Cartelera de Eventos
+        <i class="bi bi-calendar-event-fill"></i> {% trans "Cartelera de Eventos" %}
       </a>
     </li>
     {% if user.rol == 'estudiante' %}
@@ -375,49 +376,49 @@
            href="#recursosInteractivosEst" data-bs-toggle="collapse" role="button"
            aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path %}true{% else %}false{% endif %}"
            aria-controls="recursosInteractivosEst">
-          <i class="bi bi-controller"></i> Recursos Interactivos
+          <i class="bi bi-controller"></i> {% trans "Recursos Interactivos" %}
           <i class="bi bi-chevron-down float-end"></i>
         </a>
         <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path %}show{% endif %}" id="recursosInteractivosEst">
           <ul class="nav flex-column ps-3">
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}" href="{% url 'crucigramas:mis_crucigramas' %}">
-                <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+                <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Crucigramas" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/sopa-letras/' in request.path %}active{% endif %}" href="{% url 'sopa_letras:mis_sopas' %}">
-                <i class="bi bi-search-heart"></i> Sopas de Letras
+                <i class="bi bi-search-heart"></i> {% trans "Sopas de Letras" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/memoria/' in request.path %}active{% endif %}" href="{% url 'memoria:mis_juegos' %}">
-                <i class="bi bi-images"></i> Juegos de Memoria
+                <i class="bi bi-images"></i> {% trans "Juegos de Memoria" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/flashcards/' in request.path %}active{% endif %}" href="{% url 'flashcards:mis_mazos' %}">
-                <i class="bi bi-card-image"></i> Flash Cards
+                <i class="bi bi-card-image"></i> {% trans "Flash Cards" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/quiz-audio/' in request.path %}active{% endif %}" href="{% url 'quiz_audio:mis_quices' %}">
-                <i class="bi bi-volume-up-fill"></i> Quiz de Audio
+                <i class="bi bi-volume-up-fill"></i> {% trans "Quiz de Audio" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/secuencias/' in request.path %}active{% endif %}" href="{% url 'secuencias:mis_secuencias' %}">
-                <i class="bi bi-sort-numeric-down"></i> Ordenar Secuencias
+                <i class="bi bi-sort-numeric-down"></i> {% trans "Ordenar Secuencias" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/trazado/' in request.path %}active{% endif %}" href="{% url 'trazado:mis_tableros' %}">
-                <i class="bi bi-pencil-fill"></i> Trazado de Letras
+                <i class="bi bi-pencil-fill"></i> {% trans "Trazado de Letras" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/rompecabezas/' in request.path %}active{% endif %}" href="{% url 'rompecabezas:mis_rompecabezas' %}">
-                <i class="bi bi-puzzle-fill"></i> Rompecabezas
+                <i class="bi bi-puzzle-fill"></i> {% trans "Rompecabezas" %}
               </a>
             </li>
           </ul>
@@ -687,17 +688,17 @@
     {% endif %}
     {% if user.rol == 'docente' %}
       <hr class="menu-divider">
-      <h5 class="menu-section-title">Panel de Docente</h5>
+      <h5 class="menu-section-title">{% trans "Panel de Docente" %}</h5>
       <li class="nav-item item-color-1">
         <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_docente' %}active{% endif %}"
            href="{% url 'gestion_academica:dashboard_docente' %}">
-          <i class="bi bi-grid-fill"></i> Mi Panel Principal
+          <i class="bi bi-grid-fill"></i> {% trans "Mi Panel Principal" %}
         </a>
       </li>
       <li class="nav-item item-color-3">
         <a class="nav-link {% if request.resolver_match.namespace == 'mensajeria' %}active{% endif %}"
            href="{% url 'mensajeria:inbox' %}">
-          <i class="bi bi-chat-dots-fill"></i> Mensajes
+          <i class="bi bi-chat-dots-fill"></i> {% trans "Mensajes" %}
           <span id="nav-mensajes-badge" class="badge bg-danger ms-1" style="display:none"></span>
         </a>
       </li>
@@ -706,7 +707,7 @@
            data-bs-toggle="collapse" role="button"
            aria-expanded="{% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}true{% else %}false{% endif %}"
            aria-controls="gestionSubmenu">
-          <i class="bi bi-tools"></i> Centro de Gestión
+          <i class="bi bi-tools"></i> {% trans "Centro de Gestión" %}
           <i class="bi bi-chevron-down float-end"></i>
         </a>
         <div class="collapse {% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}show{% endif %}" id="gestionSubmenu">
@@ -714,97 +715,97 @@
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'planeador' in request.path %}active{% endif %}"
                  href="{% url 'gestion_academica:planeador_clases' %}">
-                <i class="bi bi-robot"></i> Planeador de Clases (IA)
+                <i class="bi bi-robot"></i> {% trans "Planeador de Clases (IA)" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'planes-semanales' in request.path %}active{% endif %}"
                  href="{% url 'gestion_academica:mis_planes_semanales' %}">
-                <i class="bi bi-calendar-week-fill"></i> Mis Planes Semanales
+                <i class="bi bi-calendar-week-fill"></i> {% trans "Mis Planes Semanales" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}">
-                <i class="bi bi-tags-fill"></i> Categorías de Actividad
+                <i class="bi bi-tags-fill"></i> {% trans "Categorías de Actividad" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_actividades' %}">
-                <i class="bi bi-card-list"></i> Definir Actividades
+                <i class="bi bi-card-list"></i> {% trans "Definir Actividades" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_deberes' %}">
-                <i class="bi bi-journal-check"></i> Gestionar Deberes
+                <i class="bi bi-journal-check"></i> {% trans "Gestionar Deberes" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_descriptores' %}">
-                <i class="bi bi-card-list"></i> Gestionar Descriptores
+                <i class="bi bi-card-list"></i> {% trans "Gestionar Descriptores" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'cuestionarios' in request.path %}active{% endif %}"
                  href="{% url 'cuestionarios:lista' %}">
-                <i class="bi bi-patch-question-fill"></i> Evaluaciones con IA
+                <i class="bi bi-patch-question-fill"></i> {% trans "Evaluaciones con IA" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'simulacros' in request.path %}active{% endif %}"
                  href="{% url 'simulacros:lista_simulacros' %}">
-                <i class="bi bi-journal-check"></i> Simulacros Saber
+                <i class="bi bi-journal-check"></i> {% trans "Simulacros Saber" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'piar' in request.path %}active{% endif %}"
                  href="{% url 'piar:lista_piars' %}">
-                <i class="bi bi-person-hearts"></i> PIARs / Inclusión
+                <i class="bi bi-person-hearts"></i> {% trans "PIARs / Inclusión" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}">
-                <i class="bi bi-pencil-square"></i> Libro de Notas
+                <i class="bi bi-pencil-square"></i> {% trans "Libro de Notas" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/evaluacion-docente/' in request.path %}active{% endif %}"
                  href="{% url 'evaluacion_docente:mi_desempeno' %}">
-                <i class="bi bi-graph-up-arrow"></i> Mi Evaluación
+                <i class="bi bi-graph-up-arrow"></i> {% trans "Mi Evaluación" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_materiales' %}">
-                <i class="bi bi-folder-plus"></i> Materiales de Apoyo
+                <i class="bi bi-folder-plus"></i> {% trans "Materiales de Apoyo" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_menciones' %}">
-                <i class="bi bi-award"></i> Menciones y Honores
+                <i class="bi bi-award"></i> {% trans "Menciones y Honores" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}">
-                <i class="bi bi-eye"></i> Observador
+                <i class="bi bi-eye"></i> {% trans "Observador" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}">
-                <i class="bi bi-graph-up-arrow"></i> Reporte Nota Mínima
+                <i class="bi bi-graph-up-arrow"></i> {% trans "Reporte Nota Mínima" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:reporte_riesgo_global' %}">
-                <i class="bi bi-graph-up-arrow"></i> Reporte Global de Riesgo
+                <i class="bi bi-graph-up-arrow"></i> {% trans "Reporte Global de Riesgo" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:gestionar_disponibilidad' %}">
-                <i class="bi bi-clock-history"></i> Mi Disponibilidad
+                <i class="bi bi-clock-history"></i> {% trans "Mi Disponibilidad" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_para_lecciones' %}">
-                <i class="bi bi-calendar-week"></i> Historial de Lecciones
+                <i class="bi bi-calendar-week"></i> {% trans "Historial de Lecciones" %}
               </a>
             </li>
           </ul>
@@ -815,7 +816,7 @@
            href="#recursosInteractivosDoc" data-bs-toggle="collapse" role="button"
            aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}true{% else %}false{% endif %}"
            aria-controls="recursosInteractivosDoc">
-          <i class="bi bi-controller"></i> Recursos Interactivos
+          <i class="bi bi-controller"></i> {% trans "Recursos Interactivos" %}
           <i class="bi bi-chevron-down float-end"></i>
         </a>
         <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path or 'galeria' in request.path or '/recursos/' in request.path %}show{% endif %}" id="recursosInteractivosDoc">
@@ -823,61 +824,61 @@
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}"
                  href="{% url 'crucigramas:lista' %}">
-                <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+                <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Crucigramas" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/sopa-letras/' in request.path %}active{% endif %}"
                  href="{% url 'sopa_letras:lista' %}">
-                <i class="bi bi-search-heart"></i> Sopas de Letras
+                <i class="bi bi-search-heart"></i> {% trans "Sopas de Letras" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/memoria/' in request.path %}active{% endif %}"
                  href="{% url 'memoria:lista' %}">
-                <i class="bi bi-images"></i> Juegos de Memoria
+                <i class="bi bi-images"></i> {% trans "Juegos de Memoria" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/flashcards/' in request.path %}active{% endif %}"
                  href="{% url 'flashcards:lista' %}">
-                <i class="bi bi-card-image"></i> Flash Cards
+                <i class="bi bi-card-image"></i> {% trans "Flash Cards" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/quiz-audio/' in request.path %}active{% endif %}"
                  href="{% url 'quiz_audio:lista' %}">
-                <i class="bi bi-volume-up-fill"></i> Quiz de Audio
+                <i class="bi bi-volume-up-fill"></i> {% trans "Quiz de Audio" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/secuencias/' in request.path %}active{% endif %}"
                  href="{% url 'secuencias:lista' %}">
-                <i class="bi bi-sort-numeric-down"></i> Ordenar Secuencias
+                <i class="bi bi-sort-numeric-down"></i> {% trans "Ordenar Secuencias" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/trazado/' in request.path %}active{% endif %}"
                  href="{% url 'trazado:lista' %}">
-                <i class="bi bi-pencil-fill"></i> Trazado de Letras
+                <i class="bi bi-pencil-fill"></i> {% trans "Trazado de Letras" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/rompecabezas/' in request.path %}active{% endif %}"
                  href="{% url 'rompecabezas:lista' %}">
-                <i class="bi bi-puzzle-fill"></i> Rompecabezas
+                <i class="bi bi-puzzle-fill"></i> {% trans "Rompecabezas" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'galeria' in request.path %}active{% endif %}"
                  href="{% url 'recursos_educativos:galeria_directa' %}">
-                <i class="bi bi-images"></i> Galería 3D
+                <i class="bi bi-images"></i> {% trans "Galería 3D" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if request.path == '/academico/recursos/' or '/recursos/crear' in request.path or '/entregas' in request.path %}active{% endif %}"
                  href="{% url 'recursos_educativos:lista' %}">
-                <i class="bi bi-boxes"></i> Actividades 3D
+                <i class="bi bi-boxes"></i> {% trans "Actividades 3D" %}
               </a>
             </li>
           </ul>
@@ -885,7 +886,7 @@
       </li>
       <li class="nav-item item-color-3">
         <a class="nav-link" href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}">
-          <i class="bi bi-people-fill"></i> Asistir en Otro Curso
+          <i class="bi bi-people-fill"></i> {% trans "Asistir en Otro Curso" %}
         </a>
       </li>
     {% endif %}
@@ -932,7 +933,7 @@
       <li class="nav-item item-color-3">
         <a class="nav-link {% if 'piar' in request.path %}active{% endif %}"
            href="{% url 'piar:lista_piars' %}">
-          <i class="bi bi-person-hearts"></i> PIARs / Inclusión
+          <i class="bi bi-person-hearts"></i> {% trans "PIARs / Inclusión" %}
         </a>
       </li>
       <li class="nav-item item-color-4">
@@ -940,7 +941,7 @@
            href="#recursosInteractivosCoord" data-bs-toggle="collapse" role="button"
            aria-expanded="{% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path or '/recursos/' in request.path %}true{% else %}false{% endif %}"
            aria-controls="recursosInteractivosCoord">
-          <i class="bi bi-controller"></i> Recursos Interactivos
+          <i class="bi bi-controller"></i> {% trans "Recursos Interactivos" %}
           <i class="bi bi-chevron-down float-end"></i>
         </a>
         <div class="collapse {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path or '/recursos/' in request.path %}show{% endif %}" id="recursosInteractivosCoord">
@@ -948,55 +949,55 @@
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}"
                  href="{% url 'crucigramas:lista' %}">
-                <i class="bi bi-grid-3x3-gap-fill"></i> Crucigramas
+                <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Crucigramas" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/sopa-letras/' in request.path %}active{% endif %}"
                  href="{% url 'sopa_letras:lista' %}">
-                <i class="bi bi-search-heart"></i> Sopas de Letras
+                <i class="bi bi-search-heart"></i> {% trans "Sopas de Letras" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/memoria/' in request.path %}active{% endif %}"
                  href="{% url 'memoria:lista' %}">
-                <i class="bi bi-images"></i> Juegos de Memoria
+                <i class="bi bi-images"></i> {% trans "Juegos de Memoria" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/flashcards/' in request.path %}active{% endif %}"
                  href="{% url 'flashcards:lista' %}">
-                <i class="bi bi-card-image"></i> Flash Cards
+                <i class="bi bi-card-image"></i> {% trans "Flash Cards" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/quiz-audio/' in request.path %}active{% endif %}"
                  href="{% url 'quiz_audio:lista' %}">
-                <i class="bi bi-volume-up-fill"></i> Quiz de Audio
+                <i class="bi bi-volume-up-fill"></i> {% trans "Quiz de Audio" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/secuencias/' in request.path %}active{% endif %}"
                  href="{% url 'secuencias:lista' %}">
-                <i class="bi bi-sort-numeric-down"></i> Ordenar Secuencias
+                <i class="bi bi-sort-numeric-down"></i> {% trans "Ordenar Secuencias" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/trazado/' in request.path %}active{% endif %}"
                  href="{% url 'trazado:lista' %}">
-                <i class="bi bi-pencil-fill"></i> Trazado de Letras
+                <i class="bi bi-pencil-fill"></i> {% trans "Trazado de Letras" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/rompecabezas/' in request.path %}active{% endif %}"
                  href="{% url 'rompecabezas:lista' %}">
-                <i class="bi bi-puzzle-fill"></i> Rompecabezas
+                <i class="bi bi-puzzle-fill"></i> {% trans "Rompecabezas" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/recursos/' in request.path %}active{% endif %}"
                  href="{% url 'recursos_educativos:lista' %}">
-                <i class="bi bi-boxes"></i> Actividades 3D
+                <i class="bi bi-boxes"></i> {% trans "Actividades 3D" %}
               </a>
             </li>
           </ul>
@@ -1069,7 +1070,7 @@
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'tipos-actividad' in request.path %}active{% endif %}"
                  href="{% url 'gestion_academica:lista_tipos_actividad' %}">
-                <i class="bi bi-tags-fill"></i> Categorías de Actividad
+                <i class="bi bi-tags-fill"></i> {% trans "Categorías de Actividad" %}
               </a>
             </li>
             <li class="nav-item">
@@ -1097,7 +1098,7 @@
       <li class="nav-item item-color-3">
         <a class="nav-link {% if request.resolver_match.namespace == 'mensajeria' %}active{% endif %}"
            href="{% url 'mensajeria:inbox' %}">
-          <i class="bi bi-chat-dots-fill"></i> Mensajes
+          <i class="bi bi-chat-dots-fill"></i> {% trans "Mensajes" %}
           <span id="nav-mensajes-badge" class="badge bg-danger ms-1" style="display:none"></span>
         </a>
       </li>

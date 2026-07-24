@@ -120,6 +120,9 @@ msgstr "Activity created successfully."
 msgid "Actividad vinculada"
 msgstr "Activity linked"
 
+msgid "Actividades 3D"
+msgstr "3D Activities"
+
 msgid "Actividades de Cierre"
 msgstr "Closing Activities"
 
@@ -137,6 +140,9 @@ msgstr "Active"
 
 msgid "Actualizado."
 msgstr "Updated."
+
+msgid "Admin Avanzado"
+msgstr "Advanced Admin"
 
 msgid "Agenda de Reuniones con Familias"
 msgstr "Family Meetings Agenda"
@@ -236,6 +242,9 @@ msgstr "Assign the Human Body viewer to one of your courses"
 
 msgid "Asignar Puntaje"
 msgstr "Assign Score"
+
+msgid "Asistir en Otro Curso"
+msgstr "Cover Another Course"
 
 msgid "Audio"
 msgstr "Audio"
@@ -375,6 +384,9 @@ msgstr "Each card: an image and/or a guiding clue + the answer the student must 
 msgid "Calificar ahora"
 msgstr "Grade now"
 
+msgid "Cambiar Contraseña"
+msgstr "Change Password"
+
 msgid "Campaña"
 msgstr "Campaign"
 
@@ -399,11 +411,17 @@ msgstr "Loading date…"
 msgid "Cargando modelo 3D…"
 msgstr "Loading 3D model…"
 
+msgid "Cartelera de Eventos"
+msgstr "Events Board"
+
 msgid "Categoría"
 msgstr "Category"
 
 msgid "Categoría (libro de notas)"
 msgstr "Category (gradebook)"
+
+msgid "Categorías de Actividad"
+msgstr "Activity Categories"
 
 msgid "Categorías de Calificación"
 msgstr "Grading Categories"
@@ -419,6 +437,9 @@ msgstr "Closed"
 
 msgid "Cerrar"
 msgstr "Close"
+
+msgid "Cerrar Sesión"
+msgstr "Log Out"
 
 msgid "Citar"
 msgstr "Schedule"
@@ -464,6 +485,9 @@ msgstr "With feedback"
 
 msgid "Conectando con la IA…"
 msgstr "Connecting to AI…"
+
+msgid "Conexiones de Cuenta"
+msgstr "Account Connections"
 
 msgid "Configura tu disponibilidad para que las familias puedan agendarte."
 msgstr "Set up your availability so families can book a meeting with you."
@@ -650,6 +674,9 @@ msgstr "Decree 1421 of 2017 · Individual Reasonable Accommodations Plan"
 
 msgid "Define los parámetros básicos y la IA generará una planeación detallada para ti."
 msgstr "Set the basic parameters and the AI will generate a detailed lesson plan for you."
+
+msgid "Definir Actividades"
+msgstr "Define Activities"
 
 msgid "Desarchivar"
 msgstr "Unarchive"
@@ -1098,6 +1125,9 @@ msgstr "Student"
 msgid "Estudiante:"
 msgstr "Student:"
 
+msgid "Evaluaciones con IA"
+msgstr "AI Assessments"
+
 msgid "Evaluación"
 msgstr "Evaluation"
 
@@ -1209,6 +1239,9 @@ msgstr "Student's strengths"
 msgid "Galería + Studio"
 msgstr "Gallery + Studio"
 
+msgid "Galería 3D"
+msgstr "3D Gallery"
+
 msgid "Galería 3D — Cuerpo Humano"
 msgstr "3D Gallery — Human Body"
 
@@ -1251,6 +1284,9 @@ msgstr "Manage Course"
 msgid "Gestionar Deberes"
 msgstr "Manage Assignments"
 
+msgid "Gestionar Descriptores"
+msgstr "Manage Descriptors"
+
 msgid "Gestionar cita"
 msgstr "Manage meeting"
 
@@ -1259,6 +1295,9 @@ msgstr "Manage availability"
 
 msgid "Gestionar preguntas"
 msgstr "Manage questions"
+
+msgid "Gestión Académica"
+msgstr "Academic Management"
 
 msgid "Gestión de Mi Banco de Descriptores"
 msgstr "Manage My Descriptor Bank"
@@ -1359,6 +1398,9 @@ msgstr "Facts"
 msgid "Historial de Anotaciones"
 msgstr "Entry History"
 
+msgid "Historial de Lecciones"
+msgstr "Lesson History"
+
 msgid "Historial de Planes"
 msgstr "Plan History"
 
@@ -1403,6 +1445,9 @@ msgstr "General Information"
 
 msgid "Información del Deber"
 msgstr "Assignment Information"
+
+msgid "Ingreso con huella o rostro"
+msgstr "Sign in with fingerprint or face"
 
 msgid "Iniciar: %(cuestionario_titulo)s"
 msgstr "Start: %(cuestionario_titulo)s"
@@ -1608,6 +1653,9 @@ msgstr "Material updated successfully."
 msgid "Material de Apoyo Adjunto:"
 msgstr "Attached Support Material:"
 
+msgid "Materiales de Apoyo"
+msgstr "Support Materials"
+
 msgid "Materiales, tecnologías, personas de apoyo..."
 msgstr "Materials, technologies, support staff..."
 
@@ -1626,6 +1674,9 @@ msgstr "Medium"
 msgid "Menciones"
 msgstr "Recognitions"
 
+msgid "Menciones y Honores"
+msgstr "Recognitions and Honors"
+
 msgid "Mención creada exitosamente."
 msgstr "Recognition created successfully."
 
@@ -1641,11 +1692,20 @@ msgstr "My Descriptor Bank"
 msgid "Mi Disponibilidad"
 msgstr "My Availability"
 
+msgid "Mi Evaluación"
+msgstr "My Evaluation"
+
 msgid "Mi Evaluación Docente"
 msgstr "My Teacher Evaluation"
 
 msgid "Mi Horario Semanal"
 msgstr "My Weekly Schedule"
+
+msgid "Mi Panel Principal"
+msgstr "My Main Panel"
+
+msgid "Mi Perfil"
+msgstr "My Profile"
 
 msgid "Mis Actividades Evaluativas"
 msgstr "My Graded Activities"
@@ -1959,6 +2019,9 @@ msgstr "Notes"
 msgid "Observaciones del Coordinador"
 msgstr "Coordinator's Feedback"
 
+msgid "Observador"
+msgstr "Behavior Record"
+
 msgid "Observador de %(estudiante)s"
 msgstr "%(estudiante)s's Behavior Record"
 
@@ -1989,6 +2052,9 @@ msgstr "Single choice"
 msgid "Orden"
 msgstr "Order"
 
+msgid "Ordenar Secuencias"
+msgstr "Order Sequences"
+
 msgid "Otorgar Mención"
 msgstr "Award Recognition"
 
@@ -2009,6 +2075,9 @@ msgstr "Individual Learning Plan updated successfully."
 
 msgid "PIAR creado exitosamente para %(estudiante)s."
 msgstr "Individual Learning Plan created successfully for %(estudiante)s."
+
+msgid "PIARs / Inclusión"
+msgstr "Individual Learning Plans / Inclusion"
 
 msgid "PIARs — Planes de Ajustes Razonables"
 msgstr "Individual Learning Plans — Reasonable Accommodations"
@@ -2118,6 +2187,9 @@ msgstr "Lesson Plan: %(titulo)s"
 msgid "Planeador IA"
 msgstr "AI Planner"
 
+msgid "Planeador de Clases (IA)"
+msgstr "Lesson Planner (AI)"
+
 msgid "Planeador de Clases con IA"
 msgstr "AI Lesson Planner"
 
@@ -2153,6 +2225,9 @@ msgstr "Questions"
 
 msgid "Preguntas (mínimo 2, máximo 15)"
 msgstr "Questions (minimum 2, maximum 15)"
+
+msgid "Principal"
+msgstr "Main"
 
 msgid "Proceso finalizado. No se importaron descriptores nuevos."
 msgstr "Process finished. No new descriptors were imported."
@@ -2232,6 +2307,9 @@ msgstr "Teaching Resources"
 msgid "Recursos Educativos 3D"
 msgstr "3D Educational Resources"
 
+msgid "Recursos Interactivos"
+msgstr "Interactive Resources"
+
 msgid "Reenviar Plan Corregido"
 msgstr "Resubmit Corrected Plan"
 
@@ -2246,6 +2324,12 @@ msgstr "Re-record"
 
 msgid "Reintentar Generación"
 msgstr "Retry Generation"
+
+msgid "Reporte Global de Riesgo"
+msgstr "Global Risk Report"
+
+msgid "Reporte Nota Mínima"
+msgstr "Minimum Grade Report"
 
 msgid "Reportes"
 msgstr "Reports"
@@ -2492,6 +2576,9 @@ msgstr "Mine only"
 
 msgid "Solo se aceptan archivos Excel con extensión .xlsx"
 msgstr "Only Excel files with .xlsx extension are accepted"
+
+msgid "Sopas de Letras"
+msgstr "Word Search"
 
 msgid "Studio 3D — %(recurso_actividad_ti)s"
 msgstr "3D Studio — %(recurso_actividad_ti)s"
