@@ -1844,7 +1844,15 @@ class CitaReunion(models.Model):
         verbose_name = "Cita de Reunión"
         verbose_name_plural = "Citas de Reuniones"
         ordering = ['fecha_hora_inicio']
-        unique_together = ('docente', 'fecha_hora_inicio')
+        constraints = [
+            # Solo las citas activas (no canceladas) bloquean el horario — una
+            # cita cancelada libera de nuevo ese mismo horario para otro familiar.
+            models.UniqueConstraint(
+                fields=['docente', 'fecha_hora_inicio'],
+                condition=~models.Q(estado='CANCELADA'),
+                name='unique_cita_activa_por_docente_horario',
+            )
+        ]
 
     def __str__(self):
         return f"Cita de {self.familiar} con {self.docente} el {self.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M')}"          
