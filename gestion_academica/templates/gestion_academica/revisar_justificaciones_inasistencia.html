@@ -1,0 +1,170 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+    .badge-pendiente { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: .78rem; padding: .35rem .8rem; border-radius: 20px; }
+    .badge-aprobada  { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-size: .78rem; padding: .35rem .8rem; border-radius: 20px; }
+    .badge-rechazada { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: .78rem; padding: .35rem .8rem; border-radius: 20px; }
+    .filtro-tab { border-radius: 20px; padding: .35rem 1rem; font-size: .85rem; text-decoration:none; }
+    .filtro-tab.activo { background:#0b5ed7; color:#fff; }
+    .filtro-tab:not(.activo) { background:#f1f5f9; color:#475569; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #0d3b66 0%, #1d4ed8 100%); border-radius:18px; padding:1.75rem 2rem; color:white; margin-bottom:1.75rem;">
+    <h2 style="color:#fff;" class="mb-1"><i class="bi bi-file-earmark-medical-fill me-2"></i>{{ titulo_pagina }}</h2>
+    <p style="color:rgba(255,255,255,.85);" class="mb-0">Revisa el motivo y el soporte que subió el estudiante y corrobora su inasistencia.</p>
+</div>
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}success{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+    <a href="?estado=PENDIENTE" class="filtro-tab {% if estado_filtro == 'PENDIENTE' %}activo{% endif %}">Pendientes</a>
+    <a href="?estado=APROBADA" class="filtro-tab {% if estado_filtro == 'APROBADA' %}activo{% endif %}">Aprobadas</a>
+    <a href="?estado=RECHAZADA" class="filtro-tab {% if estado_filtro == 'RECHAZADA' %}activo{% endif %}">Rechazadas</a>
+    <a href="?estado=TODAS" class="filtro-tab {% if estado_filtro == 'TODAS' %}activo{% endif %}">Todas</a>
+</div>
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Estudiante</th>
+                    <th>Grado</th>
+                    <th>Rango de fechas</th>
+                    <th>Motivo</th>
+                    <th>Descripción</th>
+                    <th>Soporte</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for j in justificaciones %}
+                <tr>
+                    <td>{{ j.estudiante.usuario.get_full_name }}</td>
+                    <td>{{ j.estudiante.grado_actual.nombre|default:"—" }}</td>
+                    <td>{{ j.fecha_inicio|date:"d/m/Y" }} — {{ j.fecha_fin|date:"d/m/Y" }}</td>
+                    <td>{{ j.get_motivo_display }}</td>
+                    <td style="max-width:240px;">{{ j.descripcion|truncatewords:15|default:"—" }}</td>
+                    <td>
+                        {% if j.documento_soporte %}
+                            <a href="{{ j.documento_soporte.url }}" target="_blank" rel="noopener"><i class="bi bi-paperclip"></i> Ver</a>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if j.estado_revision == 'PENDIENTE' %}
+                            <span class="badge-pendiente"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>
+                        {% elif j.estado_revision == 'APROBADA' %}
+                            <span class="badge-aprobada"><i class="bi bi-check-circle-fill me-1"></i>Aprobada</span>
+                        {% else %}
+                            <span class="badge-rechazada"><i class="bi bi-x-circle-fill me-1"></i>Rechazada</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end text-nowrap">
+                        {% if j.estado_revision == 'PENDIENTE' %}
+                            <button type="button" class="btn btn-sm btn-success me-1"
+                                    data-bs-toggle="modal" data-bs-target="#modalAprobar"
+                                    data-action="{% url 'gestion_academica:aprobar_justificacion_inasistencia' j.pk %}"
+                                    data-nombre="{{ j.estudiante.usuario.get_full_name }}">
+                                <i class="bi bi-check-lg"></i> Aprobar
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal" data-bs-target="#modalRechazar"
+                                    data-action="{% url 'gestion_academica:rechazar_justificacion_inasistencia' j.pk %}"
+                                    data-nombre="{{ j.estudiante.usuario.get_full_name }}">
+                                <i class="bi bi-x-lg"></i> Rechazar
+                            </button>
+                        {% else %}
+                            <span class="text-muted small">
+                                {{ j.get_estado_revision_display }} por {{ j.revisado_por.get_full_name|default:j.revisado_por.username }}
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted p-4">No hay justificaciones en este filtro.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- ===== MODAL: Aprobar ===== -->
+<div class="modal fade" id="modalAprobar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div style="width:48px;height:48px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-check-circle-fill" style="color:#16a34a;font-size:1.2rem;"></i>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <h5 class="fw-800 mb-1">¿Aprobar esta justificación?</h5>
+                <p id="modal-aprobar-nombre" class="text-muted mb-2" style="font-size:.88rem;"></p>
+                <p class="text-muted mb-2" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>Las inasistencias/tardanzas del rango pasarán a estado "Justificado".</p>
+                <form id="form-aprobar" method="post">
+                    {% csrf_token %}
+                    <label class="form-label small">Observaciones (opcional)</label>
+                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="form-aprobar" class="btn btn-success btn-sm"><i class="bi bi-check-lg me-1"></i>Sí, aprobar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ===== MODAL: Rechazar ===== -->
+<div class="modal fade" id="modalRechazar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-x-circle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <h5 class="fw-800 mb-1">¿Rechazar esta justificación?</h5>
+                <p id="modal-rechazar-nombre" class="text-muted mb-2" style="font-size:.88rem;"></p>
+                <form id="form-rechazar" method="post">
+                    {% csrf_token %}
+                    <label class="form-label small">Motivo del rechazo</label>
+                    <textarea name="observaciones" class="form-control" rows="2" required></textarea>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="form-rechazar" class="btn btn-danger btn-sm"><i class="bi bi-x-lg me-1"></i>Sí, rechazar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('[data-bs-target="#modalAprobar"]').forEach(btn => {
+    btn.addEventListener('click', function () {
+        document.getElementById('form-aprobar').action = this.dataset.action;
+        document.getElementById('modal-aprobar-nombre').textContent = this.dataset.nombre || '';
+    });
+});
+document.querySelectorAll('[data-bs-target="#modalRechazar"]').forEach(btn => {
+    btn.addEventListener('click', function () {
+        document.getElementById('form-rechazar').action = this.dataset.action;
+        document.getElementById('modal-rechazar-nombre').textContent = this.dataset.nombre || '';
+    });
+});
+</script>
+{% endblock %}

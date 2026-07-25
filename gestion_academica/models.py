@@ -1248,6 +1248,76 @@ class RegistroAsistencia(models.Model):
             self.aula = self.curso.aula  # ✅ Autocompleta aula desde el curso
         super().save(*args, **kwargs)
 
+
+def ruta_documento_justificacion_inasistencia(instance, filename):
+    """Ej: soportes_inasistencia/45-ana-gomez/incapacidad.pdf — evita colisiones de nombres."""
+    nombre_limpio = "".join(
+        c for c in instance.estudiante.usuario.get_full_name().lower() if c.isalnum() or c in (' ', '_')
+    ).rstrip()
+    return f"soportes_inasistencia/{instance.estudiante_id}-{nombre_limpio}/{filename}"
+
+
+class JustificacionInasistencia(models.Model):
+    """
+    Justificación (médica u otro motivo) que un estudiante sube desde su
+    portal para uno o varios días en los que el sistema ya marcó — o
+    marcará — inasistencias/tardanzas suyas. Docentes de los cursos
+    involucrados y coordinación revisan y aprueban/rechazan; al aprobar,
+    los RegistroAsistencia relacionados pasan a estado 'JUSTIFICADO'.
+    """
+
+    class Motivo(models.TextChoices):
+        MEDICA = 'MEDICA', 'Incapacidad médica'
+        FAMILIAR = 'FAMILIAR', 'Motivo familiar'
+        OTRO = 'OTRO', 'Otro motivo'
+
+    class EstadoRevision(models.TextChoices):
+        PENDIENTE = 'PENDIENTE', 'Pendiente de revisión'
+        APROBADA = 'APROBADA', 'Aprobada'
+        RECHAZADA = 'RECHAZADA', 'Rechazada'
+
+    estudiante = models.ForeignKey(
+        Estudiante, on_delete=models.CASCADE, related_name='justificaciones_inasistencia'
+    )
+    institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, editable=False)
+    fecha_inicio = models.DateField(verbose_name="Desde")
+    fecha_fin = models.DateField(verbose_name="Hasta")
+    motivo = models.CharField(max_length=10, choices=Motivo.choices, verbose_name="Motivo")
+    descripcion = models.TextField(blank=True, verbose_name="Descripción")
+    documento_soporte = models.FileField(
+        upload_to=ruta_documento_justificacion_inasistencia, null=True, blank=True,
+        verbose_name="Soporte (incapacidad, certificado, etc.)",
+    )
+    estado_revision = models.CharField(
+        max_length=10, choices=EstadoRevision.choices, default=EstadoRevision.PENDIENTE
+    )
+    revisado_por = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
+    fecha_revision = models.DateTimeField(null=True, blank=True)
+    observaciones_revision = models.TextField(blank=True, verbose_name="Observaciones de quien revisa")
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Justificación de Inasistencia"
+        verbose_name_plural = "Justificaciones de Inasistencia"
+        ordering = ['-creado_en']
+
+    def __str__(self):
+        return f"{self.estudiante} — {self.fecha_inicio} a {self.fecha_fin} ({self.get_estado_revision_display()})"
+
+    def registros_relacionados(self):
+        """RegistroAsistencia del estudiante en el rango cuyo estado amerita justificación.
+        Se resuelve dinámicamente (no se guarda snapshot) para no perder inasistencias
+        que el docente registre después de que el estudiante ya haya enviado la justificación."""
+        return RegistroAsistencia.objects.filter(
+            estudiante=self.estudiante,
+            fecha_solo__gte=self.fecha_inicio,
+            fecha_solo__lte=self.fecha_fin,
+            estado__in=['AUSENTE', 'TARDANZA'],
+        )
+
+
 class EnlaceVideollamada(models.Model):
     curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='enlaces_videollamada')
     titulo = models.CharField(max_length=200, verbose_name="Título del Enlace")

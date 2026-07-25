@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.template.loader import get_template, render_to_string
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect, Http404, HttpResponseForbidden
-from django.db.models import Q, Prefetch, Func, Count
+from django.db.models import Q, Prefetch, Func, Count, Exists, OuterRef
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin 
@@ -124,6 +124,7 @@ from ..models import (
     MallaCurricular,
     PlanSemanal,
     CaracterizacionEstudiante,
+    JustificacionInasistencia,
 )
 
 from finanzas.models import InstitucionEducativa 
@@ -174,7 +175,8 @@ from ..forms import (
     PlaneacionClaseForm,
     LeccionDiariaIaForm,
     CandidatoForm,
-    UserEditForm, UserPasswordChangeForm
+    UserEditForm, UserPasswordChangeForm,
+    JustificacionInasistenciaForm,
 
 )
 from cuestionarios.models import IntentoCuestionario
@@ -3490,6 +3492,265 @@ def mi_historial_asistencia(request):
     
     # Esta vista usará la plantilla 'mi_historial_asistencia.html' que ya creamos.
     return render(request, 'gestion_academica/mi_historial_asistencia.html', context)
+
+
+# ─── Justificación de inasistencias — Estudiante ─────────────────────────────
+
+class MisJustificacionesInasistenciaListView(LoginRequiredMixin, ListView):
+    model = JustificacionInasistencia
+    template_name = 'gestion_academica/estudiante_mis_justificaciones.html'
+    context_object_name = 'justificaciones'
+
+    def get_queryset(self):
+        try:
+            estudiante = self.request.user.estudiante
+        except Estudiante.DoesNotExist:
+            return JustificacionInasistencia.objects.none()
+        return JustificacionInasistencia.objects.filter(estudiante=estudiante)
+
+
+class CrearJustificacionInasistenciaView(LoginRequiredMixin, CreateView):
+    model = JustificacionInasistencia
+    form_class = JustificacionInasistenciaForm
+    template_name = 'gestion_academica/justificacion_inasistencia_formulario.html'
+    success_url = reverse_lazy('gestion_academica:mis_justificaciones_inasistencia')
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and not hasattr(request.user, 'estudiante'):
+            messages.error(request, "Tu perfil de estudiante no está configurado.")
+            return redirect('gestion_academica:inicio_academico')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        estudiante = self.request.user.estudiante
+        form.instance.estudiante = estudiante
+        form.instance.institucion = estudiante.institucion
+        messages.success(
+            self.request,
+            "Tu justificación fue enviada. Quedará pendiente hasta que un docente o coordinación la revise."
+        )
+        response = super().form_valid(form)
+        from django.db import transaction
+        transaction.on_commit(lambda pk=self.object.pk: _notificar_nueva_justificacion_inasistencia(pk))
+        return response
+
+
+# ─── Justificación de inasistencias — Docente / Coordinación ────────────────
+
+def _cursos_del_docente(user):
+    if not hasattr(user, 'docente'):
+        return Curso.objects.none()
+    return Curso.objects.filter(docentes_asignados=user.docente)
+
+
+def _puede_revisar_justificacion(user, justificacion):
+    if user.is_superuser:
+        return True
+    rol = getattr(user, 'rol', '') or ''
+    if rol in ('coordinador', 'administrador', 'admin_institucion'):
+        return getattr(user, 'institucion_asociada_id', None) == justificacion.institucion_id
+    if rol == 'docente':
+        cursos_ids = _cursos_del_docente(user).values_list('id', flat=True)
+        return justificacion.registros_relacionados().filter(curso_id__in=cursos_ids).exists()
+    return False
+
+
+@login_required
+def revisar_justificaciones_inasistencia(request):
+    """Bandeja de justificaciones de inasistencia para docentes (solo las de sus
+    cursos) y coordinación/administración (todas las de su institución)."""
+    institucion = request.user.institucion_asociada
+    rol = getattr(request.user, 'rol', '') or ''
+
+    if request.user.is_superuser:
+        qs = JustificacionInasistencia.objects.all()
+    elif rol in ('coordinador', 'administrador', 'admin_institucion'):
+        if not institucion:
+            qs = JustificacionInasistencia.objects.none()
+        else:
+            qs = JustificacionInasistencia.objects.filter(institucion=institucion)
+    elif rol == 'docente':
+        cursos_ids = _cursos_del_docente(request.user).values_list('id', flat=True)
+        registros_relevantes = RegistroAsistencia.objects.filter(
+            estudiante_id=OuterRef('estudiante_id'),
+            curso_id__in=cursos_ids,
+            estado__in=['AUSENTE', 'TARDANZA'],
+            fecha_solo__gte=OuterRef('fecha_inicio'),
+            fecha_solo__lte=OuterRef('fecha_fin'),
+        )
+        qs = JustificacionInasistencia.objects.filter(institucion=institucion).annotate(
+            _visible=Exists(registros_relevantes)
+        ).filter(_visible=True)
+    else:
+        qs = JustificacionInasistencia.objects.none()
+
+    estado_filtro = request.GET.get('estado', 'PENDIENTE')
+    if estado_filtro in ('PENDIENTE', 'APROBADA', 'RECHAZADA'):
+        qs = qs.filter(estado_revision=estado_filtro)
+
+    justificaciones = qs.select_related(
+        'estudiante__usuario', 'estudiante__grado_actual', 'revisado_por'
+    ).order_by('-creado_en')
+
+    context = {
+        'titulo_pagina': 'Justificaciones de Inasistencia',
+        'justificaciones': justificaciones,
+        'estado_filtro': estado_filtro,
+    }
+    return render(request, 'gestion_academica/revisar_justificaciones_inasistencia.html', context)
+
+
+@login_required
+@require_POST
+def aprobar_justificacion_inasistencia(request, pk):
+    filtro_institucion = {} if request.user.is_superuser else {'institucion': request.user.institucion_asociada}
+    justificacion = get_object_or_404(JustificacionInasistencia, pk=pk, **filtro_institucion)
+    if not _puede_revisar_justificacion(request.user, justificacion):
+        messages.error(request, "No tienes permiso para revisar esta justificación.")
+        return redirect('gestion_academica:revisar_justificaciones_inasistencia')
+
+    if justificacion.estado_revision != JustificacionInasistencia.EstadoRevision.PENDIENTE:
+        messages.warning(request, "Esta justificación ya fue revisada.")
+        return redirect('gestion_academica:revisar_justificaciones_inasistencia')
+
+    total = justificacion.registros_relacionados().update(estado='JUSTIFICADO')
+    justificacion.estado_revision = JustificacionInasistencia.EstadoRevision.APROBADA
+    justificacion.revisado_por = request.user
+    justificacion.fecha_revision = timezone.now()
+    justificacion.observaciones_revision = request.POST.get('observaciones', '')
+    justificacion.save(update_fields=[
+        'estado_revision', 'revisado_por', 'fecha_revision', 'observaciones_revision'
+    ])
+    messages.success(
+        request,
+        f"Justificación aprobada. {total} registro(s) de asistencia se marcaron como Justificado."
+    )
+    _notificar_revision_justificacion_inasistencia(justificacion.pk)
+    return redirect('gestion_academica:revisar_justificaciones_inasistencia')
+
+
+@login_required
+@require_POST
+def rechazar_justificacion_inasistencia(request, pk):
+    filtro_institucion = {} if request.user.is_superuser else {'institucion': request.user.institucion_asociada}
+    justificacion = get_object_or_404(JustificacionInasistencia, pk=pk, **filtro_institucion)
+    if not _puede_revisar_justificacion(request.user, justificacion):
+        messages.error(request, "No tienes permiso para revisar esta justificación.")
+        return redirect('gestion_academica:revisar_justificaciones_inasistencia')
+
+    if justificacion.estado_revision != JustificacionInasistencia.EstadoRevision.PENDIENTE:
+        messages.warning(request, "Esta justificación ya fue revisada.")
+        return redirect('gestion_academica:revisar_justificaciones_inasistencia')
+
+    justificacion.estado_revision = JustificacionInasistencia.EstadoRevision.RECHAZADA
+    justificacion.revisado_por = request.user
+    justificacion.fecha_revision = timezone.now()
+    justificacion.observaciones_revision = request.POST.get('observaciones', '')
+    justificacion.save(update_fields=[
+        'estado_revision', 'revisado_por', 'fecha_revision', 'observaciones_revision'
+    ])
+    messages.success(request, "Justificación rechazada.")
+    _notificar_revision_justificacion_inasistencia(justificacion.pk)
+    return redirect('gestion_academica:revisar_justificaciones_inasistencia')
+
+
+def _notificar_nueva_justificacion_inasistencia(justificacion_pk):
+    """Avisa (BD + WebSocket) a los docentes de los cursos involucrados y a
+    coordinación/administración de la institución que hay una justificación
+    de inasistencia nueva pendiente de revisar."""
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    from admisiones.utils import build_absolute_site_uri
+
+    try:
+        justificacion = JustificacionInasistencia.objects.select_related(
+            'estudiante__usuario', 'institucion'
+        ).get(pk=justificacion_pk)
+    except JustificacionInasistencia.DoesNotExist:
+        return
+
+    est_nombre = justificacion.estudiante.usuario.get_full_name() or justificacion.estudiante.usuario.username
+    mensaje = (
+        f"{est_nombre} envió una justificación de inasistencia "
+        f"({justificacion.get_motivo_display()}) del {justificacion.fecha_inicio} al {justificacion.fecha_fin}."
+    )[:255]
+
+    rel_url = reverse('gestion_academica:revisar_justificaciones_inasistencia')
+    enlace_abs = build_absolute_site_uri(rel_url)
+
+    cursos_ids = justificacion.registros_relacionados().values_list('curso_id', flat=True).distinct()
+    destinatarios = Usuario.objects.filter(
+        Q(docente__cursos_impartidos__id__in=cursos_ids)
+        | Q(institucion_asociada=justificacion.institucion, rol__in=['coordinador', 'administrador', 'admin_institucion'])
+    ).distinct()
+
+    channel_layer = get_channel_layer()
+    for user in destinatarios:
+        Notificacion.objects.create(
+            destinatario=user, mensaje=mensaje, enlace=enlace_abs, institucion=justificacion.institucion,
+        )
+        try:
+            if channel_layer is not None:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{user.pk}",
+                    {
+                        "type": "send_notification",
+                        "kind": "justificacion_inasistencia_nueva",
+                        "title": "Nueva justificación de inasistencia",
+                        "message": mensaje,
+                        "url": rel_url,
+                        "severity": "info",
+                        "institucion_id": justificacion.institucion_id,
+                    },
+                )
+        except Exception as e:
+            logger.error("WS notificación nueva justificación de inasistencia: %s", e, exc_info=True)
+
+
+def _notificar_revision_justificacion_inasistencia(justificacion_pk):
+    """Avisa (BD + WebSocket) al estudiante que su justificación fue aprobada o rechazada."""
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    from admisiones.utils import build_absolute_site_uri
+
+    try:
+        justificacion = JustificacionInasistencia.objects.select_related(
+            'estudiante__usuario', 'institucion'
+        ).get(pk=justificacion_pk)
+    except JustificacionInasistencia.DoesNotExist:
+        return
+
+    estudiante_user = justificacion.estudiante.usuario
+    aprobada = justificacion.estado_revision == JustificacionInasistencia.EstadoRevision.APROBADA
+    mensaje = (
+        f"Tu justificación del {justificacion.fecha_inicio} al {justificacion.fecha_fin} fue "
+        f"{'aprobada' if aprobada else 'rechazada'}."
+    )[:255]
+
+    rel_url = reverse('gestion_academica:mis_justificaciones_inasistencia')
+    enlace_abs = build_absolute_site_uri(rel_url)
+
+    Notificacion.objects.create(
+        destinatario=estudiante_user, mensaje=mensaje, enlace=enlace_abs, institucion=justificacion.institucion,
+    )
+    try:
+        channel_layer = get_channel_layer()
+        if channel_layer is not None:
+            async_to_sync(channel_layer.group_send)(
+                f"user_{estudiante_user.pk}",
+                {
+                    "type": "send_notification",
+                    "kind": "justificacion_inasistencia_revisada",
+                    "title": "Justificación revisada",
+                    "message": mensaje,
+                    "url": rel_url,
+                    "severity": "success" if aprobada else "warning",
+                    "institucion_id": justificacion.institucion_id,
+                },
+            )
+    except Exception as e:
+        logger.error("WS notificación revisión justificación de inasistencia: %s", e, exc_info=True)
+
 
 @login_required
 @permission_required('gestion_academica.view_registroasistencia')

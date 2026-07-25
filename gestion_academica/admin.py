@@ -26,6 +26,7 @@ from .models import (
     ConfiguracionCortePreventivo, CortePreventivo,
     ResultadoCorteEstudiante, DetalleMateriaCortePrev,
     DBAPredefinido, EventoInstitucional,
+    JustificacionInasistencia,
 )
 from import_export import resources
 
@@ -212,6 +213,18 @@ class RegistroAsistenciaAdmin(InstitucionScopedAdminMixin, ImportExportModelAdmi
     )
     date_hierarchy = 'fecha_solo'
     autocomplete_fields = ['estudiante', 'curso', 'registrado_por']
+
+@admin.register(JustificacionInasistencia)
+class JustificacionInasistenciaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('estudiante', 'fecha_inicio', 'fecha_fin', 'motivo', 'estado_revision', 'revisado_por')
+    list_filter = ('estado_revision', 'motivo', 'institucion')
+    search_fields = (
+        'estudiante__usuario__username',
+        'estudiante__usuario__first_name',
+        'estudiante__usuario__last_name',
+    )
+    date_hierarchy = 'creado_en'
+    autocomplete_fields = ['estudiante', 'revisado_por']
 
 @admin.register(Docente)
 class DocenteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):

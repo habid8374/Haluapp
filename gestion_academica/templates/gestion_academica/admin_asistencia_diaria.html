@@ -128,6 +128,10 @@
         <span class="ps-hero-badge">
           <i class="bi bi-calendar3 me-1"></i>{{ fecha_consultada|date:"d/m/Y" }}
         </span>
+        <a href="{% url 'gestion_academica:revisar_justificaciones_inasistencia' %}"
+           class="btn btn-light fw-bold" style="border-radius:9px;color:var(--ps-dark);font-size:.85rem;">
+          <i class="bi bi-file-earmark-medical-fill me-1"></i> Justificaciones
+        </a>
         {% if asistencia_data %}
         <a href="{% url 'gestion_academica:exportar_asistencia_diaria_excel' %}?fecha={{ fecha_consultada|date:'Y-m-d' }}"
            class="btn btn-light fw-bold" style="border-radius:9px;color:var(--ps-dark);font-size:.85rem;">

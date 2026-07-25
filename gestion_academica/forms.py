@@ -16,7 +16,8 @@ from .models import (
     DescriptorLogro, AnotacionObservador, DisponibilidadDocente, CitaReunion,
     Pregunta, Opcion, Eleccion, Aula, AreaAcademica, NivelEscolaridad,
     DimensionDesarrollo, EscalaCualitativa, LogroPreescolar, TicketSoporte,
-    RespuestaTicket, PlaneacionClase, Candidato, CaracterizacionEstudiante
+    RespuestaTicket, PlaneacionClase, Candidato, CaracterizacionEstudiante,
+    JustificacionInasistencia,
 )
 
 
@@ -1586,3 +1587,75 @@ class HaluPasswordResetForm(_PasswordResetForm):
                 "HaluPasswordResetForm: no se pudo enviar el correo de "
                 "restablecimiento a %s.", to_email,
             )
+
+
+# --- Validación de soportes subidos en el portal del estudiante ---
+# Mismo criterio (extensión + tamaño + tipo MIME real por magic bytes) que
+# admisiones._validar_archivo_documento, para no confiar solo en lo que el
+# navegador declara.
+JUSTIFICACION_INASISTENCIA_MAX_BYTES = 10 * 1024 * 1024  # 10 MB
+JUSTIFICACION_INASISTENCIA_EXTENSIONES = {"pdf", "jpg", "jpeg", "png", "webp", "doc", "docx"}
+JUSTIFICACION_INASISTENCIA_MIME_REALES = {
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
+
+
+class JustificacionInasistenciaForm(forms.ModelForm):
+    class Meta:
+        model = JustificacionInasistencia
+        fields = ['fecha_inicio', 'fecha_fin', 'motivo', 'descripcion', 'documento_soporte']
+        widgets = {
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'motivo': forms.Select(attrs={'class': 'form-select'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        labels = {
+            'fecha_inicio': 'Desde',
+            'fecha_fin': 'Hasta',
+            'motivo': 'Motivo',
+            'descripcion': 'Cuéntanos qué pasó (opcional si adjuntas soporte)',
+            'documento_soporte': 'Soporte (incapacidad médica, certificado, etc. — opcional)',
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        inicio, fin = cleaned.get('fecha_inicio'), cleaned.get('fecha_fin')
+        if inicio and fin and fin < inicio:
+            raise ValidationError("La fecha 'Hasta' no puede ser anterior a la fecha 'Desde'.")
+        return cleaned
+
+    def clean_documento_soporte(self):
+        archivo = self.cleaned_data.get('documento_soporte')
+        if not archivo or not hasattr(archivo, 'size'):
+            return archivo  # sin archivo nuevo, o no se modificó
+
+        if archivo.size > JUSTIFICACION_INASISTENCIA_MAX_BYTES:
+            raise ValidationError("El archivo supera el tamaño máximo permitido (10 MB).")
+
+        nombre = (archivo.name or "").lower()
+        extension = nombre.rsplit(".", 1)[-1] if "." in nombre else ""
+        if extension not in JUSTIFICACION_INASISTENCIA_EXTENSIONES:
+            raise ValidationError("Formato no permitido. Usa PDF, imagen (JPG/PNG/WEBP) o Word (DOC/DOCX).")
+
+        try:
+            import magic as _magic
+            archivo.seek(0)
+            header = archivo.read(2048)
+            archivo.seek(0)
+            mime_real = _magic.from_buffer(header, mime=True)
+            if mime_real not in JUSTIFICACION_INASISTENCIA_MIME_REALES:
+                raise ValidationError(
+                    f"El contenido del archivo no corresponde al formato declarado. Tipo detectado: {mime_real}."
+                )
+        except ImportError:
+            content_type = (getattr(archivo, "content_type", "") or "").lower()
+            valid_mime_fallback = JUSTIFICACION_INASISTENCIA_MIME_REALES | {"application/octet-stream"}
+            if content_type and content_type not in valid_mime_fallback:
+                raise ValidationError("El tipo de archivo no coincide con los formatos permitidos.")
+        return archivo

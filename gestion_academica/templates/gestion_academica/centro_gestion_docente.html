@@ -230,6 +230,20 @@
         </div>
       </div>
     </div>
+    <div class="col-sm-6 col-lg-4">
+      <div class="cg-card cgc-amber">
+        <div class="cg-card-top">
+          <div class="cgc-icon"><i class="bi bi-file-earmark-medical-fill"></i></div>
+          <div class="cgc-title">{% trans "Justificaciones de Inasistencia" %}</div>
+          <div class="cgc-desc">{% trans "Revisa y aprueba o rechaza el motivo (médico u otro) que un estudiante subió para justificar sus faltas." %}</div>
+        </div>
+        <div class="cg-card-foot">
+          <a href="{% url 'gestion_academica:revisar_justificaciones_inasistencia' %}" class="cgc-link">
+            {% trans "Revisar Justificaciones" %} <i class="bi bi-arrow-right-short"></i>
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="cg-sec">
     <div class="cgs-icon" style="background:#fef2f2;color:#dc2626;"><i class="bi bi-shield-check"></i></div>

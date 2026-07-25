@@ -1883,6 +1883,9 @@ msgstr "Thursday"
 msgid "Jugados"
 msgstr "Played"
 
+msgid "Justificaciones de Inasistencia"
+msgstr "Absence Justifications"
+
 msgid "Justificado"
 msgstr "Excused"
 
@@ -2966,8 +2969,14 @@ msgstr "Grade Summary: {{ grado }}"
 msgid "Resumen del Plan"
 msgstr "Plan Summary"
 
+msgid "Revisa y aprueba o rechaza el motivo (médico u otro) que un estudiante subió para justificar sus faltas."
+msgstr "Review and approve or reject the reason (medical or other) a student submitted to justify their absences."
+
 msgid "Revisar"
 msgstr "Review"
+
+msgid "Revisar Justificaciones"
+msgstr "Review Justifications"
 
 msgid "Revisión de %(estudiante)s"
 msgstr "%(estudiante)s's Review"
