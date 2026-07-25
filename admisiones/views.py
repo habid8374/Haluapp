@@ -908,7 +908,7 @@ def lote_importacion_errores_excel(request, lote_id):
     with pd.ExcelWriter(
         output,
         engine='xlsxwriter',
-        options={'strings_to_formulas': False},
+        engine_kwargs={'options': {'strings_to_formulas': False}},
     ) as writer:
         df.to_excel(writer, index=False, sheet_name='Incidencias')
     output.seek(0)
@@ -962,7 +962,7 @@ def exportar_matriculados_excel(request):
     with pd.ExcelWriter(
         output,
         engine='xlsxwriter',
-        options={'strings_to_formulas': False},
+        engine_kwargs={'options': {'strings_to_formulas': False}},
     ) as writer:
         df.to_excel(writer, index=False, sheet_name='Matriculados')
     
