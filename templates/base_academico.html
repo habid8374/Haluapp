@@ -361,6 +361,12 @@
           <i class="bi bi-file-earmark-text-fill"></i> Mi Boletín
         </a>
       </li>
+      <li class="nav-item item-color-6">
+        <a class="nav-link {% if 'historial-asistencia' in request.path or 'justificaciones' in request.path or 'justificar-inasistencia' in request.path %}active{% endif %}"
+           href="{% url 'gestion_academica:mi_historial_asistencia' %}">
+          <i class="bi bi-calendar-check-fill"></i> Mi Asistencia
+        </a>
+      </li>
       <li class="nav-item item-color-5">
         <a class="nav-link" href="{% url 'elearning:catalogo' %}">
           <i class="bi bi-laptop"></i> E-learning
