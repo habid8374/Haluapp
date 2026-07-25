@@ -4880,18 +4880,27 @@ class DocenteDescriptorListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         """
-        Filtra los descriptores para mostrar solo los creados por el docente
-        logueado y que pertenecen a su institución.
+        Muestra el banco de logros de las materias y grados que el docente
+        tiene asignados (los mismos que ya se usan en el boletín), sin
+        importar quién los creó — así el docente ve lo que ya existe antes
+        de decidir si crea uno propio. Editar/eliminar sigue restringido a
+        los descriptores que él mismo creó (ver Update/DeleteView).
         """
         try:
-            # Obtenemos la institución a través del perfil del docente
-            institucion_actual = self.request.user.docente.institucion
-            
-            # --- LÍNEA CORREGIDA ---
-            # Filtramos 'creado_por' usando el objeto de usuario directamente.
+            docente = self.request.user.docente
+            institucion_actual = docente.institucion
+            cursos_docente = Curso.objects.filter(
+                docentes_asignados=docente, periodo_academico__activo=True
+            )
+            materias_ids = cursos_docente.values_list('materia_id', flat=True).distinct()
+            grados_ids = cursos_docente.values_list('grado_id', flat=True).distinct()
             return DescriptorLogro.objects.filter(
-                institucion=institucion_actual, 
-                creado_por=self.request.user  # <-- ¡AQUÍ ESTÁ EL CAMBIO!
+                institucion=institucion_actual,
+                materia_id__in=materias_ids,
+            ).filter(
+                Q(grado_id__in=grados_ids) | Q(grado__isnull=True)
+            ).select_related('materia', 'periodo_academico', 'grado', 'creado_por').order_by(
+                'materia__nombre_materia', 'periodo_academico__nombre'
             )
         except (AttributeError, Docente.DoesNotExist):
             return DescriptorLogro.objects.none()

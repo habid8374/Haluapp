@@ -392,6 +392,9 @@ msgstr "You haven't uploaded any materials yet."
 msgid "Aún no hay datos de riesgo"
 msgstr "No risk data yet"
 
+msgid "Aún no hay descriptores para tus materias y grados. <br>\n                            Usa el botón \"Crear uno por uno\" o la plantilla de carga masiva para empezar."
+msgstr "There are no descriptors yet for your subjects and grades. <br>\n                            Use the \"Create one by one\" button or the bulk upload template to get started."
+
 msgid "Aún no hay preguntas."
 msgstr "No questions yet."
 
@@ -406,6 +409,9 @@ msgstr "Low"
 
 msgid "Bajo (1.0–2.9)"
 msgstr "Low (1.0–2.9)"
+
+msgid "Banco de Logros de mis Materias y Grados"
+msgstr "Achievement Bank for My Subjects and Grades"
 
 msgid "Banco de Preguntas"
 msgstr "Question Bank"
@@ -691,6 +697,9 @@ msgstr "Create an activity and assign it to a category with its percentage weigh
 
 msgid "Crea y gestiona simulacros para tus estudiantes"
 msgstr "Create and manage mock exams for your students"
+
+msgid "Creado por"
+msgstr "Created by"
 
 msgid "Crear Actividad y Vincular al Plan"
 msgstr "Create Activity and Link to Plan"
@@ -1789,6 +1798,9 @@ msgstr "Print (block letters)"
 
 msgid "Imprimir malla"
 msgstr "Print curriculum map"
+
+msgid "Incluye los descriptores ya creados por ti o por otros docentes/coordinación para las materias y grados que tienes asignados. Si no quieres usar alguno, crea el tuyo propio con los botones de arriba."
+msgstr "Includes descriptors already created by you or by other teachers/coordination for the subjects and grades you're assigned. If you don't want to use one, create your own with the buttons above."
 
 msgid "Indicadores de Desempeño"
 msgstr "Performance Indicators"
@@ -3439,6 +3451,9 @@ msgstr "Quiz title"
 
 msgid "Título:"
 msgstr "Title:"
+
+msgid "Tú"
+msgstr "You"
 
 msgid "Una vez enviado, <strong>no podrás editarlo</strong> hasta que el coordinador lo revise."
 msgstr "Once submitted, <strong>you won't be able to edit it</strong> until the coordinator reviews it."

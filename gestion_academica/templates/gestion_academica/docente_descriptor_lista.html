@@ -45,7 +45,9 @@
             </div>
         {% endfor %}
     {% endif %}
-    <h3 class="mb-3 h4">{% trans "Listado Actual" %}</h3>
+    {% trans "Todos los grados" as todos_grados %}
+    <h3 class="mb-3 h4">{% trans "Banco de Logros de mis Materias y Grados" %}</h3>
+    <p class="text-muted small">{% trans "Incluye los descriptores ya creados por ti o por otros docentes/coordinación para las materias y grados que tienes asignados. Si no quieres usar alguno, crea el tuyo propio con los botones de arriba." %}</p>
     <div class="card shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
@@ -53,7 +55,9 @@
                     <tr>
                         <th>{% trans "Descripción" %}</th>
                         <th>{% trans "Materia" %}</th>
+                        <th>{% trans "Grado" %}</th>
                         <th>{% trans "Periodo" %}</th>
+                        <th>{% trans "Creado por" %}</th>
                         <th class="text-end">{% trans "Acciones" %}</th>
                     </tr>
                 </thead>
@@ -62,16 +66,28 @@
                     <tr>
                         <td>{{ item.descripcion|truncatewords:12 }}</td>
                         <td>{{ item.materia.nombre_materia }}</td>
+                        <td>{{ item.grado.nombre|default:todos_grados }}</td>
                         <td>{{ item.periodo_academico }}</td>
+                        <td>
+                            {% if item.creado_por == request.user %}
+                                <span class="badge bg-primary-subtle text-primary-emphasis">{% trans "Tú" %}</span>
+                            {% else %}
+                                {{ item.creado_por.get_full_name|default:item.creado_por.username }}
+                            {% endif %}
+                        </td>
                         <td class="text-end">
-                            <a href="{% url 'gestion_academica:docente_editar_descriptor' pk=item.pk %}" class="btn btn-sm btn-warning" title="{% trans 'Editar' %}"><i class="bi bi-pencil-fill"></i></a>
-                            <a href="{% url 'gestion_academica:docente_eliminar_descriptor' pk=item.pk %}" class="btn btn-sm btn-danger" title="{% trans 'Eliminar' %}"><i class="bi bi-trash-fill"></i></a>
+                            {% if item.creado_por == request.user %}
+                                <a href="{% url 'gestion_academica:docente_editar_descriptor' pk=item.pk %}" class="btn btn-sm btn-warning" title="{% trans 'Editar' %}"><i class="bi bi-pencil-fill"></i></a>
+                                <a href="{% url 'gestion_academica:docente_eliminar_descriptor' pk=item.pk %}" class="btn btn-sm btn-danger" title="{% trans 'Eliminar' %}"><i class="bi bi-trash-fill"></i></a>
+                            {% else %}
+                                <span class="text-muted small">{% trans "Solo lectura" %}</span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center text-muted p-4">
-                            {% blocktrans %}Aún no has creado ningún descriptor. <br>
+                        <td colspan="6" class="text-center text-muted p-4">
+                            {% blocktrans %}Aún no hay descriptores para tus materias y grados. <br>
                             Usa el botón "Crear uno por uno" o la plantilla de carga masiva para empezar.{% endblocktrans %}
                         </td>
                     </tr>
