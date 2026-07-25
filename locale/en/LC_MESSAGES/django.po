@@ -1373,6 +1373,9 @@ msgstr "Student: <strong>{{ nombre }}</strong> | Period: {{ periodo_nombre }}"
 msgid "Estudiantes con Casos de Convivencia Registrados"
 msgstr "Students with Recorded Behavior Cases"
 
+msgid "Estás creando tu propia versión a partir de un descriptor existente. Puedes editar el texto antes de guardar."
+msgstr "You're creating your own version based on an existing descriptor. You can edit the text before saving."
+
 msgid "Evaluaciones con IA"
 msgstr "AI Assessments"
 
@@ -3469,6 +3472,12 @@ msgstr "Use the form to record the first entry in the behavior record."
 
 msgid "Usa palabras de una sola palabra (sin espacios), de 2 letras o más. Entre más letras compartan, mejor se cruzan. La <b>imagen es opcional</b>: se muestra al estudiante junto a la pista (ideal para primaria). Máximo 2 MB."
 msgstr "Use single words (no spaces), 2 letters or more. The more letters they share, the better they cross. The <b>image is optional</b>: it shows next to the clue for the student (ideal for elementary). Maximum 2 MB."
+
+msgid "Usar como base"
+msgstr "Use as a starting point"
+
+msgid "Usar como base para crear tu propia versión"
+msgstr "Use as a starting point to create your own version"
 
 msgid "Vas a reenviar el plan con las correcciones aplicadas. El coordinador lo revisará nuevamente."
 msgstr "You are about to resubmit the plan with the corrections applied. The coordinator will review it again."

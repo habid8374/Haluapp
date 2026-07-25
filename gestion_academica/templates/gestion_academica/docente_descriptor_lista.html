@@ -80,7 +80,10 @@
                                 <a href="{% url 'gestion_academica:docente_editar_descriptor' pk=item.pk %}" class="btn btn-sm btn-warning" title="{% trans 'Editar' %}"><i class="bi bi-pencil-fill"></i></a>
                                 <a href="{% url 'gestion_academica:docente_eliminar_descriptor' pk=item.pk %}" class="btn btn-sm btn-danger" title="{% trans 'Eliminar' %}"><i class="bi bi-trash-fill"></i></a>
                             {% else %}
-                                <span class="text-muted small">{% trans "Solo lectura" %}</span>
+                                <a href="{% url 'gestion_academica:docente_crear_descriptor' %}?materia={{ item.materia_id }}&periodo={{ item.periodo_academico_id }}&grado={{ item.grado_id|default_if_none:'' }}&descripcion={{ item.descripcion|urlencode }}"
+                                   class="btn btn-sm btn-outline-primary" title="{% trans 'Usar como base para crear tu propia versión' %}">
+                                    <i class="bi bi-copy me-1"></i>{% trans "Usar como base" %}
+                                </a>
                             {% endif %}
                         </td>
                     </tr>

@@ -4984,6 +4984,31 @@ class DocenteDescriptorCreateView(LoginRequiredMixin, CreateView):
         kwargs['request'] = self.request
         return kwargs
 
+    def get_initial(self):
+        """
+        Permite precargar el formulario a partir de un descriptor existente
+        (botón "Usar como base" del banco de logros por grado), para que el
+        docente no tenga que escribirlo desde cero. La validación normal del
+        form (querysets scopeados a sus materias/grados asignados) sigue
+        aplicando al guardar, así que estos valores de la URL no saltan
+        ningún control de seguridad.
+        """
+        initial = super().get_initial()
+        if self.request.GET.get('descripcion'):
+            initial['descripcion'] = self.request.GET.get('descripcion')
+            if self.request.GET.get('materia'):
+                initial['materia'] = self.request.GET.get('materia')
+            if self.request.GET.get('periodo'):
+                initial['periodo_academico'] = self.request.GET.get('periodo')
+            if self.request.GET.get('grado'):
+                initial['grado'] = self.request.GET.get('grado')
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['es_copia'] = bool(self.request.GET.get('descripcion'))
+        return context
+
     def form_valid(self, form):
         form.instance.creado_por = self.request.user
         messages.success(self.request, _("Descriptor de logro creado exitosamente."))

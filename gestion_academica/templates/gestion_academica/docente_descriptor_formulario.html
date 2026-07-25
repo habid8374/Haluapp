@@ -5,6 +5,12 @@
 {% block contenido %}
 <div class="container mt-4">
     <h1>{% trans "Formulario de Descriptor de Logro" %}</h1>
+    {% if es_copia %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-1"></i>
+        {% trans "Estás creando tu propia versión a partir de un descriptor existente. Puedes editar el texto antes de guardar." %}
+    </div>
+    {% endif %}
     <form method="post">
         {% csrf_token %}
         {{ form|crispy }}
