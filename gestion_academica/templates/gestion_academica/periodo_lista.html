@@ -6,6 +6,8 @@
     .badge-cerrado { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: .75rem; padding: .3rem .7rem; border-radius: 20px; }
     .badge-abierto  { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-size: .75rem; padding: .3rem .7rem; border-radius: 20px; }
     .badge-activo   { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: .75rem; padding: .3rem .7rem; border-radius: 20px; }
+    .badge-publicado    { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: .75rem; padding: .3rem .7rem; border-radius: 20px; }
+    .badge-no-publicado { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; font-size: .75rem; padding: .3rem .7rem; border-radius: 20px; }
     .periodo-table th { font-size: .78rem; text-transform: uppercase; letter-spacing: .5px; color: #64748b; }
 </style>
 {% endblock %}
@@ -50,6 +52,7 @@
                         <th class="text-center">Activo</th>
                         <th class="text-center">Notas</th>
                         <th class="text-center">Cierre</th>
+                        <th class="text-center">Boletines</th>
                         <th class="text-center pe-4">Acciones</th>
                     </tr>
                 </thead>
@@ -81,6 +84,15 @@
                             —
                         {% endif %}
                     </td>
+                    <td class="text-center">
+                        {% if periodo_obj.boletines_publicados %}
+                            <span class="badge-publicado" title="{% if periodo_obj.fecha_publicacion_boletines %}Publicados el {{ periodo_obj.fecha_publicacion_boletines|date:'d/m/Y H:i' }}{% endif %}">
+                                <i class="bi bi-eye-fill me-1"></i>Publicados
+                            </span>
+                        {% else %}
+                            <span class="badge-no-publicado"><i class="bi bi-eye-slash-fill me-1"></i>Sin publicar</span>
+                        {% endif %}
+                    </td>
                     <td class="text-center pe-4 text-nowrap">
                         <!-- Cerrar período -->
                         {% if not periodo_obj.notas_cerradas %}
@@ -88,7 +100,7 @@
                                     data-bs-toggle="modal" data-bs-target="#modalCerrar"
                                     data-periodo-pk="{{ periodo_obj.pk }}"
                                     data-periodo-nombre="{{ periodo_obj.nombre }}"
-                                    title="Cerrar notas y emitir boletines">
+                                    title="Cerrar edición de notas">
                                 <i class="bi bi-lock-fill"></i> Cerrar
                             </button>
                         {% else %}
@@ -102,6 +114,26 @@
                             </button>
                             {% else %}
                             <span class="text-muted" style="font-size:.8rem;"><i class="bi bi-lock-fill me-1"></i>Cerrado</span>
+                            {% endif %}
+                        {% endif %}
+                        <!-- Publicar / despublicar boletines -->
+                        {% if periodo_obj.notas_cerradas %}
+                            {% if not periodo_obj.boletines_publicados %}
+                            <button type="button" class="btn btn-sm btn-primary me-1"
+                                    data-bs-toggle="modal" data-bs-target="#modalPublicar"
+                                    data-periodo-pk="{{ periodo_obj.pk }}"
+                                    data-periodo-nombre="{{ periodo_obj.nombre }}"
+                                    title="Publicar boletines">
+                                <i class="bi bi-send-fill"></i> Publicar Boletines
+                            </button>
+                            {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                    data-bs-toggle="modal" data-bs-target="#modalDespublicar"
+                                    data-periodo-pk="{{ periodo_obj.pk }}"
+                                    data-periodo-nombre="{{ periodo_obj.nombre }}"
+                                    title="Ocultar boletines">
+                                <i class="bi bi-eye-slash-fill"></i> Despublicar
+                            </button>
                             {% endif %}
                         {% endif %}
                         <!-- Editar -->
@@ -163,11 +195,12 @@
 <div class="mt-3 text-muted d-flex align-items-start gap-2" style="font-size:.8rem;">
     <i class="bi bi-info-circle mt-1 flex-shrink-0"></i>
     <div>
-        <strong>Cerrar período</strong> bloquea la edición de notas por los docentes y envía automáticamente un correo a todos los acudientes con el enlace al boletín de calificaciones.
+        <strong>Cerrar período</strong> bloquea la edición de notas por los docentes, pero <strong>no</strong> hace visible el boletín todavía.
+        <strong>Publicar Boletines</strong> es un paso aparte: solo entonces estudiantes y acudientes pueden ver/descargar el boletín, y se envía el correo de aviso — resérvalo, por ejemplo, para el día de la reunión de entrega de boletines.
         {% if user.is_superuser %}<br>Como superusuario puedes <strong>reabrir</strong> un período cerrado si es necesario.{% endif %}
     </div>
 </div>
-<!-- ===== MODAL: Cerrar período y emitir boletines ===== -->
+<!-- ===== MODAL: Cerrar período ===== -->
 <div class="modal fade" id="modalCerrar" tabindex="-1" aria-labelledby="modalCerrarLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -178,13 +211,13 @@
                 <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body pt-2">
-                <h5 class="fw-800 mb-1">¿Cerrar período y emitir boletines?</h5>
+                <h5 class="fw-800 mb-1">¿Cerrar el período?</h5>
                 <p id="modal-cerrar-nombre" class="text-primary fw-600 mb-2" style="font-size:.92rem;"></p>
                 <div class="alert alert-warning d-flex gap-2 align-items-start py-2 mb-2" style="font-size:.82rem;">
                     <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
                     <div>
-                        Esta acción <strong>bloquea la edición de notas</strong> por parte de los docentes y
-                        <strong>envía un correo a todos los acudientes</strong> con el enlace al boletín de calificaciones.
+                        Esta acción <strong>bloquea la edición de notas</strong> por parte de los docentes.
+                        El boletín <strong>no</strong> se hace visible todavía — para eso usa «Publicar Boletines» cuando estés listo.
                     </div>
                 </div>
                 <p class="text-muted mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>Solo el superusuario puede revertir esta acción.</p>
@@ -194,7 +227,67 @@
                 <form id="form-cerrar" method="post">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger btn-sm fw-600">
-                        <i class="bi bi-lock-fill me-1"></i>Sí, cerrar y emitir boletines
+                        <i class="bi bi-lock-fill me-1"></i>Sí, cerrar período
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ===== MODAL: Publicar boletines ===== -->
+<div class="modal fade" id="modalPublicar" tabindex="-1" aria-labelledby="modalPublicarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div style="width:52px;height:52px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="bi bi-send-fill" style="color:#2563eb;font-size:1.3rem;"></i>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <h5 class="fw-800 mb-1">¿Publicar los boletines?</h5>
+                <p id="modal-publicar-nombre" class="text-primary fw-600 mb-2" style="font-size:.92rem;"></p>
+                <div class="alert alert-primary d-flex gap-2 align-items-start py-2 mb-2" style="font-size:.82rem;">
+                    <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
+                    <div>
+                        Estudiantes y acudientes podrán <strong>ver y descargar el boletín</strong> de inmediato, y se les
+                        <strong>enviará un correo</strong> avisando que ya está disponible.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <form id="form-publicar" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm fw-600">
+                        <i class="bi bi-send-fill me-1"></i>Sí, publicar boletines
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ===== MODAL: Despublicar boletines ===== -->
+<div class="modal fade" id="modalDespublicar" tabindex="-1" aria-labelledby="modalDespublicarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div style="width:52px;height:52px;border-radius:50%;background:#fffbeb;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="bi bi-eye-slash-fill" style="color:#d97706;font-size:1.3rem;"></i>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <h5 class="fw-800 mb-1">¿Ocultar de nuevo los boletines?</h5>
+                <p id="modal-despublicar-nombre" class="text-warning fw-600 mb-2" style="font-size:.92rem;"></p>
+                <p class="text-muted mb-0" style="font-size:.85rem;">Estudiantes y acudientes dejarán de poder ver el boletín de este período hasta que lo publiques de nuevo. Los correos ya enviados no se revocan.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <form id="form-despublicar" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning btn-sm fw-600">
+                        <i class="bi bi-eye-slash-fill me-1"></i>Sí, ocultar boletines
                     </button>
                 </form>
             </div>
@@ -274,6 +367,24 @@ document.querySelectorAll('[data-bs-target="#modalReabrir"]').forEach(btn => {
         const nombre = this.dataset.periodoNombre;
         document.getElementById('modal-reabrir-nombre').textContent = nombre;
         document.getElementById('form-reabrir').action = `/academico/periodos/${pk}/reabrir/`;
+    });
+});
+// Modal publicar boletines
+document.querySelectorAll('[data-bs-target="#modalPublicar"]').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const pk = this.dataset.periodoPk;
+        const nombre = this.dataset.periodoNombre;
+        document.getElementById('modal-publicar-nombre').textContent = nombre;
+        document.getElementById('form-publicar').action = `/academico/periodos/${pk}/publicar-boletines/`;
+    });
+});
+// Modal despublicar boletines
+document.querySelectorAll('[data-bs-target="#modalDespublicar"]').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const pk = this.dataset.periodoPk;
+        const nombre = this.dataset.periodoNombre;
+        document.getElementById('modal-despublicar-nombre').textContent = nombre;
+        document.getElementById('form-despublicar').action = `/academico/periodos/${pk}/despublicar-boletines/`;
     });
 });
 // Modal eliminar

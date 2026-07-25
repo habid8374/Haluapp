@@ -2424,6 +2424,10 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
         messages.error(request, "No tienes permiso para ver este boletín.")
         return redirect('gestion_academica:inicio_academico') # Ajusta esta URL si es necesario
 
+    if not periodo.boletines_publicados and not _puede_previsualizar_boletin_sin_publicar(request.user):
+        messages.info(request, f"El boletín del {periodo.nombre} aún no ha sido publicado por tu institución. Te avisaremos por correo cuando esté disponible.")
+        return redirect('gestion_academica:inicio_academico')
+
     # 4. Consulta principal para obtener los cursos y pre-cargar datos relacionados
     cursos = Curso.objects.filter(
         grado=estudiante_actual.grado_actual, periodo_academico=periodo
@@ -11381,6 +11385,10 @@ def boletin_descriptivo_preescolar_pdf(request, estudiante_pk, periodo_pk):
         messages.error(request, "No tienes permiso para ver este boletín.")
         return redirect('gestion_academica:inicio_academico')
 
+    if not periodo.boletines_publicados and not _puede_previsualizar_boletin_sin_publicar(request.user):
+        messages.info(request, f"El boletín del {periodo.nombre} aún no ha sido publicado por tu institución. Te avisaremos por correo cuando esté disponible.")
+        return redirect('gestion_academica:inicio_academico')
+
     # --- INICIO DE LA LÓGICA DE CONSULTA CORREGIDA ---
     
     # 2. Obtenemos las evaluaciones del estudiante para este periodo
@@ -13918,19 +13926,30 @@ class GenerarCorreoAcudienteIAView(APIView):
             return Response({'status': 'error', 'message': f"Error al contactar la IA: {e}"}, status=500)
 
 # ---------------------------------------------------------------------------
-# Cierre de período y emisión masiva de boletines
+# Cierre de período y publicación de boletines
+#
+# Son dos pasos independientes a propósito: cerrar bloquea la edición de
+# notas por los docentes (para que puedan terminar de cargarlas con calma
+# antes de la fecha límite), mientras que publicar es lo que realmente
+# habilita la vista del boletín para estudiantes/acudientes y dispara el
+# correo de aviso — así el coordinador puede reservarse ese paso para el
+# día de la reunión de entrega de boletines.
 # ---------------------------------------------------------------------------
+def _puede_gestionar_periodos(user):
+    rol = getattr(user, 'rol', '') or ''
+    return user.is_superuser or rol in ('coordinador', 'administrador')
+
+
 @login_required
 @require_POST
 def cerrar_periodo_y_notificar(request, periodo_pk):
-    """Cierra las notas del período y envía boletines por correo a todos los estudiantes."""
+    """Bloquea la edición de notas del período por parte de los docentes."""
     institucion = request.user.institucion_asociada
     if not institucion:
         messages.error(request, "Tu usuario no está asociado a ninguna institución.")
         return redirect('gestion_academica:lista_periodos')
 
-    rol = getattr(request.user, 'rol', '') or ''
-    if rol not in ('coordinador', 'administrador') and not request.user.is_superuser:
+    if not _puede_gestionar_periodos(request.user):
         messages.error(request, "Solo el coordinador o administrador puede cerrar el período.")
         return redirect('gestion_academica:lista_periodos')
 
@@ -13945,17 +13964,10 @@ def cerrar_periodo_y_notificar(request, periodo_pk):
     periodo.fecha_cierre_notas = _tz.now()
     periodo.save(update_fields=['notas_cerradas', 'fecha_cierre_notas'])
 
-    # Encolar correos para todos los estudiantes activos de la institución
-    from gestion_academica.tasks_notificaciones import notificar_boletin_disponible
-    estudiantes = Estudiante.objects.filter(institucion=institucion, activo=True).values_list('id', flat=True)
-    total = 0
-    for est_id in estudiantes:
-        notificar_boletin_disponible.delay(est_id, periodo.pk)
-        total += 1
-
     messages.success(
         request,
-        f"✅ Notas del {periodo.nombre} cerradas. Se enviaron {total} notificaciones de boletín a los acudientes."
+        f"✅ Notas del {periodo.nombre} cerradas. Los docentes ya no pueden editarlas. "
+        "Cuando quieras que estudiantes y acudientes vean el boletín, usa «Publicar Boletines»."
     )
     return redirect('gestion_academica:lista_periodos')
 
@@ -13974,3 +13986,72 @@ def reabrir_periodo_notas(request, periodo_pk):
     periodo.save(update_fields=['notas_cerradas', 'fecha_cierre_notas'])
     messages.success(request, f"Notas del {periodo.nombre} reabiertas correctamente.")
     return redirect('gestion_academica:lista_periodos')
+
+
+@login_required
+@require_POST
+def publicar_boletines_periodo(request, periodo_pk):
+    """Habilita la vista del boletín para estudiantes/acudientes y les avisa por correo."""
+    institucion = request.user.institucion_asociada
+    if not institucion:
+        messages.error(request, "Tu usuario no está asociado a ninguna institución.")
+        return redirect('gestion_academica:lista_periodos')
+
+    if not _puede_gestionar_periodos(request.user):
+        messages.error(request, "Solo el coordinador o administrador puede publicar los boletines.")
+        return redirect('gestion_academica:lista_periodos')
+
+    periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk, institucion=institucion)
+
+    if not periodo.notas_cerradas:
+        messages.error(request, f"Primero debes cerrar las notas del {periodo.nombre} antes de publicar sus boletines.")
+        return redirect('gestion_academica:lista_periodos')
+
+    if periodo.boletines_publicados:
+        messages.warning(request, f"Los boletines del {periodo.nombre} ya están publicados.")
+        return redirect('gestion_academica:lista_periodos')
+
+    from django.utils import timezone as _tz
+    periodo.boletines_publicados = True
+    periodo.fecha_publicacion_boletines = _tz.now()
+    periodo.save(update_fields=['boletines_publicados', 'fecha_publicacion_boletines'])
+
+    from gestion_academica.tasks_notificaciones import notificar_boletin_disponible
+    estudiantes = Estudiante.objects.filter(institucion=institucion, activo=True).values_list('id', flat=True)
+    total = 0
+    for est_id in estudiantes:
+        notificar_boletin_disponible.delay(est_id, periodo.pk)
+        total += 1
+
+    messages.success(
+        request,
+        f"📄 Boletines del {periodo.nombre} publicados. Se enviaron {total} notificaciones a los acudientes."
+    )
+    return redirect('gestion_academica:lista_periodos')
+
+
+@login_required
+@require_POST
+def despublicar_boletines_periodo(request, periodo_pk):
+    """Oculta de nuevo el boletín (ej. si se publicó por error)."""
+    institucion = request.user.institucion_asociada
+    if not institucion:
+        messages.error(request, "Tu usuario no está asociado a ninguna institución.")
+        return redirect('gestion_academica:lista_periodos')
+
+    if not _puede_gestionar_periodos(request.user):
+        messages.error(request, "Solo el coordinador o administrador puede ocultar los boletines.")
+        return redirect('gestion_academica:lista_periodos')
+
+    periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk, institucion=institucion)
+    periodo.boletines_publicados = False
+    periodo.fecha_publicacion_boletines = None
+    periodo.save(update_fields=['boletines_publicados', 'fecha_publicacion_boletines'])
+    messages.success(request, f"Los boletines del {periodo.nombre} ya no son visibles para estudiantes ni acudientes.")
+    return redirect('gestion_academica:lista_periodos')
+
+
+def _puede_previsualizar_boletin_sin_publicar(user):
+    """Personal de la institución que puede ver/imprimir un boletín antes de que se publique (para revisar formato)."""
+    rol = getattr(user, 'rol', '') or ''
+    return user.is_superuser or user.is_staff or rol in ('docente', 'coordinador', 'administrador', 'admin_institucion')

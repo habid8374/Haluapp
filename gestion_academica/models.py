@@ -827,6 +827,12 @@ class PeriodoAcademico(models.Model):
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
     notas_cerradas = models.BooleanField(default=False, verbose_name="Notas cerradas")
     fecha_cierre_notas = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de cierre de notas")
+    boletines_publicados = models.BooleanField(
+        default=False,
+        verbose_name="Boletines publicados",
+        help_text="Controla si estudiantes y acudientes ya pueden ver/descargar el boletín de este periodo. Independiente del cierre de notas.",
+    )
+    fecha_publicacion_boletines = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de publicación de boletines")
 
     class Meta:
         verbose_name = "Periodo Académico"
