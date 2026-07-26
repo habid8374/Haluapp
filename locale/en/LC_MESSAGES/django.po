@@ -769,6 +769,9 @@ msgstr "Account Settings"
 msgid "Configuración del Cuestionario"
 msgstr "Quiz Settings"
 
+msgid "Confirma tu nueva contraseña"
+msgstr "Confirm your new password"
+
 msgid "Confirmada"
 msgstr "Confirmed"
 
@@ -1561,6 +1564,9 @@ msgstr "Enter the letter or word to trace."
 msgid "Escribe la palabra (2 letras o más) y su pista."
 msgstr "Enter the word (2 letters or more) and its clue."
 
+msgid "Escribe tu nueva contraseña. No necesitas recordar la anterior."
+msgstr "Type your new password. You do not need to remember the old one."
+
 msgid "Escribe tu respuesta aquí…"
 msgstr "Type your answer here…"
 
@@ -2004,6 +2010,9 @@ msgstr "Save Entry"
 
 msgid "Guardar Calificación Revisada"
 msgstr "Save Revised Grade"
+
+msgid "Guardar Contraseña"
+msgstr "Save Password"
 
 msgid "Guardar Deber"
 msgstr "Save Assignment"
@@ -2674,6 +2683,9 @@ msgstr "Showing summary for the term: <strong>%(nombre)s (%(anio)s)</strong>."
 msgid "Mostrando tus registros de asistencia para el periodo: <strong>%(nombre)s</strong>"
 msgstr "Showing your attendance records for the term: <strong>%(nombre)s</strong>"
 
+msgid "Mostrar contraseña"
+msgstr "Show password"
+
 msgid "Mostrar respuestas correctas al finalizar"
 msgstr "Show correct answers at the end"
 
@@ -3033,6 +3045,9 @@ msgstr "New Justification"
 
 msgid "Nueva Pregunta"
 msgstr "New Question"
+
+msgid "Nueva contraseña"
+msgstr "New password"
 
 msgid "Nueva letra / palabra"
 msgstr "New letter / word"
@@ -4350,6 +4365,9 @@ msgstr "Letter Tracing"
 
 msgid "Tu Entrega"
 msgstr "Your Submission"
+
+msgid "Tu contraseña se actualizó correctamente."
+msgstr "Your password was updated successfully."
 
 msgid "Tu cuenta no está asociada a ninguna institución."
 msgstr "Your account is not associated with any institution."

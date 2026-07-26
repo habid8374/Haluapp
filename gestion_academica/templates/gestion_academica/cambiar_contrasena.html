@@ -1,0 +1,61 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{% trans "Cambiar Contraseña" %}{% endblock %}
+{% block contenido %}
+<div class="container mt-4" style="max-width:560px;">
+    <div style="background: linear-gradient(135deg, #0a3d8c 0%, #0b5ed7 55%, #2176ff 100%); border-radius:18px; padding:1.6rem 1.8rem; color:white; margin-bottom:1.5rem;">
+        <h2 style="color:#fff;" class="mb-1"><i class="bi bi-key-fill me-2"></i>{% trans "Cambiar Contraseña" %}</h2>
+        <p style="color:rgba(255,255,255,.85);" class="mb-0">{% trans "Escribe tu nueva contraseña. No necesitas recordar la anterior." %}</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% else %}success{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="{{ form.new_password1.id_for_label }}" class="form-label fw-600">{% trans "Nueva contraseña" %}</label>
+                    <input type="password" name="{{ form.new_password1.html_name }}" id="{{ form.new_password1.id_for_label }}"
+                           class="form-control{% if form.new_password1.errors %} is-invalid{% endif %}" autocomplete="new-password" required>
+                    {% for error in form.new_password1.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    {% if form.new_password1.help_text %}<div class="form-text">{{ form.new_password1.help_text|safe }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.new_password2.id_for_label }}" class="form-label fw-600">{% trans "Confirma tu nueva contraseña" %}</label>
+                    <input type="password" name="{{ form.new_password2.html_name }}" id="{{ form.new_password2.id_for_label }}"
+                           class="form-control{% if form.new_password2.errors %} is-invalid{% endif %}" autocomplete="new-password" required>
+                    {% for error in form.new_password2.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="mostrarPass">
+                    <label class="form-check-label" for="mostrarPass">{% trans "Mostrar contraseña" %}</label>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle-fill me-1"></i>{% trans "Guardar Contraseña" %}</button>
+                    <a href="{% url 'gestion_academica:ver_mi_perfil' %}" class="btn btn-outline-secondary">{% trans "Cancelar" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+document.getElementById('mostrarPass').addEventListener('change', function () {
+    var t = this.checked ? 'text' : 'password';
+    document.getElementById('{{ form.new_password1.id_for_label }}').type = t;
+    document.getElementById('{{ form.new_password2.id_for_label }}').type = t;
+});
+</script>
+{% endblock %}

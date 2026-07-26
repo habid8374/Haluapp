@@ -3879,7 +3879,39 @@ def ver_mi_perfil(request):
     
     return render(request, 'gestion_academica/mi_perfil.html', context)
 
-    
+
+@login_required
+def cambiar_mi_contrasena(request):
+    """
+    Página interna (diseño HALU) para que cualquier usuario ya autenticado
+    cambie su contraseña sin pasar por el admin de Django ni depender del
+    correo de la institución.
+
+    Usa SetPasswordForm (no pide la contraseña actual): así funciona también
+    para quienes entran con Google o con huella/rostro y no conocen ninguna
+    contraseña. El usuario ya está autenticado, por lo que es seguro en este
+    contexto; update_session_auth_hash evita que se cierre la sesión al
+    cambiarla. Funciona igual para todos los perfiles (es agnóstico al rol).
+    """
+    from django.contrib.auth.forms import SetPasswordForm
+    from django.contrib.auth import update_session_auth_hash
+
+    if request.method == 'POST':
+        form = SetPasswordForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, form.user)
+            messages.success(request, _("Tu contraseña se actualizó correctamente."))
+            return redirect('gestion_academica:ver_mi_perfil')
+    else:
+        form = SetPasswordForm(user=request.user)
+
+    return render(request, 'gestion_academica/cambiar_contrasena.html', {
+        'form': form,
+        'titulo_pagina': _("Cambiar Contraseña"),
+    })
+
+
 @login_required
 @requiere_pagos_al_dia
 def detalle_curso_aula_virtual(request, curso_pk):

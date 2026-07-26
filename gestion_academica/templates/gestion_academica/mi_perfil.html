@@ -98,7 +98,7 @@
                 <div class="card-body">
                     <p>{% trans "Gestiona las opciones de seguridad y conexión de tu cuenta." %}</p>
                     <div class="d-grid gap-2 d-md-flex flex-wrap">
-                        <a href="{% url 'password_change' %}" class="btn btn-outline-danger"><i class="bi bi-key-fill me-2"></i>{% trans "Cambiar Contraseña" %}</a>
+                        <a href="{% url 'gestion_academica:cambiar_mi_contrasena' %}" class="btn btn-outline-danger"><i class="bi bi-key-fill me-2"></i>{% trans "Cambiar Contraseña" %}</a>
                         {% google_socialapp_configured as google_social_ok %}
                         {% if google_social_ok %}
                         <a href="{% url 'socialaccount_connections' %}" class="btn btn-outline-primary">

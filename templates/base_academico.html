@@ -291,7 +291,7 @@
           <i class="bi bi-person-circle me-2 text-primary"></i>{% trans "Mi Perfil" %}</a></li>
         <li><a class="dropdown-item" href="{% url 'socialaccount_connections' %}">
           <i class="bi bi-link-45deg me-2 text-secondary"></i>{% trans "Conexiones de Cuenta" %}</a></li>
-        <li><a class="dropdown-item" href="{% url 'password_change' %}">
+        <li><a class="dropdown-item" href="{% url 'gestion_academica:cambiar_mi_contrasena' %}">
           <i class="bi bi-key-fill me-2 text-warning"></i>{% trans "Cambiar Contraseña" %}</a></li>
         {% if user.is_staff %}
           <li><hr class="dropdown-divider"></li>
