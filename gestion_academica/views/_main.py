@@ -2427,9 +2427,15 @@ def _promedio_estudiante_en_cursos(estudiante, cursos):
 
 def _ranking_periodo(estudiante, periodo, grado):
     """Devuelve (puesto, total) del estudiante entre sus compañeros de grado en
-    el periodo. Empates comparten puesto (ranking de competencia)."""
+    el periodo. Empates comparten puesto (ranking de competencia).
+
+    Multi-institución: el grado y el periodo ya son de una sola institución;
+    además se filtra explícitamente por institución (regla innegociable)."""
+    inst_id = grado.institucion_id
     cursos = list(
-        Curso.objects.filter(grado=grado, periodo_academico=periodo).select_related('materia')
+        Curso.objects.filter(
+            grado=grado, periodo_academico=periodo, institucion_id=inst_id
+        ).select_related('materia')
     )
     if not cursos:
         return (None, None)
@@ -2438,7 +2444,9 @@ def _ranking_periodo(estudiante, periodo, grado):
         return (None, None)
     total = 0
     mejores = 0
-    for est in Estudiante.objects.filter(grado_actual=grado, activo=True).select_related('usuario'):
+    for est in Estudiante.objects.filter(
+        grado_actual=grado, activo=True, institucion_id=inst_id
+    ).select_related('usuario'):
         prom = _promedio_estudiante_en_cursos(est, cursos)
         if prom is None:
             continue
@@ -2484,7 +2492,7 @@ def _construir_progreso_academico(estudiante):
     calculo_por_periodo = []   # [(periodo, promedio|None, {materia_nombre: (materia, nota)})]
     for periodo in todos_periodos:
         cursos = Curso.objects.filter(
-            grado=grado, periodo_academico=periodo
+            grado=grado, periodo_academico=periodo, institucion=institucion
         ).select_related('materia').order_by('materia__nombre_materia')
         notas_materias = {}
         total_ponderado = Decimal('0.0')
