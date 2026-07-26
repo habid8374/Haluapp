@@ -30,9 +30,9 @@
     var KNOWN = {};       // último estado conocido por usuario (evita avisar sin transición)
     var LAST_TOAST = {};  // último aviso "en línea" mostrado por usuario
 
-    // ---- Aviso emergente "X está en línea" (tipo MSN) ----------------------
-    function toastOnline(nombre) {
-        if (typeof bootstrap === "undefined" || !bootstrap.Toast) return;
+    function esc(s) { return (s || "").replace(/[<>&"]/g, function (c) { return { "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]; }); }
+
+    function ensureWrap() {
         var wrap = document.getElementById("presencia-toast-wrap");
         if (!wrap) {
             wrap = document.createElement("div");
@@ -41,24 +41,54 @@
             wrap.style.zIndex = "1250";
             document.body.appendChild(wrap);
         }
+        return wrap;
+    }
+
+    // ---- Aviso emergente "X está en línea" (tipo MSN) ----------------------
+    function toastOnline(nombre) {
+        if (typeof bootstrap === "undefined" || !bootstrap.Toast) return;
         var el = document.createElement("div");
         el.className = "toast align-items-center text-bg-success border-0";
         el.setAttribute("role", "alert");
-        var body = document.createElement("div");
-        body.className = "d-flex";
-        var inner = document.createElement("div");
-        inner.className = "toast-body";
-        inner.innerHTML = '<i class="bi bi-person-check-fill me-1"></i>' +
-            MSG_ONLINE.replace("{n}", (nombre || "").replace(/[<>&]/g, ""));
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "btn-close btn-close-white me-2 m-auto";
-        btn.setAttribute("data-bs-dismiss", "toast");
-        body.appendChild(inner);
-        body.appendChild(btn);
-        el.appendChild(body);
-        wrap.appendChild(el);
+        el.innerHTML =
+            '<div class="d-flex"><div class="toast-body"><i class="bi bi-person-check-fill me-1"></i>' +
+            MSG_ONLINE.replace("{n}", esc(nombre)) +
+            '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+        ensureWrap().appendChild(el);
         var t = new bootstrap.Toast(el, { delay: 4500 });
+        t.show();
+        el.addEventListener("hidden.bs.toast", function () { el.remove(); });
+    }
+
+    // ---- Toast de notificación (mensaje nuevo, etc.) en tiempo real --------
+    function toastNotif(d) {
+        if (typeof bootstrap === "undefined" || !bootstrap.Toast) return;
+        var url = d.url || "";
+        // No molestar si ya estás viendo esa misma página (p. ej. el chat abierto).
+        if (url) {
+            var path = url.replace(/^https?:\/\/[^/]+/, "").split("?")[0];
+            if (window.location.pathname === path) return;
+        }
+        var sev = d.severity || "info";
+        var head = sev === "danger" ? "bg-danger text-white" : sev === "warning" ? "bg-warning text-dark" : "bg-primary text-white";
+        var icon = d.kind === "mensaje" ? "bi-chat-dots-fill" : "bi-bell-fill";
+        var el = document.createElement("div");
+        el.className = "toast border-0";
+        el.setAttribute("role", "alert");
+        el.innerHTML =
+            '<div class="toast-header ' + head + '"><i class="bi ' + icon + ' me-2"></i>' +
+            '<strong class="me-auto">' + esc(d.title || "Notificación") + '</strong>' +
+            '<button type="button" class="btn-close ' + (sev === "warning" ? "" : "btn-close-white") + '" data-bs-dismiss="toast"></button></div>' +
+            '<div class="toast-body">' + esc(d.message || "") + '</div>';
+        if (url) {
+            el.style.cursor = "pointer";
+            el.addEventListener("click", function (ev) {
+                if (ev.target.closest(".btn-close")) return;
+                window.location.href = url;
+            });
+        }
+        ensureWrap().appendChild(el);
+        var t = new bootstrap.Toast(el, { delay: 6000 });
         t.show();
         el.addEventListener("hidden.bs.toast", function () { el.remove(); });
     }
@@ -115,7 +145,13 @@
             catch (e) { setTimeout(connect, backoff); return; }
             sock.onopen = function () { backoff = 1000; };
             sock.onmessage = function (e) {
-                try { var d = JSON.parse(e.data); if (d && d.kind === "presencia") window.HALUPresence.update(d); } catch (_) {}
+                try {
+                    var d = JSON.parse(e.data);
+                    if (!d) return;
+                    if (d.kind === "presencia") { window.HALUPresence.update(d); return; }
+                    // Cualquier otra notificación personal (mensaje nuevo, etc.) → toast en vivo.
+                    toastNotif(d);
+                } catch (_) {}
             };
             sock.onerror = function () { if (sock) try { sock.close(); } catch (_) {} };
             sock.onclose = function () { sock = null; if (teardown) return; setTimeout(connect, backoff); backoff = Math.min(60000, backoff * 2); };
