@@ -3439,6 +3439,9 @@ msgstr "Final deadline"
 msgid "Plazo final:"
 msgstr "Final deadline:"
 
+msgid "Podrás ver la evolución de tus notas cuando tengas calificaciones registradas en al menos un periodo académico."
+msgstr "You will be able to see how your grades evolve once you have grades recorded in at least one academic term."
+
 msgid "Podrás ver la evolución de tus notas cuando tu institución cierre y publique al menos un periodo académico."
 msgstr "You will be able to see how your grades evolve once your school closes and publishes at least one academic term."
 
@@ -3909,6 +3912,12 @@ msgstr "An extra attempt has been granted to student %(intento_estudiante)s."
 
 msgid "Se habilita una vez que el colegio cierra el periodo y publica los boletines. Te avisaremos por correo cuando esté listo para consultar y descargar."
 msgstr "It becomes available once the school closes the term and publishes the report cards. We will notify you by email when it is ready to view and download."
+
+msgid "Se incluyen los periodos con calificaciones registradas. Niveles: Superior (verde), Alto (azul), Básico (naranja), Bajo (rojo)."
+msgstr "Terms with recorded grades are included. Levels: Superior (green), High (blue), Basic (orange), Low (red)."
+
+msgid "Se incluyen los periodos con calificaciones registradas. Niveles: Superior · Alto · Básico · Bajo."
+msgstr "Terms with recorded grades are included. Levels: Superior · High · Basic · Low."
 
 msgid "Se mantuvo"
 msgstr "Held steady"

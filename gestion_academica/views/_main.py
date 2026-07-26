@@ -2416,37 +2416,52 @@ def _construir_progreso_academico(estudiante):
         return None
     anio = periodo_ref.año_escolar
 
-    periodos = list(
+    # Incluimos los periodos del año que YA tienen notas registradas para el
+    # estudiante (sin exigir que el boletín esté publicado): el estudiante ya
+    # ve sus notas actuales en "Mis Calificaciones", así que el progreso debe
+    # mostrarse igual, en cuanto exista al menos una nota.
+    todos_periodos = list(
         PeriodoAcademico.objects.filter(
-            institucion=institucion, año_escolar=anio, boletines_publicados=True
+            institucion=institucion, año_escolar=anio
         ).order_by('fecha_inicio')
     )
-    if not periodos:
+    if not todos_periodos:
         return None
 
-    promedios_generales = []   # [{'periodo': p, 'promedio': Decimal|None}]
-    materias_map = {}          # nombre_materia -> {'notas': [por periodo], 'materia': obj}
-
-    for periodo in periodos:
+    # Primera pasada: calcular por periodo y quedarnos solo con los que tienen nota.
+    calculo_por_periodo = []   # [(periodo, promedio|None, {materia_nombre: (materia, nota)})]
+    for periodo in todos_periodos:
         cursos = Curso.objects.filter(
             grado=grado, periodo_academico=periodo
         ).select_related('materia').order_by('materia__nombre_materia')
-
+        notas_materias = {}
         total_ponderado = Decimal('0.0')
         total_ihs = 0
         for curso in cursos:
             estado = calcular_estado_academico_curso(curso, estudiante)
             nota = estado.get('nota_final_ponderada')
-            nombre = curso.materia.nombre_materia
-            if nombre not in materias_map:
-                materias_map[nombre] = {'materia': curso.materia, 'notas': [None] * len(periodos)}
-            materias_map[nombre]['notas'][periodos.index(periodo)] = nota
+            notas_materias[curso.materia.nombre_materia] = (curso.materia, nota)
             ihs = curso.materia.intensidad_horaria_semanal or 0
             if nota is not None and ihs > 0:
                 total_ponderado += nota * ihs
                 total_ihs += ihs
         prom = (total_ponderado / total_ihs) if total_ihs > 0 else None
+        calculo_por_periodo.append((periodo, prom, notas_materias))
+
+    # Solo periodos con al menos una nota (promedio calculado).
+    calculo_por_periodo = [c for c in calculo_por_periodo if c[1] is not None]
+    if not calculo_por_periodo:
+        return None
+
+    periodos = [c[0] for c in calculo_por_periodo]
+    promedios_generales = []   # [{'periodo': p, 'promedio': Decimal|None}]
+    materias_map = {}          # nombre_materia -> {'notas': [por periodo], 'materia': obj}
+    for idx, (periodo, prom, notas_materias) in enumerate(calculo_por_periodo):
         promedios_generales.append({'periodo': periodo, 'promedio': prom})
+        for nombre, (materia, nota) in notas_materias.items():
+            if nombre not in materias_map:
+                materias_map[nombre] = {'materia': materia, 'notas': [None] * len(periodos)}
+            materias_map[nombre]['notas'][idx] = nota
 
     # Tendencia general (últimos dos periodos con nota)
     notas_generales = [x['promedio'] for x in promedios_generales]
