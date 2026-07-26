@@ -2617,6 +2617,10 @@ def mi_progreso_academico(request):
         resp = HttpResponse(pdf, content_type='application/pdf')
         nombre = (estudiante.usuario.get_full_name() or estudiante.usuario.username).replace(' ', '_')
         resp['Content-Disposition'] = f'inline; filename="progreso_{nombre}.pdf"'
+        # Nunca cachear: el PDF se genera con datos vivos (Cloudflare/móvil no
+        # deben servir una copia vieja).
+        resp['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        resp['Pragma'] = 'no-cache'
         return resp
 
     return render(request, 'gestion_academica/mi_progreso_academico.html', context)
