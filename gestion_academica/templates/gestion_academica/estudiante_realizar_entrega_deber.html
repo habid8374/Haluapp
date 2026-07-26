@@ -1,35 +1,41 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
-{% block titulo %}{{ titulo_formulario|default:"Realizar Entrega de Deber" }}{% endblock titulo %}
+{% load i18n %}
+{% trans "Realizar Entrega de Deber" as titulo_default %}
+{% trans "Sin descripción." as sin_desc_default %}
+{% trans "Sin calificar" as sin_calificar_default %}
+{% trans "Pendiente" as pendiente_default %}
+{% trans "Sin comentarios." as sin_comentarios_default %}
+{% block titulo %}{{ titulo_formulario|default:titulo_default }}{% endblock titulo %}
 {% block contenido %}
 <div class="container mt-4">
-    <h1 class="mb-4">{{ titulo_formulario|default:"Realizar Entrega de Deber" }}</h1>
+    <h1 class="mb-4">{{ titulo_formulario|default:titulo_default }}</h1>
     <hr>
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-journal-check me-2"></i> Información del Deber</h5>
+            <h5 class="mb-0"><i class="bi bi-journal-check me-2"></i> {% trans "Información del Deber" %}</h5>
         </div>
         <div class="card-body">
             <dl class="row mb-0">
-                <dt class="col-sm-4 text-secondary">Título:</dt>
+                <dt class="col-sm-4 text-secondary">{% trans "Título:" %}</dt>
                 <dd class="col-sm-8"><strong>{{ deber.titulo }}</strong></dd>
-                <dt class="col-sm-4 text-secondary">Curso:</dt>
-                <dd class="col-sm-8">{{ deber.curso.materia.nombre_materia }} del grado {{ deber.curso.grado.nombre }}</dd>
-                <dt class="col-sm-4 text-secondary">Descripción:</dt>
-                <dd class="col-sm-8">{{ deber.descripcion|linebreaksbr|default:"Sin descripción." }}</dd>
-                <dt class="col-sm-4 text-secondary">Fecha Límite de Entrega:</dt>
+                <dt class="col-sm-4 text-secondary">{% trans "Curso:" %}</dt>
+                <dd class="col-sm-8">{% blocktrans with materia=deber.curso.materia.nombre_materia grado=deber.curso.grado.nombre %}{{ materia }} del grado {{ grado }}{% endblocktrans %}</dd>
+                <dt class="col-sm-4 text-secondary">{% trans "Descripción:" %}</dt>
+                <dd class="col-sm-8">{{ deber.descripcion|linebreaksbr|default:sin_desc_default }}</dd>
+                <dt class="col-sm-4 text-secondary">{% trans "Fecha Límite de Entrega:" %}</dt>
                 <dd class="col-sm-8"><strong>{{ deber.fecha_entrega|date:"d F, Y" }}</strong></dd>
                 {% if deber.material_adjunto %}
-                    <dt class="col-sm-4 text-secondary">Material de Apoyo:</dt>
+                    <dt class="col-sm-4 text-secondary">{% trans "Material de Apoyo:" %}</dt>
                     <dd class="col-sm-8">
                         <a href="{{ deber.material_adjunto.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-download"></i> Descargar Material
+                            <i class="bi bi-download"></i> {% trans "Descargar Material" %}
                         </a>
                     </dd>
                 {% else %}
-                    <dt class="col-sm-4 text-secondary">Material de Apoyo:</dt>
-                    <dd class="col-sm-8">No disponible.</dd>
+                    <dt class="col-sm-4 text-secondary">{% trans "Material de Apoyo:" %}</dt>
+                    <dd class="col-sm-8">{% trans "No disponible." %}</dd>
                 {% endif %}
             </dl>
         </div>
@@ -44,12 +50,12 @@
     {% endif %}
     {% if esta_vencido_para_nueva_entrega %}
         <div class="alert alert-danger text-center mt-3 shadow-sm" role="alert">
-            <h4 class="alert-heading"><i class="bi bi-calendar-x-fill me-2"></i> ¡Fecha Límite Excedida!</h4>
-            La fecha límite de entrega para este deber ya ha pasado. **No puedes realizar una nueva entrega.**
+            <h4 class="alert-heading"><i class="bi bi-calendar-x-fill me-2"></i> {% trans "¡Fecha Límite Excedida!" %}</h4>
+            {% trans "La fecha límite de entrega para este deber ya ha pasado. No puedes realizar una nueva entrega." %}
         </div>
         <div class="text-center mt-3">
             <a href="{% url 'gestion_academica:mis_deberes_lista' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left-circle-fill"></i> Volver a Mis Deberes
+                <i class="bi bi-arrow-left-circle-fill"></i> {% trans "Volver a Mis Deberes" %}
             </a>
         </div>
     {% else %}
@@ -57,7 +63,7 @@
             {% csrf_token %}
             {% if form.non_field_errors %}
                 <div class="alert alert-danger" role="alert">
-                    <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> Errores de la Entrega:</h4>
+                    <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> {% trans "Errores de la Entrega:" %}</h4>
                     <ul class="mb-0 ps-3">
                     {% for error in form.non_field_errors %}
                         <li>{{ error }}</li>
@@ -66,15 +72,15 @@
                 </div>
             {% endif %}
             <fieldset class="border p-3 mb-3">
-                <legend class="w-auto px-2 h5"><i class="bi bi-upload me-2"></i> Tu Entrega</legend>
+                <legend class="w-auto px-2 h5"><i class="bi bi-upload me-2"></i> {% trans "Tu Entrega" %}</legend>
                 {% if entrega_existente and entrega_existente.archivo_adjunto_estudiante %}
                     <div class="mb-3">
-                        <p class="mb-1"><strong>Archivo entregado actualmente:</strong> 
+                        <p class="mb-1"><strong>{% trans "Archivo entregado actualmente:" %}</strong>
                             <a href="{{ entrega_existente.archivo_adjunto_estudiante.url }}" target="_blank" class="fw-bold">
                                 {{ entrega_existente.archivo_adjunto_estudiante.name|cut:"entregas_deberes_estudiantes/" }} <i class="bi bi-box-arrow-up-right"></i>
                             </a>
                         </p>
-                        <small class="form-text text-muted">Si subes un nuevo archivo, reemplazará al actual. Si dejas el campo de archivo vacío, el archivo actual se mantendrá.</small>
+                        <small class="form-text text-muted">{% trans "Si subes un nuevo archivo, reemplazará al actual. Si dejas el campo de archivo vacío, el archivo actual se mantendrá." %}</small>
                     </div>
                 {% endif %}
                 {% for field in form %}
@@ -90,30 +96,30 @@
             </fieldset>
             {% if entrega_existente and entrega_existente.calificacion_obtenida or entrega_existente.comentarios_docente %}
                 <fieldset class="border p-3 mb-3">
-                    <legend class="w-auto px-2 h5"><i class="bi bi-check-circle-fill me-2"></i> Calificación del Docente</legend>
+                    <legend class="w-auto px-2 h5"><i class="bi bi-check-circle-fill me-2"></i> {% trans "Calificación del Docente" %}</legend>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Calificación:</label>
-                            <input type="text" class="form-control" value="{{ entrega_existente.calificacion_obtenida|default:'Sin calificar' }}" readonly>
+                            <label class="form-label">{% trans "Calificación:" %}</label>
+                            <input type="text" class="form-control" value="{{ entrega_existente.calificacion_obtenida|default:sin_calificar_default }}" readonly>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Fecha de Calificación:</label>
-                            <input type="text" class="form-control" value="{{ entrega_existente.fecha_calificacion|date:'d F, Y H:i'|default:'Pendiente' }}" readonly>
+                            <label class="form-label">{% trans "Fecha de Calificación:" %}</label>
+                            <input type="text" class="form-control" value="{{ entrega_existente.fecha_calificacion|date:'d F, Y H:i'|default:pendiente_default }}" readonly>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Comentarios del Docente:</label>
-                        <textarea class="form-control" readonly rows="3">{{ entrega_existente.comentarios_docente|default:'Sin comentarios.' }}</textarea>
+                        <label class="form-label">{% trans "Comentarios del Docente:" %}</label>
+                        <textarea class="form-control" readonly rows="3">{{ entrega_existente.comentarios_docente|default:sin_comentarios_default }}</textarea>
                     </div>
                 </fieldset>
             {% endif %}
             <hr>
             <div class="d-flex justify-content-end">
                 <button type="submit" class="btn btn-success me-2">
-                    <i class="bi bi-upload"></i> {{ titulo_formulario|slice:"0:8" }} Entrega
+                    <i class="bi bi-upload"></i> {% trans "Guardar Entrega" %}
                 </button>
                 <a href="{% url 'gestion_academica:dashboard_estudiante' %}#collapse-{{ deber.curso.pk }}" class="btn btn-secondary">
-                    <i class="bi bi-x-circle-fill"></i> Cancelar y Volver al
+                    <i class="bi bi-x-circle-fill"></i> {% trans "Cancelar" %}
                 </a>
             </div>
         </form>

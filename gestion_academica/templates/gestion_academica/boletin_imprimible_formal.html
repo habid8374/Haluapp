@@ -1,8 +1,9 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Boletín - {{ estudiante.usuario.get_full_name }} - {{ periodo.nombre }}</title>
+    <title>{% blocktrans with n=estudiante.usuario.get_full_name p=periodo.nombre %}Boletín - {{ n }} - {{ p }}{% endblocktrans %}</title>
     <style>
          body { font-family: Arial, sans-serif; font-size: 9pt; color: #333; line-height: 1.3; }
         table { width: 100%; border-collapse: collapse; }
@@ -57,7 +58,7 @@
                     <h1>{{ institucion.nombre|upper }}</h1>
                     <p>{{ institucion.texto_aprobacion|linebreaksbr }}</p>
                     <p>{{ institucion.texto_resolucion|linebreaksbr }}</p>
-                    <p><strong>Código De Identificación DANE {{ institucion.codigo_dane|default:"N/A" }}</strong></p>
+                    <p><strong>{% blocktrans with c=institucion.codigo_dane|default:"N/A" %}Código De Identificación DANE {{ c }}{% endblocktrans %}</strong></p>
                     <p>{{ institucion.ciudad_departamento }}</p>
                 </td>
                 <td style="width: 20%; text-align: center;">
@@ -65,25 +66,25 @@
             </tr>
         </table>
     </header>
-    <div class="title-informe">INFORME ACADÉMICO EVALUATIVO {{ periodo.nombre|upper }}</div>
+    <div class="title-informe">{% blocktrans with p=periodo.nombre|upper %}INFORME ACADÉMICO EVALUATIVO {{ p }}{% endblocktrans %}</div>
     <table class="student-info-table">
         <tr>
-            <td><strong>Nombre completo:</strong> {{ estudiante.usuario.get_full_name|upper }}</td>
-            <td style="width: 30%;"><strong>Año:</strong> {{ periodo.año_escolar }}</td>
+            <td><strong>{% trans "Nombre completo:" %}</strong> {{ estudiante.usuario.get_full_name|upper }}</td>
+            <td style="width: 30%;"><strong>{% trans "Año:" %}</strong> {{ periodo.año_escolar }}</td>
         </tr>
         <tr>
-            <td><strong>Curso:</strong> {{ estudiante.grado_actual.nombre }}</td>
-            <td><strong>Fecha de entrega:</strong> {{ fecha_emision|date:"d/m/Y" }}</td>
+            <td><strong>{% trans "Curso:" %}</strong> {{ estudiante.grado_actual.nombre }}</td>
+            <td><strong>{% trans "Fecha de entrega:" %}</strong> {{ fecha_emision|date:"d/m/Y" }}</td>
         </tr>
     </table>
     <table class="main-table">
         <thead>
             <tr>
-                <th style="width: 5%;">Ihs</th>
-                <th style="width: 70%;">Descripción Valorativa</th>
-                <th style="width: 8%;">Calif.</th>
-                <th style="width: 8%;">Des</th>
-                <th style="width: 9%;">Inas</th>
+                <th style="width: 5%;">{% trans "Ihs" %}</th>
+                <th style="width: 70%;">{% trans "Descripción Valorativa" %}</th>
+                <th style="width: 8%;">{% trans "Calif." %}</th>
+                <th style="width: 8%;">{% trans "Des" %}</th>
+                <th style="width: 9%;">{% trans "Inas" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -99,7 +100,7 @@
                             {% for desc in materia.descriptores %}
                                 <p>- {{ desc }}</p>
                             {% empty %}
-                                <p style="color: #777;">- No hay descriptores para este periodo.</p>
+                                <p style="color: #777;">- {% trans "No hay descriptores para este periodo." %}</p>
                             {% endfor %}
                         </td>
                         <td class="center"><strong>{{ materia.calificacion|floatformat:1|default:"-" }}</strong></td>
@@ -112,18 +113,18 @@
         {% if promedio_general is not None %}
         <tfoot>
             <tr style="background-color: #e9ecef;">
-                <td colspan="4" style="text-align: right; font-weight: bold; font-size: 10pt;">PROMEDIO GENERAL DEL PERIODO:</td>
+                <td colspan="4" style="text-align: right; font-weight: bold; font-size: 10pt;">{% trans "PROMEDIO GENERAL DEL PERIODO:" %}</td>
                 <td class="center" style="font-weight: bold; font-size: 10pt;">{{ promedio_general|floatformat:2 }}</td>
             </tr>
         </tfoot>
         {% endif %}
     </table>
     <div class="observaciones">
-        <strong>Observaciones:</strong><br>
+        <strong>{% trans "Observaciones:" %}</strong><br>
         {{ observaciones|linebreaksbr }}
     </div>
     <div class="escala-valorativa">
-        <strong>Interpretación de la escala valorativa:</strong>
+        <strong>{% trans "Interpretación de la escala valorativa:" %}</strong>
         {% for escala in institucion.escala_valorativa.all %}
             {{ escala.abreviatura }} = {{ escala.nombre_desempeno }}{% if not forloop.last %}, {% endif %}
         {% endfor %}
@@ -146,10 +147,10 @@
                         <td colspan="3" style="padding-top: 5px;">
                             {% if director_de_grupo %}
                                 {{ director_de_grupo.docente.usuario.get_full_name }}<br>
-                                <small>Director(a) de Grupo</small>
+                                <small>{% trans "Director(a) de Grupo" %}</small>
                             {% else %}
                                 <br>
-                                <small>Director(a) de Grupo</small>
+                                <small>{% trans "Director(a) de Grupo" %}</small>
                             {% endif %}
                         </td>
                     </tr>
@@ -168,8 +169,8 @@
                         <td style="width: 10%;"></td> <td style="width: 80%; border-top: 1px solid black;"></td> <td style="width: 10%;"></td> </tr>
                     <tr>
                         <td colspan="3" style="padding-top: 5px;">
-                            {{ institucion.nombre_rectora|default:"[Nombre del Rector(a)]" }}<br>
-                            <small>DIRECTOR(A)</small>
+                            {{ institucion.nombre_rectora|default:_("[Nombre del Rector(a)]") }}<br>
+                            <small>{% trans "DIRECTOR(A)" %}</small>
                         </td>
                     </tr>
                 </table>

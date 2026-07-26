@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
@@ -23,29 +24,29 @@
 {% block contenido %}
 <div style="background: linear-gradient(135deg, #c2410c 0%, #f59e0b 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem; text-align:center;">
   <h2 style="color:#fff;" class="mb-1"><i class="bi bi-volume-up-fill"></i> {{ quiz.titulo }}</h2>
-  <p style="color:#fff;" class="mb-0">{% if quiz.instrucciones %}{{ quiz.instrucciones }} · {% endif %}Escucha el audio y toca la imagen correcta.</p>
+  <p style="color:#fff;" class="mb-0">{% if quiz.instrucciones %}{{ quiz.instrucciones }} · {% endif %}{% trans "Escucha el audio y toca la imagen correcta." %}</p>
 </div>
 
 {{ preguntas_json|json_script:"preguntas-data" }}
 <form class="d-none">{% csrf_token %}</form>
 
 <div class="d-flex justify-content-center mb-3">
-  <span class="badge bg-warning text-dark" style="font-size:.95rem;"><i class="bi bi-collection me-1"></i>Pregunta <span id="num-actual">1</span> de {{ total }}</span>
+  <span class="badge bg-warning text-dark" style="font-size:.95rem;"><i class="bi bi-collection me-1"></i>{% trans "Pregunta" %} <span id="num-actual">1</span> {% trans "de" %} {{ total }}</span>
 </div>
 
 <div class="text-center">
   <p id="qa-enunciado" class="fw-700 mb-3" style="font-size:1.1rem;color:#334155;"></p>
   <button type="button" id="qa-play" class="qa-play"><i class="bi bi-play-fill"></i></button>
-  <div class="text-muted mt-2" style="font-size:.85rem;">Toca para escuchar</div>
+  <div class="text-muted mt-2" style="font-size:.85rem;">{% trans "Toca para escuchar" %}</div>
   <div class="qa-opciones" id="qa-opciones"></div>
 </div>
 
 <div class="text-center mt-4">
-  <button type="button" id="btn-siguiente" class="btn btn-primary btn-lg fw-700 px-4 d-none">Siguiente <i class="bi bi-arrow-right ms-1"></i></button>
+  <button type="button" id="btn-siguiente" class="btn btn-primary btn-lg fw-700 px-4 d-none">{% trans "Siguiente" %} <i class="bi bi-arrow-right ms-1"></i></button>
 </div>
 
 <div class="text-center mt-3">
-  <a href="{% url 'quiz_audio:mis_quices' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Salir (tu avance se guarda)</a>
+  <a href="{% url 'quiz_audio:mis_quices' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{% trans "Salir (tu avance se guarda)" %}</a>
 </div>
 
 <script>

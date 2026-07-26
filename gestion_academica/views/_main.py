@@ -1798,7 +1798,7 @@ def mis_cursos_y_calificaciones_resumen(request):
     promedio_general_periodo = total_puntos_ponderados_general / total_ihs_general if total_ihs_general > 0 else None
 
     context = {
-        'titulo_pagina': "Mis Cursos y Calificaciones",
+        'titulo_pagina': _("Mis Cursos y Calificaciones"),
         'cursos_con_notas': cursos_con_notas,
         'promedio_general_periodo': promedio_general_periodo,
         'periodo_activo': periodo_activo,
@@ -1830,7 +1830,7 @@ def detalle_mis_calificaciones_por_curso(request, curso_pk):
     calificaciones_por_actividad = {cal.actividad_calificable_id: cal for cal in calificaciones_del_estudiante}
     actividades_con_calificacion = [{'actividad': act, 'calificacion': calificaciones_por_actividad.get(act.pk)} for act in actividades_del_curso]
     
-    context = {'titulo_pagina': f"Mis Calificaciones en: {curso.materia.nombre_materia}", 'curso': curso, 'actividades_con_calificacion': actividades_con_calificacion, 'estudiante': estudiante_actual}
+    context = {'titulo_pagina': _("Mis Calificaciones en: %(materia)s") % {'materia': curso.materia.nombre_materia}, 'curso': curso, 'actividades_con_calificacion': actividades_con_calificacion, 'estudiante': estudiante_actual}
     return render(request, 'gestion_academica/estudiante_detalle_calificaciones_curso.html', context)
 
 # --- Vistas para Estudiantes - Entrega de Deberes ---
@@ -1845,8 +1845,8 @@ def mis_deberes_lista(request):
         return redirect('gestion_academica:inicio_academico')
     
     if not estudiante_actual.grado_actual:
-        messages.info(request, "Aún no estás asignado a un grado, por lo que no tienes deberes asignados.")
-        context = {'titulo_pagina': "Mis Deberes", 'deberes_con_estado_entrega': []}
+        messages.info(request, _("Aún no estás asignado a un grado, por lo que no tienes deberes asignados."))
+        context = {'titulo_pagina': _("Mis Deberes"), 'deberes_con_estado_entrega': []}
         return render(request, 'gestion_academica/estudiante_mis_deberes_lista.html', context)
     
     periodo_activo = PeriodoAcademico.objects.filter(
@@ -1855,8 +1855,8 @@ def mis_deberes_lista(request):
     ).first()
 
     if not periodo_activo:
-        messages.warning(request, "No hay un periodo académico activo para tu institución. No se pueden mostrar deberes.")
-        context = {'titulo_pagina': "Mis Deberes", 'deberes_con_estado_entrega': []}
+        messages.warning(request, _("No hay un periodo académico activo para tu institución. No se pueden mostrar deberes."))
+        context = {'titulo_pagina': _("Mis Deberes"), 'deberes_con_estado_entrega': []}
         return render(request, 'gestion_academica/estudiante_mis_deberes_lista.html', context)
     
     cursos_del_estudiante = Curso.objects.filter(
@@ -1878,7 +1878,7 @@ def mis_deberes_lista(request):
         for deber in deberes_asignados
     ]
     
-    context = {'titulo_pagina': "Mis Deberes / Tareas Asignadas", 'deberes_con_estado_entrega': deberes_con_estado_entrega, 'periodo_activo': periodo_activo}
+    context = {'titulo_pagina': _("Mis Deberes / Tareas Asignadas"), 'deberes_con_estado_entrega': deberes_con_estado_entrega, 'periodo_activo': periodo_activo}
     return render(request, 'gestion_academica/estudiante_mis_deberes_lista.html', context)
 
 
@@ -1927,16 +1927,20 @@ def realizar_entrega_deber(request, deber_pk):
                 analizar_plagio_tarea_task.delay(entrega_guardada.id)
             
             # Cambiamos el mensaje para notificar al estudiante
-            messages.success(request, f"Entrega para '{deber.titulo}' guardada. HALU la analizará para asegurar su originalidad.")
+            messages.success(request, _("Entrega para '%(titulo)s' guardada. HALU la analizará para asegurar su originalidad.") % {'titulo': deber.titulo})
             # --- FIN DE LA MODIFICACIÓN ---
             
             return redirect('gestion_academica:dashboard_estudiante')
     else:
         form = EntregaDeberForm(instance=entrega_obj, request=request)
 
+    if entrega_obj.archivo_adjunto_estudiante:
+        titulo_formulario = _("Actualizar Entrega para: %(titulo)s") % {'titulo': deber.titulo}
+    else:
+        titulo_formulario = _("Realizar Entrega para: %(titulo)s") % {'titulo': deber.titulo}
     context = {
         'form': form, 'deber': deber, 'entrega_existente': entrega_obj,
-        'titulo_formulario': f"{'Actualizar' if entrega_obj.archivo_adjunto_estudiante else 'Realizar'} Entrega para: {deber.titulo}"
+        'titulo_formulario': titulo_formulario,
     }
     return render(request, 'gestion_academica/estudiante_realizar_entrega_deber.html', context)
 
@@ -2369,7 +2373,7 @@ def mi_boletin_periodo_actual(request):
         'periodo_activo': periodo_activo,
         'cursos_con_detalle': cursos_con_detalle,
         'promedio_general_periodo': promedio_general_periodo,
-        'titulo_pagina': 'Resumen de Calificaciones'
+        'titulo_pagina': _('Resumen de Calificaciones')
     }
     return render(request, 'gestion_academica/estudiante_mi_boletin.html', context)
 
@@ -3485,7 +3489,7 @@ def mi_historial_asistencia(request):
         ).select_related('curso__materia').order_by('-fecha')
 
     context = {
-        'titulo_pagina': "Mi Historial de Asistencia",
+        'titulo_pagina': _("Mi Historial de Asistencia"),
         'periodo_activo': periodo_activo,
         'historial': historial_asistencia,
     }
@@ -3593,7 +3597,7 @@ def revisar_justificaciones_inasistencia(request):
     ).order_by('-creado_en')
 
     context = {
-        'titulo_pagina': 'Justificaciones de Inasistencia',
+        'titulo_pagina': _('Justificaciones de Inasistencia'),
         'justificaciones': justificaciones,
         'estado_filtro': estado_filtro,
     }

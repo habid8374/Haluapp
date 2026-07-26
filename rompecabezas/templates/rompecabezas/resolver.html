@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
@@ -29,7 +30,7 @@
 {% block contenido %}
 <div style="background: linear-gradient(135deg, #be185d 0%, #ec4899 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem;">
   <h2 style="color:#fff;" class="mb-1"><i class="bi bi-puzzle-fill"></i> {{ rc.titulo }}</h2>
-  <p style="color:#fff;" class="mb-0">{% if rc.instrucciones %}{{ rc.instrucciones }} · {% endif %}Toca una pieza y luego otra para intercambiarlas, hasta armar la imagen completa.</p>
+  <p style="color:#fff;" class="mb-0">{% if rc.instrucciones %}{{ rc.instrucciones }} · {% endif %}{% trans "Toca una pieza y luego otra para intercambiarlas, hasta armar la imagen completa." %}</p>
 </div>
 
 <div class="row g-3 justify-content-center">
@@ -38,7 +39,7 @@
       <div class="card-body text-center">
         <div class="rc-tablero" id="rc-tablero" style="grid-template-columns: repeat({{ rc.columnas }}, 1fr); grid-template-rows: repeat({{ rc.filas }}, 1fr);"></div>
         <div class="alert alert-success mt-3 rc-resuelto-msg" id="rc-resuelto-msg">
-          <i class="bi bi-check-circle-fill me-1"></i>¡Resuelto! Enviando tu resultado…
+          <i class="bi bi-check-circle-fill me-1"></i>{% trans "¡Resuelto! Enviando tu resultado…" %}
         </div>
       </div>
     </div>
@@ -52,13 +53,13 @@
 </form>
 
 <div class="d-flex justify-content-center gap-2 mt-3">
-  <a href="{% url 'rompecabezas:mis_rompecabezas' %}" class="btn btn-outline-secondary">Salir</a>
+  <a href="{% url 'rompecabezas:mis_rompecabezas' %}" class="btn btn-outline-secondary">{% trans "Salir" %}</a>
   <button type="button" id="rc-btn-enviar" class="btn fw-700" style="background:#ec4899;color:#fff;">
-    <i class="bi bi-check2-circle me-1"></i> Enviar
+    <i class="bi bi-check2-circle me-1"></i> {% trans "Enviar" %}
   </button>
 </div>
 <p class="text-muted text-center mt-2" style="font-size:.82rem;" id="rc-ayuda-enviar">
-  <i class="bi bi-info-circle me-1"></i>Si ya armaste la imagen y no pasa nada solo, presiona "Enviar".
+  <i class="bi bi-info-circle me-1"></i>{% trans 'Si ya armaste la imagen y no pasa nada solo, presiona "Enviar".' %}
 </p>
 
 <script>

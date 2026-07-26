@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
@@ -23,7 +24,7 @@
 {% block contenido %}
 <div style="background: linear-gradient(135deg, #c2410c 0%, #f59e0b 100%); border-radius:18px; padding:1.6rem 2rem; color:white; margin-bottom:1.3rem; text-align:center;">
   <h2 style="color:#fff;" class="mb-1"><i class="bi bi-sort-numeric-down"></i> {{ actividad.titulo }}</h2>
-  <p style="color:#fff;" class="mb-0">{% if actividad.instrucciones %}{{ actividad.instrucciones }} · {% endif %}Arrastra cada tarjeta a su casilla en el orden correcto.</p>
+  <p style="color:#fff;" class="mb-0">{% if actividad.instrucciones %}{{ actividad.instrucciones }} · {% endif %}{% trans "Arrastra cada tarjeta a su casilla en el orden correcto." %}</p>
 </div>
 
 {{ tarjetas_json|json_script:"tarjetas-data" }}
@@ -34,20 +35,20 @@
 <form method="post" id="seq-form" class="d-none">{% csrf_token %}<input type="hidden" name="arreglo" id="arreglo"></form>
 
 <div class="text-center mt-4">
-  <button type="button" id="btn-terminar" class="btn btn-warning btn-lg fw-700 px-4" data-bs-toggle="modal" data-bs-target="#modalEnviar"><i class="bi bi-check2-circle me-1"></i> ¡Terminé!</button>
+  <button type="button" id="btn-terminar" class="btn btn-warning btn-lg fw-700 px-4" data-bs-toggle="modal" data-bs-target="#modalEnviar"><i class="bi bi-check2-circle me-1"></i> {% trans "¡Terminé!" %}</button>
 </div>
 <div class="text-center mt-3">
-  <a href="{% url 'secuencias:mis_secuencias' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Salir</a>
+  <a href="{% url 'secuencias:mis_secuencias' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{% trans "Salir" %}</a>
 </div>
 
 <!-- Modal confirmación -->
 <div class="modal fade" id="modalEnviar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
-    <div class="modal-header"><h5 class="modal-title fw-800">¿Enviar tu orden?</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-    <div class="modal-body"><p class="mb-0">Se corregirá y quedará registrada tu nota. Solo tienes un intento.</p></div>
+    <div class="modal-header"><h5 class="modal-title fw-800">{% trans "¿Enviar tu orden?" %}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p class="mb-0">{% trans "Se corregirá y quedará registrada tu nota. Solo tienes un intento." %}</p></div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Seguir ordenando</button>
-      <button type="button" id="btn-confirmar" class="btn btn-warning fw-700">Sí, enviar</button>
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Seguir ordenando" %}</button>
+      <button type="button" id="btn-confirmar" class="btn btn-warning fw-700">{% trans "Sí, enviar" %}</button>
     </div>
   </div></div>
 </div>

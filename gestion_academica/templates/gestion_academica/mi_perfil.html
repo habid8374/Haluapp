@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load humanize %}
 {% load socialaccount %}
 {% load socialapp_checks %}
@@ -32,7 +33,7 @@
                              class="btn btn-sm btn-outline-primary w-100"
                              style="cursor:pointer">
                         <i class="bi bi-camera-fill me-1"></i>
-                        {% if user.foto_perfil %}Cambiar foto{% else %}Subir foto de perfil{% endif %}
+                        {% if user.foto_perfil %}{% trans "Cambiar foto" %}{% else %}{% trans "Subir foto de perfil" %}{% endif %}
                       </label>
                       <input type="file" id="fotoPerfilInput" name="foto_perfil"
                              accept="image/jpeg,image/png,image/webp"
@@ -43,7 +44,7 @@
                           <button type="button" class="btn btn-link btn-sm p-0 text-danger small"
                                   data-bs-toggle="modal" data-bs-target="#modalEliminarFoto"
                                   style="text-decoration:none;">
-                            <i class="bi bi-trash3 me-1"></i>Eliminar foto
+                            <i class="bi bi-trash3 me-1"></i>{% trans "Eliminar foto" %}
                           </button>
                           <input type="hidden" name="eliminar_foto" id="eliminarFotoInput" value="">
                         </div>
@@ -57,64 +58,64 @@
             <!-- Tarjeta de Detalles del Perfil -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Detalles del Perfil</h5>
+                    <h5 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>{% trans "Detalles del Perfil" %}</h5>
                 </div>
                 <div class="card-body">
                     {% if estudiante_profile %}
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Documento:</strong> <span>{{ estudiante_profile.documento_identidad }}</span></li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Grado Actual:</strong> <span>{{ estudiante_profile.grado_actual.nombre }}</span></li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Saldo Pendiente:</strong> <span class="fw-bold {% if esta_en_mora %}text-danger{% else %}text-success{% endif %}">${{ saldo_pendiente|intcomma }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Documento:" %}</strong> <span>{{ estudiante_profile.documento_identidad }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Grado Actual:" %}</strong> <span>{{ estudiante_profile.grado_actual.nombre }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Saldo Pendiente:" %}</strong> <span class="fw-bold {% if esta_en_mora %}text-danger{% else %}text-success{% endif %}">${{ saldo_pendiente|intcomma }}</span></li>
                         </ul>
                     {% elif docente_profile %}
-                        <h6 class="card-subtitle mb-2 text-muted">Cursos Asignados (Periodo Actual)</h6>
+                        <h6 class="card-subtitle mb-2 text-muted">{% trans "Cursos Asignados (Periodo Actual)" %}</h6>
                         <ul class="list-group list-group-flush">
                             {% for curso in cursos_del_docente %}
                                 <li class="list-group-item">{{ curso.materia.nombre_materia }} - {{ curso.grado.nombre }}</li>
                             {% empty %}
-                                <li class="list-group-item">No tienes cursos asignados en el periodo activo.</li>
+                                <li class="list-group-item">{% trans "No tienes cursos asignados en el periodo activo." %}</li>
                             {% endfor %}
                         </ul>
                     {% elif familiar_profile %}
-                        <h6 class="card-subtitle mb-2 text-muted">Estudiantes Asociados</h6>
+                        <h6 class="card-subtitle mb-2 text-muted">{% trans "Estudiantes Asociados" %}</h6>
                         <ul class="list-group list-group-flush">
                             {% for est in familiar_profile.estudiantes_asociados.all %}
                                 <li class="list-group-item">{{ est.usuario.get_full_name }} ({{ est.grado_actual.nombre }})</li>
                             {% empty %}
-                                <li class="list-group-item">No tienes estudiantes asociados.</li>
+                                <li class="list-group-item">{% trans "No tienes estudiantes asociados." %}</li>
                             {% endfor %}
                         </ul>
                     {% else %}
-                        <p>Este usuario no tiene un perfil detallado de estudiante, docente o familiar.</p>
+                        <p>{% trans "Este usuario no tiene un perfil detallado de estudiante, docente o familiar." %}</p>
                     {% endif %}
                 </div>
             </div>
             <!-- Tarjeta de Configuración de Cuenta -->
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>Configuración de Cuenta</h5>
+                    <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>{% trans "Configuración de Cuenta" %}</h5>
                 </div>
                 <div class="card-body">
-                    <p>Gestiona las opciones de seguridad y conexión de tu cuenta.</p>
+                    <p>{% trans "Gestiona las opciones de seguridad y conexión de tu cuenta." %}</p>
                     <div class="d-grid gap-2 d-md-flex flex-wrap">
-                        <a href="{% url 'password_change' %}" class="btn btn-outline-danger"><i class="bi bi-key-fill me-2"></i>Cambiar Contraseña</a>
+                        <a href="{% url 'password_change' %}" class="btn btn-outline-danger"><i class="bi bi-key-fill me-2"></i>{% trans "Cambiar Contraseña" %}</a>
                         {% google_socialapp_configured as google_social_ok %}
                         {% if google_social_ok %}
                         <a href="{% url 'socialaccount_connections' %}" class="btn btn-outline-primary">
-                            <i class="bi bi-google me-2"></i>Conectar mi cuenta de Google
+                            <i class="bi bi-google me-2"></i>{% trans "Conectar mi cuenta de Google" %}
                         </a>
                         {% if not user.google_calendar_id %}
                             <a href="{% provider_login_url 'google' process='connect' scope='https://www.googleapis.com/auth/calendar' %}" class="btn btn-outline-success">
-                                <i class="bi bi-calendar-plus-fill me-2"></i>Sincronizar Calendario
+                                <i class="bi bi-calendar-plus-fill me-2"></i>{% trans "Sincronizar Calendario" %}
                             </a>
                         {% else %}
                             <button type="button" class="btn btn-success" disabled>
-                                <i class="bi bi-check-circle-fill me-2"></i>Calendario Sincronizado
+                                <i class="bi bi-check-circle-fill me-2"></i>{% trans "Calendario Sincronizado" %}
                             </button>
                         {% endif %}
                         {% else %}
                         <p class="text-muted small mb-0 align-self-center">
-                            La conexión con Google (y el calendario) no está activa: falta registrar la aplicación Google en el administrador de Django (Social applications) para este sitio.
+                            {% trans "La conexión con Google (y el calendario) no está activa: falta registrar la aplicación Google en el administrador de Django (Social applications) para este sitio." %}
                         </p>
                         {% endif %}
                     </div>
@@ -123,24 +124,23 @@
             <!-- Tarjeta de Política de Tratamiento de Datos -->
             <div class="card shadow-sm mt-4">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-shield-lock-fill me-2"></i>Política de Tratamiento de Datos</h5>
+                    <h5 class="mb-0"><i class="bi bi-shield-lock-fill me-2"></i>{% trans "Política de Tratamiento de Datos" %}</h5>
                 </div>
                 <div class="card-body">
                     {% if user.acepto_tratamiento_datos %}
                         <p class="mb-1">
                             <i class="bi bi-check-circle-fill text-success me-1"></i>
-                            Aceptaste la versión <strong>{{ user.version_politica_aceptada }}</strong>
-                            el {{ user.fecha_aceptacion_tratamiento_datos|date:"d/m/Y H:i" }}.
+                            {% blocktrans with v=user.version_politica_aceptada f=user.fecha_aceptacion_tratamiento_datos|date:"d/m/Y H:i" %}Aceptaste la versión <strong>{{ v }}</strong> el {{ f }}.{% endblocktrans %}
                         </p>
-                        <p class="text-muted small mb-3">Este registro queda guardado como evidencia (fecha, versión e identificación del dispositivo desde el que aceptaste).</p>
+                        <p class="text-muted small mb-3">{% trans "Este registro queda guardado como evidencia (fecha, versión e identificación del dispositivo desde el que aceptaste)." %}</p>
                         <a href="{% url 'gestion_academica:constancia_aceptacion_politica' %}" class="btn btn-outline-primary btn-sm mb-2" target="_blank">
-                            <i class="bi bi-file-earmark-pdf me-1"></i>Descargar constancia (PDF)
+                            <i class="bi bi-file-earmark-pdf me-1"></i>{% trans "Descargar constancia (PDF)" %}
                         </a>
                     {% else %}
-                        <p class="text-muted mb-3">Aún no has aceptado la política vigente.</p>
+                        <p class="text-muted mb-3">{% trans "Aún no has aceptado la política vigente." %}</p>
                     {% endif %}
                     <a href="{% url 'gestion_academica:ver_politica_datos' %}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-file-earmark-text me-1"></i>Ver política completa
+                        <i class="bi bi-file-earmark-text me-1"></i>{% trans "Ver política completa" %}
                     </a>
                 </div>
             </div>
@@ -158,15 +158,15 @@
         <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body pt-2">
-        <h5 class="fw-bold mb-1">¿Eliminar tu foto de perfil?</h5>
+        <h5 class="fw-bold mb-1">{% trans "¿Eliminar tu foto de perfil?" %}</h5>
         <p class="text-muted mb-0" style="font-size:.88rem;">
-          Se eliminará tu foto de perfil y se mostrará el avatar predeterminado.
+          {% trans "Se eliminará tu foto de perfil y se mostrará el avatar predeterminado." %}
         </p>
       </div>
       <div class="modal-footer border-0">
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
         <button type="button" class="btn btn-danger btn-sm" id="btnConfirmarEliminarFoto">
-          <i class="bi bi-trash3 me-1"></i>Sí, eliminar foto
+          <i class="bi bi-trash3 me-1"></i>{% trans "Sí, eliminar foto" %}
         </button>
       </div>
     </div>

@@ -15,6 +15,7 @@ from django.db import transaction, models
 from django.db.models import Sum, F, Case, When, DecimalField, Count, Q, Value, CharField
 from django.db.models.functions import Coalesce
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.utils.translation import gettext as _
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render, redirect, get_object_or_404
@@ -1018,7 +1019,7 @@ def _render_mi_estado_de_cuenta(request, estudiante, *, es_vista_familiar):
         'estudiante': estudiante,
         'cuentas': cuentas,
         'hoy': timezone.now().date(),
-        'titulo_pagina': 'Pagos y estado de cuenta' if es_vista_familiar else 'Mi Estado de Cuenta',
+        'titulo_pagina': _('Pagos y estado de cuenta') if es_vista_familiar else _('Mi Estado de Cuenta'),
         'filtro_activo': filtro,
         'total_deuda_filtrada': total_deuda_filtrada,
         'es_vista_familiar': es_vista_familiar,

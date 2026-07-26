@@ -1,6 +1,7 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
-{% block titulo %}Chat con {{ otro.get_full_name }}{% endblock %}
+{% block titulo %}{% blocktrans with nombre=otro.get_full_name %}Chat con {{ nombre }}{% endblocktrans %}{% endblock %}
 {% block contenido %}
 <div class="container-fluid mt-3 d-flex flex-column" style="height: calc(100vh - 90px);">
   <div class="d-flex align-items-center gap-3 mb-2 pb-2 border-bottom">
@@ -22,7 +23,7 @@
     </div>
     <form action="{% url 'mensajeria:archivar' conv.pk %}" method="post" class="ms-auto">
       {% csrf_token %}
-      <button type="submit" class="btn btn-sm btn-outline-secondary" title="Archivar conversación">
+      <button type="submit" class="btn btn-sm btn-outline-secondary" title="{% trans "Archivar conversación" %}">
         <i class="bi bi-archive"></i>
       </button>
     </form>
@@ -55,23 +56,23 @@
       {% endif %}
     {% empty %}
       <p class="text-center text-muted my-auto">
-        Aún no hay mensajes. ¡Saluda primero!
+        {% trans "Aún no hay mensajes. ¡Saluda primero!" %}
       </p>
     {% endfor %}
   </div>
   <div id="typing-indicator" class="text-muted small ps-2 mb-1" style="display:none;">
-    {{ otro.first_name }} está escribiendo…
+    {% blocktrans with nombre=otro.first_name %}{{ nombre }} está escribiendo…{% endblocktrans %}
   </div>
   <div class="border-top pt-2 pb-1">
     <div id="ws-offline-banner" class="alert alert-warning alert-sm py-1 px-2 mb-1 d-none" role="alert">
-      <i class="bi bi-wifi-off"></i> Sin conexión en tiempo real — los mensajes se enviarán igualmente.
+      <i class="bi bi-wifi-off"></i> {% trans "Sin conexión en tiempo real — los mensajes se enviarán igualmente." %}
     </div>
     <form id="chat-form" class="d-flex gap-2" autocomplete="off">
       {% csrf_token %}
       <textarea id="chat-input" class="form-control" rows="1"
-                placeholder="Escribe un mensaje…" maxlength="2000"
+                placeholder="{% trans "Escribe un mensaje…" %}" maxlength="2000"
                 style="resize:none;max-height:120px;"
-                aria-label="Escribe un mensaje"></textarea>
+                aria-label="{% trans "Escribe un mensaje" %}"></textarea>
       <button type="submit" class="btn btn-primary px-3" id="btn-enviar">
         <i class="bi bi-send-fill"></i>
       </button>

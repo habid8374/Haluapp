@@ -1,10 +1,11 @@
 {% extends "base_academico.html" %}
 {% load crispy_forms_tags %}
-{% block titulo %}Justificar una Inasistencia{% endblock %}
+{% load i18n %}
+{% block titulo %}{% trans "Justificar una Inasistencia" %}{% endblock %}
 {% block contenido %}
 <div style="background: linear-gradient(135deg, #0a3d8c 0%, #0b5ed7 55%, #2176ff 100%); border-radius:18px; padding:1.75rem 2rem; color:white; margin-bottom:1.75rem;">
-    <h2 style="color:#fff;" class="mb-1"><i class="bi bi-file-earmark-medical-fill me-2"></i>Justificar una Inasistencia</h2>
-    <p style="color:rgba(255,255,255,.85);" class="mb-0">Indica el rango de fechas y el motivo. Si tienes un soporte (incapacidad médica, certificado, etc.), adjúntalo — ayuda a que se revise más rápido.</p>
+    <h2 style="color:#fff;" class="mb-1"><i class="bi bi-file-earmark-medical-fill me-2"></i>{% trans "Justificar una Inasistencia" %}</h2>
+    <p style="color:rgba(255,255,255,.85);" class="mb-0">{% trans "Indica el rango de fechas y el motivo. Si tienes un soporte (incapacidad médica, certificado, etc.), adjúntalo — ayuda a que se revise más rápido." %}</p>
 </div>
 <div class="card shadow-sm" style="max-width:640px;">
     <div class="card-body">
@@ -12,8 +13,8 @@
             {% csrf_token %}
             {{ form|crispy }}
             <div class="d-flex gap-2 mt-3">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill me-1"></i>Enviar Justificación</button>
-                <a href="{% url 'gestion_academica:mis_justificaciones_inasistencia' %}" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill me-1"></i>{% trans "Enviar Justificación" %}</button>
+                <a href="{% url 'gestion_academica:mis_justificaciones_inasistencia' %}" class="btn btn-outline-secondary">{% trans "Cancelar" %}</a>
             </div>
         </form>
     </div>

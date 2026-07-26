@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
-{% block titulo %}Mis Justificaciones de Inasistencia{% endblock %}
+{% load i18n %}
+{% block titulo %}{% trans "Mis Justificaciones de Inasistencia" %}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
     .badge-pendiente { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: .78rem; padding: .35rem .8rem; border-radius: 20px; }
@@ -10,11 +11,11 @@
 {% block contenido %}
 <div style="background: linear-gradient(135deg, #0a3d8c 0%, #0b5ed7 55%, #2176ff 100%); border-radius:18px; padding:1.75rem 2rem; color:white; margin-bottom:1.75rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
     <div>
-        <h2 style="color:#fff;" class="mb-1"><i class="bi bi-file-earmark-medical-fill me-2"></i>Mis Justificaciones de Inasistencia</h2>
-        <p style="color:rgba(255,255,255,.85);" class="mb-0">Sube el motivo (médico u otro) de tus faltas para que tu docente o coordinación lo revise.</p>
+        <h2 style="color:#fff;" class="mb-1"><i class="bi bi-file-earmark-medical-fill me-2"></i>{% trans "Mis Justificaciones de Inasistencia" %}</h2>
+        <p style="color:rgba(255,255,255,.85);" class="mb-0">{% trans "Sube el motivo (médico u otro) de tus faltas para que tu docente o coordinación lo revise." %}</p>
     </div>
     <a href="{% url 'gestion_academica:crear_justificacion_inasistencia' %}" class="btn btn-light fw-600" style="border-radius:9px;">
-        <i class="bi bi-plus-circle-fill me-1"></i> Nueva Justificación
+        <i class="bi bi-plus-circle-fill me-1"></i> {% trans "Nueva Justificación" %}
     </a>
 </div>
 {% if messages %}
@@ -30,12 +31,12 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Rango de fechas</th>
-                    <th>Motivo</th>
-                    <th>Descripción</th>
-                    <th>Soporte</th>
-                    <th class="text-center">Estado</th>
-                    <th>Observaciones de revisión</th>
+                    <th>{% trans "Rango de fechas" %}</th>
+                    <th>{% trans "Motivo" %}</th>
+                    <th>{% trans "Descripción" %}</th>
+                    <th>{% trans "Soporte" %}</th>
+                    <th class="text-center">{% trans "Estado" %}</th>
+                    <th>{% trans "Observaciones de revisión" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -46,18 +47,18 @@
                     <td style="max-width:260px;">{{ j.descripcion|truncatewords:15|default:"—" }}</td>
                     <td>
                         {% if j.documento_soporte %}
-                            <a href="{{ j.documento_soporte.url }}" target="_blank" rel="noopener"><i class="bi bi-paperclip"></i> Ver archivo</a>
+                            <a href="{{ j.documento_soporte.url }}" target="_blank" rel="noopener"><i class="bi bi-paperclip"></i> {% trans "Ver archivo" %}</a>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}
                     </td>
                     <td class="text-center">
                         {% if j.estado_revision == 'PENDIENTE' %}
-                            <span class="badge-pendiente"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>
+                            <span class="badge-pendiente"><i class="bi bi-hourglass-split me-1"></i>{% trans "Pendiente" %}</span>
                         {% elif j.estado_revision == 'APROBADA' %}
-                            <span class="badge-aprobada"><i class="bi bi-check-circle-fill me-1"></i>Aprobada</span>
+                            <span class="badge-aprobada"><i class="bi bi-check-circle-fill me-1"></i>{% trans "Aprobada" %}</span>
                         {% else %}
-                            <span class="badge-rechazada"><i class="bi bi-x-circle-fill me-1"></i>Rechazada</span>
+                            <span class="badge-rechazada"><i class="bi bi-x-circle-fill me-1"></i>{% trans "Rechazada" %}</span>
                         {% endif %}
                     </td>
                     <td style="max-width:220px;">{{ j.observaciones_revision|default:"—" }}</td>
@@ -65,7 +66,7 @@
                 {% empty %}
                 <tr>
                     <td colspan="6" class="text-center text-muted p-4">
-                        Aún no has enviado ninguna justificación de inasistencia.
+                        {% trans "Aún no has enviado ninguna justificación de inasistencia." %}
                     </td>
                 </tr>
                 {% endfor %}

@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
-{% block titulo %}Nuevo Mensaje{% endblock %}
+{% load i18n %}
+{% block titulo %}{% trans "Nuevo Mensaje" %}{% endblock %}
 {% block contenido %}
 <div class="container mt-3 mt-md-4 px-2 px-md-3" style="max-width:720px">
   <div class="d-flex align-items-center gap-3 mb-3">
@@ -30,7 +31,7 @@
                     aria-controls="{{ grado_id }}">
               <i class="bi bi-people-fill me-2 text-primary"></i>
               {{ grupo.grado }}
-              <span class="badge bg-secondary ms-2 fw-normal">{{ grupo.alumnos|length }} alumno{{ grupo.alumnos|length|pluralize:"s" }}</span>
+              <span class="badge bg-secondary ms-2 fw-normal">{% blocktrans count counter=grupo.alumnos|length %}{{ counter }} alumno{% plural %}{{ counter }} alumnos{% endblocktrans %}</span>
             </button>
           </h2>
           <div id="{{ grado_id }}"
@@ -63,14 +64,14 @@
                       </div>
                       <span class="flex-grow-1 small">{{ fam.etiqueta }}</span>
                       <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="bi bi-chat-dots-fill me-1"></i>Chatear
+                        <i class="bi bi-chat-dots-fill me-1"></i>{% trans "Chatear" %}
                       </button>
                     </form>
                     {% endfor %}
                   </div>
                 {% else %}
                   <p class="text-muted small px-3 pb-2 ps-5 mb-0">
-                    <i class="bi bi-person-dash me-1"></i>Sin familiar registrado
+                    <i class="bi bi-person-dash me-1"></i>{% trans "Sin familiar registrado" %}
                   </p>
                 {% endif %}
               </div>
@@ -84,13 +85,13 @@
     {% else %}
       <div class="text-center py-5 text-muted">
         <i class="bi bi-people" style="font-size:3rem;"></i>
-        <p class="mt-3">No tienes alumnos asignados en este momento.</p>
+        <p class="mt-3">{% trans "No tienes alumnos asignados en este momento." %}</p>
       </div>
     {% endif %}
   {% else %}
     <div class="input-group mb-3 shadow-sm">
       <input type="text" id="buscarDest" class="form-control"
-             placeholder="Buscar por nombre o materia…" autocomplete="off">
+             placeholder="{% trans "Buscar por nombre o materia…" %}" autocomplete="off">
       <button class="btn btn-primary" id="btnBuscar" type="button">
         <i class="bi bi-search"></i>
       </button>
@@ -122,7 +123,7 @@
             </div>
             <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
               <i class="bi bi-chat-dots-fill d-none d-sm-inline me-1"></i>
-              <span class="d-none d-sm-inline">Chatear</span>
+              <span class="d-none d-sm-inline">{% trans "Chatear" %}</span>
               <i class="bi bi-send-fill d-sm-none"></i>
             </button>
           </form>
@@ -130,16 +131,16 @@
         {% endfor %}
       </div>
       <p id="sinResultados" class="text-center text-muted mt-4 d-none">
-        <i class="bi bi-search me-2"></i>Sin resultados para "<span id="txtBusqueda"></span>".
+        <i class="bi bi-search me-2"></i>{% trans "Sin resultados para" %} "<span id="txtBusqueda"></span>".
       </p>
     {% else %}
       <div class="text-center py-5 text-muted">
         <i class="bi bi-person-x" style="font-size:3rem;"></i>
-        <p class="mt-3">No hay personas disponibles para iniciar una conversación.</p>
+        <p class="mt-3">{% trans "No hay personas disponibles para iniciar una conversación." %}</p>
         {% if user.rol == 'familiar' or user.rol == 'estudiante' %}
           <p class="small">
-            Ocurre cuando el colegio aún no ha asignado docentes a los cursos de tu nivel.
-            Consulta con la coordinación.
+            {% trans "Ocurre cuando el colegio aún no ha asignado docentes a los cursos de tu nivel." %}
+            {% trans "Consulta con la coordinación." %}
           </p>
         {% endif %}
       </div>
