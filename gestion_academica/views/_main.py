@@ -2604,6 +2604,14 @@ def mi_progreso_academico(request):
 
     if request.GET.get('pdf') == '1' and data:
         from weasyprint import HTML
+        # Encabezado y firmas tipo boletín institucional
+        director_de_grupo = DirectorCurso.objects.select_related('docente__usuario').filter(
+            grado=data['grado'], periodo_academico=data['periodos'][-1]
+        ).first()
+        context['institucion'] = estudiante.institucion
+        context['director_de_grupo'] = director_de_grupo
+        from django.utils import timezone as _tz
+        context['fecha_emision'] = _tz.localdate()
         html = get_template('gestion_academica/pdfs/progreso_academico_pdf.html').render(context)
         pdf = HTML(string=html, base_url=request.build_absolute_uri('/')).write_pdf()
         resp = HttpResponse(pdf, content_type='application/pdf')

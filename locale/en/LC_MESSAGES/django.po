@@ -1796,7 +1796,7 @@ msgid "Fecha de Finalización:"
 msgstr "Completion Date:"
 
 msgid "Fecha de entrega:"
-msgstr "Delivery date:"
+msgstr "Issue date:"
 
 msgid "Fecha de vencimiento"
 msgstr "Due date"
@@ -3615,6 +3615,9 @@ msgstr "Recent recognitions"
 
 msgid "Reconocimientos y distinciones entregados a tus estudiantes"
 msgstr "Recognitions and awards given to your students"
+
+msgid "Rector(a)"
+msgstr "Principal"
 
 msgid "Recursos"
 msgstr "Resources"
