@@ -529,6 +529,9 @@ msgstr "Block:"
 msgid "Boletín - %(n)s - %(p)s"
 msgstr "Report Card - %(n)s - %(p)s"
 
+msgid "Boletín no disponible"
+msgstr "Report card not available"
+
 msgid "Borrador"
 msgstr "Draft"
 
@@ -1359,6 +1362,9 @@ msgstr "The file exceeds the 5 MB limit."
 
 msgid "El audio debe pesar máximo 3 MB."
 msgstr "The audio file must be at most 3 MB."
+
+msgid "El boletín del <strong>%(periodo)s</strong> todavía no ha sido publicado por tu institución."
+msgstr "The <strong>%(periodo)s</strong> report card has not been published by your school yet."
 
 msgid "El coordinador académico debe crear las categorías antes de asignarlas a actividades."
 msgstr "The academic coordinator must create the categories before assigning them to activities."
@@ -3856,6 +3862,9 @@ msgstr "All associated attempts and answers will also be deleted."
 msgid "Se ha habilitado un intento adicional para el estudiante %(intento_estudiante)s."
 msgstr "An extra attempt has been granted to student %(intento_estudiante)s."
 
+msgid "Se habilita una vez que el colegio cierra el periodo y publica los boletines. Te avisaremos por correo cuando esté listo para consultar y descargar."
+msgstr "It becomes available once the school closes the term and publishes the report cards. We will notify you by email when it is ready to view and download."
+
 msgid "Se recomienda reforzar los temas vistos en..."
 msgstr "It is recommended to reinforce the topics covered in..."
 
@@ -4372,6 +4381,9 @@ msgstr "Letter Tracing"
 msgid "Tu Entrega"
 msgstr "Your Submission"
 
+msgid "Tu boletín aún no está disponible"
+msgstr "Your report card is not available yet"
+
 msgid "Tu contraseña se actualizó correctamente."
 msgstr "Your password was updated successfully."
 
@@ -4629,6 +4641,9 @@ msgstr "Back to the List"
 
 msgid "Volver a la lista"
 msgstr "Back to list"
+
+msgid "Volver a mi panel"
+msgstr "Back to my dashboard"
 
 msgid "Volver a mis crucigramas"
 msgstr "Back to my crosswords"

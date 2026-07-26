@@ -2327,8 +2327,11 @@ class ArchivoPlanAcademicoDeleteView(LoginRequiredMixin, PermissionRequiredMixin
         return context
 
 # --- Vistas para Estudiantes - Mi Boletín ---
+# Sin permission_required: la vista es intrínsecamente propia del estudiante
+# (busca su Estudiante por request.user), así que la frontera de acceso ya
+# está garantizada. El grupo 'estudiantes' no incluye ver_mi_boletin, y el
+# decorador estricto provocaba un 403 crudo al abrir el boletín.
 @login_required
-@permission_required('gestion_academica.ver_mi_boletin')
 @requiere_pagos_al_dia
 def mi_boletin_periodo_actual(request):
     try:
@@ -2395,7 +2398,6 @@ def obtener_desempeno(nota):
     return "Baj."
 
 @login_required
-@permission_required('gestion_academica.ver_mi_boletin', raise_exception=True)
 @requiere_pagos_al_dia
 def boletin_imprimible(request, estudiante_pk, periodo_pk):
     """
@@ -2431,8 +2433,7 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
         return redirect('gestion_academica:inicio_academico') # Ajusta esta URL si es necesario
 
     if not periodo.boletines_publicados and not _puede_previsualizar_boletin_sin_publicar(request.user):
-        messages.info(request, f"El boletín del {periodo.nombre} aún no ha sido publicado por tu institución. Te avisaremos por correo cuando esté disponible.")
-        return redirect('gestion_academica:inicio_academico')
+        return render(request, 'gestion_academica/boletin_no_disponible.html', {'periodo': periodo}, status=200)
 
     # 4. Consulta principal para obtener los cursos y pre-cargar datos relacionados
     cursos = Curso.objects.filter(
@@ -11710,8 +11711,7 @@ def boletin_descriptivo_preescolar_pdf(request, estudiante_pk, periodo_pk):
         return redirect('gestion_academica:inicio_academico')
 
     if not periodo.boletines_publicados and not _puede_previsualizar_boletin_sin_publicar(request.user):
-        messages.info(request, f"El boletín del {periodo.nombre} aún no ha sido publicado por tu institución. Te avisaremos por correo cuando esté disponible.")
-        return redirect('gestion_academica:inicio_academico')
+        return render(request, 'gestion_academica/boletin_no_disponible.html', {'periodo': periodo}, status=200)
 
     # --- INICIO DE LA LÓGICA DE CONSULTA CORREGIDA ---
     

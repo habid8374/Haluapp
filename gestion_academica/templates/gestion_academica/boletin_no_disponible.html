@@ -1,0 +1,26 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{% trans "Boletín no disponible" %}{% endblock %}
+{% block contenido %}
+<div class="container mt-5" style="max-width:620px;">
+  <div class="card border-0 shadow-sm" style="border-radius:18px;overflow:hidden;">
+    <div style="background: linear-gradient(135deg, #0d3b66 0%, #1d4ed8 100%); padding:2rem;text-align:center;color:#fff;">
+      <div style="width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+        <i class="bi bi-hourglass-split" style="font-size:2rem;color:#fff;"></i>
+      </div>
+      <h2 style="color:#fff;" class="h3 mb-1">{% trans "Tu boletín aún no está disponible" %}</h2>
+    </div>
+    <div class="card-body text-center p-4">
+      <p class="text-muted mb-3" style="font-size:.95rem;">
+        {% blocktrans with periodo=periodo.nombre %}El boletín del <strong>{{ periodo }}</strong> todavía no ha sido publicado por tu institución.{% endblocktrans %}
+      </p>
+      <p class="text-muted mb-4" style="font-size:.9rem;">
+        <i class="bi bi-info-circle me-1"></i>{% trans "Se habilita una vez que el colegio cierra el periodo y publica los boletines. Te avisaremos por correo cuando esté listo para consultar y descargar." %}
+      </p>
+      <a href="{% url 'gestion_academica:inicio_academico' %}" class="btn btn-primary">
+        <i class="bi bi-arrow-left me-1"></i>{% trans "Volver a mi panel" %}
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
