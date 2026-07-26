@@ -1251,7 +1251,8 @@
      data-url-auto="{% url 'mensajeria:set_auto_away' %}"
      data-txt-online="{% trans 'En línea' %}"
      data-txt-away="{% trans 'Ausente' %}"
-     data-txt-offline="{% trans 'Desconectado' %}"></div>
+     data-txt-offline="{% trans 'Desconectado' %}"
+     data-msg-online="{% trans '{n} está en línea' %}"></div>
 <script src="{% static 'js/presencia.js' %}"></script>
 {% endif %}
 {% if user.is_authenticated and banners_activos %}
