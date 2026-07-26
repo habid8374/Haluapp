@@ -502,6 +502,9 @@ msgstr "No grades have been recorded for this term yet."
 msgid "Aún no tienes resultados publicados."
 msgstr "You don't have any published results yet."
 
+msgid "Bajaste de puesto"
+msgstr "You moved down"
+
 msgid "Bajo"
 msgstr "Low"
 
@@ -3550,6 +3553,12 @@ msgstr "Publish"
 msgid "Puedes agregar, eliminar o modificar las clases. Cuando termines, usa <strong>\"Enviar corrección\"</strong> en cualquier clase."
 msgstr "You can add, delete, or modify classes. When you're done, use <strong>\"Submit correction\"</strong> on any class."
 
+msgid "Puesto en el grado"
+msgstr "Class rank"
+
+msgid "Puesto %(puesto)s/%(total)s"
+msgstr "Rank %(puesto)s/%(total)s"
+
 msgid "Puntaje"
 msgstr "Score"
 
@@ -4200,6 +4209,9 @@ msgstr "Upload profile photo"
 
 msgid "Subir primer material"
 msgstr "Upload first material"
+
+msgid "Subiste de puesto"
+msgstr "You moved up"
 
 msgid "Sugerir Nota con IA"
 msgstr "Suggest Grade with AI"

@@ -44,11 +44,22 @@
 
   <!-- Resumen / tendencia general -->
   <div class="card shadow-sm mb-4">
-    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+    <div class="card-body d-flex flex-wrap align-items-center gap-4">
       <div>
         <div class="text-muted" style="font-size:.8rem;">{% trans "Promedio general actual" %}</div>
         <div style="font-size:2rem;font-weight:800;color:#0d3b66;">{{ data.promedio_general_actual|floatformat:2|default:"—" }}</div>
       </div>
+      {% if data.puesto_actual %}
+      <div>
+        <div class="text-muted" style="font-size:.8rem;">{% trans "Puesto en el grado" %}</div>
+        <div style="font-size:2rem;font-weight:800;color:#0d3b66;">{{ data.puesto_actual }}<span style="font-size:1rem;color:#94a3b8;font-weight:600;"> / {{ data.total_grupo }}</span>
+          {% if data.puesto_anterior %}
+            {% if data.puesto_actual < data.puesto_anterior %}<i class="bi bi-arrow-up-short trend-up" title="{% trans 'Subiste de puesto' %}"></i>
+            {% elif data.puesto_actual > data.puesto_anterior %}<i class="bi bi-arrow-down-short trend-down" title="{% trans 'Bajaste de puesto' %}"></i>{% endif %}
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
       <div class="ms-auto">
         {% if data.tendencia_general == 'mejoro' %}
           <span class="badge bg-success-subtle text-success-emphasis p-2" style="font-size:.9rem;"><i class="bi bi-arrow-up-right me-1"></i>{% trans "Mejoró respecto al periodo anterior" %}</span>
@@ -74,7 +85,7 @@
                style="height:{{ b.altura }}%;">
             <span class="val">{{ b.valor|floatformat:2|default:"—" }}</span>
           </div>
-          <div class="prog-bar-lbl">{{ b.label }}</div>
+          <div class="prog-bar-lbl">{{ b.label }}{% if b.puesto %}<br><span style="color:#94a3b8;font-weight:500;">{% blocktrans with puesto=b.puesto total=b.total %}Puesto {{ puesto }}/{{ total }}{% endblocktrans %}</span>{% endif %}</div>
         </div>
         {% endfor %}
       </div>

@@ -54,6 +54,12 @@
         <div style="font-size:10px;color:#64748b;">{% trans "Promedio general actual" %}</div>
         <div class="big">{{ data.promedio_general_actual|floatformat:2|default:"—" }}</div>
       </td>
+      {% if data.puesto_actual %}
+      <td>
+        <div style="font-size:10px;color:#64748b;">{% trans "Puesto en el grado" %}</div>
+        <div class="big">{{ data.puesto_actual }}<span style="font-size:12px;color:#94a3b8;"> / {{ data.total_grupo }}</span></div>
+      </td>
+      {% endif %}
       <td style="text-align:right;">
         {% if data.tendencia_general == 'mejoro' %}<span class="badge b-up">&#9650; {% trans "Mejoró respecto al periodo anterior" %}</span>
         {% elif data.tendencia_general == 'bajo' %}<span class="badge b-down">&#9660; {% trans "Bajó respecto al periodo anterior" %}</span>
@@ -73,7 +79,7 @@
       </td>
       {% endfor %}
     </tr><tr>
-      {% for b in data.chart %}<td class="bar-lbl">{{ b.label }}</td>{% endfor %}
+      {% for b in data.chart %}<td class="bar-lbl">{{ b.label }}{% if b.puesto %}<br>{% blocktrans with puesto=b.puesto total=b.total %}Puesto {{ puesto }}/{{ total }}{% endblocktrans %}{% endif %}</td>{% endfor %}
     </tr></table>
   </div>
 

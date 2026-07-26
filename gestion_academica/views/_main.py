@@ -2396,6 +2396,58 @@ def _tendencia(actual, anterior):
     return ('igual', dif)
 
 
+def _promedio_estudiante_en_cursos(estudiante, cursos):
+    """Promedio general de un estudiante sobre una lista de cursos ya cargada.
+    Pondera por intensidad horaria si está configurada; si no, promedio simple.
+    Mismo criterio (con respaldos) que _construir_progreso_academico."""
+    total_ponderado = Decimal('0.0')
+    total_ihs = 0
+    notas = []
+    for curso in cursos:
+        nota = calcular_estado_academico_curso(curso, estudiante).get('nota_final_ponderada')
+        if nota is None:
+            avg = Calificacion.objects.filter(
+                estudiante=estudiante,
+                actividad_calificable__curso=curso,
+                valor_numerico__isnull=False,
+            ).aggregate(a=Avg('valor_numerico'))['a']
+            nota = Decimal(str(avg)) if avg is not None else None
+        if nota is not None:
+            notas.append(nota)
+            ihs = curso.materia.intensidad_horaria_semanal or 0
+            if ihs > 0:
+                total_ponderado += nota * ihs
+                total_ihs += ihs
+    if total_ihs > 0:
+        return total_ponderado / total_ihs
+    if notas:
+        return sum(notas) / Decimal(len(notas))
+    return None
+
+
+def _ranking_periodo(estudiante, periodo, grado):
+    """Devuelve (puesto, total) del estudiante entre sus compañeros de grado en
+    el periodo. Empates comparten puesto (ranking de competencia)."""
+    cursos = list(
+        Curso.objects.filter(grado=grado, periodo_academico=periodo).select_related('materia')
+    )
+    if not cursos:
+        return (None, None)
+    mi_prom = _promedio_estudiante_en_cursos(estudiante, cursos)
+    if mi_prom is None:
+        return (None, None)
+    total = 0
+    mejores = 0
+    for est in Estudiante.objects.filter(grado_actual=grado, activo=True).select_related('usuario'):
+        prom = _promedio_estudiante_en_cursos(est, cursos)
+        if prom is None:
+            continue
+        total += 1
+        if prom > mi_prom:
+            mejores += 1
+    return (1 + mejores, total)
+
+
 def _construir_progreso_academico(estudiante):
     """
     Arma la evolución académica del estudiante a lo largo del año lectivo:
@@ -2473,10 +2525,11 @@ def _construir_progreso_academico(estudiante):
         return None
 
     periodos = [c[0] for c in calculo_por_periodo]
-    promedios_generales = []   # [{'periodo': p, 'promedio': Decimal|None}]
+    promedios_generales = []   # [{'periodo': p, 'promedio': Decimal|None, 'puesto':int, 'total':int}]
     materias_map = {}          # nombre_materia -> {'notas': [por periodo], 'materia': obj}
     for idx, (periodo, prom, notas_materias) in enumerate(calculo_por_periodo):
-        promedios_generales.append({'periodo': periodo, 'promedio': prom})
+        puesto, total_grupo = _ranking_periodo(estudiante, periodo, grado)
+        promedios_generales.append({'periodo': periodo, 'promedio': prom, 'puesto': puesto, 'total': total_grupo})
         for nombre, (materia, nota) in notas_materias.items():
             if nombre not in materias_map:
                 materias_map[nombre] = {'materia': materia, 'notas': [None] * len(periodos)}
@@ -2511,7 +2564,13 @@ def _construir_progreso_academico(estudiante):
             'label': x['periodo'].nombre,
             'valor': prom,
             'altura': int((prom / Decimal('5.0')) * 100) if prom is not None else 0,
+            'puesto': x['puesto'],
+            'total': x['total'],
         })
+
+    puesto_actual = promedios_generales[-1]['puesto'] if promedios_generales else None
+    total_grupo = promedios_generales[-1]['total'] if promedios_generales else None
+    puesto_anterior = promedios_generales[-2]['puesto'] if len(promedios_generales) >= 2 else None
 
     return {
         'estudiante': estudiante,
@@ -2524,6 +2583,9 @@ def _construir_progreso_academico(estudiante):
         'tendencia_general': tendencia_general[0],
         'promedio_general_actual': ultimos[-1] if ultimos else None,
         'promedio_general_anterior': ultimos[-2] if len(ultimos) >= 2 else None,
+        'puesto_actual': puesto_actual,
+        'total_grupo': total_grupo,
+        'puesto_anterior': puesto_anterior,
     }
 
 
