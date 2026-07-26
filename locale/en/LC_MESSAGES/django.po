@@ -1195,6 +1195,9 @@ msgstr "Teacher:"
 msgid "Documento:"
 msgstr "Document:"
 
+msgid "Domingo"
+msgstr "Sunday"
+
 msgid "Déjalas vacías para que no haya límite."
 msgstr "Leave them empty for no limit."
 
@@ -4131,6 +4134,9 @@ msgstr "Superior (4.6–5.0)"
 
 msgid "Supervisión de notas y vista anual de todos los cursos de la institución"
 msgstr "Supervision of grades and annual view of all the institution's courses"
+
+msgid "Sábado"
+msgstr "Saturday"
 
 msgid "Sí, Eliminar"
 msgstr "Yes, Delete"

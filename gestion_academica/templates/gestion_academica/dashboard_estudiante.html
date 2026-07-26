@@ -657,9 +657,12 @@
 {% endblock contenido %}
 {% block extra_js %}
 {{ block.super }}
+{% get_current_language as LANGUAGE_CODE %}
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Idioma activo del usuario (para saludo, fecha y calendario)
+  var HALU_IS_EN = "{{ LANGUAGE_CODE }}".indexOf('en') === 0;
   // ── Live date ──
   function updateLiveDate() {
     const el = document.getElementById('est-live-date');
@@ -667,8 +670,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const now = new Date();
     const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const h = now.getHours();
-    const saludo = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
-    el.textContent = saludo + ' · ' + now.toLocaleDateString('es-ES', opts);
+    const saludo = h < 12 ? (HALU_IS_EN ? 'Good morning' : 'Buenos días')
+                 : h < 19 ? (HALU_IS_EN ? 'Good afternoon' : 'Buenas tardes')
+                          : (HALU_IS_EN ? 'Good evening' : 'Buenas noches');
+    el.textContent = saludo + ' · ' + now.toLocaleDateString(HALU_IS_EN ? 'en-US' : 'es-ES', opts);
   }
   updateLiveDate();
   setInterval(updateLiveDate, 60000);
@@ -676,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var calendarEl = document.getElementById('calendar');
   if (calendarEl) {
     var calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth', locale: 'es',
+      initialView: 'dayGridMonth', locale: HALU_IS_EN ? 'en' : 'es',
       headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
       events: "{% url 'gestion_academica:api_calendario_eventos' %}",
       eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: 'short' },

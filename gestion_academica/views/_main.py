@@ -4052,7 +4052,9 @@ def dashboard_estudiante(request):
 
         # Variables necesarias para el nuevo horario interactivo
         'horario_agrupado': {},
-        'dias_semana': BloqueHorario.DIA_SEMANA_CHOICES,
+        # Traducimos las etiquetas de los días al idioma activo (gettext), sin
+        # tocar las choices del modelo ni requerir migración.
+        'dias_semana': [(i, _(nombre)) for i, nombre in BloqueHorario.DIA_SEMANA_CHOICES],
         'dia_semana_hoy': dia_semana_hoy,
         
         # Inicialización de otras variables del contexto
