@@ -29,4 +29,11 @@ urlpatterns = [
     path('api/mensajes/<int:conversacion_id>/', views.api_mensajes, name='api_mensajes'),
     path('api/enviar/', views.api_enviar_mensaje, name='api_enviar'),
     path('api/no-leidos/', views.api_no_leidos, name='api_no_leidos'),
+
+    # ------------------------------------------------------------------ #
+    #  Presencia (en línea / ausente)                                     #
+    # ------------------------------------------------------------------ #
+    path('api/presencia/estado/', views.set_presencia, name='set_presencia'),
+    path('api/presencia/auto-away/', views.set_auto_away, name='set_auto_away'),
+    path('api/presencia/mi-estado/', views.mi_estado_presencia, name='mi_estado_presencia'),
 ]

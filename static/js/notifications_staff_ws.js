@@ -121,6 +121,14 @@
                 return;
             }
 
+            // Eventos de presencia: no son toasts; los enruta el módulo de presencia.
+            if (data && data.kind === "presencia") {
+                if (window.HALUPresence && window.HALUPresence.update) {
+                    window.HALUPresence.update(data);
+                }
+                return;
+            }
+
             if (
                 expectedInstId &&
                 data &&

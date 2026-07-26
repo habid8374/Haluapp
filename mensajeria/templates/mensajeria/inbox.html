@@ -58,7 +58,7 @@
           </div>
           <div class="flex-grow-1 overflow-hidden">
             <div class="d-flex justify-content-between">
-              <span class="text-truncate">{{ otro.get_full_name }}</span>
+              <span class="text-truncate" data-presencia-user="{{ otro.pk }}" data-estado="{{ item.estado }}" title=""><span class="presencia-dot"></span>{{ otro.get_full_name }}</span>
               <small class="text-muted text-nowrap ms-2">
                 {% blocktrans with tiempo=conv.ultimo_mensaje_en|timesince %}{{ tiempo }} atrás{% endblocktrans %}
               </small>

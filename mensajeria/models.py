@@ -137,3 +137,38 @@ class Mensaje(models.Model):
             self.leido = True
             self.leido_en = timezone.now()
             self.save(update_fields=['leido', 'leido_en'])
+
+
+class PresenciaUsuario(models.Model):
+    """
+    Estado de presencia (en línea / ausente / desconectado) de un usuario, para
+    mostrarlo en la mensajería tipo chat. `conexiones` cuenta los WebSocket
+    activos (varias pestañas/dispositivos): el usuario está conectado si > 0.
+    """
+    class EstadoManual(models.TextChoices):
+        DISPONIBLE = 'DISPONIBLE', 'En línea'
+        AUSENTE = 'AUSENTE', 'Ausente'
+
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='presencia'
+    )
+    conexiones = models.PositiveIntegerField(default=0)
+    estado_manual = models.CharField(
+        max_length=12, choices=EstadoManual.choices, default=EstadoManual.DISPONIBLE
+    )
+    ausente_auto = models.BooleanField(default=False)
+    last_seen = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = 'Presencia de Usuario'
+        verbose_name_plural = 'Presencias de Usuarios'
+
+    def __str__(self):
+        return f"{self.usuario} — {self.estado_efectivo()}"
+
+    def estado_efectivo(self):
+        if self.conexiones <= 0:
+            return 'DESCONECTADO'
+        if self.estado_manual == self.EstadoManual.AUSENTE or self.ausente_auto:
+            return 'AUSENTE'
+        return 'EN_LINEA'

@@ -2,6 +2,7 @@
 
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     """
@@ -27,9 +28,33 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
+        # Presencia: este WebSocket vive mientras el usuario tiene la app abierta,
+        # así que sirve como señal de "en línea". Avisa a sus pares del cambio.
+        await self._actualizar_presencia(user.pk, +1)
+
     async def disconnect(self, close_code):
         for group_name in getattr(self, "_channel_groups", []):
             await self.channel_layer.group_discard(group_name, self.channel_name)
+        user = self.scope.get("user")
+        if user and getattr(user, "is_authenticated", False):
+            await self._actualizar_presencia(user.pk, -1)
+
+    async def _actualizar_presencia(self, usuario_id, delta):
+        try:
+            from mensajeria.presencia import marcar_conexion, broadcast_presencia
+            estado = await database_sync_to_async(marcar_conexion)(usuario_id, delta)
+            await database_sync_to_async(broadcast_presencia)(usuario_id, estado)
+        except Exception:
+            pass
+
+    async def presencia_update(self, event):
+        """Reenvía al navegador un cambio de presencia de un par."""
+        await self.send(text_data=json.dumps({
+            "kind": "presencia",
+            "usuario_id": event.get("usuario_id"),
+            "nombre": event.get("nombre", ""),
+            "estado": event.get("estado", "DESCONECTADO"),
+        }))
 
     async def send_notification(self, event):
         """

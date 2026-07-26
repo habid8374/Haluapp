@@ -1069,6 +1069,9 @@ msgstr "Download certificate (PDF)"
 msgid "Descargar material"
 msgstr "Download material"
 
+msgid "Desconectado"
+msgstr "Offline"
+
 msgid "Describe la respuesta ideal aquí…"
 msgstr "Describe the ideal answer here…"
 
@@ -1461,6 +1464,9 @@ msgstr "Start"
 
 msgid "En cursiva la guía se muestra en <b>minúscula</b> (lo que se traza en 1° y 2°)."
 msgstr "In cursive, the guide is shown in <b>lowercase</b> (what is traced in 1st and 2nd grade)."
+
+msgid "En línea"
+msgstr "Online"
 
 msgid "En revisión…"
 msgstr "Under review…"
@@ -2628,6 +2634,9 @@ msgstr "My Progress"
 
 msgid "Mi Progreso Académico"
 msgstr "My Academic Progress"
+
+msgid "Mi estado"
+msgstr "My status"
 
 msgid "Mira cada tarjeta y escribe la respuesta. ¡Se corrige al instante y la nota queda registrada!"
 msgstr "Look at each card and type the answer. It grades instantly and the score is recorded!"
@@ -4824,6 +4833,15 @@ msgstr "remove"
 
 msgid "quitar imagen"
 msgstr "remove image"
+
+msgid "{n} está ausente"
+msgstr "{n} is away"
+
+msgid "{n} está desconectado"
+msgstr "{n} is offline"
+
+msgid "{n} está en línea"
+msgstr "{n} is online"
 
 msgid "%(counter)s actividad"
 msgstr "%(counter)s activity"

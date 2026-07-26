@@ -14,6 +14,13 @@
     </div>
     <div>
       <strong>{{ otro.get_full_name }}</strong>
+      <div id="presencia-banner" class="small"
+           data-user="{{ otro.pk }}" data-nombre="{{ otro.get_full_name }}" data-estado="{{ otro_estado }}"
+           data-tpl-online="{% trans '{n} está en línea' %}"
+           data-tpl-away="{% trans '{n} está ausente' %}"
+           data-tpl-offline="{% trans '{n} está desconectado' %}">
+        <span class="presencia-dot"></span> <span class="presencia-banner-text text-muted"></span>
+      </div>
       {% if conv.estudiante_contexto %}
         <br><small class="text-muted">
           <i class="bi bi-person-fill"></i>

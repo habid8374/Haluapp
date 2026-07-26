@@ -68,11 +68,13 @@ def inbox(request):
         if not archivada and mostrar_archivadas:
             continue
         otro = conv.get_otro_participante(request.user)
+        from .presencia import estado_de
         conversaciones.append({
             'conv': conv,
             'otro': otro,
             'no_leidos': conv.no_leidos_para(request.user),
             'archivada': archivada,
+            'estado': estado_de(otro.pk),
         })
 
     return render(request, 'mensajeria/inbox.html', {
@@ -111,12 +113,14 @@ def detalle_conversacion(request, conversacion_id):
     )
 
     otro = conv.get_otro_participante(request.user)
+    from .presencia import estado_de
 
     return render(request, 'mensajeria/conversacion.html', {
         'conv': conv,
         'otro': otro,
         'mensajes': mensajes,
         'conversacion_id': conv.pk,
+        'otro_estado': estado_de(otro.pk),
     })
 
 
@@ -542,3 +546,40 @@ def api_no_leidos(request):
     ).exclude(remitente=request.user).count()
 
     return JsonResponse({'no_leidos': total})
+
+
+# ---------------------------------------------------------------------------
+#  Presencia (en línea / ausente)
+# ---------------------------------------------------------------------------
+@login_required
+@require_POST
+def set_presencia(request):
+    """El usuario fija su estado manual: DISPONIBLE (en línea) o AUSENTE."""
+    from .presencia import set_estado_manual, broadcast_presencia
+    from .models import PresenciaUsuario
+    estado = request.POST.get('estado')
+    validos = (PresenciaUsuario.EstadoManual.DISPONIBLE, PresenciaUsuario.EstadoManual.AUSENTE)
+    if estado not in validos:
+        return JsonResponse({'ok': False, 'error': 'estado inválido'}, status=400)
+    efectivo = set_estado_manual(request.user.pk, estado)
+    broadcast_presencia(request.user.pk, efectivo)
+    return JsonResponse({'ok': True, 'estado': efectivo})
+
+
+@login_required
+@require_POST
+def set_auto_away(request):
+    """Ausente automático por inactividad (lo dispara el cliente)."""
+    from .presencia import set_auto_away as _set_auto_away, broadcast_presencia
+    away = request.POST.get('away') == '1'
+    efectivo = _set_auto_away(request.user.pk, away)
+    broadcast_presencia(request.user.pk, efectivo)
+    return JsonResponse({'ok': True, 'estado': efectivo})
+
+
+@login_required
+def mi_estado_presencia(request):
+    """Estado manual guardado del propio usuario (para pintar el selector)."""
+    from .presencia import _get_or_create
+    p = _get_or_create(request.user.pk)
+    return JsonResponse({'estado_manual': p.estado_manual})

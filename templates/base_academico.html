@@ -287,6 +287,14 @@
             <div class="text-muted" style="font-size:.73rem">{{ user.email }}</div>
           </div>
         </li>
+        <li class="px-3 py-1">
+          <div class="text-muted" style="font-size:.68rem;text-transform:uppercase;letter-spacing:.4px;">{% trans "Mi estado" %}: <span id="mi-estado-label" class="fw-semibold">{% if user.presencia.estado_manual == 'AUSENTE' %}{% trans "Ausente" %}{% else %}{% trans "En línea" %}{% endif %}</span></div>
+          <div class="btn-group btn-group-sm mt-1" role="group">
+            <button type="button" class="btn btn-outline-success {% if user.presencia.estado_manual != 'AUSENTE' %}active{% endif %}" data-presencia-set="DISPONIBLE"><span class="presencia-dot p-online"></span> {% trans "En línea" %}</button>
+            <button type="button" class="btn btn-outline-warning {% if user.presencia.estado_manual == 'AUSENTE' %}active{% endif %}" data-presencia-set="AUSENTE"><span class="presencia-dot p-away"></span> {% trans "Ausente" %}</button>
+          </div>
+        </li>
+        <li><hr class="dropdown-divider"></li>
         <li><a class="dropdown-item" href="{% url 'gestion_academica:ver_mi_perfil' %}">
           <i class="bi bi-person-circle me-2 text-primary"></i>{% trans "Mi Perfil" %}</a></li>
         <li><a class="dropdown-item" href="{% url 'socialaccount_connections' %}">
@@ -1228,6 +1236,23 @@
   </div>
 </div>
 <script src="{% static 'js/notifications_staff_ws.js' %}"></script>
+{% endif %}
+{% if user.is_authenticated %}
+<style>
+  .presencia-dot { display:inline-block; width:.62rem; height:.62rem; border-radius:50%; background:#cbd5e1; vertical-align:middle; margin-right:.15rem; }
+  .presencia-dot.p-online { background:#22c55e; box-shadow:0 0 0 2px rgba(34,197,94,.18); }
+  .presencia-dot.p-away { background:#f59e0b; box-shadow:0 0 0 2px rgba(245,158,11,.18); }
+  .presencia-dot.p-offline { background:#cbd5e1; }
+</style>
+<div id="halu-presencia-config"
+     data-staff="{{ user.is_staff|yesno:'1,0' }}"
+     data-csrf="{{ csrf_token }}"
+     data-url-estado="{% url 'mensajeria:set_presencia' %}"
+     data-url-auto="{% url 'mensajeria:set_auto_away' %}"
+     data-txt-online="{% trans 'En línea' %}"
+     data-txt-away="{% trans 'Ausente' %}"
+     data-txt-offline="{% trans 'Desconectado' %}"></div>
+<script src="{% static 'js/presencia.js' %}"></script>
 {% endif %}
 {% if user.is_authenticated and banners_activos %}
 <style>
