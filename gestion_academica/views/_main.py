@@ -2440,12 +2440,31 @@ def _construir_progreso_academico(estudiante):
         for curso in cursos:
             estado = calcular_estado_academico_curso(curso, estudiante)
             nota = estado.get('nota_final_ponderada')
+            if nota is None:
+                # Respaldo: si las categorías del curso no tienen porcentajes
+                # configurados, la nota ponderada es None aunque sí existan
+                # calificaciones. Usamos el promedio simple de esas notas para
+                # que el progreso muestre igual la evolución del estudiante.
+                avg = Calificacion.objects.filter(
+                    estudiante=estudiante,
+                    actividad_calificable__curso=curso,
+                    valor_numerico__isnull=False,
+                ).aggregate(a=Avg('valor_numerico'))['a']
+                nota = Decimal(str(avg)) if avg is not None else None
             notas_materias[curso.materia.nombre_materia] = (curso.materia, nota)
             ihs = curso.materia.intensidad_horaria_semanal or 0
             if nota is not None and ihs > 0:
                 total_ponderado += nota * ihs
                 total_ihs += ihs
-        prom = (total_ponderado / total_ihs) if total_ihs > 0 else None
+        # Promedio del periodo: ponderado por IHS si está configurado; si no,
+        # promedio simple de las materias con nota (grados/colegios que no usan IHS).
+        notas_validas = [n for (_m, n) in notas_materias.values() if n is not None]
+        if total_ihs > 0:
+            prom = total_ponderado / total_ihs
+        elif notas_validas:
+            prom = sum(notas_validas) / Decimal(len(notas_validas))
+        else:
+            prom = None
         calculo_por_periodo.append((periodo, prom, notas_materias))
 
     # Solo periodos con al menos una nota (promedio calculado).
