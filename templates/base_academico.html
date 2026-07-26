@@ -367,6 +367,12 @@
           <i class="bi bi-calendar-check-fill"></i> {% trans "Mi Asistencia" %}
         </a>
       </li>
+      <li class="nav-item item-color-7">
+        <a class="nav-link {% if 'progreso-academico' in request.path %}active{% endif %}"
+           href="{% url 'gestion_academica:mi_progreso_academico' %}">
+          <i class="bi bi-graph-up-arrow"></i> {% trans "Mi Progreso" %}
+        </a>
+      </li>
       <li class="nav-item item-color-1">
         <a class="nav-link {% if 'simulacros' in request.path %}active{% endif %}" href="{% url 'simulacros:simulacros_estudiante' %}">
           <i class="bi bi-journal-check"></i> {% trans "Mis Simulacros" %}

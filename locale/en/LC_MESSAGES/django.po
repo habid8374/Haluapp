@@ -490,6 +490,9 @@ msgstr "No messages yet. Say hi first!"
 msgid "Aún no hay preguntas."
 msgstr "No questions yet."
 
+msgid "Aún no hay un periodo anterior para comparar."
+msgstr "There is no previous term to compare yet."
+
 msgid "Aún no se ha ejecutado ningún análisis de riesgo."
 msgstr "No risk analysis has been run yet."
 
@@ -504,6 +507,12 @@ msgstr "Low"
 
 msgid "Bajo (1.0–2.9)"
 msgstr "Low (1.0–2.9)"
+
+msgid "Bajó"
+msgstr "Declined"
+
+msgid "Bajó respecto al periodo anterior"
+msgstr "Declined compared to the previous term"
 
 msgid "Banco de Logros de mis Materias y Grados"
 msgstr "Achievement Bank for My Subjects and Grades"
@@ -1717,6 +1726,12 @@ msgstr "Assessment:"
 msgid "Evaluar Logros"
 msgstr "Assess Achievements"
 
+msgid "Evolución del año lectivo"
+msgstr "School-year progress"
+
+msgid "Evolución por materia"
+msgstr "Progress by subject"
+
 msgid "Expandir noticia"
 msgstr "Expand announcement"
 
@@ -1987,6 +2002,9 @@ msgstr "Grade"
 msgid "Grado Actual:"
 msgstr "Current Grade:"
 
+msgid "Grado:"
+msgstr "Grade:"
+
 msgid "Grado: %(grado)s"
 msgstr "Grade: %(grado)s"
 
@@ -2149,6 +2167,9 @@ msgstr "There was an error in the form. Please check the details."
 msgid "INFORME ACADÉMICO EVALUATIVO %(p)s"
 msgstr "ACADEMIC EVALUATION REPORT %(p)s"
 
+msgid "INFORME DE PROGRESO ACADÉMICO"
+msgstr "ACADEMIC PROGRESS REPORT"
+
 msgid "Identifica a los mejores estudiantes del grupo para reconocerlos en el boletín y los actos institucionales."
 msgstr "Identify the group's top students to recognize them on report cards and at school events."
 
@@ -2214,6 +2235,9 @@ msgstr "General Information"
 
 msgid "Información del Deber"
 msgstr "Assignment Information"
+
+msgid "Informe de Progreso Académico · Año lectivo %(anio)s"
+msgstr "Academic Progress Report · School year %(anio)s"
 
 msgid "Informes y Análisis Docente"
 msgstr "Teacher Reports and Analysis"
@@ -2515,6 +2539,12 @@ msgstr "Deck deleted."
 msgid "Medio"
 msgstr "Medium"
 
+msgid "Mejoró"
+msgstr "Improved"
+
+msgid "Mejoró respecto al periodo anterior"
+msgstr "Improved compared to the previous term"
+
 msgid "Menciones"
 msgstr "Recognitions"
 
@@ -2589,6 +2619,12 @@ msgstr "My Student Dashboard"
 
 msgid "Mi Perfil"
 msgstr "My Profile"
+
+msgid "Mi Progreso"
+msgstr "My Progress"
+
+msgid "Mi Progreso Académico"
+msgstr "My Academic Progress"
 
 msgid "Mira cada tarjeta y escribe la respuesta. ¡Se corrige al instante y la nota queda registrada!"
 msgstr "Look at each card and type the answer. It grades instantly and the score is recorded!"
@@ -3403,6 +3439,9 @@ msgstr "Final deadline"
 msgid "Plazo final:"
 msgstr "Final deadline:"
 
+msgid "Podrás ver la evolución de tus notas cuando tu institución cierre y publique al menos un periodo académico."
+msgstr "You will be able to see how your grades evolve once your school closes and publishes at least one academic term."
+
 msgid "Política de Tratamiento de Datos"
 msgstr "Data Processing Policy"
 
@@ -3477,6 +3516,12 @@ msgstr "Grade Overall Average"
 
 msgid "Promedio General del Periodo"
 msgstr "Term Overall Average"
+
+msgid "Promedio general actual"
+msgstr "Current overall average"
+
+msgid "Promedio general por periodo"
+msgstr "Overall average by term"
 
 msgid "Promedio por Materia"
 msgstr "Average by Subject"
@@ -3865,6 +3910,12 @@ msgstr "An extra attempt has been granted to student %(intento_estudiante)s."
 msgid "Se habilita una vez que el colegio cierra el periodo y publica los boletines. Te avisaremos por correo cuando esté listo para consultar y descargar."
 msgstr "It becomes available once the school closes the term and publishes the report cards. We will notify you by email when it is ready to view and download."
 
+msgid "Se mantuvo"
+msgstr "Held steady"
+
+msgid "Se mantuvo respecto al periodo anterior"
+msgstr "Held steady compared to the previous term"
+
 msgid "Se recomienda reforzar los temas vistos en..."
 msgstr "It is recommended to reinforce the topics covered in..."
 
@@ -4039,6 +4090,9 @@ msgstr "No image"
 msgid "Sin letras todavía."
 msgstr "No letters yet."
 
+msgid "Sin periodo anterior para comparar"
+msgstr "No previous term to compare"
+
 msgid "Sin planes registrados"
 msgstr "No plans registered"
 
@@ -4092,6 +4146,12 @@ msgstr "Mine only"
 
 msgid "Solo se aceptan archivos Excel con extensión .xlsx"
 msgstr "Only Excel files with .xlsx extension are accepted"
+
+msgid "Solo se incluyen los periodos cuyos boletines ya fueron publicados por tu institución. Niveles: Superior (verde), Alto (azul), Básico (naranja), Bajo (rojo)."
+msgstr "Only terms whose report cards have already been published by your school are included. Levels: Superior (green), High (blue), Basic (orange), Low (red)."
+
+msgid "Solo se incluyen los periodos cuyos boletines ya fueron publicados. Niveles: Superior · Alto · Básico · Bajo."
+msgstr "Only terms whose report cards have already been published are included. Levels: Superior · High · Basic · Low."
 
 msgid "Sopas de Letras"
 msgstr "Word Search"
@@ -4252,6 +4312,9 @@ msgstr "Reference topics for this subject and grade:"
 msgid "Temas definidos para esta materia y grado:"
 msgstr "Topics defined for this subject and grade:"
 
+msgid "Tendencia"
+msgstr "Trend"
+
 msgid "Terminaste «%(t)s»"
 msgstr "You finished \"%(t)s\""
 
@@ -4396,8 +4459,14 @@ msgstr "Your teacher has not published any practice test yet."
 msgid "Tu nota final para este curso es: %(nota)s"
 msgstr "Your final grade for this course is: %(nota)s"
 
+msgid "Tu perfil de estudiante no está configurado."
+msgstr "Your student profile is not set up."
+
 msgid "Tu portal académico está bloqueado"
 msgstr "Your academic portal is locked"
+
+msgid "Tu progreso aún no está disponible"
+msgstr "Your progress is not available yet"
 
 msgid "Tu puntaje:"
 msgstr "Your score:"

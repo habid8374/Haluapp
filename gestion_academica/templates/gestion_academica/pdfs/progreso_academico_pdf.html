@@ -1,0 +1,107 @@
+{% load i18n %}
+{% load humanize %}
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 1.4cm 1.3cm; }
+  * { box-sizing:border-box; }
+  body { font-family: 'Helvetica', 'Arial', sans-serif; color:#1e293b; font-size:11px; }
+  .head { border-bottom:3px solid #1d4ed8; padding-bottom:.5cm; margin-bottom:.5cm; }
+  .head .inst { font-size:15px; font-weight:bold; color:#0d3b66; }
+  .head .sub { font-size:11px; color:#475569; margin-top:2px; }
+  .title { background:#0d3b66; color:#fff; padding:.28cm .4cm; border-radius:6px; font-size:13px; font-weight:bold; margin-bottom:.45cm; }
+  .meta { margin-bottom:.5cm; }
+  .meta td { padding:2px 4px; font-size:11px; }
+  .meta .lbl { color:#64748b; font-weight:bold; width:3.2cm; }
+  .summary { border:1px solid #e2e8f0; border-radius:6px; padding:.35cm .45cm; margin-bottom:.55cm; }
+  .summary .big { font-size:22px; font-weight:bold; color:#0d3b66; }
+  .badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:bold; }
+  .b-up { background:#dcfce7; color:#16a34a; } .b-down { background:#fee2e2; color:#dc2626; } .b-eq { background:#f1f5f9; color:#475569; }
+  .sec-h { font-size:12px; font-weight:bold; color:#0d3b66; margin:.35cm 0 .2cm; }
+  .chart { height:4.2cm; border-bottom:2px solid #cbd5e1; padding-top:.7cm; }
+  .chart table { width:100%; height:100%; border-collapse:collapse; }
+  .chart td { vertical-align:bottom; text-align:center; width:20%; }
+  .bar { margin:0 auto; width:1.5cm; border-radius:5px 5px 0 0; }
+  .bar-val { font-size:10px; font-weight:bold; color:#334155; margin-bottom:2px; }
+  .bar-lbl { font-size:10px; color:#64748b; padding-top:3px; }
+  .sup{background:#16a34a;}.alt{background:#0891b2;}.bas{background:#d97706;}.baj{background:#dc2626;}.nd{background:#cbd5e1;}
+  table.grades { width:100%; border-collapse:collapse; margin-top:.15cm; }
+  table.grades th, table.grades td { border:1px solid #e2e8f0; padding:4px 6px; font-size:10.5px; text-align:center; }
+  table.grades th { background:#f1f5f9; color:#334155; }
+  table.grades td.mat { text-align:left; font-weight:bold; }
+  .t-up{color:#16a34a;font-weight:bold;}.t-down{color:#dc2626;font-weight:bold;}.t-eq{color:#64748b;}
+  .foot { margin-top:.5cm; font-size:9px; color:#94a3b8; text-align:center; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="inst">{{ data.estudiante.institucion.nombre }}</div>
+    <div class="sub">{% blocktrans with anio=data.anio %}Informe de Progreso Académico · Año lectivo {{ anio }}{% endblocktrans %}</div>
+  </div>
+
+  <div class="title">{% trans "INFORME DE PROGRESO ACADÉMICO" %}</div>
+
+  <table class="meta">
+    <tr><td class="lbl">{% trans "Estudiante:" %}</td><td>{{ data.estudiante.usuario.get_full_name }}</td></tr>
+    <tr><td class="lbl">{% trans "Grado:" %}</td><td>{{ data.grado.nombre }}</td></tr>
+  </table>
+
+  <div class="summary">
+    <table style="width:100%;"><tr>
+      <td>
+        <div style="font-size:10px;color:#64748b;">{% trans "Promedio general actual" %}</div>
+        <div class="big">{{ data.promedio_general_actual|floatformat:2|default:"—" }}</div>
+      </td>
+      <td style="text-align:right;">
+        {% if data.tendencia_general == 'mejoro' %}<span class="badge b-up">&#9650; {% trans "Mejoró respecto al periodo anterior" %}</span>
+        {% elif data.tendencia_general == 'bajo' %}<span class="badge b-down">&#9660; {% trans "Bajó respecto al periodo anterior" %}</span>
+        {% elif data.tendencia_general == 'igual' %}<span class="badge b-eq">= {% trans "Se mantuvo respecto al periodo anterior" %}</span>
+        {% else %}<span class="badge b-eq">{% trans "Sin periodo anterior para comparar" %}</span>{% endif %}
+      </td>
+    </tr></table>
+  </div>
+
+  <div class="sec-h">{% trans "Promedio general por periodo" %}</div>
+  <div class="chart">
+    <table><tr>
+      {% for b in data.chart %}
+      <td>
+        <div class="bar-val">{{ b.valor|floatformat:2|default:"—" }}</div>
+        <div class="bar {% if b.valor >= 4.6 %}sup{% elif b.valor >= 4.0 %}alt{% elif b.valor >= 3.0 %}bas{% elif b.valor %}baj{% else %}nd{% endif %}" style="height:{{ b.altura }}%;"></div>
+      </td>
+      {% endfor %}
+    </tr><tr>
+      {% for b in data.chart %}<td class="bar-lbl">{{ b.label }}</td>{% endfor %}
+    </tr></table>
+  </div>
+
+  <div class="sec-h">{% trans "Evolución por materia" %}</div>
+  <table class="grades">
+    <thead><tr>
+      <th style="text-align:left;">{% trans "Materia" %}</th>
+      {% for p in data.periodos %}<th>{{ p.nombre }}</th>{% endfor %}
+      <th>{% trans "Tendencia" %}</th>
+    </tr></thead>
+    <tbody>
+      {% for m in data.materias_progreso %}
+      <tr>
+        <td class="mat">{{ m.nombre }}</td>
+        {% for nota in m.notas %}<td>{{ nota|floatformat:2|default:"—" }}</td>{% endfor %}
+        <td>
+          {% if m.tendencia == 'mejoro' %}<span class="t-up">&#9650;</span>
+          {% elif m.tendencia == 'bajo' %}<span class="t-down">&#9660;</span>
+          {% elif m.tendencia == 'igual' %}<span class="t-eq">=</span>
+          {% else %}<span class="t-eq">—</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="foot">
+    {% trans "Solo se incluyen los periodos cuyos boletines ya fueron publicados. Niveles: Superior · Alto · Básico · Bajo." %}
+  </div>
+</body>
+</html>

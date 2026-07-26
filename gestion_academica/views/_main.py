@@ -2380,6 +2380,144 @@ def mi_boletin_periodo_actual(request):
     }
     return render(request, 'gestion_academica/estudiante_mi_boletin.html', context)
 
+
+# =========================================================================
+# INFORME DE PROGRESO ACADÉMICO (evolución del estudiante por periodos)
+# =========================================================================
+def _tendencia(actual, anterior):
+    """Devuelve ('mejoro'|'bajo'|'igual'|None, diferencia) comparando dos notas."""
+    if actual is None or anterior is None:
+        return (None, None)
+    dif = actual - anterior
+    if dif > Decimal('0.05'):
+        return ('mejoro', dif)
+    if dif < Decimal('-0.05'):
+        return ('bajo', dif)
+    return ('igual', dif)
+
+
+def _construir_progreso_academico(estudiante):
+    """
+    Arma la evolución académica del estudiante a lo largo del año lectivo:
+    promedio general por periodo y por materia, solo con periodos cuyos
+    boletines ya fueron publicados por la institución. Devuelve un dict de
+    contexto o None si aún no hay periodos publicados.
+    """
+    institucion = estudiante.institucion
+    grado = estudiante.grado_actual
+    if not grado:
+        return None
+
+    periodo_ref = (
+        PeriodoAcademico.objects.filter(activo=True, institucion=institucion).first()
+        or PeriodoAcademico.objects.filter(institucion=institucion).order_by('-año_escolar', '-fecha_inicio').first()
+    )
+    if not periodo_ref:
+        return None
+    anio = periodo_ref.año_escolar
+
+    periodos = list(
+        PeriodoAcademico.objects.filter(
+            institucion=institucion, año_escolar=anio, boletines_publicados=True
+        ).order_by('fecha_inicio')
+    )
+    if not periodos:
+        return None
+
+    promedios_generales = []   # [{'periodo': p, 'promedio': Decimal|None}]
+    materias_map = {}          # nombre_materia -> {'notas': [por periodo], 'materia': obj}
+
+    for periodo in periodos:
+        cursos = Curso.objects.filter(
+            grado=grado, periodo_academico=periodo
+        ).select_related('materia').order_by('materia__nombre_materia')
+
+        total_ponderado = Decimal('0.0')
+        total_ihs = 0
+        for curso in cursos:
+            estado = calcular_estado_academico_curso(curso, estudiante)
+            nota = estado.get('nota_final_ponderada')
+            nombre = curso.materia.nombre_materia
+            if nombre not in materias_map:
+                materias_map[nombre] = {'materia': curso.materia, 'notas': [None] * len(periodos)}
+            materias_map[nombre]['notas'][periodos.index(periodo)] = nota
+            ihs = curso.materia.intensidad_horaria_semanal or 0
+            if nota is not None and ihs > 0:
+                total_ponderado += nota * ihs
+                total_ihs += ihs
+        prom = (total_ponderado / total_ihs) if total_ihs > 0 else None
+        promedios_generales.append({'periodo': periodo, 'promedio': prom})
+
+    # Tendencia general (últimos dos periodos con nota)
+    notas_generales = [x['promedio'] for x in promedios_generales]
+    ultimos = [n for n in notas_generales if n is not None]
+    tendencia_general = (None, None)
+    if len(ultimos) >= 2:
+        tendencia_general = _tendencia(ultimos[-1], ultimos[-2])
+
+    # Por materia: alinear notas + tendencia
+    materias_progreso = []
+    for nombre in sorted(materias_map):
+        notas = materias_map[nombre]['notas']
+        con_nota = [n for n in notas if n is not None]
+        tend = _tendencia(con_nota[-1], con_nota[-2]) if len(con_nota) >= 2 else (None, None)
+        materias_progreso.append({
+            'materia': materias_map[nombre]['materia'],
+            'nombre': nombre,
+            'notas': notas,
+            'tendencia': tend[0],
+            'promedio_actual': con_nota[-1] if con_nota else None,
+        })
+
+    # Datos para la gráfica de barras (altura % sobre 5.0)
+    chart = []
+    for x in promedios_generales:
+        prom = x['promedio']
+        chart.append({
+            'label': x['periodo'].nombre,
+            'valor': prom,
+            'altura': int((prom / Decimal('5.0')) * 100) if prom is not None else 0,
+        })
+
+    return {
+        'estudiante': estudiante,
+        'grado': grado,
+        'anio': anio,
+        'periodos': periodos,
+        'promedios_generales': promedios_generales,
+        'materias_progreso': materias_progreso,
+        'chart': chart,
+        'tendencia_general': tendencia_general[0],
+        'promedio_general_actual': ultimos[-1] if ultimos else None,
+        'promedio_general_anterior': ultimos[-2] if len(ultimos) >= 2 else None,
+    }
+
+
+@login_required
+@requiere_pagos_al_dia
+def mi_progreso_academico(request):
+    """Informe de progreso académico del estudiante (evolución por periodos)."""
+    try:
+        estudiante = request.user.estudiante
+    except Estudiante.DoesNotExist:
+        messages.error(request, _("Tu perfil de estudiante no está configurado."))
+        return redirect('gestion_academica:inicio_academico')
+
+    data = _construir_progreso_academico(estudiante)
+    context = {'titulo_pagina': _("Mi Progreso Académico"), 'data': data}
+
+    if request.GET.get('pdf') == '1' and data:
+        from weasyprint import HTML
+        html = get_template('gestion_academica/pdfs/progreso_academico_pdf.html').render(context)
+        pdf = HTML(string=html, base_url=request.build_absolute_uri('/')).write_pdf()
+        resp = HttpResponse(pdf, content_type='application/pdf')
+        nombre = (estudiante.usuario.get_full_name() or estudiante.usuario.username).replace(' ', '_')
+        resp['Content-Disposition'] = f'inline; filename="progreso_{nombre}.pdf"'
+        return resp
+
+    return render(request, 'gestion_academica/mi_progreso_academico.html', context)
+
+
 # =========================================================================
 # FIN: VISTA DEL BOLETÍN MODIFICADA
 # =========================================================================

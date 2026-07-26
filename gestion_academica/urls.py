@@ -241,6 +241,7 @@ urlpatterns = [
     path('asistencia/escaner/<int:curso_pk>/', views.escaner_asistencia, name='escaner_asistencia'),
     path('mi-perfil/', views.ver_mi_perfil, name='ver_mi_perfil'),
     path('mi-perfil/cambiar-contrasena/', views.cambiar_mi_contrasena, name='cambiar_mi_contrasena'),
+    path('mi-progreso-academico/', views.mi_progreso_academico, name='mi_progreso_academico'),
     path('politica-datos/', views.ver_politica_datos, name='ver_politica_datos'),
     path('politica-datos/aceptar/', views.aceptar_politica_datos, name='aceptar_politica_datos'),
     path('politica-datos/reporte/', views.reporte_aceptacion_politica, name='reporte_aceptacion_politica'),
