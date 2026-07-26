@@ -152,6 +152,12 @@ class PresenciaUsuario(models.Model):
     usuario = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='presencia'
     )
+    # Regla multi-institución: se fija desde usuario.institucion_asociada al crear.
+    # Nullable porque el superusuario de plataforma no tiene institución.
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        null=True, blank=True, editable=False, related_name='presencias',
+    )
     conexiones = models.PositiveIntegerField(default=0)
     estado_manual = models.CharField(
         max_length=12, choices=EstadoManual.choices, default=EstadoManual.DISPONIBLE

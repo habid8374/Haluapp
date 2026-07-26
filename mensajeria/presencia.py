@@ -17,8 +17,19 @@ from django.utils import timezone
 
 
 def _get_or_create(usuario_id):
+    """Obtiene/crea la presencia del usuario, fijando su institución (regla
+    multi-institución) desde institucion_asociada al crearla."""
     from .models import PresenciaUsuario
-    obj, _ = PresenciaUsuario.objects.get_or_create(usuario_id=usuario_id)
+    from django.contrib.auth import get_user_model
+    obj = PresenciaUsuario.objects.filter(usuario_id=usuario_id).first()
+    if obj is not None:
+        return obj
+    inst_id = get_user_model().objects.filter(pk=usuario_id).values_list(
+        'institucion_asociada_id', flat=True
+    ).first()
+    obj, _ = PresenciaUsuario.objects.get_or_create(
+        usuario_id=usuario_id, defaults={'institucion_id': inst_id}
+    )
     return obj
 
 
@@ -30,7 +41,7 @@ def estado_de(usuario_id):
 def marcar_conexion(usuario_id, delta):
     """Suma/resta una conexión WebSocket y devuelve el estado efectivo resultante."""
     from .models import PresenciaUsuario
-    PresenciaUsuario.objects.get_or_create(usuario_id=usuario_id)
+    _get_or_create(usuario_id)  # asegura la fila con su institución
     if delta > 0:
         PresenciaUsuario.objects.filter(usuario_id=usuario_id).update(
             conexiones=F('conexiones') + 1, ausente_auto=False, last_seen=timezone.now()
@@ -45,9 +56,9 @@ def marcar_conexion(usuario_id, delta):
 def set_estado_manual(usuario_id, estado_manual):
     """Fija DISPONIBLE / AUSENTE manual y limpia el auto-away."""
     from .models import PresenciaUsuario
-    PresenciaUsuario.objects.update_or_create(
-        usuario_id=usuario_id,
-        defaults={'estado_manual': estado_manual, 'ausente_auto': False, 'last_seen': timezone.now()},
+    _get_or_create(usuario_id)
+    PresenciaUsuario.objects.filter(usuario_id=usuario_id).update(
+        estado_manual=estado_manual, ausente_auto=False, last_seen=timezone.now()
     )
     return estado_de(usuario_id)
 
@@ -55,20 +66,34 @@ def set_estado_manual(usuario_id, estado_manual):
 def set_auto_away(usuario_id, away):
     """Marca/limpia el ausente automático por inactividad."""
     from .models import PresenciaUsuario
-    PresenciaUsuario.objects.update_or_create(
-        usuario_id=usuario_id,
-        defaults={'ausente_auto': bool(away), 'last_seen': timezone.now()},
+    _get_or_create(usuario_id)
+    PresenciaUsuario.objects.filter(usuario_id=usuario_id).update(
+        ausente_auto=bool(away), last_seen=timezone.now()
     )
     return estado_de(usuario_id)
 
 
 def peers_de(usuario_id):
-    """IDs de los otros participantes de las conversaciones del usuario."""
+    """IDs de los otros participantes de las conversaciones del usuario.
+
+    Defensa en profundidad multi-institución: además de que las conversaciones
+    solo se crean entre usuarios de la misma institución, aquí se restringe a
+    las conversaciones de la institución del propio usuario. Así, aunque
+    existiera una conversación cruzada (p. ej. creada por el superusuario), la
+    presencia nunca se filtra entre instituciones distintas.
+    """
     from .models import Conversacion
-    peers = set()
-    for a, b in Conversacion.objects.filter(
+    from django.contrib.auth import get_user_model
+    inst_id = get_user_model().objects.filter(pk=usuario_id).values_list(
+        'institucion_asociada_id', flat=True
+    ).first()
+    convs = Conversacion.objects.filter(
         Q(participante_a_id=usuario_id) | Q(participante_b_id=usuario_id)
-    ).values_list('participante_a_id', 'participante_b_id'):
+    )
+    if inst_id is not None:
+        convs = convs.filter(institucion_id=inst_id)
+    peers = set()
+    for a, b in convs.values_list('participante_a_id', 'participante_b_id'):
         peers.add(b if a == usuario_id else a)
     return peers
 
