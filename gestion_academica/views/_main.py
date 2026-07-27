@@ -6445,7 +6445,9 @@ class TareasPorCalificarView(LoginRequiredMixin, View):
             entregas_pendientes = EntregaDeber.objects.filter(
                 deber__curso__in=cursos_del_docente,
                 calificacion_obtenida__isnull=True,
-                archivo_adjunto_estudiante__isnull=False
+            ).filter(
+                (Q(archivo_adjunto_estudiante__isnull=False) & ~Q(archivo_adjunto_estudiante='')) |
+                (Q(comentarios_estudiante__isnull=False) & ~Q(comentarios_estudiante=''))
             ).select_related('deber__curso', 'estudiante__usuario').order_by('-deber__fecha_entrega')
 
             # 2. Obtenemos los intentos de cuestionario que requieren revisión
@@ -14069,6 +14071,9 @@ class HistorialEntregasView(LoginRequiredMixin, View):
             # 1. Obtenemos TODAS las entregas de deberes de los cursos del docente
             todas_las_entregas = EntregaDeber.objects.filter(
                 deber__curso__in=cursos_del_docente,
+            ).filter(
+                (Q(archivo_adjunto_estudiante__isnull=False) & ~Q(archivo_adjunto_estudiante='')) |
+                (Q(comentarios_estudiante__isnull=False) & ~Q(comentarios_estudiante=''))
             ).select_related('deber__curso', 'estudiante__usuario').order_by('-fecha_entrega_real')
 
             # 2. Obtenemos TODOS los intentos de cuestionario FINALIZADOS

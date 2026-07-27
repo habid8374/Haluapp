@@ -755,6 +755,18 @@
               </a>
             </li>
             <li class="nav-item">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'tareas_por_calificar' or request.resolver_match.url_name == 'calificar_entrega' %}active{% endif %}"
+                 href="{% url 'gestion_academica:tareas_por_calificar' %}">
+                <i class="bi bi-pencil-square"></i> {% trans "Entregas por Calificar" %}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'historial_entregas' %}active{% endif %}"
+                 href="{% url 'gestion_academica:historial_entregas' %}">
+                <i class="bi bi-archive-fill"></i> {% trans "Historial de Entregas" %}
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_descriptores' %}">
                 <i class="bi bi-card-list"></i> {% trans "Gestionar Descriptores" %}
               </a>

@@ -5,6 +5,63 @@
 <div class="container mt-4">
     <h1 class="mb-4">{{ titulo_pagina }}</h1>
     <p class="text-muted">{% trans "Aquí puedes ver un historial completo de todas las actividades entregadas por tus estudiantes y acceder a su revisión." %}</p>
+    <h3 class="h4 mt-4">{% trans "Historial de Deberes y Tareas" %}</h3>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Estudiante" %}</th>
+                            <th>{% trans "Tarea" %}</th>
+                            <th>{% trans "Curso" %}</th>
+                            <th>{% trans "Fecha de entrega" %}</th>
+                            <th>{% trans "Estado" %}</th>
+                            <th>{% trans "Acciones" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entrega in entregas %}
+                        <tr {% if entrega.alerta_plagio %}class="table-danger"{% endif %}>
+                            <td>{{ entrega.estudiante }}</td>
+                            <td>{{ entrega.deber.titulo }}</td>
+                            <td>{{ entrega.deber.curso }}</td>
+                            <td>{{ entrega.fecha_entrega_real|date:"d M, Y H:i" }}</td>
+                            <td>
+                                {% if entrega.calificacion_obtenida %}
+                                    <span class="badge bg-success">{% trans "Calificada" %}: {{ entrega.calificacion_obtenida }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">{% trans "Pendiente" %}</span>
+                                {% endif %}
+                                {% if entrega.alerta_plagio %}
+                                    <span class="badge bg-danger ms-1" title="{% blocktrans with similitud=entrega.porcentaje_similitud %}Posible plagio detectado: {{ similitud }}% de similitud{% endblocktrans %}">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> {{ entrega.porcentaje_similitud }}%
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    {% if entrega.archivo_adjunto_estudiante %}
+                                        <a href="{{ entrega.archivo_adjunto_estudiante.url }}" target="_blank" class="btn btn-info btn-sm" title="{% trans 'Ver archivo entregado' %}">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    {% endif %}
+                                    <a href="{% url 'gestion_academica:calificar_entrega' pk=entrega.pk %}" class="btn btn-secondary btn-sm" title="{% trans 'Ver y calificar entrega' %}">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted p-4">{% trans "No hay entregas de deberes en tus cursos." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     <h3 class="h4 mt-4">{% trans "Historial de Cuestionarios" %}</h3>
     <div class="card shadow-sm mb-4">
         <div class="card-body">
