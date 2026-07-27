@@ -1,8 +1,7 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% load i18n %}
-{% trans "Mis Calificaciones" as titulo_default %}
-{% block titulo %}{{ titulo_pagina|default:titulo_default }}{% endblock titulo %}
+{% block titulo %}{% trans "Mis Calificaciones" as titulo_default %}{{ titulo_pagina|default:titulo_default }}{% endblock titulo %}
 {% block contenido %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">

@@ -2,13 +2,13 @@
 {% load static %}
 {% load crispy_forms_tags %}
 {% load i18n %}
+{% block titulo %}{% trans "Realizar Entrega de Deber" as titulo_default %}{{ titulo_formulario|default:titulo_default }}{% endblock titulo %}
+{% block contenido %}
 {% trans "Realizar Entrega de Deber" as titulo_default %}
 {% trans "Sin descripción." as sin_desc_default %}
 {% trans "Sin calificar" as sin_calificar_default %}
 {% trans "Pendiente" as pendiente_default %}
 {% trans "Sin comentarios." as sin_comentarios_default %}
-{% block titulo %}{{ titulo_formulario|default:titulo_default }}{% endblock titulo %}
-{% block contenido %}
 <div class="container mt-4">
     <h1 class="mb-4">{{ titulo_formulario|default:titulo_default }}</h1>
     <hr>
