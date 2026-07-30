@@ -5151,3 +5151,27 @@ msgstr "💪 Review the topics and try again"
 
 msgid "📚 Buen intento, sigue practicando"
 msgstr "📚 Good try, keep practicing"
+
+msgid "Entregas por Calificar"
+msgstr "Submissions to Grade"
+
+msgid "Historial de Entregas"
+msgstr "Submission History"
+
+msgid "No especificada"
+msgstr "Not specified"
+
+msgid "Historial de Deberes y Tareas"
+msgstr "Assignment and Homework History"
+
+msgid "Tarea"
+msgstr "Homework"
+
+msgid "Fecha de entrega"
+msgstr "Due date"
+
+msgid "Calificada"
+msgstr "Graded"
+
+msgid "No hay entregas de deberes en tus cursos."
+msgstr "There are no assignment submissions in your courses."

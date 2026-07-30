@@ -41,6 +41,23 @@ class InstitucionScopedAdminMixin:
             return qs.none()
         return qs.filter(**{self.institucion_lookup: inst})
 
+    def get_list_filter(self, request):
+        """Oculta el filtro por institución a los no-superusuarios.
+
+        El `list_filter` de institución renderiza en la barra lateral los
+        NOMBRES de todas las instituciones (Django lista todos los objetos
+        relacionados, no solo los del queryset ya acotado), filtrando así datos
+        de OTROS colegios. Un admin de una sola institución no necesita ese
+        filtro; se lo quitamos para no exponer la existencia/nombre de otras
+        instituciones. El superusuario conserva el filtro completo."""
+        list_filter = super().get_list_filter(request)
+        if request.user.is_superuser:
+            return list_filter
+        return tuple(
+            f for f in list_filter
+            if f not in ('institucion', 'institucion_asociada')
+        )
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if not request.user.is_superuser and db_field.name in (
             'institucion', 'institucion_asociada'

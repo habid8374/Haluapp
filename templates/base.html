@@ -1,5 +1,6 @@
 {% load static %}
 {% load pwa %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -203,6 +204,34 @@
             .main-menu-panel { width: calc(100vw - 1.5rem); right: .75rem; bottom: 96px; }
             .floating-menu-toggle { right: .85rem; bottom: .9rem; width: 58px; height: 58px; }
         }
+
+        /* ── Tira de identidad de la institución (visible en cada sesión) ── */
+        .institucion-strip {
+            display: flex; align-items: center; gap: .6rem;
+            margin-bottom: 1rem; padding: .5rem .85rem;
+            background: #fff; border: 1px solid #eef2f7; border-radius: 12px;
+            box-shadow: 0 1px 6px rgba(15, 23, 42, .05);
+        }
+        .institucion-strip-logo {
+            width: 34px; height: 34px; border-radius: 8px; object-fit: contain;
+            background: #f8fafc; flex: 0 0 auto;
+        }
+        .institucion-strip-logo--fallback {
+            display: flex; align-items: center; justify-content: center;
+            color: #4f46e5; font-size: 1.1rem;
+        }
+        .institucion-strip-nombre {
+            font-weight: 700; color: #0f172a; font-size: .95rem; line-height: 1.15;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .institucion-strip-sub {
+            font-size: .72rem; color: #64748b; font-weight: 500;
+        }
+        @media (max-width: 768px) {
+            .institucion-strip { margin-bottom: .75rem; padding: .45rem .7rem; }
+            .institucion-strip-logo { width: 28px; height: 28px; }
+            .institucion-strip-nombre { font-size: .85rem; }
+        }
     </style>
     {% block extrastyles %}{% endblock %}
 </head>
@@ -284,6 +313,19 @@
         </div>
     </nav>
     <main class="container">
+        {% if user.is_authenticated and institucion_actual %}
+        <div class="institucion-strip">
+            {% if institucion_actual.logo %}
+                <img src="{{ institucion_actual.logo.url }}" alt="{{ institucion_actual.nombre }}" class="institucion-strip-logo">
+            {% else %}
+                <span class="institucion-strip-logo institucion-strip-logo--fallback"><i class="bi bi-building"></i></span>
+            {% endif %}
+            <span class="d-flex flex-column" style="min-width:0;">
+                <span class="institucion-strip-nombre">{{ institucion_actual.nombre }}</span>
+                <span class="institucion-strip-sub">{% trans "Plataforma académica" %}</span>
+            </span>
+        </div>
+        {% endif %}
         <div class="mt-4">
             {% block contenido %}
                 <p>Bienvenido. Selecciona una opción del menú para comenzar.</p>
