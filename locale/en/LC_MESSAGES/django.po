@@ -7155,3 +7155,156 @@ msgstr "Last update"
 
 msgid "Permitir que familias descarguen el reporte desde el portal"
 msgstr "Allow families to download the report from the portal"
+
+msgid "Admisiones"
+msgstr "Admissions"
+
+msgid "Asistencia de hoy"
+msgstr "Today's attendance"
+
+msgid "Aspirantes"
+msgstr "Applicants"
+
+msgid "Aspirantes en proceso"
+msgstr "Applicants in process"
+
+msgid "Conceptos de Pago"
+msgstr "Payment items"
+
+msgid "Cuentas de Estudiantes"
+msgstr "Student accounts"
+
+msgid "Cuentas por Cobrar"
+msgstr "Accounts receivable"
+
+msgid "Cuentas por cobrar activas"
+msgstr "Active accounts receivable"
+
+msgid "Documentos"
+msgstr "Documents"
+
+msgid "Eliminar conversación"
+msgstr "Delete conversation"
+
+msgid "Eliminar historial"
+msgstr "Delete history"
+
+msgid "Estudiantes activos"
+msgstr "Active students"
+
+msgid "Estudiantes en riesgo alto"
+msgstr "Students at high risk"
+
+msgid "Estudiantes que requieren atención"
+msgstr "Students who need attention"
+
+msgid "Finanzas"
+msgstr "Finance"
+
+msgid "Gastos"
+msgstr "Expenses"
+
+msgid "Importar Aspirantes"
+msgstr "Import applicants"
+
+msgid "Inclusión"
+msgstr "Inclusion"
+
+msgid "Marcar como leído"
+msgstr "Mark as read"
+
+msgid "Marcar como no leído"
+msgstr "Mark as unread"
+
+msgid "Panel Financiero"
+msgstr "Financial dashboard"
+
+msgid "Panel de Admisiones"
+msgstr "Admissions dashboard"
+
+msgid "Panel de Dirección"
+msgstr "Management dashboard"
+
+msgid "Panel financiero y reportes (solo lectura)"
+msgstr "Financial dashboard and reports (read-only)"
+
+msgid "Período activo"
+msgstr "Active term"
+
+msgid "Plataforma académica"
+msgstr "Academic platform"
+
+msgid "Proceso de Admisión"
+msgstr "Admission process"
+
+msgid "Promedio institucional"
+msgstr "Institutional average"
+
+msgid "Recaudo del mes"
+msgstr "Revenue this month"
+
+msgid "Reporte de Riesgo (IA)"
+msgstr "Risk report (AI)"
+
+msgid "Reportes y Exportaciones"
+msgstr "Reports and exports"
+
+msgid "Se quitarán todas las conversaciones de TU bandeja. El otro participante conservará su copia."
+msgstr "All conversations will be removed from YOUR inbox. The other participant will keep their copy."
+
+msgid "Secretaría"
+msgstr "Front office"
+
+msgid "Seguimiento de aspirantes y matrícula"
+msgstr "Applicant and enrollment tracking"
+
+msgid "Supervisión"
+msgstr "Oversight"
+
+msgid "Sí, eliminar todo"
+msgstr "Yes, delete all"
+
+msgid "Tesorería"
+msgstr "Treasury"
+
+msgid "¿Eliminar todo el historial?"
+msgstr "Delete all history?"
+
+msgid "Bienvenido(a), %(n)s."
+msgstr "Welcome, %(n)s."
+
+msgid "Centro de mensajes"
+msgstr "Message center"
+
+msgid "Bandeja de notificaciones"
+msgstr "Notification inbox"
+
+msgid "Sugerencia de IA"
+msgstr "AI suggestion"
+
+msgid "Nuevo"
+msgstr "New"
+
+msgid "atrás"
+msgstr "ago"
+
+msgid "Opciones de la notificación"
+msgstr "Notification options"
+
+msgid "Opciones"
+msgstr "Options"
+
+msgid "No tienes notificaciones"
+msgstr "You have no notifications"
+
+msgid "Marcar como no leída"
+msgstr "Mark as unread"
+
+msgid "Eliminar notificación"
+msgstr "Delete notification"
+
+msgid "Todo al día — sin notificaciones pendientes"
+msgstr "All caught up — no pending notifications"
+
+msgid "Cuando recibas avisos o sugerencias aparecerán aquí."
+msgstr "When you receive alerts or suggestions they will appear here."
