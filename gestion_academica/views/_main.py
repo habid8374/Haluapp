@@ -468,9 +468,31 @@ def gestion_bloqueos_estudiantes(request):
 
     grados = Grado.objects.filter(institucion=institucion).order_by('orden', 'nombre') if institucion else Grado.objects.none()
 
+    # Agrupar por grado para el acordeón (evita el listado plano desordenado).
+    from collections import OrderedDict
+    qs = qs.order_by('grado_actual__orden', 'grado_actual__nombre', 'usuario__last_name', 'usuario__first_name')
+    grupos = OrderedDict()
+    sin_grado = []
+    for est in qs:
+        g = est.grado_actual
+        if g is None:
+            sin_grado.append(est)
+            continue
+        entry = grupos.setdefault(g.pk, {'grado': g, 'estudiantes': [], 'bloqueados': 0})
+        entry['estudiantes'].append(est)
+        if est.acceso_bloqueado:
+            entry['bloqueados'] += 1
+    grupos_grado = list(grupos.values())
+    if sin_grado:
+        grupos_grado.append({
+            'grado': None,
+            'estudiantes': sin_grado,
+            'bloqueados': sum(1 for e in sin_grado if e.acceso_bloqueado),
+        })
+
     context = {
         'titulo_pagina': "Bloqueos de Estudiantes",
-        'estudiantes': qs.order_by('usuario__last_name', 'usuario__first_name'),
+        'grupos_grado': grupos_grado,
         'grados': grados,
         'grado_actual': grado_id,
         'query_actual': query,
