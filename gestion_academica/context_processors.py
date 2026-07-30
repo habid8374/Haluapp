@@ -24,10 +24,21 @@ def branding_processor(request):
         if institucion_actual:
             banners_activos = _get_banners_activos(request.user, institucion_actual)
 
+    # Regla GLOBAL para mostrar el menú/administración de staff en cualquier
+    # plantilla base (académico, admisiones, finanzas…). Los roles con panel
+    # propio y acotado (tesorería, secretaría) NO ven el menú de staff completo
+    # ni «Admin Avanzado», aunque tengan is_staff. Centralizado aquí para no
+    # repetir la condición en cada base y que no vuelva a "expandirse" el navbar.
+    ve_menu_staff = False
+    if request.user.is_authenticated:
+        _rol = getattr(request.user, 'rol', '') or ''
+        ve_menu_staff = bool(request.user.is_staff and _rol not in ('tesoreria', 'secretaria'))
+
     return {
         'branding': software_branding,
         'institucion_actual': institucion_actual,
         'banners_activos': banners_activos,
+        've_menu_staff': ve_menu_staff,
     }
 
 

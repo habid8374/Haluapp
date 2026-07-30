@@ -301,7 +301,7 @@
           <i class="bi bi-link-45deg me-2 text-secondary"></i>{% trans "Conexiones de Cuenta" %}</a></li>
         <li><a class="dropdown-item" href="{% url 'gestion_academica:cambiar_mi_contrasena' %}">
           <i class="bi bi-key-fill me-2 text-warning"></i>{% trans "Cambiar Contraseña" %}</a></li>
-        {% if user.is_staff and user.rol != 'tesoreria' and user.rol != 'secretaria' %}
+        {% if ve_menu_staff %}
           <li><hr class="dropdown-divider"></li>
           <li><a class="dropdown-item" href="{% url 'admin:index' %}">
             <i class="bi bi-shield-lock-fill me-2 text-danger"></i>{% trans "Admin Avanzado" %}</a></li>
@@ -440,7 +440,7 @@
         </div>
       </li>
     {% endif %}
-    {% if user.is_staff and user.rol != 'tesoreria' and user.rol != 'secretaria' %}
+    {% if ve_menu_staff %}
       {% if perms.admisiones.view_aspirante %}
         <hr class="menu-divider">
         <h5 class="menu-section-title">Procesos</h5>

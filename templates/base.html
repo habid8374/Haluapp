@@ -282,7 +282,7 @@
                                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUser">
                                         <li><a class="dropdown-item" href="{% url 'gestion_academica:ver_mi_perfil' %}">Mi Perfil</a></li>
                                         <li><a class="dropdown-item" href="{% url 'password_change' %}">Cambiar Contraseña</a></li>
-                                        {% if user.is_staff %}
+                                        {% if ve_menu_staff %}
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <a class="dropdown-item" href="{% url 'admin:index' %}">
