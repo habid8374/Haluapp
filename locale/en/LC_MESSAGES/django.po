@@ -7668,3 +7668,21 @@ msgstr "Yes, restore"
 
 msgid "Administración"
 msgstr "Administration"
+
+msgid "Módulo no habilitado"
+msgstr "Module not enabled"
+
+msgid "Módulo de Finanzas"
+msgstr "Finance Module"
+
+msgid "Gestión de cobros y cartera estudiantil"
+msgstr "Student billing and accounts management"
+
+msgid "Este módulo no está habilitado"
+msgstr "This module is not enabled"
+
+msgid "El módulo de Finanzas no está habilitado para tu institución."
+msgstr "The Finance module is not enabled for your institution."
+
+msgid "Si consideras que deberías tener acceso, comunícate con el administrador del software."
+msgstr "If you believe you should have access, contact the software administrator."

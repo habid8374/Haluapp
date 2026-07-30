@@ -185,7 +185,7 @@
           <i class="bi bi-person-circle me-2 text-primary"></i>Mi Perfil</a></li>
         <li><a class="dropdown-item" href="{% url 'password_change' %}">
           <i class="bi bi-key-fill me-2 text-warning"></i>Cambiar Contraseña</a></li>
-        {% if user.is_staff %}
+        {% if user.is_staff and user.rol != 'secretaria' and user.rol != 'tesoreria' %}
           <li><hr class="dropdown-divider"></li>
           <li><a class="dropdown-item" href="{% url 'admin:index' %}">
             <i class="bi bi-shield-lock-fill me-2 text-danger"></i>Admin Avanzado</a></li>
@@ -264,6 +264,16 @@
         <i class="bi bi-file-earmark-excel-fill"></i> Exportar Matriculados
       </a>
     </li>
+    {% if user.is_superuser or user.rol == 'secretaria' or user.rol == 'administrador' or user.rol == 'rector' or user.rol == 'coordinador' %}
+    <hr class="menu-divider">
+    <h5 class="menu-section-title">Administración</h5>
+    <li class="nav-item item-color-4">
+      <a class="nav-link {% if request.resolver_match.url_name == 'gestion_bloqueos_estudiantes' %}active{% endif %}"
+         href="{% url 'gestion_academica:gestion_bloqueos_estudiantes' %}">
+        <i class="bi bi-shield-lock"></i> Bloqueos de Estudiantes
+      </a>
+    </li>
+    {% endif %}
     <hr class="menu-divider">
     <h5 class="menu-section-title">Ir a Módulos</h5>
     <li class="nav-item item-color-1">
