@@ -85,7 +85,7 @@ class MensajeriaConsumer(AsyncWebsocketConsumer):
         if not mensaje_data:
             return
 
-        # Emitir a todos los conectados en este canal
+        # Emitir a todos los conectados en este canal (burbuja del chat)
         await self.channel_layer.group_send(
             self.group_name,
             {
@@ -93,19 +93,8 @@ class MensajeriaConsumer(AsyncWebsocketConsumer):
                 **mensaje_data,
             }
         )
-
-        # Notificación toast al destinatario (funciona aunque no esté en el chat)
-        await self.channel_layer.group_send(
-            f"user_{mensaje_data['destinatario_id']}",
-            {
-                'type': 'send_notification',
-                'kind': 'mensaje',
-                'title': f"Nuevo mensaje de {mensaje_data['remitente_nombre']}",
-                'message': texto[:80] + ('…' if len(texto) > 80 else ''),
-                'url': f"/mensajeria/{self.conversacion_id}/",
-                'severity': 'info',
-            }
-        )
+        # El toast al destinatario lo envía la señal post_save de Mensaje
+        # (mensajeria/signals.py), única fuente para no duplicar el aviso.
 
     # ------------------------------------------------------------------ #
     #  Handlers de eventos del grupo                                       #

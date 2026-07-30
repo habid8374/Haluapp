@@ -224,11 +224,9 @@
     const texto = chatInput.value.trim();
     if (!texto || texto.length > 2000) return;
     if (wsOk && socket.readyState === WebSocket.OPEN) {
-      // WS activo: mostrar burbuja propia inmediatamente, el server hace el broadcast
-      agregarBurbuja({
-        id: null, texto, remitenteId: miUserId,
-        enviadoEn: new Date().toISOString(),
-      });
+      // WS activo: NO pintamos burbuja optimista. El servidor devuelve el eco
+      // (mensaje_nuevo con el id real) en milisegundos y ese lo renderiza una
+      // sola vez; así se evita la burbuja duplicada (optimista id:null + eco).
       socket.send(JSON.stringify({ texto }));
     } else {
       // Fallback HTTP: el endpoint ahora también hace group_send via channel layer

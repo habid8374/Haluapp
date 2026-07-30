@@ -508,19 +508,8 @@ def api_enviar_mensaje(request):
             'destinatario_id': destinatario.pk,
         }
         async_to_sync(channel_layer.group_send)(group_name, payload)
-
-        # Toast de notificación al destinatario
-        async_to_sync(channel_layer.group_send)(
-            f'user_{destinatario.pk}',
-            {
-                'type': 'send_notification',
-                'kind': 'mensaje',
-                'title': f'Nuevo mensaje de {remitente_nombre}',
-                'message': texto[:80] + ('…' if len(texto) > 80 else ''),
-                'url': f'/mensajeria/{conv.pk}/',
-                'severity': 'info',
-            }
-        )
+        # El toast al destinatario lo envía la señal post_save de Mensaje
+        # (mensajeria/signals.py), única fuente para no duplicar el aviso.
     except Exception as exc:
         logger.warning('api_enviar_mensaje: channel broadcast falló: %s', exc)
 
