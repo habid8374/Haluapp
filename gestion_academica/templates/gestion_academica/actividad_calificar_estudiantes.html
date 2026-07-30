@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% block titulo %}Calificar — {{ actividad.titulo }}{% endblock titulo %}
 {% block extrastyles %}{{ block.super }}
@@ -98,7 +99,7 @@
   <div class="ac-hero">
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
       <div style="flex:1;min-width:0;">
-        <div class="ac-badge"><i class="bi bi-check2-square me-1"></i>Calificar Actividad</div>
+        <div class="ac-badge"><i class="bi bi-check2-square me-1"></i>{% trans "Calificar Actividad" %}</div>
         <div class="ac-title">{{ actividad.titulo }}</div>
         <div class="ac-meta">
           <span><i class="bi bi-book-fill"></i>{{ actividad.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and actividad.curso.materia.nombre_idioma_secundario %} / {{ actividad.curso.materia.nombre_idioma_secundario }}{% endif %}</span>
@@ -130,11 +131,11 @@
       <table class="ac-table">
         <thead>
           <tr>
-            <th>Estudiante</th>
+            <th>{% trans "Estudiante" %}</th>
             <th class="d-none d-lg-table-cell">Documento</th>
-            <th class="d-none d-lg-table-cell">Grado</th>
+            <th class="d-none d-lg-table-cell">{% trans "Grado" %}</th>
             <th>Calificación</th>
-            <th class="text-center">Acción</th>
+            <th class="text-center">{% trans "Acción" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -156,10 +157,10 @@
                 {% elif item.calificacion.valor_cualitativo %}
                   <span class="grade-ok"><i class="bi bi-check-circle-fill me-1"></i>{{ item.calificacion.valor_cualitativo }}</span>
                 {% else %}
-                  <span class="grade-none"><i class="bi bi-dash-circle me-1"></i>Pendiente</span>
+                  <span class="grade-none"><i class="bi bi-dash-circle me-1"></i>{% trans "Pendiente" %}</span>
                 {% endif %}
               {% else %}
-                <span class="grade-none"><i class="bi bi-exclamation-circle me-1"></i>Sin calificar</span>
+                <span class="grade-none"><i class="bi bi-exclamation-circle me-1"></i>{% trans "Sin calificar" %}</span>
               {% endif %}
             </td>
             <td class="text-center">
@@ -203,10 +204,10 @@
             {% elif item.calificacion.valor_cualitativo %}
               <span class="grade-ok"><i class="bi bi-check-circle-fill me-1"></i>{{ item.calificacion.valor_cualitativo }}</span>
             {% else %}
-              <span class="grade-none"><i class="bi bi-dash-circle me-1"></i>Pendiente</span>
+              <span class="grade-none"><i class="bi bi-dash-circle me-1"></i>{% trans "Pendiente" %}</span>
             {% endif %}
           {% else %}
-            <span class="grade-none"><i class="bi bi-exclamation-circle me-1"></i>Sin calificar</span>
+            <span class="grade-none"><i class="bi bi-exclamation-circle me-1"></i>{% trans "Sin calificar" %}</span>
           {% endif %}
         </div>
         <div class="ac-mob-actions">
@@ -228,8 +229,8 @@
     <div class="ac-card">
       <div class="ac-empty">
         <i class="bi bi-people"></i>
-        <p class="mb-0 fw-600" style="color:#374151;">No hay estudiantes asignados a este curso.</p>
-        <p class="mt-1" style="font-size:.85rem;">Verifica que el grado tenga estudiantes activos registrados.</p>
+        <p class="mb-0 fw-600" style="color:#374151;">{% trans "No hay estudiantes asignados a este curso." %}</p>
+        <p class="mt-1" style="font-size:.85rem;">{% trans "Verifica que el grado tenga estudiantes activos registrados." %}</p>
       </div>
     </div>
   {% endif %}

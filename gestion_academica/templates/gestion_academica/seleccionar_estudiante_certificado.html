@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container mt-4">
@@ -10,9 +11,9 @@
         <div class="card-body">
             <form method="get" class="row g-3 align-items-end">
                 <div class="col-md-8">
-                    <label for="grado-select" class="form-label">Grado</label>
+                    <label for="grado-select" class="form-label">{% trans "Grado" %}</label>
                     <select name="grado" id="grado-select" class="form-select" required>
-                        <option value="">--- Elige un grado para ver los estudiantes ---</option>
+                        <option value="">{% trans "--- Elige un grado para ver los estudiantes ---" %}</option>
                         {% for grado_option in grados %}
                             <option value="{{ grado_option.pk }}" {% if grado_seleccionado and grado_seleccionado.pk == grado_option.pk %}selected{% endif %}>
                                 {{ grado_option.nombre }}
@@ -29,13 +30,13 @@
     {% if grado_seleccionado %}
     <div class="card shadow-sm">
         <div class="card-header">
-           <i class="bi bi-people-fill"></i> Paso 2: Genera el certificado para un estudiante de <strong>{{ grado_seleccionado.nombre }}</strong>
+           <i class="bi bi-people-fill"></i> {% trans "Paso 2: Genera el certificado para un estudiante de" %} <strong>{{ grado_seleccionado.nombre }}</strong>
         </div>
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Estudiante</th>
+                        <th>{% trans "Estudiante" %}</th>
                         <th>Documento</th>
                         <th class="text-center">Acciones</th>
                     </tr>
@@ -61,7 +62,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="3" class="text-center p-4">No se encontraron estudiantes en este grado.</td>
+                        <td colspan="3" class="text-center p-4">{% trans "No se encontraron estudiantes en este grado." %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

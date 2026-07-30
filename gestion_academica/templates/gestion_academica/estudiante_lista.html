@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Lista de Estudiantes" }}{% endblock titulo %}
 {% block contenido %}
@@ -27,7 +28,7 @@
                         <th>Nombres</th>
                         <th>Apellidos</th>
                         <th>Usuario (Login)</th>
-                        <th>Grado Actual</th>
+                        <th>{% trans "Grado Actual" %}</th>
                         <th>Sexo</th>
                         <th class="text-center">Acciones</th>
                     </tr>

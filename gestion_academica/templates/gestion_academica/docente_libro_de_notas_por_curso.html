@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load horario_filters %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}
@@ -439,7 +440,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
 <div class="container-fluid mt-3">
   <div class="ln-hero">
     <div>
-      <div class="ln-hero-badge"><i class="bi bi-book-fill"></i> Libro de Notas</div>
+      <div class="ln-hero-badge"><i class="bi bi-book-fill"></i> {% trans "Libro de Notas" %}</div>
       <div class="ln-hero-title">{{ curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and curso.materia.nombre_idioma_secundario %} <span style="font-size:.65em;opacity:.8;font-style:italic;">/ {{ curso.materia.nombre_idioma_secundario }}</span>{% endif %}</div>
       <div class="ln-hero-sub">
         <i class="bi bi-mortarboard-fill me-1"></i>{{ curso.grado.nombre }}
@@ -464,8 +465,8 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
     <button class="ln-tab-btn active" id="tab-btn-periodo" role="tab"
             aria-selected="true" aria-controls="tab-periodo" data-tab="tab-periodo">
       <i class="bi bi-pencil-square"></i>
-      <span class="d-none d-sm-inline">Período Actual</span>
-      <span class="d-sm-none">Período</span>
+      <span class="d-none d-sm-inline">{% trans "Período Actual" %}</span>
+      <span class="d-sm-none">{% trans "Período" %}</span>
       <span class="ln-tab-badge">{{ curso.periodo_academico.nombre }}</span>
     </button>
     <button class="ln-tab-btn" id="tab-btn-anual" role="tab"
@@ -512,7 +513,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
         <table class="ln-table">
           <thead>
             <tr>
-              <th class="ln-cat-hdr name-col" rowspan="2">Estudiante</th>
+              <th class="ln-cat-hdr name-col" rowspan="2">{% trans "Estudiante" %}</th>
               {% for categoria, actividades_lista in actividades_agrupadas.items %}
               <th class="ln-cat-hdr" colspan="{{ actividades_lista|length }}">
                 {{ categoria.nombre }}&nbsp;<span style="font-size:.68rem;font-weight:500;opacity:.85;">({{ categoria.porcentaje }}%)</span>
@@ -676,7 +677,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
         <table class="la-table">
           <thead>
             <tr>
-              <th class="la-hdr name-col"><i class="bi bi-person-fill me-1"></i>Estudiante</th>
+              <th class="la-hdr name-col"><i class="bi bi-person-fill me-1"></i>{% trans "Estudiante" %}</th>
               {% for item_p in datos_anuales.0.notas_periodos %}
                 {% if item_p.es_actual %}
                 <th class="la-hdr actual" title="Período actual — en curso">
@@ -736,7 +737,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       <div class="la-leyenda">
         <span><span class="la-dot" style="background:#86efac;"></span> ≥ {{ nota_minima }} Aprueba</span>
         <span><span class="la-dot" style="background:#fca5a5;"></span> &lt; {{ nota_minima }} Reprueba</span>
-        <span><span class="la-dot" style="background:#e2e8f0;"></span> Sin calificar</span>
+        <span><span class="la-dot" style="background:#e2e8f0;"></span> {% trans "Sin calificar" %}</span>
         <span style="border:2px solid #93c5fd;width:12px;height:12px;display:inline-block;border-radius:3px;vertical-align:middle;"></span> Período actual
         <span class="ms-auto" style="font-size:.72rem;">
           <i class="bi bi-patch-check-fill text-success me-1"></i>

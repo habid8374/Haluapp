@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Docente" }}{% endblock titulo %}
 {% block contenido %}
@@ -7,16 +8,16 @@
     <hr>
     {% if docente %}
         <div class="alert alert-warning shadow-sm" role="alert">
-            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
-            <p>¿Estás seguro de que deseas eliminar al docente: <strong>{{ docente.usuario.get_full_name|default:docente.usuario.username }}</strong>?</p>
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> {% trans "¡Advertencia!" %}</h4>
+            <p>{% trans "¿Estás seguro de que deseas eliminar al docente:" %} <strong>{{ docente.usuario.get_full_name|default:docente.usuario.username }}</strong>?</p>
             {% if docente.codigo_docente %}
-                <p class="mb-1"><strong>Código de Docente:</strong> {{ docente.codigo_docente }}</p>
+                <p class="mb-1"><strong>{% trans "Código de Docente:" %}</strong> {{ docente.codigo_docente }}</p>
             {% endif %}
             {% if docente.especialidad %}
-                <p class="mb-0"><strong>Especialidad:</strong> {{ docente.especialidad }}</p>
+                <p class="mb-0"><strong>{% trans "Especialidad:" %}</strong> {{ docente.especialidad }}</p>
             {% endif %}
             <hr>
-            <p class="mb-0">Esta acción **también eliminará su cuenta de usuario asociada** y es **irreversible**.</p>
+            <p class="mb-0">{% trans "Esta acción **también eliminará su cuenta de usuario asociada** y es **irreversible**." %}</p>
             {% if docente.cursos_impartidos.exists %}
                 <p class="mt-3 text-danger">
                     <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este docente tiene **{{ docente.cursos_impartidos.count }} curso(s) asignado(s)**. Eliminarlo podría dejar esos cursos sin docente asignado, afectando la gestión académica.

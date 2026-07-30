@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load crispy_forms_tags %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
@@ -13,16 +14,16 @@
                         El sistema HALU ha detectado una similitud del <strong>{{ entrega.porcentaje_similitud }}%</strong> en este trabajo al compararlo con otras entregas.
                     </p>
                     <hr>
-                    <p class="mb-0">Se recomienda revisar el contenido cuidadosamente antes de asignar una calificación.</p>
+                    <p class="mb-0">{% trans "Se recomienda revisar el contenido cuidadosamente antes de asignar una calificación." %}</p>
                 </div>
             {% endif %}
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
-                    <h5>Entrega del Estudiante</h5>
+                    <h5>{% trans "Entrega del Estudiante" %}</h5>
                 </div>
                 <div class="card-body">
-                    <p><strong>Estudiante:</strong> {{ entrega.estudiante.usuario.get_full_name }}</p>
-                    <p><strong>Tarea:</strong> {{ entrega.deber.titulo }}</p>
+                    <p><strong>{% trans "Estudiante:" %}</strong> {{ entrega.estudiante.usuario.get_full_name }}</p>
+                    <p><strong>{% trans "Tarea:" %}</strong> {{ entrega.deber.titulo }}</p>
                     {% if entrega.archivo_adjunto_estudiante %}
                         <p>
                             <strong>Archivo Entregado:</strong> 
@@ -32,7 +33,7 @@
                         </p>
                     {% endif %}
                     {% if entrega.comentarios_estudiante %}
-                        <p><strong>Comentarios del estudiante:</strong></p>
+                        <p><strong>{% trans "Comentarios del estudiante:" %}</strong></p>
                         <blockquote class="blockquote bg-light p-3 rounded">
                             <p class="mb-0">{{ entrega.comentarios_estudiante|linebreaks }}</p>
                         </blockquote>
@@ -41,15 +42,15 @@
             </div>
             <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5>Asignar Calificación</h5>
+                    <h5>{% trans "Asignar Calificación" %}</h5>
                 </div>
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         {{ form|crispy }}
                         <div class="d-flex justify-content-end mt-3">
-                            <a href="{% url 'gestion_academica:tareas_por_calificar' %}" class="btn btn-secondary me-2">Cancelar</a>
-                            <button type="submit" class="btn btn-success">Guardar Calificación</button>
+                            <a href="{% url 'gestion_academica:tareas_por_calificar' %}" class="btn btn-secondary me-2">{% trans "Cancelar" %}</a>
+                            <button type="submit" class="btn btn-success">{% trans "Guardar Calificación" %}</button>
                         </div>
                     </form>
                 </div>

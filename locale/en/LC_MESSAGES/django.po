@@ -7347,3 +7347,228 @@ msgstr "There are no assignments pending grading."
 
 msgid "Posible plagio detectado: %(pct)s% de similitud"
 msgstr "Possible plagiarism detected: %(pct)s% similarity"
+
+msgid "**Descripción:**"
+msgstr "**Description:**"
+
+msgid "--- Elige un grado para ver los estudiantes ---"
+msgstr "--- Choose a grade to see the students ---"
+
+msgid "Accede al libro de notas o a la vista anual de cada uno de tus cursos"
+msgstr "Access the gradebook or the yearly view of each of your courses"
+
+msgid "Advertencia:"
+msgstr "Warning:"
+
+msgid "Asignar Calificación"
+msgstr "Assign Grade"
+
+msgid "Aún no hay votos emitidos por grado."
+msgstr "No votes cast by grade yet."
+
+msgid "Borrador de Correo para Acudiente"
+msgstr "Draft Email for Guardian"
+
+msgid "Calificar Actividad"
+msgstr "Grade Activity"
+
+msgid "Comentarios del estudiante:"
+msgstr "Student's comments:"
+
+msgid "Contenido del Plan"
+msgstr "Plan Content"
+
+msgid "Crea la primera evaluación para este período."
+msgstr "Create the first assessment for this term."
+
+msgid "Curso (Opc.)"
+msgstr "Course (Opt.)"
+
+msgid "Código"
+msgstr "Code"
+
+msgid "Código de Docente:"
+msgstr "Teacher Code:"
+
+msgid "Código de Estudiante:"
+msgstr "Student Code:"
+
+msgid "Datos Profesionales del Docente"
+msgstr "Teacher's Professional Details"
+
+msgid "Define una categoría (Ej: Tareas) y su peso en la nota final (Ej: 20%)."
+msgstr "Define a category (e.g.: Homework) and its weight in the final grade (e.g.: 20%)."
+
+msgid "Devuelto con observaciones"
+msgstr "Returned with comments"
+
+msgid "Editar Lección"
+msgstr "Edit Lesson"
+
+msgid "El docente deberá corregir y reenviar el plan."
+msgstr "The teacher must correct and resubmit the plan."
+
+msgid "El docente recibirá una notificación de confirmación."
+msgstr "The teacher will receive a confirmation notification."
+
+msgid "Entrega del Estudiante"
+msgstr "Student's Submission"
+
+msgid "Especialidad"
+msgstr "Specialty"
+
+msgid "Especialidad Principal:"
+msgstr "Main Specialty:"
+
+msgid "Especialidad:"
+msgstr "Specialty:"
+
+msgid "Esta acción **también eliminará su cuenta de usuario asociada** y es **irreversible**."
+msgstr "This action **will also delete their associated user account** and is **irreversible**."
+
+msgid "Esta acción es **irreversible** y eliminará permanentemente este registro."
+msgstr "This action is **irreversible** and will permanently delete this record."
+
+msgid "Esta acción es **irreversible** y no se podrá recuperar la actividad una vez eliminada."
+msgstr "This action is **irreversible** and the activity cannot be recovered once deleted."
+
+msgid "Esta acción no se puede deshacer. Las actividades que usen esta categoría quedarán sin asignación."
+msgstr "This action cannot be undone. Activities using this category will be left unassigned."
+
+msgid "Estado del Plan"
+msgstr "Plan Status"
+
+msgid "Este estudiante aún no tiene caracterización registrada."
+msgstr "This student does not have a profile recorded yet."
+
+msgid "Estudiante Inactivo"
+msgstr "Inactive Student"
+
+msgid "Fecha de Ingreso:"
+msgstr "Enrollment Date:"
+
+msgid "Fecha de Nacimiento:"
+msgstr "Date of Birth:"
+
+msgid "Fecha de Publicación:"
+msgstr "Publication Date:"
+
+msgid "Genera un borrador de correo electrónico para enviar al acudiente, resumiendo el desempeño del estudiante."
+msgstr "Generates a draft email to send to the guardian, summarizing the student's performance."
+
+msgid "Gestión del cuerpo docente institucional"
+msgstr "Management of the institutional teaching staff"
+
+msgid "Guardar Calificación"
+msgstr "Save Grade"
+
+msgid "Guardar Categoría"
+msgstr "Save Category"
+
+msgid "Guardar Lección"
+msgstr "Save Lesson"
+
+msgid "HALU está redactando el correo..."
+msgstr "HALU is drafting the email..."
+
+msgid "Materia:"
+msgstr "Subject:"
+
+msgid "No hay actividades registradas."
+msgstr "There are no recorded activities."
+
+msgid "No hay docentes disponibles para agendar citas en este momento."
+msgstr "There are no teachers available to schedule appointments at this time."
+
+msgid "No hay docentes registrados."
+msgstr "There are no teachers registered."
+
+msgid "No hay elecciones creadas aún."
+msgstr "No elections created yet."
+
+msgid "No hay estudiantes asignados a este curso."
+msgstr "There are no students assigned to this course."
+
+msgid "No hay lecciones registradas para este curso."
+msgstr "There are no lessons recorded for this course."
+
+msgid "No hay un periodo académico activo para generar la comunicación."
+msgstr "There is no active academic term to generate the communication."
+
+msgid "No hay un periodo académico activo."
+msgstr "There is no active academic term."
+
+msgid "No hay un período académico activo definido. Contacta al coordinador."
+msgstr "There is no active academic term defined. Contact the coordinator."
+
+msgid "No se encontraron estudiantes en este grado."
+msgstr "No students were found in this grade."
+
+msgid "No tienes cursos asignados en este periodo."
+msgstr "You have no courses assigned in this term."
+
+msgid "No tienes cursos asignados para el período activo."
+msgstr "You have no courses assigned for the active term."
+
+msgid "Observaciones para el Docente *"
+msgstr "Comments for the Teacher *"
+
+msgid "Paso 2: Genera el certificado para un estudiante de"
+msgstr "Step 2: Generate the certificate for a student of"
+
+msgid "Periodo (Opc.)"
+msgstr "Term (Opt.)"
+
+msgid "Período Actual"
+msgstr "Current Term"
+
+msgid "Plan aprobado"
+msgstr "Plan approved"
+
+msgid "Porcentaje en Periodo:"
+msgstr "Percentage in Term:"
+
+msgid "Revisa el plan y toma una decisión. Si apruebas, el docente recibirá una notificación de confirmación. Si devuelves, escribe qué debe corregir."
+msgstr "Review the plan and make a decision. If you approve, the teacher will receive a confirmation notification. If you return it, write what needs to be corrected."
+
+msgid "Se recomienda revisar el contenido cuidadosamente antes de asignar una calificación."
+msgstr "It is recommended to review the content carefully before assigning a grade."
+
+msgid "Selecciona un Curso"
+msgstr "Select a Course"
+
+msgid "Sin candidatos registrados para esta elección."
+msgstr "No candidates registered for this election."
+
+msgid "Sin datos por grado disponibles."
+msgstr "No data by grade available."
+
+msgid "Sí"
+msgstr "Yes"
+
+msgid "Tipo de Actividad:"
+msgstr "Activity Type:"
+
+msgid "Usa el formulario para crear el primer proceso electoral."
+msgstr "Use the form to create the first electoral process."
+
+msgid "Verifica que el grado tenga estudiantes activos registrados."
+msgstr "Check that the grade has active students registered."
+
+msgid "Votos emitidos sobre total de estudiantes elegibles"
+msgstr "Votes cast out of total eligible students"
+
+msgid "¿Aprobar este plan?"
+msgstr "Approve this plan?"
+
+msgid "¿Devolver con observaciones?"
+msgstr "Return with comments?"
+
+msgid "¿Estás seguro de que deseas eliminar al docente:"
+msgstr "Are you sure you want to delete the teacher:"
+
+msgid "¿Estás seguro de que deseas eliminar al estudiante:"
+msgstr "Are you sure you want to delete the student:"
+
+msgid "¿Estás seguro de que deseas eliminar la actividad calificable:"
+msgstr "Are you sure you want to delete the gradable activity:"

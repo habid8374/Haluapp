@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container mt-4">
@@ -15,11 +16,11 @@
                 <i class="bi bi-chevron-right"></i>
             </a>
         {% empty %}
-            <div class="alert alert-info">No tienes cursos asignados en este periodo.</div>
+            <div class="alert alert-info">{% trans "No tienes cursos asignados en este periodo." %}</div>
         {% endfor %}
         </div>
     {% else %}
-        <div class="alert alert-warning">No hay un periodo académico activo.</div>
+        <div class="alert alert-warning">{% trans "No hay un periodo académico activo." %}</div>
     {% endif %}
 </div>
 {% endblock %}

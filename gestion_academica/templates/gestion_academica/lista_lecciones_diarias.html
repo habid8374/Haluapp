@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load humanize %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
@@ -15,7 +16,7 @@
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
-                            <th>Fecha</th>
+                            <th>{% trans "Fecha" %}</th>
                             <th>Tema Tratado</th>
                             <th>Creado Por</th>
                             <th>Acciones</th>
@@ -35,7 +36,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center p-4">No hay lecciones registradas para este curso.</td>
+                            <td colspan="4" class="text-center p-4">{% trans "No hay lecciones registradas para este curso." %}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Detalle de Actividad Calificable" }}{% endblock titulo %}
 {% block contenido %}
@@ -17,17 +18,17 @@
         </div>
         <div class="card-body">
             <dl class="row">
-                <dt class="col-sm-3 text-secondary">Curso:</dt>
+                <dt class="col-sm-3 text-secondary">{% trans "Curso:" %}</dt>
                 <dd class="col-sm-9">{{ actividad.curso }}</dd>
-                <dt class="col-sm-3 text-secondary">Tipo de Actividad:</dt>
+                <dt class="col-sm-3 text-secondary">{% trans "Tipo de Actividad:" %}</dt>
                 <dd class="col-sm-9">{{ actividad.tipo_actividad.nombre }}</dd>
-                <dt class="col-sm-3 text-secondary">Descripción:</dt>
+                <dt class="col-sm-3 text-secondary">{% trans "Descripción:" %}</dt>
                 <dd class="col-sm-9">{{ actividad.descripcion|linebreaksbr|default:"No especificada" }}</dd>
-                <dt class="col-sm-3 text-secondary">Fecha de Publicación:</dt>
+                <dt class="col-sm-3 text-secondary">{% trans "Fecha de Publicación:" %}</dt>
                 <dd class="col-sm-9">{{ actividad.fecha_publicacion|date:"d F, Y" }}</dd>
-                <dt class="col-sm-3 text-secondary">Fecha Límite de Entrega:</dt>
+                <dt class="col-sm-3 text-secondary">{% trans "Fecha Límite de Entrega:" %}</dt>
                 <dd class="col-sm-9">{{ actividad.fecha_entrega_limite|date:"d F, Y"|default:"No especificada" }}</dd>
-                <dt class="col-sm-3 text-secondary">Porcentaje en Periodo:</dt>
+                <dt class="col-sm-3 text-secondary">{% trans "Porcentaje en Periodo:" %}</dt>
                 <dd class="col-sm-9">{{ actividad.porcentaje_en_periodo|default:"No especificado" }}%</dd>
                 {% if actividad.material_adjunto %}
                 <dt class="col-sm-3 text-secondary">Material Adjunto:</dt>

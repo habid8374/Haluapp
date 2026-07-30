@@ -1,16 +1,17 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Actividad" }}{% endblock titulo %}
 {% block contenido %}
 <div class="container mt-4">
     <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Actividad" }}</h1>
     <div class="alert alert-warning shadow-sm" role="alert">
-        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
-        <p>¿Estás seguro de que deseas eliminar la actividad calificable:</p>
+        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> {% trans "¡Advertencia!" %}</h4>
+        <p>{% trans "¿Estás seguro de que deseas eliminar la actividad calificable:" %}</p>
         <p class="mb-1"><strong>Título:</strong> {{ actividad.titulo }}</p>
-        <p class="mb-0"><strong>Curso:</strong> {{ actividad.curso.materia.nombre_materia }} de {{ actividad.curso.grado.nombre }} (Periodo: {{ actividad.curso.periodo_academico.nombre }})</p>
+        <p class="mb-0"><strong>{% trans "Curso:" %}</strong> {{ actividad.curso.materia.nombre_materia }} de {{ actividad.curso.grado.nombre }} (Periodo: {{ actividad.curso.periodo_academico.nombre }})</p>
         <hr>
-        <p class="mb-0">Esta acción es **irreversible** y no se podrá recuperar la actividad una vez eliminada.</p>
+        <p class="mb-0">{% trans "Esta acción es **irreversible** y no se podrá recuperar la actividad una vez eliminada." %}</p>
     </div>
     {% if actividad.calificaciones_recibidas.exists %}
         <div class="alert alert-danger mt-3 shadow-sm" role="alert">

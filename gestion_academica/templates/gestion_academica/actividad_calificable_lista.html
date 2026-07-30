@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Actividades Calificables" }}{% endblock %}
 {% block extrastyles %}{{ block.super }}
@@ -186,9 +187,9 @@
         <thead>
           <tr>
             <th style="width:44px;"></th>
-            <th>Actividad</th>
+            <th>{% trans "Actividad" %}</th>
             <th>Tipo de evaluación</th>
-            <th class="d-none d-lg-table-cell">Curso</th>
+            <th class="d-none d-lg-table-cell">{% trans "Curso" %}</th>
             <th class="d-none d-lg-table-cell text-center">%</th>
             <th class="d-none d-xl-table-cell">Límite</th>
             <th class="text-center">Acciones</th>
@@ -379,8 +380,8 @@
     <div class="al-card">
       <div class="al-empty">
         <i class="bi bi-check2-square"></i>
-        <p class="fw-700 mb-1" style="color:#374151;">No hay actividades registradas.</p>
-        <p style="font-size:.85rem;margin-bottom:1.2rem;">Crea la primera evaluación para este período.</p>
+        <p class="fw-700 mb-1" style="color:#374151;">{% trans "No hay actividades registradas." %}</p>
+        <p style="font-size:.85rem;margin-bottom:1.2rem;">{% trans "Crea la primera evaluación para este período." %}</p>
         {% if perms.gestion_academica.add_actividadcalificable %}
         <a href="{% url 'gestion_academica:crear_actividad_calificable' %}"
            class="btn btn-primary btn-sm">

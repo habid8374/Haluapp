@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Lista de Docentes" }}{% endblock %}
 {% block contenido %}
@@ -83,7 +84,7 @@
         <h1 class="ps-hero-title">
           <i class="bi bi-person-badge-fill me-2" style="opacity:.85"></i>{{ titulo_pagina|default:"Lista de Docentes" }}
         </h1>
-        <p class="ps-hero-sub">Gestión del cuerpo docente institucional</p>
+        <p class="ps-hero-sub">{% trans "Gestión del cuerpo docente institucional" %}</p>
       </div>
       <div class="d-flex align-items-center gap-2 flex-wrap">
         {% if docentes %}
@@ -113,10 +114,10 @@
         <table class="ps-table">
           <thead>
             <tr>
-              <th>Docente</th>
+              <th>{% trans "Docente" %}</th>
               <th>Usuario</th>
-              <th>Código</th>
-              <th>Especialidad</th>
+              <th>{% trans "Código" %}</th>
+              <th>{% trans "Especialidad" %}</th>
               <th class="text-center">Acciones</th>
             </tr>
           </thead>
@@ -185,7 +186,7 @@
   {% else %}
     <div class="ps-table-card ps-empty">
       <i class="bi bi-person-x"></i>
-      <p class="mb-1 fw-bold" style="color:#475569;">No hay docentes registrados.</p>
+      <p class="mb-1 fw-bold" style="color:#475569;">{% trans "No hay docentes registrados." %}</p>
       {% if perms.gestion_academica.add_docente %}
         <p class="mb-0" style="font-size:.88rem;">Usa el botón "Registrar Docente" para agregar el primero.</p>
       {% endif %}

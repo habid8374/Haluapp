@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load crispy_forms_tags %}
 {% block titulo %}Gestión de Elecciones{% endblock %}
 {% block extrastyles %}{{ block.super }}
@@ -207,8 +208,8 @@
         {% else %}
           <div class="ge-empty">
             <i class="bi bi-person-check"></i>
-            <p class="mb-0">No hay elecciones creadas aún.</p>
-            <small>Usa el formulario para crear el primer proceso electoral.</small>
+            <p class="mb-0">{% trans "No hay elecciones creadas aún." %}</p>
+            <small>{% trans "Usa el formulario para crear el primer proceso electoral." %}</small>
           </div>
         {% endif %}
       </div>

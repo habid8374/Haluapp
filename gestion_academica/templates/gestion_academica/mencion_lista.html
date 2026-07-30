@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Menciones y Reconocimientos" }}{% endblock titulo %}
 {% block contenido %}
@@ -24,13 +25,13 @@
             <table class="table table-striped table-hover table-bordered mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th>Estudiante</th>
-                        <th>Tipo de Mención/Reconocimiento</th>
-                        <th>Fecha de Otorgamiento</th>
+                        <th>{% trans "Estudiante" %}</th>
+                        <th>{% trans "Tipo de Mención/Reconocimiento" %}</th>
+                        <th>{% trans "Fecha de Otorgamiento" %}</th>
                         <th>Otorgado por</th> 
-                        <th>Curso (Opc.)</th>
-                        <th>Periodo (Opc.)</th>
-                        <th>Descripción</th>
+                        <th>{% trans "Curso (Opc.)" %}</th>
+                        <th>{% trans "Periodo (Opc.)" %}</th>
+                        <th>{% trans "Descripción" %}</th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>

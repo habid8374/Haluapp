@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Detalle del Docente" }}{% endblock titulo %}
 {% block contenido %}
@@ -28,8 +29,8 @@
                         <li><strong>Apellidos:</strong> {{ docente.usuario.last_name|default:"No especificado" }}</li>
                         <li><strong>Email:</strong> {{ docente.usuario.email|default:"No especificado" }}</li>
                         <li><strong>Rol:</strong> {{ docente.usuario.rol|default:"No especificado" }}</li>
-                        <li><strong>Activo:</strong> {% if docente.usuario.is_active %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</li>
-                        <li><strong>Fecha de Ingreso:</strong> {{ docente.usuario.date_joined|date:"d/m/Y H:i" }}</li>
+                        <li><strong>Activo:</strong> {% if docente.usuario.is_active %}<span class="badge bg-success">{% trans "Sí" %}</span>{% else %}<span class="badge bg-danger">No</span>{% endif %}</li>
+                        <li><strong>{% trans "Fecha de Ingreso:" %}</strong> {{ docente.usuario.date_joined|date:"d/m/Y H:i" }}</li>
                         {% if docente.usuario.institucion_asociada %}
                             <li><strong>Institución:</strong> {{ docente.usuario.institucion_asociada.nombre }}</li>
                         {% endif %}
@@ -38,8 +39,8 @@
                 <div class="col-md-6">
                     <h5 class="card-title text-primary mb-3"><i class="bi bi-briefcase-fill me-2"></i> Datos Profesionales</h5>
                     <ul class="list-unstyled">
-                        <li><strong>Código de Docente:</strong> {{ docente.codigo_docente|default:"No especificado" }}</li>
-                        <li><strong>Especialidad Principal:</strong> {{ docente.especialidad|default:"No especificada" }}</li>
+                        <li><strong>{% trans "Código de Docente:" %}</strong> {{ docente.codigo_docente|default:"No especificado" }}</li>
+                        <li><strong>{% trans "Especialidad Principal:" %}</strong> {{ docente.especialidad|default:"No especificada" }}</li>
                     </ul>
                 </div>
             </div>

@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load crispy_forms_tags %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
@@ -21,10 +22,10 @@
                 <!-- CORRECCIÓN 2: Se añadió el 'action' para que el formulario se envíe a sí mismo -->
                 <form method="post" enctype="multipart/form-data" action="{% url 'gestion_academica:detalle_leccion' leccion.pk %}">
                     {% csrf_token %}
-                    <h5 class="mb-3">Editar Lección</h5>
+                    <h5 class="mb-3">{% trans "Editar Lección" %}</h5>
                     {{ form|crispy }}
                     <div class="d-flex justify-content-end mt-4 border-top pt-3">
-                        <a href="{% url 'gestion_academica:lista_lecciones_diarias' curso.pk %}" class="btn btn-secondary me-2">Cancelar</a>
+                        <a href="{% url 'gestion_academica:lista_lecciones_diarias' curso.pk %}" class="btn btn-secondary me-2">{% trans "Cancelar" %}</a>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle me-2"></i>Guardar Cambios
                         </button>

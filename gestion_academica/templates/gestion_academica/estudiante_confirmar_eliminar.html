@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% load static %}
 {% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Estudiante" }}{% endblock titulo %}
 {% block contenido %}
@@ -7,16 +8,16 @@
     <hr>
     {% if estudiante %}
         <div class="alert alert-warning shadow-sm" role="alert">
-            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> ¡Advertencia!</h4>
-            <p>¿Estás seguro de que deseas eliminar al estudiante: <strong>{{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}</strong>?</p>
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> {% trans "¡Advertencia!" %}</h4>
+            <p>{% trans "¿Estás seguro de que deseas eliminar al estudiante:" %} <strong>{{ estudiante.usuario.get_full_name|default:estudiante.usuario.username }}</strong>?</p>
             {% if estudiante.codigo_estudiante %}
-                <p class="mb-1"><strong>Código de Estudiante:</strong> {{ estudiante.codigo_estudiante }}</p>
+                <p class="mb-1"><strong>{% trans "Código de Estudiante:" %}</strong> {{ estudiante.codigo_estudiante }}</p>
             {% endif %}
             {% if estudiante.grado_actual %}
-                <p class="mb-0"><strong>Grado Actual:</strong> {{ estudiante.grado_actual.nombre }}</p>
+                <p class="mb-0"><strong>{% trans "Grado Actual:" %}</strong> {{ estudiante.grado_actual.nombre }}</p>
             {% endif %}
             <hr>
-            <p class="mb-0">Esta acción **también eliminará su cuenta de usuario asociada** y es **irreversible**.</p>
+            <p class="mb-0">{% trans "Esta acción **también eliminará su cuenta de usuario asociada** y es **irreversible**." %}</p>
             {% if estudiante.calificaciones.exists %}
                 <p class="mt-3 text-danger">
                     <i class="bi bi-exclamation-octagon-fill me-2"></i> **¡Importante!** Este estudiante tiene **calificaciones registradas**. Eliminarlo **borrará permanentemente** todas sus calificaciones.
