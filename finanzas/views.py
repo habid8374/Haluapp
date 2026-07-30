@@ -3486,13 +3486,19 @@ def sincronizar_cuentas_masivo(request):
     else:
         estudiantes_a_sincronizar = Estudiante.objects.filter(activo=True, institucion=institucion_usuario)
 
+    # Si se marca la casilla, solo se generan las pensiones desde el mes en
+    # curso (para activar el módulo a mitad de año sin cobrar meses pasados).
+    desde_mes_actual = request.POST.get('desde_mes_actual') in ('on', 'true', '1')
+
     total_cuentas_creadas = 0
     total_estudiantes_procesados = 0
     total_advertencias = 0
 
     for estudiante in estudiantes_a_sincronizar:
         try:
-            resultado = CuentaPorCobrarEstudiante.objects.sincronizar_cuentas_automaticas(estudiante)
+            resultado = CuentaPorCobrarEstudiante.objects.sincronizar_cuentas_automaticas(
+                estudiante, desde_mes_actual=desde_mes_actual
+            )
             total_cuentas_creadas += resultado.total_cuentas_creadas
             if resultado.es_warning:
                 total_advertencias += 1

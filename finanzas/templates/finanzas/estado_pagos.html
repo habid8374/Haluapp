@@ -33,13 +33,22 @@
                         <i class="bi bi-info-circle me-1"></i>Las cuentas existentes no se eliminarán, solo se crearán las faltantes.
                     </p>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                    <form action="{% url 'finanzas:sincronizar_cuentas_masivo' %}" method="post" class="d-inline">
+                <div class="modal-footer border-0 d-block">
+                    <form action="{% url 'finanzas:sincronizar_cuentas_masivo' %}" method="post">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="bi bi-arrow-repeat me-1"></i>Sí, sincronizar
-                        </button>
+                        <div class="form-check text-start mb-3">
+                            <input class="form-check-input" type="checkbox" name="desde_mes_actual" id="desdeMesActual">
+                            <label class="form-check-label small" for="desdeMesActual">
+                                Generar solo desde el mes actual
+                                <span class="text-muted d-block" style="font-size:.78rem;">Útil si activas finanzas a mitad de año: no crea las pensiones de meses ya pasados (que saldrían vencidas). La matrícula siempre se genera.</span>
+                            </label>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-arrow-repeat me-1"></i>Sí, sincronizar
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>

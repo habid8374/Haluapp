@@ -121,7 +121,7 @@ class CuentaPorCobrarEstudianteManager(models.Manager):
     """Manager para centralizar la lógica de negocio de las Cuentas por Cobrar."""
 
     @transaction.atomic
-    def sincronizar_cuentas_automaticas(self, estudiante) -> ResultadoSincronizacionCuentas:
+    def sincronizar_cuentas_automaticas(self, estudiante, desde_mes_actual=False) -> ResultadoSincronizacionCuentas:
         """Crea las cuentas de matrícula + 10 pensiones anuales para un estudiante.
 
         Es **idempotente** (usa ``get_or_create`` por mes/año/concepto).
@@ -256,9 +256,18 @@ class CuentaPorCobrarEstudianteManager(models.Manager):
             )
             return resultado
 
+        # Mes de inicio de las pensiones: normalmente febrero (2). Si se activa
+        # el módulo a mitad de año con desde_mes_actual=True, empezamos en el mes
+        # en curso para NO generar pensiones de meses ya pasados (que saldrían
+        # vencidas). La matrícula siempre se genera arriba.
+        mes_inicio = 2
+        if desde_mes_actual:
+            from django.utils import timezone as _tz
+            mes_inicio = max(2, _tz.localdate().month)
+
         # Indexamos por (mes, año) extraído del nombre y/o fecha del concepto.
         # Si la signal los creó, su fecha_vencimiento_general apunta al mes.
-        for mes_num in range(2, 12):  # Feb–Nov
+        for mes_num in range(mes_inicio, 12):  # mes_inicio–Nov
             nombre_mes = NOMBRES_MESES_ESPANOL.get(mes_num, "")
             concepto_mes = self._concepto_pension_para_mes(
                 conceptos_pension, mes_num, año_lectivo, nombre_mes,
