@@ -727,13 +727,23 @@ class EstudianteDetailView(LoginRequiredMixin, DetailView):
         # subclasea AttributeError, por lo que getattr(..., None) es seguro.
         context['caracterizacion'] = getattr(self.object, 'caracterizacion', None)
 
-        # Tu lógica para las alertas de riesgo se mantiene igual
-        ultimo_analisis = AnalisisRiesgo.objects.order_by('-fecha_analisis').first()
-        if ultimo_analisis:
-            context['alertas_academicas'] = ultimo_analisis.predicciones.filter(estudiante=self.object)
-        else:
+        # Alertas de riesgo — scoped por institución del estudiante y protegido
+        # para que ningún problema de datos tumbe el perfil (evita el 500).
+        try:
+            ultimo_analisis = (
+                AnalisisRiesgo.objects
+                .filter(periodo_academico__institucion=self.object.institucion)
+                .order_by('-fecha_analisis')
+                .first()
+            )
+            context['alertas_academicas'] = (
+                ultimo_analisis.predicciones.filter(estudiante=self.object)
+                if ultimo_analisis else []
+            )
+        except Exception:
+            logger.exception("Error cargando alertas de riesgo para estudiante %s", self.object.pk)
             context['alertas_academicas'] = []
-            
+
         return context
 
 
@@ -7175,7 +7185,30 @@ def ejecutar_analisis_riesgo_view(request):
     except Exception as e:
         messages.error(request, f"Ocurrió un error al ejecutar el análisis: {e}")
 
-    return redirect('gestion_academica:reporte_riesgo_academico')  
+    return redirect('gestion_academica:reporte_riesgo_academico')
+
+
+def _formatear_factores_riesgo(factores):
+    """Convierte los factores de riesgo (JSONField: dict/lista/texto) en un
+    texto legible para el docente, en vez de mostrar el diccionario crudo.
+
+    Ej.: {'Calificaciones': 'Sin notas registradas en el periodo.'}
+      → 'Calificaciones — Sin notas registradas en el periodo.'
+    """
+    if not factores:
+        return "Requiere seguimiento académico."
+    if isinstance(factores, dict):
+        partes = []
+        for clave, valor in factores.items():
+            clave_txt = str(clave).strip()
+            valor_txt = str(valor).strip() if valor is not None else ""
+            partes.append(f"{clave_txt} — {valor_txt}" if valor_txt else clave_txt)
+        return " · ".join(p for p in partes if p) or "Requiere seguimiento académico."
+    if isinstance(factores, (list, tuple, set)):
+        items = [str(x).strip() for x in factores if str(x).strip()]
+        return " · ".join(items) or "Requiere seguimiento académico."
+    return str(factores).strip() or "Requiere seguimiento académico."
+
 
 @login_required
 def notificar_docente_view(request, prediccion_pk):
@@ -7213,20 +7246,28 @@ def notificar_docente_view(request, prediccion_pk):
     if director_de_grupo:
         destinatarios.add(director_de_grupo.docente.usuario)
 
+    nombre_est = estudiante.usuario.get_full_name() or estudiante.usuario.username
     if prediccion.materia:
-        mensaje_notificacion = f"Alerta de Riesgo: {estudiante.usuario.get_full_name()} en {prediccion.materia.nombre_materia}."
-        
+        mensaje_notificacion = (
+            f"Alerta de riesgo académico: {nombre_est} presenta riesgo en "
+            f"{prediccion.materia.nombre_materia}. Revisa su desempeño y define un plan de apoyo."
+        )
+
         curso_especifico = Curso.objects.filter(
-            materia=prediccion.materia, 
-            grado=estudiante.grado_actual, 
+            materia=prediccion.materia,
+            grado=estudiante.grado_actual,
             periodo_academico=periodo
         ).prefetch_related('docentes_asignados__usuario').first()
-        
+
         if curso_especifico:
             for docente in curso_especifico.docentes_asignados.all():
                 destinatarios.add(docente.usuario)
     else:
-        mensaje_notificacion = f"Alerta de Seguimiento: {estudiante.usuario.get_full_name()} requiere atención. Motivo: {prediccion.factores_influyentes}"
+        motivo = _formatear_factores_riesgo(prediccion.factores_influyentes)
+        mensaje_notificacion = (
+            f"Seguimiento (HALU Sentinel): {nombre_est} requiere atención. "
+            f"Motivo: {motivo}"
+        )
 
     if not destinatarios:
         messages.warning(request, f"No se pudo enviar la notificación. No se encontró un director de grupo asignado para {estudiante.grado_actual}.")
