@@ -1,0 +1,144 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+
+{% block titulo %}{% trans "Panel de Dirección" %}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .rector-kpi {
+    background:#fff; border-radius:16px; padding:1.25rem 1.4rem;
+    box-shadow:0 2px 12px rgba(15,23,42,.06); height:100%;
+    border:1px solid #eef2f7;
+  }
+  .rector-kpi .kpi-icon {
+    width:46px; height:46px; border-radius:12px; display:flex;
+    align-items:center; justify-content:center; font-size:1.3rem; margin-bottom:.75rem;
+  }
+  .rector-kpi .kpi-valor { font-size:1.9rem; font-weight:800; line-height:1; color:#0f172a; }
+  .rector-kpi .kpi-label { font-size:.82rem; color:#64748b; margin-top:.35rem; }
+  .rector-acceso {
+    display:flex; align-items:center; gap:.9rem; text-decoration:none;
+    background:#fff; border:1px solid #eef2f7; border-radius:14px; padding:1rem 1.15rem;
+    box-shadow:0 2px 10px rgba(15,23,42,.05); transition:transform .12s, box-shadow .12s;
+    height:100%;
+  }
+  .rector-acceso:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(15,23,42,.10); }
+  .rector-acceso .ra-icon {
+    width:44px; height:44px; border-radius:11px; flex:0 0 auto; display:flex;
+    align-items:center; justify-content:center; font-size:1.2rem; color:#fff;
+  }
+  .rector-acceso .ra-title { font-weight:700; color:#0f172a; font-size:.95rem; }
+  .rector-acceso .ra-sub { font-size:.78rem; color:#64748b; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<!-- Hero -->
+<div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem;">
+  <h2 style="color:#fff;"><i class="bi bi-mortarboard-fill"></i> {% trans "Panel de Dirección" %}</h2>
+  <p style="color:#fff; margin-bottom:0;">
+    {% blocktrans with n=nombre_usuario %}Bienvenido(a), {{ n }}.{% endblocktrans %}{% if institucion %} · {{ institucion.nombre }}{% endif %}
+  </p>
+  {% if periodo_activo %}
+    <p style="color:#fff; opacity:.85; margin-top:.4rem; margin-bottom:0; font-size:.85rem;">
+      <i class="bi bi-calendar-event"></i> {% trans "Período activo" %}: {{ periodo_activo }}
+    </p>
+  {% endif %}
+</div>
+
+<!-- KPIs académicos -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="rector-kpi">
+      <div class="kpi-icon" style="background:#eef2ff; color:#4f46e5;"><i class="bi bi-people-fill"></i></div>
+      <div class="kpi-valor">{{ total_alumnos }}</div>
+      <div class="kpi-label">{% trans "Estudiantes activos" %}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="rector-kpi">
+      <div class="kpi-icon" style="background:#ecfdf5; color:#059669;"><i class="bi bi-person-workspace"></i></div>
+      <div class="kpi-valor">{{ total_docentes }}</div>
+      <div class="kpi-label">{% trans "Docentes" %}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="rector-kpi">
+      <div class="kpi-icon" style="background:#eff6ff; color:#2563eb;"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="kpi-valor">{% if promedio_institucional %}{{ promedio_institucional }}{% else %}—{% endif %}</div>
+      <div class="kpi-label">{% trans "Promedio institucional" %}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="rector-kpi">
+      <div class="kpi-icon" style="background:#fef2f2; color:#dc2626;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="kpi-valor">{{ alumnos_riesgo }}</div>
+      <div class="kpi-label">{% trans "Estudiantes en riesgo alto" %}</div>
+    </div>
+  </div>
+</div>
+
+<!-- KPIs operativos / financieros -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="rector-kpi">
+      <div class="kpi-icon" style="background:#f0fdf4; color:#16a34a;"><i class="bi bi-check2-circle"></i></div>
+      <div class="kpi-valor">{% if asistencia_hoy_pct is not None %}{{ asistencia_hoy_pct }}%{% else %}—{% endif %}</div>
+      <div class="kpi-label">{% trans "Asistencia de hoy" %}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="rector-kpi">
+      <div class="kpi-icon" style="background:#fff7ed; color:#ea580c;"><i class="bi bi-person-plus-fill"></i></div>
+      <div class="kpi-valor">{{ aspirantes_en_proceso }}</div>
+      <div class="kpi-label">{% trans "Aspirantes en proceso" %}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="rector-kpi">
+      <div class="kpi-icon" style="background:#ecfeff; color:#0891b2;"><i class="bi bi-cash-coin"></i></div>
+      <div class="kpi-valor">${{ recaudo_mes|floatformat:0 }}</div>
+      <div class="kpi-label">{% trans "Recaudo del mes" %}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="rector-kpi">
+      <div class="kpi-icon" style="background:#fef2f2; color:#e11d48;"><i class="bi bi-receipt"></i></div>
+      <div class="kpi-valor">{{ cuentas_pendientes }}</div>
+      <div class="kpi-label">{% trans "Cuentas por cobrar activas" %}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Accesos de supervisión -->
+<h5 class="fw-bold mb-3" style="color:#0f172a;">{% trans "Supervisión" %}</h5>
+<div class="row g-3">
+  <div class="col-12 col-md-6 col-lg-4">
+    <a href="{% url 'finanzas:dashboard_financiero' %}" class="rector-acceso">
+      <span class="ra-icon" style="background:#0891b2;"><i class="bi bi-bank"></i></span>
+      <span>
+        <span class="ra-title d-block">{% trans "Finanzas" %}</span>
+        <span class="ra-sub">{% trans "Panel financiero y reportes (solo lectura)" %}</span>
+      </span>
+    </a>
+  </div>
+  <div class="col-12 col-md-6 col-lg-4">
+    <a href="{% url 'admisiones:dashboard_admisiones' %}" class="rector-acceso">
+      <span class="ra-icon" style="background:#ea580c;"><i class="bi bi-person-plus-fill"></i></span>
+      <span>
+        <span class="ra-title d-block">{% trans "Admisiones" %}</span>
+        <span class="ra-sub">{% trans "Seguimiento de aspirantes y matrícula" %}</span>
+      </span>
+    </a>
+  </div>
+  <div class="col-12 col-md-6 col-lg-4">
+    <a href="{% url 'gestion_academica:reporte_riesgo_academico' %}" class="rector-acceso">
+      <span class="ra-icon" style="background:#dc2626;"><i class="bi bi-shield-check"></i></span>
+      <span>
+        <span class="ra-title d-block">{% trans "Reporte de Riesgo (IA)" %}</span>
+        <span class="ra-sub">{% trans "Estudiantes que requieren atención" %}</span>
+      </span>
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -415,6 +415,9 @@ ROL_GRUPO_MAP = {
     'estudiante': 'estudiantes',
     'coordinador': 'coordinadores',
     'familiar': 'familiares',
+    'secretaria': 'secretarias',
+    'tesoreria': 'tesoreria',
+    'rector': 'rectores',
 }
 
 

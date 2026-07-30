@@ -429,6 +429,7 @@ urlpatterns = [
     path('elecciones/candidato/<int:candidato_id>/', views.detalle_candidato_view, name='detalle_candidato'),
     path('elecciones/<int:eleccion_id>/analizar-propuestas/', views.analizar_propuestas_ia_view, name='analizar_propuestas_ia'),
     path('elecciones/<int:eleccion_id>/votar/', views.votar_view, name='votar_eleccion'),
+    path('direccion/panel/', views.dashboard_rector, name='dashboard_rector'),
     path('usuarios/lista/', views.lista_usuarios_view, name='lista_usuarios'),
     path('usuarios/<int:user_pk>/editar/', views.editar_usuario_view, name='editar_usuario'),
     path('docente/curso/<int:curso_pk>/pasar-lista/', views.pasar_lista_view, name='pasar_lista'),

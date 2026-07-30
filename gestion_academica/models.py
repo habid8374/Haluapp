@@ -41,6 +41,9 @@ class Usuario(AbstractUser):
         ('administrador', 'Administrador'), # Rol para admin de una institución
         # Podrías tener un 'superadmin' que no necesite institución
         ('coordinador', 'Coordinador(a)'),
+        ('rector', 'Rector(a) / Directivo'),
+        ('secretaria', 'Secretaría'),
+        ('tesoreria', 'Tesorería / Financiera'),
         ('docente', 'Docente'),
         ('estudiante', 'Estudiante'),
         ('familiar', 'Familiar'),

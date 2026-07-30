@@ -144,6 +144,7 @@ def _notificar_cita_post_commit(cita_pk):
             User.objects.filter(
                 Q(is_superuser=True)
                 | Q(is_staff=True, institucion_asociada_id=institucion.pk)
+                | Q(rol='secretaria', institucion_asociada_id=institucion.pk)
             ).distinct()
         )
 

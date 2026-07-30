@@ -251,6 +251,12 @@ def inicio_academico(request):
             return redirect('gestion_academica:dashboard_coordinador')
         elif user.rol == 'familiar':
             return redirect('gestion_academica:portal_familiar_inicio')
+        elif user.rol == 'tesoreria':
+            return redirect('finanzas:dashboard_financiero')
+        elif user.rol == 'secretaria':
+            return redirect('admisiones:dashboard_admisiones')
+        elif user.rol == 'rector':
+            return redirect('gestion_academica:dashboard_rector')
 
     # 2. Acceso para staff/admin — HALU PULSE con KPIs en vivo
     if user.is_staff:
@@ -322,6 +328,90 @@ def inicio_academico(request):
     messages.warning(request, "Tu cuenta no tiene un rol válido para acceder al sistema.")
     return redirect('logout')
 
+
+@login_required
+def dashboard_rector(request):
+    """Panel de supervisión de solo lectura para el Rector(a) / Directivo.
+
+    Muestra KPIs institucionales (académicos y financieros) sin permitir
+    edición. Todo se calcula scoped por la institución del usuario — un rector
+    solo ve su propia institución (multi-institución). El superusuario ve la
+    institución que tenga asociada, si la hay.
+    """
+    user = request.user
+    if not (user.is_superuser or getattr(user, 'rol', '') == 'rector'):
+        messages.error(request, "No tienes permiso para acceder al panel de dirección.")
+        return redirect('gestion_academica:inicio_academico')
+
+    from django.db.models import Sum as _Sum, Avg as _Avg
+    institucion = getattr(user, 'institucion_asociada', None)
+    today = timezone.localdate()
+
+    ctx = {
+        'titulo_pagina': "Panel de Dirección",
+        'nombre_usuario': user.get_full_name() or user.username,
+        'institucion': institucion,
+    }
+
+    # ── KPIs académicos ─────────────────────────────────────────────
+    try:
+        ctx['total_alumnos'] = Estudiante.objects.filter(activo=True, institucion=institucion).count()
+    except Exception:
+        ctx['total_alumnos'] = 0
+    try:
+        from gestion_academica.models import Docente as _Docente
+        ctx['total_docentes'] = _Docente.objects.filter(institucion=institucion).count()
+    except Exception:
+        ctx['total_docentes'] = 0
+    try:
+        periodo_activo = PeriodoAcademico.objects.filter(institucion=institucion, activo=True).first()
+        ctx['periodo_activo'] = periodo_activo
+        qs_cal = Calificacion.objects.filter(institucion=institucion)
+        if periodo_activo:
+            qs_cal = qs_cal.filter(actividad_calificable__curso__periodo_academico=periodo_activo)
+        prom = qs_cal.aggregate(p=_Avg('valor_numerico'))['p']
+        ctx['promedio_institucional'] = round(prom, 1) if prom else None
+    except Exception:
+        ctx['periodo_activo'] = None
+        ctx['promedio_institucional'] = None
+    try:
+        total_hoy = RegistroAsistencia.objects.filter(fecha_solo=today, institucion=institucion).count()
+        presentes_hoy = RegistroAsistencia.objects.filter(fecha_solo=today, estado='PRESENTE', institucion=institucion).count()
+        ctx['asistencia_hoy_pct'] = round(presentes_hoy / total_hoy * 100) if total_hoy > 0 else None
+    except Exception:
+        ctx['asistencia_hoy_pct'] = None
+    try:
+        ctx['alumnos_riesgo'] = PrediccionRiesgoEstudiante.objects.filter(nivel_riesgo='ALTO', institucion=institucion).count()
+    except Exception:
+        ctx['alumnos_riesgo'] = 0
+
+    # ── KPIs de admisiones ──────────────────────────────────────────
+    try:
+        from admisiones.models import Aspirante
+        ctx['aspirantes_en_proceso'] = Aspirante.objects.filter(
+            institucion=institucion,
+            estado__in=['INSCRITO', 'EN_PROCESO', 'ADMITIDO', 'APROBADO_MATRICULA'],
+        ).count()
+    except Exception:
+        ctx['aspirantes_en_proceso'] = 0
+
+    # ── KPIs financieros ────────────────────────────────────────────
+    try:
+        from finanzas.models import PagoRegistrado, CuentaPorCobrarEstudiante
+        recaudo = PagoRegistrado.objects.filter(
+            institucion=institucion, anulado=False,
+            fecha_pago__year=today.year, fecha_pago__month=today.month,
+        ).aggregate(s=_Sum('valor_pagado'))['s']
+        ctx['recaudo_mes'] = recaudo or 0
+        ctx['cuentas_pendientes'] = CuentaPorCobrarEstudiante.objects.filter(
+            institucion=institucion,
+            estado__in=['PENDIENTE', 'PAGADO_PARCIAL', 'VENCIDO'],
+        ).count()
+    except Exception:
+        ctx['recaudo_mes'] = 0
+        ctx['cuentas_pendientes'] = 0
+
+    return render(request, 'gestion_academica/dashboard_rector.html', ctx)
 
 
 # --- Vistas para Grados ---
@@ -14130,6 +14220,9 @@ class SincronizarPermisosView(LoginRequiredMixin, View):
                 'coordinadores': 'coordinador',
                 'administradores': 'administrador',
                 'familiares': 'familiar',
+                'secretarias': 'secretaria',
+                'tesoreria': 'tesoreria',
+                'rectores': 'rector',
                 # Añade más mapeos si tienes otros grupos
             }
             

@@ -167,7 +167,9 @@ def _puede_operar_cuenta_aspirante(request, cuenta, aspirante):
     if user and user.is_authenticated:
         if user.is_superuser:
             return True
-        if (user.is_staff
+        # Personal de la institución (staff, o rol Secretaría) de la MISMA institución.
+        es_personal = user.is_staff or getattr(user, 'rol', '') == 'secretaria'
+        if (es_personal
                 and getattr(user, 'institucion_asociada_id', None) == cuenta.institucion_id):
             return True
 
@@ -749,7 +751,7 @@ def _puede_gestionar_lote(user, lote):
         return False
     if lote.creado_por_id == user.pk:
         return True
-    return bool(user.is_staff)
+    return bool(user.is_staff or getattr(user, 'rol', '') == 'secretaria')
 
 
 @login_required
