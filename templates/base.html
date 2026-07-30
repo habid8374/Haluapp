@@ -312,6 +312,76 @@
             </div>
         </div>
     </nav>
+    {% if user.is_authenticated %}
+    <!-- ══ Video de bienvenida (una vez por sesión) ══ -->
+    <div id="halu-welcome" hidden aria-hidden="true">
+      <div class="hw-card">
+        <button type="button" class="hw-skip" id="hwSkip" aria-label="{% trans 'Saltar' %}">
+          {% trans "Saltar" %} <i class="bi bi-x-lg"></i>
+        </button>
+        <video id="hwVideo" class="hw-video" muted playsinline preload="auto">
+          <source src="{% static 'video/bienvenida.mp4' %}" type="video/mp4">
+        </video>
+        <button type="button" class="hw-sound" id="hwSound" aria-label="{% trans 'Activar sonido' %}">
+          <i class="bi bi-volume-mute-fill"></i> <span>{% trans "Activar sonido" %}</span>
+        </button>
+      </div>
+    </div>
+    <style>
+      #halu-welcome { position: fixed; inset: 0; z-index: 20000; background: rgba(8,12,28,.92);
+        display: flex; align-items: center; justify-content: center; padding: 1rem; }
+      #halu-welcome[hidden] { display: none; }
+      #halu-welcome .hw-card { position: relative; width: 100%; max-width: 720px;
+        border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.5); background:#000; }
+      #halu-welcome .hw-video { width: 100%; height: auto; display: block; max-height: 82vh; }
+      #halu-welcome .hw-skip { position: absolute; top: 12px; right: 12px; z-index: 2;
+        border: none; background: rgba(0,0,0,.55); color:#fff; font-weight:600; font-size:.82rem;
+        padding: .4rem .8rem; border-radius: 2rem; cursor: pointer; display:flex; align-items:center; gap:.35rem;
+        backdrop-filter: blur(4px); }
+      #halu-welcome .hw-skip:hover { background: rgba(0,0,0,.75); }
+      #halu-welcome .hw-sound { position: absolute; bottom: 12px; left: 12px; z-index: 2;
+        border: none; background: rgba(255,255,255,.9); color:#0f172a; font-weight:700; font-size:.8rem;
+        padding: .45rem .9rem; border-radius: 2rem; cursor: pointer; display:flex; align-items:center; gap:.4rem; }
+      #halu-welcome .hw-sound:hover { background:#fff; }
+      @media (max-width: 575px) { #halu-welcome .hw-card { max-width: 100%; } }
+    </style>
+    <script>
+      (function () {
+        try { if (sessionStorage.getItem('haluWelcomeSeen')) return; } catch (e) {}
+        var ov = document.getElementById('halu-welcome');
+        var vid = document.getElementById('hwVideo');
+        var skip = document.getElementById('hwSkip');
+        var sound = document.getElementById('hwSound');
+        if (!ov || !vid) return;
+        try { sessionStorage.setItem('haluWelcomeSeen', '1'); } catch (e) {}
+        function close() {
+          ov.hidden = true;
+          try { vid.pause(); } catch (e) {}
+          document.body.style.overflow = '';
+        }
+        ov.hidden = false;
+        document.body.style.overflow = 'hidden';
+        var p = vid.play();
+        if (p && p.catch) { p.catch(function () {}); }
+        skip.addEventListener('click', close);
+        vid.addEventListener('ended', close);
+        ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+        sound.addEventListener('click', function () {
+          vid.muted = !vid.muted;
+          var ic = sound.querySelector('i');
+          var tx = sound.querySelector('span');
+          if (!vid.muted) {
+            if (ic) ic.className = 'bi bi-volume-up-fill';
+            if (tx) tx.textContent = '{% trans "Silenciar" %}';
+            var pp = vid.play(); if (pp && pp.catch) pp.catch(function(){});
+          } else {
+            if (ic) ic.className = 'bi bi-volume-mute-fill';
+            if (tx) tx.textContent = '{% trans "Activar sonido" %}';
+          }
+        });
+      })();
+    </script>
+    {% endif %}
     <main class="container">
         {% if user.is_authenticated and institucion_actual %}
         <div class="institucion-strip">

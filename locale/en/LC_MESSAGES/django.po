@@ -7584,3 +7584,12 @@ msgstr "Search by name or role…"
 
 msgid "Familias de mis cursos"
 msgstr "Families of my courses"
+
+msgid "Saltar"
+msgstr "Skip"
+
+msgid "Activar sonido"
+msgstr "Turn on sound"
+
+msgid "Silenciar"
+msgstr "Mute"
