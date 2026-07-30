@@ -6,6 +6,7 @@ Los coordinadores con el permiso `puede_supervisar_mensajes` pueden
 ver todas las conversaciones de su institución.
 """
 from django.contrib import admin
+from proyecto_colegio.admin_mixins import InstitucionScopedAdminMixin
 from django.utils.html import format_html
 
 from .models import Conversacion, Mensaje
@@ -20,7 +21,7 @@ class MensajeInline(admin.TabularInline):
 
 
 @admin.register(Conversacion)
-class ConversacionAdmin(admin.ModelAdmin):
+class ConversacionAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = (
         '__str__', 'institucion', 'estudiante_contexto',
         'ultimo_mensaje_en', 'archivada_por_a', 'archivada_por_b',
@@ -61,7 +62,8 @@ class ConversacionAdmin(admin.ModelAdmin):
 
 
 @admin.register(Mensaje)
-class MensajeAdmin(admin.ModelAdmin):
+class MensajeAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    institucion_lookup = 'conversacion__institucion'
     list_display = ('conversacion', 'remitente', 'texto_preview', 'enviado_en', 'leido')
     list_filter = ('leido', 'conversacion__institucion')
     search_fields = ('texto', 'remitente__username', 'remitente__first_name')

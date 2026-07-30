@@ -1,4 +1,5 @@
 from django.contrib import admin
+from proyecto_colegio.admin_mixins import InstitucionScopedAdminMixin
 from .models import BancoPregunta, IntentoSimulacro, OpcionPregunta, Simulacro
 
 
@@ -9,7 +10,7 @@ class OpcionInline(admin.TabularInline):
 
 
 @admin.register(BancoPregunta)
-class BancoPreguntaAdmin(admin.ModelAdmin):
+class BancoPreguntaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display  = ['grado_nivel', 'area', 'nivel_dificultad', 'es_publica', 'enunciado_corto']
     list_filter   = ['grado_nivel', 'area', 'es_publica', 'nivel_dificultad']
     search_fields = ['enunciado']
@@ -21,12 +22,12 @@ class BancoPreguntaAdmin(admin.ModelAdmin):
 
 
 @admin.register(Simulacro)
-class SimulacroAdmin(admin.ModelAdmin):
+class SimulacroAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ['titulo', 'institucion', 'estado', 'grado_nivel', 'fecha_inicio', 'fecha_cierre']
     list_filter  = ['estado', 'grado_nivel', 'institucion']
 
 
 @admin.register(IntentoSimulacro)
-class IntentoAdmin(admin.ModelAdmin):
+class IntentoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ['simulacro', 'estudiante', 'puntaje', 'completado', 'inicio']
     list_filter  = ['completado', 'simulacro']

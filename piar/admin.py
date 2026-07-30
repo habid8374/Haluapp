@@ -1,4 +1,5 @@
 from django.contrib import admin
+from proyecto_colegio.admin_mixins import InstitucionScopedAdminMixin
 from .models import PIAR, AjustePIAR
 
 
@@ -9,7 +10,7 @@ class AjustePIARInline(admin.TabularInline):
 
 
 @admin.register(PIAR)
-class PIARAdmin(admin.ModelAdmin):
+class PIARAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('estudiante', 'año_lectivo', 'condicion', 'estado', 'docente_lider', 'institucion')
     list_filter = ('estado', 'condicion', 'año_lectivo', 'institucion')
     search_fields = ('estudiante__usuario__first_name', 'estudiante__usuario__last_name')
@@ -17,6 +18,7 @@ class PIARAdmin(admin.ModelAdmin):
 
 
 @admin.register(AjustePIAR)
-class AjustePIARAdmin(admin.ModelAdmin):
+class AjustePIARAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    institucion_lookup = 'piar__institucion'
     list_display = ('piar', 'materia', 'periodo', 'alcanzado')
     list_filter = ('periodo', 'alcanzado')

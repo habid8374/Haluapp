@@ -1,4 +1,5 @@
 from django.contrib import admin
+from proyecto_colegio.admin_mixins import InstitucionScopedAdminMixin
 
 from .models import IntentoQuizAudio, OpcionAudio, PreguntaAudio, QuizAudio
 
@@ -9,7 +10,8 @@ class OpcionInline(admin.TabularInline):
 
 
 @admin.register(PreguntaAudio)
-class PreguntaAudioAdmin(admin.ModelAdmin):
+class PreguntaAudioAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    institucion_lookup = 'quiz__institucion'
     list_display = ('quiz', 'orden', 'enunciado')
     inlines = [OpcionInline]
 
@@ -20,7 +22,7 @@ class PreguntaInline(admin.TabularInline):
 
 
 @admin.register(QuizAudio)
-class QuizAudioAdmin(admin.ModelAdmin):
+class QuizAudioAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('titulo', 'curso', 'estado', 'institucion', 'creado_en')
     list_filter = ('institucion', 'estado')
     search_fields = ('titulo',)
@@ -28,6 +30,6 @@ class QuizAudioAdmin(admin.ModelAdmin):
 
 
 @admin.register(IntentoQuizAudio)
-class IntentoQuizAudioAdmin(admin.ModelAdmin):
+class IntentoQuizAudioAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('quiz', 'estudiante', 'aciertos', 'total', 'puntaje', 'completado', 'fin')
     list_filter = ('institucion', 'completado')
