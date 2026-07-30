@@ -166,6 +166,16 @@ class CuentaPorCobrarEstudianteManager(models.Manager):
             resultado.mensaje = f"El estudiante {estudiante} no tiene institución."
             return resultado
 
+        # Módulo financiero desactivado para esta institución: no se generan
+        # cuentas de cobro (los pagos se manejan por fuera de la plataforma).
+        if not getattr(institucion, 'usa_modulo_financiero', True):
+            resultado.motivo_falla = "modulo_financiero_desactivado"
+            resultado.mensaje = (
+                "El módulo financiero está desactivado para esta institución; "
+                "no se generan cuentas de cobro."
+            )
+            return resultado
+
         # ---- Año lectivo ------------------------------------------------
         año_lectivo = _año_lectivo_para(institucion)
         resultado.año = año_lectivo

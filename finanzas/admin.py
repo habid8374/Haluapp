@@ -44,7 +44,7 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
         }),
         # --- INICIO: NUEVA SECCIÓN DE CONFIGURACIÓN MAESTRA ---
         ('Configuración de Plataforma (Super-Admin)', {
-            'fields': ('activa', 'tipo_institucion', 'tarifa_mensual_plataforma', 'comision_por_transaccion_porcentaje'),
+            'fields': ('activa', 'tipo_institucion', 'usa_modulo_financiero', 'tarifa_mensual_plataforma', 'comision_por_transaccion_porcentaje'),
             'classes': ('collapse',),
             'description': 'Estos campos solo deben ser modificados por el super-administrador de HALU.'
         }),

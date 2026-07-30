@@ -64,6 +64,15 @@ class InstitucionEducativa(models.Model):
         verbose_name="Tipo de Institución",
         help_text="Privado: cobra mensualidades. Público: financiado por el Estado, sin cobros a estudiantes.",
     )
+    usa_modulo_financiero = models.BooleanField(
+        default=True,
+        verbose_name="Usa el módulo financiero",
+        help_text=(
+            "Si se desactiva, esta institución NO ve el módulo de finanzas y la "
+            "matrícula NO genera cuentas de cobro (los pagos se manejan por fuera "
+            "de la plataforma). Independiente de si es pública o privada."
+        ),
+    )
     IDIOMA_CHOICES = [
         ('en', 'Inglés'),
         ('fr', 'Francés'),

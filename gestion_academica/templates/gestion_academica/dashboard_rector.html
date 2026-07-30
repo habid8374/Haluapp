@@ -94,6 +94,7 @@
       <div class="kpi-label">{% trans "Aspirantes en proceso" %}</div>
     </div>
   </div>
+  {% if institucion_actual.usa_modulo_financiero %}
   <div class="col-6 col-lg-3">
     <div class="rector-kpi">
       <div class="kpi-icon" style="background:#ecfeff; color:#0891b2;"><i class="bi bi-cash-coin"></i></div>
@@ -108,11 +109,13 @@
       <div class="kpi-label">{% trans "Cuentas por cobrar activas" %}</div>
     </div>
   </div>
+  {% endif %}
 </div>
 
 <!-- Accesos de supervisión -->
 <h5 class="fw-bold mb-3" style="color:#0f172a;">{% trans "Supervisión" %}</h5>
 <div class="row g-3">
+  {% if institucion_actual.usa_modulo_financiero %}
   <div class="col-12 col-md-6 col-lg-4">
     <a href="{% url 'finanzas:dashboard_financiero' %}" class="rector-acceso">
       <span class="ra-icon" style="background:#0891b2;"><i class="bi bi-bank"></i></span>
@@ -122,6 +125,7 @@
       </span>
     </a>
   </div>
+  {% endif %}
   <div class="col-12 col-md-6 col-lg-4">
     <a href="{% url 'admisiones:dashboard_admisiones' %}" class="rector-acceso">
       <span class="ra-icon" style="background:#ea580c;"><i class="bi bi-person-plus-fill"></i></span>

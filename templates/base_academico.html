@@ -640,7 +640,7 @@
       {% endif %}
       {% if perms.finanzas.acceso_modulo_finanzas %}
         {% with inst=request.user.institucion_asociada %}
-        {% if request.user.is_superuser or not inst or inst.tipo_institucion != 'publico' %}
+        {% if request.user.is_superuser or not inst or inst.tipo_institucion != 'publico' and inst.usa_modulo_financiero %}
         <hr class="menu-divider">
         <h5 class="menu-section-title">Otros Módulos</h5>
         <li class="nav-item item-color-2">

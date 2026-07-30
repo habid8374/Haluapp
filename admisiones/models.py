@@ -263,8 +263,9 @@ class Aspirante(models.Model):
         #     para no borrar datos ya cargados manualmente.
         self._sincronizar_caracterizacion(estudiante_obj)
 
-        # 3. Lógica de cobro
-        if self.requiere_pago_inscripcion:
+        # 3. Lógica de cobro — solo si el módulo financiero está activo para la
+        #    institución (si no, los pagos se manejan por fuera de la plataforma).
+        if self.requiere_pago_inscripcion and getattr(self.institucion, 'usa_modulo_financiero', True):
             resultado_cobro = crear_cuenta_cobro_inscripcion(self)
             if resultado_cobro.es_exito:
                 self.cuenta_pago_inscripcion = resultado_cobro.cuenta

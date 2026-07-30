@@ -295,7 +295,7 @@
           Admisiones
         </a>
         {% endif %}
-        {% if perms.finanzas.acceso_modulo_finanzas %}
+        {% if perms.finanzas.acceso_modulo_finanzas and institucion_actual.usa_modulo_financiero %}
         <a href="{% url 'finanzas:dashboard_financiero' %}" class="qa-btn qa-purple">
           <i class="bi bi-currency-dollar" style="color:#7c3aed"></i>
           Finanzas
@@ -410,6 +410,7 @@
           </div>
         </a>
       </div>
+      {% if institucion_actual.usa_modulo_financiero %}
       <div class="col-6 col-md-3">
         <a href="{% url 'finanzas:dashboard_financiero' %}"
            class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
@@ -422,6 +423,7 @@
           </div>
         </a>
       </div>
+      {% endif %}
       <div class="col-6 col-md-3">
         <a href="{% url 'admisiones:dashboard_admisiones' %}"
            class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
