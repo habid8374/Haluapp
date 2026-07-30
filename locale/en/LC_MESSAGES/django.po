@@ -7686,3 +7686,18 @@ msgstr "The Finance module is not enabled for your institution."
 
 msgid "Si consideras que deberías tener acceso, comunícate con el administrador del software."
 msgstr "If you believe you should have access, contact the software administrator."
+
+msgid "Acceso restringido"
+msgstr "Restricted access"
+
+msgid "Tu acceso está temporalmente restringido"
+msgstr "Your access is temporarily restricted"
+
+msgid "Comunícate con la secretaría o administración de tu institución para regularizar tu situación."
+msgstr "Contact your institution's front office or administration to resolve your situation."
+
+msgid "Portal deshabilitado"
+msgstr "Portal disabled"
+
+msgid "No puedes ver notas, deberes, horario ni actividades mientras tu acceso esté restringido. Se habilitará de nuevo cuando la institución lo autorice."
+msgstr "You cannot see grades, homework, schedule or activities while your access is restricted. It will be enabled again when the institution authorizes it."

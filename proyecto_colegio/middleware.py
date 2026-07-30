@@ -138,17 +138,18 @@ class BloqueoEstudianteMiddleware:
     """Limita el portal de un estudiante con ``acceso_bloqueado=True``.
 
     Bloqueo manual (ej. por no pago, gestionado por Secretaría): el estudiante
-    PUEDE iniciar sesión, pero solo ve la pantalla de «acceso suspendido»; el
-    resto del portal (notas, deberes, simulacros…) queda fuera de alcance.
+    SÍ inicia sesión y entra a su portal, pero queda **confinado a su dashboard**,
+    donde ve un aviso rojo en el hero y el contenido deshabilitado. Cualquier
+    otra pantalla del portal (notas, deberes, simulacros…) lo devuelve al
+    dashboard.
 
     - Solo afecta al rol ``estudiante``. Otros roles y el superusuario pasan
       transparente.
-    - Web → redirige a ``gestion_academica:acceso_suspendido``.
+    - Web → redirige al dashboard del estudiante (donde se muestra el aviso).
     - API móvil (``/academico/api/``) → 403 JSON, para no romper la app.
     """
 
     RUTAS_EXENTAS_PREFIJOS = (
-        '/academico/acceso-suspendido/',
         '/logout/',
         '/accounts/logout/',
         '/admin/',
@@ -172,13 +173,20 @@ class BloqueoEstudianteMiddleware:
             if not exento:
                 estudiante = getattr(user, 'estudiante', None)
                 if estudiante is not None and getattr(estudiante, 'acceso_bloqueado', False):
-                    if current_path.startswith('/academico/api/'):
+                    from django.urls import reverse
+                    dashboard_url = reverse('gestion_academica:dashboard_estudiante')
+                    # El dashboard SÍ se permite: ahí ve el aviso rojo y el
+                    # contenido bloqueado. Todo lo demás lo devolvemos ahí.
+                    if current_path == dashboard_url:
+                        pass
+                    elif current_path.startswith('/academico/api/'):
                         from django.http import JsonResponse
                         return JsonResponse(
                             {'detail': 'Acceso suspendido. Contacta con administración.'},
                             status=403,
                         )
-                    return redirect('gestion_academica:acceso_suspendido')
+                    else:
+                        return redirect(dashboard_url)
         return self.get_response(request)
 
 

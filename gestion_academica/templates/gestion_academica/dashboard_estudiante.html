@@ -274,6 +274,28 @@
 {% endblock extrastyles %}
 {% block contenido %}
 <div class="container-fluid mt-3">
+  {% if estudiante.acceso_bloqueado %}
+  <!-- ══ Acceso restringido (bloqueo manual) ══ -->
+  <div class="est-hero" style="background: linear-gradient(135deg,#b91c1c 0%,#dc2626 55%,#ef4444 100%) !important;">
+    <div class="hero-badge" style="background:rgba(255,255,255,.22);"><i class="bi bi-lock-fill"></i> {% trans "Acceso restringido" %}</div>
+    <div class="hero-greeting" style="color:#fff;">{% trans "Tu acceso está temporalmente restringido" %}</div>
+    <div class="hero-sub" style="color:#fff; opacity:.95;">
+      {% trans "Comunícate con la secretaría o administración de tu institución para regularizar tu situación." %}
+      {% if estudiante.motivo_bloqueo %}<br><strong>{% trans "Motivo" %}:</strong> {{ estudiante.motivo_bloqueo }}{% endif %}
+    </div>
+  </div>
+  <div class="card border-0 shadow-sm" style="border-radius:16px;">
+    <div class="card-body text-center py-5 px-4">
+      <div style="width:72px;height:72px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;">
+        <i class="bi bi-lock-fill" style="font-size:2rem;color:#dc2626;"></i>
+      </div>
+      <h5 class="fw-bold mb-2">{% trans "Portal deshabilitado" %}</h5>
+      <p class="text-muted mb-0" style="font-size:.92rem;">
+        {% trans "No puedes ver notas, deberes, horario ni actividades mientras tu acceso esté restringido. Se habilitará de nuevo cuando la institución lo autorice." %}
+      </p>
+    </div>
+  </div>
+  {% else %}
   <div class="est-hero">
     <div class="hero-badge"><i class="bi bi-mortarboard-fill"></i> {% trans "Estudiante" %} · {% if estudiante.grado_actual.nombre %}{{ estudiante.grado_actual.nombre }}{% else %}{% trans "Sin grado asignado" %}{% endif %}</div>
     <div class="hero-greeting">{% blocktrans with nombre=estudiante.usuario.first_name|default:estudiante.usuario.username %}¡Hola, {{ nombre }}! 👋{% endblocktrans %}</div>
@@ -653,6 +675,7 @@
     </div>
     {% endfor %}
   </div>
+  {% endif %}
 </div>
 {% endblock contenido %}
 {% block extra_js %}
