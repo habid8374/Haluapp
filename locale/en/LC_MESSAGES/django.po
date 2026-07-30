@@ -7593,3 +7593,75 @@ msgstr "Turn on sound"
 
 msgid "Silenciar"
 msgstr "Mute"
+
+msgid "Acceso suspendido"
+msgstr "Access suspended"
+
+msgid "Tu acceso al portal está temporalmente suspendido."
+msgstr "Your access to the portal is temporarily suspended."
+
+msgid "Por favor comunícate con la secretaría o administración de tu institución para regularizar tu situación."
+msgstr "Please contact your institution's front office or administration to resolve your situation."
+
+msgid "Cerrar sesión"
+msgstr "Log out"
+
+msgid "Sistema de Gestión Escolar"
+msgstr "School Management System"
+
+msgid "Bloqueos de Estudiantes"
+msgstr "Student Access Blocks"
+
+msgid "Bloquea o restaura el acceso de un estudiante al portal (por ejemplo, por no pago). El estudiante podrá iniciar sesión pero verá una pantalla de acceso suspendido."
+msgstr "Block or restore a student's access to the portal (for example, for non-payment). The student can log in but will see an access-suspended screen."
+
+msgid "Buscar"
+msgstr "Search"
+
+msgid "Nombre, código o documento…"
+msgstr "Name, code or ID…"
+
+msgid "Todos"
+msgstr "All"
+
+msgid "Bloqueados"
+msgstr "Blocked"
+
+msgid "Con acceso"
+msgstr "With access"
+
+msgid "Bloqueado"
+msgstr "Blocked"
+
+msgid "Restaurar"
+msgstr "Restore"
+
+msgid "Bloquear"
+msgstr "Block"
+
+msgid "No se encontraron estudiantes."
+msgstr "No students found."
+
+msgid "¿Bloquear el acceso?"
+msgstr "Block access?"
+
+msgid "podrá iniciar sesión pero no verá el portal (notas, deberes, etc.)."
+msgstr "will be able to log in but won't see the portal (grades, homework, etc.)."
+
+msgid "Motivo (opcional, lo verá el estudiante)"
+msgstr "Reason (optional, the student will see it)"
+
+msgid "Ej: Pago pendiente del mes"
+msgstr "E.g.: Payment pending for the month"
+
+msgid "Sí, bloquear"
+msgstr "Yes, block"
+
+msgid "¿Restaurar el acceso?"
+msgstr "Restore access?"
+
+msgid "volverá a ver el portal con normalidad."
+msgstr "will see the portal normally again."
+
+msgid "Sí, restaurar"
+msgstr "Yes, restore"

@@ -134,6 +134,54 @@ class InstitucionActivaMiddleware:
         return self.get_response(request)
 
 
+class BloqueoEstudianteMiddleware:
+    """Limita el portal de un estudiante con ``acceso_bloqueado=True``.
+
+    Bloqueo manual (ej. por no pago, gestionado por Secretaría): el estudiante
+    PUEDE iniciar sesión, pero solo ve la pantalla de «acceso suspendido»; el
+    resto del portal (notas, deberes, simulacros…) queda fuera de alcance.
+
+    - Solo afecta al rol ``estudiante``. Otros roles y el superusuario pasan
+      transparente.
+    - Web → redirige a ``gestion_academica:acceso_suspendido``.
+    - API móvil (``/academico/api/``) → 403 JSON, para no romper la app.
+    """
+
+    RUTAS_EXENTAS_PREFIJOS = (
+        '/academico/acceso-suspendido/',
+        '/logout/',
+        '/accounts/logout/',
+        '/admin/',
+        '/2fa/',
+        '/academico/politica-datos/',
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = request.user
+        if (user.is_authenticated and not user.is_superuser
+                and getattr(user, 'rol', '') == 'estudiante'):
+            current_path = request.path_info
+            exento = (
+                current_path.startswith(self.RUTAS_EXENTAS_PREFIJOS)
+                or current_path.startswith(settings.STATIC_URL)
+                or current_path.startswith(settings.MEDIA_URL)
+            )
+            if not exento:
+                estudiante = getattr(user, 'estudiante', None)
+                if estudiante is not None and getattr(estudiante, 'acceso_bloqueado', False):
+                    if current_path.startswith('/academico/api/'):
+                        from django.http import JsonResponse
+                        return JsonResponse(
+                            {'detail': 'Acceso suspendido. Contacta con administración.'},
+                            status=403,
+                        )
+                    return redirect('gestion_academica:acceso_suspendido')
+        return self.get_response(request)
+
+
 class IdiomaPreferidoMiddleware:
     """
     Activa el idioma preferido guardado en el perfil del usuario autenticado

@@ -1169,6 +1169,12 @@
           <i class="bi bi-upload"></i> {% trans "Importar Aspirantes" %}
         </a>
       </li>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if request.resolver_match.url_name == 'gestion_bloqueos_estudiantes' %}active{% endif %}"
+           href="{% url 'gestion_academica:gestion_bloqueos_estudiantes' %}">
+          <i class="bi bi-shield-lock"></i> {% trans "Bloqueos de Estudiantes" %}
+        </a>
+      </li>
       <li class="nav-item item-color-3">
         <a class="nav-link {% if request.resolver_match.namespace == 'mensajeria' %}active{% endif %}"
            href="{% url 'mensajeria:inbox' %}">

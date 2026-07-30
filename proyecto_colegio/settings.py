@@ -172,6 +172,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'autenticacion_2fa.middleware.Verificacion2FAMiddleware',
     'proyecto_colegio.middleware.PoliticaDatosMiddleware',  # Aceptación obligatoria de política de datos
+    'proyecto_colegio.middleware.BloqueoEstudianteMiddleware',  # Bloqueo manual de acceso al portal del estudiante
 
     # --- MIDDLEWARE PARA REGISTRO INICIAL ---
     # Si quieres que el sistema SIEMPRE redirija a registro_inicial si no hay usuarios,

@@ -373,6 +373,27 @@ class Estudiante(models.Model):
         help_text="Desmarca esta casilla si el estudiante se ha retirado o ya no está activo en la institución."
     )
 
+    # ── Bloqueo manual de acceso (ej. por no pago, gestionado por Secretaría) ──
+    # El estudiante puede iniciar sesión, pero se le limita el portal (no ve
+    # notas, deberes, simulacros…). Independiente del módulo financiero.
+    acceso_bloqueado = models.BooleanField(
+        default=False,
+        verbose_name=_("Acceso bloqueado"),
+        help_text="Si está activo, el estudiante ve una pantalla de acceso suspendido en vez del portal.",
+    )
+    motivo_bloqueo = models.CharField(
+        max_length=255, blank=True, default='',
+        verbose_name=_("Motivo del bloqueo"),
+    )
+    fecha_bloqueo = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("Fecha de bloqueo"),
+    )
+    bloqueado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='estudiantes_bloqueados',
+        verbose_name=_("Bloqueado por"),
+    )
+
     class Meta:
         verbose_name = _("Estudiante")
         verbose_name_plural = _("Estudiantes")

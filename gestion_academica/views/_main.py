@@ -414,6 +414,104 @@ def dashboard_rector(request):
     return render(request, 'gestion_academica/dashboard_rector.html', ctx)
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+#  Bloqueo manual de acceso al portal del estudiante (gestionado por Secretaría)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _puede_gestionar_bloqueos(user):
+    rol = getattr(user, 'rol', '') or ''
+    return user.is_superuser or rol in ('secretaria', 'administrador', 'rector')
+
+
+@login_required
+def acceso_suspendido(request):
+    """Pantalla que ve un estudiante con el acceso bloqueado manualmente.
+
+    Puede iniciar sesión pero solo llega aquí (el middleware redirige todo lo
+    demás). Si no está bloqueado, lo devolvemos a su inicio."""
+    estudiante = getattr(request.user, 'estudiante', None)
+    if not (estudiante and getattr(estudiante, 'acceso_bloqueado', False)):
+        return redirect('gestion_academica:inicio_academico')
+    return render(request, 'gestion_academica/acceso_suspendido.html', {
+        'motivo': estudiante.motivo_bloqueo or '',
+    })
+
+
+@login_required
+def gestion_bloqueos_estudiantes(request):
+    """Pantalla de Secretaría: bloquear/desbloquear el acceso de estudiantes."""
+    if not _puede_gestionar_bloqueos(request.user):
+        messages.error(request, "No tienes permiso para gestionar bloqueos de estudiantes.")
+        return redirect('gestion_academica:inicio_academico')
+
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    base_qs = Estudiante.objects.all() if request.user.is_superuser else Estudiante.objects.filter(institucion=institucion)
+
+    grado_id = request.GET.get('grado') or ''
+    query = (request.GET.get('q') or '').strip()
+    estado = request.GET.get('estado') or ''
+
+    qs = base_qs.select_related('usuario', 'grado_actual', 'bloqueado_por')
+    if grado_id:
+        qs = qs.filter(grado_actual_id=grado_id)
+    if query:
+        qs = qs.filter(
+            Q(usuario__first_name__icontains=query)
+            | Q(usuario__last_name__icontains=query)
+            | Q(codigo_estudiante__icontains=query)
+            | Q(documento_identidad__icontains=query)
+        )
+    if estado == 'bloqueados':
+        qs = qs.filter(acceso_bloqueado=True)
+    elif estado == 'activos':
+        qs = qs.filter(acceso_bloqueado=False)
+
+    grados = Grado.objects.filter(institucion=institucion).order_by('orden', 'nombre') if institucion else Grado.objects.none()
+
+    context = {
+        'titulo_pagina': "Bloqueos de Estudiantes",
+        'estudiantes': qs.order_by('usuario__last_name', 'usuario__first_name'),
+        'grados': grados,
+        'grado_actual': grado_id,
+        'query_actual': query,
+        'estado_actual': estado,
+        'total_bloqueados': base_qs.filter(acceso_bloqueado=True).count(),
+    }
+    return render(request, 'gestion_academica/gestion_bloqueos_estudiantes.html', context)
+
+
+@login_required
+def toggle_bloqueo_estudiante(request, estudiante_pk):
+    """Bloquea o desbloquea el acceso de un estudiante (POST)."""
+    if request.method != 'POST':
+        return redirect('gestion_academica:gestion_bloqueos_estudiantes')
+    if not _puede_gestionar_bloqueos(request.user):
+        messages.error(request, "No tienes permiso para gestionar bloqueos de estudiantes.")
+        return redirect('gestion_academica:inicio_academico')
+
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    est_qs = Estudiante.objects.all() if request.user.is_superuser else Estudiante.objects.filter(institucion=institucion)
+    estudiante = get_object_or_404(est_qs, pk=estudiante_pk)
+
+    nombre = estudiante.usuario.get_full_name() or estudiante.usuario.username
+    if request.POST.get('accion') == 'bloquear':
+        estudiante.acceso_bloqueado = True
+        estudiante.motivo_bloqueo = (request.POST.get('motivo') or '').strip()[:255]
+        estudiante.fecha_bloqueo = timezone.now()
+        estudiante.bloqueado_por = request.user
+        estudiante.save(update_fields=['acceso_bloqueado', 'motivo_bloqueo', 'fecha_bloqueo', 'bloqueado_por'])
+        messages.success(request, f"Se bloqueó el acceso de {nombre}.")
+    else:
+        estudiante.acceso_bloqueado = False
+        estudiante.motivo_bloqueo = ''
+        estudiante.fecha_bloqueo = None
+        estudiante.bloqueado_por = None
+        estudiante.save(update_fields=['acceso_bloqueado', 'motivo_bloqueo', 'fecha_bloqueo', 'bloqueado_por'])
+        messages.success(request, f"Se restauró el acceso de {nombre}.")
+
+    return redirect(request.META.get('HTTP_REFERER') or 'gestion_academica:gestion_bloqueos_estudiantes')
+
+
 # --- Vistas para Grados ---
 class GradoListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = Grado; template_name = 'gestion_academica/grado_lista.html'; context_object_name = 'grados'; permission_required = 'gestion_academica.view_grado'
