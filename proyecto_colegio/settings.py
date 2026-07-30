@@ -173,6 +173,7 @@ MIDDLEWARE = [
     'autenticacion_2fa.middleware.Verificacion2FAMiddleware',
     'proyecto_colegio.middleware.PoliticaDatosMiddleware',  # Aceptación obligatoria de política de datos
     'proyecto_colegio.middleware.BloqueoEstudianteMiddleware',  # Bloqueo manual de acceso al portal del estudiante
+    'proyecto_colegio.middleware.ModuloFinancieroMiddleware',  # Bloquea /finanzas/ si la institución no usa el módulo financiero
 
     # --- MIDDLEWARE PARA REGISTRO INICIAL ---
     # Si quieres que el sistema SIEMPRE redirija a registro_inicial si no hay usuarios,

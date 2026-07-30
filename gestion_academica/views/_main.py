@@ -7231,8 +7231,14 @@ def dashboard_riesgo_academico(request):
         messages.error(request, "Acceso denegado. Esta sección es solo para personal directivo.")
         return redirect('gestion_academica:inicio_academico')
 
-    # Buscamos el último análisis de riesgo completado
-    ultimo_analisis = AnalisisRiesgo.objects.order_by('-fecha_analisis').first()
+    # Buscamos el último análisis de riesgo completado (scoped por institución
+    # del usuario — multi-institución: nunca mostrar el de otro colegio).
+    analisis_qs = AnalisisRiesgo.objects.all()
+    if not request.user.is_superuser:
+        analisis_qs = analisis_qs.filter(
+            periodo_academico__institucion=getattr(request.user, 'institucion_asociada', None)
+        )
+    ultimo_analisis = analisis_qs.order_by('-fecha_analisis').first()
 
     predicciones = []
     riesgo_alto_count = 0

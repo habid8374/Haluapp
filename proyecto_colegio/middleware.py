@@ -190,6 +190,34 @@ class BloqueoEstudianteMiddleware:
         return self.get_response(request)
 
 
+class ModuloFinancieroMiddleware:
+    """Bloquea TODO el módulo de finanzas (prefijo ``/finanzas/``) para las
+    instituciones que no lo tienen habilitado: públicas o con
+    ``usa_modulo_financiero=False``.
+
+    Cierra el hueco de que la mayoría de vistas de finanzas solo estaban
+    protegidas por permiso: aunque un usuario tenga el permiso (p. ej. un rector
+    con acceso amplio), si su institución no usa finanzas no puede entrar por
+    URL. El superusuario pasa transparente y el webhook externo de Mercado Pago
+    (petición sin usuario autenticado) también, para no romper los pagos de los
+    colegios que sí usan finanzas.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.path_info.startswith('/finanzas/'):
+            user = getattr(request, 'user', None)
+            if user is not None and user.is_authenticated and not user.is_superuser:
+                inst = getattr(user, 'institucion_asociada', None)
+                if inst and (inst.tipo_institucion == 'publico'
+                             or not getattr(inst, 'usa_modulo_financiero', True)):
+                    from django.shortcuts import render
+                    return render(request, 'finanzas/acceso_no_disponible.html', status=403)
+        return self.get_response(request)
+
+
 class IdiomaPreferidoMiddleware:
     """
     Activa el idioma preferido guardado en el perfil del usuario autenticado
