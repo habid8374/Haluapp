@@ -50,6 +50,79 @@ def _get_institucion(user):
     return getattr(user, 'institucion_asociada', None)
 
 
+# ── Categorías de rol para la mensajería ──────────────────────────────────
+# Personal (staff): se pueden escribir entre sí. El docente es personal PERO
+# además puede escribir a familias/estudiantes de sus cursos. Los alumnos
+# (estudiante/familiar) solo se comunican con docentes.
+ROLES_PERSONAL = {
+    'rector', 'coordinador', 'administrador', 'administrativo',
+    'admin_institucion', 'tesoreria', 'secretaria', 'docente',
+}
+ROLES_ALUMNO = {'estudiante', 'familiar'}
+_ROL_ETIQUETA = {
+    'rector': 'Rector(a) / Directivo', 'coordinador': 'Coordinador(a)',
+    'administrador': 'Administrador(a)', 'administrativo': 'Administrativo(a)',
+    'admin_institucion': 'Administrador(a)', 'tesoreria': 'Tesorería',
+    'secretaria': 'Secretaría', 'docente': 'Docente',
+}
+
+
+def _directorio_personal(institucion, exclude_user):
+    """Lista de dicts del personal (staff) de la institución para el selector
+    de nuevo mensaje. Excluye al propio usuario y a alumnos/familias."""
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    if not institucion:
+        return []
+    qs = (
+        User.objects
+        .filter(institucion_asociada=institucion, is_active=True, rol__in=list(ROLES_PERSONAL))
+        .exclude(pk=exclude_user.pk)
+        .order_by('last_name', 'first_name')
+    )
+    out = []
+    for u in qs:
+        nombre = u.get_full_name() or u.username
+        etiqueta_rol = _ROL_ETIQUETA.get(u.rol or '', 'Personal')
+        out.append({
+            'usuario': u,
+            'etiqueta': nombre,
+            'sub': etiqueta_rol,
+            'estudiante_id': None,
+            'busqueda': f"{nombre} {etiqueta_rol}".lower(),
+        })
+    return out
+
+
+def _categoria_rol(rol):
+    if rol in ROLES_PERSONAL:
+        return 'personal'
+    if rol in ROLES_ALUMNO:
+        return 'alumno'
+    return 'otro'
+
+
+def _puede_conversar(remitente, destinatario):
+    """Reglas de quién puede iniciar/mantener un chat con quién.
+
+    - Personal ↔ personal: sí.
+    - Docente ↔ alumno (estudiante/familiar), en cualquier dirección: sí.
+    - Administrativo (no docente) ↔ alumno: no.
+    - Alumno ↔ alumno: no.
+    El superusuario puede con cualquiera.
+    """
+    if getattr(remitente, 'is_superuser', False):
+        return True
+    ra = getattr(remitente, 'rol', '') or ''
+    rb = getattr(destinatario, 'rol', '') or ''
+    ca, cb = _categoria_rol(ra), _categoria_rol(rb)
+    if ca == 'personal' and cb == 'personal':
+        return True
+    if ('docente' in (ra, rb)) and ('alumno' in (ca, cb)):
+        return True
+    return False
+
+
 # ======================================================================= #
 #  Vistas HTML                                                              #
 # ======================================================================= #
@@ -154,6 +227,12 @@ def iniciar_conversacion(request, destinatario_pk):
 
     if destinatario == request.user:
         flash.error(request, "No puedes enviarte mensajes a ti mismo.")
+        return redirect('mensajeria:inbox')
+
+    # Reglas de categoría: personal↔personal, y docente↔alumno. Un administrativo
+    # no puede iniciar chat con estudiantes/familias, ni un alumno con otro alumno.
+    if not _puede_conversar(request.user, destinatario):
+        flash.error(request, "No puedes iniciar una conversación con este usuario.")
         return redirect('mensajeria:inbox')
 
     # Normalizar: participante_a siempre el de menor pk para evitar duplicados
@@ -326,18 +405,13 @@ def nuevo_mensaje(request):
                 if filas:
                     grupos_grado.append({'grado': grado, 'alumnos': filas})
 
+        # El docente también es personal: puede escribir al resto del personal.
+        destinatarios = _directorio_personal(institucion, user)
+
     else:
-        # ── Staff / coordinador / rector: todos los docentes ────────────────
-        from gestion_academica.models import Docente as DocenteModel
-        for d in DocenteModel.objects.filter(institucion=institucion).select_related('usuario'):
-            nombre = d.usuario.get_full_name() or d.usuario.username
-            destinatarios.append({
-                'usuario':       d.usuario,
-                'etiqueta':      nombre,
-                'sub':           'Docente',
-                'estudiante_id': None,
-                'busqueda':      nombre.lower(),
-            })
+        # ── Personal administrativo (rector, coordinador, administrador,
+        #    tesorería, secretaría): ven al resto del PERSONAL, no a alumnos. ──
+        destinatarios = _directorio_personal(institucion, user)
 
     # Título contextual
     titulo = 'Nuevo mensaje'

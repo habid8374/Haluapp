@@ -7575,3 +7575,12 @@ msgstr "Are you sure you want to delete the gradable activity:"
 
 msgid "Aún no se ha ejecutado el análisis de riesgo para esta institución. El coordinador puede generarlo desde su panel."
 msgstr "The risk analysis has not been run for this institution yet. The coordinator can generate it from their dashboard."
+
+msgid "Personal del colegio"
+msgstr "School staff"
+
+msgid "Buscar por nombre o rol…"
+msgstr "Search by name or role…"
+
+msgid "Familias de mis cursos"
+msgstr "Families of my courses"
