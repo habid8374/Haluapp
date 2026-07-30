@@ -420,7 +420,7 @@ def dashboard_rector(request):
 
 def _puede_gestionar_bloqueos(user):
     rol = getattr(user, 'rol', '') or ''
-    return user.is_superuser or rol in ('secretaria', 'administrador', 'rector')
+    return user.is_superuser or rol in ('secretaria', 'administrador', 'rector', 'coordinador')
 
 
 @login_required

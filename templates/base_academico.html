@@ -1227,7 +1227,7 @@
       </li>
     {% endif %}
 
-    {% if user.is_superuser or user.rol == 'administrador' or user.rol == 'rector' %}
+    {% if user.is_superuser or user.rol == 'administrador' or user.rol == 'rector' or user.rol == 'coordinador' %}
       <hr class="menu-divider">
       <h5 class="menu-section-title">{% trans "Administración" %}</h5>
       <li class="nav-item item-color-1">
