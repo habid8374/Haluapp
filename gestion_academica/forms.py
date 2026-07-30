@@ -1,5 +1,6 @@
 # gestion_academica/forms.py
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm 
 from django.core.exceptions import ValidationError
@@ -27,7 +28,7 @@ from finanzas.models import InstitucionEducativa
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(
-        label="Seleccionar archivo Excel",
+        label=_("Seleccionar archivo Excel"),
         widget=forms.FileInput(attrs={'class': 'form-control'})
     )
 
@@ -92,22 +93,22 @@ class CustomUserUpdateForm(forms.ModelForm):
 
 # --- Formularios de Registro Inicial ---
 class RegistroInicialForm(forms.ModelForm):
-    username = forms.CharField(max_length=150, help_text="Nombre de usuario del administrador principal.")
-    email = forms.EmailField(help_text="Correo electrónico del administrador principal.")
-    password = forms.CharField(widget=forms.PasswordInput, help_text="Contraseña para el administrador principal.")
-    password_confirm = forms.CharField(widget=forms.PasswordInput, label="Confirmar Contraseña")
+    username = forms.CharField(max_length=150, help_text=_("Nombre de usuario del administrador principal."))
+    email = forms.EmailField(help_text=_("Correo electrónico del administrador principal."))
+    password = forms.CharField(widget=forms.PasswordInput, help_text=_("Contraseña para el administrador principal."))
+    password_confirm = forms.CharField(widget=forms.PasswordInput, label=_("Confirmar Contraseña"))
 
     class Meta:
         model = InstitucionEducativa 
         fields = ['nombre', 'nit', 'direccion', 'telefono', 'correo_electronico', 'logo', 'eslogan'] 
         labels = {
-            'nombre': 'Nombre de la Institución',
-            'nit': 'NIT de la Institución',
-            'direccion': 'Dirección de la Institución',
-            'telefono': 'Teléfono de la Institución',
-            'correo_electronico': 'Correo Electrónico de la Institución', 
-            'logo': 'Logo de la Institución',
-            'eslogan': 'Eslogan de la Institución (Opcional)',
+            'nombre': _('Nombre de la Institución'),
+            'nit': _('NIT de la Institución'),
+            'direccion': _('Dirección de la Institución'),
+            'telefono': _('Teléfono de la Institución'),
+            'correo_electronico': _('Correo Electrónico de la Institución'), 
+            'logo': _('Logo de la Institución'),
+            'eslogan': _('Eslogan de la Institución (Opcional)'),
         }
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
@@ -237,15 +238,15 @@ class EstudianteForm(forms.ModelForm):
             'descuentos': forms.SelectMultiple(attrs={'class': 'form-select', 'size': '5'}),
         }
         labels = {
-            'sexo': 'Sexo',
-            'tipo_documento': 'Tipo de Documento',
-            'lugar_nacimiento': 'Lugar de Nacimiento',
-            'grupo_sanguineo': 'Grupo Sanguíneo',
-            'eps': 'EPS / Entidad de Salud',
-            'discapacidad': 'Discapacidad (si aplica)',
-            'colegio_procedencia': 'Colegio de Procedencia',
-            'municipio_ciudad': 'Municipio/Ciudad',
-            'departamento': 'Departamento',
+            'sexo': _('Sexo'),
+            'tipo_documento': _('Tipo de Documento'),
+            'lugar_nacimiento': _('Lugar de Nacimiento'),
+            'grupo_sanguineo': _('Grupo Sanguíneo'),
+            'eps': _('EPS / Entidad de Salud'),
+            'discapacidad': _('Discapacidad (si aplica)'),
+            'colegio_procedencia': _('Colegio de Procedencia'),
+            'municipio_ciudad': _('Municipio/Ciudad'),
+            'departamento': _('Departamento'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -313,11 +314,11 @@ class DocenteForm(forms.ModelForm):
             'valor_hora_docencia': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
         labels = {
-            'codigo_docente': 'Código de Docente',
-            'especialidad': 'Especialidad Principal',
-            'institucion': 'Institución',
-            'modalidad_liquidacion': 'Modalidad de liquidación',
-            'valor_hora_docencia': 'Valor hora de referencia (opcional)',
+            'codigo_docente': _('Código de Docente'),
+            'especialidad': _('Especialidad Principal'),
+            'institucion': _('Institución'),
+            'modalidad_liquidacion': _('Modalidad de liquidación'),
+            'valor_hora_docencia': _('Valor hora de referencia (opcional)'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -346,12 +347,12 @@ class MateriaForm(forms.ModelForm):
             'idioma_instruccion':       forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'nombre_materia':           'Nombre de la Materia',
-            'codigo_materia':           'Código de Materia',
-            'descripcion':              'Descripción',
-            'institucion':              'Institución',
-            'nombre_idioma_secundario': 'Nombre en Idioma Secundario',
-            'idioma_instruccion':       'Idioma de Instrucción',
+            'nombre_materia':           _('Nombre de la Materia'),
+            'codigo_materia':           _('Código de Materia'),
+            'descripcion':              _('Descripción'),
+            'institucion':              _('Institución'),
+            'nombre_idioma_secundario': _('Nombre en Idioma Secundario'),
+            'idioma_instruccion':       _('Idioma de Instrucción'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -377,12 +378,12 @@ class PeriodoAcademicoForm(forms.ModelForm):
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'nombre': 'Nombre del Periodo',
-            'fecha_inicio': 'Fecha de Inicio',
-            'fecha_fin': 'Fecha de Fin',
-            'año_escolar': 'Año Escolar',
-            'activo': 'Activo',
-            'institucion': 'Institución',
+            'nombre': _('Nombre del Periodo'),
+            'fecha_inicio': _('Fecha de Inicio'),
+            'fecha_fin': _('Fecha de Fin'),
+            'año_escolar': _('Año Escolar'),
+            'activo': _('Activo'),
+            'institucion': _('Institución'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -407,11 +408,11 @@ class CursoForm(forms.ModelForm):
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'materia': 'Materia',
-            'grado': 'Grado',
-            'periodo_academico': 'Periodo Académico',
-            'docentes_asignados': 'Docentes Asignados',
-            'institucion': 'Institución',
+            'materia': _('Materia'),
+            'grado': _('Grado'),
+            'periodo_academico': _('Periodo Académico'),
+            'docentes_asignados': _('Docentes Asignados'),
+            'institucion': _('Institución'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -439,10 +440,10 @@ class DirectorCursoForm(forms.ModelForm):
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'docente': 'Docente Director',
-            'grado': 'Grado Dirigido',
-            'periodo_academico': 'Periodo Académico',
-            'institucion': 'Institución',
+            'docente': _('Docente Director'),
+            'grado': _('Grado Dirigido'),
+            'periodo_academico': _('Periodo Académico'),
+            'institucion': _('Institución'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -468,9 +469,9 @@ class TipoActividadForm(forms.ModelForm):
             'porcentaje': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100'}),
         }
         labels = {
-            'nombre': 'Nombre de la Categoría (Ej: Exámenes, Tareas)',
-            'descripcion': 'Descripción (Opcional)',
-            'porcentaje': 'Porcentaje sobre la nota final (%)',
+            'nombre': _('Nombre de la Categoría (Ej: Exámenes, Tareas)'),
+            'descripcion': _('Descripción (Opcional)'),
+            'porcentaje': _('Porcentaje sobre la nota final (%)'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -479,7 +480,7 @@ class TipoActividadForm(forms.ModelForm):
         if request and request.user.is_superuser:
             self.fields['institucion'] = forms.ModelChoiceField(
                 queryset=InstitucionEducativa.objects.all().order_by('nombre'),
-                label='Institución',
+                label=_('Institución'),
                 widget=forms.Select(attrs={'class': 'form-select'}),
                 required=True,
             )
@@ -545,13 +546,13 @@ class CalificacionForm(forms.ModelForm):
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'estudiante': 'Estudiante',
-            'actividad_calificable': 'Actividad Calificable',
-            'valor_numerico': 'Valor Numérico',
-            'valor_cualitativo': 'Valor Cualitativo',
-            'observaciones': 'Observaciones',
-            'registrada_por': 'Registrada por',
-            'institucion': 'Institución',
+            'estudiante': _('Estudiante'),
+            'actividad_calificable': _('Actividad Calificable'),
+            'valor_numerico': _('Valor Numérico'),
+            'valor_cualitativo': _('Valor Cualitativo'),
+            'observaciones': _('Observaciones'),
+            'registrada_por': _('Registrada por'),
+            'institucion': _('Institución'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -582,17 +583,17 @@ class DeberForm(forms.ModelForm):
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'curso': 'Curso',
-            'titulo': 'Título del Deber',
-            'descripcion': 'Descripción / Instrucciones',
-            'tipo_actividad': 'Categoría de la actividad (Saber Ser, Saber Hacer, …)',
-            'fecha_asignacion': 'Fecha de Asignación',
-            'fecha_entrega': 'Fecha Límite de Entrega',
-            'material_adjunto': 'Material de Apoyo Adjunto',
-            'institucion': 'Institución',
+            'curso': _('Curso'),
+            'titulo': _('Título del Deber'),
+            'descripcion': _('Descripción / Instrucciones'),
+            'tipo_actividad': _('Categoría de la actividad (Saber Ser, Saber Hacer, …)'),
+            'fecha_asignacion': _('Fecha de Asignación'),
+            'fecha_entrega': _('Fecha Límite de Entrega'),
+            'material_adjunto': _('Material de Apoyo Adjunto'),
+            'institucion': _('Institución'),
         }
         help_texts = {
-            'tipo_actividad': 'Determina con qué porcentaje pondera esta nota en el boletín. Es obligatoria para que la nota cuente.',
+            'tipo_actividad': _('Determina con qué porcentaje pondera esta nota en el boletín. Es obligatoria para que la nota cuente.'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -634,11 +635,11 @@ class EntregaDeberForm(forms.ModelForm):
             'fecha_calificacion': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
         labels = {
-            'archivo_adjunto_estudiante': 'Archivo Adjunto del Estudiante',
-            'comentarios_estudiante': 'Comentarios del Estudiante',
-            'calificacion_obtenida': 'Calificación Obtenida',
-            'comentarios_docente': 'Comentarios del Docente',
-            'fecha_calificacion': 'Fecha de Calificación',
+            'archivo_adjunto_estudiante': _('Archivo Adjunto del Estudiante'),
+            'comentarios_estudiante': _('Comentarios del Estudiante'),
+            'calificacion_obtenida': _('Calificación Obtenida'),
+            'comentarios_docente': _('Comentarios del Docente'),
+            'fecha_calificacion': _('Fecha de Calificación'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -673,14 +674,14 @@ class PlanCurricularForm(forms.ModelForm):
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'nombre': 'Nombre del Plan Curricular',
-            'descripcion': 'Descripción Detallada',
-            'documento_adjunto': 'Documento Adjunto',
-            'grado_asociado': 'Grado Asociado',
-            'materia_asociada': 'Materia Asociada',
-            'periodo_academico_asociado': 'Periodo Académico Asociado',
-            'fecha_publicacion': 'Fecha de Publicación/Vigencia',
-            'institucion': 'Institución',
+            'nombre': _('Nombre del Plan Curricular'),
+            'descripcion': _('Descripción Detallada'),
+            'documento_adjunto': _('Documento Adjunto'),
+            'grado_asociado': _('Grado Asociado'),
+            'materia_asociada': _('Materia Asociada'),
+            'periodo_academico_asociado': _('Periodo Académico Asociado'),
+            'fecha_publicacion': _('Fecha de Publicación/Vigencia'),
+            'institucion': _('Institución'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -710,12 +711,12 @@ class MencionReconocimientoForm(forms.ModelForm):
             'fecha_otorgamiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
         labels = {
-            'estudiante': 'Estudiante Reconocido',
-            'curso': 'Curso Relacionado (Opcional)',
-            'periodo': 'Periodo Académico',
-            'tipo': 'Tipo de Mención/Reconocimiento',
-            'descripcion': 'Descripción Detallada',
-            'fecha_otorgamiento': 'Fecha de Otorgamiento',
+            'estudiante': _('Estudiante Reconocido'),
+            'curso': _('Curso Relacionado (Opcional)'),
+            'periodo': _('Periodo Académico'),
+            'tipo': _('Tipo de Mención/Reconocimiento'),
+            'descripcion': _('Descripción Detallada'),
+            'fecha_otorgamiento': _('Fecha de Otorgamiento'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -767,12 +768,12 @@ class ArchivoPlanAcademicoForm(forms.ModelForm):
             'materia_asociada': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'nombre_archivo_descriptivo': 'Nombre Descriptivo del Archivo',
-            'archivo': 'Seleccionar Archivo',
-            'descripcion': 'Descripción (Opcional)',
-            'tipo_documento': 'Tipo de Documento',
-            'curso_asociado': 'Asociar al Curso (Opcional)',
-            'materia_asociada': 'Asociar a la Materia (Opcional)',
+            'nombre_archivo_descriptivo': _('Nombre Descriptivo del Archivo'),
+            'archivo': _('Seleccionar Archivo'),
+            'descripcion': _('Descripción (Opcional)'),
+            'tipo_documento': _('Tipo de Documento'),
+            'curso_asociado': _('Asociar al Curso (Opcional)'),
+            'materia_asociada': _('Asociar a la Materia (Opcional)'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -827,10 +828,10 @@ class NoticiaForm(forms.ModelForm):
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'titulo': 'Título de la Noticia/Anuncio',
-            'contenido': 'Contenido',
-            'imagen_destacada': 'Imagen Destacada',
-            'institucion': 'Institución',
+            'titulo': _('Título de la Noticia/Anuncio'),
+            'contenido': _('Contenido'),
+            'imagen_destacada': _('Imagen Destacada'),
+            'institucion': _('Institución'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -854,9 +855,9 @@ class LeccionDiariaForm(forms.ModelForm):
             'archivo_adjunto': forms.FileInput(attrs={'class': 'form-control'}),
         }
         labels = {
-            'tema_tratado': 'Tema Principal de la Clase',
-            'resumen_clase': 'Resumen de la Lección y Actividades Realizadas',
-            'archivo_adjunto': 'Material Adicional (Opcional)',
+            'tema_tratado': _('Tema Principal de la Clase'),
+            'resumen_clase': _('Resumen de la Lección y Actividades Realizadas'),
+            'archivo_adjunto': _('Material Adicional (Opcional)'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -896,10 +897,10 @@ class DescriptorLogroForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
         labels = {
-            'materia': 'Asignatura a la que pertenece el logro',
-            'periodo_academico': 'Periodo académico de aplicación',
-            'grado': 'Grado (opcional — deja en blanco para aplicar a todos)',
-            'descripcion': 'Texto del logro o descriptor',
+            'materia': _('Asignatura a la que pertenece el logro'),
+            'periodo_academico': _('Periodo académico de aplicación'),
+            'grado': _('Grado (opcional — deja en blanco para aplicar a todos)'),
+            'descripcion': _('Texto del logro o descriptor'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -934,9 +935,9 @@ class AnotacionObservadorForm(forms.ModelForm):
             'curso': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'tipo': 'Tipo de Anotación',
-            'descripcion': 'Descripción Detallada del Hecho o Felicitación',
-            'curso': 'Clase donde ocurrió (Opcional)',
+            'tipo': _('Tipo de Anotación'),
+            'descripcion': _('Descripción Detallada del Hecho o Felicitación'),
+            'curso': _('Clase donde ocurrió (Opcional)'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -986,11 +987,13 @@ class DocenteActividadForm(forms.ModelForm):
         
         # Etiquetas personalizadas para mayor claridad
         labels = {
-            'curso': '¿A qué curso pertenece esta actividad?',
-            'tipo_actividad': 'Categoría de la Actividad',
-            'titulo': 'Nombre de la Actividad (Ej: Taller 1, Examen Parcial)',
-            'descripcion': 'Instrucciones o descripción (Opcional)',
-            'fecha_entrega_limite': 'Fecha de Realización o Entrega Límite (Opcional)',
+            'curso': _('¿A qué curso pertenece esta actividad?'),
+            'tipo_actividad': _('Categoría de la Actividad'),
+            'titulo': _('Nombre de la Actividad (Ej: Taller 1, Examen Parcial)'),
+            'descripcion': _('Instrucciones o descripción (Opcional)'),
+            'fecha_publicacion': _('Fecha de Publicación/Asignación'),
+            'fecha_entrega_limite': _('Fecha de Realización o Entrega Límite (Opcional)'),
+            'material_adjunto': _('Material Adjunto (Opcional)'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1021,8 +1024,8 @@ class CalificarEntregaForm(forms.ModelForm):
             'comentarios_docente': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Añade una retroalimentación para el estudiante...'}),
         }
         labels = {
-            'calificacion_obtenida': 'Nota Asignada',
-            'comentarios_docente': 'Comentarios o Retroalimentación',
+            'calificacion_obtenida': _('Nota Asignada'),
+            'comentarios_docente': _('Comentarios o Retroalimentación'),
         }      
 
 
@@ -1050,11 +1053,11 @@ class FamiliarForm(forms.ModelForm):
             'estudiantes_asociados': forms.SelectMultiple(attrs={'class': 'form-select'}),
         }
         labels = {
-            'documento_identidad': 'Número de Documento',
-            'tipo_documento': 'Tipo de Documento',
-            'ocupacion': 'Ocupación',
-            'lugar_trabajo': 'Lugar de Trabajo / Empresa',
-            'direccion': 'Dirección de Residencia',
+            'documento_identidad': _('Número de Documento'),
+            'tipo_documento': _('Tipo de Documento'),
+            'ocupacion': _('Ocupación'),
+            'lugar_trabajo': _('Lugar de Trabajo / Empresa'),
+            'direccion': _('Dirección de Residencia'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1079,9 +1082,9 @@ class DisponibilidadDocenteForm(forms.ModelForm):
             'hora_fin': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
         }
         labels = {
-            'dia_semana': 'Día de la Semana',
-            'hora_inicio': 'Disponible Desde',
-            'hora_fin': 'Disponible Hasta',
+            'dia_semana': _('Día de la Semana'),
+            'hora_inicio': _('Disponible Desde'),
+            'hora_fin': _('Disponible Hasta'),
         } 
 
 class GestionCitaForm(forms.ModelForm):
@@ -1127,14 +1130,14 @@ class PreguntaForm(forms.ModelForm):
             'numero_intentos_permitidos': forms.NumberInput(attrs={'placeholder': 'Ej: 1'}),
         }
         labels = {
-            'enunciado': 'Texto o enunciado de la pregunta',
-            'tipo': 'Tipo de Pregunta',
-            'orden': 'Orden de aparición',
-            'duracion_minutos': 'Duración para esta pregunta (minutos)',
-            'numero_intentos_permitidos': 'Intentos permitidos para esta pregunta',
+            'enunciado': _('Texto o enunciado de la pregunta'),
+            'tipo': _('Tipo de Pregunta'),
+            'orden': _('Orden de aparición'),
+            'duracion_minutos': _('Duración para esta pregunta (minutos)'),
+            'numero_intentos_permitidos': _('Intentos permitidos para esta pregunta'),
         }
         help_texts = {
-            'duracion_minutos': 'Dejar en blanco si no hay límite de tiempo.',
+            'duracion_minutos': _('Dejar en blanco si no hay límite de tiempo.'),
         }
 
 # El OpcionFormSet se mantiene exactamente igual.
@@ -1160,7 +1163,7 @@ class ActividadConfigForm(forms.ModelForm):
             format='%Y-%m-%d'
         ),
         input_formats=['%Y-%m-%d', '%d/%m/%Y'],
-        label="Fecha de Publicación"
+        label=_("Fecha de Publicación")
     )
 
     fecha_entrega_limite = forms.DateField(
@@ -1170,7 +1173,7 @@ class ActividadConfigForm(forms.ModelForm):
             format='%Y-%m-%d'
         ),
         input_formats=['%Y-%m-%d', '%d/%m/%Y'],
-        label="Fecha Límite de Entrega (Opcional)"
+        label=_("Fecha Límite de Entrega (Opcional)")
     )
     
     class Meta:
@@ -1194,16 +1197,16 @@ class ActividadConfigForm(forms.ModelForm):
         
         # Etiquetas personalizadas para mayor claridad
         labels = {
-            'fecha_publicacion': 'Fecha de Publicación',
-            'fecha_entrega_limite': 'Fecha Límite de Entrega (Opcional)',
-            'duracion_minutos': 'Duración en Minutos (Opcional)',
-            'numero_intentos_permitidos': 'Número de Intentos Permitidos',
+            'fecha_publicacion': _('Fecha de Publicación'),
+            'fecha_entrega_limite': _('Fecha Límite de Entrega (Opcional)'),
+            'duracion_minutos': _('Duración en Minutos (Opcional)'),
+            'numero_intentos_permitidos': _('Número de Intentos Permitidos'),
         }
         
         # Textos de ayuda para guiar al docente
         help_texts = {
-            'duracion_minutos': 'Dejar en blanco si no hay límite de tiempo.',
-            'numero_intentos_permitidos': 'Por defecto se sugieren 5 intentos (etapa escolar); máximo 20.',
+            'duracion_minutos': _('Dejar en blanco si no hay límite de tiempo.'),
+            'numero_intentos_permitidos': _('Por defecto se sugieren 5 intentos (etapa escolar); máximo 20.'),
         }
 
 class AulaForm(forms.ModelForm):
@@ -1220,12 +1223,12 @@ class AulaForm(forms.ModelForm):
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'nombre': 'Nombre o Número del Aula',
-            'tipo': 'Tipo de Aula',
-            'capacidad': 'Capacidad de Estudiantes',
-            'ubicacion': 'Ubicación (Ej: Edificio A, Piso 2)',
-            'recursos': 'Recursos Disponibles (Ej: Proyector, Pizarra)',
-            'institucion': 'Institución a la que pertenece',
+            'nombre': _('Nombre o Número del Aula'),
+            'tipo': _('Tipo de Aula'),
+            'capacidad': _('Capacidad de Estudiantes'),
+            'ubicacion': _('Ubicación (Ej: Edificio A, Piso 2)'),
+            'recursos': _('Recursos Disponibles (Ej: Proyector, Pizarra)'),
+            'institucion': _('Institución a la que pertenece'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1259,10 +1262,10 @@ class AreaAcademicaForm(forms.ModelForm):
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'orden': 'Orden de aparición',
+            'orden': _('Orden de aparición'),
         }
         help_texts = {
-            'orden': 'Menor número = aparece primero. Ej: 1, 2, 3…',
+            'orden': _('Menor número = aparece primero. Ej: 1, 2, 3…'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1293,14 +1296,14 @@ class DimensionDesarrolloForm(forms.ModelForm):
             'materias': forms.CheckboxSelectMultiple(),
         }
         labels = {
-            'nombre': 'Nombre de la Dimensión',
-            'descripcion': 'Descripción (Opcional)',
-            'orden': 'Orden de Aparición',
-            'materias': 'Materias asociadas (Opcional)',
+            'nombre': _('Nombre de la Dimensión'),
+            'descripcion': _('Descripción (Opcional)'),
+            'orden': _('Orden de Aparición'),
+            'materias': _('Materias asociadas (Opcional)'),
         }
         help_texts = {
-            'orden': 'Un número menor aparecerá primero en la lista y en los reportes.',
-            'materias': 'Materias que aportan a esta dimensión del desarrollo.',
+            'orden': _('Un número menor aparecerá primero en la lista y en los reportes.'),
+            'materias': _('Materias que aportan a esta dimensión del desarrollo.'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1336,8 +1339,8 @@ class LogroPreescolarForm(forms.ModelForm):
             'grado': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'grado': 'Grado',
-            'materia': 'Materia (opcional)',
+            'grado': _('Grado'),
+            'materia': _('Materia (opcional)'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1364,9 +1367,9 @@ class TicketSoporteForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'rows': 6}),
         }
         labels = {
-            'titulo': 'Asunto o Título Corto',
-            'descripcion': 'Por favor, describe el problema con el mayor detalle posible',
-            'prioridad': 'Nivel de Prioridad',
+            'titulo': _('Asunto o Título Corto'),
+            'descripcion': _('Por favor, describe el problema con el mayor detalle posible'),
+            'prioridad': _('Nivel de Prioridad'),
         }   
 
 class RespuestaTicketForm(forms.ModelForm):
@@ -1380,8 +1383,8 @@ class RespuestaTicketForm(forms.ModelForm):
             'mensaje': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Escribe tu respuesta aquí...'}),
         }
         labels = {
-            'mensaje': 'Tu Respuesta',
-            'adjunto': 'Adjuntar un archivo (Opcional)',
+            'mensaje': _('Tu Respuesta'),
+            'adjunto': _('Adjuntar un archivo (Opcional)'),
         }                 
 
 class PlaneacionClaseForm(forms.ModelForm):
@@ -1392,21 +1395,21 @@ class PlaneacionClaseForm(forms.ModelForm):
     # Sobrescribimos el campo 'curso' para filtrarlo por el docente actual
     curso = forms.ModelChoiceField(
         queryset=Curso.objects.none(), # El queryset se llenará en la vista
-        label="Curso y Materia",
-        empty_label="--- Selecciona un curso ---"
+        label=_("Curso y Materia"),
+        empty_label=_("--- Selecciona un curso ---")
     )
 
     class Meta:
         model = PlaneacionClase
         fields = ['titulo', 'curso', 'metodologia', 'duracion_clases']
         labels = {
-            'titulo': '¿Cuál es el tema principal o nombre de la unidad?',
-            'metodologia': '¿Qué metodología de enseñanza prefieres usar?',
-            'duracion_clases': '¿En cuántas clases quieres desarrollar este tema?',
+            'titulo': _('¿Cuál es el tema principal o nombre de la unidad?'),
+            'metodologia': _('¿Qué metodología de enseñanza prefieres usar?'),
+            'duracion_clases': _('¿En cuántas clases quieres desarrollar este tema?'),
         }
         help_texts = {
-            'titulo': 'Ej: "El Sistema Solar", "Introducción a las Fracciones", "El Renacimiento".',
-            'duracion_clases': 'La IA generará un plan detallado para este número de clases.',
+            'titulo': _('Ej: "El Sistema Solar", "Introducción a las Fracciones", "El Renacimiento".'),
+            'duracion_clases': _('La IA generará un plan detallado para este número de clases.'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -1436,9 +1439,9 @@ class LeccionDiariaIaForm(forms.ModelForm):
             'resumen_clase': forms.Textarea(attrs={'rows': 8}),
         }
         labels = {
-            'tema_tratado': 'Tema Tratado en la Clase',
-            'resumen_clase': 'Resumen y Actividades Realizadas',
-            'archivo_adjunto': 'Adjuntar un nuevo archivo (opcional)',
+            'tema_tratado': _('Tema Tratado en la Clase'),
+            'resumen_clase': _('Resumen y Actividades Realizadas'),
+            'archivo_adjunto': _('Adjuntar un nuevo archivo (opcional)'),
         }                
 
 class CandidatoForm(forms.ModelForm):
@@ -1449,7 +1452,7 @@ class CandidatoForm(forms.ModelForm):
     estudiante = forms.ModelChoiceField(
         queryset=Estudiante.objects.all(),
         widget=forms.Select(attrs={'class': 'form-control'}), # Puedes añadir 'select2' si usas esa librería
-        label="Estudiante Candidato"
+        label=_("Estudiante Candidato")
     )
 
     class Meta:
@@ -1479,14 +1482,14 @@ class UserEditForm(forms.ModelForm):
         model = Usuario
         fields = ['first_name', 'last_name', 'email', 'rol', 'is_active']
         labels = {
-            'first_name': 'Nombres',
-            'last_name': 'Apellidos',
-            'email': 'Correo Electrónico',
-            'rol': 'Rol en la Plataforma',
-            'is_active': '¿Cuenta Activa?',
+            'first_name': _('Nombres'),
+            'last_name': _('Apellidos'),
+            'email': _('Correo Electrónico'),
+            'rol': _('Rol en la Plataforma'),
+            'is_active': _('¿Cuenta Activa?'),
         }
         help_texts = {
-            'is_active': 'Desmarca esta casilla para desactivar la cuenta del usuario sin eliminarla.'
+            'is_active': _('Desmarca esta casilla para desactivar la cuenta del usuario sin eliminarla.')
         }
 
 class UserPasswordChangeForm(forms.Form):
@@ -1494,12 +1497,12 @@ class UserPasswordChangeForm(forms.Form):
     Formulario dedicado para cambiar la contraseña de un usuario.
     """
     new_password1 = forms.CharField(
-        label="Nueva Contraseña",
+        label=_("Nueva Contraseña"),
         widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
         strip=False,
     )
     new_password2 = forms.CharField(
-        label="Confirmar Nueva Contraseña",
+        label=_("Confirmar Nueva Contraseña"),
         widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
         strip=False,
     )
@@ -1627,11 +1630,11 @@ class JustificacionInasistenciaForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
         labels = {
-            'fecha_inicio': 'Desde',
-            'fecha_fin': 'Hasta',
-            'motivo': 'Motivo',
-            'descripcion': 'Cuéntanos qué pasó (opcional si adjuntas soporte)',
-            'documento_soporte': 'Soporte (incapacidad médica, certificado, etc. — opcional)',
+            'fecha_inicio': _('Desde'),
+            'fecha_fin': _('Hasta'),
+            'motivo': _('Motivo'),
+            'descripcion': _('Cuéntanos qué pasó (opcional si adjuntas soporte)'),
+            'documento_soporte': _('Soporte (incapacidad médica, certificado, etc. — opcional)'),
         }
 
     def clean(self):

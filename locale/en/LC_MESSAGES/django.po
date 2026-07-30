@@ -5175,3 +5175,441 @@ msgstr "Graded"
 
 msgid "No hay entregas de deberes en tus cursos."
 msgstr "There are no assignment submissions in your courses."
+
+msgid "--- Selecciona un curso ---"
+msgstr "--- Select a course ---"
+
+msgid "Adjuntar un archivo (Opcional)"
+msgstr "Attach a file (Optional)"
+
+msgid "Adjuntar un nuevo archivo (opcional)"
+msgstr "Attach a new file (optional)"
+
+msgid "Apellidos"
+msgstr "Last names"
+
+msgid "Archivo Adjunto del Estudiante"
+msgstr "Student's attached file"
+
+msgid "Asignatura a la que pertenece el logro"
+msgstr "Subject the achievement belongs to"
+
+msgid "Asociar a la Materia (Opcional)"
+msgstr "Associate with subject (Optional)"
+
+msgid "Asociar al Curso (Opcional)"
+msgstr "Associate with course (Optional)"
+
+msgid "Asunto o Título Corto"
+msgstr "Subject or short title"
+
+msgid "Año Escolar"
+msgstr "School year"
+
+msgid "Calificación Obtenida"
+msgstr "Grade obtained"
+
+msgid "Capacidad de Estudiantes"
+msgstr "Student capacity"
+
+msgid "Categoría de la Actividad"
+msgstr "Activity category"
+
+msgid "Categoría de la actividad (Saber Ser, Saber Hacer, …)"
+msgstr "Activity category (Saber Ser, Saber Hacer, …)"
+
+msgid "Clase donde ocurrió (Opcional)"
+msgstr "Class where it happened (Optional)"
+
+msgid "Colegio de Procedencia"
+msgstr "Previous school"
+
+msgid "Comentarios del Docente"
+msgstr "Teacher's comments"
+
+msgid "Comentarios del Estudiante"
+msgstr "Student's comments"
+
+msgid "Comentarios o Retroalimentación"
+msgstr "Comments or feedback"
+
+msgid "Confirmar Contraseña"
+msgstr "Confirm password"
+
+msgid "Confirmar Nueva Contraseña"
+msgstr "Confirm new password"
+
+msgid "Contenido"
+msgstr "Content"
+
+msgid "Contraseña para el administrador principal."
+msgstr "Password for the main administrator."
+
+msgid "Correo Electrónico"
+msgstr "Email"
+
+msgid "Correo Electrónico de la Institución"
+msgstr "Institution's email"
+
+msgid "Correo electrónico del administrador principal."
+msgstr "Main administrator's email."
+
+msgid "Curso Relacionado (Opcional)"
+msgstr "Related course (Optional)"
+
+msgid "Curso y Materia"
+msgstr "Course and subject"
+
+msgid "Cuéntanos qué pasó (opcional si adjuntas soporte)"
+msgstr "Tell us what happened (optional if you attach evidence)"
+
+msgid "Código de Docente"
+msgstr "Teacher code"
+
+msgid "Código de Materia"
+msgstr "Subject code"
+
+msgid "Dejar en blanco si no hay límite de tiempo."
+msgstr "Leave blank if there is no time limit."
+
+msgid "Departamento"
+msgstr "Department / State"
+
+msgid "Descripción (Opcional)"
+msgstr "Description (Optional)"
+
+msgid "Descripción Detallada"
+msgstr "Detailed description"
+
+msgid "Descripción Detallada del Hecho o Felicitación"
+msgstr "Detailed description of the incident or commendation"
+
+msgid "Desmarca esta casilla para desactivar la cuenta del usuario sin eliminarla."
+msgstr "Uncheck this box to deactivate the user's account without deleting it."
+
+msgid "Determina con qué porcentaje pondera esta nota en el boletín. Es obligatoria para que la nota cuente."
+msgstr "Determines the percentage weight of this grade in the report card. It is required for the grade to count."
+
+msgid "Dirección de Residencia"
+msgstr "Home address"
+
+msgid "Dirección de la Institución"
+msgstr "Institution's address"
+
+msgid "Discapacidad (si aplica)"
+msgstr "Disability (if applicable)"
+
+msgid "Disponible Desde"
+msgstr "Available from"
+
+msgid "Disponible Hasta"
+msgstr "Available until"
+
+msgid "Docente Director"
+msgstr "Homeroom teacher"
+
+msgid "Docentes Asignados"
+msgstr "Assigned teachers"
+
+msgid "Documento Adjunto"
+msgstr "Attached document"
+
+msgid "Duración en Minutos (Opcional)"
+msgstr "Duration in minutes (Optional)"
+
+msgid "Duración para esta pregunta (minutos)"
+msgstr "Duration for this question (minutes)"
+
+msgid "Día de la Semana"
+msgstr "Day of the week"
+
+msgid "EPS / Entidad de Salud"
+msgstr "Health provider (EPS)"
+
+msgid "Ej: \"El Sistema Solar\", \"Introducción a las Fracciones\", \"El Renacimiento\"."
+msgstr "E.g.: \"The Solar System\", \"Introduction to Fractions\", \"The Renaissance\"."
+
+msgid "Eslogan de la Institución (Opcional)"
+msgstr "Institution's slogan (Optional)"
+
+msgid "Especialidad Principal"
+msgstr "Main specialty"
+
+msgid "Estudiante Candidato"
+msgstr "Candidate student"
+
+msgid "Estudiante Reconocido"
+msgstr "Recognized student"
+
+msgid "Fecha Límite de Entrega (Opcional)"
+msgstr "Submission deadline (Optional)"
+
+msgid "Fecha de Asignación"
+msgstr "Assignment date"
+
+msgid "Fecha de Calificación"
+msgstr "Grading date"
+
+msgid "Fecha de Fin"
+msgstr "End date"
+
+msgid "Fecha de Inicio"
+msgstr "Start date"
+
+msgid "Fecha de Otorgamiento"
+msgstr "Award date"
+
+msgid "Fecha de Publicación"
+msgstr "Publication date"
+
+msgid "Fecha de Publicación/Asignación"
+msgstr "Publication/Assignment date"
+
+msgid "Fecha de Publicación/Vigencia"
+msgstr "Publication/Effective date"
+
+msgid "Fecha de Realización o Entrega Límite (Opcional)"
+msgstr "Due or submission deadline date (Optional)"
+
+msgid "Grado (opcional — deja en blanco para aplicar a todos)"
+msgstr "Grade (optional — leave blank to apply to all)"
+
+msgid "Grado Asociado"
+msgstr "Associated grade"
+
+msgid "Grado Dirigido"
+msgstr "Grade in charge"
+
+msgid "Grupo Sanguíneo"
+msgstr "Blood type"
+
+msgid "Idioma de Instrucción"
+msgstr "Language of instruction"
+
+msgid "Imagen Destacada"
+msgstr "Featured image"
+
+msgid "Institución"
+msgstr "Institution"
+
+msgid "Institución a la que pertenece"
+msgstr "Institution it belongs to"
+
+msgid "Instrucciones o descripción (Opcional)"
+msgstr "Instructions or description (Optional)"
+
+msgid "Intentos permitidos para esta pregunta"
+msgstr "Attempts allowed for this question"
+
+msgid "La IA generará un plan detallado para este número de clases."
+msgstr "The AI will generate a detailed plan for this number of classes."
+
+msgid "Logo de la Institución"
+msgstr "Institution's logo"
+
+msgid "Lugar de Nacimiento"
+msgstr "Place of birth"
+
+msgid "Lugar de Trabajo / Empresa"
+msgstr "Workplace / Company"
+
+msgid "Materia (opcional)"
+msgstr "Subject (optional)"
+
+msgid "Materia Asociada"
+msgstr "Associated subject"
+
+msgid "Material Adicional (Opcional)"
+msgstr "Additional material (Optional)"
+
+msgid "Material Adjunto (Opcional)"
+msgstr "Attached material (Optional)"
+
+msgid "Material de Apoyo Adjunto"
+msgstr "Attached supporting material"
+
+msgid "Materias asociadas (Opcional)"
+msgstr "Associated subjects (Optional)"
+
+msgid "Materias que aportan a esta dimensión del desarrollo."
+msgstr "Subjects that contribute to this dimension of development."
+
+msgid "Menor número = aparece primero. Ej: 1, 2, 3…"
+msgstr "Lower number = appears first. E.g.: 1, 2, 3…"
+
+msgid "Modalidad de liquidación"
+msgstr "Payment mode"
+
+msgid "Municipio/Ciudad"
+msgstr "Municipality/City"
+
+msgid "NIT de la Institución"
+msgstr "Institution's tax ID (NIT)"
+
+msgid "Nivel de Prioridad"
+msgstr "Priority level"
+
+msgid "Nombre Descriptivo del Archivo"
+msgstr "Descriptive file name"
+
+msgid "Nombre de la Actividad (Ej: Taller 1, Examen Parcial)"
+msgstr "Activity name (e.g.: Workshop 1, Midterm Exam)"
+
+msgid "Nombre de la Categoría (Ej: Exámenes, Tareas)"
+msgstr "Category name (e.g.: Exams, Homework)"
+
+msgid "Nombre de la Dimensión"
+msgstr "Dimension name"
+
+msgid "Nombre de la Institución"
+msgstr "Institution name"
+
+msgid "Nombre de la Materia"
+msgstr "Subject name"
+
+msgid "Nombre de usuario del administrador principal."
+msgstr "Main administrator's username."
+
+msgid "Nombre del Periodo"
+msgstr "Term name"
+
+msgid "Nombre del Plan Curricular"
+msgstr "Curriculum plan name"
+
+msgid "Nombre en Idioma Secundario"
+msgstr "Name in secondary language"
+
+msgid "Nombre o Número del Aula"
+msgstr "Classroom name or number"
+
+msgid "Nombres"
+msgstr "First names"
+
+msgid "Nota Asignada"
+msgstr "Assigned grade"
+
+msgid "Nueva Contraseña"
+msgstr "New password"
+
+msgid "Número de Documento"
+msgstr "Document number"
+
+msgid "Número de Intentos Permitidos"
+msgstr "Number of attempts allowed"
+
+msgid "Ocupación"
+msgstr "Occupation"
+
+msgid "Orden de Aparición"
+msgstr "Display order"
+
+msgid "Orden de aparición"
+msgstr "Display order"
+
+msgid "Periodo Académico Asociado"
+msgstr "Associated academic term"
+
+msgid "Periodo académico de aplicación"
+msgstr "Academic term of application"
+
+msgid "Por defecto se sugieren 5 intentos (etapa escolar); máximo 20."
+msgstr "5 attempts are suggested by default (school stage); maximum 20."
+
+msgid "Por favor, describe el problema con el mayor detalle posible"
+msgstr "Please describe the problem in as much detail as possible"
+
+msgid "Porcentaje sobre la nota final (%)"
+msgstr "Percentage of the final grade (%)"
+
+msgid "Recursos Disponibles (Ej: Proyector, Pizarra)"
+msgstr "Available resources (e.g.: Projector, Whiteboard)"
+
+msgid "Registrada por"
+msgstr "Recorded by"
+
+msgid "Resumen de la Lección y Actividades Realizadas"
+msgstr "Summary of the lesson and activities carried out"
+
+msgid "Resumen y Actividades Realizadas"
+msgstr "Summary and activities carried out"
+
+msgid "Rol en la Plataforma"
+msgstr "Role on the platform"
+
+msgid "Seleccionar Archivo"
+msgstr "Select file"
+
+msgid "Seleccionar archivo Excel"
+msgstr "Select Excel file"
+
+msgid "Sexo"
+msgstr "Sex"
+
+msgid "Soporte (incapacidad médica, certificado, etc. — opcional)"
+msgstr "Evidence (medical certificate, etc. — optional)"
+
+msgid "Teléfono de la Institución"
+msgstr "Institution's phone"
+
+msgid "Tema Principal de la Clase"
+msgstr "Main topic of the class"
+
+msgid "Tema Tratado en la Clase"
+msgstr "Topic covered in class"
+
+msgid "Texto del logro o descriptor"
+msgstr "Text of the achievement or descriptor"
+
+msgid "Texto o enunciado de la pregunta"
+msgstr "Question text or statement"
+
+msgid "Tipo de Anotación"
+msgstr "Note type"
+
+msgid "Tipo de Aula"
+msgstr "Classroom type"
+
+msgid "Tipo de Documento"
+msgstr "Document type"
+
+msgid "Tipo de Mención/Reconocimiento"
+msgstr "Type of mention/recognition"
+
+msgid "Tipo de Pregunta"
+msgstr "Question type"
+
+msgid "Tu Respuesta"
+msgstr "Your answer"
+
+msgid "Título de la Noticia/Anuncio"
+msgstr "News/Announcement title"
+
+msgid "Ubicación (Ej: Edificio A, Piso 2)"
+msgstr "Location (e.g.: Building A, 2nd floor)"
+
+msgid "Un número menor aparecerá primero en la lista y en los reportes."
+msgstr "A lower number will appear first in the list and in reports."
+
+msgid "Valor Cualitativo"
+msgstr "Qualitative value"
+
+msgid "Valor Numérico"
+msgstr "Numeric value"
+
+msgid "Valor hora de referencia (opcional)"
+msgstr "Reference hourly rate (optional)"
+
+msgid "¿A qué curso pertenece esta actividad?"
+msgstr "Which course does this activity belong to?"
+
+msgid "¿Cuenta Activa?"
+msgstr "Active account?"
+
+msgid "¿Cuál es el tema principal o nombre de la unidad?"
+msgstr "What is the main topic or unit name?"
+
+msgid "¿En cuántas clases quieres desarrollar este tema?"
+msgstr "In how many classes do you want to develop this topic?"
+
+msgid "¿Qué metodología de enseñanza prefieres usar?"
+msgstr "Which teaching methodology do you prefer to use?"
