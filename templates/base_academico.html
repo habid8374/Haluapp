@@ -1227,6 +1227,17 @@
       </li>
     {% endif %}
 
+    {% if user.is_superuser or user.rol == 'administrador' or user.rol == 'rector' %}
+      <hr class="menu-divider">
+      <h5 class="menu-section-title">{% trans "Administración" %}</h5>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if request.resolver_match.url_name == 'gestion_bloqueos_estudiantes' %}active{% endif %}"
+           href="{% url 'gestion_academica:gestion_bloqueos_estudiantes' %}">
+          <i class="bi bi-shield-lock"></i> {% trans "Bloqueos de Estudiantes" %}
+        </a>
+      </li>
+    {% endif %}
+
     <hr class="menu-divider">
     <h5 class="menu-section-title">{% trans "Cuenta" %}</h5>
     <li class="nav-item item-color-2">

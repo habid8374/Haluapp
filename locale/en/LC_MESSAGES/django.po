@@ -7665,3 +7665,6 @@ msgstr "will see the portal normally again."
 
 msgid "Sí, restaurar"
 msgstr "Yes, restore"
+
+msgid "Administración"
+msgstr "Administration"
