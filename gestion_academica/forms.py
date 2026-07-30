@@ -570,11 +570,12 @@ class CalificacionForm(forms.ModelForm):
 class DeberForm(forms.ModelForm):
     class Meta:
         model = Deber
-        fields = ['curso', 'titulo', 'descripcion', 'fecha_asignacion', 'fecha_entrega', 'material_adjunto', 'institucion']
+        fields = ['curso', 'titulo', 'descripcion', 'tipo_actividad', 'fecha_asignacion', 'fecha_entrega', 'material_adjunto', 'institucion']
         widgets = {
             'curso': forms.Select(attrs={'class': 'form-control'}),
             'titulo': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'tipo_actividad': forms.Select(attrs={'class': 'form-select'}),
             'fecha_asignacion': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'fecha_entrega': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'material_adjunto': forms.FileInput(attrs={'class': 'form-control'}),
@@ -584,16 +585,24 @@ class DeberForm(forms.ModelForm):
             'curso': 'Curso',
             'titulo': 'Título del Deber',
             'descripcion': 'Descripción / Instrucciones',
+            'tipo_actividad': 'Categoría de la actividad (Saber Ser, Saber Hacer, …)',
             'fecha_asignacion': 'Fecha de Asignación',
             'fecha_entrega': 'Fecha Límite de Entrega',
             'material_adjunto': 'Material de Apoyo Adjunto',
             'institucion': 'Institución',
         }
+        help_texts = {
+            'tipo_actividad': 'Determina con qué porcentaje pondera esta nota en el boletín. Es obligatoria para que la nota cuente.',
+        }
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
-        
+
+        # La categoría es obligatoria: sin ella la nota no pondera en el boletín.
+        self.fields['tipo_actividad'].required = True
+        self.fields['tipo_actividad'].empty_label = 'Selecciona una categoría…'
+
         # Si el usuario NO es superusuario, filtramos y deshabilitamos el campo institución
         if request and not request.user.is_superuser:
             institucion_usuario = request.user.institucion_asociada
@@ -601,6 +610,7 @@ class DeberForm(forms.ModelForm):
             self.fields['institucion'].initial = institucion_usuario
             self.fields['institucion'].disabled = True
             self.fields['curso'].queryset = Curso.objects.filter(institucion=institucion_usuario).order_by('grado__orden')
+            self.fields['tipo_actividad'].queryset = TipoActividad.objects.filter(institucion=institucion_usuario).order_by('nombre')
         else:
             # Para el superusuario, el queryset de cursos empieza vacío.
             # Se poblará dinámicamente con JavaScript.
@@ -608,6 +618,7 @@ class DeberForm(forms.ModelForm):
             # Si estamos editando, poblamos el queryset para que aparezca la opción guardada
             if self.instance and self.instance.pk and self.instance.institucion:
                 self.fields['curso'].queryset = Curso.objects.filter(institucion=self.instance.institucion)
+                self.fields['tipo_actividad'].queryset = TipoActividad.objects.filter(institucion=self.instance.institucion).order_by('nombre')
 
 
 class EntregaDeberForm(forms.ModelForm):

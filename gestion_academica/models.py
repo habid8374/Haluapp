@@ -1015,6 +1015,13 @@ class Deber(models.Model):
     fecha_asignacion = models.DateField(verbose_name="Fecha de Asignación", default=datetime.date.today)
     fecha_entrega = models.DateField(verbose_name="Fecha Límite de Entrega")
     material_adjunto = models.FileField(upload_to='deberes_materiales/', blank=True, null=True, verbose_name="Material de Apoyo Adjunto (Opcional)")
+    # Categoría de evaluación (Saber Ser, Saber Hacer, …). Determina el
+    # porcentaje con el que la nota del deber pondera en el boletín. Nullable
+    # por compatibilidad con deberes antiguos; el formulario lo exige.
+    tipo_actividad = models.ForeignKey(
+        'TipoActividad', on_delete=models.PROTECT, null=True, blank=True,
+        related_name='deberes', verbose_name="Categoría de la actividad",
+    )
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name="Institución")
 
     class Meta:

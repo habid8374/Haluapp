@@ -6493,21 +6493,31 @@ class CalificarEntregaView(LoginRequiredMixin, UpdateView):
         entrega.fecha_calificacion = timezone.now()
         entrega.save()
 
-        tipo_tarea, _ = TipoActividad.objects.get_or_create(
-            nombre='Tareas', 
-            institucion=self.request.user.institucion_asociada,
-            defaults={'porcentaje': 0}
-        )
+        # Categoría (Saber Ser/Hacer…) elegida al crear el deber: define con qué
+        # porcentaje pondera la nota en el boletín. Si es un deber antiguo sin
+        # categoría, caemos a "Tareas" (0%) para no romper — esos no ponderan.
+        tipo_actividad = entrega.deber.tipo_actividad
+        if tipo_actividad is None:
+            tipo_actividad, _ = TipoActividad.objects.get_or_create(
+                nombre='Tareas',
+                institucion=self.request.user.institucion_asociada,
+                defaults={'porcentaje': 0}
+            )
 
-        actividad_calificable, _ = ActividadCalificable.objects.get_or_create(
+        actividad_calificable, creada = ActividadCalificable.objects.get_or_create(
             titulo=entrega.deber.titulo,
             curso=entrega.deber.curso,
             defaults={
-                'tipo_actividad': tipo_tarea,
+                'tipo_actividad': tipo_actividad,
                 'descripcion': entrega.deber.descripcion,
                 'institucion': self.request.user.institucion_asociada
             }
         )
+        # Si la actividad ya existía con otra categoría (p. ej. la vieja "Tareas"
+        # 0%), la actualizamos a la del deber para que la nota pondere.
+        if not creada and actividad_calificable.tipo_actividad_id != tipo_actividad.id:
+            actividad_calificable.tipo_actividad = tipo_actividad
+            actividad_calificable.save(update_fields=['tipo_actividad'])
 
         Calificacion.objects.update_or_create(
             estudiante=entrega.estudiante,
