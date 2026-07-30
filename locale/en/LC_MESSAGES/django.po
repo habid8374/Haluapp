@@ -7308,3 +7308,42 @@ msgstr "All caught up — no pending notifications"
 
 msgid "Cuando recibas avisos o sugerencias aparecerán aquí."
 msgstr "When you receive alerts or suggestions they will appear here."
+
+msgid "Actividades Pendientes por Calificar"
+msgstr "Activities Pending Grading"
+
+msgid "Cuestionarios con Respuestas Abiertas"
+msgstr "Quizzes with Open-Ended Answers"
+
+msgid "Estos son los cuestionarios que requieren tu revisión manual."
+msgstr "These are the quizzes that require your manual review."
+
+msgid "Puntaje Automático"
+msgstr "Automatic Score"
+
+msgid "Revisar y Calificar"
+msgstr "Review and Grade"
+
+msgid "No hay cuestionarios pendientes de revisión manual."
+msgstr "There are no quizzes pending manual review."
+
+msgid "Deberes y Tareas"
+msgstr "Assignments and Homework"
+
+msgid "Estas son las entregas de tareas y deberes estándar."
+msgstr "These are the standard homework and assignment submissions."
+
+msgid "Fecha de Entrega"
+msgstr "Due Date"
+
+msgid "Alerta IA"
+msgstr "AI Alert"
+
+msgid "Calificar"
+msgstr "Grade"
+
+msgid "No hay deberes pendientes de calificación."
+msgstr "There are no assignments pending grading."
+
+msgid "Posible plagio detectado: %(pct)s% de similitud"
+msgstr "Possible plagiarism detected: %(pct)s% similarity"

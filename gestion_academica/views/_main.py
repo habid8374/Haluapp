@@ -6565,7 +6565,7 @@ class TareasPorCalificarView(LoginRequiredMixin, View):
             # --- FIN DE LA MODIFICACIÓN CLAVE ---
 
         context = {
-            'titulo_pagina': 'Actividades Pendientes por Calificar',
+            'titulo_pagina': _('Actividades Pendientes por Calificar'),
             'entregas_pendientes': entregas_pendientes,
             'intentos_pendientes': intentos_pendientes
         }
