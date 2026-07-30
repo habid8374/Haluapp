@@ -62,6 +62,9 @@ def inbox(request):
 
     conversaciones = []
     for conv in qs:
+        # Ocultar las que el usuario eliminó de su bandeja (soft-delete propio).
+        if conv.esta_eliminada_para(request.user):
+            continue
         archivada = conv.esta_archivada_para(request.user)
         if archivada and not mostrar_archivadas:
             continue
@@ -377,6 +380,79 @@ def archivar_conversacion(request, conversacion_id):
 
     estado = "archivada" if archivada else "restaurada"
     flash.success(request, f"Conversación {estado}.")
+    return redirect('mensajeria:inbox')
+
+
+@login_required
+def marcar_leida_conversacion(request, conversacion_id):
+    """Marca la conversación como leída o no leída para el usuario actual.
+
+    accion='leida'    → marca como leídos todos los mensajes entrantes.
+    accion='no_leida' → marca el último mensaje entrante como no leído (para
+                        que reaparezca el indicador de no leído).
+    """
+    conv = get_object_or_404(Conversacion, pk=conversacion_id)
+    if request.user.pk not in (conv.participante_a_id, conv.participante_b_id):
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+
+    accion = request.POST.get('accion', 'leida')
+    if accion == 'no_leida':
+        ultimo = (
+            conv.mensajes.exclude(remitente=request.user)
+            .order_by('-enviado_en').first()
+        )
+        if ultimo and ultimo.leido:
+            ultimo.leido = False
+            ultimo.leido_en = None
+            ultimo.save(update_fields=['leido', 'leido_en'])
+        leido = False
+    else:
+        conv.mensajes.filter(leido=False).exclude(remitente=request.user).update(
+            leido=True, leido_en=timezone.now()
+        )
+        leido = True
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True, 'leido': leido})
+    return redirect('mensajeria:inbox')
+
+
+@login_required
+def eliminar_conversacion(request, conversacion_id):
+    """Soft-delete: saca la conversación de la bandeja del usuario actual.
+
+    No borra el hilo ni los mensajes; el otro participante la sigue viendo y la
+    supervisión del coordinador queda intacta. Reaparece si llega un mensaje
+    nuevo (la señal de Mensaje limpia las banderas)."""
+    conv = get_object_or_404(Conversacion, pk=conversacion_id)
+    if request.user.pk not in (conv.participante_a_id, conv.participante_b_id):
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+
+    if request.user.pk == conv.participante_a_id:
+        conv.eliminada_por_a = True
+        conv.save(update_fields=['eliminada_por_a'])
+    else:
+        conv.eliminada_por_b = True
+        conv.save(update_fields=['eliminada_por_b'])
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True})
+    flash.success(request, "Conversación eliminada.")
+    return redirect('mensajeria:inbox')
+
+
+@login_required
+def eliminar_historial(request):
+    """Soft-delete de TODO el historial de conversaciones del usuario actual."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    Conversacion.objects.filter(participante_a=request.user).update(eliminada_por_a=True)
+    Conversacion.objects.filter(participante_b=request.user).update(eliminada_por_b=True)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True})
+    flash.success(request, "Historial de conversaciones eliminado.")
     return redirect('mensajeria:inbox')
 
 

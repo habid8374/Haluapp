@@ -19,7 +19,7 @@ from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import Mensaje
+from .models import Conversacion, Mensaje
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,13 @@ def notificar_destinatario(sender, instance, created, **kwargs):
     conv = msg.conversacion
     remitente = msg.remitente
     destinatario = conv.get_otro_participante(remitente)
+
+    # Un mensaje nuevo restaura la conversación en la bandeja de quien la había
+    # "eliminado" (soft-delete por usuario) — comportamiento tipo WhatsApp.
+    if conv.eliminada_por_a or conv.eliminada_por_b:
+        Conversacion.objects.filter(pk=conv.pk).update(
+            eliminada_por_a=False, eliminada_por_b=False,
+        )
 
     # ------------------------------------------------------------------ #
     #  1. Registro persistente en la tabla Notificacion                   #

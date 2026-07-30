@@ -58,6 +58,13 @@ class Conversacion(models.Model):
     archivada_por_a = models.BooleanField(default=False)
     archivada_por_b = models.BooleanField(default=False)
 
+    # Eliminación (soft) independiente por participante: saca la conversación
+    # de la bandeja de ESE usuario sin borrar el hilo ni afectar al otro
+    # participante ni la supervisión del coordinador. Reaparece si llega un
+    # mensaje nuevo.
+    eliminada_por_a = models.BooleanField(default=False)
+    eliminada_por_b = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = 'Conversación'
         verbose_name_plural = 'Conversaciones'
@@ -87,6 +94,11 @@ class Conversacion(models.Model):
         if usuario.pk == self.participante_a_id:
             return self.archivada_por_a
         return self.archivada_por_b
+
+    def esta_eliminada_para(self, usuario):
+        if usuario.pk == self.participante_a_id:
+            return self.eliminada_por_a
+        return self.eliminada_por_b
 
 
 class Mensaje(models.Model):

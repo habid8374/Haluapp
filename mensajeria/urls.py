@@ -21,6 +21,9 @@ urlpatterns = [
     path('nuevo/', views.nuevo_mensaje, name='nuevo'),
     path('iniciar/<int:destinatario_pk>/', views.iniciar_conversacion, name='iniciar'),
     path('<int:conversacion_id>/archivar/', views.archivar_conversacion, name='archivar'),
+    path('<int:conversacion_id>/marcar-leida/', views.marcar_leida_conversacion, name='marcar_leida'),
+    path('<int:conversacion_id>/eliminar/', views.eliminar_conversacion, name='eliminar'),
+    path('historial/eliminar/', views.eliminar_historial, name='eliminar_historial'),
 
     # ------------------------------------------------------------------ #
     #  API JSON                                                            #
