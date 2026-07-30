@@ -21,12 +21,12 @@ def _get_institucion(request):
 
 def _es_coordinador_o_admin(user):
     rol = getattr(user, 'rol', '') or ''
-    return rol in ('coordinador', 'administrador') or user.is_superuser
+    return rol in ('coordinador', 'administrador', 'rector') or user.is_superuser
 
 
 def _es_docente_o_superior(user):
     rol = getattr(user, 'rol', '') or ''
-    return rol in ('docente', 'coordinador', 'administrador') or user.is_superuser
+    return rol in ('docente', 'coordinador', 'administrador', 'rector') or user.is_superuser
 
 
 # ──────────────────────────────────────────────

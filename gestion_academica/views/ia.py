@@ -120,7 +120,7 @@ def asistente_halu_api(request):
         instrucciones_sistema = ""
         user = request.user
 
-        if user.is_superuser or (hasattr(user, 'rol') and user.rol in ['administrador', 'coordinador']):
+        if user.is_superuser or (hasattr(user, 'rol') and user.rol in ['administrador', 'coordinador', 'rector']):
             tools_disponibles = {
                 'obtener_promedio_materia_por_grado': obtener_promedio_materia_por_grado,
                 'obtener_conteo_estudiantes_por_grado': obtener_conteo_estudiantes_por_grado,
@@ -615,7 +615,7 @@ class DimensionListView(LoginRequiredMixin, ListView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -635,7 +635,7 @@ class DimensionCreateView(LoginRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -657,7 +657,7 @@ class DimensionUpdateView(LoginRequiredMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -681,7 +681,7 @@ class DimensionDeleteView(LoginRequiredMixin, DeleteView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -706,7 +706,7 @@ class EscalaCualitativaListView(LoginRequiredMixin, ListView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -726,7 +726,7 @@ class EscalaCualitativaCreateView(LoginRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -748,7 +748,7 @@ class EscalaCualitativaUpdateView(LoginRequiredMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -772,7 +772,7 @@ class EscalaCualitativaDeleteView(LoginRequiredMixin, DeleteView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -797,7 +797,7 @@ class LogroListView(LoginRequiredMixin, ListView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('docente', 'coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -817,7 +817,7 @@ class LogroCreateView(LoginRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('docente', 'coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -844,7 +844,7 @@ class LogroUpdateView(LoginRequiredMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('docente', 'coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -873,7 +873,7 @@ class LogroDeleteView(LoginRequiredMixin, DeleteView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 

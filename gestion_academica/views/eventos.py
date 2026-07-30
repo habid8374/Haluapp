@@ -18,7 +18,7 @@ def _institucion(user):
 
 def _es_coordinador_o_admin(user):
     rol = getattr(user, 'rol', '') or ''
-    return rol in ('coordinador', 'administrador') or user.is_superuser
+    return rol in ('coordinador', 'administrador', 'rector') or user.is_superuser
 
 
 def _scope(qs, user):
@@ -92,7 +92,7 @@ def cartelera_eventos(request):
         eventos_qs = eventos_qs.filter(para_estudiantes=True)
     elif rol == 'familiar':
         eventos_qs = eventos_qs.filter(para_familiares=True)
-    elif rol in ('coordinador', 'administrador'):
+    elif rol in ('coordinador', 'administrador', 'rector'):
         eventos_qs = eventos_qs.filter(para_coordinadores=True)
     # superuser/otros roles: ve todos los activos de su institución (o ninguno si no tiene)
 

@@ -20,7 +20,7 @@ from ._main import link_callback
 
 def _es_coordinador_o_admin(user):
     rol = getattr(user, 'rol', '') or ''
-    return rol in ('coordinador', 'administrador') or user.is_superuser
+    return rol in ('coordinador', 'administrador', 'rector') or user.is_superuser
 
 
 def _ip_cliente(request):

@@ -34,7 +34,7 @@ def api_reportes_data(request):
     API que devuelve datos para generar reportes
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
@@ -100,7 +100,7 @@ def api_asistencia_diaria_data(request):
     API que devuelve datos detallados de asistencia diaria
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
@@ -195,7 +195,7 @@ def api_alertas_bienestar_data(request):
     API que devuelve las alertas de bienestar para revisión
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'psicologo']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'psicologo', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
@@ -263,7 +263,7 @@ def api_citas_supervision_data(request):
     API que devuelve las citas programadas para supervisión
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
@@ -333,7 +333,7 @@ def api_noticias_gestion_data(request):
     API que devuelve las noticias para gestión por coordinadores
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:

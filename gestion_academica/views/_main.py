@@ -693,7 +693,7 @@ class EstudianteDetailView(LoginRequiredMixin, DetailView):
             tiene_permiso = True
         elif user == obj.usuario:
             tiene_permiso = True
-        elif user.is_staff and user.rol in ['administrador', 'coordinador'] and getattr(user, 'institucion_asociada', None) == obj.institucion:
+        elif user.is_staff and user.rol in ['administrador', 'coordinador', 'rector'] and getattr(user, 'institucion_asociada', None) == obj.institucion:
             tiene_permiso = True
         elif hasattr(user, 'familiar') and obj in user.familiar.estudiantes_asociados.all():
             tiene_permiso = True
@@ -3906,7 +3906,7 @@ def _puede_revisar_justificacion(user, justificacion):
     if user.is_superuser:
         return True
     rol = getattr(user, 'rol', '') or ''
-    if rol in ('coordinador', 'administrador', 'admin_institucion'):
+    if rol in ('coordinador', 'administrador', 'admin_institucion', 'rector'):
         return getattr(user, 'institucion_asociada_id', None) == justificacion.institucion_id
     if rol == 'docente':
         cursos_ids = _cursos_del_docente(user).values_list('id', flat=True)
@@ -3923,7 +3923,7 @@ def revisar_justificaciones_inasistencia(request):
 
     if request.user.is_superuser:
         qs = JustificacionInasistencia.objects.all()
-    elif rol in ('coordinador', 'administrador', 'admin_institucion'):
+    elif rol in ('coordinador', 'administrador', 'admin_institucion', 'rector'):
         if not institucion:
             qs = JustificacionInasistencia.objects.none()
         else:
@@ -5169,7 +5169,7 @@ def reporte_riesgo_academico_view(request):
     # El rector/directivo tiene acceso de SOLO LECTURA (supervisión), aunque no
     # sea is_staff. Coordinador/administrador (staff) también. Superusuario todo.
     if not (request.user.is_superuser or _rol == 'rector'
-            or (request.user.is_staff and _rol in ['administrador', 'coordinador'])):
+            or (request.user.is_staff and _rol in ['administrador', 'coordinador', 'rector'])):
         messages.error(request, _("No tienes permiso para ver este reporte."))
         return redirect('gestion_academica:inicio_academico')
 
@@ -5190,7 +5190,7 @@ def reporte_riesgo_academico_view(request):
 
     # El rector solo supervisa: no ve los botones de acción (citar/notificar).
     puede_accionar = request.user.is_superuser or (
-        request.user.is_staff and _rol in ['administrador', 'coordinador']
+        request.user.is_staff and _rol in ['administrador', 'coordinador', 'rector']
     )
 
     context = {
@@ -6845,7 +6845,7 @@ def exportar_reporte_riesgo_global_view(request):
         user = request.user
         user_inst = getattr(user, 'institucion_asociada', None)
         es_superusuario = user.is_superuser
-        es_admin_o_coordinador = (user.is_staff and user_inst and user_inst.pk == periodo.institucion.pk and user.rol in ['administrador', 'coordinador'])
+        es_admin_o_coordinador = (user.is_staff and user_inst and user_inst.pk == periodo.institucion.pk and user.rol in ['administrador', 'coordinador', 'rector'])
         es_director_del_grupo = False
         if hasattr(user, 'docente'):
             es_director_del_grupo = DirectorCurso.objects.filter(docente=user.docente, grado=grado, periodo_academico=periodo).exists()
@@ -7107,7 +7107,7 @@ def dashboard_riesgo_academico(request):
     Muestra el dashboard principal de Analítica Predictiva, presentando
     un resumen del último análisis de riesgo realizado.
     """
-    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['administrativo', 'coordinador'])):
+    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['administrativo', 'coordinador', 'rector'])):
         messages.error(request, "Acceso denegado. Esta sección es solo para personal directivo.")
         return redirect('gestion_academica:inicio_academico')
 
@@ -7144,7 +7144,7 @@ def citar_acudiente_view(request, prediccion_pk):
     de correo desde el modelo de la Institución.
     """
     # La lógica de permisos y obtención de objetos se mantiene igual
-    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['coordinador', 'administrador'])):
+    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['coordinador', 'administrador', 'rector'])):
         messages.error(request, "No tienes permiso para realizar esta acción.")
         return redirect('gestion_academica:reporte_riesgo_academico')
 
@@ -7192,7 +7192,7 @@ def ejecutar_analisis_riesgo_view(request):
     """
     Ejecuta el comando 'calcular_riesgo_academico' y redirige al reporte.
     """
-    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['administrador', 'coordinador'])):
+    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['administrador', 'coordinador', 'rector'])):
         messages.error(request, "No tienes permiso para ejecutar esta acción.")
         return redirect('gestion_academica:dashboard_coordinador')
 
@@ -7233,7 +7233,7 @@ def notificar_docente_view(request, prediccion_pk):
     Crea notificaciones internas para el personal relevante, asegurando
     que la acción solo pueda ser ejecutada por personal de la misma institución.
     """
-    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['coordinador', 'administrador'])):
+    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['coordinador', 'administrador', 'rector'])):
         messages.error(request, "No tienes permiso para realizar esta acción.")
         return redirect('gestion_academica:reporte_riesgo_academico')
 
@@ -7355,7 +7355,7 @@ def dashboard_coordinador_view(request):
     user = request.user
     user_inst = getattr(user, 'institucion_asociada', None)
 
-    if not (user.is_superuser or (user.is_staff and user.rol in ['coordinador', 'administrador'])):
+    if not (user.is_superuser or (user.is_staff and user.rol in ['coordinador', 'administrador', 'rector'])):
         messages.error(request, "Acceso denegado.")
         return redirect('gestion_academica:inicio_academico')
     
@@ -8113,7 +8113,7 @@ def supervisar_citas_view(request):
     incluyendo las notas y acuerdos registrados por los docentes.
     """
     # 1. Lógica de permisos
-    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['coordinador', 'administrador'])):
+    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['coordinador', 'administrador', 'rector'])):
         messages.error(request, "Acceso denegado a esta sección.")
         return redirect('gestion_academica:inicio_academico')
 
@@ -8140,7 +8140,7 @@ def detalle_cita_supervision_view(request, pk):
     Muestra al coordinador el detalle completo de una única cita agendada.
     """
     # Lógica de permisos para el coordinador/admin
-    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['coordinador', 'administrador'])):
+    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['coordinador', 'administrador', 'rector'])):
         messages.error(request, "Acceso denegado a esta sección.")
         return redirect('gestion_academica:inicio_academico')
 
@@ -9485,7 +9485,7 @@ def api_dashboard_coordinador_data(request):
     API que devuelve los datos del dashboard de coordinación para la app móvil
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
@@ -9548,7 +9548,7 @@ def api_reportes_data(request):
     API que devuelve datos para generar reportes
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
@@ -9614,7 +9614,7 @@ def api_asistencia_diaria_data(request):
     API que devuelve datos detallados de asistencia diaria
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
@@ -9709,7 +9709,7 @@ def api_alertas_bienestar_data(request):
     API que devuelve las alertas de bienestar para revisión
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'psicologo']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'psicologo', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
@@ -9777,7 +9777,7 @@ def api_citas_supervision_data(request):
     API que devuelve las citas programadas para supervisión
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
@@ -9847,7 +9847,7 @@ def api_noticias_gestion_data(request):
     API que devuelve las noticias para gestión por coordinadores
     """
     user = request.user
-    if not (user.is_staff and user.rol in ['coordinador', 'administrador']):
+    if not (user.is_staff and user.rol in ['coordinador', 'administrador', 'rector']):
         return Response({'error': 'Acceso denegado.'}, status=403)
 
     try:
@@ -10306,7 +10306,7 @@ def dashboard_eleccion_ia(request, eleccion_id):
             "o aún no ha creado un proceso electoral. Use «Gestión de Elecciones» para crear una.",
         )
         rol = getattr(request.user, 'rol', None)
-        if request.user.is_superuser or rol in ('coordinador', 'administrador'):
+        if request.user.is_superuser or rol in ('coordinador', 'administrador', 'rector'):
             return redirect('gestion_academica:dashboard_coordinador')
         return redirect('gestion_academica:inicio_academico')
     
@@ -11422,7 +11422,7 @@ def evaluar_logros_curso(request, curso_pk):
     curso = get_object_or_404(get_filtered_queryset(Curso, request.user, Curso.objects.select_related('grado', 'materia', 'periodo_academico')), pk=curso_pk)
 
     user_rol = getattr(request.user, 'rol', '') or ''
-    is_coord_or_admin = user_rol in ('coordinador', 'administrador') or request.user.is_superuser
+    is_coord_or_admin = user_rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser
     is_assigned_docente = hasattr(request.user, 'docente') and request.user.docente in curso.docentes_asignados.all()
     if not (is_coord_or_admin or is_assigned_docente):
         raise PermissionDenied
@@ -11574,7 +11574,7 @@ def asistente_halu_api(request):
         instrucciones_sistema = ""
         user = request.user
 
-        if user.is_superuser or (hasattr(user, 'rol') and user.rol in ['administrador', 'coordinador']):
+        if user.is_superuser or (hasattr(user, 'rol') and user.rol in ['administrador', 'coordinador', 'rector']):
             tools_disponibles = {
                 'obtener_promedio_materia_por_grado': obtener_promedio_materia_por_grado,
                 'obtener_conteo_estudiantes_por_grado': obtener_conteo_estudiantes_por_grado,
@@ -11905,7 +11905,7 @@ class LogroListView(LoginRequiredMixin, ListView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('docente', 'coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -11951,7 +11951,7 @@ class LogroCreateView(LoginRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('docente', 'coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -11978,7 +11978,7 @@ class LogroUpdateView(LoginRequiredMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('docente', 'coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('docente', 'coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -12007,7 +12007,7 @@ class LogroDeleteView(LoginRequiredMixin, DeleteView):
 
     def dispatch(self, request, *args, **kwargs):
         rol = getattr(request.user, 'rol', '') or ''
-        if not (rol in ('coordinador', 'administrador') or request.user.is_superuser):
+        if not (rol in ('coordinador', 'administrador', 'rector') or request.user.is_superuser):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -14707,7 +14707,7 @@ class GenerarCorreoAcudienteIAView(APIView):
 # ---------------------------------------------------------------------------
 def _puede_gestionar_periodos(user):
     rol = getattr(user, 'rol', '') or ''
-    return user.is_superuser or rol in ('coordinador', 'administrador')
+    return user.is_superuser or rol in ('coordinador', 'administrador', 'rector')
 
 
 @login_required
@@ -14824,4 +14824,4 @@ def despublicar_boletines_periodo(request, periodo_pk):
 def _puede_previsualizar_boletin_sin_publicar(user):
     """Personal de la institución que puede ver/imprimir un boletín antes de que se publique (para revisar formato)."""
     rol = getattr(user, 'rol', '') or ''
-    return user.is_superuser or user.is_staff or rol in ('docente', 'coordinador', 'administrador', 'admin_institucion')
+    return user.is_superuser or user.is_staff or rol in ('docente', 'coordinador', 'administrador', 'admin_institucion', 'rector')
