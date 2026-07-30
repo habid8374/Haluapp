@@ -7572,3 +7572,6 @@ msgstr "Are you sure you want to delete the student:"
 
 msgid "¿Estás seguro de que deseas eliminar la actividad calificable:"
 msgstr "Are you sure you want to delete the gradable activity:"
+
+msgid "Aún no se ha ejecutado el análisis de riesgo para esta institución. El coordinador puede generarlo desde su panel."
+msgstr "The risk analysis has not been run for this institution yet. The coordinator can generate it from their dashboard."

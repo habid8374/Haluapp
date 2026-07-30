@@ -138,12 +138,14 @@
       </div>
     </div>
     <div class="sent-hero-actions">
+      {% if puede_accionar %}
       <form action="{% url 'gestion_academica:ejecutar_analisis_riesgo' %}" method="post" style="display:inline;">
         {% csrf_token %}
         <button type="submit" class="sent-hero-btn sent-hero-btn-white">
           <i class="bi bi-arrow-clockwise"></i> {% trans "Ejecutar nuevo análisis" %}
         </button>
       </form>
+      {% endif %}
     </div>
   </div>
   {% if ultimo_analisis %}
@@ -191,6 +193,7 @@
                 </td>
                 <td><small class="text-muted">{{ pred.justificacion }}</small></td>
                 <td class="text-center">
+                  {% if puede_accionar %}
                   <div class="d-flex gap-1 justify-content-center">
                     <a href="{% url 'gestion_academica:citar_acudiente' pred.pk %}" class="act-btn act-btn-citar">
                       <i class="bi bi-envelope-at-fill"></i> {% trans "Citar" %}
@@ -199,6 +202,9 @@
                       <i class="bi bi-bell-fill"></i> {% trans "Notificar" %}
                     </a>
                   </div>
+                  {% else %}
+                  <span class="text-muted">—</span>
+                  {% endif %}
                 </td>
               </tr>
               {% endfor %}
@@ -227,6 +233,7 @@
           <div class="sent-card-body">
             <div class="sent-card-label">{% trans "Factores detectados" %}</div>
             <div class="sent-card-val mb-2">{{ pred.justificacion }}</div>
+            {% if puede_accionar %}
             <div class="d-flex gap-2">
               <a href="{% url 'gestion_academica:citar_acudiente' pred.pk %}" class="act-btn act-btn-citar flex-fill justify-content-center">
                 <i class="bi bi-envelope-at-fill"></i> {% trans "Citar acudiente" %}
@@ -235,6 +242,7 @@
                 <i class="bi bi-bell-fill"></i> {% trans "Notificar" %}
               </a>
             </div>
+            {% endif %}
           </div>
         </div>
         {% endfor %}
@@ -253,6 +261,7 @@
     <div class="sent-info-box">
       <i class="bi bi-cpu text-muted"></i>
       <p class="fw-semibold mb-2">{% trans "Aún no hay datos de riesgo" %}</p>
+      {% if puede_accionar %}
       <p class="small text-muted mb-3">{% blocktrans %}El análisis de riesgo académico nunca se ha ejecutado.<br>Usa el botón <strong>"Ejecutar nuevo análisis"</strong> para generar el primer reporte.{% endblocktrans %}</p>
       <form action="{% url 'gestion_academica:ejecutar_analisis_riesgo' %}" method="post" style="display:inline;">
         {% csrf_token %}
@@ -260,6 +269,9 @@
           <i class="bi bi-arrow-clockwise"></i> {% trans "Ejecutar primer análisis" %}
         </button>
       </form>
+      {% else %}
+      <p class="small text-muted mb-3">{% trans "Aún no se ha ejecutado el análisis de riesgo para esta institución. El coordinador puede generarlo desde su panel." %}</p>
+      {% endif %}
     </div>
   </div>
   {% endif %}

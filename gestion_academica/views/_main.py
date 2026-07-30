@@ -5165,22 +5165,39 @@ def reporte_riesgo_academico_view(request):
     """
     Muestra el dashboard de 'HALU Sentinel' con las predicciones de riesgo.
     """
-    if not (request.user.is_superuser or (request.user.is_staff and request.user.rol in ['administrador', 'coordinador'])):
+    _rol = getattr(request.user, 'rol', '') or ''
+    # El rector/directivo tiene acceso de SOLO LECTURA (supervisión), aunque no
+    # sea is_staff. Coordinador/administrador (staff) también. Superusuario todo.
+    if not (request.user.is_superuser or _rol == 'rector'
+            or (request.user.is_staff and _rol in ['administrador', 'coordinador'])):
         messages.error(request, _("No tienes permiso para ver este reporte."))
-        return redirect('gestion_academica:dashboard_coordinador')
-        
-    ultimo_analisis = AnalisisRiesgo.objects.order_by('-fecha_analisis').first()
-    
+        return redirect('gestion_academica:inicio_academico')
+
+    # Aislamiento multi-institución: el último análisis debe ser de la propia
+    # institución (antes tomaba el más reciente de CUALQUIER institución).
+    analisis_qs = AnalisisRiesgo.objects.all()
+    if not request.user.is_superuser:
+        analisis_qs = analisis_qs.filter(
+            periodo_academico__institucion=getattr(request.user, 'institucion_asociada', None)
+        )
+    ultimo_analisis = analisis_qs.order_by('-fecha_analisis').first()
+
     predicciones = []
     if ultimo_analisis:
         predicciones = ultimo_analisis.predicciones.select_related(
             'estudiante__usuario', 'materia'
         ).order_by('estudiante__usuario__last_name', 'materia__nombre_materia')
 
+    # El rector solo supervisa: no ve los botones de acción (citar/notificar).
+    puede_accionar = request.user.is_superuser or (
+        request.user.is_staff and _rol in ['administrador', 'coordinador']
+    )
+
     context = {
         'titulo_pagina': _("HALU Sentinel - Reporte de Riesgo Académico"),
         'ultimo_analisis': ultimo_analisis,
         'predicciones': predicciones,
+        'puede_accionar': puede_accionar,
     }
     return render(request, 'gestion_academica/reporte_riesgo_academico.html', context)
 
