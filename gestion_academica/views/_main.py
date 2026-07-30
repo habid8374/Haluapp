@@ -7450,7 +7450,44 @@ def lista_notificaciones_view(request):
         'total_notificaciones': paginador.count,
     }
 
-    return render(request, 'gestion_academica/notificaciones_lista.html', context)        
+    return render(request, 'gestion_academica/notificaciones_lista.html', context)
+
+
+@login_required
+def accion_notificacion(request):
+    """Acciones sobre una notificación propia: eliminar, marcar como no leída
+    o marcar como leída. Endpoint POST (JSON) usado por el menú contextual
+    (mantener presionado / botón ⋮) de la bandeja de notificaciones.
+
+    Aislamiento: siempre acotado a `destinatario=request.user`, de modo que un
+    usuario nunca puede tocar notificaciones de otro (ni de otra institución).
+    """
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'error': 'Método no permitido.'}, status=405)
+
+    notif_id = request.POST.get('notificacion_id')
+    accion = request.POST.get('accion')
+    if not notif_id or accion not in ('eliminar', 'marcar_no_leida', 'marcar_leida'):
+        return JsonResponse({'ok': False, 'error': 'Parámetros inválidos.'}, status=400)
+
+    try:
+        notif = Notificacion.objects.get(pk=notif_id, destinatario=request.user)
+    except Notificacion.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Notificación no encontrada.'}, status=404)
+
+    if accion == 'eliminar':
+        notif.delete()
+    elif accion == 'marcar_no_leida':
+        notif.leido = False
+        notif.fecha_leido = None
+        notif.save(update_fields=['leido', 'fecha_leido'])
+    else:  # marcar_leida
+        notif.leido = True
+        notif.fecha_leido = timezone.now()
+        notif.save(update_fields=['leido', 'fecha_leido'])
+
+    return JsonResponse({'ok': True, 'accion': accion})
+
 
 def dashboard_bienestar_view(request):
     """

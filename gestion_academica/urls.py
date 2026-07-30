@@ -438,6 +438,7 @@ urlpatterns = [
     path('docente/gestion/historial-entregas/', views.HistorialEntregasView.as_view(), name='historial_entregas'),
     path('admin/sincronizar-permisos/', views.SincronizarPermisosView.as_view(), name='sincronizar_permisos'),
     path('notificaciones/marcar-leida/', views.MarcarNotificacionLeidaView.as_view(), name='marcar_notificacion_leida'),
+    path('notificaciones/accion/', views.accion_notificacion, name='accion_notificacion'),
     path('admin/ejecutar-analisis-comportamiento/', views.EjecutarAnalisisComportamientoView.as_view(), name='ejecutar_analisis_comportamiento'),
     path('admin/analisis-status/', views.AnalisisStatusView.as_view(), name='analisis_status'),
     path('api/generar-resumen-estudiante/<int:estudiante_pk>/<int:periodo_pk>/', views.GenerarResumenEstudianteIAView.as_view(), name='generar_resumen_ia'),

@@ -127,6 +127,51 @@
   }
   .nf-empty i { font-size: 2.5rem; display: block; margin-bottom: .75rem; opacity: .5; }
   .nf-empty p { margin: 0; font-size: .92rem; }
+  /* ── Fila con acciones (mantener presionado / botón ⋮) ── */
+  .nf-row { position: relative; }
+  .nf-row .nf-item { padding-right: 2.9rem; }
+  .nf-kebab {
+    position: absolute; top: .55rem; right: .55rem;
+    width: 32px; height: 32px; border-radius: 50%;
+    border: none; background: transparent; color: #94a3b8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; cursor: pointer; transition: background .12s, color .12s;
+    z-index: 2;
+  }
+  .nf-kebab:hover { background: #eef2ff; color: #4f46e5; }
+  .nf-row { -webkit-touch-callout: none; }
+  /* ── Action sheet ── */
+  .nf-sheet-backdrop {
+    position: fixed; inset: 0; z-index: 1080;
+    background: rgba(15, 23, 42, .45);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .nf-sheet-backdrop[hidden] { display: none; }
+  .nf-sheet {
+    background: #fff; width: 100%; max-width: 480px;
+    border-radius: 1.1rem 1.1rem 0 0;
+    padding: .6rem .6rem calc(.6rem + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 30px rgba(0,0,0,.18);
+    animation: nfSheetUp .18s ease-out;
+  }
+  @keyframes nfSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .nf-sheet-grip { width: 40px; height: 4px; border-radius: 2px; background: #e2e8f0; margin: .1rem auto .5rem; }
+  .nf-sheet-item {
+    width: 100%; border: none; background: transparent;
+    display: flex; align-items: center; gap: .8rem;
+    padding: .85rem 1rem; border-radius: .7rem;
+    font-size: .92rem; font-weight: 600; color: #1e293b; cursor: pointer;
+    transition: background .12s;
+  }
+  .nf-sheet-item:hover { background: #f1f5f9; }
+  .nf-sheet-item i { font-size: 1.05rem; width: 22px; text-align: center; color: #64748b; }
+  .nf-sheet-item.danger { color: #dc2626; }
+  .nf-sheet-item.danger i { color: #dc2626; }
+  .nf-sheet-item.cancel { color: #64748b; justify-content: center; margin-top: .2rem; border-top: 1px solid #f1f5f9; border-radius: 0; }
+  @media (min-width: 576px) {
+    .nf-sheet-backdrop { align-items: center; }
+    .nf-sheet { border-radius: 1.1rem; margin: 0 1rem; }
+  }
 </style>
 {% endblock %}
 {% block contenido %}
@@ -157,6 +202,7 @@
       </a>
     </div>
     {% for notificacion in notificaciones %}
+      <div class="nf-row" data-notif-id="{{ notificacion.pk }}" data-leido="{% if notificacion.leido %}1{% else %}0{% endif %}">
       <a href="{{ notificacion.enlace|default:'#' }}"
          class="nf-item {% if not notificacion.leido %}unread{% endif %}">
         <!-- Ícono según tipo -->
@@ -191,6 +237,10 @@
           </div>
         </div>
       </a>
+        <button type="button" class="nf-kebab" aria-label="Opciones de la notificación">
+          <i class="bi bi-three-dots-vertical"></i>
+        </button>
+      </div>
     {% empty %}
       <div class="nf-empty">
         <i class="bi bi-bell-slash-fill"></i>
@@ -220,5 +270,125 @@
     </div>
     {% endif %}
   </div>
+
+  {% csrf_token %}
+  <!-- Action sheet reutilizable -->
+  <div id="nf-sheet-backdrop" class="nf-sheet-backdrop" hidden>
+    <div class="nf-sheet" role="menu" aria-label="Opciones de notificación">
+      <div class="nf-sheet-grip"></div>
+      <button type="button" class="nf-sheet-item" data-accion="marcar_no_leida">
+        <i class="bi bi-bell"></i> Marcar como no leída
+      </button>
+      <button type="button" class="nf-sheet-item" data-accion="marcar_leida">
+        <i class="bi bi-check2-all"></i> Marcar como leída
+      </button>
+      <button type="button" class="nf-sheet-item danger" data-accion="eliminar">
+        <i class="bi bi-trash3"></i> Eliminar notificación
+      </button>
+      <button type="button" class="nf-sheet-item cancel" data-accion="cancel">
+        Cancelar
+      </button>
+    </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+(function () {
+  var url = "{% url 'gestion_academica:accion_notificacion' %}";
+  var csrfEl = document.querySelector('[name=csrfmiddlewaretoken]');
+  var csrf = csrfEl ? csrfEl.value : '';
+  var backdrop = document.getElementById('nf-sheet-backdrop');
+  if (!backdrop) return;
+  var sheet = backdrop.querySelector('.nf-sheet');
+  var btnNoLeida = sheet.querySelector('[data-accion="marcar_no_leida"]');
+  var btnLeida = sheet.querySelector('[data-accion="marcar_leida"]');
+  var currentRow = null;
+
+  function openSheet(row) {
+    currentRow = row;
+    var leido = row.dataset.leido === '1';
+    btnNoLeida.style.display = leido ? '' : 'none';
+    btnLeida.style.display = leido ? 'none' : '';
+    backdrop.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSheet() {
+    backdrop.hidden = true;
+    currentRow = null;
+    document.body.style.overflow = '';
+  }
+
+  backdrop.addEventListener('click', function (e) {
+    if (e.target === backdrop) closeSheet();
+  });
+
+  document.querySelectorAll('.nf-row').forEach(function (row) {
+    var kebab = row.querySelector('.nf-kebab');
+    if (kebab) {
+      kebab.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        openSheet(row);
+      });
+    }
+    // Mantener presionado (móvil)
+    var timer = null, longpressed = false;
+    row.addEventListener('touchstart', function () {
+      longpressed = false;
+      timer = setTimeout(function () { longpressed = true; openSheet(row); }, 500);
+    }, { passive: true });
+    ['touchend', 'touchmove', 'touchcancel'].forEach(function (ev) {
+      row.addEventListener(ev, function () { if (timer) clearTimeout(timer); });
+    });
+    // Evitar navegar tras un mantener-presionado
+    var link = row.querySelector('a.nf-item');
+    if (link) {
+      link.addEventListener('click', function (e) {
+        if (longpressed) { e.preventDefault(); longpressed = false; }
+      });
+    }
+    // Clic derecho (escritorio)
+    row.addEventListener('contextmenu', function (e) {
+      e.preventDefault(); openSheet(row);
+    });
+  });
+
+  sheet.querySelectorAll('.nf-sheet-item').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var accion = btn.dataset.accion;
+      if (accion === 'cancel' || !currentRow) { closeSheet(); return; }
+      var row = currentRow;
+      var id = row.dataset.notifId;
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'notificacion_id=' + encodeURIComponent(id) + '&accion=' + encodeURIComponent(accion),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok) return;
+          var itemLink = row.querySelector('a.nf-item');
+          if (accion === 'eliminar') {
+            row.style.transition = 'opacity .15s';
+            row.style.opacity = '0';
+            setTimeout(function () { row.remove(); }, 150);
+          } else if (accion === 'marcar_no_leida') {
+            row.dataset.leido = '0';
+            if (itemLink) itemLink.classList.add('unread');
+          } else if (accion === 'marcar_leida') {
+            row.dataset.leido = '1';
+            if (itemLink) itemLink.classList.remove('unread');
+          }
+        })
+        .catch(function () {})
+        .finally(function () { closeSheet(); });
+    });
+  });
+})();
+</script>
 {% endblock %}
