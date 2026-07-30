@@ -53,12 +53,11 @@
 {% if grupos_grado %}
   <div class="accordion" id="accBloqueos">
     {% for grupo in grupos_grado %}
-    {% with gid="grupo"|add:forloop.counter|stringformat:"s" %}
     <div class="accordion-item shadow-sm mb-2" style="border-radius:12px; overflow:hidden;">
       <h2 class="accordion-header">
         <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-semibold" type="button"
-                data-bs-toggle="collapse" data-bs-target="#{{ gid }}"
-                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="{{ gid }}">
+                data-bs-toggle="collapse" data-bs-target="#grupoBloq{{ forloop.counter }}"
+                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="grupoBloq{{ forloop.counter }}">
           <i class="bi bi-mortarboard-fill me-2 text-primary"></i>
           {% if grupo.grado %}{{ grupo.grado.nombre }}{% else %}{% trans "Sin grado asignado" %}{% endif %}
           <span class="badge bg-secondary ms-2 fw-normal">{{ grupo.estudiantes|length }}</span>
@@ -67,7 +66,7 @@
           {% endif %}
         </button>
       </h2>
-      <div id="{{ gid }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#accBloqueos">
+      <div id="grupoBloq{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#accBloqueos">
         <div class="accordion-body p-0">
           <ul class="list-group list-group-flush">
             {% for est in grupo.estudiantes %}
@@ -102,7 +101,6 @@
         </div>
       </div>
     </div>
-    {% endwith %}
     {% endfor %}
   </div>
 {% else %}

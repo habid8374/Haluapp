@@ -76,21 +76,20 @@
     </h6>
     <div class="accordion" id="acordeonGrados">
       {% for grupo in grupos_grado %}
-      {% with grado_id="grado"|add:forloop.counter|stringformat:"s" %}
       <div class="accordion-item border mb-2 rounded shadow-sm">
         <h2 class="accordion-header">
           <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-semibold"
                   type="button"
                   data-bs-toggle="collapse"
-                  data-bs-target="#{{ grado_id }}"
+                  data-bs-target="#gradoMsg{{ forloop.counter }}"
                   aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
-                  aria-controls="{{ grado_id }}">
+                  aria-controls="gradoMsg{{ forloop.counter }}">
             <i class="bi bi-people-fill me-2 text-primary"></i>
             {{ grupo.grado }}
             <span class="badge bg-secondary ms-2 fw-normal">{% blocktrans count counter=grupo.alumnos|length %}{{ counter }} alumno{% plural %}{{ counter }} alumnos{% endblocktrans %}</span>
           </button>
         </h2>
-        <div id="{{ grado_id }}"
+        <div id="gradoMsg{{ forloop.counter }}"
              class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
              data-bs-parent="#acordeonGrados">
           <div class="accordion-body p-0">
@@ -135,7 +134,6 @@
           </div>
         </div>
       </div>
-      {% endwith %}
       {% endfor %}
     </div>
   {% endif %}
