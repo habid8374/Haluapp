@@ -7040,46 +7040,35 @@ def citar_acudiente_view(request, prediccion_pk):
         messages.error(request, f"El estudiante {estudiante} no tiene un familiar con correo electrónico registrado.")
         return redirect('gestion_academica:reporte_riesgo_academico')
 
-    # --- INICIO DE LA LÓGICA CORREGIDA ---
-
-    # 1. Verificamos si la institución tiene credenciales de correo configuradas
-    if not (institucion.email_host_user and institucion.email_host_password):
-        messages.error(request, f"La institución '{institucion.nombre}' no tiene configuradas las credenciales para enviar correos.")
-        return redirect('gestion_academica:reporte_riesgo_academico')
-
-    # 2. Renderizamos las plantillas como antes
+    # Renderizamos las plantillas del correo de citación
     context_email = {'familiar': familiar, 'estudiante': estudiante, 'prediccion': prediccion, 'institucion': institucion}
     asunto = render_to_string('gestion_academica/email/citacion_asunto.txt', context_email).strip()
     cuerpo_texto = render_to_string('gestion_academica/email/citacion_cuerpo.txt', context_email)
     cuerpo_html = render_to_string('gestion_academica/email/citacion_cuerpo.html', context_email)
-    
-    try:
-        # 3. Creamos una conexión SMTP personalizada con las credenciales de la institución
-        connection = get_connection(
-            host=institucion.email_host,
-            port=institucion.email_port,
-            username=institucion.email_host_user,
-            password=institucion.email_host_password,
-            use_tls=institucion.email_use_tls
-        )
 
-        # 4. Creamos el correo usando esas credenciales
-        email = EmailMultiAlternatives(
-            subject=asunto,
-            body=cuerpo_texto,
-            from_email=institucion.email_host_user, # Usamos el correo de la institución como remitente
-            to=[familiar.usuario.email],
-            connection=connection # ¡Le decimos al correo que use nuestra conexión personalizada!
-        )
-        email.attach_alternative(cuerpo_html, "text/html")
-        email.send(fail_silently=False)
-        
+    # Enviamos usando SIEMPRE las credenciales de ESTA institución (Brevo API con
+    # prioridad, SMTP como respaldo) a través del helper central, que ya aplica
+    # timeout, maneja SSL/TLS según el puerto y respeta la regla multi-institución.
+    # Nunca se usa una cuenta compartida — ver regla crítica en CLAUDE.md.
+    from admisiones.utils import enviar_correo_dinamico
+    enviado = enviar_correo_dinamico(
+        institucion=institucion,
+        asunto=asunto,
+        destinatarios=[familiar.usuario.email],
+        html_content=cuerpo_html,
+        texto_plano=cuerpo_texto,
+    )
+
+    if enviado:
         messages.success(request, f"Citación enviada exitosamente al correo de {familiar.usuario.get_full_name()}.")
+    else:
+        messages.error(
+            request,
+            f"No se pudo enviar la citación. Verifica que la institución '{institucion.nombre}' "
+            "tenga configurada su cuenta de correo (Brevo o SMTP) en Configuración › Correo."
+        )
 
-    except Exception as e:
-        messages.error(request, f"No se pudo enviar el correo. Revisa la configuración SMTP de la institución. Error: {e}")
-
-    return redirect('gestion_academica:reporte_riesgo_academico') 
+    return redirect('gestion_academica:reporte_riesgo_academico')
 
 @login_required
 def ejecutar_analisis_riesgo_view(request):
