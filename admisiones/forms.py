@@ -1,6 +1,7 @@
 # admisiones/forms.py (Versión Corregida)
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from .models import Aspirante
 from gestion_academica.models import Grado
 
@@ -69,20 +70,20 @@ class AspiranteForm(forms.ModelForm):
             'apoyo_academico_especial': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
-            'requiere_pago_inscripcion': '¿Generar cobro de inscripción para este aspirante?',
-            'eps': 'EPS / Entidad de Salud',
-            'grupo_sanguineo': 'Grupo Sanguíneo',
-            'lugar_nacimiento': 'Lugar de Nacimiento',
+            'requiere_pago_inscripcion': _('¿Generar cobro de inscripción para este aspirante?'),
+            'eps': _('EPS / Entidad de Salud'),
+            'grupo_sanguineo': _('Grupo Sanguíneo'),
+            'lugar_nacimiento': _('Lugar de Nacimiento'),
         }
         help_texts = {
-            'requiere_pago_inscripcion': 'Marque esta casilla si debe crearse una cuenta por cobrar para la inscripción.',
-            'discapacidad': 'Opcional. Describe brevemente si el aspirante tiene alguna condición de salud o discapacidad.',
+            'requiere_pago_inscripcion': _('Marque esta casilla si debe crearse una cuenta por cobrar para la inscripción.'),
+            'discapacidad': _('Opcional. Describe brevemente si el aspirante tiene alguna condición de salud o discapacidad.'),
         }
 
 
 class ImportarAspirantesForm(forms.Form):
     archivo_excel = forms.FileField(
-        label="Selecciona un archivo Excel (.xlsx)",
+        label=_("Selecciona un archivo Excel (.xlsx)"),
         help_text=(
             "Usa la plantilla oficial. Columnas obligatorias: "
             "'nombres', 'apellidos', 'numero_documento', 'fecha_nacimiento' (AAAA-MM-DD o DD/MM/AAAA), "
@@ -96,8 +97,8 @@ class ImportarAspirantesForm(forms.Form):
     dry_run = forms.BooleanField(
         required=False,
         initial=False,
-        label="Modo simulación (no crear registros, solo validar)",
-        help_text="Recomendado en la primera carga: valida el archivo y muestra errores fila por fila sin crear aspirantes.",
+        label=_("Modo simulación (no crear registros, solo validar)"),
+        help_text=_("Recomendado en la primera carga: valida el archivo y muestra errores fila por fila sin crear aspirantes."),
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
     )
 

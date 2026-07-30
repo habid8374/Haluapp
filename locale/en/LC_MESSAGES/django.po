@@ -5613,3 +5613,1545 @@ msgstr "In how many classes do you want to develop this topic?"
 
 msgid "¿Qué metodología de enseñanza prefieres usar?"
 msgstr "Which teaching methodology do you prefer to use?"
+
+msgid "% Asistencia"
+msgstr "% Attendance"
+
+msgid "% Inasistencia que genera alerta"
+msgstr "% Absence that triggers an alert"
+
+msgid "A+"
+msgstr "A+"
+
+msgid "AB+"
+msgstr "AB+"
+
+msgid "B+"
+msgstr "B+"
+
+msgid "O+"
+msgstr "O+"
+
+msgid "Abierto"
+msgstr "Open"
+
+msgid "Abreviatura (Ej: LA, LP, LPE)"
+msgstr "Abbreviation (e.g.: LA, LP, LPE)"
+
+msgid "Abreviatura (Ej: Sup, Alt)"
+msgstr "Abbreviation (e.g.: Sup, Alt)"
+
+msgid "Académico"
+msgstr "Academic"
+
+msgid "Acciones sobre casos"
+msgstr "Case actions"
+
+msgid "Acción sobre caso"
+msgstr "Case action"
+
+msgid "Aceptó la Política de Tratamiento de Datos"
+msgstr "Accepted the Data Processing Policy"
+
+msgid "Actividades Calificables"
+msgstr "Gradable activities"
+
+msgid "Actividades Calificadas"
+msgstr "Graded activities"
+
+msgid "Actividades Pendientes de Nota"
+msgstr "Activities pending grade"
+
+msgid "Actividades Registradas"
+msgstr "Recorded activities"
+
+msgid "Acudiente responsable (facturación)"
+msgstr "Responsible guardian (billing)"
+
+msgid "Acuerdo y compromisos firmados"
+msgstr "Signed agreement and commitments"
+
+msgid "Acuerdos y Compromisos"
+msgstr "Agreements and commitments"
+
+msgid "Afrocolombiano / negro"
+msgstr "Afro-Colombian / Black"
+
+msgid "Agresor/a"
+msgstr "Aggressor"
+
+msgid "Alemán"
+msgstr "German"
+
+msgid "Alerta de Posible Plagio"
+msgstr "Possible plagiarism alert"
+
+msgid "Alta"
+msgstr "High"
+
+msgid "Anotaciones en Observador"
+msgstr "Observer notes"
+
+msgid "Anotación en Observador"
+msgstr "Observer note"
+
+msgid "Anotación que originó el caso"
+msgstr "Note that originated the case"
+
+msgid "Análisis de Comportamiento (IA)"
+msgstr "Behavior analysis (AI)"
+
+msgid "Análisis y Resumen de la IA"
+msgstr "AI analysis and summary"
+
+msgid "Análisis y Sugerencias de la IA"
+msgstr "AI analysis and suggestions"
+
+msgid "Aprendizaje Basado en Problemas (ABP)"
+msgstr "Problem-Based Learning (PBL)"
+
+msgid "Aprendizaje Basado en Proyectos (ABP)"
+msgstr "Project-Based Learning (PBL)"
+
+msgid "Aprendizaje Colaborativo"
+msgstr "Collaborative learning"
+
+msgid "Archivado"
+msgstr "Archived"
+
+msgid "Archivo Histórico"
+msgstr "Historical file"
+
+msgid "Archivo PDF Generado"
+msgstr "Generated PDF file"
+
+msgid "Archivo de Plan Académico o Material"
+msgstr "Academic plan or material file"
+
+msgid "Archivos Históricos"
+msgstr "Historical files"
+
+msgid "Archivos de Planes Académicos y Materiales"
+msgstr "Academic plan and material files"
+
+msgid "Asistencias de Docentes"
+msgstr "Teacher attendance"
+
+msgid "Asunto del Ticket"
+msgstr "Ticket subject"
+
+msgid "Asunto principal de la reunión"
+msgstr "Main subject of the meeting"
+
+msgid "Audiencia del banner"
+msgstr "Banner audience"
+
+msgid "Auditiva — hipoacusia"
+msgstr "Hearing — hearing loss"
+
+msgid "Auditiva — sordera"
+msgstr "Hearing — deafness"
+
+msgid "Aula Invertida"
+msgstr "Flipped classroom"
+
+msgid "Aula o Salón de Clases"
+msgstr "Classroom"
+
+msgid "Aulas y Salones de Clases"
+msgstr "Classrooms"
+
+msgid "Avisar a coordinadores/administrador"
+msgstr "Notify coordinators/administrator"
+
+msgid "Avisar a docentes"
+msgstr "Notify teachers"
+
+msgid "Avisar a estudiantes"
+msgstr "Notify students"
+
+msgid "Avisar a familiares"
+msgstr "Notify families"
+
+msgid "Año Académico del Reporte"
+msgstr "Report's academic year"
+
+msgid "Año Lectivo"
+msgstr "School year"
+
+msgid "Año de Graduación"
+msgstr "Graduation year"
+
+msgid "Baja"
+msgstr "Low"
+
+msgid "Bloque de Horario"
+msgstr "Schedule block"
+
+msgid "Bloques de Horario"
+msgstr "Schedule blocks"
+
+msgid "Boletines publicados"
+msgstr "Report cards published"
+
+msgid "Boletín Final"
+msgstr "Final report card"
+
+msgid "Calculando..."
+msgstr "Calculating..."
+
+msgid "Calificaciones"
+msgstr "Grades"
+
+msgid "Calificación"
+msgstr "Grade"
+
+msgid "Cancelada"
+msgstr "Cancelled"
+
+msgid "Cancelado"
+msgstr "Cancelled"
+
+msgid "Capacidad / talento excepcional"
+msgstr "Exceptional ability / talent"
+
+msgid "Capacidad excepcional global"
+msgstr "Global exceptional ability"
+
+msgid "Caracterizaciones de estudiantes"
+msgstr "Student profiles"
+
+msgid "Caracterización de estudiante"
+msgstr "Student profile"
+
+msgid "Caso de Convivencia"
+msgstr "Coexistence case"
+
+msgid "Casos de Convivencia"
+msgstr "Coexistence cases"
+
+msgid "Categoría de discapacidad (MEN)"
+msgstr "Disability category (MEN)"
+
+msgid "Categoría de la actividad"
+msgstr "Activity category"
+
+msgid "Certificado de Notas"
+msgstr "Grade certificate"
+
+msgid "Ciencias Naturales"
+msgstr "Natural Sciences"
+
+msgid "Ciencias Sociales"
+msgstr "Social Sciences"
+
+msgid "Cierre formal del caso"
+msgstr "Formal closure of the case"
+
+msgid "Cita de Reunión"
+msgstr "Meeting appointment"
+
+msgid "Citas de Reuniones"
+msgstr "Meeting appointments"
+
+msgid "Clase Magistral / Tradicional"
+msgstr "Lecture / Traditional"
+
+msgid "Clasificación de Convivencia (IA)"
+msgstr "Coexistence classification (AI)"
+
+msgid "Comentarios del Estudiante (Opcional)"
+msgstr "Student's comments (Optional)"
+
+msgid "Competencias (Idioma Secundario)"
+msgstr "Competencies (Secondary language)"
+
+msgid "Completado"
+msgstr "Completed"
+
+msgid "Completado Exitosamente"
+msgstr "Completed successfully"
+
+msgid "Configuraciones de Corte Preventivo"
+msgstr "Preventive cutoff settings"
+
+msgid "Configuraciones de la Institución (Adicionales)"
+msgstr "Institution settings (Additional)"
+
+msgid "Configuración de Corte Preventivo"
+msgstr "Preventive cutoff setting"
+
+msgid "Configuración de la Institución (Adicional)"
+msgstr "Institution setting (Additional)"
+
+msgid "Consejo Generado por IA"
+msgstr "AI-generated advice"
+
+msgid "Constancia de Estudios"
+msgstr "Enrollment certificate"
+
+msgid "Contenido Completo"
+msgstr "Full content"
+
+msgid "Contributivo"
+msgstr "Contributory"
+
+msgid "Coordinador responsable"
+msgstr "Responsible coordinator"
+
+msgid "Copia de Diploma"
+msgstr "Diploma copy"
+
+msgid "Corte"
+msgstr "Cutoff"
+
+msgid "Corte Preventivo"
+msgstr "Preventive cutoff"
+
+msgid "Cortes Preventivos"
+msgstr "Preventive cutoffs"
+
+msgid "Criterios de Evaluación"
+msgstr "Evaluation criteria"
+
+msgid "Cualitativo (Logros y Descriptivo)"
+msgstr "Qualitative (Achievements and descriptive)"
+
+msgid "Cuantitativo (Notas Numéricas)"
+msgstr "Quantitative (Numeric grades)"
+
+msgid "Cuenta de Usuario"
+msgstr "User account"
+
+msgid "Cuenta de Usuario (Login)"
+msgstr "User account (Login)"
+
+msgid "Cultural / Cívico"
+msgstr "Cultural / Civic"
+
+msgid "Curso (Opcional)"
+msgstr "Course (Optional)"
+
+msgid "Curso Asociado (Opcional)"
+msgstr "Associated course (Optional)"
+
+msgid "Curso al que pertenece el deber"
+msgstr "Course the assignment belongs to"
+
+msgid "Cursos"
+msgstr "Courses"
+
+msgid "Cédula de Ciudadanía"
+msgstr "Citizenship ID (CC)"
+
+msgid "Cédula de Extranjería"
+msgstr "Foreigner ID (CE)"
+
+msgid "Código DIVIPOLA departamento"
+msgstr "DIVIPOLA department code"
+
+msgid "Código DIVIPOLA municipio"
+msgstr "DIVIPOLA municipality code"
+
+msgid "Código de Estudiante"
+msgstr "Student code"
+
+msgid "DBA Predefinido (MEN)"
+msgstr "Predefined DBA (MEN)"
+
+msgid "DBA Predefinidos (MEN)"
+msgstr "Predefined DBAs (MEN)"
+
+msgid "De la voz y el habla"
+msgstr "Of voice and speech"
+
+msgid "Deber / Tarea"
+msgstr "Assignment / Homework"
+
+msgid "Deberes / Tareas"
+msgstr "Assignments / Homework"
+
+msgid "Derechos Básicos de Aprendizaje (DBA)"
+msgstr "Basic Learning Rights (DBA)"
+
+msgid "Descripción Detallada (Opcional)"
+msgstr "Detailed description (Optional)"
+
+msgid "Descripción Detallada del Problema"
+msgstr "Detailed description of the problem"
+
+msgid "Descripción Detallada del Reconocimiento"
+msgstr "Detailed description of the recognition"
+
+msgid "Descripción de la Anotación"
+msgstr "Note description"
+
+msgid "Descripción de lo actuado"
+msgstr "Description of the actions taken"
+
+msgid "Descripción del Logro"
+msgstr "Achievement description"
+
+msgid "Descripción del Logro/Descriptor"
+msgstr "Achievement/Descriptor description"
+
+msgid "Descripción detallada del hecho"
+msgstr "Detailed description of the event"
+
+msgid "Descriptor de Logro"
+msgstr "Achievement descriptor"
+
+msgid "Descriptores de Logros"
+msgstr "Achievement descriptors"
+
+msgid "Descuentos o Becas Aplicadas"
+msgstr "Discounts or scholarships applied"
+
+msgid "Desplazado"
+msgstr "Displaced"
+
+msgid "Desvinculado de grupos armados"
+msgstr "Separated from armed groups"
+
+msgid "Detalle de Clase"
+msgstr "Class detail"
+
+msgid "Detalle por Materia"
+msgstr "Detail by subject"
+
+msgid "Detalles de Clases"
+msgstr "Class details"
+
+msgid "Detalles por Materia"
+msgstr "Details by subject"
+
+msgid "Dimensiones de Desarrollo (Preescolar)"
+msgstr "Development dimensions (Preschool)"
+
+msgid "Dimensión de Desarrollo"
+msgstr "Development dimension"
+
+msgid "Dimensión de Desarrollo (Preescolar)"
+msgstr "Development dimension (Preschool)"
+
+msgid "Dirección"
+msgstr "Address"
+
+msgid "Dirección (Opcional)"
+msgstr "Address (Optional)"
+
+msgid "Director de Curso"
+msgstr "Homeroom teacher"
+
+msgid "Directores de Curso"
+msgstr "Homeroom teachers"
+
+msgid "Diseño del Dashboard"
+msgstr "Dashboard design"
+
+msgid "Disponibilidad de Docente"
+msgstr "Teacher availability"
+
+msgid "Disponibilidades de Docentes"
+msgstr "Teacher availabilities"
+
+msgid "Docentes"
+msgstr "Teachers"
+
+msgid "Documento Adjunto del Plan (PDF, Word, etc.)"
+msgstr "Plan's attached document (PDF, Word, etc.)"
+
+msgid "Documento Solicitado"
+msgstr "Requested document"
+
+msgid "Documento de Identidad"
+msgstr "ID document"
+
+msgid "Duración (minutos)"
+msgstr "Duration (minutes)"
+
+msgid "Duración (semanas del período)"
+msgstr "Duration (weeks of the term)"
+
+msgid "Duración en Minutos"
+msgstr "Duration in minutes"
+
+msgid "Día de la jornada"
+msgstr "Day of the school day"
+
+msgid "Día de la semana"
+msgstr "Day of the week"
+
+msgid "Días de aviso previo"
+msgstr "Days of advance notice"
+
+msgid "Egresado"
+msgstr "Graduate"
+
+msgid "Egresados"
+msgstr "Graduates"
+
+msgid "Eje Temático (Idioma Secundario)"
+msgstr "Thematic axis (Secondary language)"
+
+msgid "Eje Temático / Contenido"
+msgstr "Thematic axis / Content"
+
+msgid "Ejecutado por"
+msgstr "Executed by"
+
+msgid "Email de Contacto (Opcional)"
+msgstr "Contact email (Optional)"
+
+msgid "En Progreso"
+msgstr "In progress"
+
+msgid "En seguimiento"
+msgstr "Under follow-up"
+
+msgid "Enlace de Videollamada"
+msgstr "Video call link"
+
+msgid "Enlace de la videollamada (si aplica)"
+msgstr "Video call link (if applicable)"
+
+msgid "Enlaces de Videollamada"
+msgstr "Video call links"
+
+msgid "Entrega de Deber"
+msgstr "Assignment submission"
+
+msgid "Entregas de Deberes"
+msgstr "Assignment submissions"
+
+msgid "Enunciado del DBA"
+msgstr "DBA statement"
+
+msgid "Enviado al Coordinador"
+msgstr "Sent to coordinator"
+
+msgid "Escala Cualitativa (Preescolar)"
+msgstr "Qualitative scale (Preschool)"
+
+msgid "Escala Valorativa"
+msgstr "Rating scale"
+
+msgid "Escalas Cualitativas (Preescolar)"
+msgstr "Qualitative scales (Preschool)"
+
+msgid "Escalas Valorativas"
+msgstr "Rating scales"
+
+msgid "Español"
+msgstr "Spanish"
+
+msgid "Especial / Excepción"
+msgstr "Special / Exception"
+
+msgid "Estado de Generación IA"
+msgstr "AI generation status"
+
+msgid "Estado del Egresado"
+msgstr "Graduate status"
+
+msgid "Estado del caso"
+msgstr "Case status"
+
+msgid "Estrato 1"
+msgstr "Stratum 1"
+
+msgid "Estrato 2"
+msgstr "Stratum 2"
+
+msgid "Estrato 3"
+msgstr "Stratum 3"
+
+msgid "Estrato 4"
+msgstr "Stratum 4"
+
+msgid "Estrato 5"
+msgstr "Stratum 5"
+
+msgid "Estrato 6"
+msgstr "Stratum 6"
+
+msgid "Estrato socioeconómico"
+msgstr "Socioeconomic stratum"
+
+msgid "Estudiante Activo"
+msgstr "Active student"
+
+msgid "Estudiante(s) Asociado(s)"
+msgstr "Associated student(s)"
+
+msgid "Estudiantes"
+msgstr "Students"
+
+msgid "Estándares Básicos de Competencias (EBC)"
+msgstr "Basic Competency Standards (EBC)"
+
+msgid "Evaluaciones de Logros (Preescolar)"
+msgstr "Achievement evaluations (Preschool)"
+
+msgid "Evaluación de Logro (Preescolar)"
+msgstr "Achievement evaluation (Preschool)"
+
+msgid "Evento Institucional"
+msgstr "Institutional event"
+
+msgid "Eventos Institucionales"
+msgstr "Institutional events"
+
+msgid "Evidencia / documento adjunto"
+msgstr "Evidence / attached document"
+
+msgid "Evidencias de Aprendizaje"
+msgstr "Learning evidence"
+
+msgid "Evidencias de Aprendizaje del DBA"
+msgstr "DBA learning evidence"
+
+msgid "Falló la Generación"
+msgstr "Generation failed"
+
+msgid "Familiar"
+msgstr "Family member"
+
+msgid "Familiares"
+msgstr "Family members"
+
+msgid "Fecha (de este año)"
+msgstr "Date (this year)"
+
+msgid "Fecha de Corte"
+msgstr "Cutoff date"
+
+msgid "Fecha de Creación"
+msgstr "Creation date"
+
+msgid "Fecha de Egreso"
+msgstr "Graduation date"
+
+msgid "Fecha de Entrega Real"
+msgstr "Actual submission date"
+
+msgid "Fecha de Nacimiento"
+msgstr "Date of birth"
+
+msgid "Fecha de Notificación"
+msgstr "Notification date"
+
+msgid "Fecha de Registro"
+msgstr "Registration date"
+
+msgid "Fecha de Subida"
+msgstr "Upload date"
+
+msgid "Fecha de aceptación"
+msgstr "Acceptance date"
+
+msgid "Fecha de cierre de notas"
+msgstr "Grade closing date"
+
+msgid "Fecha de expiración del banner"
+msgstr "Banner expiration date"
+
+msgid "Fecha de la Clase"
+msgstr "Class date"
+
+msgid "Fecha de la última ocurrencia ya avisada"
+msgstr "Date of the last occurrence already notified"
+
+msgid "Fecha de publicación de boletines"
+msgstr "Report card publication date"
+
+msgid "Fecha del Análisis"
+msgstr "Analysis date"
+
+msgid "Fecha límite legal de respuesta"
+msgstr "Legal response deadline"
+
+msgid "Fecha y Hora"
+msgstr "Date and time"
+
+msgid "Fecha y hora de la cita"
+msgstr "Appointment date and time"
+
+msgid "Fin de Semana (Viernes)"
+msgstr "End of week (Friday)"
+
+msgid "Fin del Intento"
+msgstr "End of attempt"
+
+msgid "Firma del Docente (Imagen)"
+msgstr "Teacher's signature (Image)"
+
+msgid "Foto de Perfil"
+msgstr "Profile photo"
+
+msgid "Francés"
+msgstr "French"
+
+msgid "Física (movilidad)"
+msgstr "Physical (mobility)"
+
+msgid "Gamificación"
+msgstr "Gamification"
+
+msgid "Generado por"
+msgstr "Generated by"
+
+msgid "Generando Contenido con IA"
+msgstr "Generating content with AI"
+
+msgid "Grado 10°"
+msgstr "10th grade"
+
+msgid "Grado 11°"
+msgstr "11th grade"
+
+msgid "Grado 1°"
+msgstr "1st grade"
+
+msgid "Grado 2°"
+msgstr "2nd grade"
+
+msgid "Grado 3°"
+msgstr "3rd grade"
+
+msgid "Grado 4°"
+msgstr "4th grade"
+
+msgid "Grado 5°"
+msgstr "5th grade"
+
+msgid "Grado 6°"
+msgstr "6th grade"
+
+msgid "Grado 7°"
+msgstr "7th grade"
+
+msgid "Grado 8°"
+msgstr "8th grade"
+
+msgid "Grado 9°"
+msgstr "9th grade"
+
+msgid "Grado Actual"
+msgstr "Current grade"
+
+msgid "Grado Asociado (Opcional)"
+msgstr "Associated grade (Optional)"
+
+msgid "Grado Siguiente (Promoción)"
+msgstr "Next grade (Promotion)"
+
+msgid "Grados"
+msgstr "Grades"
+
+msgid "Grupo SISBÉN"
+msgstr "SISBÉN group"
+
+msgid "Grupo étnico"
+msgstr "Ethnic group"
+
+msgid "Hijo de adulto desmovilizado"
+msgstr "Child of a demobilized adult"
+
+msgid "Hora de Fin"
+msgstr "End time"
+
+msgid "Hora de Inicio"
+msgstr "Start time"
+
+msgid "Hora de fin de disponibilidad"
+msgstr "Availability end time"
+
+msgid "Hora de inicio de disponibilidad"
+msgstr "Availability start time"
+
+msgid "Huella (SHA-256) del texto aceptado"
+msgstr "Fingerprint (SHA-256) of the accepted text"
+
+msgid "ID del Calendario de Google Sincronizado"
+msgstr "Synced Google Calendar ID"
+
+msgid "ID del Evento en Google Calendar"
+msgstr "Google Calendar event ID"
+
+msgid "ID del Ticket"
+msgstr "Ticket ID"
+
+msgid "IP registrada al aceptar"
+msgstr "IP recorded at acceptance"
+
+msgid "Identificador Único para QR"
+msgstr "Unique identifier for QR"
+
+msgid "Idioma de la Plataforma"
+msgstr "Platform language"
+
+msgid "Imagen Destacada (Opcional)"
+msgstr "Featured image (Optional)"
+
+msgid "Incapacidad médica"
+msgstr "Medical leave"
+
+msgid "Incluir asistencia en el reporte"
+msgstr "Include attendance in the report"
+
+msgid "Incluir firma del rector en el PDF"
+msgstr "Include principal's signature in the PDF"
+
+msgid "Incluir observaciones de docentes"
+msgstr "Include teachers' comments"
+
+msgid "Indicador Alto (Idioma Secundario)"
+msgstr "High indicator (Secondary language)"
+
+msgid "Indicador Bajo (Idioma Secundario)"
+msgstr "Low indicator (Secondary language)"
+
+msgid "Indicador Básico (Idioma Secundario)"
+msgstr "Basic indicator (Secondary language)"
+
+msgid "Indicador Superior (Idioma Secundario)"
+msgstr "Superior indicator (Secondary language)"
+
+msgid "Indicador — Desempeño Alto (4.0–4.5)"
+msgstr "Indicator — High performance (4.0–4.5)"
+
+msgid "Indicador — Desempeño Bajo (1.0–2.9)"
+msgstr "Indicator — Low performance (1.0–2.9)"
+
+msgid "Indicador — Desempeño Básico (3.0–3.9)"
+msgstr "Indicator — Basic performance (3.0–3.9)"
+
+msgid "Indicador — Desempeño Superior (4.6–5.0)"
+msgstr "Indicator — Superior performance (4.6–5.0)"
+
+msgid "Indígena"
+msgstr "Indigenous"
+
+msgid "Inglés"
+msgstr "English"
+
+msgid "Inicio de Semana (Lunes)"
+msgstr "Start of week (Monday)"
+
+msgid "Inicio del Intento"
+msgstr "Start of attempt"
+
+msgid "Institucional"
+msgstr "Institutional"
+
+msgid "Institución Asociada"
+msgstr "Associated institution"
+
+msgid "Institución Principal"
+msgstr "Main institution"
+
+msgid "Intelectual / cognitiva"
+msgstr "Intellectual / cognitive"
+
+msgid "Intensidad Horaria Semanal (Ihs)"
+msgstr "Weekly teaching hours (Ihs)"
+
+msgid "Intento de Actividad"
+msgstr "Activity attempt"
+
+msgid "Intentos de Actividades"
+msgstr "Activity attempts"
+
+msgid "Involucrado en caso"
+msgstr "Involved in case"
+
+msgid "Involucrados en caso"
+msgstr "Involved in case"
+
+msgid "Justificación de Inasistencia"
+msgstr "Absence justification"
+
+msgid "Lema o Eslogan (Opcional)"
+msgstr "Motto or slogan (Optional)"
+
+msgid "Lenguaje"
+msgstr "Language Arts"
+
+msgid "Listo para Descargar"
+msgstr "Ready to download"
+
+msgid "Logo de la Institución (Opcional, si difiere del principal)"
+msgstr "Institution's logo (Optional, if it differs from the main one)"
+
+msgid "Logro de Preescolar"
+msgstr "Preschool achievement"
+
+msgid "Logro del Período (Idioma Secundario)"
+msgstr "Term achievement (Secondary language)"
+
+msgid "Logros de Preescolar"
+msgstr "Preschool achievements"
+
+msgid "Mallas Curriculares"
+msgstr "Curriculum maps"
+
+msgid "Mandarín"
+msgstr "Mandarin"
+
+msgid "Marca de entrada"
+msgstr "Check-in mark"
+
+msgid "Marca de salida"
+msgstr "Check-out mark"
+
+msgid "Marque esta casilla si debe crearse una cuenta por cobrar para la inscripción."
+msgstr "Check this box if an account receivable should be created for the enrollment."
+
+msgid "Matemáticas"
+msgstr "Mathematics"
+
+msgid "Materia Asociada (Opcional)"
+msgstr "Associated subject (Optional)"
+
+msgid "Materia Asociada (opcional)"
+msgstr "Associated subject (optional)"
+
+msgid "Material de Apoyo Adjunto (Opcional)"
+msgstr "Attached supporting material (Optional)"
+
+msgid "Materias"
+msgstr "Subjects"
+
+msgid "Materias Incluidas en esta Dimensión"
+msgstr "Subjects included in this dimension"
+
+msgid "Materias Pertenecientes"
+msgstr "Belonging subjects"
+
+msgid "Materias en Riesgo"
+msgstr "Subjects at risk"
+
+msgid "Media"
+msgstr "Medium"
+
+msgid "Mención o Reconocimiento"
+msgstr "Mention or recognition"
+
+msgid "Mensaje de Error (si falló)"
+msgstr "Error message (if it failed)"
+
+msgid "Mensaje de la Notificación"
+msgstr "Notification message"
+
+msgid "Metodología / Estrategias Pedagógicas"
+msgstr "Methodology / Pedagogical strategies"
+
+msgid "Metodología Principal"
+msgstr "Main methodology"
+
+msgid "Modo simulación (no crear registros, solo validar)"
+msgstr "Simulation mode (do not create records, only validate)"
+
+msgid "Mostrar como banner flotante"
+msgstr "Show as floating banner"
+
+msgid "Mostrar promedio parcial en el reporte"
+msgstr "Show partial average in the report"
+
+msgid "Motivo familiar"
+msgstr "Family reason"
+
+msgid "Múltiple"
+msgstr "Multiple"
+
+msgid "Navegador/dispositivo registrado al aceptar"
+msgstr "Browser/device recorded at acceptance"
+
+msgid "Negativo"
+msgstr "Negative"
+
+msgid "Neutro"
+msgstr "Neutral"
+
+msgid "Ninguna"
+msgstr "None"
+
+msgid "Ninguno"
+msgstr "None"
+
+msgid "Nivel de Escolaridad"
+msgstr "Education level"
+
+msgid "Niveles de Escolaridad"
+msgstr "Education levels"
+
+msgid "No afiliado / Vinculado"
+msgstr "Not affiliated / Linked"
+
+msgid "Nombre de la Institución (Opcional, si difiere de la principal)"
+msgstr "Institution name (Optional, if it differs from the main one)"
+
+msgid "Nombre del Corte"
+msgstr "Cutoff name"
+
+msgid "Nombre del Desempeño (Ej: Logro Alcanzado)"
+msgstr "Performance name (e.g.: Achievement reached)"
+
+msgid "Nombre del Desempeño (Ej: Superior, Alto)"
+msgstr "Performance name (e.g.: Superior, High)"
+
+msgid "Nombre del Grado"
+msgstr "Grade name"
+
+msgid "Nombre del Nivel"
+msgstr "Level name"
+
+msgid "Nombre del Tipo de Actividad"
+msgstr "Activity type name"
+
+msgid "Nombre del Área"
+msgstr "Area name"
+
+msgid "Nota Máxima para este Desempeño"
+msgstr "Maximum grade for this performance"
+
+msgid "Nota Mínima para este Desempeño"
+msgstr "Minimum grade for this performance"
+
+msgid "Notas cerradas"
+msgstr "Grades closed"
+
+msgid "Noticia o Anuncio"
+msgstr "News or announcement"
+
+msgid "Noticias y Anuncios"
+msgstr "News and announcements"
+
+msgid "Notificación"
+msgstr "Notification"
+
+msgid "Notificación Enviada"
+msgstr "Notification sent"
+
+msgid "Notificación a padre/tutor"
+msgstr "Notification to parent/guardian"
+
+msgid "N° DBA"
+msgstr "DBA no."
+
+msgid "Número de Clase"
+msgstr "Class number"
+
+msgid "Número de Clases de Duración"
+msgstr "Number of classes of duration"
+
+msgid "Número de radicado"
+msgstr "Filing number"
+
+msgid "Objetivos de Aprendizaje"
+msgstr "Learning objectives"
+
+msgid "Observaciones de la Reunión"
+msgstr "Meeting notes"
+
+msgid "Observaciones de quien revisa"
+msgstr "Reviewer's comments"
+
+msgid "Observación General del Coordinador"
+msgstr "Coordinator's general comment"
+
+msgid "Observación del Director de Curso"
+msgstr "Homeroom teacher's comment"
+
+msgid "Observación del Docente"
+msgstr "Teacher's comment"
+
+msgid "Observación para el Boletín"
+msgstr "Comment for the report card"
+
+msgid "Opcional. Describe brevemente si el aspirante tiene alguna condición de salud o discapacidad."
+msgstr "Optional. Briefly describe if the applicant has any health condition or disability."
+
+msgid "Opción Múltiple"
+msgstr "Multiple choice"
+
+msgid "Orden Numérico"
+msgstr "Numeric order"
+
+msgid "Otorgado/Registrado por (Docente)"
+msgstr "Granted/Recorded by (Teacher)"
+
+msgid "Otra"
+msgstr "Other"
+
+msgid "Otro involucrado"
+msgstr "Other party involved"
+
+msgid "Otro motivo"
+msgstr "Other reason"
+
+msgid "Otra acción"
+msgstr "Other action"
+
+msgid "Pagado, en Proceso"
+msgstr "Paid, in process"
+
+msgid "Palabras Clave (temas)"
+msgstr "Keywords (topics)"
+
+msgid "Palenquero (San Basilio)"
+msgstr "Palenquero (San Basilio)"
+
+msgid "Parentesco con el Estudiante"
+msgstr "Relationship to the student"
+
+msgid "Pasaporte"
+msgstr "Passport"
+
+msgid "Patrones Estructurados"
+msgstr "Structured patterns"
+
+msgid "Paz y Salvo Financiero"
+msgstr "Financial clearance"
+
+msgid "País de origen"
+msgstr "Country of origin"
+
+msgid "Pendiente de Generación"
+msgstr "Pending generation"
+
+msgid "Pendiente de Pago"
+msgstr "Pending payment"
+
+msgid "Pendiente de revisión"
+msgstr "Pending review"
+
+msgid "Perfil de Estudiante Original"
+msgstr "Original student profile"
+
+msgid "Periodo Académico (Opcional)"
+msgstr "Academic term (Optional)"
+
+msgid "Periodo Académico Asociado (Opcional)"
+msgstr "Associated academic term (Optional)"
+
+msgid "Periodos Académicos"
+msgstr "Academic terms"
+
+msgid "Período"
+msgstr "Term"
+
+msgid "Período Académico"
+msgstr "Academic term"
+
+msgid "Plan Curricular"
+msgstr "Curriculum plan"
+
+msgid "Plan Semanal"
+msgstr "Weekly plan"
+
+msgid "Planeaciones de Clases"
+msgstr "Lesson plans"
+
+msgid "Planeación de Clase"
+msgstr "Lesson plan"
+
+msgid "Planes Curriculares"
+msgstr "Curriculum plans"
+
+msgid "Planes Semanales"
+msgstr "Weekly plans"
+
+msgid "Por horas laboradas"
+msgstr "By hours worked"
+
+msgid "Porcentaje de Similitud (%)"
+msgstr "Similarity percentage (%)"
+
+msgid "Porcentaje de la Categoría (%)"
+msgstr "Category percentage (%)"
+
+msgid "Portugués"
+msgstr "Portuguese"
+
+msgid "Positivo"
+msgstr "Positive"
+
+msgid "Pregunta de Actividad"
+msgstr "Activity question"
+
+msgid "Preguntas de Actividades"
+msgstr "Activity questions"
+
+msgid "Proceso de mediación escolar"
+msgstr "School mediation process"
+
+msgid "Promedio en la Materia"
+msgstr "Average in the subject"
+
+msgid "Propósitos Generales / Descripción"
+msgstr "General purposes / Description"
+
+msgid "Protocolo Sugerido por IA"
+msgstr "AI-suggested protocol"
+
+msgid "Protocolo sugerido por IA"
+msgstr "AI-suggested protocol"
+
+msgid "Psicosocial (mental)"
+msgstr "Psychosocial (mental)"
+
+msgid "Publicado por"
+msgstr "Published by"
+
+msgid "Puntaje SISBÉN"
+msgstr "SISBÉN score"
+
+msgid "ROM (gitano)"
+msgstr "ROM (Romani)"
+
+msgid "Raizal (San Andrés)"
+msgstr "Raizal (San Andrés)"
+
+msgid "Realizada"
+msgstr "Held"
+
+msgid "Recomendado en la primera carga: valida el archivo y muestra errores fila por fila sin crear aspirantes."
+msgstr "Recommended on the first upload: it validates the file and shows errors row by row without creating applicants."
+
+msgid "Recursos Necesarios"
+msgstr "Required resources"
+
+msgid "Registro Civil"
+msgstr "Civil registry (RC)"
+
+msgid "Registro de Asistencia de Docente"
+msgstr "Teacher attendance record"
+
+msgid "Remisión a profesional externo"
+msgstr "Referral to an external professional"
+
+msgid "Reporte a autoridad externa (ICBF / Policía)"
+msgstr "Report to external authority (ICBF / Police)"
+
+msgid "Requiere Citación de Padres"
+msgstr "Requires parent summons"
+
+msgid "Resolución y compromisos finales"
+msgstr "Resolution and final commitments"
+
+msgid "Respuesta Abierta"
+msgstr "Open answer"
+
+msgid "Respuesta de Texto"
+msgstr "Text answer"
+
+msgid "Respuesta de Ticket"
+msgstr "Ticket reply"
+
+msgid "Respuestas de Tickets"
+msgstr "Ticket replies"
+
+msgid "Resultado de Estudiante"
+msgstr "Student result"
+
+msgid "Resultado del Estudiante"
+msgstr "Student's result"
+
+msgid "Resultados de Estudiantes"
+msgstr "Student results"
+
+msgid "Reunión de Comité de Convivencia"
+msgstr "Coexistence Committee meeting"
+
+msgid "Revisión del banner"
+msgstr "Banner review"
+
+msgid "Riesgo Alto"
+msgstr "High risk"
+
+msgid "Riesgo Bajo"
+msgstr "Low risk"
+
+msgid "Riesgo Medio"
+msgstr "Medium risk"
+
+msgid "Rol de Usuario"
+msgstr "User role"
+
+msgid "Rural"
+msgstr "Rural"
+
+msgid "Régimen de salud"
+msgstr "Health regime"
+
+msgid "Salario fijo (planta / directivo)"
+msgstr "Fixed salary (staff / director)"
+
+msgid "Seguimiento periódico"
+msgstr "Periodic follow-up"
+
+msgid "Selecciona un archivo Excel (.xlsx)"
+msgstr "Select an Excel file (.xlsx)"
+
+msgid "Sentimiento Detectado por IA"
+msgstr "AI-detected sentiment"
+
+msgid "Sin Riesgo"
+msgstr "No risk"
+
+msgid "Sin datos"
+msgstr "No data"
+
+msgid "Sin estrato"
+msgstr "No stratum"
+
+msgid "Sistémica"
+msgstr "Systemic"
+
+msgid "Sitio Web (Opcional)"
+msgstr "Website (Optional)"
+
+msgid "Situación Tipo I"
+msgstr "Type I situation"
+
+msgid "Situación Tipo II"
+msgstr "Type II situation"
+
+msgid "Situación Tipo III"
+msgstr "Type III situation"
+
+msgid "Soporte (incapacidad, certificado, etc.)"
+msgstr "Evidence (leave, certificate, etc.)"
+
+msgid "Sordoceguera"
+msgstr "Deafblindness"
+
+msgid "Subido por"
+msgstr "Uploaded by"
+
+msgid "Subsidiado"
+msgstr "Subsidized"
+
+msgid "Talento artístico"
+msgstr "Artistic talent"
+
+msgid "Talento científico/tecnológico"
+msgstr "Scientific/technological talent"
+
+msgid "Talento deportivo"
+msgstr "Sports talent"
+
+msgid "Tarjeta de Identidad"
+msgstr "Identity card (TI)"
+
+msgid "Teléfono de Contacto"
+msgstr "Contact phone"
+
+msgid "Teléfono(s) de Contacto (Opcional)"
+msgstr "Contact phone(s) (Optional)"
+
+msgid "Tema / Título"
+msgstr "Topic / Title"
+
+msgid "Tema de la Clase"
+msgstr "Class topic"
+
+msgid "Temas Relevantes"
+msgstr "Relevant topics"
+
+msgid "Testigo"
+msgstr "Witness"
+
+msgid "Texto del pie de página del reporte PDF"
+msgstr "Footer text of the PDF report"
+
+msgid "Ticket de Soporte"
+msgstr "Support ticket"
+
+msgid "Tickets de Soporte"
+msgstr "Support tickets"
+
+msgid "Tipo I — Conflicto menor"
+msgstr "Type I — Minor conflict"
+
+msgid "Tipo II — Daño moderado"
+msgstr "Type II — Moderate harm"
+
+msgid "Tipo III — Daño grave / delito"
+msgstr "Type III — Serious harm / crime"
+
+msgid "Tipo de Actividad"
+msgstr "Activity type"
+
+msgid "Tipo de Documento (Ej: Plan de Estudio, Guía, Presentación)"
+msgstr "Document type (e.g.: Syllabus, Guide, Presentation)"
+
+msgid "Tipo de Evaluación Predominante"
+msgstr "Predominant evaluation type"
+
+msgid "Tipo de acción"
+msgstr "Action type"
+
+msgid "Tipo de población víctima"
+msgstr "Type of victim population"
+
+msgid "Tipo de situación (Res. 1620)"
+msgstr "Situation type (Res. 1620)"
+
+msgid "Tipos de Actividad"
+msgstr "Activity types"
+
+msgid "Total Actividades Calificadas"
+msgstr "Total graded activities"
+
+msgid "Total Actividades Registradas"
+msgstr "Total recorded activities"
+
+msgid "Total Estudiantes Evaluados"
+msgstr "Total students evaluated"
+
+msgid "Total en Riesgo"
+msgstr "Total at risk"
+
+msgid "Transición"
+msgstr "Transition (Kindergarten)"
+
+msgid "Trastorno del espectro autista"
+msgstr "Autism spectrum disorder"
+
+msgid "Título de la Unidad o Tema"
+msgstr "Unit or topic title"
+
+msgid "Título del Enlace"
+msgstr "Link title"
+
+msgid "Título del evento"
+msgstr "Event title"
+
+msgid "URL de la Videollamada (Meet, Zoom, etc.)"
+msgstr "Video call URL (Meet, Zoom, etc.)"
+
+msgid "Umbral Riesgo Alto (nota por debajo de...)"
+msgstr "High-risk threshold (grade below...)"
+
+msgid "Umbral Riesgo Medio (nota por debajo de...)"
+msgstr "Medium-risk threshold (grade below...)"
+
+msgid "Urbana"
+msgstr "Urban"
+
+msgid "Urgente"
+msgstr "Urgent"
+
+msgid "Usuario"
+msgstr "User"
+
+msgid "Usuarios"
+msgstr "Users"
+
+msgid "Valor Estándar de Inscripción"
+msgstr "Standard enrollment fee"
+
+msgid "Valor Estándar de Matrícula"
+msgstr "Standard registration fee"
+
+msgid "Valor Estándar de Mensualidad"
+msgstr "Standard monthly fee"
+
+msgid "Valor hora (referencia)"
+msgstr "Hourly rate (reference)"
+
+msgid "Vencido — plazo superado"
+msgstr "Overdue — deadline passed"
+
+msgid "Verdadero o Falso"
+msgstr "True or False"
+
+msgid "Versión MEN"
+msgstr "MEN version"
+
+msgid "Versión de la política aceptada"
+msgstr "Accepted policy version"
+
+msgid "Visual — baja visión"
+msgstr "Visual — low vision"
+
+msgid "Visual — ceguera"
+msgstr "Visual — blindness"
+
+msgid "Voto"
+msgstr "Vote"
+
+msgid "Votos"
+msgstr "Votes"
+
+msgid "Víctima"
+msgstr "Victim"
+
+msgid "Víctima de minas antipersona"
+msgstr "Landmine victim"
+
+msgid "Zona de residencia"
+msgstr "Residential area"
+
+msgid "¿Activo?"
+msgstr "Active?"
+
+msgid "¿En riesgo?"
+msgstr "At risk?"
+
+msgid "¿Es el periodo activo actual?"
+msgstr "Is it the current active term?"
+
+msgid "¿Este nivel se considera reprobatorio?"
+msgstr "Is this level considered failing?"
+
+msgid "¿Generar cobro de inscripción para este aspirante?"
+msgstr "Generate an enrollment charge for this applicant?"
+
+msgid "¿Leído?"
+msgstr "Read?"
+
+msgid "¿Requiere Revisión Urgente?"
+msgstr "Requires urgent review?"
+
+msgid "¿Requiere apoyo académico especial?"
+msgstr "Requires special academic support?"
+
+msgid "¿Se repite cada año?"
+msgstr "Does it repeat every year?"
+
+msgid "¿Sistema de Responsabilidad Penal Adolescente (SRPA)?"
+msgstr "Adolescent Criminal Responsibility System (SRPA)?"
+
+msgid "¿Víctima del conflicto armado?"
+msgstr "Victim of the armed conflict?"
+
+msgid "Área Académica"
+msgstr "Academic area"
+
+msgid "Áreas Académicas"
+msgstr "Academic areas"
+
+msgid "Ítem de Malla"
+msgstr "Curriculum map item"
+
+msgid "Ítem de Malla Vinculado"
+msgstr "Linked curriculum map item"
+
+msgid "Ítem de Plan Semanal"
+msgstr "Weekly plan item"
+
+msgid "Ítems de Malla"
+msgstr "Curriculum map items"
+
+msgid "Ítems de Plan Semanal"
+msgstr "Weekly plan items"
+
+msgid "Última actualización"
+msgstr "Last update"
+
+msgid "Permitir que familias descarguen el reporte desde el portal"
+msgstr "Allow families to download the report from the portal"
