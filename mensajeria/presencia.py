@@ -73,28 +73,60 @@ def set_auto_away(usuario_id, away):
     return estado_de(usuario_id)
 
 
-def peers_de(usuario_id):
-    """IDs de los otros participantes de las conversaciones del usuario.
+# Roles considerados "personal" (staff). Se mantiene igual que
+# mensajeria.views.ROLES_PERSONAL; se duplica aquí para evitar un import
+# circular (views importa presencia).
+ROLES_PERSONAL = {
+    'rector', 'coordinador', 'administrador', 'administrativo',
+    'admin_institucion', 'tesoreria', 'secretaria', 'docente',
+}
 
-    Defensa en profundidad multi-institución: además de que las conversaciones
-    solo se crean entre usuarios de la misma institución, aquí se restringe a
-    las conversaciones de la institución del propio usuario. Así, aunque
-    existiera una conversación cruzada (p. ej. creada por el superusuario), la
-    presencia nunca se filtra entre instituciones distintas.
+
+def peers_de(usuario_id):
+    """IDs de los usuarios que deben VER la presencia de este usuario —aunque
+    todavía no tengan un chat abierto entre ellos— así reciben el aviso
+    «X está en línea» al conectarse.
+
+    Reglas (las mismas de la mensajería), SIEMPRE acotadas a la MISMA
+    institución (defensa multi-institución):
+      - Personal ↔ personal: todo el personal del colegio se ve entre sí.
+      - Además, los otros participantes de las conversaciones YA existentes
+        (cubre el caso docente ↔ alumno que ya venían conversando).
     """
     from .models import Conversacion
     from django.contrib.auth import get_user_model
-    inst_id = get_user_model().objects.filter(pk=usuario_id).values_list(
-        'institucion_asociada_id', flat=True
+    User = get_user_model()
+
+    urow = User.objects.filter(pk=usuario_id).values(
+        'institucion_asociada_id', 'rol'
     ).first()
+    if not urow:
+        return set()
+    inst_id = urow['institucion_asociada_id']
+    rol = urow['rol'] or ''
+
+    peers = set()
+
+    # Personal ↔ personal: todo el personal activo del mismo colegio, sin
+    # necesidad de que ya exista un chat.
+    if inst_id is not None and rol in ROLES_PERSONAL:
+        peers.update(
+            User.objects.filter(
+                institucion_asociada_id=inst_id, is_active=True, rol__in=ROLES_PERSONAL
+            ).exclude(pk=usuario_id).values_list('pk', flat=True)
+        )
+
+    # Conversaciones ya existentes (cubre docente ↔ alumno en curso), acotadas a
+    # la institución del usuario.
     convs = Conversacion.objects.filter(
         Q(participante_a_id=usuario_id) | Q(participante_b_id=usuario_id)
     )
     if inst_id is not None:
         convs = convs.filter(institucion_id=inst_id)
-    peers = set()
     for a, b in convs.values_list('participante_a_id', 'participante_b_id'):
         peers.add(b if a == usuario_id else a)
+
+    peers.discard(usuario_id)
     return peers
 
 
