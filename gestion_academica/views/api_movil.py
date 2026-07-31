@@ -14,6 +14,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from collections import defaultdict
+from datetime import datetime
 import logging
 
 from ..models import (
@@ -21,7 +22,7 @@ from ..models import (
     ActividadCalificable, Calificacion, Deber, EntregaDeber, RegistroAsistencia,
     MencionReconocimiento, BloqueHorario, Noticia, TipoActividad, DescriptorLogro,
     DisponibilidadDocente, CitaReunion, DirectorCurso, AnotacionObservador,
-    AreaAcademica, LeccionDiaria,
+    AreaAcademica, LeccionDiaria, ArchivoPlanAcademico,
 )
 from finanzas.models import CuentaPorCobrarEstudiante, PagoRegistrado
 from gestion_academica.decorators import EstaAlDiaPermission
@@ -200,16 +201,16 @@ def api_alertas_bienestar_data(request):
 
     try:
         user_inst = getattr(user, 'institucion_asociada', None)
-        
+        if not user_inst:
+            return Response({'error': 'Usuario no asociado a una institución.'}, status=400)
+
         # Filtros opcionales
         categoria = request.GET.get('categoria', 'todas')
-        
+
         alertas_query = AnotacionObservador.objects.filter(
-            requiere_revision=True
+            requiere_revision=True,
+            estudiante__institucion=user_inst,
         ).select_related('estudiante__usuario', 'estudiante__grado_actual', 'registrado_por')
-        
-        if user_inst:
-            alertas_query = alertas_query.filter(estudiante__institucion=user_inst)
         
         # Aplicar filtro de categoría si se especifica
         if categoria != 'todas':
@@ -268,15 +269,16 @@ def api_citas_supervision_data(request):
 
     try:
         user_inst = getattr(user, 'institucion_asociada', None)
-        
-        citas_query = CitaReunion.objects.select_related(
-            'docente__usuario', 
-            'familiar__usuario', 
+        if not user_inst:
+            return Response({'error': 'Usuario no asociado a una institución.'}, status=400)
+
+        citas_query = CitaReunion.objects.filter(
+            docente__institucion=user_inst
+        ).select_related(
+            'docente__usuario',
+            'familiar__usuario',
             'estudiante__usuario'
         )
-        
-        if user_inst:
-            citas_query = citas_query.filter(docente__institucion=user_inst)
         
         # Filtros opcionales
         estado = request.GET.get('estado', 'todas')
@@ -338,11 +340,12 @@ def api_noticias_gestion_data(request):
 
     try:
         user_inst = getattr(user, 'institucion_asociada', None)
-        
-        noticias_query = Noticia.objects.select_related('publicado_por')
-        
-        if user_inst:
-            noticias_query = noticias_query.filter(institucion=user_inst)
+        if not user_inst:
+            return Response({'error': 'Usuario no asociado a una institución.'}, status=400)
+
+        noticias_query = Noticia.objects.filter(
+            institucion=user_inst
+        ).select_related('publicado_por')
         
         noticias = noticias_query.order_by('-fecha_publicacion')[:50]
 
@@ -539,9 +542,11 @@ def api_dashboard_bienestar(request):
     if not user.is_staff: return Response({'error': 'Acceso denegado.'}, status=403)
     
     user_inst = getattr(user, 'institucion_asociada', None)
-    alertas = AnotacionObservador.objects.filter(requiere_revision=True)
-    if user_inst:
-        alertas = alertas.filter(estudiante__institucion=user_inst)
+    if not user_inst:
+        return Response({'error': 'Usuario no asociado a una institución.'}, status=400)
+    alertas = AnotacionObservador.objects.filter(
+        requiere_revision=True, estudiante__institucion=user_inst
+    )
     
     data = [{
         'id': a.id,
@@ -559,9 +564,9 @@ def api_supervisar_citas(request):
     if not user.is_staff: return Response({'error': 'Acceso denegado.'}, status=403)
 
     user_inst = getattr(user, 'institucion_asociada', None)
-    citas = CitaReunion.objects.all()
-    if user_inst:
-        citas = citas.filter(docente__institucion=user_inst)
+    if not user_inst:
+        return Response({'error': 'Usuario no asociado a una institución.'}, status=400)
+    citas = CitaReunion.objects.filter(docente__institucion=user_inst)
 
     data = [{
         'id': c.id,

@@ -7757,10 +7757,10 @@ def detalle_alerta_bienestar_view(request, pk):
         messages.error(request, "Acceso denegado a esta sección.")
         return redirect('gestion_academica:dashboard_coordinador')
 
-    alerta = get_object_or_404(
-        AnotacionObservador.objects.select_related('estudiante__usuario', 'registrado_por'),
-        pk=pk, requiere_revision=True,
-    )
+    alerta_qs = AnotacionObservador.objects.select_related('estudiante__usuario', 'registrado_por')
+    if not request.user.is_superuser:
+        alerta_qs = alerta_qs.filter(institucion=request.user.institucion_asociada)
+    alerta = get_object_or_404(alerta_qs, pk=pk, requiere_revision=True)
     context = {
         'titulo_pagina': "Detalle de Alerta de Bienestar",
         'alerta': alerta,

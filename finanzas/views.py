@@ -3817,7 +3817,10 @@ def reporte_auditoria_pagos(request):
     estudiante_nombre = ''
     if estudiante_id:
         try:
-            est = Estudiante.objects.select_related('usuario').get(pk=estudiante_id)
+            est_qs = Estudiante.objects.select_related('usuario')
+            if not request.user.is_superuser:
+                est_qs = est_qs.filter(institucion=institucion)
+            est = est_qs.get(pk=estudiante_id)
             estudiante_nombre = est.usuario.get_full_name()
         except Estudiante.DoesNotExist:
             estudiante_id = ''

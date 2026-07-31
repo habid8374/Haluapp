@@ -43,3 +43,10 @@ from ._main import (
     LogroUpdateView,
     LogroDeleteView,
 )
+
+# ── Despachador «Libro de Notas» ─────────────────────────────────────────────
+# Existe tanto en _main.py (filtrado por institución vía get_filtered_queryset)
+# como una copia legacy en ia.py que NO filtra por institución. Se reimporta la
+# versión de _main.py al final para blindar el aislamiento multi-institución
+# (evita que un staff pueda despachar sobre un curso de otro colegio por pk).
+from ._main import redirigir_a_libro_de_notas
