@@ -29,8 +29,37 @@ class InstitucionScopedAdminMixin:
 
     institucion_lookup = 'institucion'
 
+    # Campos de "autor" que se autocompletan con el usuario en sesión.
+    CAMPOS_AUTOR = ('creado_por', 'registrado_por', 'publicado_por', 'generado_por')
+
     def _institucion_usuario(self, request):
         return getattr(request.user, 'institucion_asociada', None)
+
+    def get_exclude(self, request, obj=None):
+        """Para no-superusuarios oculta del formulario la institución y los
+        campos de autor: se asignan solos en save_model (la institución del
+        usuario y el usuario en sesión), así no hay desplegables que confundan
+        ni que puedan tocar. El superusuario sí los ve. No se oculta un campo
+        que el admin liste explícitamente en fields/fieldsets."""
+        base = tuple(super().get_exclude(request, obj) or ())
+        if request.user.is_superuser:
+            return base or None
+
+        ocultar = []
+        if '__' not in self.institucion_lookup:
+            ocultar.append(self.institucion_lookup)
+        model_fields = {f.name for f in self.model._meta.fields}
+        ocultar += [c for c in self.CAMPOS_AUTOR if c in model_fields]
+
+        explicit = set(self.fields or ())
+        for _n, opts in (self.fieldsets or ()):
+            explicit |= set(opts.get('fields') or ())
+
+        exclude = list(base)
+        for c in ocultar:
+            if c not in exclude and c not in explicit:
+                exclude.append(c)
+        return tuple(exclude) or None
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -114,7 +143,7 @@ class InstitucionScopedAdminMixin:
                 setattr(obj, self.institucion_lookup, inst)
         # 2) Autocompletar «creado por / registrado por» con el usuario en sesión
         #    (si el modelo tiene ese campo y está vacío), en vez de un desplegable.
-        for campo_autor in ('creado_por', 'registrado_por', 'publicado_por', 'generado_por'):
+        for campo_autor in self.CAMPOS_AUTOR:
             if hasattr(obj, f'{campo_autor}_id') and not getattr(obj, f'{campo_autor}_id'):
                 setattr(obj, campo_autor, request.user)
         super().save_model(request, obj, form, change)
