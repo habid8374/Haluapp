@@ -366,13 +366,34 @@ class MateriaForm(forms.ModelForm):
         # El nivel es obligatorio al crear/editar materias nuevas (el modelo lo
         # deja nullable solo por compatibilidad con datos previos).
         self.fields['nivel_escolaridad'].required = True
+
+        # Institución de contexto para acotar el desplegable de nivel: la de la
+        # materia que se edita (aplica incluso al superusuario, para no mezclar
+        # niveles de otros colegios) o, al crear, la del usuario.
+        inst_ctx = None
+        if getattr(self.instance, 'institucion_id', None):
+            inst_ctx = self.instance.institucion
+        elif request and not request.user.is_superuser:
+            inst_ctx = getattr(request.user, 'institucion_asociada', None)
+        if inst_ctx is not None:
+            self.fields['nivel_escolaridad'].queryset = NivelEscolaridad.objects.filter(institucion=inst_ctx)
+
         if request:
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             institucion = getattr(request.user, 'institucion_asociada', None)
             if not request.user.is_superuser and institucion:
                 self.fields['institucion'].initial = institucion
                 self.fields['institucion'].disabled = True
-                self.fields['nivel_escolaridad'].queryset = NivelEscolaridad.objects.filter(institucion=institucion)
+
+    def clean(self):
+        cleaned = super().clean()
+        nivel = cleaned.get('nivel_escolaridad')
+        inst = cleaned.get('institucion') or getattr(self.instance, 'institucion', None)
+        # Defensa multi-institución: el nivel debe ser de la misma institución
+        # de la materia (bloquea manipulación del POST con un nivel de otro colegio).
+        if nivel and inst and nivel.institucion_id != inst.pk:
+            self.add_error('nivel_escolaridad', _("El nivel de escolaridad debe pertenecer a la misma institución de la materia."))
+        return cleaned
 
 
 class PeriodoAcademicoForm(forms.ModelForm):
