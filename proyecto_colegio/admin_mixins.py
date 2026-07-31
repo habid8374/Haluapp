@@ -45,11 +45,11 @@ class InstitucionScopedAdminMixin:
         if request.user.is_superuser:
             return base or None
 
-        ocultar = []
-        if '__' not in self.institucion_lookup:
-            ocultar.append(self.institucion_lookup)
+        # La institución NO se oculta: se muestra fija/bloqueada con el nombre
+        # del colegio (ver formfield_for_foreignkey). Solo se ocultan los campos
+        # de autor, que se autocompletan con el usuario en sesión.
         model_fields = {f.name for f in self.model._meta.fields}
-        ocultar += [c for c in self.CAMPOS_AUTOR if c in model_fields]
+        ocultar = [c for c in self.CAMPOS_AUTOR if c in model_fields]
 
         explicit = set(self.fields or ())
         for _n, opts in (self.fieldsets or ()):
@@ -102,23 +102,43 @@ class InstitucionScopedAdminMixin:
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """Acota TODOS los desplegables FK a la institución del usuario.
 
-        Antes solo se acotaba el campo 'institucion'. Eso dejaba fugar cualquier
-        otra FK a un modelo con institución (p. ej. «Creado por» → Usuario, o FKs
-        a Estudiante, Materia, Grado…), mostrando registros de OTROS colegios.
-        Ahora, para no-superusuarios, se filtra el queryset de cada FK cuyo modelo
-        relacionado tenga institución; los modelos globales se dejan intactos."""
+        Dos comportamientos para no-superusuarios:
+
+        1. El campo de institución ('institucion' / 'institucion_asociada') SIEMPRE
+           se ve, pero queda fijo/bloqueado en el propio colegio: el desplegable
+           solo contiene la institución del usuario, preseleccionada, y se
+           deshabilita para que no se pueda cambiar. Así en /admin/ se ve el
+           nombre del colegio (igual que en gestión académica, donde queda fijo).
+
+        2. Cualquier otra FK a un modelo con institución (p. ej. «Creado por» →
+           Usuario, o FKs a Estudiante, Materia, Grado…) se filtra al propio
+           colegio para no fugar registros de OTRAS instituciones. Los modelos
+           globales (sin campo de institución) se dejan intactos.
+
+        El superusuario conserva todos los desplegables completos."""
         if not request.user.is_superuser:
             inst = self._institucion_usuario(request)
-            related = db_field.related_model
-            campo = self._campo_institucion_de(related)
-            if campo is not None:
+            if db_field.name in ('institucion', 'institucion_asociada'):
+                # El propio campo de institución: se muestra fijo en el colegio
+                # del usuario. related_model es InstitucionEducativa (sin campo
+                # de institución), por eso se maneja explícitamente aquí.
+                from django import forms
+                related = db_field.related_model
                 if inst is not None:
-                    kwargs['queryset'] = related._default_manager.filter(**{campo: inst})
+                    kwargs['queryset'] = related._default_manager.filter(pk=inst.pk)
+                    kwargs['initial'] = inst
+                    kwargs['disabled'] = True
+                    kwargs['widget'] = forms.Select()
                 else:
                     kwargs['queryset'] = related._default_manager.none()
-                # Preseleccionar la propia institución en el campo institución.
-                if db_field.name in ('institucion', 'institucion_asociada') and inst is not None:
-                    kwargs['initial'] = inst
+            else:
+                related = db_field.related_model
+                campo = self._campo_institucion_de(related)
+                if campo is not None:
+                    if inst is not None:
+                        kwargs['queryset'] = related._default_manager.filter(**{campo: inst})
+                    else:
+                        kwargs['queryset'] = related._default_manager.none()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):

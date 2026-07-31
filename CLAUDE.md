@@ -59,6 +59,25 @@ Cada módulo, vista, modelo o modificación DEBE respetar el aislamiento por ins
 
 ---
 
+## ⚠️ REGLA CRÍTICA: DJANGO ADMIN (`/admin/`) MULTI-INSTITUCIÓN
+
+**Todo `ModelAdmin` cuyo modelo pertenezca a una institución DEBE heredar de `InstitucionScopedAdminMixin` (`proyecto_colegio/admin_mixins.py`).** Ese mixin es el único punto donde se blinda el admin; no dupliques la lógica en cada admin ni la reimplementes con `formfield_for_foreignkey` propios.
+
+Comportamiento garantizado por el mixin para usuarios NO superusuario (el superusuario conserva acceso total):
+
+1. **`get_queryset`** → solo registros de `request.user.institucion_asociada`.
+2. **Campo de institución (`institucion` / `institucion_asociada`)** → SIEMPRE se ve, pero queda **fijo/bloqueado en el propio colegio**: desplegable con una sola opción (su institución), preseleccionada y `disabled`. Así en `/admin/` se ve el nombre del colegio y no se puede cambiar (equivale al campo fijo de gestión académica). Funciona aunque el admin lo tenga en `raw_id_fields`/`autocomplete_fields`: el `Select` bloqueado gana porque Django solo aplica su widget si no hay `widget` en kwargs.
+3. **Cualquier otra FK / M2M** a un modelo con institución (Usuario, Estudiante, Materia, Grado…) → queryset filtrado al propio colegio. Cierra la fuga histórica donde «Creado por» listaba usuarios de OTROS colegios.
+4. **Campos de autor** (`CAMPOS_AUTOR = creado_por, registrado_por, publicado_por, generado_por`) → se ocultan del formulario y se autocompletan con `request.user` en `save_model`.
+5. **`save_model`** → fuerza la institución del usuario (anula manipulación del POST) y rellena los campos de autor vacíos.
+6. **`get_list_filter`** → oculta el filtro por institución (listaría nombres de otros colegios).
+
+Si el modelo no tiene FK directa `institucion`, define la ruta en el admin: `institucion_lookup = 'curso__institucion'` (o `'institucion_asociada'` para `Usuario`).
+
+Excepciones legítimas (NO usar el mixin): modelos **globales de plataforma** sin institución — `InstitucionEducativa`, `Permission`, health-checks (usan `SuperuserOnlyAdminMixin`), y tablas de referencia MEN como `DBAPredefinido` (admin normal, es catálogo público). Cualquier admin nuevo que no encaje aquí DEBE usar `InstitucionScopedAdminMixin`.
+
+---
+
 ## ⚠️ REGLA CRÍTICA: CREDENCIALES DE COMUNICACIÓN — SIEMPRE POR INSTITUCIÓN, NUNCA COMPARTIDAS
 
 **Extensión directa de la regla multi-institución de arriba, aplicada a cualquier canal de comunicación con el usuario final: correo, SMS, WhatsApp, o lo que se agregue en el futuro.**
