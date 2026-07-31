@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
+{% block cinta_institucion %}{% endblock %}
 
 {% block titulo %}{% trans "Panel de Dirección" %}{% endblock %}
 
@@ -34,10 +35,11 @@
 
 {% block contenido %}
 <!-- Hero -->
-<div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem;">
+<div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem; position:relative;">
+  {% include 'partials/hero_branding.html' %}
   <h2 style="color:#fff;"><i class="bi bi-mortarboard-fill"></i> {% trans "Panel de Dirección" %}</h2>
   <p style="color:#fff; margin-bottom:0;">
-    {% blocktrans with n=nombre_usuario %}Bienvenido(a), {{ n }}.{% endblocktrans %}{% if institucion %} · {{ institucion.nombre }}{% endif %}
+    {% blocktrans with n=nombre_usuario %}Bienvenido(a), {{ n }}.{% endblocktrans %}
   </p>
   {% if periodo_activo %}
     <p style="color:#fff; opacity:.85; margin-top:.4rem; margin-bottom:0; font-size:.85rem;">

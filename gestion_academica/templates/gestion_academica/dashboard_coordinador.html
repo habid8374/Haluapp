@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
+{% block cinta_institucion %}{% endblock %}
 {% block titulo %}{{ titulo_pagina|default:"Panel de Coordinación" }}{% endblock %}
 {% block extrastyles %}
 {{ block.super }}
@@ -263,6 +264,7 @@
 {% block contenido %}
 <div class="container-fluid mt-3">
   <div class="coord-hero">
+    {% include 'partials/hero_branding.html' %}
     <div class="ch-badge"><i class="bi bi-building-check"></i> Coordinación Académica</div>
     <div class="ch-greeting">
       {% now "H" as hora_int %}

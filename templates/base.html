@@ -260,6 +260,36 @@
             .institucion-strip-logo { width: 28px; height: 28px; }
             .institucion-strip-nombre { font-size: .85rem; }
         }
+        /* Branding del colegio DENTRO del hero (opción híbrida): logo+nombre en
+           una esquina, sobre el gradiente. El logo va en círculo blanco para
+           que se lea bien sobre cualquier color de hero. */
+        .hero-brand {
+            position: absolute; top: 1rem; right: 1.15rem; z-index: 2;
+            display: flex; align-items: center; gap: .5rem;
+            background: rgba(255, 255, 255, .16);
+            border: 1px solid rgba(255, 255, 255, .28);
+            padding: .28rem .7rem .28rem .32rem; border-radius: 999px;
+            max-width: min(52%, 320px); backdrop-filter: blur(3px);
+        }
+        .hero-brand-logo {
+            width: 30px; height: 30px; border-radius: 50%; object-fit: contain;
+            background: #fff; flex: 0 0 auto; padding: 2px;
+        }
+        .hero-brand-logo--fallback {
+            display: flex; align-items: center; justify-content: center;
+            color: #4f46e5; font-size: 1rem;
+        }
+        .hero-brand-name {
+            color: #fff; font-weight: 700; font-size: .8rem; line-height: 1.1;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, .18);
+        }
+        @media (max-width: 575.98px) {
+            .hero-brand {
+                position: static; margin-bottom: .9rem; max-width: 100%;
+                background: rgba(255, 255, 255, .2);
+            }
+        }
     </style>
     {% block extrastyles %}{% endblock %}
 </head>
@@ -411,6 +441,7 @@
     </script>
     {% endif %}
     <main class="container">
+        {% block cinta_institucion %}
         {% if user.is_authenticated and institucion_actual %}
         <div class="institucion-strip">
             {% if institucion_actual.logo %}
@@ -424,6 +455,7 @@
             </span>
         </div>
         {% endif %}
+        {% endblock cinta_institucion %}
         <div class="mt-4">
             {% block contenido %}
                 <p>Bienvenido. Selecciona una opción del menú para comenzar.</p>

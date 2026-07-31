@@ -1,0 +1,13 @@
+{% load i18n %}
+{# Logo + nombre del colegio para incrustar en una esquina del hero (opción #}
+{# híbrida). En páginas con hero se usa esto y se oculta la cinta global. #}
+{% if institucion_actual %}
+<div class="hero-brand">
+  {% if institucion_actual.logo %}
+    <img src="{{ institucion_actual.logo.url }}" alt="{{ institucion_actual.nombre }}" class="hero-brand-logo">
+  {% else %}
+    <span class="hero-brand-logo hero-brand-logo--fallback"><i class="bi bi-building"></i></span>
+  {% endif %}
+  <span class="hero-brand-name">{{ institucion_actual.nombre }}</span>
+</div>
+{% endif %}

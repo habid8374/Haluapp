@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% block cinta_institucion %}{% endblock %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}
 {{ block.super }}
@@ -150,6 +151,7 @@
 {% block contenido %}
 <div class="container-fluid mt-3">
   <div class="fam-hero">
+    {% include 'partials/hero_branding.html' %}
     <div class="hero-badge"><i class="bi bi-house-heart-fill"></i> Portal Familiar</div>
     <div class="hero-greeting">
       ¡Bienvenido/a, {{ familiar.usuario.first_name|default:familiar.usuario.get_full_name }}! 👪

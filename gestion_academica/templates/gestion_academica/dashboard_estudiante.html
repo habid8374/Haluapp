@@ -3,6 +3,8 @@
 {% load static %}
 {% load horario_filters %}
 {% load tz %}
+{# Hero con branding del colegio → se oculta la cinta global aquí. #}
+{% block cinta_institucion %}{% endblock %}
 {% block titulo %}{% if titulo_pagina %}{{ titulo_pagina }}{% else %}{% trans "Mi Panel de Estudiante" %}{% endif %}{% endblock %}
 {% block extrastyles %}
 {{ block.super }}
@@ -289,6 +291,7 @@
   </div>
   {% endif %}
   <div class="est-hero">
+    {% include 'partials/hero_branding.html' %}
     <div class="hero-badge"><i class="bi bi-mortarboard-fill"></i> {% trans "Estudiante" %} · {% if estudiante.grado_actual.nombre %}{{ estudiante.grado_actual.nombre }}{% else %}{% trans "Sin grado asignado" %}{% endif %}</div>
     <div class="hero-greeting">{% blocktrans with nombre=estudiante.usuario.first_name|default:estudiante.usuario.username %}¡Hola, {{ nombre }}! 👋{% endblocktrans %}</div>
     <div class="hero-sub" id="est-live-date">{% trans "Cargando fecha…" %}</div>

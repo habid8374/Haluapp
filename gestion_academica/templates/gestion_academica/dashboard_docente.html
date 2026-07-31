@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load static %}
 {% load horario_filters %}
+{% block cinta_institucion %}{% endblock %}
 {% load tz %}
 {% block titulo %}{% trans "Panel de Docente" as titulo_docente_default %}{{ titulo_pagina|default:titulo_docente_default }}{% endblock %}
 {% block extrastyles %}
@@ -372,6 +373,7 @@
 {% block contenido %}
 <div class="container-fluid mt-3">
   <div class="doc-hero">
+    {% include 'partials/hero_branding.html' %}
     <div class="hero-badge"><i class="bi bi-person-video3"></i> {% trans "Docente · Panel de Control" %}</div>
     <div class="hero-greeting">
       {% now "H" as hora_int %}
