@@ -91,9 +91,17 @@
                 </td>
                 {% if ve_menu_staff %}
                 <td class="pe-4 py-3 text-center text-nowrap">
-                  <a href="{% url 'admin:gestion_academica_familiar_change' item.familiar.pk %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Editar' %}">
+                  <a href="{% url 'gestion_academica:editar_familiar' item.familiar.pk %}" class="btn btn-sm btn-outline-primary me-1" title="{% trans 'Editar' %}">
                     <i class="bi bi-pencil-fill"></i>
                   </a>
+                  {% if request.user.is_superuser %}
+                  <button type="button" class="btn btn-sm btn-outline-danger btn-del-fam"
+                          data-action="{% url 'gestion_academica:eliminar_familiar' item.familiar.pk %}"
+                          data-nombre="{{ item.familiar.usuario.get_full_name|default:item.familiar.usuario.username }}"
+                          data-bs-toggle="modal" data-bs-target="#modalDelFam" title="{% trans 'Eliminar' %}">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                  {% endif %}
                 </td>
                 {% endif %}
               </tr>
@@ -120,5 +128,41 @@
   </a>
   {% endif %}
 </div>
+{% endif %}
+
+{% if request.user.is_superuser %}
+<!-- Modal compartido de eliminación (solo superusuario) -->
+<div class="modal fade" id="modalDelFam" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">{% trans "¿Eliminar este familiar?" %}</h5>
+        <p id="del-fam-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Se eliminará su cuenta de acceso. Los estudiantes NO se borran, solo se desvinculan. Esta acción no se puede deshacer." %}</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="del-fam-form" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll('.btn-del-fam').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.getElementById('del-fam-form').action = this.dataset.action;
+      document.getElementById('del-fam-nombre').textContent = this.dataset.nombre || '';
+    });
+  });
+</script>
 {% endif %}
 {% endblock %}

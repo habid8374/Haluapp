@@ -7741,6 +7741,53 @@ def lista_familiares(request):
     return render(request, 'gestion_academica/lista_familiares.html', context)
 
 @login_required
+@permission_required('gestion_academica.change_familiar')
+def editar_familiar(request, pk):
+    """Edita el perfil de un familiar y sus datos de cuenta, dentro de la
+    plataforma (sin ir al /admin/). Scoped multi-institución."""
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    fam_qs = Familiar.objects.all() if request.user.is_superuser else Familiar.objects.filter(institucion=institucion)
+    familiar = get_object_or_404(fam_qs.select_related('usuario'), pk=pk)
+    usuario = familiar.usuario
+
+    if request.method == 'POST':
+        familiar_form = FamiliarForm(request.POST, instance=familiar, prefix='fam', request=request)
+        if familiar_form.is_valid():
+            usuario.first_name = (request.POST.get('first_name') or '').strip()
+            usuario.last_name = (request.POST.get('last_name') or '').strip()
+            usuario.email = (request.POST.get('email') or '').strip()
+            usuario.save(update_fields=['first_name', 'last_name', 'email'])
+            familiar_form.save()
+            messages.success(request, f"Familiar «{usuario.get_full_name() or usuario.username}» actualizado correctamente.")
+            return redirect('gestion_academica:lista_familiares')
+    else:
+        familiar_form = FamiliarForm(instance=familiar, prefix='fam', request=request)
+
+    context = {
+        'titulo_pagina': f"Editar Familiar: {usuario.get_full_name() or usuario.username}",
+        'familiar_form': familiar_form,
+        'familiar': familiar,
+        'usuario': usuario,
+    }
+    return render(request, 'gestion_academica/familiar_editar.html', context)
+
+@login_required
+def eliminar_familiar(request, pk):
+    """Elimina un familiar (su cuenta y perfil). SOLO el superusuario."""
+    if not request.user.is_superuser:
+        messages.error(request, "Solo el superusuario puede eliminar familiares.")
+        return redirect('gestion_academica:lista_familiares')
+    if request.method != 'POST':
+        return redirect('gestion_academica:lista_familiares')
+    familiar = get_object_or_404(Familiar.objects.select_related('usuario'), pk=pk)
+    nombre = familiar.usuario.get_full_name() or familiar.usuario.username
+    # Al borrar la cuenta de usuario se elimina en cascada el perfil de familiar
+    # y sus asociaciones; los estudiantes NO se borran (solo se desvinculan).
+    familiar.usuario.delete()
+    messages.success(request, f"Se eliminó el familiar «{nombre}».")
+    return redirect('gestion_academica:lista_familiares')
+
+@login_required
 def dashboard_coordinador_view(request):
     """
     Muestra el panel principal para Coordinadores y Administradores.

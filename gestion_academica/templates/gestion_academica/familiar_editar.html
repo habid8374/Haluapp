@@ -1,0 +1,124 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina|default:"Editar Familiar" }}{% endblock %}
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;">
+  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-person-heart me-2"></i>{% trans "Editar Familiar" %}</h2>
+  <p class="mb-0" style="color:#fff;opacity:.85;font-size:.9rem;">{{ usuario.get_full_name|default:usuario.username }}</p>
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="card border-0 shadow-sm mb-3" style="border-radius:14px;">
+    <div class="card-header bg-light fw-bold" style="border:none;border-radius:14px 14px 0 0;color:#4f46e5;">
+      <i class="bi bi-person-badge me-1"></i>{% trans "Datos de la cuenta" %}
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">{% trans "Nombres" %}</label>
+          <input type="text" name="first_name" class="form-control" value="{{ usuario.first_name }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">{% trans "Apellidos" %}</label>
+          <input type="text" name="last_name" class="form-control" value="{{ usuario.last_name }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">{% trans "Correo electrónico" %}</label>
+          <input type="email" name="email" class="form-control" value="{{ usuario.email }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold text-muted">{% trans "Usuario (no editable)" %}</label>
+          <input type="text" class="form-control" value="{{ usuario.username }}" disabled>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3" style="border-radius:14px;">
+    <div class="card-header bg-light fw-bold" style="border:none;border-radius:14px 14px 0 0;color:#4f46e5;">
+      <i class="bi bi-people me-1"></i>{% trans "Perfil del familiar" %}
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">{% trans "Parentesco" %}</label>
+          {{ familiar_form.parentesco }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">{% trans "Teléfono" %}</label>
+          {{ familiar_form.telefono }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">{{ familiar_form.tipo_documento.label }}</label>
+          {{ familiar_form.tipo_documento }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">{{ familiar_form.documento_identidad.label }}</label>
+          {{ familiar_form.documento_identidad }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">{{ familiar_form.ocupacion.label }}</label>
+          {{ familiar_form.ocupacion }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">{{ familiar_form.lugar_trabajo.label }}</label>
+          {{ familiar_form.lugar_trabajo }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">{{ familiar_form.direccion.label }}</label>
+          {{ familiar_form.direccion }}
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-semibold">{% trans "Estudiante(s) asociado(s)" %}</label>
+          {{ familiar_form.estudiantes_asociados }}
+          <div class="form-text" style="font-size:.72rem;">{% trans "Mantén Ctrl (o Cmd) para seleccionar varios." %}</div>
+        </div>
+      </div>
+      {% for field in familiar_form %}
+        {% for e in field.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ field.label }}: {{ e }}</div>{% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <a href="{% url 'gestion_academica:lista_familiares' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Volver" %}</a>
+    <div class="d-flex gap-2">
+      {% if request.user.is_superuser %}
+      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarFamiliar">
+        <i class="bi bi-trash-fill me-1"></i>{% trans "Eliminar familiar" %}
+      </button>
+      {% endif %}
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle-fill me-1"></i>{% trans "Guardar cambios" %}</button>
+    </div>
+  </div>
+</form>
+
+{% if request.user.is_superuser %}
+<!-- Modal de confirmación de eliminación (solo superusuario) -->
+<div class="modal fade" id="modalEliminarFamiliar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">{% trans "¿Eliminar este familiar?" %}</h5>
+        <p class="text-muted mb-0" style="font-size:.85rem;">{{ usuario.get_full_name|default:usuario.username }}</p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Se eliminará su cuenta de acceso. Los estudiantes NO se borran, solo se desvinculan. Esta acción no se puede deshacer." %}</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form method="post" action="{% url 'gestion_academica:eliminar_familiar' familiar.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
