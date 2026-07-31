@@ -6931,10 +6931,13 @@ def coordinador_descargar_plantilla_descriptores(request):
         messages.error(request, _("Tu usuario no tiene institución asociada."))
         return redirect('gestion_academica:coordinador_lista_descriptores')
 
-    materias = Materia.objects.filter(institucion=institucion).order_by('nombre_materia')
-    grados = Grado.objects.filter(institucion=institucion).order_by('nombre')
-    dimensiones = DimensionDesarrollo.objects.filter(institucion=institucion).order_by('nombre')
-    periodos = PeriodoAcademico.objects.filter(institucion=institucion).order_by('nombre')
+    # Nombres ÚNICOS (distinct) de cada catálogo del colegio, para que los
+    # desplegables no muestren repetidos (p. ej. periodos con el mismo nombre en
+    # distintos años) y para que el match por nombre al importar no choque.
+    materia_nombres = list(Materia.objects.filter(institucion=institucion).values_list('nombre_materia', flat=True).distinct().order_by('nombre_materia'))
+    grado_nombres = list(Grado.objects.filter(institucion=institucion).values_list('nombre', flat=True).distinct().order_by('nombre'))
+    dimension_nombres = list(DimensionDesarrollo.objects.filter(institucion=institucion).values_list('nombre', flat=True).distinct().order_by('nombre'))
+    periodo_nombres = list(PeriodoAcademico.objects.filter(institucion=institucion).values_list('nombre', flat=True).distinct().order_by('nombre'))
 
     workbook = Workbook()
 
@@ -6942,23 +6945,23 @@ def coordinador_descargar_plantilla_descriptores(request):
     # que es lo que el usuario reconoce (igual que el grado): sin códigos.
     sheet_mat = workbook.create_sheet(title="Data_Asignaturas")
     sheet_mat.append(['ASIGNATURA'])
-    for m in materias:
-        sheet_mat.append([m.nombre_materia])
+    for nombre in materia_nombres:
+        sheet_mat.append([nombre])
 
     sheet_grados = workbook.create_sheet(title="Data_Grados")
     sheet_grados.append(['GRADO'])
-    for g in grados:
-        sheet_grados.append([g.nombre])
+    for nombre in grado_nombres:
+        sheet_grados.append([nombre])
 
     sheet_dim = workbook.create_sheet(title="Data_Dimensiones")
     sheet_dim.append(['DIMENSION'])
-    for d in dimensiones:
-        sheet_dim.append([d.nombre])
+    for nombre in dimension_nombres:
+        sheet_dim.append([nombre])
 
     sheet_periodos = workbook.create_sheet(title="Data_Periodos")
     sheet_periodos.append(['PERIODO'])
-    for p in periodos:
-        sheet_periodos.append([p.nombre])
+    for nombre in periodo_nombres:
+        sheet_periodos.append([nombre])
 
     # Hoja principal. Columnas: A asignatura, B grado, C dimensión, D periodo,
     # E texto. Todas se eligen por NOMBRE en desplegables. GRADO y DIMENSIÓN
@@ -6968,26 +6971,26 @@ def coordinador_descargar_plantilla_descriptores(request):
     sheet.append(['ASIGNATURA', 'GRADO', 'DIMENSION', 'PERIODO', 'TEXTO_DESCRIPTOR'])
 
     # Desplegable de asignaturas por nombre (columna A).
-    if materias.exists():
-        dv_materia = DataValidation(type="list", formula1=f"=Data_Asignaturas!$A$2:$A${materias.count() + 1}")
+    if materia_nombres:
+        dv_materia = DataValidation(type="list", formula1=f"=Data_Asignaturas!$A$2:$A${len(materia_nombres) + 1}")
         sheet.add_data_validation(dv_materia)
         dv_materia.add('A2:A1000')
 
     # Desplegable de grados (columna B) — opcional; en blanco = aplica a todos.
-    if grados.exists():
-        dv_grado = DataValidation(type="list", formula1=f"=Data_Grados!$A$2:$A${grados.count() + 1}")
+    if grado_nombres:
+        dv_grado = DataValidation(type="list", formula1=f"=Data_Grados!$A$2:$A${len(grado_nombres) + 1}")
         sheet.add_data_validation(dv_grado)
         dv_grado.add('B2:B1000')
 
     # Desplegable de dimensiones (columna C) — opcional; solo preescolar.
-    if dimensiones.exists():
-        dv_dim = DataValidation(type="list", formula1=f"=Data_Dimensiones!$A$2:$A${dimensiones.count() + 1}")
+    if dimension_nombres:
+        dv_dim = DataValidation(type="list", formula1=f"=Data_Dimensiones!$A$2:$A${len(dimension_nombres) + 1}")
         sheet.add_data_validation(dv_dim)
         dv_dim.add('C2:C1000')
 
     # Desplegable de periodos (columna D), tomado de los periodos reales del colegio.
-    if periodos.exists():
-        dv_periodo = DataValidation(type="list", formula1=f"=Data_Periodos!$A$2:$A${periodos.count() + 1}")
+    if periodo_nombres:
+        dv_periodo = DataValidation(type="list", formula1=f"=Data_Periodos!$A$2:$A${len(periodo_nombres) + 1}")
         sheet.add_data_validation(dv_periodo)
         dv_periodo.add('D2:D1000')
 
@@ -12413,28 +12416,38 @@ class CoordinadorDescriptorListView(LoginRequiredMixin, PermissionRequiredMixin,
             periodo_str = str(row['PERIODO']).strip()
             asignatura_val = str(row[col_asignatura]).strip()
             try:
+                # Todos los campos se resuelven por NOMBRE contra la BD de la
+                # institución con filter().first(): si por casualidad hubiera dos
+                # registros con el mismo nombre, se toma uno en vez de reventar
+                # la importación (nada "choca" por el nombre).
                 if por_codigo:
-                    materia_obj = Materia.objects.get(codigo_materia=asignatura_val, institucion=institucion_actual)
+                    materia_obj = Materia.objects.filter(codigo_materia=asignatura_val, institucion=institucion_actual).first()
                 else:
-                    materia_obj = Materia.objects.get(nombre_materia=asignatura_val, institucion=institucion_actual)
-                periodo_obj = PeriodoAcademico.objects.get(
-                    nombre=periodo_str, institucion=institucion_actual,
-                )
+                    materia_obj = Materia.objects.filter(nombre_materia=asignatura_val, institucion=institucion_actual).first()
+                if materia_obj is None:
+                    messages.warning(request, _("Fila %(n)s: La asignatura '%(c)s' no existe en tu institución.") % {'n': index + 2, 'c': asignatura_val})
+                    continue
+
+                # El periodo puede repetir nombre entre años; se prefiere el
+                # activo y, si no hay, el del año más reciente.
+                periodo_qs = PeriodoAcademico.objects.filter(nombre=periodo_str, institucion=institucion_actual)
+                periodo_obj = periodo_qs.filter(activo=True).first() or periodo_qs.order_by('-año_escolar').first()
+                if periodo_obj is None:
+                    messages.warning(request, _("Fila %(n)s: El periodo '%(p)s' no existe en tu institución.") % {'n': index + 2, 'p': periodo_str})
+                    continue
 
                 grado_obj = None
                 if tiene_grado and not pd.isna(row['GRADO']) and str(row['GRADO']).strip():
                     grado_nombre = str(row['GRADO']).strip()
-                    try:
-                        grado_obj = Grado.objects.get(nombre=grado_nombre, institucion=institucion_actual)
-                    except Grado.DoesNotExist:
+                    grado_obj = Grado.objects.filter(nombre=grado_nombre, institucion=institucion_actual).first()
+                    if grado_obj is None:
                         messages.warning(request, _("Fila %(n)s: El grado '%(g)s' no existe en tu institución; el descriptor se creó sin grado.") % {'n': index + 2, 'g': grado_nombre})
 
                 dimension_obj = None
                 if tiene_dimension and not pd.isna(row['DIMENSION']) and str(row['DIMENSION']).strip():
                     dimension_nombre = str(row['DIMENSION']).strip()
-                    try:
-                        dimension_obj = DimensionDesarrollo.objects.get(nombre=dimension_nombre, institucion=institucion_actual)
-                    except DimensionDesarrollo.DoesNotExist:
+                    dimension_obj = DimensionDesarrollo.objects.filter(nombre=dimension_nombre, institucion=institucion_actual).first()
+                    if dimension_obj is None:
                         messages.warning(request, _("Fila %(n)s: La dimensión '%(d)s' no existe en tu institución; el descriptor se creó sin dimensión.") % {'n': index + 2, 'd': dimension_nombre})
 
                 DescriptorLogro.objects.create(
@@ -12447,10 +12460,6 @@ class CoordinadorDescriptorListView(LoginRequiredMixin, PermissionRequiredMixin,
                     institucion=institucion_actual,
                 )
                 creados += 1
-            except Materia.DoesNotExist:
-                messages.warning(request, _("Fila %(n)s: La asignatura '%(c)s' no existe en tu institución.") % {'n': index + 2, 'c': asignatura_val})
-            except PeriodoAcademico.DoesNotExist:
-                messages.warning(request, _("Fila %(n)s: El periodo '%(p)s' no existe en tu institución.") % {'n': index + 2, 'p': periodo_str})
             except Exception as e:
                 messages.error(request, _("Fila %(n)s: Ocurrió un error inesperado al procesar esta fila. Error: %(e)s") % {'n': index + 2, 'e': e})
 
