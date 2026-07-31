@@ -103,6 +103,14 @@
 {% block extra_js %}
 {{ block.super }}
 <script>
+function _toastAspirante(msg, tipo) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    const bg = tipo === 'error' ? '#dc2626' : '#1e293b';
+    t.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:' + bg + ';color:white;padding:.75rem 1.25rem;border-radius:10px;font-size:.85rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:340px;';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), tipo === 'error' ? 6000 : 4000);
+}
 // Pequeña función de JavaScript para manejar la acción de copiar
 function copiarAlPortapapeles(inputId, buttonElement) {
     const linkInput = document.getElementById(inputId);
@@ -116,7 +124,7 @@ function copiarAlPortapapeles(inputId, buttonElement) {
         }, 2000);
     } catch (err) {
         // Fallback por si execCommand no es soportado
-        alert('Error al copiar el enlace. Por favor, cópielo manualmente.');
+        _toastAspirante('No se pudo copiar el enlace. Cópielo manualmente.', 'error');
     }
 }
 </script>

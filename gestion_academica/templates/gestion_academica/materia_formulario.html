@@ -107,10 +107,18 @@ document.addEventListener('DOMContentLoaded', function () {
   const inputNombreEs  = document.querySelector('[name="nombre_materia"]');
   const inputNombreL2  = document.querySelector('[name="nombre_idioma_secundario"]');
   if (!btnSugerir) return;
+  function showToast(msg, tipo) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    const bg = tipo === 'error' ? '#dc2626' : '#1e293b';
+    t.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:' + bg + ';color:white;padding:.75rem 1.25rem;border-radius:10px;font-size:.85rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:340px;';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), tipo === 'error' ? 6000 : 4000);
+  }
   btnSugerir.addEventListener('click', function () {
     const nombreEs = inputNombreEs ? inputNombreEs.value.trim() : '';
     if (!nombreEs) {
-      alert('Escribe primero el nombre de la materia en español.');
+      showToast('Escribe primero el nombre de la materia en español.', 'error');
       return;
     }
     btnTexto.style.display   = 'none';
@@ -128,10 +136,10 @@ document.addEventListener('DOMContentLoaded', function () {
         inputNombreL2.style.background = '#f0fdf4';
         setTimeout(() => { inputNombreL2.style.background = ''; }, 1500);
       } else {
-        alert('Error: ' + (data.error || 'Respuesta inesperada.'));
+        showToast('⚠️ ' + (data.error || 'Respuesta inesperada de la IA.'), 'error');
       }
     })
-    .catch(() => alert('Error de red. Intenta de nuevo.'))
+    .catch(() => showToast('⚠️ Error de red. Intenta de nuevo.', 'error'))
     .finally(() => {
       btnTexto.style.display   = 'inline';
       btnLoading.style.display = 'none';

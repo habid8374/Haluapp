@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (fila.dataset.tieneL2 === '0') pks.push(parseInt(fila.dataset.pk));
     });
     if (pks.length === 0) {
-      alert('Todas las materias en esta página ya tienen nombre en {{ idioma_secundario }}.');
+      showToast('Todas las materias ya tienen nombre en {{ idioma_secundario }}.');
       return;
     }
     document.getElementById('btn-todas-texto').style.display  = 'none';
@@ -151,10 +151,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Guardar automáticamente vía PATCH individual
         guardarSugerencias(data.sugerencias, actualizadas);
       } else {
-        alert('Error: ' + (data.error || 'Respuesta inesperada.'));
+        showToast('⚠️ ' + (data.error || 'Respuesta inesperada de la IA.'), 'error');
       }
     })
-    .catch(() => alert('Error de red. Intenta de nuevo.'))
+    .catch(() => showToast('⚠️ Error de red. Intenta de nuevo.', 'error'))
     .finally(() => {
       document.getElementById('btn-todas-texto').style.display  = 'inline';
       document.getElementById('btn-todas-loading').style.display = 'none';
@@ -175,12 +175,13 @@ document.addEventListener('DOMContentLoaded', function () {
     })
     .catch(() => showToast('⚠️ Las sugerencias se muestran pero no se pudieron guardar.'));
   }
-  function showToast(msg) {
+  function showToast(msg, tipo) {
     const t = document.createElement('div');
     t.textContent = msg;
-    t.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:white;padding:.75rem 1.25rem;border-radius:10px;font-size:.85rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);';
+    const bg = tipo === 'error' ? '#dc2626' : '#1e293b';
+    t.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:' + bg + ';color:white;padding:.75rem 1.25rem;border-radius:10px;font-size:.85rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:340px;';
     document.body.appendChild(t);
-    setTimeout(() => t.remove(), 4000);
+    setTimeout(() => t.remove(), tipo === 'error' ? 6000 : 4000);
   }
   function getCookie(name) {
     let v = null;
