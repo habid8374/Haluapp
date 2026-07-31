@@ -25,88 +25,75 @@
     </div>
   </div>
 </div>
-{% if materias %}
-<div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
-  <div class="table-responsive">
-    <table class="table table-hover mb-0" style="font-size:.88rem;">
-      <thead style="background:#f8f9ff;">
-        <tr>
-          <th class="ps-4 py-3" style="color:#4f46e5;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">Materia</th>
-          {% if es_bilingue %}
-          <th class="py-3" style="color:#0369a1;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">
-            <i class="bi bi-translate me-1"></i>{{ idioma_secundario }}
-          </th>
-          <th class="py-3" style="color:#0369a1;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">Idioma Instrucción</th>
-          {% endif %}
-          <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">Código</th>
-          <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">Descripción</th>
-          <th class="pe-4 py-3 text-center" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for materia_obj in materias %}
-        <tr data-pk="{{ materia_obj.pk }}" data-nombre-es="{{ materia_obj.nombre_materia }}" data-tiene-l2="{{ materia_obj.nombre_idioma_secundario|yesno:'1,0' }}">
-          <td class="ps-4 py-3 fw-semibold" style="color:#1e293b;">
-            {{ materia_obj.nombre_materia }}
-            {% if materia_obj.nivel_escolaridad %}
-            <span style="background:#eef2ff;color:#4f46e5;border-radius:6px;padding:.15rem .5rem;font-size:.7rem;font-weight:700;margin-left:.4rem;white-space:nowrap;">{{ materia_obj.nivel_escolaridad.nombre }}</span>
-            {% endif %}
-          </td>
-          {% if es_bilingue %}
-          <td class="py-3 celda-nombre-l2" style="color:#0369a1;">
-            {{ materia_obj.nombre_idioma_secundario|default:"—" }}
-          </td>
-          <td class="py-3">
-            {% if materia_obj.idioma_instruccion != 'es' %}
-            <span style="background:#e0f2fe;color:#0369a1;border-radius:6px;padding:.2rem .6rem;font-size:.75rem;font-weight:600;">
-              <i class="bi bi-translate me-1"></i>{{ materia_obj.get_idioma_instruccion_display }}
-            </span>
-            {% else %}
-            <span style="background:#f1f5f9;color:#64748b;border-radius:6px;padding:.2rem .6rem;font-size:.75rem;">Español</span>
-            {% endif %}
-          </td>
-          {% endif %}
-          <td class="py-3" style="color:#64748b;">{{ materia_obj.codigo_materia|default:"—" }}</td>
-          <td class="py-3" style="color:#64748b;">{{ materia_obj.descripcion|truncatewords:12|default:"—" }}</td>
-          <td class="pe-4 py-3 text-center text-nowrap">
-            {% if perms.gestion_academica.change_materia %}
-            <a href="{% url 'gestion_academica:editar_materia' materia_obj.pk %}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
-              <i class="bi bi-pencil-fill"></i>
-            </a>
-            {% endif %}
-            {% if perms.gestion_academica.delete_materia %}
-            <a href="{% url 'gestion_academica:eliminar_materia' materia_obj.pk %}" class="btn btn-sm btn-outline-danger" title="Eliminar">
-              <i class="bi bi-trash-fill"></i>
-            </a>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+{% if materias_por_nivel %}
+<div class="accordion" id="accMaterias">
+  {% for grupo in materias_por_nivel %}
+  {% with gid=forloop.counter %}
+  <div class="accordion-item shadow-sm mb-2" style="border:none;border-radius:12px;overflow:hidden;">
+    <h2 class="accordion-header">
+      <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-semibold"
+              type="button" data-bs-toggle="collapse" data-bs-target="#nivel-{{ gid }}"
+              aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+              style="{% if not grupo.nivel %}background:#fff7ed;color:#b45309;{% else %}background:#f5f3ff;color:#4f46e5;{% endif %}">
+        <i class="bi {% if grupo.nivel %}bi-mortarboard-fill{% else %}bi-exclamation-triangle-fill{% endif %} me-2"></i>
+        {% if grupo.nivel %}{{ grupo.nivel.nombre }}{% else %}Sin nivel asignado{% endif %}
+        <span class="badge rounded-pill ms-2" style="background:{% if grupo.nivel %}#ede9fe;color:#4f46e5{% else %}#fed7aa;color:#b45309{% endif %};">{{ grupo.materias|length }}</span>
+      </button>
+    </h2>
+    <div id="nivel-{{ gid }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#accMaterias">
+      <div class="accordion-body p-0">
+        {% if not grupo.nivel %}
+        <div class="px-3 pt-3"><div class="alert alert-warning py-2 mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>Estas materias no tienen nivel. Edítalas y asígnales uno para que queden organizadas.</div></div>
+        {% endif %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:.88rem;">
+            <thead style="background:#f8f9ff;">
+              <tr>
+                <th class="ps-4 py-3" style="color:#4f46e5;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">Materia</th>
+                {% if es_bilingue %}
+                <th class="py-3" style="color:#0369a1;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;"><i class="bi bi-translate me-1"></i>{{ idioma_secundario }}</th>
+                <th class="py-3" style="color:#0369a1;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">Idioma Instrucción</th>
+                {% endif %}
+                <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">Código</th>
+                <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">Descripción</th>
+                <th class="pe-4 py-3 text-center" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for materia_obj in grupo.materias %}
+              <tr data-pk="{{ materia_obj.pk }}" data-nombre-es="{{ materia_obj.nombre_materia }}" data-tiene-l2="{{ materia_obj.nombre_idioma_secundario|yesno:'1,0' }}">
+                <td class="ps-4 py-3 fw-semibold" style="color:#1e293b;">{{ materia_obj.nombre_materia }}</td>
+                {% if es_bilingue %}
+                <td class="py-3 celda-nombre-l2" style="color:#0369a1;">{{ materia_obj.nombre_idioma_secundario|default:"—" }}</td>
+                <td class="py-3">
+                  {% if materia_obj.idioma_instruccion != 'es' %}
+                  <span style="background:#e0f2fe;color:#0369a1;border-radius:6px;padding:.2rem .6rem;font-size:.75rem;font-weight:600;"><i class="bi bi-translate me-1"></i>{{ materia_obj.get_idioma_instruccion_display }}</span>
+                  {% else %}
+                  <span style="background:#f1f5f9;color:#64748b;border-radius:6px;padding:.2rem .6rem;font-size:.75rem;">Español</span>
+                  {% endif %}
+                </td>
+                {% endif %}
+                <td class="py-3" style="color:#64748b;">{{ materia_obj.codigo_materia|default:"—" }}</td>
+                <td class="py-3" style="color:#64748b;">{{ materia_obj.descripcion|truncatewords:12|default:"—" }}</td>
+                <td class="pe-4 py-3 text-center text-nowrap">
+                  {% if perms.gestion_academica.change_materia %}
+                  <a href="{% url 'gestion_academica:editar_materia' materia_obj.pk %}" class="btn btn-sm btn-outline-primary me-1" title="Editar"><i class="bi bi-pencil-fill"></i></a>
+                  {% endif %}
+                  {% if perms.gestion_academica.delete_materia %}
+                  <a href="{% url 'gestion_academica:eliminar_materia' materia_obj.pk %}" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash-fill"></i></a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
+  {% endwith %}
+  {% endfor %}
 </div>
-{% if is_paginated %}
-<nav class="mt-4">
-  <ul class="pagination justify-content-center">
-    {% if page_obj.has_previous %}
-      <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
-    {% else %}
-      <li class="page-item disabled"><span class="page-link">Anterior</span></li>
-    {% endif %}
-    {% for i in paginator.page_range %}
-      <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
-      </li>
-    {% endfor %}
-    {% if page_obj.has_next %}
-      <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
-    {% else %}
-      <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
-    {% endif %}
-  </ul>
-</nav>
-{% endif %}
 {% else %}
 <div class="card border-0 shadow-sm text-center py-5" style="border-radius:16px;">
   <i class="bi bi-book" style="font-size:2.5rem;color:#c7d2fe;"></i>

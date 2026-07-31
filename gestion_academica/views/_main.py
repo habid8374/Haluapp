@@ -1192,10 +1192,14 @@ class MateriaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = 'gestion_academica/materia_lista.html'
     context_object_name = 'materias'
     permission_required = 'gestion_academica.view_materia'
-    paginate_by = 15
+    # Sin paginación: se agrupan todas las materias por nivel en un acordeón.
 
     def get_queryset(self):
-        base_queryset = super().get_queryset().order_by('nombre_materia')
+        base_queryset = (
+            super().get_queryset()
+            .select_related('nivel_escolaridad')
+            .order_by('nivel_escolaridad__orden', 'nombre_materia')
+        )
         return get_filtered_queryset(self.model, self.request.user, base_queryset)
 
     def get_context_data(self, **kwargs):
@@ -1204,6 +1208,21 @@ class MateriaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         inst = getattr(self.request.user, 'institucion_asociada', None)
         context['es_bilingue'] = getattr(inst, 'es_bilingue', False)
         context['idioma_secundario'] = getattr(inst, 'get_idioma_secundario_display', lambda: 'Inglés')()
+
+        # Agrupar por nivel de escolaridad para el acordeón. Las materias sin
+        # nivel asignado van en un grupo al final (para que el coordinador las
+        # detecte y les ponga nivel).
+        from collections import OrderedDict
+        grupos = OrderedDict()
+        for m in context['materias']:
+            key = m.nivel_escolaridad_id
+            if key not in grupos:
+                grupos[key] = {'nivel': m.nivel_escolaridad, 'materias': []}
+            grupos[key]['materias'].append(m)
+        context['materias_por_nivel'] = sorted(
+            grupos.values(),
+            key=lambda g: (g['nivel'] is None, (g['nivel'].orden if g['nivel'] else 9999) or 9999),
+        )
         return context
 
 class MateriaCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
