@@ -6938,11 +6938,12 @@ def coordinador_descargar_plantilla_descriptores(request):
 
     workbook = Workbook()
 
-    # Hojas de datos ocultas que alimentan los desplegables.
+    # Hojas de datos ocultas que alimentan los desplegables. Todas por NOMBRE,
+    # que es lo que el usuario reconoce (igual que el grado): sin códigos.
     sheet_mat = workbook.create_sheet(title="Data_Asignaturas")
-    sheet_mat.append(['CODIGO_ASIGNATURA', 'NOMBRE_ASIGNATURA'])
+    sheet_mat.append(['ASIGNATURA'])
     for m in materias:
-        sheet_mat.append([m.codigo_materia, m.nombre_materia])
+        sheet_mat.append([m.nombre_materia])
 
     sheet_grados = workbook.create_sheet(title="Data_Grados")
     sheet_grados.append(['GRADO'])
@@ -6959,39 +6960,36 @@ def coordinador_descargar_plantilla_descriptores(request):
     for p in periodos:
         sheet_periodos.append([p.nombre])
 
-    # Hoja principal. Columnas: A código, B nombre (auto), C grado, D dimensión,
-    # E periodo, F texto. GRADO y DIMENSIÓN son opcionales.
+    # Hoja principal. Columnas: A asignatura, B grado, C dimensión, D periodo,
+    # E texto. Todas se eligen por NOMBRE en desplegables. GRADO y DIMENSIÓN
+    # son opcionales (en blanco = no aplica).
     sheet = workbook.active
     sheet.title = "PLANTILLA_BANCO_DE_LOGROS"
-    sheet.append(['CODIGO_ASIGNATURA', 'NOMBRE_ASIGNATURA', 'GRADO', 'DIMENSION', 'PERIODO', 'TEXTO_DESCRIPTOR'])
+    sheet.append(['ASIGNATURA', 'GRADO', 'DIMENSION', 'PERIODO', 'TEXTO_DESCRIPTOR'])
 
-    # Desplegable de materias (columna A).
+    # Desplegable de asignaturas por nombre (columna A).
     if materias.exists():
         dv_materia = DataValidation(type="list", formula1=f"=Data_Asignaturas!$A$2:$A${materias.count() + 1}")
         sheet.add_data_validation(dv_materia)
         dv_materia.add('A2:A1000')
 
-    # Desplegable de grados (columna C) — opcional; en blanco = aplica a todos.
+    # Desplegable de grados (columna B) — opcional; en blanco = aplica a todos.
     if grados.exists():
         dv_grado = DataValidation(type="list", formula1=f"=Data_Grados!$A$2:$A${grados.count() + 1}")
         sheet.add_data_validation(dv_grado)
-        dv_grado.add('C2:C1000')
+        dv_grado.add('B2:B1000')
 
-    # Desplegable de dimensiones (columna D) — opcional; solo preescolar.
+    # Desplegable de dimensiones (columna C) — opcional; solo preescolar.
     if dimensiones.exists():
         dv_dim = DataValidation(type="list", formula1=f"=Data_Dimensiones!$A$2:$A${dimensiones.count() + 1}")
         sheet.add_data_validation(dv_dim)
-        dv_dim.add('D2:D1000')
+        dv_dim.add('C2:C1000')
 
-    # Desplegable de periodos (columna E), tomado de los periodos reales del colegio.
+    # Desplegable de periodos (columna D), tomado de los periodos reales del colegio.
     if periodos.exists():
         dv_periodo = DataValidation(type="list", formula1=f"=Data_Periodos!$A$2:$A${periodos.count() + 1}")
         sheet.add_data_validation(dv_periodo)
-        dv_periodo.add('E2:E1000')
-
-    # Autocompletado del nombre de la materia (columna B) según el código elegido.
-    for row_idx in range(2, 1001):
-        sheet[f'B{row_idx}'] = f'=IFERROR(VLOOKUP(A{row_idx},Data_Asignaturas!A:B,2,FALSE),"")'
+        dv_periodo.add('D2:D1000')
 
     sheet_mat.sheet_state = 'hidden'
     sheet_grados.sheet_state = 'hidden'
@@ -12394,23 +12392,31 @@ class CoordinadorDescriptorListView(LoginRequiredMixin, PermissionRequiredMixin,
             messages.error(request, _("No se pudo procesar el archivo. Error: %(e)s") % {'e': e})
             return redirect('gestion_academica:coordinador_lista_descriptores')
 
-        required_cols = ['CODIGO_ASIGNATURA', 'PERIODO', 'TEXTO_DESCRIPTOR']
-        if not all(col in df.columns for col in required_cols):
-            messages.error(request, _("El archivo no tiene las columnas requeridas: %(cols)s.") % {'cols': ', '.join(required_cols)})
+        # La materia se identifica por NOMBRE (columna ASIGNATURA, el formato
+        # nuevo). Se mantiene compatibilidad con plantillas viejas que traían
+        # CODIGO_ASIGNATURA (por código).
+        col_asignatura = 'ASIGNATURA' if 'ASIGNATURA' in df.columns else (
+            'CODIGO_ASIGNATURA' if 'CODIGO_ASIGNATURA' in df.columns else None
+        )
+        por_codigo = (col_asignatura == 'CODIGO_ASIGNATURA')
+        required_cols = [col_asignatura, 'PERIODO', 'TEXTO_DESCRIPTOR']
+        if col_asignatura is None or not all(col in df.columns for col in required_cols):
+            messages.error(request, _("El archivo no tiene las columnas requeridas: ASIGNATURA, PERIODO, TEXTO_DESCRIPTOR."))
             return redirect('gestion_academica:coordinador_lista_descriptores')
 
         tiene_grado = 'GRADO' in df.columns
         tiene_dimension = 'DIMENSION' in df.columns
         creados = 0
         for index, row in df.iterrows():
-            if pd.isna(row['CODIGO_ASIGNATURA']) or pd.isna(row['PERIODO']) or pd.isna(row['TEXTO_DESCRIPTOR']):
+            if pd.isna(row[col_asignatura]) or pd.isna(row['PERIODO']) or pd.isna(row['TEXTO_DESCRIPTOR']):
                 continue
             periodo_str = str(row['PERIODO']).strip()
+            asignatura_val = str(row[col_asignatura]).strip()
             try:
-                materia_obj = Materia.objects.get(
-                    codigo_materia=str(row['CODIGO_ASIGNATURA']).strip(),
-                    institucion=institucion_actual,
-                )
+                if por_codigo:
+                    materia_obj = Materia.objects.get(codigo_materia=asignatura_val, institucion=institucion_actual)
+                else:
+                    materia_obj = Materia.objects.get(nombre_materia=asignatura_val, institucion=institucion_actual)
                 periodo_obj = PeriodoAcademico.objects.get(
                     nombre=periodo_str, institucion=institucion_actual,
                 )
@@ -12442,7 +12448,7 @@ class CoordinadorDescriptorListView(LoginRequiredMixin, PermissionRequiredMixin,
                 )
                 creados += 1
             except Materia.DoesNotExist:
-                messages.warning(request, _("Fila %(n)s: La materia con código '%(c)s' no existe en tu institución.") % {'n': index + 2, 'c': row['CODIGO_ASIGNATURA']})
+                messages.warning(request, _("Fila %(n)s: La asignatura '%(c)s' no existe en tu institución.") % {'n': index + 2, 'c': asignatura_val})
             except PeriodoAcademico.DoesNotExist:
                 messages.warning(request, _("Fila %(n)s: El periodo '%(p)s' no existe en tu institución.") % {'n': index + 2, 'p': periodo_str})
             except Exception as e:
