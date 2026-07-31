@@ -383,6 +383,7 @@ urlpatterns = [
     path('logros/<int:pk>/eliminar/', views.LogroDeleteView.as_view(), name='logro_eliminar'),
     # --- Descriptores de Logro (coordinador) ---
     path('descriptores/', views.CoordinadorDescriptorListView.as_view(), name='coordinador_lista_descriptores'),
+    path('descriptores/descargar-plantilla/', views.coordinador_descargar_plantilla_descriptores, name='coordinador_descargar_plantilla'),
     path('descriptores/crear/', views.CoordinadorDescriptorCreateView.as_view(), name='coordinador_crear_descriptor'),
     path('descriptores/<int:pk>/editar/', views.CoordinadorDescriptorUpdateView.as_view(), name='coordinador_editar_descriptor'),
     path('descriptores/<int:pk>/eliminar/', views.CoordinadorDescriptorDeleteView.as_view(), name='coordinador_eliminar_descriptor'),

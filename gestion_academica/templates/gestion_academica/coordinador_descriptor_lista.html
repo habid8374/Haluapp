@@ -102,6 +102,39 @@
     </a>
   </div>
 </div>
+
+<!-- Carga masiva por plantilla Excel -->
+<div class="card mb-4 shadow-sm" style="border:none;border-radius:14px;">
+  <div class="card-header" style="background:#f5f3ff;border:none;border-radius:14px 14px 0 0;">
+    <h3 class="mb-0 h6 fw-bold" style="color:#4f46e5;">
+      <i class="bi bi-file-earmark-excel-fill me-1"></i> Carga masiva por plantilla
+    </h3>
+  </div>
+  <div class="card-body">
+    <p class="text-muted small mb-3">Crea muchos descriptores a la vez desde un archivo Excel, en vez de uno por uno. La plantilla trae las asignaturas, grados y períodos de tu institución en listas desplegables.</p>
+    <div class="row g-3">
+      <div class="col-md-6 border-end-md">
+        <h6 class="fw-bold mb-1">Paso 1 · Descargar</h6>
+        <p class="small text-muted mb-2">Descarga la plantilla. La columna <strong>GRADO</strong> es opcional: déjala en blanco si el descriptor aplica a todos los grados.</p>
+        <a href="{% url 'gestion_academica:coordinador_descargar_plantilla' %}" class="btn btn-success btn-sm fw-bold" style="border-radius:9px;">
+          <i class="bi bi-download me-1"></i> Descargar plantilla
+        </a>
+      </div>
+      <div class="col-md-6">
+        <h6 class="fw-bold mb-1">Paso 2 · Importar</h6>
+        <p class="small text-muted mb-2">Sube la plantilla ya diligenciada para agregar los descriptores al banco.</p>
+        <form method="post" enctype="multipart/form-data" action="{% url 'gestion_academica:coordinador_lista_descriptores' %}" class="d-flex flex-wrap gap-2 align-items-center">
+          {% csrf_token %}
+          {{ upload_form.file }}
+          <button type="submit" class="btn btn-primary btn-sm fw-bold" style="border-radius:9px;background:#4f46e5;border-color:#4f46e5;">
+            <i class="bi bi-upload me-1"></i> Importar archivo
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% if descriptores_por_grado %}
 <div class="accordion grado-accordion" id="acordeonGrados">
   {% for grado_nombre, materias, total in descriptores_por_grado %}

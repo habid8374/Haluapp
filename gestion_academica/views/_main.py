@@ -6825,7 +6825,84 @@ def descargar_plantilla_view(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="plantilla_descriptores.xlsx"'
     workbook.save(response)
-    
+
+    return response
+
+
+@login_required
+def coordinador_descargar_plantilla_descriptores(request):
+    """Plantilla Excel de carga masiva de descriptores para el coordinador.
+
+    A diferencia de la del docente, abarca TODAS las materias y grados de la
+    institución (el coordinador ve todo su colegio) e incluye una columna GRADO
+    opcional, para que la carga masiva encaje con los mismos campos del
+    formulario de creación manual (materia, periodo, grado, descripción).
+    """
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    rol = getattr(request.user, 'rol', '') or ''
+    if not (request.user.is_superuser or (request.user.is_staff and rol in ['coordinador', 'administrador', 'rector'])):
+        messages.error(request, _("No tienes permiso para descargar esta plantilla."))
+        return redirect('gestion_academica:coordinador_lista_descriptores')
+    if institucion is None:
+        messages.error(request, _("Tu usuario no tiene institución asociada."))
+        return redirect('gestion_academica:coordinador_lista_descriptores')
+
+    materias = Materia.objects.filter(institucion=institucion).order_by('nombre_materia')
+    grados = Grado.objects.filter(institucion=institucion).order_by('nombre')
+    periodos = PeriodoAcademico.objects.filter(institucion=institucion).order_by('nombre')
+
+    workbook = Workbook()
+
+    # Hojas de datos ocultas que alimentan los desplegables.
+    sheet_mat = workbook.create_sheet(title="Data_Asignaturas")
+    sheet_mat.append(['CODIGO_ASIGNATURA', 'NOMBRE_ASIGNATURA'])
+    for m in materias:
+        sheet_mat.append([m.codigo_materia, m.nombre_materia])
+
+    sheet_grados = workbook.create_sheet(title="Data_Grados")
+    sheet_grados.append(['GRADO'])
+    for g in grados:
+        sheet_grados.append([g.nombre])
+
+    sheet_periodos = workbook.create_sheet(title="Data_Periodos")
+    sheet_periodos.append(['PERIODO'])
+    for p in periodos:
+        sheet_periodos.append([p.nombre])
+
+    # Hoja principal.
+    sheet = workbook.active
+    sheet.title = "PLANTILLA_BANCO_DE_LOGROS"
+    sheet.append(['CODIGO_ASIGNATURA', 'NOMBRE_ASIGNATURA', 'GRADO', 'PERIODO', 'TEXTO_DESCRIPTOR'])
+
+    # Desplegable de materias (columna A).
+    if materias.exists():
+        dv_materia = DataValidation(type="list", formula1=f"=Data_Asignaturas!$A$2:$A${materias.count() + 1}")
+        sheet.add_data_validation(dv_materia)
+        dv_materia.add('A2:A1000')
+
+    # Desplegable de grados (columna C) — opcional; en blanco = aplica a todos.
+    if grados.exists():
+        dv_grado = DataValidation(type="list", formula1=f"=Data_Grados!$A$2:$A${grados.count() + 1}")
+        sheet.add_data_validation(dv_grado)
+        dv_grado.add('C2:C1000')
+
+    # Desplegable de periodos (columna D), tomado de los periodos reales del colegio.
+    if periodos.exists():
+        dv_periodo = DataValidation(type="list", formula1=f"=Data_Periodos!$A$2:$A${periodos.count() + 1}")
+        sheet.add_data_validation(dv_periodo)
+        dv_periodo.add('D2:D1000')
+
+    # Autocompletado del nombre de la materia (columna B) según el código elegido.
+    for row_idx in range(2, 1001):
+        sheet[f'B{row_idx}'] = f'=IFERROR(VLOOKUP(A{row_idx},Data_Asignaturas!A:B,2,FALSE),"")'
+
+    sheet_mat.sheet_state = 'hidden'
+    sheet_grados.sheet_state = 'hidden'
+    sheet_periodos.sheet_state = 'hidden'
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="plantilla_descriptores.xlsx"'
+    workbook.save(response)
     return response
 
 
@@ -12186,7 +12263,88 @@ class CoordinadorDescriptorListView(LoginRequiredMixin, PermissionRequiredMixin,
             m = dict(sorted(sin_grado.items()))
             descriptores_por_grado.append(('Sin grado asignado', m, sum(len(v) for v in m.values())))
         context['descriptores_por_grado'] = descriptores_por_grado
+        context['upload_form'] = UploadFileForm()
         return context
+
+    def post(self, request, *args, **kwargs):
+        """Carga masiva de descriptores desde la plantilla Excel del coordinador.
+
+        Igual que el flujo del docente, pero con dos diferencias propias del
+        coordinador: (1) las materias/periodos/grados se resuelven contra TODA
+        la institución (no solo los cursos de un docente), y (2) la plantilla
+        incluye una columna GRADO opcional que permite dejar el descriptor
+        asignado a un grado concreto (o en blanco = aplica a todos).
+        """
+        if not request.user.has_perm('gestion_academica.add_descriptorlogro'):
+            messages.error(request, _("No tienes permiso para importar descriptores."))
+            return redirect('gestion_academica:coordinador_lista_descriptores')
+
+        institucion_actual = getattr(request.user, 'institucion_asociada', None)
+        if institucion_actual is None:
+            messages.error(request, _("Tu usuario no tiene institución asociada."))
+            return redirect('gestion_academica:coordinador_lista_descriptores')
+
+        form = UploadFileForm(request.POST, request.FILES)
+        if not form.is_valid():
+            messages.error(request, _("Error en el formulario. Por favor, intenta de nuevo."))
+            return redirect('gestion_academica:coordinador_lista_descriptores')
+
+        archivo = request.FILES['file']
+        try:
+            df = pd.read_excel(archivo, sheet_name="PLANTILLA_BANCO_DE_LOGROS")
+        except Exception as e:
+            messages.error(request, _("No se pudo procesar el archivo. Error: %(e)s") % {'e': e})
+            return redirect('gestion_academica:coordinador_lista_descriptores')
+
+        required_cols = ['CODIGO_ASIGNATURA', 'PERIODO', 'TEXTO_DESCRIPTOR']
+        if not all(col in df.columns for col in required_cols):
+            messages.error(request, _("El archivo no tiene las columnas requeridas: %(cols)s.") % {'cols': ', '.join(required_cols)})
+            return redirect('gestion_academica:coordinador_lista_descriptores')
+
+        tiene_grado = 'GRADO' in df.columns
+        creados = 0
+        for index, row in df.iterrows():
+            if pd.isna(row['CODIGO_ASIGNATURA']) or pd.isna(row['PERIODO']) or pd.isna(row['TEXTO_DESCRIPTOR']):
+                continue
+            periodo_str = str(row['PERIODO']).strip()
+            try:
+                materia_obj = Materia.objects.get(
+                    codigo_materia=str(row['CODIGO_ASIGNATURA']).strip(),
+                    institucion=institucion_actual,
+                )
+                periodo_obj = PeriodoAcademico.objects.get(
+                    nombre=periodo_str, institucion=institucion_actual,
+                )
+
+                grado_obj = None
+                if tiene_grado and not pd.isna(row['GRADO']) and str(row['GRADO']).strip():
+                    grado_nombre = str(row['GRADO']).strip()
+                    try:
+                        grado_obj = Grado.objects.get(nombre=grado_nombre, institucion=institucion_actual)
+                    except Grado.DoesNotExist:
+                        messages.warning(request, _("Fila %(n)s: El grado '%(g)s' no existe en tu institución; el descriptor se creó sin grado.") % {'n': index + 2, 'g': grado_nombre})
+
+                DescriptorLogro.objects.create(
+                    materia=materia_obj,
+                    periodo_academico=periodo_obj,
+                    grado=grado_obj,
+                    descripcion=str(row['TEXTO_DESCRIPTOR']).strip(),
+                    creado_por=request.user,
+                    institucion=institucion_actual,
+                )
+                creados += 1
+            except Materia.DoesNotExist:
+                messages.warning(request, _("Fila %(n)s: La materia con código '%(c)s' no existe en tu institución.") % {'n': index + 2, 'c': row['CODIGO_ASIGNATURA']})
+            except PeriodoAcademico.DoesNotExist:
+                messages.warning(request, _("Fila %(n)s: El periodo '%(p)s' no existe en tu institución.") % {'n': index + 2, 'p': periodo_str})
+            except Exception as e:
+                messages.error(request, _("Fila %(n)s: Ocurrió un error inesperado al procesar esta fila. Error: %(e)s") % {'n': index + 2, 'e': e})
+
+        if creados > 0:
+            messages.success(request, _("¡Éxito! Se han importado %(n)s descriptores.") % {'n': creados})
+        else:
+            messages.info(request, _("Proceso finalizado. No se importaron descriptores nuevos."))
+        return redirect('gestion_academica:coordinador_lista_descriptores')
 
 
 class CoordinadorDescriptorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
