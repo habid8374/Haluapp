@@ -74,7 +74,6 @@ INSTALLED_APPS = [
     'finanzas.apps.FinanzasConfig',
     'gestion_academica.apps.GestionAcademicaConfig',
     'cuestionarios.apps.CuestionariosConfig',
-    'elearning.apps.ElearningConfig',
     'mensajeria.apps.MensajeriaConfig',
     'recursos_educativos.apps.RecursosEducativosConfig',
     'platform_control.apps.PlatformControlConfig',

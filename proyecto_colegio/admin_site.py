@@ -32,7 +32,6 @@ CATEGORIAS = [
         'crucigramas', 'sopa_letras', 'memoria', 'flashcards',
         'quiz_audio', 'secuencias', 'trazado', 'rompecabezas',
     ]),
-    ("E-learning", ['elearning']),
     ("Comunicación", ['mensajeria']),
     ("Recursos Educativos 3D", ['recursos_educativos']),
     ("Seguridad y Auditoría", ['auditoria', 'passkeys', 'autenticacion_2fa']),

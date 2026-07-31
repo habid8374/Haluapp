@@ -66,13 +66,7 @@ urlpatterns = [
     path('', include('pwa.urls')),
 
     path('accounts/', include('allauth.urls')),
-    path('elearning/', include('elearning.urls')),
-    re_path(
-        r"^cursos(?:/.*)?$",
-        RedirectView.as_view(url="/elearning/catalogo/", permanent=False),
-    ),
-    
-    
+
     # Inclusión de las URLs de tus aplicaciones
     path('admisiones/', include('admisiones.urls', namespace='admisiones')),
     path('academico/', include('gestion_academica.urls', namespace='gestion_academica')),
