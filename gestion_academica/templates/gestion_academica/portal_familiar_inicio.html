@@ -159,7 +159,7 @@
   </div>
   <div class="fam-info-banner">
     <i class="bi bi-info-circle-fill"></i>
-    <span>Desde aquí puedes ver las calificaciones, boletines, deberes, pagos y agendar reuniones con los docentes de tus hijos.</span>
+    <span>Desde aquí puedes ver las calificaciones, boletines, deberes{% if institucion_usa_finanzas %}, pagos{% endif %} y agendar reuniones con los docentes de tus hijos.</span>
   </div>
   {% for item in estudiantes_con_resumen %}
     {% with est=item.estudiante r=item.resumen %}
@@ -185,16 +185,18 @@
             <span>{{ r.proximos_compromisos }} compromiso{% if r.proximos_compromisos != 1 %}s{% endif %} en 14 días</span>
           </div>
           {% endif %}
-          {% if r.alerta_finanzas %}
-          <div class="fam-mini-kpi mq-warning">
-            <i class="bi bi-cash-coin"></i>
-            <span>Revisar estado de cuenta</span>
-          </div>
-          {% else %}
-          <div class="fam-mini-kpi">
-            <i class="bi bi-check-circle-fill" style="color:#22c55e;"></i>
-            <span style="color:#15803d;">Pagos al día</span>
-          </div>
+          {% if institucion_usa_finanzas %}
+            {% if r.alerta_finanzas %}
+            <div class="fam-mini-kpi mq-warning">
+              <i class="bi bi-cash-coin"></i>
+              <span>Revisar estado de cuenta</span>
+            </div>
+            {% else %}
+            <div class="fam-mini-kpi">
+              <i class="bi bi-check-circle-fill" style="color:#22c55e;"></i>
+              <span style="color:#15803d;">Pagos al día</span>
+            </div>
+            {% endif %}
           {% endif %}
         </div>
         <div class="fam-actions">
@@ -207,9 +209,11 @@
           <a href="{% url 'gestion_academica:familiar_ver_deberes_estudiante' est.pk %}" class="fam-action-btn fab-teal">
             <i class="bi bi-journal-check"></i> Deberes
           </a>
+          {% if institucion_usa_finanzas %}
           <a href="{% url 'finanzas:familiar_estado_cuenta_estudiante' est.pk %}" class="fam-action-btn fab-yellow">
             <i class="bi bi-cash-coin"></i> Pagos en línea
           </a>
+          {% endif %}
           <a href="{% url 'gestion_academica:familiar_seleccionar_docente' %}" class="fam-action-btn fab-green">
             <i class="bi bi-calendar-plus"></i> Agendar Reunión
           </a>

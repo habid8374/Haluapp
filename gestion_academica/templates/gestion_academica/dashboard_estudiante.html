@@ -307,10 +307,13 @@
       </a>
       <a href="{% url 'gestion_academica:ver_mi_perfil' %}" class="est-ha-btn"><i class="bi bi-person-circle"></i> {% trans "Perfil" %}</a>
       <a href="{% url 'mensajeria:nuevo' %}" class="est-ha-btn"><i class="bi bi-chat-dots-fill"></i> {% trans "Mensaje" %}</a>
+      {% if institucion_usa_finanzas %}
       <a href="{% url 'finanzas:mi_estado_de_cuenta' %}" class="est-ha-btn ha-red"><i class="bi bi-credit-card-fill"></i> {% trans "Pagos" %}</a>
+      {% endif %}
     </div>
   </div>
   <div class="est-kpi-strip">
+    {% if institucion_usa_finanzas %}
     <div class="est-kpi {% if cuentas_vencidas_count == 0 %}kpi-green{% else %}kpi-red{% endif %}">
       <div class="kpi-icon">
         {% if cuentas_vencidas_count == 0 %}<i class="bi bi-check-circle-fill"></i>{% else %}<i class="bi bi-wallet-fill"></i>{% endif %}
@@ -318,6 +321,7 @@
       <div class="kpi-val">{% if cuentas_vencidas_count == 0 %}✓{% else %}{{ cuentas_vencidas_count }}{% endif %}</div>
       <div class="kpi-lbl">{% if cuentas_vencidas_count == 0 %}{% trans "Cartera al día" %}{% else %}{% trans "Pago(s) vencido(s)" %}{% endif %}</div>
     </div>
+    {% endif %}
     <div class="est-kpi kpi-amber">
       <div class="kpi-icon"><i class="bi bi-person-x-fill"></i></div>
       <div class="kpi-val">{{ inasistencias_periodo|default:"0" }}</div>
@@ -414,6 +418,7 @@
     </div>
   </div>
   {% endif %}
+  {% if institucion_usa_finanzas %}
   <div class="pulse-cartera-banner {% if cuentas_vencidas_count > 0 %}vencida{% else %}ok{% endif %}">
     <div class="pcb-icon">
       {% if cuentas_vencidas_count > 0 %}<i class="bi bi-exclamation-triangle-fill text-danger"></i>
@@ -430,6 +435,7 @@
       {% if cuentas_vencidas_count > 0 %}{% trans "Ver y Pagar Urgente" %}{% else %}{% trans "Ver Historial de Pagos" %}{% endif %}
     </a>
   </div>
+  {% endif %}
   {% if not estudiante_moroso %}
   <div class="row g-4">
     {% if 'notas' not in bloqueo_secciones %}

@@ -34,11 +34,25 @@ def branding_processor(request):
         _rol = getattr(request.user, 'rol', '') or ''
         ve_menu_staff = bool(request.user.is_staff and _rol not in ('tesoreria', 'secretaria'))
 
+    # ¿La institución usa el módulo de finanzas? Si NO (colegio público o con
+    # usa_modulo_financiero=False), en los portales de estudiante y familiar se
+    # oculta TODO lo relacionado con pagos/cartera (botón de pagos, estado de
+    # cuenta, mensaje de "estás al día"…), porque ese colegio maneja lo
+    # económico por fuera de la plataforma. Coincide con lo que bloquea
+    # ModuloFinancieroMiddleware. Sin institución (p. ej. superusuario) → True.
+    institucion_usa_finanzas = True
+    if institucion_actual is not None:
+        institucion_usa_finanzas = bool(
+            getattr(institucion_actual, 'tipo_institucion', '') != 'publico'
+            and getattr(institucion_actual, 'usa_modulo_financiero', True)
+        )
+
     return {
         'branding': software_branding,
         'institucion_actual': institucion_actual,
         'banners_activos': banners_activos,
         've_menu_staff': ve_menu_staff,
+        'institucion_usa_finanzas': institucion_usa_finanzas,
     }
 
 
