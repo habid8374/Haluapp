@@ -472,10 +472,25 @@ def calcular_estado_academico_curso(curso, estudiante):
 def obtener_promedio_materia_por_grado(materia_nombre: str, periodo_nombre: str, institucion_id: int) -> str:
     """Obtiene el rendimiento promedio de una materia en todos los grados de la institución."""
     try:
-        periodo = PeriodoAcademico.objects.get(nombre__icontains=periodo_nombre, institucion_id=institucion_id, activo=True)
-        materia = Materia.objects.get(nombre_materia__icontains=materia_nombre, institucion_id=institucion_id)
-        
-        cursos = Curso.objects.filter(materia=materia, periodo_academico=periodo).select_related('grado')
+        periodo = PeriodoAcademico.objects.filter(
+            nombre__icontains=periodo_nombre, institucion_id=institucion_id, activo=True
+        ).first()
+        if periodo is None:
+            return "No pude encontrar el periodo especificado. Por favor, sé más específico."
+
+        # Puede haber varias materias con el mismo nombre en distintos niveles
+        # (ej. "Matemáticas" de Primaria y de Secundaria). Se agregan todas y se
+        # muestra el nivel/grado para distinguirlas (antes .get() reventaba con
+        # MultipleObjectsReturned).
+        materias = Materia.objects.filter(
+            nombre_materia__icontains=materia_nombre, institucion_id=institucion_id
+        )
+        if not materias.exists():
+            return "No pude encontrar la materia especificada. Por favor, sé más específico."
+
+        cursos = Curso.objects.filter(
+            materia__in=materias, periodo_academico=periodo
+        ).select_related('grado', 'materia', 'materia__nivel_escolaridad')
         if not cursos:
             return f"No se encontraron cursos para la materia '{materia_nombre}' en el periodo '{periodo_nombre}'."
 
@@ -485,11 +500,11 @@ def obtener_promedio_materia_por_grado(materia_nombre: str, periodo_nombre: str,
                 actividad_calificable__curso=curso
             ).aggregate(avg=Avg('valor_numerico'))['avg']
             if promedio:
-                resultados.append(f"- {curso.grado.nombre}: Promedio de {promedio:.2f}")
+                nivel = curso.materia.nivel_escolaridad.nombre if curso.materia.nivel_escolaridad_id else ''
+                etiqueta = curso.grado.nombre + (f" ({nivel})" if nivel else "")
+                resultados.append(f"- {etiqueta}: Promedio de {promedio:.2f}")
 
         return f"Rendimiento de '{materia_nombre}' en el {periodo.nombre}:\n" + "\n".join(resultados) if resultados else "No se encontraron calificaciones para esta materia."
-    except (PeriodoAcademico.DoesNotExist, Materia.DoesNotExist):
-        return "No pude encontrar la materia o el periodo especificado. Por favor, sé más específico."
     except Exception as e:
         return f"Ocurrió un error: {str(e)}"
 

@@ -770,6 +770,19 @@ class Materia(models.Model):
     # --- CAMBIO 2: Se quita null=True, blank=True ---
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name=_("Institución"))
 
+    # Nivel de escolaridad al que pertenece esta materia (Preescolar/Primaria/
+    # Secundaria/Media). Permite que exista "Matemáticas" de Primaria y otra de
+    # Secundaria como materias distintas (distinto nivel de complejidad).
+    # Nullable (como Grado.nivel_escolaridad) por compatibilidad con datos
+    # previos; el formulario sí lo exige al crear materias nuevas.
+    nivel_escolaridad = models.ForeignKey(
+        'NivelEscolaridad',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='materias',
+        verbose_name=_("Nivel de Escolaridad"),
+    )
+
     intensidad_horaria_semanal = models.PositiveIntegerField(default=0, verbose_name=_("Intensidad Horaria Semanal (Ihs)"))
     idioma_instruccion = models.CharField(
         max_length=5,
@@ -783,14 +796,19 @@ class Materia(models.Model):
         verbose_name = _("Materia")
         verbose_name_plural = _("Materias")
         ordering = ['nombre_materia']
-        # --- CAMBIO 3: Se añade codigo_materia a la validación ---
+        # La unicidad del NOMBRE ahora incluye el nivel: puede haber
+        # "Matemáticas" en Primaria y otra en Secundaria. El código sigue
+        # siendo único por institución.
         unique_together = [
-            ('nombre_materia', 'institucion'),
+            ('nombre_materia', 'nivel_escolaridad', 'institucion'),
             ('codigo_materia', 'institucion'),
         ]
 
     def __str__(self):
-        # --- CAMBIO 4: Se quita la coma extra ---
+        # Se muestra el nivel para distinguir materias del mismo nombre en
+        # niveles distintos (ej. "Matemáticas (Primaria)").
+        if self.nivel_escolaridad_id:
+            return f"{self.nombre_materia} ({self.nivel_escolaridad.nombre})"
         return self.nombre_materia
     
 class DescriptorLogro(models.Model):

@@ -335,11 +335,12 @@ class MateriaForm(forms.ModelForm):
     class Meta:
         model = Materia
         fields = [
-            'nombre_materia', 'codigo_materia', 'descripcion', 'institucion',
+            'nombre_materia', 'nivel_escolaridad', 'codigo_materia', 'descripcion', 'institucion',
             'nombre_idioma_secundario', 'idioma_instruccion',
         ]
         widgets = {
             'nombre_materia':           forms.TextInput(attrs={'class': 'form-control'}),
+            'nivel_escolaridad':        forms.Select(attrs={'class': 'form-select'}),
             'codigo_materia':           forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion':              forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'institucion':              forms.Select(attrs={'class': 'form-select'}),
@@ -348,21 +349,30 @@ class MateriaForm(forms.ModelForm):
         }
         labels = {
             'nombre_materia':           _('Nombre de la Materia'),
+            'nivel_escolaridad':        _('Nivel de Escolaridad'),
             'codigo_materia':           _('Código de Materia'),
             'descripcion':              _('Descripción'),
             'institucion':              _('Institución'),
             'nombre_idioma_secundario': _('Nombre en Idioma Secundario'),
             'idioma_instruccion':       _('Idioma de Instrucción'),
         }
+        help_texts = {
+            'nivel_escolaridad': _('Preescolar, Primaria, Secundaria o Media. Permite tener, p. ej., "Matemáticas" de Primaria y otra de Secundaria.'),
+        }
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        # El nivel es obligatorio al crear/editar materias nuevas (el modelo lo
+        # deja nullable solo por compatibilidad con datos previos).
+        self.fields['nivel_escolaridad'].required = True
         if request:
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
-            if not request.user.is_superuser and request.user.institucion_asociada:
-                self.fields['institucion'].initial = request.user.institucion_asociada
+            institucion = getattr(request.user, 'institucion_asociada', None)
+            if not request.user.is_superuser and institucion:
+                self.fields['institucion'].initial = institucion
                 self.fields['institucion'].disabled = True
+                self.fields['nivel_escolaridad'].queryset = NivelEscolaridad.objects.filter(institucion=institucion)
 
 
 class PeriodoAcademicoForm(forms.ModelForm):
@@ -427,6 +437,26 @@ class CursoForm(forms.ModelForm):
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
+
+    def clean(self):
+        cleaned = super().clean()
+        materia = cleaned.get('materia')
+        grado = cleaned.get('grado')
+        # La materia debe pertenecer al mismo nivel de escolaridad del grado.
+        # Solo se valida cuando ambos tienen nivel definido (datos previos sin
+        # nivel no se bloquean).
+        if materia and grado and materia.nivel_escolaridad_id and grado.nivel_escolaridad_id:
+            if materia.nivel_escolaridad_id != grado.nivel_escolaridad_id:
+                self.add_error('materia', _(
+                    "La materia «%(m)s» es del nivel %(mn)s, pero el grado «%(g)s» es de %(gn)s. "
+                    "Elige una materia del mismo nivel."
+                ) % {
+                    'm': materia.nombre_materia,
+                    'mn': materia.nivel_escolaridad.nombre,
+                    'g': grado.nombre,
+                    'gn': grado.nivel_escolaridad.nombre,
+                })
+        return cleaned
 
 
 class DirectorCursoForm(forms.ModelForm):

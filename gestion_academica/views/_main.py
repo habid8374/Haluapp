@@ -5815,9 +5815,15 @@ class DocenteDescriptorListView(LoginRequiredMixin, ListView):
                     continue
 
                 try:
-                    materia_obj = Materia.objects.get(codigo_materia=str(row['CODIGO_ASIGNATURA']).strip(), institucion=institucion_actual)
+                    # Por código (único por institución). filter().first() evita
+                    # MultipleObjectsReturned si hubiera códigos vacíos repetidos.
+                    materia_obj = Materia.objects.filter(codigo_materia=str(row['CODIGO_ASIGNATURA']).strip(), institucion=institucion_actual).first()
+                    if materia_obj is None:
+                        raise Materia.DoesNotExist
                     periodo_str = str(row['PERIODO']).strip()
-                    periodo_obj = PeriodoAcademico.objects.get(nombre=periodo_str, institucion=institucion_actual)
+                    periodo_obj = PeriodoAcademico.objects.filter(nombre=periodo_str, institucion=institucion_actual).order_by('-activo', '-año_escolar').first()
+                    if periodo_obj is None:
+                        raise PeriodoAcademico.DoesNotExist
                     
                     # --- LÍNEA CORREGIDA ---
                     # Al crear, también usamos el objeto de usuario para 'creado_por'.
@@ -6931,22 +6937,26 @@ def coordinador_descargar_plantilla_descriptores(request):
         messages.error(request, _("Tu usuario no tiene institución asociada."))
         return redirect('gestion_academica:coordinador_lista_descriptores')
 
-    # Nombres ÚNICOS (distinct) de cada catálogo del colegio, para que los
-    # desplegables no muestren repetidos (p. ej. periodos con el mismo nombre en
-    # distintos años) y para que el match por nombre al importar no choque.
-    materia_nombres = list(Materia.objects.filter(institucion=institucion).values_list('nombre_materia', flat=True).distinct().order_by('nombre_materia'))
+    # Catálogos del colegio para los desplegables. Las asignaturas se listan con
+    # su NIVEL entre paréntesis (ej. "Matemáticas (Primaria)") para poder
+    # distinguir materias del mismo nombre en niveles distintos. El resto por
+    # nombre único (evita repetidos y choques al importar).
+    materia_labels = [
+        str(m) for m in Materia.objects.filter(institucion=institucion)
+        .select_related('nivel_escolaridad')
+        .order_by('nivel_escolaridad__orden', 'nombre_materia')
+    ]
     grado_nombres = list(Grado.objects.filter(institucion=institucion).values_list('nombre', flat=True).distinct().order_by('nombre'))
     dimension_nombres = list(DimensionDesarrollo.objects.filter(institucion=institucion).values_list('nombre', flat=True).distinct().order_by('nombre'))
     periodo_nombres = list(PeriodoAcademico.objects.filter(institucion=institucion).values_list('nombre', flat=True).distinct().order_by('nombre'))
 
     workbook = Workbook()
 
-    # Hojas de datos ocultas que alimentan los desplegables. Todas por NOMBRE,
-    # que es lo que el usuario reconoce (igual que el grado): sin códigos.
+    # Hojas de datos ocultas que alimentan los desplegables.
     sheet_mat = workbook.create_sheet(title="Data_Asignaturas")
     sheet_mat.append(['ASIGNATURA'])
-    for nombre in materia_nombres:
-        sheet_mat.append([nombre])
+    for label in materia_labels:
+        sheet_mat.append([label])
 
     sheet_grados = workbook.create_sheet(title="Data_Grados")
     sheet_grados.append(['GRADO'])
@@ -6971,8 +6981,8 @@ def coordinador_descargar_plantilla_descriptores(request):
     sheet.append(['ASIGNATURA', 'GRADO', 'DIMENSION', 'PERIODO', 'TEXTO_DESCRIPTOR'])
 
     # Desplegable de asignaturas por nombre (columna A).
-    if materia_nombres:
-        dv_materia = DataValidation(type="list", formula1=f"=Data_Asignaturas!$A$2:$A${len(materia_nombres) + 1}")
+    if materia_labels:
+        dv_materia = DataValidation(type="list", formula1=f"=Data_Asignaturas!$A$2:$A${len(materia_labels) + 1}")
         sheet.add_data_validation(dv_materia)
         dv_materia.add('A2:A1000')
 
@@ -12409,6 +12419,20 @@ class CoordinadorDescriptorListView(LoginRequiredMixin, PermissionRequiredMixin,
 
         tiene_grado = 'GRADO' in df.columns
         tiene_dimension = 'DIMENSION' in df.columns
+
+        # Índices de materias para resolver la asignatura sin ambigüedad:
+        #  - por label completo "Matemáticas (Primaria)" (formato nuevo),
+        #  - por nombre suelto (fallback, con desambiguación por nivel del grado),
+        #  - por código (plantillas viejas).
+        materias_inst = list(
+            Materia.objects.filter(institucion=institucion_actual).select_related('nivel_escolaridad')
+        )
+        materias_por_label = {str(m): m for m in materias_inst}
+        materias_por_nombre = {}
+        for _m in materias_inst:
+            materias_por_nombre.setdefault(_m.nombre_materia, []).append(_m)
+        materias_por_codigo = {m.codigo_materia: m for m in materias_inst if m.codigo_materia}
+
         creados = 0
         for index, row in df.iterrows():
             if pd.isna(row[col_asignatura]) or pd.isna(row['PERIODO']) or pd.isna(row['TEXTO_DESCRIPTOR']):
@@ -12416,33 +12440,43 @@ class CoordinadorDescriptorListView(LoginRequiredMixin, PermissionRequiredMixin,
             periodo_str = str(row['PERIODO']).strip()
             asignatura_val = str(row[col_asignatura]).strip()
             try:
-                # Todos los campos se resuelven por NOMBRE contra la BD de la
-                # institución con filter().first(): si por casualidad hubiera dos
-                # registros con el mismo nombre, se toma uno en vez de reventar
-                # la importación (nada "choca" por el nombre).
+                # 1) Grado primero, para poder desambiguar la materia por nivel.
+                grado_obj = None
+                if tiene_grado and not pd.isna(row['GRADO']) and str(row['GRADO']).strip():
+                    grado_nombre = str(row['GRADO']).strip()
+                    grado_obj = Grado.objects.filter(nombre=grado_nombre, institucion=institucion_actual).select_related('nivel_escolaridad').first()
+                    if grado_obj is None:
+                        messages.warning(request, _("Fila %(n)s: El grado '%(g)s' no existe en tu institución; el descriptor se creó sin grado.") % {'n': index + 2, 'g': grado_nombre})
+
+                # 2) Materia: por código, por label completo, o por nombre con
+                #    desambiguación según el nivel del grado.
                 if por_codigo:
-                    materia_obj = Materia.objects.filter(codigo_materia=asignatura_val, institucion=institucion_actual).first()
+                    materia_obj = materias_por_codigo.get(asignatura_val)
                 else:
-                    materia_obj = Materia.objects.filter(nombre_materia=asignatura_val, institucion=institucion_actual).first()
+                    materia_obj = materias_por_label.get(asignatura_val)
+                    if materia_obj is None:
+                        candidatos = materias_por_nombre.get(asignatura_val, [])
+                        if len(candidatos) == 1:
+                            materia_obj = candidatos[0]
+                        elif len(candidatos) > 1:
+                            if grado_obj and grado_obj.nivel_escolaridad_id:
+                                materia_obj = next((c for c in candidatos if c.nivel_escolaridad_id == grado_obj.nivel_escolaridad_id), None)
+                            if materia_obj is None:
+                                messages.warning(request, _("Fila %(n)s: La asignatura '%(c)s' existe en varios niveles; indica el grado o usa el nombre con el nivel, ej. 'Matemáticas (Primaria)'.") % {'n': index + 2, 'c': asignatura_val})
+                                continue
                 if materia_obj is None:
                     messages.warning(request, _("Fila %(n)s: La asignatura '%(c)s' no existe en tu institución.") % {'n': index + 2, 'c': asignatura_val})
                     continue
 
-                # El periodo puede repetir nombre entre años; se prefiere el
-                # activo y, si no hay, el del año más reciente.
+                # 3) Periodo: puede repetir nombre entre años; se prefiere el
+                #    activo y, si no hay, el del año más reciente.
                 periodo_qs = PeriodoAcademico.objects.filter(nombre=periodo_str, institucion=institucion_actual)
                 periodo_obj = periodo_qs.filter(activo=True).first() or periodo_qs.order_by('-año_escolar').first()
                 if periodo_obj is None:
                     messages.warning(request, _("Fila %(n)s: El periodo '%(p)s' no existe en tu institución.") % {'n': index + 2, 'p': periodo_str})
                     continue
 
-                grado_obj = None
-                if tiene_grado and not pd.isna(row['GRADO']) and str(row['GRADO']).strip():
-                    grado_nombre = str(row['GRADO']).strip()
-                    grado_obj = Grado.objects.filter(nombre=grado_nombre, institucion=institucion_actual).first()
-                    if grado_obj is None:
-                        messages.warning(request, _("Fila %(n)s: El grado '%(g)s' no existe en tu institución; el descriptor se creó sin grado.") % {'n': index + 2, 'g': grado_nombre})
-
+                # 4) Dimensión (opcional, solo preescolar).
                 dimension_obj = None
                 if tiene_dimension and not pd.isna(row['DIMENSION']) and str(row['DIMENSION']).strip():
                     dimension_nombre = str(row['DIMENSION']).strip()

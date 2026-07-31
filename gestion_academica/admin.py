@@ -315,11 +315,10 @@ class MateriaInline(admin.TabularInline):
 
 @admin.register(Materia)
 class MateriaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
-    # La vista de Materia ahora es más simple porque no se preocupa por el área.
-    list_display = ('nombre_materia', 'codigo_materia', 'institucion')
+    list_display = ('nombre_materia', 'nivel_escolaridad', 'codigo_materia', 'institucion')
     search_fields = ('nombre_materia', 'codigo_materia')
-    list_filter = ('institucion',)
-    ordering = ('institucion', 'nombre_materia',)
+    list_filter = ('nivel_escolaridad', 'institucion')
+    ordering = ('institucion', 'nivel_escolaridad__orden', 'nombre_materia',)
     raw_id_fields = ('institucion',)
 
 @admin.register(PeriodoAcademico)

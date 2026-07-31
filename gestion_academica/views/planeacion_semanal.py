@@ -111,7 +111,7 @@ def malla_curricular_list(request):
         .annotate(total_items=Count('items'))
         .order_by('grado__orden', 'materia__nombre_materia')
     )
-    materias = Materia.objects.filter(institucion=institucion).order_by('nombre_materia')
+    materias = Materia.objects.filter(institucion=institucion).select_related('nivel_escolaridad').order_by('nombre_materia')
     grados   = Grado.objects.filter(institucion=institucion).order_by('orden')
 
     if request.method == 'POST':
@@ -121,6 +121,11 @@ def malla_curricular_list(request):
         desc        = request.POST.get('descripcion_general', '')
         materia = get_object_or_404(Materia, pk=materia_id, institucion=institucion)
         grado   = get_object_or_404(Grado,   pk=grado_id,   institucion=institucion)
+        # La materia debe ser del mismo nivel del grado (si ambos tienen nivel).
+        if (materia.nivel_escolaridad_id and grado.nivel_escolaridad_id
+                and materia.nivel_escolaridad_id != grado.nivel_escolaridad_id):
+            messages.error(request, f'La materia «{materia.nombre_materia}» no pertenece al nivel del grado «{grado.nombre}».')
+            return redirect('gestion_academica:malla_curricular_list')
         malla, created = MallaCurricular.objects.get_or_create(
             materia=materia, grado=grado,
             año_lectivo=año_lectivo, institucion=institucion,
@@ -132,12 +137,19 @@ def malla_curricular_list(request):
             messages.info(request, 'Ya existe una malla para esa combinación.')
         return redirect('gestion_academica:malla_curricular_detalle', pk=malla.pk)
 
-    # Construir estructura agrupada: grado → materia → malla (o None)
+    # Construir estructura agrupada: grado → materia → malla (o None).
+    # Cada grado solo lista las materias de SU nivel de escolaridad; las
+    # materias sin nivel (datos previos) se muestran en todos los grados.
     mallas_map = {(m.grado_id, m.materia_id): m for m in mallas}
+    materias = list(materias)
     grados_data = []
     for grado in grados:
+        if grado.nivel_escolaridad_id:
+            materias_grado = [m for m in materias if m.nivel_escolaridad_id in (None, grado.nivel_escolaridad_id)]
+        else:
+            materias_grado = materias
         filas = []
-        for materia in materias:
+        for materia in materias_grado:
             malla = mallas_map.get((grado.pk, materia.pk))
             filas.append({'materia': materia, 'malla': malla})
         total_creadas = sum(1 for f in filas if f['malla'])
@@ -145,8 +157,8 @@ def malla_curricular_list(request):
             'grado': grado,
             'filas': filas,
             'total_creadas': total_creadas,
-            'total_materias': len(materias),
-            'completo': total_creadas == len(materias) and len(materias) > 0,
+            'total_materias': len(materias_grado),
+            'completo': total_creadas == len(materias_grado) and len(materias_grado) > 0,
         })
 
     context = {

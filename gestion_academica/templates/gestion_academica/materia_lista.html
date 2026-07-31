@@ -46,7 +46,12 @@
       <tbody>
         {% for materia_obj in materias %}
         <tr data-pk="{{ materia_obj.pk }}" data-nombre-es="{{ materia_obj.nombre_materia }}" data-tiene-l2="{{ materia_obj.nombre_idioma_secundario|yesno:'1,0' }}">
-          <td class="ps-4 py-3 fw-semibold" style="color:#1e293b;">{{ materia_obj.nombre_materia }}</td>
+          <td class="ps-4 py-3 fw-semibold" style="color:#1e293b;">
+            {{ materia_obj.nombre_materia }}
+            {% if materia_obj.nivel_escolaridad %}
+            <span style="background:#eef2ff;color:#4f46e5;border-radius:6px;padding:.15rem .5rem;font-size:.7rem;font-weight:700;margin-left:.4rem;white-space:nowrap;">{{ materia_obj.nivel_escolaridad.nombre }}</span>
+            {% endif %}
+          </td>
           {% if es_bilingue %}
           <td class="py-3 celda-nombre-l2" style="color:#0369a1;">
             {{ materia_obj.nombre_idioma_secundario|default:"—" }}

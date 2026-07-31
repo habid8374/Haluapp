@@ -21,12 +21,18 @@
             <i class="bi bi-info-circle-fill me-1"></i>Datos de la Materia
           </h6>
           <div class="row g-3 mb-4">
-            <div class="col-md-8">
+            <div class="col-md-6">
               <label class="form-label fw-semibold" style="font-size:.83rem;">Nombre de la Materia <span class="text-danger">*</span></label>
               {{ form.nombre_materia }}
               {% for e in form.nombre_materia.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+              <label class="form-label fw-semibold" style="font-size:.83rem;">Nivel de Escolaridad <span class="text-danger">*</span></label>
+              {{ form.nivel_escolaridad }}
+              {% for e in form.nivel_escolaridad.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
+              <div class="form-text" style="font-size:.72rem;">Permite tener, p. ej., "Matemáticas" de Primaria y otra de Secundaria.</div>
+            </div>
+            <div class="col-md-3">
               <label class="form-label fw-semibold" style="font-size:.83rem;">Código</label>
               {{ form.codigo_materia }}
               {% for e in form.codigo_materia.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
