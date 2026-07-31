@@ -1,8 +1,7 @@
 {% load static %}
 {% load i18n %}
 {% load notificaciones_tags %}
-{# Barra superior COMPARTIDA por todos los módulos (académico, admisiones,
-   finanzas…) para que se vea idéntica y profesional en todos lados. #}
+{# Barra superior compartida por todos los modulos (academico, admisiones, finanzas) para que se vea identica y profesional en todos lados. #}
 <ul class="navbar-nav ms-auto d-flex flex-row align-items-center gap-1">
   {% if user.is_authenticated %}
     {% notificaciones_bell %}

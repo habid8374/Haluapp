@@ -58,26 +58,65 @@ class InstitucionScopedAdminMixin:
             if f not in ('institucion', 'institucion_asociada')
         )
 
+    @staticmethod
+    def _campo_institucion_de(model):
+        """Devuelve el nombre del campo de institución del modelo dado
+        ('institucion' o 'institucion_asociada'), o None si es un modelo global
+        (sin institución: p. ej. ContentType, tablas de referencia)."""
+        nombres = {f.name for f in model._meta.fields}
+        if 'institucion' in nombres:
+            return 'institucion'
+        if 'institucion_asociada' in nombres:
+            return 'institucion_asociada'
+        return None
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if not request.user.is_superuser and db_field.name in (
-            'institucion', 'institucion_asociada'
-        ):
-            from finanzas.models import InstitucionEducativa
+        """Acota TODOS los desplegables FK a la institución del usuario.
+
+        Antes solo se acotaba el campo 'institucion'. Eso dejaba fugar cualquier
+        otra FK a un modelo con institución (p. ej. «Creado por» → Usuario, o FKs
+        a Estudiante, Materia, Grado…), mostrando registros de OTROS colegios.
+        Ahora, para no-superusuarios, se filtra el queryset de cada FK cuyo modelo
+        relacionado tenga institución; los modelos globales se dejan intactos."""
+        if not request.user.is_superuser:
             inst = self._institucion_usuario(request)
-            kwargs['queryset'] = (
-                InstitucionEducativa.objects.filter(pk=inst.pk)
-                if inst else InstitucionEducativa.objects.none()
-            )
-            if inst:
-                kwargs['initial'] = inst
+            related = db_field.related_model
+            campo = self._campo_institucion_de(related)
+            if campo is not None:
+                if inst is not None:
+                    kwargs['queryset'] = related._default_manager.filter(**{campo: inst})
+                else:
+                    kwargs['queryset'] = related._default_manager.none()
+                # Preseleccionar la propia institución en el campo institución.
+                if db_field.name in ('institucion', 'institucion_asociada') and inst is not None:
+                    kwargs['initial'] = inst
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        """Igual que arriba pero para relaciones M2M (widgets de selección
+        múltiple), que también podían listar registros de otros colegios."""
+        if not request.user.is_superuser:
+            inst = self._institucion_usuario(request)
+            related = db_field.related_model
+            campo = self._campo_institucion_de(related)
+            if campo is not None:
+                kwargs['queryset'] = (
+                    related._default_manager.filter(**{campo: inst})
+                    if inst is not None else related._default_manager.none()
+                )
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
     def save_model(self, request, obj, form, change):
-        # Solo aplica cuando la institución es un campo directo del modelo.
+        # 1) Forzar la institución del usuario (si el modelo la tiene directa).
         if not request.user.is_superuser and '__' not in self.institucion_lookup:
             inst = self._institucion_usuario(request)
             if inst is not None and hasattr(obj, f'{self.institucion_lookup}_id'):
                 setattr(obj, self.institucion_lookup, inst)
+        # 2) Autocompletar «creado por / registrado por» con el usuario en sesión
+        #    (si el modelo tiene ese campo y está vacío), en vez de un desplegable.
+        for campo_autor in ('creado_por', 'registrado_por', 'publicado_por', 'generado_por'):
+            if hasattr(obj, f'{campo_autor}_id') and not getattr(obj, f'{campo_autor}_id'):
+                setattr(obj, campo_autor, request.user)
         super().save_model(request, obj, form, change)
 
 
