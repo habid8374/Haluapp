@@ -90,6 +90,23 @@
         .presencia-dot.p-online { background:#22c55e; box-shadow:0 0 0 2px rgba(34,197,94,.18); }
         .presencia-dot.p-away { background:#f59e0b; box-shadow:0 0 0 2px rgba(245,158,11,.18); }
         .presencia-dot.p-offline { background:#cbd5e1; }
+        /* ── Barra superior compacta en TODOS los módulos (una sola fila) ── */
+        .top-navbar .container-fluid { flex-wrap: nowrap !important; align-items: center !important; }
+        .top-navbar .navbar-toggler { display: none !important; }
+        .top-navbar #navbarNavContent { display: flex !important; flex-basis: auto !important; flex-grow: 0 !important; flex-shrink: 0 !important; }
+        .top-navbar #navbarNavContent .navbar-nav { flex-direction: row !important; align-items: center !important; flex-wrap: nowrap !important; }
+        .top-navbar .navbar-brand { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        @media (max-width: 479px) { .top-navbar .navbar-brand .brand-text { display: none; } }
+        /* En móvil el dropdown FLOTA (posición absoluta) en vez de estirar la barra */
+        @media (max-width: 575.98px) {
+            .top-navbar .navbar-nav .nav-item.dropdown { position: static !important; }
+            .top-navbar .navbar-nav .dropdown-menu {
+                position: absolute !important;
+                top: 100% !important; right: .4rem !important; left: auto !important;
+                margin-top: .35rem !important; z-index: 1200 !important;
+                box-shadow: 0 12px 30px rgba(0,0,0,.22) !important;
+            }
+        }
         .navbar-brand {
             font-weight: 800;
             color: #ffffff !important;
