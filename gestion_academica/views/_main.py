@@ -2796,6 +2796,33 @@ def _construir_progreso_academico(estudiante):
             'total': x['total'],
         })
 
+    # Barra de "notas por materia": promedio de cada materia entre los periodos
+    # con nota (estadística consolidada del año) + nivel de desempeño para dar
+    # color a cada barra. Se usa tanto en el portal como en el PDF.
+    def _nivel_desempeno(v):
+        if v is None:
+            return 'nd'
+        if v >= Decimal('4.6'):
+            return 'sup'
+        if v >= Decimal('4.0'):
+            return 'alt'
+        if v >= Decimal('3.0'):
+            return 'bas'
+        return 'baj'
+
+    chart_materias = []
+    for m in materias_progreso:
+        con_nota = [n for n in m['notas'] if n is not None]
+        prom_mat = (sum(con_nota) / Decimal(len(con_nota))) if con_nota else None
+        m['promedio'] = prom_mat
+        chart_materias.append({
+            'label': m['nombre'],
+            'materia': m['materia'],
+            'valor': prom_mat,
+            'altura': int((prom_mat / Decimal('5.0')) * 100) if prom_mat is not None else 0,
+            'nivel': _nivel_desempeno(prom_mat),
+        })
+
     puesto_actual = promedios_generales[-1]['puesto'] if promedios_generales else None
     total_grupo = promedios_generales[-1]['total'] if promedios_generales else None
     puesto_anterior = promedios_generales[-2]['puesto'] if len(promedios_generales) >= 2 else None
@@ -2808,6 +2835,7 @@ def _construir_progreso_academico(estudiante):
         'promedios_generales': promedios_generales,
         'materias_progreso': materias_progreso,
         'chart': chart,
+        'chart_materias': chart_materias,
         'tendencia_general': tendencia_general[0],
         'promedio_general_actual': ultimos[-1] if ultimos else None,
         'promedio_general_anterior': ultimos[-2] if len(ultimos) >= 2 else None,

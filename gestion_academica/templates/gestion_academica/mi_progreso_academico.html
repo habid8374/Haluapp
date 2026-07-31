@@ -11,6 +11,11 @@
   .prog-bar .val{position:absolute;top:-1.4rem;left:0;right:0;text-align:center;font-weight:700;font-size:.85rem;color:#334155}
   .prog-bar-lbl{margin-top:.5rem;font-size:.78rem;color:#64748b;text-align:center;font-weight:600}
   .lvl-sup{background:#16a34a}.lvl-alt{background:#0891b2}.lvl-bas{background:#d97706}.lvl-baj{background:#dc2626}.lvl-nd{background:#cbd5e1}
+  .matbar-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.55rem}
+  .matbar-name{flex:0 0 38%;max-width:38%;font-size:.82rem;font-weight:600;color:#334155;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .matbar-track{flex:1;background:#f1f5f9;border-radius:6px;height:20px;overflow:hidden}
+  .matbar-fill{height:100%;border-radius:6px;transition:width .4s;min-width:2px}
+  .matbar-val{flex:0 0 44px;font-weight:700;font-size:.82rem;color:#334155;text-align:left}
   .trend-up{color:#16a34a}.trend-down{color:#dc2626}.trend-eq{color:#64748b}
   .prog-table td,.prog-table th{vertical-align:middle;text-align:center}
   .prog-table .mat{text-align:left;font-weight:600}
@@ -92,6 +97,24 @@
       </div>
     </div>
   </div>
+
+  <!-- Barra de notas por materia (promedio del año) -->
+  {% if data.chart_materias %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-light"><strong>{% trans "Notas por materia" %}</strong> <span class="text-muted" style="font-size:.78rem;">{% trans "(promedio del año)" %}</span></div>
+    <div class="card-body">
+      {% for b in data.chart_materias %}
+      <div class="matbar-row">
+        <div class="matbar-name" title="{{ b.label }}">{{ b.label }}</div>
+        <div class="matbar-track">
+          <div class="matbar-fill lvl-{{ b.nivel }}" style="width:{{ b.altura }}%;"></div>
+        </div>
+        <div class="matbar-val">{{ b.valor|floatformat:2|default:"—" }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Tabla por materia -->
   <div class="card shadow-sm">

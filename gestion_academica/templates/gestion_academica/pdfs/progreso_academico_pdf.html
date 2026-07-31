@@ -34,6 +34,13 @@
   .bar-val { font-size:9.5px; font-weight:bold; color:#334155; margin-bottom:2px; }
   .bar-lbl { font-size:9px; color:#64748b; padding-top:3px; }
   .sup{background:#16a34a;}.alt{background:#0891b2;}.bas{background:#d97706;}.baj{background:#dc2626;}.nd{background:#cbd5e1;}
+  /* Barras horizontales de notas por materia */
+  .matbars { width:100%; border-collapse:collapse; margin-top:.1cm; }
+  .matbars td { padding:2.5px 5px; font-size:9.5px; vertical-align:middle; }
+  .mb-name { width:34%; text-align:right; font-weight:bold; color:#334155; }
+  .mb-track { background:#f1f5f9; border-radius:4px; height:.34cm; width:100%; }
+  .mb-fill { height:.34cm; border-radius:4px; }
+  .mb-val { width:1.3cm; text-align:left; font-weight:bold; color:#334155; }
   table.grades { width:100%; border-collapse:collapse; margin-top:.12cm; }
   table.grades th, table.grades td { border:1px solid #e2e8f0; padding:3.5px 6px; font-size:10px; text-align:center; }
   table.grades th { background:#f1f5f9; color:#334155; }
@@ -114,6 +121,19 @@
       {% for b in data.chart %}<td class="bar-lbl">{{ b.label }}{% if b.puesto %}<br>{% blocktrans with puesto=b.puesto total=b.total %}Puesto {{ puesto }}/{{ total }}{% endblocktrans %}{% endif %}</td>{% endfor %}
     </tr></table>
   </div>
+
+  {% if data.chart_materias %}
+  <div class="sec-h">{% trans "Notas por materia (promedio del año)" %}</div>
+  <table class="matbars">
+    {% for b in data.chart_materias %}
+    <tr>
+      <td class="mb-name">{{ b.label }}</td>
+      <td><div class="mb-track"><div class="mb-fill {{ b.nivel }}" style="width:{{ b.altura }}%;"></div></div></td>
+      <td class="mb-val">{{ b.valor|floatformat:2|default:"—" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
 
   <div class="sec-h">{% trans "Evolución por materia" %}</div>
   <table class="grades">
