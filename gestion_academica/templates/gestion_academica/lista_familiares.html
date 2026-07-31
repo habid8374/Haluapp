@@ -40,54 +40,72 @@
 
 <div class="text-muted small mb-2 ps-1">{% blocktrans count n=total %}{{ n }} familiar{% plural %}{{ n }} familiares{% endblocktrans %}</div>
 
-{% if familiares %}
-<div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
-  <div class="table-responsive">
-    <table class="table table-hover mb-0" style="font-size:.88rem;">
-      <thead style="background:#f8f9ff;">
-        <tr>
-          <th class="ps-4 py-3" style="color:#4f46e5;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Familiar" %}</th>
-          <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Parentesco" %}</th>
-          <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Contacto" %}</th>
-          <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Estudiante(s) asociado(s)" %}</th>
-          {% if ve_menu_staff %}
-          <th class="pe-4 py-3 text-center" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Acciones" %}</th>
-          {% endif %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for fam in familiares %}
-        <tr>
-          <td class="ps-4 py-3">
-            <div class="fw-semibold" style="color:#1e293b;">{{ fam.usuario.get_full_name|default:fam.usuario.username }}</div>
-            {% if fam.documento_identidad %}<div class="text-muted" style="font-size:.78rem;">{{ fam.get_tipo_documento_display|default:"Doc" }}: {{ fam.documento_identidad }}</div>{% endif %}
-            <div class="text-muted" style="font-size:.78rem;">{{ fam.usuario.email }}</div>
-          </td>
-          <td class="py-3" style="color:#334155;">{{ fam.parentesco|default:"—" }}</td>
-          <td class="py-3" style="color:#64748b;">
-            {% if fam.telefono %}<i class="bi bi-telephone me-1"></i>{{ fam.telefono }}{% else %}—{% endif %}
-          </td>
-          <td class="py-3">
-            {% for est in fam.estudiantes_asociados.all %}
-            <span class="badge rounded-pill mb-1" style="background:#eef2ff;color:#4f46e5;font-weight:600;">
-              {{ est.usuario.get_full_name|default:est.usuario.username }}{% if est.grado_actual %} · {{ est.grado_actual.nombre }}{% endif %}
-            </span>
-            {% empty %}
-            <span class="text-muted" style="font-size:.8rem;font-style:italic;">{% trans "Sin estudiantes" %}</span>
-            {% endfor %}
-          </td>
-          {% if ve_menu_staff %}
-          <td class="pe-4 py-3 text-center text-nowrap">
-            <a href="{% url 'admin:gestion_academica_familiar_change' fam.pk %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Editar' %}">
-              <i class="bi bi-pencil-fill"></i>
-            </a>
-          </td>
-          {% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+{% if familiares_por_grado %}
+<div class="accordion" id="accFamiliares">
+  {% for grupo in familiares_por_grado %}
+  {% with gid=forloop.counter %}
+  <div class="accordion-item shadow-sm mb-2" style="border:none;border-radius:12px;overflow:hidden;">
+    <h2 class="accordion-header">
+      <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-semibold"
+              type="button" data-bs-toggle="collapse" data-bs-target="#gradofam-{{ gid }}"
+              aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+              style="{% if not grupo.grado %}background:#fff7ed;color:#b45309;{% else %}background:#f5f3ff;color:#4f46e5;{% endif %}">
+        <i class="bi {% if grupo.grado %}bi-mortarboard-fill{% else %}bi-exclamation-triangle-fill{% endif %} me-2"></i>
+        {% if grupo.grado %}{{ grupo.grado.nombre }}{% else %}{% trans "Sin grado / sin estudiante" %}{% endif %}
+        <span class="badge rounded-pill ms-2" style="background:{% if grupo.grado %}#ede9fe;color:#4f46e5{% else %}#fed7aa;color:#b45309{% endif %};">{{ grupo.items|length }}</span>
+      </button>
+    </h2>
+    <div id="gradofam-{{ gid }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#accFamiliares">
+      <div class="accordion-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:.88rem;">
+            <thead style="background:#f8f9ff;">
+              <tr>
+                <th class="ps-4 py-3" style="color:#4f46e5;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Familiar" %}</th>
+                <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Parentesco" %}</th>
+                <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Contacto" %}</th>
+                <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Estudiante(s)" %}</th>
+                {% if ve_menu_staff %}
+                <th class="pe-4 py-3 text-center" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Acciones" %}</th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in grupo.items %}
+              <tr>
+                <td class="ps-4 py-3">
+                  <div class="fw-semibold" style="color:#1e293b;">{{ item.familiar.usuario.get_full_name|default:item.familiar.usuario.username }}</div>
+                  {% if item.familiar.documento_identidad %}<div class="text-muted" style="font-size:.78rem;">{{ item.familiar.get_tipo_documento_display|default:"Doc" }}: {{ item.familiar.documento_identidad }}</div>{% endif %}
+                  <div class="text-muted" style="font-size:.78rem;">{{ item.familiar.usuario.email }}</div>
+                </td>
+                <td class="py-3" style="color:#334155;">{{ item.familiar.parentesco|default:"—" }}</td>
+                <td class="py-3" style="color:#64748b;">
+                  {% if item.familiar.telefono %}<i class="bi bi-telephone me-1"></i>{{ item.familiar.telefono }}{% else %}—{% endif %}
+                </td>
+                <td class="py-3">
+                  {% for est in item.estudiantes %}
+                  <span class="badge rounded-pill mb-1" style="background:#eef2ff;color:#4f46e5;font-weight:600;">{{ est.usuario.get_full_name|default:est.usuario.username }}</span>
+                  {% empty %}
+                  <span class="text-muted" style="font-size:.8rem;font-style:italic;">{% trans "Sin estudiantes" %}</span>
+                  {% endfor %}
+                </td>
+                {% if ve_menu_staff %}
+                <td class="pe-4 py-3 text-center text-nowrap">
+                  <a href="{% url 'admin:gestion_academica_familiar_change' item.familiar.pk %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Editar' %}">
+                    <i class="bi bi-pencil-fill"></i>
+                  </a>
+                </td>
+                {% endif %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
+  {% endwith %}
+  {% endfor %}
 </div>
 {% else %}
 <div class="card border-0 shadow-sm text-center py-5" style="border-radius:16px;">

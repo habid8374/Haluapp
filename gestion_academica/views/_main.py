@@ -7701,11 +7701,42 @@ def lista_familiares(request):
         'estudiantes_asociados__usuario', 'estudiantes_asociados__grado_actual'
     ).order_by('usuario__last_name', 'usuario__first_name')
 
+    total = qs.count()
+
+    # Agrupar por grado para el acordeón: un familiar aparece bajo cada grado
+    # donde tenga un estudiante (mostrando solo los estudiantes de ese grado).
+    # Los familiares sin estudiantes van a un grupo aparte al final.
+    grupos = {}
+    for fam in qs:
+        ests = list(fam.estudiantes_asociados.all())
+        if not ests:
+            grupos.setdefault(None, {'grado': None, 'items': []})['items'].append(
+                {'familiar': fam, 'estudiantes': []}
+            )
+            continue
+        por_grado = {}
+        for est in ests:
+            g = est.grado_actual
+            gk = g.pk if g else '__sin__'
+            por_grado.setdefault(gk, {'grado': g, 'ests': []})['ests'].append(est)
+        for gk, data in por_grado.items():
+            grupo = grupos.setdefault(gk, {'grado': data['grado'], 'items': []})
+            grupo['items'].append({'familiar': fam, 'estudiantes': data['ests']})
+
+    familiares_por_grado = sorted(
+        grupos.values(),
+        key=lambda gr: (
+            gr['grado'] is None,
+            (gr['grado'].orden if gr['grado'] and gr['grado'].orden is not None else 9999),
+            gr['grado'].nombre if gr['grado'] else '',
+        ),
+    )
+
     context = {
         'titulo_pagina': 'Listado de Familiares',
-        'familiares': qs,
+        'familiares_por_grado': familiares_por_grado,
         'query_actual': q,
-        'total': qs.count(),
+        'total': total,
     }
     return render(request, 'gestion_academica/lista_familiares.html', context)
 
