@@ -513,7 +513,11 @@ def gestion_bloqueos_estudiantes(request):
         'estado_actual': estado,
         'total_bloqueados': base_qs.filter(acceso_bloqueado=True).count(),
         'secciones_config': secciones_config,
-        'puede_configurar': not request.user.is_superuser and institucion is not None,
+        # La configuración es por institución: se muestra siempre que haya un
+        # colegio asociado (incluye al superusuario que tenga institución
+        # asociada; si el superusuario no tiene ninguna, se configura por
+        # colegio desde el /admin/).
+        'puede_configurar': institucion is not None,
     }
     return render(request, 'gestion_academica/gestion_bloqueos_estudiantes.html', context)
 
