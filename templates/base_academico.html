@@ -429,6 +429,13 @@
             </div>
           </li>
         {% endif %}
+        {% if perms.gestion_academica.view_familiar %}
+          <li class="nav-item item-color-4">
+            <a class="nav-link {% if request.resolver_match.url_name == 'lista_familiares' %}active{% endif %}" href="{% url 'gestion_academica:lista_familiares' %}">
+              <i class="bi bi-people"></i> Familiares (listado)
+            </a>
+          </li>
+        {% endif %}
         {% if perms.gestion_academica.add_familiar %}
           <li class="nav-item item-color-4">
             <a class="nav-link" href="{% url 'gestion_academica:crear_familiar' %}">

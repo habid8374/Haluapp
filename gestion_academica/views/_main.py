@@ -7673,7 +7673,41 @@ def crear_familiar(request):
         'familiar_form': familiar_form,
         'titulo_pagina': 'Registrar Nuevo Familiar'
     }
-    return render(request, 'gestion_academica/familiar_formulario.html', context)    
+    return render(request, 'gestion_academica/familiar_formulario.html', context)
+
+@login_required
+@permission_required('gestion_academica.view_familiar')
+def lista_familiares(request):
+    """Listado de familiares/acudientes de la institución (scoped multi-tenant),
+    con buscador por nombre, documento, teléfono o estudiante asociado."""
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if request.user.is_superuser:
+        qs = Familiar.objects.all()
+    else:
+        qs = Familiar.objects.filter(institucion=institucion)
+
+    q = (request.GET.get('q') or '').strip()
+    if q:
+        qs = qs.filter(
+            Q(usuario__first_name__icontains=q)
+            | Q(usuario__last_name__icontains=q)
+            | Q(documento_identidad__icontains=q)
+            | Q(telefono__icontains=q)
+            | Q(estudiantes_asociados__usuario__first_name__icontains=q)
+            | Q(estudiantes_asociados__usuario__last_name__icontains=q)
+        ).distinct()
+
+    qs = qs.select_related('usuario').prefetch_related(
+        'estudiantes_asociados__usuario', 'estudiantes_asociados__grado_actual'
+    ).order_by('usuario__last_name', 'usuario__first_name')
+
+    context = {
+        'titulo_pagina': 'Listado de Familiares',
+        'familiares': qs,
+        'query_actual': q,
+        'total': qs.count(),
+    }
+    return render(request, 'gestion_academica/lista_familiares.html', context)
 
 @login_required
 def dashboard_coordinador_view(request):

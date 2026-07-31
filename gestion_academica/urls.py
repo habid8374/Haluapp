@@ -282,6 +282,7 @@ urlpatterns = [
     path('riesgo/notificar-docente/<int:prediccion_pk>/', views.notificar_docente_view, name='notificar_docente'),
     path('riesgo/ejecutar-analisis/', views.ejecutar_analisis_riesgo_view, name='ejecutar_analisis_riesgo'),
     path('notificaciones/', views.lista_notificaciones_view, name='lista_notificaciones'),
+    path('familiares/', views.lista_familiares, name='lista_familiares'),
     path('familiares/crear/', views.crear_familiar, name='crear_familiar'),
     path('familiares/cargar/', views.cargar_familiares, name='cargar_familiares'),
     path('familiares/plantilla/', views.descargar_plantilla_familiares, name='descargar_plantilla_familiares'),
