@@ -218,6 +218,15 @@
     </li>
     {% endif %}
     <hr class="menu-divider">
+    <h5 class="menu-section-title">Comunicación</h5>
+    <li class="nav-item item-color-3">
+      <a class="nav-link {% if request.resolver_match.namespace == 'mensajeria' %}active{% endif %}"
+         href="{% url 'mensajeria:inbox' %}">
+        <i class="bi bi-chat-dots-fill"></i> Mensajes
+        <span id="nav-mensajes-badge" class="badge bg-danger ms-1" style="display:none"></span>
+      </a>
+    </li>
+    <hr class="menu-divider">
     <h5 class="menu-section-title">Ir a Módulos</h5>
     <li class="nav-item item-color-1">
       <a class="nav-link" href="{% url 'gestion_academica:inicio_academico' %}">
