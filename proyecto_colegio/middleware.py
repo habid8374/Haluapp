@@ -134,19 +134,83 @@ class InstitucionActivaMiddleware:
         return self.get_response(request)
 
 
+# ── Secciones del portal del estudiante que se pueden bloquear ──────────────
+# Cada institución elige (con casillas) cuáles se le ocultan a un estudiante con
+# el acceso bloqueado manualmente. Lo NO marcado sigue disponible (p. ej. los
+# deberes). El mapeo es por nombre de URL (resuelto con resolve()), no por ruta,
+# para no romperse si cambian los paths.
+SECCIONES_BLOQUEABLES = {
+    'notas': {
+        'label': 'Notas / Calificaciones',
+        'url_names': {
+            'mis_cursos_calificaciones',
+            'detalle_mis_calificaciones_por_curso',
+            'detalle_calificaciones_por_materia',
+        },
+    },
+    'progreso': {
+        'label': 'Progreso académico',
+        'url_names': {'mi_progreso_academico'},
+    },
+    'boletin': {
+        'label': 'Boletín',
+        'url_names': {
+            'mi_boletin_periodo_actual',
+            'mi_boletin',
+            'boletin_imprimible',
+            'api_mi_boletin',
+        },
+    },
+    'deberes': {
+        'label': 'Deberes / Tareas',
+        'url_names': {'mis_deberes_lista', 'realizar_entrega_deber', 'api_mis_deberes'},
+    },
+    'simulacros': {
+        'label': 'Simulacros Saber',
+        'namespace': 'simulacros',   # se bloquea todo el módulo de simulacros
+    },
+}
+
+# Preset por defecto (coincide con finanzas.models._default_bloqueo_secciones).
+DEFAULT_SECCIONES_BLOQUEADAS = ['notas', 'progreso', 'boletin']
+
+
+def secciones_bloqueables_choices():
+    """[(key, label)] para pintar las casillas en la pantalla de bloqueos."""
+    orden = ['notas', 'progreso', 'boletin', 'deberes', 'simulacros']
+    return [(k, SECCIONES_BLOQUEABLES[k]['label']) for k in orden if k in SECCIONES_BLOQUEABLES]
+
+
+def _seccion_de_match(resolver_match):
+    """Devuelve la clave de sección bloqueable a la que pertenece la URL
+    resuelta, o None si la URL no corresponde a ninguna sección bloqueable."""
+    namespace = resolver_match.namespace
+    url_name = resolver_match.url_name
+    for key, cfg in SECCIONES_BLOQUEABLES.items():
+        ns = cfg.get('namespace')
+        if ns is not None:
+            if namespace == ns:
+                return key
+        elif namespace == 'gestion_academica' and url_name in cfg.get('url_names', ()):
+            return key
+    return None
+
+
 class BloqueoEstudianteMiddleware:
     """Limita el portal de un estudiante con ``acceso_bloqueado=True``.
 
     Bloqueo manual (ej. por no pago, gestionado por Secretaría): el estudiante
-    SÍ inicia sesión y entra a su portal, pero queda **confinado a su dashboard**,
-    donde ve un aviso rojo en el hero y el contenido deshabilitado. Cualquier
-    otra pantalla del portal (notas, deberes, simulacros…) lo devuelve al
-    dashboard.
+    SÍ inicia sesión y navega su portal con normalidad; solo se le **ocultan
+    las secciones que su institución haya marcado** en la configuración de
+    bloqueos (``InstitucionEducativa.bloqueo_secciones``; por defecto Notas,
+    Progreso y Boletín). El resto del portal —incluidos los deberes— sigue
+    disponible. En su dashboard ve el aviso rojo de suspensión.
 
     - Solo afecta al rol ``estudiante``. Otros roles y el superusuario pasan
       transparente.
-    - Web → redirige al dashboard del estudiante (donde se muestra el aviso).
-    - API móvil (``/academico/api/``) → 403 JSON, para no romper la app.
+    - Sección bloqueada, web → redirige al dashboard (donde se muestra el aviso).
+    - Sección bloqueada, API móvil → 403 JSON, para no romper la app.
+    - Secciones no marcadas → pasan transparente.
     """
 
     RUTAS_EXENTAS_PREFIJOS = (
@@ -173,21 +237,36 @@ class BloqueoEstudianteMiddleware:
             if not exento:
                 estudiante = getattr(user, 'estudiante', None)
                 if estudiante is not None and getattr(estudiante, 'acceso_bloqueado', False):
-                    from django.urls import reverse
-                    dashboard_url = reverse('gestion_academica:dashboard_estudiante')
-                    # El dashboard SÍ se permite: ahí ve el aviso rojo y el
-                    # contenido bloqueado. Todo lo demás lo devolvemos ahí.
-                    if current_path == dashboard_url:
-                        pass
-                    elif current_path.startswith('/academico/api/'):
-                        from django.http import JsonResponse
-                        return JsonResponse(
-                            {'detail': 'Acceso suspendido. Contacta con administración.'},
-                            status=403,
-                        )
-                    else:
-                        return redirect(dashboard_url)
+                    if self._seccion_bloqueada(request, estudiante):
+                        if current_path.startswith('/academico/api/'):
+                            from django.http import JsonResponse
+                            return JsonResponse(
+                                {'detail': 'Acceso suspendido. Contacta con administración.'},
+                                status=403,
+                            )
+                        dashboard_url = reverse('gestion_academica:dashboard_estudiante')
+                        if current_path != dashboard_url:
+                            return redirect(dashboard_url)
         return self.get_response(request)
+
+    def _seccion_bloqueada(self, request, estudiante):
+        """True si la URL pedida cae en una sección que la institución del
+        estudiante tiene marcada como bloqueada."""
+        from django.urls import resolve, Resolver404
+        try:
+            match = resolve(request.path_info)
+        except Resolver404:
+            return False
+        seccion = _seccion_de_match(match)
+        if seccion is None:
+            return False
+        institucion = getattr(estudiante, 'institucion', None)
+        secciones = DEFAULT_SECCIONES_BLOQUEADAS
+        if institucion is not None:
+            valor = getattr(institucion, 'bloqueo_secciones', None)
+            if isinstance(valor, list):
+                secciones = valor
+        return seccion in secciones
 
 
 class ModuloFinancieroMiddleware:

@@ -7,7 +7,7 @@
 <div style="background: linear-gradient(135deg, #ea580c 0%, #b91c1c 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem;">
   <h2 style="color:#fff;"><i class="bi bi-shield-lock-fill"></i> {% trans "Bloqueos de Estudiantes" %}</h2>
   <p style="color:#fff; margin-bottom:0;">
-    {% trans "Bloquea o restaura el acceso de un estudiante al portal (por ejemplo, por no pago). El estudiante podrá iniciar sesión pero verá una pantalla de acceso suspendido." %}
+    {% trans "Bloquea o restaura el acceso de un estudiante al portal (por ejemplo, por no pago). El estudiante podrá iniciar sesión y usar el portal, pero no verá las secciones que elijas más abajo (por defecto: notas, progreso y boletín)." %}
   </p>
   {% if total_bloqueados %}
     <p style="color:#fff; opacity:.9; margin:.5rem 0 0; font-size:.85rem;">
@@ -15,6 +15,39 @@
     </p>
   {% endif %}
 </div>
+
+{% if puede_configurar %}
+<!-- Configuración: qué se le oculta al estudiante bloqueado -->
+<div class="card shadow-sm mb-3" style="border:none;border-radius:14px;">
+  <div class="card-header d-flex align-items-center justify-content-between" style="background:#fff7ed;border:none;border-radius:14px 14px 0 0;cursor:pointer;"
+       data-bs-toggle="collapse" data-bs-target="#configBloqueo" role="button" aria-expanded="false">
+    <span class="fw-bold" style="color:#b45309;"><i class="bi bi-sliders me-1"></i>{% trans "¿Qué se le bloquea al estudiante suspendido?" %}</span>
+    <i class="bi bi-chevron-down" style="color:#b45309;"></i>
+  </div>
+  <div class="collapse" id="configBloqueo">
+    <div class="card-body">
+      <p class="text-muted small mb-3">{% trans "Marca las secciones que un estudiante bloqueado NO podrá ver. Todo lo que dejes sin marcar seguirá disponible para él (por ejemplo, seguir viendo y entregando sus deberes). Aplica a todos los estudiantes bloqueados de tu institución." %}</p>
+      <form method="post" action="{% url 'gestion_academica:guardar_config_bloqueo' %}">
+        {% csrf_token %}
+        <div class="row g-2">
+          {% for s in secciones_config %}
+          <div class="col-12 col-md-6">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="secciones" value="{{ s.key }}"
+                     id="sec_{{ s.key }}" {% if s.activa %}checked{% endif %}>
+              <label class="form-check-label" for="sec_{{ s.key }}">{{ s.label }}</label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-warning btn-sm fw-bold mt-3" style="border-radius:9px;">
+          <i class="bi bi-save me-1"></i>{% trans "Guardar configuración" %}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <!-- Filtros -->
 <form method="get" class="card shadow-sm mb-3">

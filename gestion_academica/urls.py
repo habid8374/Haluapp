@@ -433,6 +433,7 @@ urlpatterns = [
     path('direccion/panel/', views.dashboard_rector, name='dashboard_rector'),
     path('acceso-suspendido/', views.acceso_suspendido, name='acceso_suspendido'),
     path('bloqueos/', views.gestion_bloqueos_estudiantes, name='gestion_bloqueos_estudiantes'),
+    path('bloqueos/configurar/', views.guardar_config_bloqueo, name='guardar_config_bloqueo'),
     path('bloqueos/<int:estudiante_pk>/toggle/', views.toggle_bloqueo_estudiante, name='toggle_bloqueo_estudiante'),
     path('usuarios/lista/', views.lista_usuarios_view, name='lista_usuarios'),
     path('usuarios/<int:user_pk>/editar/', views.editar_usuario_view, name='editar_usuario'),

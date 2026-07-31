@@ -36,8 +36,14 @@ ESTADOS_CUENTA = [
     ('ANULADO', 'Anulado'),
 ]
 
+def _default_bloqueo_secciones():
+    """Preset del bloqueo manual de estudiante: qué secciones se ocultan por
+    defecto. Se puede ajustar por institución desde la pantalla de bloqueos."""
+    return ['notas', 'progreso', 'boletin']
+
+
 class InstitucionEducativa(models.Model):
-    
+
     nombre = models.CharField(max_length=100, verbose_name="Nombre de la Institución Educativa")
     nit = models.CharField(max_length=20, unique=True, verbose_name="NIT")
     direccion = models.CharField(max_length=255, blank=True, null=True, verbose_name="Dirección")
@@ -169,6 +175,18 @@ class InstitucionEducativa(models.Model):
             "Días de margen tras el vencimiento antes de bloquear el portal. "
             "Ej: 3 → no se bloquea hasta 3 días después del vencimiento. "
             "Solo aplica si 'bloquear_portal_por_mora' está activo."
+        ),
+    )
+    # ---- Bloqueo MANUAL del estudiante (por Secretaría): qué se le oculta ----
+    bloqueo_secciones = models.JSONField(
+        default=_default_bloqueo_secciones,
+        blank=True,
+        verbose_name="Secciones que se ocultan al estudiante bloqueado manualmente",
+        help_text=(
+            "Lista de secciones del portal que NO podrá ver un estudiante con el "
+            "acceso bloqueado manualmente (ej. por no pago). El resto del portal "
+            "sigue disponible. Se configura con casillas en la pantalla de "
+            "Bloqueos de Estudiantes."
         ),
     )
     tarifa_mensual_plataforma = models.DecimalField(

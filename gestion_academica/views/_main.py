@@ -490,6 +490,20 @@ def gestion_bloqueos_estudiantes(request):
             'bloqueados': sum(1 for e in sin_grado if e.acceso_bloqueado),
         })
 
+    # Configuración de QUÉ se bloquea (casillas), por institución.
+    from proyecto_colegio.middleware import (
+        secciones_bloqueables_choices, DEFAULT_SECCIONES_BLOQUEADAS,
+    )
+    secciones_choices = secciones_bloqueables_choices()
+    if institucion is not None and isinstance(getattr(institucion, 'bloqueo_secciones', None), list):
+        secciones_activas = set(institucion.bloqueo_secciones)
+    else:
+        secciones_activas = set(DEFAULT_SECCIONES_BLOQUEADAS)
+    secciones_config = [
+        {'key': k, 'label': lbl, 'activa': k in secciones_activas}
+        for k, lbl in secciones_choices
+    ]
+
     context = {
         'titulo_pagina': "Bloqueos de Estudiantes",
         'grupos_grado': grupos_grado,
@@ -498,8 +512,34 @@ def gestion_bloqueos_estudiantes(request):
         'query_actual': query,
         'estado_actual': estado,
         'total_bloqueados': base_qs.filter(acceso_bloqueado=True).count(),
+        'secciones_config': secciones_config,
+        'puede_configurar': not request.user.is_superuser and institucion is not None,
     }
     return render(request, 'gestion_academica/gestion_bloqueos_estudiantes.html', context)
+
+
+@login_required
+def guardar_config_bloqueo(request):
+    """Guarda qué secciones se ocultan al estudiante bloqueado (casillas),
+    por institución. Solo personal directivo/secretaría."""
+    if request.method != 'POST':
+        return redirect('gestion_academica:gestion_bloqueos_estudiantes')
+    if not _puede_gestionar_bloqueos(request.user):
+        messages.error(request, "No tienes permiso para configurar el bloqueo.")
+        return redirect('gestion_academica:inicio_academico')
+
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if institucion is None:
+        messages.error(request, "Tu usuario no tiene institución asociada.")
+        return redirect('gestion_academica:gestion_bloqueos_estudiantes')
+
+    from proyecto_colegio.middleware import secciones_bloqueables_choices
+    validas = {k for k, _lbl in secciones_bloqueables_choices()}
+    seleccionadas = [s for s in request.POST.getlist('secciones') if s in validas]
+    institucion.bloqueo_secciones = seleccionadas
+    institucion.save(update_fields=['bloqueo_secciones'])
+    messages.success(request, "Se actualizó qué secciones se bloquean al estudiante suspendido.")
+    return redirect('gestion_academica:gestion_bloqueos_estudiantes')
 
 
 @login_required
