@@ -889,23 +889,28 @@ class ObservacionBoletinForm(forms.ModelForm):
 class DescriptorLogroForm(forms.ModelForm):
     class Meta:
         model = DescriptorLogro
-        fields = ['materia', 'periodo_academico', 'grado', 'descripcion']
+        fields = ['materia', 'periodo_academico', 'grado', 'dimension', 'descripcion']
         widgets = {
             'materia': forms.Select(attrs={'class': 'form-select'}),
             'periodo_academico': forms.Select(attrs={'class': 'form-select'}),
             'grado': forms.Select(attrs={'class': 'form-select'}),
+            'dimension': forms.Select(attrs={'class': 'form-select'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
         labels = {
             'materia': _('Asignatura a la que pertenece el logro'),
             'periodo_academico': _('Periodo académico de aplicación'),
             'grado': _('Grado (opcional — deja en blanco para aplicar a todos)'),
+            'dimension': _('Dimensión (opcional — solo preescolar)'),
             'descripcion': _('Texto del logro o descriptor'),
         }
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        # La dimensión es opcional (solo preescolar); no obligar en el formulario.
+        if 'dimension' in self.fields:
+            self.fields['dimension'].required = False
 
         if request and hasattr(request.user, 'docente'):
             # Docente: solo sus materias asignadas
@@ -916,6 +921,7 @@ class DescriptorLogroForm(forms.ModelForm):
             self.fields['materia'].queryset = Materia.objects.filter(pk__in=materias_ids)
             self.fields['periodo_academico'].queryset = PeriodoAcademico.objects.filter(activo=True, institucion=institucion)
             self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
+            self.fields['dimension'].queryset = DimensionDesarrollo.objects.filter(institucion=institucion)
         elif request:
             # Coordinador u otro rol: todas las materias/periodos/grados de la institución
             institucion = getattr(request.user, 'institucion_asociada', None)
@@ -923,6 +929,7 @@ class DescriptorLogroForm(forms.ModelForm):
                 self.fields['materia'].queryset = Materia.objects.filter(institucion=institucion)
                 self.fields['periodo_academico'].queryset = PeriodoAcademico.objects.filter(institucion=institucion)
                 self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion)
+                self.fields['dimension'].queryset = DimensionDesarrollo.objects.filter(institucion=institucion)
 
 class AnotacionObservadorForm(forms.ModelForm):
     class Meta:

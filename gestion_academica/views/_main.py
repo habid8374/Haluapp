@@ -6917,9 +6917,10 @@ def coordinador_descargar_plantilla_descriptores(request):
     """Plantilla Excel de carga masiva de descriptores para el coordinador.
 
     A diferencia de la del docente, abarca TODAS las materias y grados de la
-    institución (el coordinador ve todo su colegio) e incluye una columna GRADO
-    opcional, para que la carga masiva encaje con los mismos campos del
-    formulario de creación manual (materia, periodo, grado, descripción).
+    institución (el coordinador ve todo su colegio) e incluye columnas GRADO y
+    DIMENSIÓN opcionales, para que la carga masiva encaje con los mismos campos
+    que el formulario del admin (materia, periodo, dimensión, grado, descripción).
+    La DIMENSIÓN es opcional y solo aplica a preescolar.
     """
     institucion = getattr(request.user, 'institucion_asociada', None)
     rol = getattr(request.user, 'rol', '') or ''
@@ -6932,6 +6933,7 @@ def coordinador_descargar_plantilla_descriptores(request):
 
     materias = Materia.objects.filter(institucion=institucion).order_by('nombre_materia')
     grados = Grado.objects.filter(institucion=institucion).order_by('nombre')
+    dimensiones = DimensionDesarrollo.objects.filter(institucion=institucion).order_by('nombre')
     periodos = PeriodoAcademico.objects.filter(institucion=institucion).order_by('nombre')
 
     workbook = Workbook()
@@ -6947,15 +6949,21 @@ def coordinador_descargar_plantilla_descriptores(request):
     for g in grados:
         sheet_grados.append([g.nombre])
 
+    sheet_dim = workbook.create_sheet(title="Data_Dimensiones")
+    sheet_dim.append(['DIMENSION'])
+    for d in dimensiones:
+        sheet_dim.append([d.nombre])
+
     sheet_periodos = workbook.create_sheet(title="Data_Periodos")
     sheet_periodos.append(['PERIODO'])
     for p in periodos:
         sheet_periodos.append([p.nombre])
 
-    # Hoja principal.
+    # Hoja principal. Columnas: A código, B nombre (auto), C grado, D dimensión,
+    # E periodo, F texto. GRADO y DIMENSIÓN son opcionales.
     sheet = workbook.active
     sheet.title = "PLANTILLA_BANCO_DE_LOGROS"
-    sheet.append(['CODIGO_ASIGNATURA', 'NOMBRE_ASIGNATURA', 'GRADO', 'PERIODO', 'TEXTO_DESCRIPTOR'])
+    sheet.append(['CODIGO_ASIGNATURA', 'NOMBRE_ASIGNATURA', 'GRADO', 'DIMENSION', 'PERIODO', 'TEXTO_DESCRIPTOR'])
 
     # Desplegable de materias (columna A).
     if materias.exists():
@@ -6969,11 +6977,17 @@ def coordinador_descargar_plantilla_descriptores(request):
         sheet.add_data_validation(dv_grado)
         dv_grado.add('C2:C1000')
 
-    # Desplegable de periodos (columna D), tomado de los periodos reales del colegio.
+    # Desplegable de dimensiones (columna D) — opcional; solo preescolar.
+    if dimensiones.exists():
+        dv_dim = DataValidation(type="list", formula1=f"=Data_Dimensiones!$A$2:$A${dimensiones.count() + 1}")
+        sheet.add_data_validation(dv_dim)
+        dv_dim.add('D2:D1000')
+
+    # Desplegable de periodos (columna E), tomado de los periodos reales del colegio.
     if periodos.exists():
         dv_periodo = DataValidation(type="list", formula1=f"=Data_Periodos!$A$2:$A${periodos.count() + 1}")
         sheet.add_data_validation(dv_periodo)
-        dv_periodo.add('D2:D1000')
+        dv_periodo.add('E2:E1000')
 
     # Autocompletado del nombre de la materia (columna B) según el código elegido.
     for row_idx in range(2, 1001):
@@ -6981,6 +6995,7 @@ def coordinador_descargar_plantilla_descriptores(request):
 
     sheet_mat.sheet_state = 'hidden'
     sheet_grados.sheet_state = 'hidden'
+    sheet_dim.sheet_state = 'hidden'
     sheet_periodos.sheet_state = 'hidden'
 
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -12385,6 +12400,7 @@ class CoordinadorDescriptorListView(LoginRequiredMixin, PermissionRequiredMixin,
             return redirect('gestion_academica:coordinador_lista_descriptores')
 
         tiene_grado = 'GRADO' in df.columns
+        tiene_dimension = 'DIMENSION' in df.columns
         creados = 0
         for index, row in df.iterrows():
             if pd.isna(row['CODIGO_ASIGNATURA']) or pd.isna(row['PERIODO']) or pd.isna(row['TEXTO_DESCRIPTOR']):
@@ -12407,10 +12423,19 @@ class CoordinadorDescriptorListView(LoginRequiredMixin, PermissionRequiredMixin,
                     except Grado.DoesNotExist:
                         messages.warning(request, _("Fila %(n)s: El grado '%(g)s' no existe en tu institución; el descriptor se creó sin grado.") % {'n': index + 2, 'g': grado_nombre})
 
+                dimension_obj = None
+                if tiene_dimension and not pd.isna(row['DIMENSION']) and str(row['DIMENSION']).strip():
+                    dimension_nombre = str(row['DIMENSION']).strip()
+                    try:
+                        dimension_obj = DimensionDesarrollo.objects.get(nombre=dimension_nombre, institucion=institucion_actual)
+                    except DimensionDesarrollo.DoesNotExist:
+                        messages.warning(request, _("Fila %(n)s: La dimensión '%(d)s' no existe en tu institución; el descriptor se creó sin dimensión.") % {'n': index + 2, 'd': dimension_nombre})
+
                 DescriptorLogro.objects.create(
                     materia=materia_obj,
                     periodo_academico=periodo_obj,
                     grado=grado_obj,
+                    dimension=dimension_obj,
                     descripcion=str(row['TEXTO_DESCRIPTOR']).strip(),
                     creado_por=request.user,
                     institucion=institucion_actual,
