@@ -160,9 +160,22 @@
           <p class="text-muted mb-3" style="font-size:.85rem;">
             <span id="bloquear-nombre" class="fw-semibold"></span> — {% trans "podrá iniciar sesión pero no verá el portal (notas, deberes, etc.)." %}
           </p>
-          <label class="form-label small fw-semibold">{% trans "Motivo (opcional, lo verá el estudiante)" %}</label>
-          <input type="text" name="motivo" class="form-control" maxlength="255"
-                 placeholder="{% trans 'Ej: Pago pendiente del mes' %}">
+          <label class="form-label small fw-semibold">{% trans "Mes de la mensualidad pendiente" %}</label>
+          <select name="motivo" id="bloquear-mes" class="form-select">
+            <option value="Pago Pendiente del Mes de Enero">Enero</option>
+            <option value="Pago Pendiente del Mes de Febrero">Febrero</option>
+            <option value="Pago Pendiente del Mes de Marzo">Marzo</option>
+            <option value="Pago Pendiente del Mes de Abril">Abril</option>
+            <option value="Pago Pendiente del Mes de Mayo">Mayo</option>
+            <option value="Pago Pendiente del Mes de Junio">Junio</option>
+            <option value="Pago Pendiente del Mes de Julio">Julio</option>
+            <option value="Pago Pendiente del Mes de Agosto">Agosto</option>
+            <option value="Pago Pendiente del Mes de Septiembre">Septiembre</option>
+            <option value="Pago Pendiente del Mes de Octubre">Octubre</option>
+            <option value="Pago Pendiente del Mes de Noviembre">Noviembre</option>
+            <option value="Pago Pendiente del Mes de Diciembre">Diciembre</option>
+          </select>
+          <div class="form-text" style="font-size:.75rem;">{% trans "El estudiante verá: «Pago Pendiente del Mes de …»." %}</div>
         </div>
         <div class="modal-footer border-0">
           <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
@@ -208,6 +221,9 @@
     b.addEventListener('click', function () {
       document.getElementById('form-bloquear').action = this.dataset.action;
       document.getElementById('bloquear-nombre').textContent = this.dataset.nombre || '';
+      // Preseleccionar el mes actual (0 = enero → índice del <select>).
+      var selMes = document.getElementById('bloquear-mes');
+      if (selMes) selMes.selectedIndex = new Date().getMonth();
     });
   });
   document.querySelectorAll('[data-bs-target="#modalDesbloquear"]').forEach(function (b) {
