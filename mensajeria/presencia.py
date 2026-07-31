@@ -116,8 +116,13 @@ def peers_de(usuario_id):
             ).exclude(pk=usuario_id).values_list('pk', flat=True)
         )
 
-    # Conversaciones ya existentes (cubre docente ↔ alumno en curso), acotadas a
-    # la institución del usuario.
+    # Docente ↔ alumnos (estudiantes/familias) de sus cursos del periodo activo,
+    # sin necesitar chat previo. Acotado por institución dentro del helper.
+    if inst_id is not None and rol in ('docente', 'estudiante', 'familiar'):
+        peers.update(_peers_curso(usuario_id, rol, inst_id))
+
+    # Conversaciones ya existentes (por si hubiera chats fuera de las reglas
+    # anteriores), acotadas a la institución del usuario.
     convs = Conversacion.objects.filter(
         Q(participante_a_id=usuario_id) | Q(participante_b_id=usuario_id)
     )
@@ -127,6 +132,79 @@ def peers_de(usuario_id):
         peers.add(b if a == usuario_id else a)
 
     peers.discard(usuario_id)
+    return peers
+
+
+def _peers_curso(usuario_id, rol, inst_id):
+    """Presencia docente ↔ alumnos de sus cursos (solo periodo activo).
+
+    - Docente → estudiantes (y sus familias) de los grados que dicta.
+    - Estudiante → docentes de los cursos de su grado.
+    - Familiar → docentes de los cursos de sus estudiantes asociados.
+    Todo dentro de la misma institución.
+    """
+    from gestion_academica.models import (
+        Estudiante, Docente, Familiar, Curso, PeriodoAcademico,
+    )
+    peers = set()
+    periodo_ids = list(
+        PeriodoAcademico.objects.filter(institucion_id=inst_id, activo=True)
+        .values_list('pk', flat=True)
+    )
+    if not periodo_ids:
+        return peers
+
+    if rol == 'docente':
+        docente = Docente.objects.filter(usuario_id=usuario_id).first()
+        if not docente:
+            return peers
+        grado_ids = list(
+            Curso.objects.filter(
+                docentes_asignados=docente,
+                periodo_academico_id__in=periodo_ids,
+                institucion_id=inst_id,
+            ).values_list('grado_id', flat=True).distinct()
+        )
+        if not grado_ids:
+            return peers
+        estudiantes = Estudiante.objects.filter(
+            grado_actual_id__in=grado_ids, institucion_id=inst_id
+        )
+        peers.update(
+            estudiantes.exclude(usuario__isnull=True).values_list('usuario_id', flat=True)
+        )
+        peers.update(
+            Familiar.objects.filter(estudiantes_asociados__in=estudiantes)
+            .exclude(usuario__isnull=True).values_list('usuario_id', flat=True)
+        )
+    elif rol == 'estudiante':
+        est = Estudiante.objects.filter(usuario_id=usuario_id).first()
+        if not est or not est.grado_actual_id:
+            return peers
+        peers.update(
+            Docente.objects.filter(
+                cursos_impartidos__grado_id=est.grado_actual_id,
+                cursos_impartidos__periodo_academico_id__in=periodo_ids,
+                cursos_impartidos__institucion_id=inst_id,
+            ).exclude(usuario__isnull=True).values_list('usuario_id', flat=True).distinct()
+        )
+    elif rol == 'familiar':
+        fam = Familiar.objects.filter(usuario_id=usuario_id).first()
+        if not fam:
+            return peers
+        grado_ids = list(
+            fam.estudiantes_asociados.exclude(grado_actual__isnull=True)
+            .values_list('grado_actual_id', flat=True).distinct()
+        )
+        if not grado_ids:
+            return peers
+        peers.update(
+            Docente.objects.filter(
+                cursos_impartidos__grado_id__in=grado_ids,
+                cursos_impartidos__periodo_academico_id__in=periodo_ids,
+                cursos_impartidos__institucion_id=inst_id,
+            ).exclude(usuario__isnull=True).values_list('usuario_id', flat=True).distinct()
+        )
     return peers
 
 
