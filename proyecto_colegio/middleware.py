@@ -162,12 +162,16 @@ SECCIONES_BLOQUEABLES = {
         },
     },
     'deberes': {
-        'label': 'Deberes / Tareas',
-        'url_names': {'mis_deberes_lista', 'realizar_entrega_deber', 'api_mis_deberes'},
+        'label': 'Deberes y Actividades',
+        'url_names': {
+            'mis_deberes_lista', 'realizar_entrega_deber', 'api_mis_deberes',
+            'resolver_actividad',
+        },
+        'namespaces': {'cuestionarios'},   # evaluaciones/cuestionarios del docente
     },
     'simulacros': {
         'label': 'Simulacros Saber',
-        'namespace': 'simulacros',   # se bloquea todo el módulo de simulacros
+        'namespaces': {'simulacros'},   # se bloquea todo el módulo de simulacros
     },
 }
 
@@ -187,11 +191,12 @@ def _seccion_de_match(resolver_match):
     namespace = resolver_match.namespace
     url_name = resolver_match.url_name
     for key, cfg in SECCIONES_BLOQUEABLES.items():
-        ns = cfg.get('namespace')
-        if ns is not None:
-            if namespace == ns:
-                return key
-        elif namespace == 'gestion_academica' and url_name in cfg.get('url_names', ()):
+        # Namespace(s) completos que pertenecen a la sección (ej. simulacros,
+        # o cuestionarios dentro de «deberes»).
+        if namespace and namespace in cfg.get('namespaces', ()):
+            return key
+        # URLs puntuales dentro de gestion_academica.
+        if namespace == 'gestion_academica' and url_name in cfg.get('url_names', ()):
             return key
     return None
 

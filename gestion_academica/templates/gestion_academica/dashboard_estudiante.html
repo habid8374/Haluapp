@@ -275,37 +275,31 @@
 {% block contenido %}
 <div class="container-fluid mt-3">
   {% if estudiante.acceso_bloqueado %}
-  <!-- ══ Acceso restringido (bloqueo manual) ══ -->
-  <div class="est-hero" style="background: linear-gradient(135deg,#b91c1c 0%,#dc2626 55%,#ef4444 100%) !important;">
-    <div class="hero-badge" style="background:rgba(255,255,255,.22);"><i class="bi bi-lock-fill"></i> {% trans "Acceso restringido" %}</div>
-    <div class="hero-greeting" style="color:#fff;">{% trans "Tu acceso está temporalmente restringido" %}</div>
-    <div class="hero-sub" style="color:#fff; opacity:.95;">
-      {% trans "Comunícate con la secretaría o administración de tu institución para regularizar tu situación." %}
-      {% if estudiante.motivo_bloqueo %}<br><strong>{% trans "Motivo" %}:</strong> {{ estudiante.motivo_bloqueo }}{% endif %}
-    </div>
-  </div>
-  <div class="card border-0 shadow-sm" style="border-radius:16px;">
-    <div class="card-body text-center py-5 px-4">
-      <div style="width:72px;height:72px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;">
-        <i class="bi bi-lock-fill" style="font-size:2rem;color:#dc2626;"></i>
+  <!-- ══ Aviso de acceso restringido (bloqueo manual selectivo) ══ -->
+  <div class="d-flex align-items-start gap-3 shadow-sm mb-3"
+       style="background:linear-gradient(135deg,#b91c1c 0%,#dc2626 100%);color:#fff;border-radius:14px;padding:1rem 1.2rem;">
+    <i class="bi bi-lock-fill" style="font-size:1.5rem;"></i>
+    <div>
+      <div class="fw-bold" style="font-size:1rem;">{% trans "Tu acceso está temporalmente restringido" %}</div>
+      <div style="font-size:.85rem;opacity:.95;">
+        {% trans "Puedes seguir usando el portal, pero algunas secciones están ocultas. Comunícate con la secretaría o administración de tu institución para regularizar tu situación." %}
+        {% if estudiante.motivo_bloqueo %}<br><strong>{% trans "Motivo" %}:</strong> {{ estudiante.motivo_bloqueo }}{% endif %}
       </div>
-      <h5 class="fw-bold mb-2">{% trans "Portal deshabilitado" %}</h5>
-      <p class="text-muted mb-0" style="font-size:.92rem;">
-        {% trans "No puedes ver notas, deberes, horario ni actividades mientras tu acceso esté restringido. Se habilitará de nuevo cuando la institución lo autorice." %}
-      </p>
     </div>
   </div>
-  {% else %}
+  {% endif %}
   <div class="est-hero">
     <div class="hero-badge"><i class="bi bi-mortarboard-fill"></i> {% trans "Estudiante" %} · {% if estudiante.grado_actual.nombre %}{{ estudiante.grado_actual.nombre }}{% else %}{% trans "Sin grado asignado" %}{% endif %}</div>
     <div class="hero-greeting">{% blocktrans with nombre=estudiante.usuario.first_name|default:estudiante.usuario.username %}¡Hola, {{ nombre }}! 👋{% endblocktrans %}</div>
     <div class="hero-sub" id="est-live-date">{% trans "Cargando fecha…" %}</div>
     <div class="hero-actions">
+      {% if 'boletin' not in bloqueo_secciones %}
       <a href="{% if not estudiante_moroso and periodo_activo %}{% url 'gestion_academica:generar_boletin' estudiante_pk=estudiante.pk periodo_pk=periodo_activo.pk %}{% else %}#{% endif %}"
          class="est-ha-btn ha-white {% if estudiante_moroso %}opacity-50{% endif %}"
          {% if not estudiante_moroso and periodo_activo %}target="_blank" rel="noopener"{% endif %}>
         <i class="bi bi-file-earmark-text-fill"></i> {% trans "Mi Boletín" %}
       </a>
+      {% endif %}
       <a href="#seccion-horario" class="est-ha-btn"><i class="bi bi-table"></i> {% trans "Mi Horario" %}</a>
       <a href="{% if not estudiante_moroso %}#acordeonAsignaturas{% else %}#{% endif %}"
          class="est-ha-btn {% if estudiante_moroso %}opacity-50{% endif %}">
@@ -329,11 +323,13 @@
       <div class="kpi-val">{{ inasistencias_periodo|default:"0" }}</div>
       <div class="kpi-lbl">{% trans "Inasistencias" %}</div>
     </div>
+    {% if 'notas' not in bloqueo_secciones %}
     <div class="est-kpi kpi-blue">
       <div class="kpi-icon"><i class="bi bi-collection-fill"></i></div>
       <div class="kpi-val">{{ materias_con_calificaciones|length }}</div>
       <div class="kpi-lbl">{% trans "Materias con notas" %}</div>
     </div>
+    {% endif %}
     <div class="est-kpi kpi-blue">
       <div class="kpi-icon"><i class="bi bi-bell-fill"></i></div>
       <div class="kpi-val">{{ notificaciones_sin_leer|length }}</div>
@@ -436,6 +432,7 @@
   </div>
   {% if not estudiante_moroso %}
   <div class="row g-4">
+    {% if 'notas' not in bloqueo_secciones %}
     <div class="col-lg-8">
       <div class="pulse-sec-hdr">
         <div class="psh-icon"><i class="bi bi-collection-fill"></i></div>
@@ -455,6 +452,7 @@
         </div>
       {% endif %}
     </div>
+    {% endif %}
     <div class="col-lg-4">
       <div class="pulse-sec-hdr">
         <div class="psh-icon" style="background:#fefce8;color:#d97706;"><i class="bi bi-person-x-fill"></i></div>
@@ -488,6 +486,7 @@
       <div id="collapse-asig-{{ curso.pk }}" class="accordion-collapse collapse" data-bs-parent="#acordeonAsignaturasContainer">
         <div class="accordion-body bg-light">
           <div class="row">
+            {% if 'deberes' not in bloqueo_secciones %}
             <div class="col-md-6 mb-3 mb-md-0">
               <h6 class="fw-bold text-primary mb-2"><i class="bi bi-pencil-square me-1"></i> {% trans "Actividades de Aprendizaje" %}</h6>
               <div class="list-group">
@@ -515,6 +514,7 @@
                 {% endif %}
               </div>
             </div>
+            {% endif %}
             <div class="col-md-6">
               <h6 class="fw-bold text-success mb-2"><i class="bi bi-folder2-open me-1"></i> {% trans "Material de Apoyo" %}</h6>
               <div class="list-group">
@@ -675,7 +675,6 @@
     </div>
     {% endfor %}
   </div>
-  {% endif %}
 </div>
 {% endblock contenido %}
 {% block extra_js %}

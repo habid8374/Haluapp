@@ -4691,6 +4691,17 @@ def dashboard_estudiante(request):
             .order_by('fecha_hora_inicio')[:5]
         )
 
+    # Qué secciones se le ocultan a este estudiante. SOLO aplica si está
+    # bloqueado manualmente; si no, la lista va vacía y ve todo el portal.
+    # Se toma la configuración por institución (o el preset por defecto).
+    if getattr(estudiante, 'acceso_bloqueado', False):
+        from proyecto_colegio.middleware import DEFAULT_SECCIONES_BLOQUEADAS
+        _inst_est = estudiante.institucion
+        _secc = getattr(_inst_est, 'bloqueo_secciones', None) if _inst_est else None
+        context['bloqueo_secciones'] = _secc if isinstance(_secc, list) else DEFAULT_SECCIONES_BLOQUEADAS
+    else:
+        context['bloqueo_secciones'] = []
+
     return render(request, 'gestion_academica/dashboard_estudiante.html', context)
 
 
