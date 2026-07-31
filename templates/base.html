@@ -79,6 +79,17 @@
             backdrop-filter: blur(6px);
         }
         .navbar-brand img.logo-navbar { max-height: 28px; margin-right: 8px; filter: brightness(0) invert(1); }
+        /* ── Barra superior compartida (idéntica en todos los módulos) ── */
+        .nav-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,.22);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: .84rem; flex-shrink: 0; color: #fff;
+        }
+        .presencia-dot { display:inline-block; width:.62rem; height:.62rem; border-radius:50%; background:#cbd5e1; vertical-align:middle; margin-right:.15rem; }
+        .presencia-dot.p-online { background:#22c55e; box-shadow:0 0 0 2px rgba(34,197,94,.18); }
+        .presencia-dot.p-away { background:#f59e0b; box-shadow:0 0 0 2px rgba(245,158,11,.18); }
+        .presencia-dot.p-offline { background:#cbd5e1; }
         .navbar-brand {
             font-weight: 800;
             color: #ffffff !important;
