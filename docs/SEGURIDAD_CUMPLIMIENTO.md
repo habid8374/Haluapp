@@ -201,3 +201,32 @@ contrato, licitación o certificación ISO 27001 que la pida.
 
 **Esfuerzo estimado:** medio-alto (por el volumen de inline). Arrancar por la
 Fase 1 (Report-Only) es seguro y da el diagnóstico real antes de comprometerse.
+
+### Opción a futuro — Migración del frontend a SPA (Angular)
+
+Alternativa considerada por el equipo: migrar el **frontend** a un SPA (Angular)
+dejando a **Django como API** (ya existe base: `gestion_academica/views/api_movil.py`
+con ~57 endpoints y JWT).
+
+- **Ventaja de seguridad:** Angular en build de producción (AOT) **no usa `eval`
+  ni scripts inline sueltos** (todo empaquetado) y soporta **nonces**
+  (`ngCspNonce`). Elimina por arquitectura el inline que hoy impide una CSP
+  estricta → **la CSP se vuelve casi trivial** (viene "de regalo").
+- **Alcance:** se reescribe SOLO la capa visual (las plantillas → componentes
+  Angular). La lógica de negocio (multi-institución, finanzas, reglas) **se queda
+  en Django**, intacta.
+- **Costo:** proyecto grande (meses, curva de aprendizaje, dos despliegues:
+  SPA + API). **No se justifica solo por la CSP**; sí por UX moderna, paridad
+  con app móvil y mantenibilidad del front.
+- **Cómo hacerlo SIN riesgo para producción (criterio del equipo):**
+  1. Trabajar en un **repositorio/rama aparte** (o copia de seguridad completa),
+     **nunca sobre el repo/entorno de producción** actual —que ya lleva mucho
+     tiempo y pruebas.
+  2. Reutilizar y ampliar la **API existente**; el backend Django sigue sirviendo
+     a la web actual mientras se construye el SPA en paralelo.
+  3. Batería de **pruebas** y despliegue en un entorno de staging antes de
+     cualquier corte.
+  4. Migración **incremental/por módulos** si se puede, para reducir riesgo.
+
+> Decisión actual: **anotado como opción a futuro.** Si se toma este camino, la
+> seguridad del front (incl. CSP estricta) queda resuelta de forma natural.
