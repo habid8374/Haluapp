@@ -174,3 +174,30 @@ innegociable del sistema (ver `CLAUDE.md`) y es el pilar del control de acceso.
 
 > Estas recomendaciones son mejoras incrementales; las **1 y 2 exigen despliegue
 > cuidadoso** para no degradar funcionalidades existentes (biometría, UI).
+
+---
+
+## Anexo — Plan para Content-Security-Policy (PENDIENTE, no activar de golpe)
+
+**Decisión actual:** no se activa. Queda **anotado para el futuro**. La CSP es
+**recomendada, no obligatoria** (la defensa XSS principal ya existe: autoescape
+de Django). No hay ley colombiana que la exija; solo se vuelve necesaria ante un
+contrato, licitación o certificación ISO 27001 que la pida.
+
+**Por qué NO se puede activar tal cual hoy (rompería la plataforma):**
+- Uso extendido de **estilos inline** (`style="..."`) en heroes, cards, badges.
+- **Scripts inline** (`<script>...</script>`) y manejadores `onclick=`/`onsubmit=`
+  (toasts, modales, acordeones, presencia, asistente IA).
+- Dependencias por **CDN** (Bootstrap, FullCalendar desde `jsdelivr`).
+- Una CSP estricta bloquearía todo eso → UI sin estilos y funciones caídas.
+
+**Plan por fases cuando se decida hacerlo:**
+1. **Report-Only** (`Content-Security-Policy-Report-Only`) con endpoint de
+   reporte. No bloquea nada; solo inventaría las violaciones. **Riesgo cero.**
+2. Migrar el **inline** a archivos `.css`/`.js` o firmarlo con **nonces** por
+   petición. (Es el grueso del trabajo por la cantidad de inline.)
+3. Autorizar los **CDN** en la política o servir esos recursos localmente.
+4. Pasar a **enforcing** solo cuando el Report-Only salga limpio.
+
+**Esfuerzo estimado:** medio-alto (por el volumen de inline). Arrancar por la
+Fase 1 (Report-Only) es seguro y da el diagnóstico real antes de comprometerse.
