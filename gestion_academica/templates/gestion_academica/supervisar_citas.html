@@ -250,5 +250,114 @@
       </div>
     {% endif %}
   </div>
+
+  <!-- ══ PANEL ORIENTACIÓN ESCOLAR ═════════════════════════════════════ -->
+  <div class="cita-panel">
+    <div class="cita-panel-header">
+      <h2 class="cita-panel-title">
+        <span class="ico" style="background:#cffafe;color:#0891b2;"><i class="bi bi-heart-pulse-fill"></i></span>
+        Citas de Orientación Escolar
+      </h2>
+      {% if citas_orientacion %}
+      <span class="badge rounded-pill" style="background:#cffafe;color:#0891b2;font-size:.72rem;">
+        {{ citas_orientacion|length }} cita{{ citas_orientacion|length|pluralize }}
+      </span>
+      {% endif %}
+    </div>
+    {% if citas_orientacion %}
+      <!-- Tabla — desktop -->
+      <div class="d-none d-md-block">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 cita-table">
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Orientador(a)</th>
+                <th>Familiar</th>
+                <th>Estudiante</th>
+                <th class="text-center">Estado</th>
+                <th class="text-center">Origen</th>
+                <th>Acuerdos</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cita in citas_orientacion %}
+              <tr>
+                <td>
+                  <div class="fw-semibold" style="font-size:.83rem;">{{ cita.fecha_hora_inicio|date:"d M, Y" }}</div>
+                  <div class="text-muted" style="font-size:.76rem;">{{ cita.fecha_hora_inicio|date:"h:i A" }}</div>
+                </td>
+                <td class="small">{{ cita.orientador.get_full_name|default:cita.orientador.username }}</td>
+                <td class="small">{{ cita.familiar.usuario.get_full_name }}</td>
+                <td class="small">{{ cita.estudiante.usuario.get_full_name }}{% if cita.estudiante.grado_actual %} <span class="text-muted">({{ cita.estudiante.grado_actual.nombre }})</span>{% endif %}</td>
+                <td class="text-center">
+                  {% with estado=cita.get_estado_display %}
+                  {% if 'realizada' in estado|lower %}
+                    <span class="estado-badge estado-realizada"><i class="bi bi-check-circle-fill" style="font-size:.65rem;"></i> {{ estado }}</span>
+                  {% elif 'confirma' in estado|lower %}
+                    <span class="estado-badge estado-confirmada">{{ estado }}</span>
+                  {% elif 'pendiente' in estado|lower %}
+                    <span class="estado-badge estado-pendiente">{{ estado }}</span>
+                  {% elif 'cancel' in estado|lower %}
+                    <span class="estado-badge estado-cancelada">{{ estado }}</span>
+                  {% else %}
+                    <span class="estado-badge estado-default">{{ estado }}</span>
+                  {% endif %}
+                  {% endwith %}
+                </td>
+                <td class="text-center"><span class="estado-badge estado-default">{{ cita.get_origen_display }}</span></td>
+                <td><small class="text-muted">{{ cita.acuerdos_compromisos|truncatewords:10|default:"—" }}</small></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Tarjetas — móvil -->
+      <div class="d-md-none p-2 pt-3">
+        {% for cita in citas_orientacion %}
+        <div class="cita-card" style="border-left-color:#0891b2;">
+          <div class="cita-card-inner">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="cita-card-date" style="color:#0891b2;">
+                <i class="bi bi-calendar-event me-1"></i>{{ cita.fecha_hora_inicio|date:"d M, Y · h:i A" }}
+              </div>
+              {% with estado=cita.get_estado_display %}
+              {% if 'realizada' in estado|lower %}
+                <span class="estado-badge estado-realizada">{{ estado }}</span>
+              {% elif 'confirma' in estado|lower %}
+                <span class="estado-badge estado-confirmada">{{ estado }}</span>
+              {% elif 'pendiente' in estado|lower %}
+                <span class="estado-badge estado-pendiente">{{ estado }}</span>
+              {% elif 'cancel' in estado|lower %}
+                <span class="estado-badge estado-cancelada">{{ estado }}</span>
+              {% else %}
+                <span class="estado-badge estado-default">{{ estado }}</span>
+              {% endif %}
+              {% endwith %}
+            </div>
+            <div class="cita-card-label"><i class="bi bi-person-badge me-1"></i>Orientador(a)</div>
+            <div class="cita-card-val">{{ cita.orientador.get_full_name|default:cita.orientador.username }}</div>
+            <div class="cita-card-label"><i class="bi bi-people-fill me-1"></i>Familiar / Estudiante</div>
+            <div class="cita-card-val">
+              {{ cita.familiar.usuario.get_full_name }}
+              <span class="text-muted"> — {{ cita.estudiante.usuario.get_full_name }}</span>
+            </div>
+            {% if cita.acuerdos_compromisos %}
+            <div class="cita-card-label"><i class="bi bi-journal-check me-1"></i>Acuerdos</div>
+            <div class="cita-card-val" style="color:#475569;">{{ cita.acuerdos_compromisos|truncatewords:12 }}</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="cita-empty">
+        <i class="bi bi-heart-pulse"></i>
+        <p class="fw-semibold mb-1">Sin citas de orientación registradas</p>
+        <p class="small mb-0">Las citas entre orientación escolar y las familias aparecerán aquí.</p>
+      </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

@@ -8104,14 +8104,40 @@ def dashboard_bienestar_view(request):
         .order_by('-tipo_situacion', 'fecha_limite')
     )
 
-    # ── Alertas sin caso (anotaciones sin caso formal, Tipo II/III) ──
-    alertas_sin_caso = list(
-        AnotacionObservador.objects.filter(
-            requiere_revision=True,
-            institucion=institucion,
-            caso_convivencia__isnull=True,
-        ).select_related('estudiante__usuario', 'registrado_por').order_by('-fecha_hora')[:20]
+    # ── Alertas sin caso (anotaciones sin caso formal, Tipo I/II/III) ──
+    # Priorizadas por gravedad (Tipo III → II → I → sin clasificar) y luego
+    # por fecha (más reciente primero). Filtro opcional por grado.
+    from django.db.models import Case, When, IntegerField, Value
+    alertas_qs = AnotacionObservador.objects.filter(
+        requiere_revision=True,
+        institucion=institucion,
+        caso_convivencia__isnull=True,
     )
+
+    grado_filtro = (request.GET.get('grado') or '').strip()
+    if grado_filtro:
+        alertas_qs = alertas_qs.filter(estudiante__grado_actual_id=grado_filtro)
+
+    alertas_qs = alertas_qs.annotate(
+        _gravedad=Case(
+            When(tipo_situacion_ia='TIPO III', then=Value(3)),
+            When(tipo_situacion_ia='TIPO II', then=Value(2)),
+            When(tipo_situacion_ia='TIPO I', then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+    ).select_related(
+        'estudiante__usuario', 'estudiante__grado_actual', 'registrado_por'
+    ).order_by('-_gravedad', '-fecha_hora')
+
+    alertas_sin_caso = list(alertas_qs[:40])
+
+    # Grados con al menos una alerta pendiente (para el selector de filtro).
+    grados_con_alertas = Grado.objects.filter(
+        institucion=institucion,
+        estudiantes_actuales__anotaciones_observador__requiere_revision=True,
+        estudiantes_actuales__anotaciones_observador__caso_convivencia__isnull=True,
+    ).distinct().order_by('nombre')
 
     # ── Análisis comportamental IA ────────────────────────────────────
     resumenes_ia = AnalisisComportamientoIA.objects.filter(
@@ -8131,6 +8157,8 @@ def dashboard_bienestar_view(request):
         ],
         'casos_activos':    casos_activos,
         'alertas_sin_caso': alertas_sin_caso,
+        'grados_con_alertas': grados_con_alertas,
+        'grado_filtro':     grado_filtro,
         'resumenes_ia':     resumenes_ia,
         'CasoConvivencia':  CasoConvivencia,
     }
@@ -8635,19 +8663,28 @@ def supervisar_citas_view(request):
     # 2. Obtenemos las citas de la institución del coordinador
     user_inst = getattr(request.user, 'institucion_asociada', None)
     citas = CitaReunion.objects.none() # Queryset vacío por defecto
-    
-    if user_inst:
-        citas = CitaReunion.objects.filter(
-            docente__institucion=user_inst
-        ).select_related(
-            'docente__usuario', 'familiar__usuario', 'estudiante__usuario'
-        ).order_by('-fecha_hora_inicio')
+    citas_orientacion = CitaOrientacion.objects.none()
+
+    if request.user.is_superuser:
+        citas = CitaReunion.objects.all()
+        citas_orientacion = CitaOrientacion.objects.all()
+    elif user_inst:
+        citas = CitaReunion.objects.filter(docente__institucion=user_inst)
+        citas_orientacion = CitaOrientacion.objects.filter(institucion=user_inst)
+
+    citas = citas.select_related(
+        'docente__usuario', 'familiar__usuario', 'estudiante__usuario'
+    ).order_by('-fecha_hora_inicio')
+    citas_orientacion = citas_orientacion.select_related(
+        'orientador', 'familiar__usuario', 'estudiante__usuario', 'estudiante__grado_actual'
+    ).order_by('-fecha_hora_inicio')
 
     context = {
         'titulo_pagina': "Supervisión de Reuniones Agendadas",
         'citas': citas,
+        'citas_orientacion': citas_orientacion,
     }
-    return render(request, 'gestion_academica/supervisar_citas.html', context)  
+    return render(request, 'gestion_academica/supervisar_citas.html', context)
 
 @login_required
 def detalle_cita_supervision_view(request, pk):

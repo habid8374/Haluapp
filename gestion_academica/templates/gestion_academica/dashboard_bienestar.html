@@ -397,7 +397,7 @@
     {% endif %}
   </div>
   <!-- ══ ALERTAS SIN EXPEDIENTE ════════════════════════════════════════ -->
-  <div class="bien-section-hd">
+  <div class="bien-section-hd d-flex justify-content-between align-items-center flex-wrap gap-2">
     <h2>
       <span class="bien-ico amber"><i class="bi bi-exclamation-triangle-fill"></i></span>
       Alertas sin expediente formal
@@ -405,6 +405,19 @@
         <span class="badge rounded-pill ms-1" style="background:#fef3c7;color:#92400e;font-size:.72rem;">{{ alertas_sin_caso|length }}</span>
       {% endif %}
     </h2>
+    {% if grados_con_alertas %}
+    <form method="get" class="d-flex align-items-center gap-2" id="formFiltroGradoAlertas">
+      <label for="filtroGradoAlertas" class="small text-muted mb-0 text-nowrap"><i class="bi bi-funnel me-1"></i>Grado</label>
+      <select name="grado" id="filtroGradoAlertas" class="form-select form-select-sm" style="width:auto;min-width:150px;"
+              onchange="document.getElementById('formFiltroGradoAlertas').submit();">
+        <option value="">Todos los grados</option>
+        {% for g in grados_con_alertas %}
+        <option value="{{ g.pk }}" {% if grado_filtro == g.pk|stringformat:'s' %}selected{% endif %}>{{ g.nombre }}</option>
+        {% endfor %}
+      </select>
+      {% if grado_filtro %}<a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="btn btn-sm btn-outline-secondary">Limpiar</a>{% endif %}
+    </form>
+    {% endif %}
   </div>
   <div class="bien-panel">
     {% if alertas_sin_caso %}
@@ -425,10 +438,14 @@
                 <td class="small fw-semibold">{{ alerta.estudiante.usuario.get_full_name }}</td>
                 <td class="small">{{ alerta.estudiante.grado_actual }}</td>
                 <td>
-                  {% if alerta.tipo_situacion_ia == 'TIPO_III' %}
+                  {% if alerta.tipo_situacion_ia == 'TIPO III' %}
                     <span class="badge bg-danger">Tipo III</span>
-                  {% else %}
+                  {% elif alerta.tipo_situacion_ia == 'TIPO II' %}
                     <span class="badge bg-warning text-dark">Tipo II</span>
+                  {% elif alerta.tipo_situacion_ia == 'TIPO I' %}
+                    <span class="badge bg-info text-dark">Tipo I</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Sin clasificar</span>
                   {% endif %}
                 </td>
                 <td class="small">{{ alerta.descripcion|truncatechars:80 }}</td>
@@ -454,7 +471,7 @@
       <!-- Tarjetas — móvil -->
       <div class="d-md-none p-2 pt-3">
         {% for alerta in alertas_sin_caso %}
-        <div class="caso-card {% if alerta.tipo_situacion_ia == 'TIPO_III' %}vencido{% else %}tipo-iii{% endif %}">
+        <div class="caso-card {% if alerta.tipo_situacion_ia == 'TIPO III' %}vencido{% else %}tipo-iii{% endif %}">
           <div class="caso-card-inner">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
@@ -463,10 +480,14 @@
                   {{ alerta.estudiante.grado_actual }} · {{ alerta.fecha_hora|date:"d/m/Y" }}
                 </div>
                 <div class="mt-1">
-                  {% if alerta.tipo_situacion_ia == 'TIPO_III' %}
+                  {% if alerta.tipo_situacion_ia == 'TIPO III' %}
                     <span class="badge bg-danger">Tipo III</span>
-                  {% else %}
+                  {% elif alerta.tipo_situacion_ia == 'TIPO II' %}
                     <span class="badge bg-warning text-dark">Tipo II</span>
+                  {% elif alerta.tipo_situacion_ia == 'TIPO I' %}
+                    <span class="badge bg-info text-dark">Tipo I</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Sin clasificar</span>
                   {% endif %}
                 </div>
               </div>
@@ -494,7 +515,11 @@
     {% else %}
     <div class="text-center py-4 text-muted">
       <i class="bi bi-check-circle-fill text-success me-2" style="font-size:1.6rem;"></i>
+      {% if grado_filtro %}
+      <p class="mt-2 mb-0 small">No hay alertas pendientes en el grado seleccionado. <a href="{% url 'gestion_academica:dashboard_bienestar' %}">Ver todos los grados</a>.</p>
+      {% else %}
       <p class="mt-2 mb-0 small">Todas las alertas graves tienen expediente asignado.</p>
+      {% endif %}
     </div>
     {% endif %}
   </div>
