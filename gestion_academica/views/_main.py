@@ -6381,11 +6381,16 @@ def exportar_observador_pdf(request, estudiante_pk):
     response = HttpResponse(content_type='application/pdf')
     nombre_archivo = f"ObservadorEstudiante_{estudiante.usuario.get_full_name().replace(' ', '_')}.pdf"
     response['Content-Disposition'] = f'inline; filename="{nombre_archivo}"'
+    # Nunca servir una versión cacheada: el observador cambia al agregar/editar
+    # anotaciones, así que debe regenerarse en cada solicitud.
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
 
     pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
     if pisa_status.err:
         return HttpResponse('Ocurrió un error al generar el PDF del Observador.')
-    return response                
+    return response
        
 
 class DocenteActividadListView(LoginRequiredMixin, ListView):
@@ -9672,6 +9677,9 @@ def exportar_ficha_orientacion_pdf(request, estudiante_pk):
     response = HttpResponse(content_type='application/pdf')
     nombre = f"FichaOrientacion_{estudiante.usuario.get_full_name().replace(' ', '_')}.pdf"
     response['Content-Disposition'] = f'inline; filename="{nombre}"'
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
     pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
     if pisa_status.err:
         return HttpResponse('Ocurrió un error al generar la Ficha de Orientación.')
@@ -9708,6 +9716,9 @@ def exportar_acta_cita_orientacion_pdf(request, pk):
     response = HttpResponse(content_type='application/pdf')
     nombre = f"ActaOrientacion_{cita.estudiante.usuario.get_full_name().replace(' ', '_')}_{cita.pk}.pdf"
     response['Content-Disposition'] = f'inline; filename="{nombre}"'
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
     pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
     if pisa_status.err:
         return HttpResponse('Ocurrió un error al generar el acta.')
