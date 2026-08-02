@@ -5443,9 +5443,10 @@ def reporte_riesgo_academico_view(request):
     """
     _rol = getattr(request.user, 'rol', '') or ''
     # El rector/directivo tiene acceso de SOLO LECTURA (supervisión), aunque no
-    # sea is_staff. Coordinador/administrador (staff) también. Superusuario todo.
+    # sea is_staff. Coordinador/administrador y el psicoorientador (seguimiento
+    # de comportamiento/riesgo) también. Superusuario todo.
     if not (request.user.is_superuser or _rol == 'rector'
-            or (request.user.is_staff and _rol in ['administrador', 'coordinador', 'rector'])):
+            or (request.user.is_staff and _rol in ['administrador', 'coordinador', 'rector', 'psicologo'])):
         messages.error(request, _("No tienes permiso para ver este reporte."))
         return redirect('gestion_academica:inicio_academico')
 
