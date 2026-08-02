@@ -3350,58 +3350,46 @@ def familiar_ver_boletin_estudiante(request, estudiante_pk):
 
     periodo_activo = PeriodoAcademico.objects.filter(
         activo=True,
-        institucion=estudiante_seleccionado.institucion 
+        institucion=estudiante_seleccionado.institucion
     ).first()
-    
+
+    # El boletín SOLO se muestra a la familia cuando el coordinador lo publica.
+    if periodo_activo and not periodo_activo.boletines_publicados and not _puede_previsualizar_boletin_sin_publicar(request.user):
+        return render(request, 'gestion_academica/boletin_no_disponible.html', {'periodo': periodo_activo}, status=200)
+
     cursos_con_detalle = []
     promedio_general_periodo = None
-    
+    total_puntos_ponderados_general = Decimal('0.0')
+    total_ihs_general = 0
+
     if estudiante_seleccionado.grado_actual and periodo_activo:
         cursos_del_estudiante = Curso.objects.filter(
             grado=estudiante_seleccionado.grado_actual,
             periodo_academico=periodo_activo,
-            institucion=estudiante_seleccionado.institucion 
+            institucion=estudiante_seleccionado.institucion
         ).select_related('materia', 'grado', 'periodo_academico').prefetch_related('docentes_asignados__usuario').order_by('materia__nombre_materia')
 
-        suma_ponderada_total = Decimal('0.00')
-        suma_porcentajes_total = Decimal('0.00') 
-        
-        promedio_general_periodo_numerador = Decimal('0.00')
-        promedio_general_periodo_denominador = 0
-
         for curso_iter in cursos_del_estudiante:
-            actividades_del_curso = ActividadCalificable.objects.filter(curso=curso_iter).order_by('fecha_publicacion', 'titulo')
-            calificaciones_del_estudiante = Calificacion.objects.filter(
-                estudiante=estudiante_seleccionado,
-                actividad_calificable__in=actividades_del_curso,
-                valor_numerico__isnull=False
-            ).select_related('actividad_calificable')
-            
-            calificaciones_por_actividad = {cal.actividad_calificable_id: cal for cal in calificaciones_del_estudiante}
-            actividades_para_boletin = []
-            suma_notas_ponderadas_curso = Decimal('0.00')
-            suma_porcentajes_curso = Decimal('0.00')
+            # Cálculo canónico (ponderado por categoría), igual que el boletín
+            # del propio estudiante. Antes se usaba act.porcentaje_en_periodo,
+            # campo que ya no existe (la ponderación vive en la categoría).
+            estado_academico = calcular_estado_academico_curso(curso_iter, estudiante_seleccionado)
+            nota_final_curso = estado_academico.get('nota_final_ponderada')
 
-            for act in actividades_del_curso:
-                calificacion_actual = calificaciones_por_actividad.get(act.pk)
-                if calificacion_actual and calificacion_actual.valor_numerico is not None and act.porcentaje_en_periodo is not None:
-                    suma_notas_ponderadas_curso += (Decimal(str(calificacion_actual.valor_numerico)) * Decimal(str(act.porcentaje_en_periodo))) 
-                    suma_porcentajes_curso += Decimal(str(act.porcentaje_en_periodo))
-                actividades_para_boletin.append({'actividad': act, 'calificacion': calificacion_actual})
-            
-            nota_final_curso = None
-            if suma_porcentajes_curso > Decimal('0.00'):
-                nota_final_curso = suma_notas_ponderadas_curso / suma_porcentajes_curso
-                
-                if nota_final_curso is not None:
-                    promedio_general_periodo_numerador += nota_final_curso
-                    promedio_general_periodo_denominador += 1
-            
-            cursos_con_detalle.append({'curso': curso_iter, 'actividades_con_calificacion': actividades_para_boletin, 'nota_final_curso': nota_final_curso})
+            ihs = getattr(curso_iter.materia, 'intensidad_horaria_semanal', 0) or 0
+            if nota_final_curso is not None and ihs > 0:
+                total_puntos_ponderados_general += nota_final_curso * ihs
+                total_ihs_general += ihs
 
-        if promedio_general_periodo_denominador > 0:
-            promedio_general_periodo = promedio_general_periodo_numerador / Decimal(str(promedio_general_periodo_denominador)) 
-        
+            cursos_con_detalle.append({
+                'curso': curso_iter,
+                'nota_final_curso': nota_final_curso,
+                'desempeno': obtener_desempeno(nota_final_curso, estudiante_seleccionado.institucion) if nota_final_curso is not None else None,
+            })
+
+        if total_ihs_general > 0:
+            promedio_general_periodo = total_puntos_ponderados_general / total_ihs_general
+
     context = {
         'titulo_pagina': f"Boletín de {estudiante_seleccionado.usuario.get_full_name()}",
         'estudiante': estudiante_seleccionado,
