@@ -6341,6 +6341,8 @@ def exportar_observador_pdf(request, estudiante_pk):
         AnotacionObservador.objects
         .filter(estudiante=estudiante)
         .select_related('registrado_por', 'registrado_por__docente', 'curso__materia')
+        # Agrupado por tipo (bloques) y, dentro de cada tipo, en orden
+        # cronológico (fecha y hora ascendente).
         .order_by('tipo', 'fecha_hora')
     )
     if periodo_seleccionado:
