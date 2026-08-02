@@ -170,6 +170,8 @@
     </div>
     <div class="obs-profile-actions">
       <a href="{% url 'gestion_academica:exportar_observador_pdf' estudiante_pk=estudiante.pk %}"
+         id="btn-export-obs"
+         data-base="{% url 'gestion_academica:exportar_observador_pdf' estudiante_pk=estudiante.pk %}"
          target="_blank" class="btn btn-light btn-sm">
         <i class="bi bi-file-earmark-pdf-fill me-1"></i>{% trans "Exportar PDF" %}
       </a>
@@ -212,47 +214,63 @@
         <h6><i class="bi bi-clock-history me-2"></i>{% trans "Historial de Anotaciones" %}</h6>
         <span class="badge bg-primary rounded-pill">{{ anotaciones|length }}</span>
       </div>
-      {% for anotacion in anotaciones %}
-      <div class="obs-item ot-{{ anotacion.tipo }}" data-tipo="{{ anotacion.tipo }}">
-        <div class="obs-tl-line">
-          <div class="obs-tl-dot"></div>
-          {% if not forloop.last %}<div class="obs-tl-connector"></div>{% endif %}
-        </div>
-        <div class="obs-content">
-          <div class="oc-header">
-            {% if anotacion.tipo == 'FELICITACION' %}
-              <span class="obs-badge obs-b-felicitacion"><i class="bi bi-star-fill"></i> {{ anotacion.get_tipo_display }}</span>
-            {% elif anotacion.tipo == 'ACADEMICA' %}
-              <span class="obs-badge obs-b-academica"><i class="bi bi-book-fill"></i> {{ anotacion.get_tipo_display }}</span>
-            {% elif anotacion.tipo == 'CONVIVENCIA' %}
-              <span class="obs-badge obs-b-convivencia"><i class="bi bi-people-fill"></i> {{ anotacion.get_tipo_display }}</span>
-            {% elif anotacion.tipo == 'LLAMADO_ATENCION' %}
-              <span class="obs-badge obs-b-llamado"><i class="bi bi-exclamation-triangle-fill"></i> {{ anotacion.get_tipo_display }}</span>
-            {% else %}
-              <span class="obs-badge obs-b-otro"><i class="bi bi-three-dots"></i> {{ anotacion.get_tipo_display }}</span>
-            {% endif %}
+      {% regroup anotaciones|dictsort:"tipo" by tipo as grupos_obs %}
+      {% if anotaciones %}
+      <div class="accordion obs-accordion" id="accObsTipos">
+        {% for grupo in grupos_obs %}
+        <div class="accordion-item" style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:.6rem;">
+          <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#obsg-{{ forloop.counter }}">
+              {% if grupo.grouper == 'FELICITACION' %}
+                <span class="obs-badge obs-b-felicitacion"><i class="bi bi-star-fill"></i> {% trans "Felicitaciones" %}</span>
+              {% elif grupo.grouper == 'ACADEMICA' %}
+                <span class="obs-badge obs-b-academica"><i class="bi bi-book-fill"></i> {% trans "Académicas" %}</span>
+              {% elif grupo.grouper == 'CONVIVENCIA' %}
+                <span class="obs-badge obs-b-convivencia"><i class="bi bi-people-fill"></i> {% trans "Convivencia" %}</span>
+              {% elif grupo.grouper == 'LLAMADO_ATENCION' %}
+                <span class="obs-badge obs-b-llamado"><i class="bi bi-exclamation-triangle-fill"></i> {% trans "Llamados de Atención" %}</span>
+              {% else %}
+                <span class="obs-badge obs-b-otro"><i class="bi bi-three-dots"></i> {% trans "Otras" %}</span>
+              {% endif %}
+              <span class="badge bg-secondary rounded-pill ms-2">{{ grupo.list|length }}</span>
+            </button>
+          </h2>
+          <div id="obsg-{{ forloop.counter }}" class="accordion-collapse collapse show">
+            <div class="accordion-body">
+              {% for anotacion in grupo.list %}
+              <div class="obs-item ot-{{ anotacion.tipo }}" data-tipo="{{ anotacion.tipo }}">
+                <div class="obs-tl-line">
+                  <div class="obs-tl-dot"></div>
+                  {% if not forloop.last %}<div class="obs-tl-connector"></div>{% endif %}
+                </div>
+                <div class="obs-content">
+                  <div class="oc-desc">{{ anotacion.descripcion }}</div>
+                  <div class="oc-footer">
+                    <span><i class="bi bi-calendar3"></i> {{ anotacion.fecha_hora|date:"d M Y — h:i a" }}</span>
+                    <span><i class="bi bi-person-fill"></i> {{ anotacion.registrado_por.get_full_name }}</span>
+                    {% if anotacion.curso %}
+                    <span><i class="bi bi-book"></i> {{ anotacion.curso.materia }}</span>
+                    {% endif %}
+                    <a href="{% url 'gestion_academica:editar_anotacion_observador' anotacion.pk %}"
+                       class="ms-auto text-decoration-none" style="color:#1d4ed8;font-weight:600;">
+                      <i class="bi bi-pencil"></i> {% trans "Editar" %}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
           </div>
-          <div class="oc-desc">{{ anotacion.descripcion }}</div>
-          <div class="oc-footer">
-            <span><i class="bi bi-calendar3"></i> {{ anotacion.fecha_hora|date:"d M Y — h:i a" }}</span>
-            <span><i class="bi bi-person-fill"></i> {{ anotacion.registrado_por.get_full_name }}</span>
-            {% if anotacion.curso %}
-            <span><i class="bi bi-book"></i> {{ anotacion.curso.materia }}</span>
-            {% endif %}
-            <a href="{% url 'gestion_academica:editar_anotacion_observador' anotacion.pk %}"
-               class="ms-auto text-decoration-none" style="color:#1d4ed8;font-weight:600;">
-              <i class="bi bi-pencil"></i> {% trans "Editar" %}
-            </a>
-          </div>
         </div>
+        {% endfor %}
       </div>
-      {% empty %}
+      {% else %}
       <div class="obs-empty">
         <i class="bi bi-journal-x"></i>
         <p class="fw-semibold mb-1">{% trans "Sin anotaciones registradas" %}</p>
         <p class="small mb-0">{% trans "Usa el formulario para registrar la primera anotación en el observador." %}</p>
       </div>
-      {% endfor %}
+      {% endif %}
     </div>
     <div class="obs-form-sticky">
       <div class="obs-form-card">
@@ -294,6 +312,14 @@ document.addEventListener('DOMContentLoaded', function () {
     var el = document.getElementById('cnt-' + t);
     if (el) el.textContent = counts[t] || 0;
   });
+  // Cache-bust del PDF: URL única por clic para que el visor no reutilice
+  // un PDF viejo cacheado por el dispositivo.
+  var btnPdf = document.getElementById('btn-export-obs');
+  if (btnPdf) {
+    btnPdf.addEventListener('click', function () {
+      this.href = this.dataset.base + '?t=' + Date.now();
+    });
+  }
 });
 </script>
 {% endblock %}
