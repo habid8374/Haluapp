@@ -17,6 +17,13 @@
         <div class="col-md-6"><small class="text-muted d-block">{% trans "Fecha y hora" %}</small><strong>{{ cita.fecha_hora_inicio|date:"l, d/m/Y H:i" }}</strong></div>
         <div class="col-md-6"><small class="text-muted d-block">{% trans "Origen" %}</small><strong>{{ cita.get_origen_display }}</strong></div>
         <div class="col-12"><small class="text-muted d-block">{% trans "Asunto" %}</small>{{ cita.asunto }}</div>
+        {% if cita.motivo_cancelacion %}
+        <div class="col-12">
+          <div class="alert alert-warning mb-0 mt-1 py-2" style="font-size:.85rem;">
+            <i class="bi bi-x-circle me-1"></i><strong>{% trans "Motivo de cancelación:" %}</strong> {{ cita.motivo_cancelacion }}
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>

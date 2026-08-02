@@ -1985,6 +1985,11 @@ class CitaOrientacion(models.Model):
         verbose_name=_("Acuerdos y Compromisos"),
         help_text="Resumen de los acuerdos a los que se llegaron. Será visible para la familia.",
     )
+    motivo_cancelacion = models.TextField(
+        blank=True, null=True,
+        verbose_name=_("Motivo de cancelación"),
+        help_text="Razón indicada por quien canceló la cita (familia u orientador).",
+    )
     creada = models.DateTimeField(auto_now_add=True)
 
     class Meta:

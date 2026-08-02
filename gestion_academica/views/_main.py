@@ -3226,10 +3226,18 @@ def portal_familiar_inicio(request):
         for est in estudiantes_qs
     ]
 
+    # Citas de orientación activas de esta familia (para confirmar/cancelar).
+    citas_orientacion = CitaOrientacion.objects.filter(
+        familiar=familiar_actual,
+        estado__in=['PENDIENTE', 'CONFIRMADA'],
+        fecha_hora_inicio__gte=timezone.now(),
+    ).select_related('orientador', 'estudiante__usuario').order_by('fecha_hora_inicio')
+
     context = {
         'titulo_pagina': "Portal de Familiares",
         'familiar': familiar_actual,
         'estudiantes_con_resumen': estudiantes_con_resumen,
+        'citas_orientacion': citas_orientacion,
     }
     return render(request, 'gestion_academica/portal_familiar_inicio.html', context)
 
@@ -8724,8 +8732,42 @@ def _es_orientador(user):
     return (getattr(user, 'rol', '') or '') == 'psicologo'
 
 
-def _notificar_cita_orientacion(destinatario, mensaje, enlace, institucion):
-    """Crea una Notificacion y, si es posible, la empuja por WebSocket."""
+def _html_correo_cita_orientacion(institucion, titulo, saludo, cuerpo_html, detalle_cita=None):
+    """Arma un correo HTML sencillo y branded para citas de orientación."""
+    nombre_inst = getattr(institucion, 'nombre', '') or 'Institución Educativa'
+    bloque_detalle = ''
+    if detalle_cita:
+        filas = ''.join(
+            f'<tr><td style="padding:4px 10px;color:#64748b;font-size:13px;">{k}</td>'
+            f'<td style="padding:4px 10px;color:#0f172a;font-size:13px;font-weight:600;">{v}</td></tr>'
+            for k, v in detalle_cita
+        )
+        bloque_detalle = (
+            '<table style="width:100%;border-collapse:collapse;background:#f8fafc;'
+            'border-radius:10px;margin:14px 0;">' + filas + '</table>'
+        )
+    return f"""
+<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;">
+  <div style="background:linear-gradient(135deg,#0f766e 0%,#0891b2 100%);border-radius:14px 14px 0 0;padding:22px 26px;color:#fff;">
+    <div style="font-size:13px;opacity:.9;">{nombre_inst}</div>
+    <div style="font-size:20px;font-weight:800;margin-top:2px;">🩺 {titulo}</div>
+  </div>
+  <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 14px 14px;padding:22px 26px;color:#334155;font-size:14px;line-height:1.6;">
+    <p style="margin:0 0 10px;">{saludo}</p>
+    {cuerpo_html}
+    {bloque_detalle}
+    <p style="margin:16px 0 0;color:#64748b;font-size:12px;">Este es un mensaje automático de Orientación Escolar de {nombre_inst}. Puedes gestionar tus citas ingresando a la plataforma.</p>
+  </div>
+</div>
+"""
+
+
+def _notificar_cita_orientacion(destinatario, mensaje, enlace, institucion,
+                                email_asunto=None, email_html=None):
+    """Crea una Notificacion, la empuja por WebSocket y —si se pasa contenido
+    de correo y el destinatario tiene email— envía un correo usando las
+    credenciales (Brevo/SMTP) de ESA institución. Nunca un respaldo compartido
+    (ver regla de credenciales de comunicación en CLAUDE.md)."""
     if destinatario is None:
         return
     try:
@@ -8755,6 +8797,14 @@ def _notificar_cita_orientacion(destinatario, mensaje, enlace, institucion):
             )
     except Exception:
         pass
+    # Correo (opcional): solo si hay contenido, institución y email del destinatario.
+    email_dest = (getattr(destinatario, 'email', '') or '').strip()
+    if email_asunto and email_html and institucion and email_dest:
+        try:
+            from admisiones.utils import enviar_correo_dinamico
+            enviar_correo_dinamico(institucion, email_asunto, [email_dest], email_html)
+        except Exception:
+            logger.exception("No se pudo enviar el correo de cita de orientación a %s", email_dest)
 
 
 @login_required
@@ -8928,14 +8978,28 @@ def familiar_agendar_cita_orientador_view(request, orientador_pk):
             messages.error(request, _("Lo sentimos, ese horario acaba de ser reservado. Por favor, elige otro."))
             return redirect('gestion_academica:familiar_agendar_cita_orientador', orientador_pk=orientador.pk)
 
+        _fecha_txt = timezone.localtime(fecha_hora_cita).strftime('%d/%m/%Y %H:%M')
+        _fam_nombre = request.user.get_full_name() or request.user.username
         _notificar_cita_orientacion(
             orientador,
             _("%(fam)s solicitó una cita de orientación para el %(fecha)s.") % {
-                'fam': request.user.get_full_name() or request.user.username,
-                'fecha': timezone.localtime(fecha_hora_cita).strftime('%d/%m/%Y %H:%M'),
+                'fam': _fam_nombre, 'fecha': _fecha_txt,
             },
             reverse('gestion_academica:orientador_mis_citas'),
             institucion,
+            email_asunto=_("Nueva solicitud de cita de orientación"),
+            email_html=_html_correo_cita_orientacion(
+                institucion,
+                titulo=str(_("Nueva solicitud de cita")),
+                saludo=str(_("Hola %(nombre)s,") % {'nombre': orientador.get_full_name() or orientador.username}),
+                cuerpo_html=str(_("<p>Una familia ha solicitado una cita de orientación. Ingresa a la plataforma para confirmarla o reprogramarla.</p>")),
+                detalle_cita=[
+                    (str(_("Solicitada por")), _fam_nombre),
+                    (str(_("Estudiante")), estudiante.usuario.get_full_name()),
+                    (str(_("Fecha y hora")), _fecha_txt),
+                    (str(_("Asunto")), asunto),
+                ],
+            ),
         )
         messages.success(
             request,
@@ -8994,14 +9058,29 @@ def gestionar_cita_orientacion_view(request, pk):
             form.save()
             # Avisar a la familia si se confirmó/canceló o se registraron acuerdos.
             fam_user = getattr(cita.familiar, 'usuario', None)
+            _fecha_txt = timezone.localtime(cita.fecha_hora_inicio).strftime('%d/%m/%Y %H:%M')
+            _detalle = [
+                (str(_("Estudiante")), cita.estudiante.usuario.get_full_name()),
+                (str(_("Fecha y hora")), _fecha_txt),
+                (str(_("Estado")), cita.get_estado_display()),
+            ]
+            if cita.acuerdos_compromisos:
+                _detalle.append((str(_("Acuerdos")), cita.acuerdos_compromisos))
             _notificar_cita_orientacion(
                 fam_user,
                 _("Tu cita de orientación del %(fecha)s fue actualizada: %(estado)s.") % {
-                    'fecha': timezone.localtime(cita.fecha_hora_inicio).strftime('%d/%m/%Y %H:%M'),
-                    'estado': cita.get_estado_display(),
+                    'fecha': _fecha_txt, 'estado': cita.get_estado_display(),
                 },
                 reverse('gestion_academica:portal_familiar_inicio'),
                 cita.institucion,
+                email_asunto=_("Actualización de tu cita de orientación"),
+                email_html=_html_correo_cita_orientacion(
+                    cita.institucion,
+                    titulo=str(_("Actualización de cita")),
+                    saludo=str(_("Hola %(nombre)s,") % {'nombre': (fam_user.get_full_name() if fam_user else '') or ''}),
+                    cuerpo_html=str(_("<p>Tu cita de orientación ha sido actualizada. Estos son los datos vigentes:</p>")),
+                    detalle_cita=_detalle,
+                ),
             )
             messages.success(request, _("La información de la cita ha sido actualizada."))
             return redirect('gestion_academica:orientador_mis_citas')
@@ -9014,6 +9093,83 @@ def gestionar_cita_orientacion_view(request, pk):
         'cita': cita,
     }
     return render(request, 'gestion_academica/gestionar_cita_orientacion.html', context)
+
+
+@login_required
+@require_POST
+def familiar_responder_cita_orientacion_view(request, pk):
+    """Permite a la familia CONFIRMAR o CANCELAR (con motivo) una cita de
+    orientación. Solo sus propias citas. Notifica al orientador."""
+    try:
+        familiar = request.user.familiar
+    except (AttributeError, Familiar.DoesNotExist):
+        messages.error(request, _("Acceso denegado."))
+        return redirect('gestion_academica:inicio_academico')
+
+    cita = get_object_or_404(
+        CitaOrientacion.objects.select_related('orientador', 'estudiante__usuario'),
+        pk=pk, familiar=familiar,
+    )
+
+    if cita.estado in (CitaOrientacion.EstadoCita.REALIZADA, CitaOrientacion.EstadoCita.CANCELADA):
+        messages.warning(request, _("Esta cita ya no se puede modificar."))
+        return redirect('gestion_academica:portal_familiar_inicio')
+
+    accion = (request.POST.get('accion') or '').strip()
+    _fecha_txt = timezone.localtime(cita.fecha_hora_inicio).strftime('%d/%m/%Y %H:%M')
+    _fam_nombre = request.user.get_full_name() or request.user.username
+
+    if accion == 'confirmar':
+        cita.estado = CitaOrientacion.EstadoCita.CONFIRMADA
+        cita.save(update_fields=['estado'])
+        _notificar_cita_orientacion(
+            cita.orientador,
+            _("%(fam)s confirmó la cita del %(fecha)s.") % {'fam': _fam_nombre, 'fecha': _fecha_txt},
+            reverse('gestion_academica:orientador_mis_citas'),
+            cita.institucion,
+            email_asunto=_("La familia confirmó la cita de orientación"),
+            email_html=_html_correo_cita_orientacion(
+                cita.institucion,
+                titulo=str(_("Cita confirmada por la familia")),
+                saludo=str(_("Hola %(nombre)s,") % {'nombre': cita.orientador.get_full_name() or cita.orientador.username}),
+                cuerpo_html=str(_("<p>La familia confirmó su asistencia a la cita.</p>")),
+                detalle_cita=[
+                    (str(_("Familia")), _fam_nombre),
+                    (str(_("Estudiante")), cita.estudiante.usuario.get_full_name()),
+                    (str(_("Fecha y hora")), _fecha_txt),
+                ],
+            ),
+        )
+        messages.success(request, _("Confirmaste tu asistencia a la cita."))
+    elif accion == 'cancelar':
+        motivo = (request.POST.get('motivo') or '').strip()
+        cita.estado = CitaOrientacion.EstadoCita.CANCELADA
+        cita.motivo_cancelacion = motivo or _("Cancelada por la familia sin especificar motivo.")
+        cita.save(update_fields=['estado', 'motivo_cancelacion'])
+        _notificar_cita_orientacion(
+            cita.orientador,
+            _("%(fam)s canceló la cita del %(fecha)s.") % {'fam': _fam_nombre, 'fecha': _fecha_txt},
+            reverse('gestion_academica:orientador_mis_citas'),
+            cita.institucion,
+            email_asunto=_("La familia canceló la cita de orientación"),
+            email_html=_html_correo_cita_orientacion(
+                cita.institucion,
+                titulo=str(_("Cita cancelada por la familia")),
+                saludo=str(_("Hola %(nombre)s,") % {'nombre': cita.orientador.get_full_name() or cita.orientador.username}),
+                cuerpo_html=str(_("<p>La familia canceló la cita. Puedes reprogramarla si lo consideras necesario.</p>")),
+                detalle_cita=[
+                    (str(_("Familia")), _fam_nombre),
+                    (str(_("Estudiante")), cita.estudiante.usuario.get_full_name()),
+                    (str(_("Fecha y hora")), _fecha_txt),
+                    (str(_("Motivo")), cita.motivo_cancelacion),
+                ],
+            ),
+        )
+        messages.success(request, _("Cancelaste la cita. Se notificó a Orientación Escolar."))
+    else:
+        messages.error(request, _("Acción no válida."))
+
+    return redirect('gestion_academica:portal_familiar_inicio')
 
 
 @login_required
@@ -9076,7 +9232,7 @@ def orientador_citar_familia_view(request):
                     fecha_hora_inicio=fecha_hora_cita,
                     asunto=asunto,
                     origen=CitaOrientacion.Origen.ORIENTADOR,
-                    estado=CitaOrientacion.EstadoCita.CONFIRMADA,
+                    estado=CitaOrientacion.EstadoCita.PENDIENTE,
                     institucion=institucion,
                 )
         except IntegrityError:
@@ -9084,14 +9240,27 @@ def orientador_citar_familia_view(request):
             return redirect('gestion_academica:orientador_citar_familia')
 
         fam_user = getattr(familiar, 'usuario', None)
+        _fecha_txt = timezone.localtime(fecha_hora_cita).strftime('%d/%m/%Y %H:%M')
         _notificar_cita_orientacion(
             fam_user,
             _("Orientación Escolar te ha citado a una reunión el %(fecha)s. Asunto: %(asunto)s") % {
-                'fecha': timezone.localtime(fecha_hora_cita).strftime('%d/%m/%Y %H:%M'),
-                'asunto': asunto,
+                'fecha': _fecha_txt, 'asunto': asunto,
             },
             reverse('gestion_academica:portal_familiar_inicio'),
             institucion,
+            email_asunto=_("Has sido citado(a) por Orientación Escolar"),
+            email_html=_html_correo_cita_orientacion(
+                institucion,
+                titulo=str(_("Cita de Orientación Escolar")),
+                saludo=str(_("Hola %(nombre)s,") % {'nombre': (fam_user.get_full_name() if fam_user else '') or ''}),
+                cuerpo_html=str(_("<p>El área de Orientación Escolar te ha convocado a una reunión. Puedes <strong>confirmar</strong> tu asistencia o, si no puedes asistir, <strong>cancelar indicando el motivo</strong> desde el portal de familias.</p>")),
+                detalle_cita=[
+                    (str(_("Orientador(a)")), user.get_full_name() or user.username),
+                    (str(_("Estudiante")), estudiante.usuario.get_full_name()),
+                    (str(_("Fecha y hora")), _fecha_txt),
+                    (str(_("Asunto")), asunto),
+                ],
+            ),
         )
         messages.success(
             request,

@@ -307,6 +307,7 @@ urlpatterns = [
     path('orientacion/api/familiares/<int:estudiante_pk>/', views.api_familiares_de_estudiante, name='api_familiares_de_estudiante'),
     path('citas/seleccionar-orientador/', views.familiar_seleccionar_orientador_cita, name='familiar_seleccionar_orientador'),
     path('citas/agendar-orientador/<int:orientador_pk>/', views.familiar_agendar_cita_orientador_view, name='familiar_agendar_cita_orientador'),
+    path('citas/orientacion/<int:pk>/responder/', views.familiar_responder_cita_orientacion_view, name='familiar_responder_cita_orientacion'),
     path('certificados/seleccionar/', views.seleccionar_estudiante_certificado_view, name='seleccionar_estudiante_certificado'),
     path('certificados/generar/estudios/<int:estudiante_pk>/', views.generar_certificado_estudios_view, name='generar_certificado_estudios'),
     path('certificados/generar/matricula/<int:estudiante_pk>/', views.generar_constancia_matricula_view, name='generar_constancia_matricula'),

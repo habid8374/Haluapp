@@ -163,6 +163,51 @@
     <i class="bi bi-info-circle-fill"></i>
     <span>Desde aquí puedes ver las calificaciones, boletines, deberes{% if institucion_usa_finanzas %}, pagos{% endif %} y agendar reuniones con los docentes de tus hijos.</span>
   </div>
+
+  {% if citas_orientacion %}
+  <div class="card border-0 shadow-sm mb-3" style="border-radius:16px;border-left:5px solid #0f766e;">
+    <div class="card-body">
+      <h5 class="fw-bold mb-3" style="color:#0f766e;"><i class="bi bi-heart-pulse-fill me-2"></i>Citas de Orientación Escolar</h5>
+      {% for cita in citas_orientacion %}
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 py-2 {% if not forloop.last %}border-bottom{% endif %}">
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <span class="fw-bold" style="font-size:.92rem;"><i class="bi bi-calendar-event me-1" style="color:#0f766e;"></i>{{ cita.fecha_hora_inicio|date:"l d/m/Y · h:i A" }}</span>
+            {% if cita.estado == 'CONFIRMADA' %}
+              <span class="badge rounded-pill" style="background:#dcfce7;color:#166534;font-size:.7rem;">Confirmada</span>
+            {% elif cita.origen == 'ORIENTADOR' %}
+              <span class="badge rounded-pill" style="background:#fef9c3;color:#854d0e;font-size:.7rem;">Te citaron: confirma tu asistencia</span>
+            {% else %}
+              <span class="badge rounded-pill" style="background:#fef9c3;color:#854d0e;font-size:.7rem;">Pendiente: espera confirmación de Orientación</span>
+            {% endif %}
+          </div>
+          <div style="font-size:.82rem;color:#64748b;">
+            <i class="bi bi-person-badge me-1"></i>{{ cita.orientador.get_full_name|default:cita.orientador.username }}
+            <span class="mx-1">·</span><i class="bi bi-mortarboard me-1"></i>{{ cita.estudiante.usuario.get_full_name }}
+          </div>
+          <div style="font-size:.82rem;color:#475569;margin-top:.2rem;"><i class="bi bi-chat-left-text me-1"></i>{{ cita.asunto }}</div>
+        </div>
+        <div class="d-flex gap-1 flex-shrink-0">
+          {% if cita.estado == 'PENDIENTE' and cita.origen == 'ORIENTADOR' %}
+          <form method="post" action="{% url 'gestion_academica:familiar_responder_cita_orientacion' cita.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="confirmar">
+            <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-lg me-1"></i>Confirmar</button>
+          </form>
+          {% endif %}
+          <button type="button" class="btn btn-sm btn-outline-danger btn-cancelar-cita-orient"
+                  data-bs-toggle="modal" data-bs-target="#modalCancelarCitaOrient"
+                  data-action="{% url 'gestion_academica:familiar_responder_cita_orientacion' cita.pk %}"
+                  data-info="{{ cita.fecha_hora_inicio|date:'d/m/Y h:i A' }} — {{ cita.estudiante.usuario.get_full_name }}">
+            <i class="bi bi-x-lg me-1"></i>Cancelar
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
   {% for item in estudiantes_con_resumen %}
     {% with est=item.estudiante r=item.resumen %}
     {% with nombre=est.usuario.first_name|default:est.usuario.username apellido=est.usuario.last_name %}
@@ -238,6 +283,36 @@
     </div>
   {% endfor %}
 </div>
+
+<!-- Modal — Cancelar cita de orientación (con motivo) -->
+<div class="modal fade" id="modalCancelarCitaOrient" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-calendar-x-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" id="form-cancelar-cita-orient">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="cancelar">
+        <div class="modal-body pt-2">
+          <h5 class="fw-bold mb-1">¿Cancelar esta cita de orientación?</h5>
+          <p class="text-muted mb-2" style="font-size:.85rem;" id="cancelar-cita-info"></p>
+          <label for="motivo-cancelar-cita" class="form-label fw-bold" style="font-size:.85rem;">Motivo (opcional)</label>
+          <textarea name="motivo" id="motivo-cancelar-cita" class="form-control" rows="3"
+                    placeholder="Cuéntale a Orientación por qué no podrás asistir (opcional)."></textarea>
+          <p class="text-muted mt-2 mb-0" style="font-size:.76rem;"><i class="bi bi-info-circle me-1"></i>Se notificará a Orientación Escolar.</p>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Volver</button>
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-x-lg me-1"></i>Sí, cancelar cita</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}
 {% block extra_js %}
 {{ block.super }}
@@ -255,5 +330,14 @@
   updateDate();
   setInterval(updateDate, 60000);
 })();
+
+// Modal cancelar cita de orientación: fija action e info del botón pulsado.
+document.querySelectorAll('.btn-cancelar-cita-orient').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-cancelar-cita-orient').action = this.dataset.action;
+    document.getElementById('cancelar-cita-info').textContent = this.dataset.info || '';
+    var t = document.getElementById('motivo-cancelar-cita'); if (t) t.value = '';
+  });
+});
 </script>
 {% endblock %}
