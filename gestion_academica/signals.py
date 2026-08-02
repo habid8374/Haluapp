@@ -418,6 +418,7 @@ ROL_GRUPO_MAP = {
     'secretaria': 'secretarias',
     'tesoreria': 'tesoreria',
     'rector': 'rectores',
+    'psicologo': 'psicoorientadores',
 }
 
 
