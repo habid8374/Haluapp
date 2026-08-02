@@ -15,7 +15,7 @@ from .models import (
     PlanCurricular, MencionReconocimiento, ArchivoPlanAcademico, Noticia,
     ConfiguracionInstitucion, Usuario, LeccionDiaria, ObservacionBoletin,
     DescriptorLogro, AnotacionObservador, DisponibilidadDocente, CitaReunion,
-    DisponibilidadOrientador, CitaOrientacion,
+    DisponibilidadOrientador, CitaOrientacion, SeguimientoOrientacion,
     Pregunta, Opcion, Eleccion, Aula, AreaAcademica, NivelEscolaridad,
     DimensionDesarrollo, EscalaCualitativa, LogroPreescolar, TicketSoporte,
     RespuestaTicket, PlaneacionClase, Candidato, CaracterizacionEstudiante,
@@ -1017,7 +1017,19 @@ class AnotacionObservadorForm(forms.ModelForm):
                     periodo_academico=periodo_activo
                 )
             else:
-                self.fields['curso'].queryset = Curso.objects.none()            
+                self.fields['curso'].queryset = Curso.objects.none()
+        elif request and not request.user.is_superuser:
+            # Coordinador / rector / orientador: cursos de SU institución (no de
+            # otras). Cierra la fuga multi-institución del desplegable.
+            inst = getattr(request.user, 'institucion_asociada', None)
+            if inst:
+                periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=inst).first()
+                qs = Curso.objects.filter(institucion=inst)
+                if periodo_activo:
+                    qs = qs.filter(periodo_academico=periodo_activo)
+                self.fields['curso'].queryset = qs
+            else:
+                self.fields['curso'].queryset = Curso.objects.none()
 
 class DocenteActividadForm(forms.ModelForm):
     class Meta:
@@ -1203,6 +1215,36 @@ class GestionCitaOrientacionForm(forms.ModelForm):
             'observaciones_orientador': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'acuerdos_compromisos': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
+
+
+class SeguimientoOrientacionForm(forms.ModelForm):
+    """Registro de una atención/seguimiento psicosocial del orientador."""
+    class Meta:
+        model = SeguimientoOrientacion
+        fields = ['fecha', 'motivo', 'descripcion', 'acuerdos', 'remision',
+                  'requiere_seguimiento', 'proxima_cita']
+        widgets = {
+            'fecha': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+            'motivo': forms.Select(attrs={'class': 'form-select'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Relato de la atención (confidencial)…'}),
+            'acuerdos': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'remision': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'EPS, ICBF, comisaría de familia, etc. (si aplica)'}),
+            'requiere_seguimiento': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'proxima_cita': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+        labels = {
+            'fecha': _('Fecha de la atención'),
+            'motivo': _('Motivo'),
+            'descripcion': _('Relato / observaciones (confidencial)'),
+            'acuerdos': _('Acuerdos y recomendaciones'),
+            'remision': _('Remisión a entidad externa'),
+            'requiere_seguimiento': _('Requiere seguimiento'),
+            'proxima_cita': _('Próxima cita / seguimiento'),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['fecha'].input_formats = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d']
 
 
 class EleccionForm(forms.ModelForm):

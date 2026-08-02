@@ -1,0 +1,98 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3" style="max-width:1000px;">
+  <div style="background:linear-gradient(135deg,#0f766e 0%,#0891b2 100%);border-radius:18px;padding:1.6rem 2rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+      <div>
+        <h2 style="color:#fff;" class="mb-1"><i class="bi bi-folder2-open me-2"></i>{% trans "Ficha de Orientación Escolar" %}</h2>
+        <p style="color:#fff;opacity:.92;margin-bottom:0;">
+          <strong>{{ estudiante.usuario.get_full_name }}</strong>
+          {% if estudiante.grado_actual %} · {{ estudiante.grado_actual.nombre }}{% endif %}
+        </p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'gestion_academica:exportar_ficha_orientacion_pdf' estudiante.pk %}" target="_blank" class="btn btn-light fw-bold">
+          <i class="bi bi-printer-fill me-1"></i>{% trans "Imprimir ficha" %}
+        </a>
+        <a href="{% url 'gestion_academica:seleccionar_estudiante_orientacion' %}" class="btn btn-outline-light">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-warning py-2" style="font-size:.83rem;">
+    <i class="bi bi-shield-lock-fill me-1"></i>{% trans "Documento confidencial (Ley 1581 de 2012 · habeas data). Acceso restringido a orientación escolar y rectoría." %}
+  </div>
+
+  <div class="row g-3">
+    {% if puede_editar %}
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm" style="border-radius:14px;">
+        <div class="card-header bg-light fw-bold" style="border:none;border-radius:14px 14px 0 0;color:#0f766e;">
+          <i class="bi bi-plus-circle me-1"></i>{% trans "Registrar atención / seguimiento" %}
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="d-grid mt-2">
+              <button type="submit" class="btn btn-primary" style="background:#0f766e;border-color:#0f766e;">
+                <i class="bi bi-save me-1"></i>{% trans "Guardar en la ficha" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="{% if puede_editar %}col-lg-7{% else %}col-12{% endif %}">
+      <h5 class="fw-bold mb-2" style="color:#0f766e;"><i class="bi bi-journal-text me-1"></i>{% trans "Historial de seguimientos" %}</h5>
+      <div class="vstack gap-2 mb-4">
+        {% for s in seguimientos %}
+        <div class="card border-0 shadow-sm" style="border-radius:12px;border-left:4px solid #0891b2;">
+          <div class="card-body py-2">
+            <div class="d-flex justify-content-between flex-wrap gap-1">
+              <span class="fw-bold" style="font-size:.86rem;">{{ s.get_motivo_display }}</span>
+              <span class="text-muted" style="font-size:.8rem;">{{ s.fecha|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div style="font-size:.85rem;color:#334155;white-space:pre-line;margin-top:.3rem;">{{ s.descripcion }}</div>
+            {% if s.acuerdos %}<div style="font-size:.82rem;color:#475569;margin-top:.3rem;"><strong>{% trans "Acuerdos:" %}</strong> {{ s.acuerdos }}</div>{% endif %}
+            {% if s.remision %}<div style="font-size:.82rem;color:#b45309;margin-top:.2rem;"><i class="bi bi-box-arrow-up-right me-1"></i>{% trans "Remisión:" %} {{ s.remision }}</div>{% endif %}
+            <div class="text-muted mt-1" style="font-size:.75rem;">
+              <i class="bi bi-person-badge me-1"></i>{{ s.orientador.get_full_name|default:"—" }}
+              {% if s.requiere_seguimiento %}<span class="badge bg-warning text-dark ms-2">{% trans "Requiere seguimiento" %}{% if s.proxima_cita %} · {{ s.proxima_cita|date:"d/m/Y" }}{% endif %}</span>{% endif %}
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-muted" style="font-size:.86rem;">{% trans "Aún no hay seguimientos registrados." %}</p>
+        {% endfor %}
+      </div>
+
+      <h5 class="fw-bold mb-2" style="color:#64748b;"><i class="bi bi-calendar-check me-1"></i>{% trans "Citas de orientación" %}</h5>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead class="table-light"><tr><th>{% trans "Fecha" %}</th><th>{% trans "Estado" %}</th><th>{% trans "Asunto" %}</th><th></th></tr></thead>
+          <tbody>
+            {% for c in citas %}
+            <tr>
+              <td>{{ c.fecha_hora_inicio|date:"d/m/Y H:i" }}</td>
+              <td><span class="badge bg-light text-dark">{{ c.get_estado_display }}</span></td>
+              <td style="font-size:.82rem;">{{ c.asunto|truncatechars:40 }}</td>
+              <td><a href="{% url 'gestion_academica:exportar_acta_cita_orientacion_pdf' c.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary" title="{% trans 'Acta' %}"><i class="bi bi-file-earmark-text"></i></a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-muted">{% trans "Sin citas registradas." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

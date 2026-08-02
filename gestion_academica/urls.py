@@ -309,6 +309,11 @@ urlpatterns = [
     path('citas/seleccionar-orientador/', views.familiar_seleccionar_orientador_cita, name='familiar_seleccionar_orientador'),
     path('citas/agendar-orientador/<int:orientador_pk>/', views.familiar_agendar_cita_orientador_view, name='familiar_agendar_cita_orientador'),
     path('citas/orientacion/<int:pk>/responder/', views.familiar_responder_cita_orientacion_view, name='familiar_responder_cita_orientacion'),
+    # --- Fichas de Orientación Escolar (confidencial) ---
+    path('orientacion/fichas/', views.seleccionar_estudiante_orientacion, name='seleccionar_estudiante_orientacion'),
+    path('orientacion/fichas/<int:estudiante_pk>/', views.ficha_orientacion_estudiante, name='ficha_orientacion_estudiante'),
+    path('orientacion/fichas/<int:estudiante_pk>/pdf/', views.exportar_ficha_orientacion_pdf, name='exportar_ficha_orientacion_pdf'),
+    path('orientacion/citas/<int:pk>/acta/', views.exportar_acta_cita_orientacion_pdf, name='exportar_acta_cita_orientacion_pdf'),
     path('certificados/seleccionar/', views.seleccionar_estudiante_certificado_view, name='seleccionar_estudiante_certificado'),
     path('certificados/generar/estudios/<int:estudiante_pk>/', views.generar_certificado_estudios_view, name='generar_certificado_estudios'),
     path('certificados/generar/matricula/<int:estudiante_pk>/', views.generar_constancia_matricula_view, name='generar_constancia_matricula'),

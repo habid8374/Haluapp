@@ -1,0 +1,81 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Acta de Atención de Orientación — {{ estudiante.usuario.get_full_name }}</title>
+<style>
+@page { size: letter; margin: 2cm 1.8cm; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 9.5pt; color: #1e293b; line-height: 1.5; }
+.top-bar { background: #0f766e; height: 6px; width: 100%; margin-bottom: 12px; }
+.header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.logo-cell { width: 78px; }
+.logo-cell img { width: 70px; height: auto; }
+.inst-name { font-size: 13pt; font-weight: bold; color: #0f766e; }
+.inst-sub { font-size: 7.5pt; color: #64748b; margin-top: 3px; }
+.titulo-acta { text-align: center; font-size: 13pt; font-weight: bold; color: #0f766e; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 4px; }
+.subtitulo-acta { text-align: center; font-size: 8pt; color: #64748b; margin-bottom: 14px; }
+.datos-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+.datos-table td { border: 1px solid #e2e8f0; padding: 5px 9px; font-size: 9pt; }
+.datos-table .lbl { background: #f1f5f9; color: #64748b; font-weight: bold; font-size: 7.5pt; text-transform: uppercase; width: 26%; }
+.section-label { background: #0f766e; color: #fff; font-size: 8pt; font-weight: bold; text-transform: uppercase; letter-spacing: .8px; padding: 5px 10px; margin: 14px 0 8px; }
+.cuerpo { border: 1px solid #cbd5e1; border-radius: 4px; padding: 12px; min-height: 90px; font-size: 9.5pt; white-space: pre-line; }
+.linea { border-bottom: 1px solid #94a3b8; height: 20px; margin-top: 6px; }
+.confid-bar { background: #fef2f2; border-left: 4px solid #dc2626; padding: 5px 10px; font-size: 7.5pt; color: #7f1d1d; margin-bottom: 10px; }
+.firmas-table { width: 100%; border-collapse: collapse; margin-top: 40px; }
+.firmas-table td { width: 33%; text-align: center; vertical-align: bottom; padding: 0 10px; }
+.firma-linea { border-top: 1px solid #475569; padding-top: 5px; font-size: 8pt; }
+.firma-nombre { font-weight: bold; color: #0f766e; }
+.firma-cargo { font-size: 7.5pt; color: #64748b; }
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<table class="header-table">
+  <tr>
+    <td class="logo-cell">{% if institucion.logo %}<img src="{{ institucion.logo.path }}" alt="">{% endif %}</td>
+    <td>
+      <div class="inst-name">{{ institucion.nombre }}</div>
+      <div class="inst-sub">NIT: {{ institucion.nit }}{% if institucion.codigo_dane %} · DANE: {{ institucion.codigo_dane }}{% endif %}{% if institucion.ciudad_departamento %} · {{ institucion.ciudad_departamento }}{% endif %}</div>
+    </td>
+  </tr>
+</table>
+
+<div class="titulo-acta">Acta de Atención de Orientación Escolar</div>
+<div class="subtitulo-acta">Resolución 3842 de 2022 · Ley 1620 de 2013 · Decreto 1421 de 2017 · Ley 1581 de 2012 (confidencial)</div>
+
+<div class="confid-bar"><strong>DOCUMENTO CONFIDENCIAL.</strong> Información sensible protegida por habeas data (Ley 1581/2012).</div>
+
+<div class="section-label">Datos de la atención</div>
+<table class="datos-table">
+  <tr><td class="lbl">Estudiante</td><td><strong>{{ estudiante.usuario.get_full_name|upper }}</strong></td>
+      <td class="lbl">Grado</td><td>{{ estudiante.grado_actual.nombre|default:"—" }}</td></tr>
+  <tr><td class="lbl">Acudiente</td><td>{% if familiar %}{{ familiar.usuario.get_full_name }} ({{ familiar.parentesco }}){% else %}—{% endif %}</td>
+      <td class="lbl">Documento acud.</td><td>{% if familiar %}{{ familiar.documento_identidad|default:"—" }}{% else %}—{% endif %}</td></tr>
+  <tr><td class="lbl">Orientador(a)</td><td>{{ cita.orientador.get_full_name|default:cita.orientador.username }}</td>
+      <td class="lbl">Fecha y hora</td><td>{{ cita.fecha_hora_inicio|date:"d/m/Y H:i" }}</td></tr>
+  <tr><td class="lbl">Origen</td><td>{{ cita.get_origen_display }}</td>
+      <td class="lbl">Estado</td><td>{{ cita.get_estado_display }}</td></tr>
+  <tr><td class="lbl">Asunto</td><td colspan="3">{{ cita.asunto }}</td></tr>
+</table>
+
+<div class="section-label">Desarrollo de la reunión</div>
+<div class="cuerpo">{{ cita.observaciones_orientador|default:"" }}</div>
+
+<div class="section-label">Acuerdos y compromisos</div>
+<div class="cuerpo">{{ cita.acuerdos_compromisos|default:"" }}{% if not cita.acuerdos_compromisos %}<div class="linea"></div><div class="linea"></div><div class="linea"></div>{% endif %}</div>
+
+<table class="firmas-table">
+  <tr>
+    <td><div class="firma-linea"><div class="firma-nombre">{{ cita.orientador.get_full_name|default:cita.orientador.username }}</div><div class="firma-cargo">Orientador(a) Escolar</div></div></td>
+    <td><div class="firma-linea"><div class="firma-nombre">{% if familiar %}{{ familiar.usuario.get_full_name }}{% else %}___________________{% endif %}</div><div class="firma-cargo">{% if familiar %}{{ familiar.parentesco }} · C.C. {{ familiar.documento_identidad|default:"________" }}{% else %}Acudiente{% endif %}</div></div></td>
+    <td><div class="firma-linea"><div class="firma-nombre">{{ estudiante.usuario.get_full_name }}</div><div class="firma-cargo">Estudiante</div></div></td>
+  </tr>
+</table>
+
+<div style="margin-top:22px; text-align:center; font-size:7pt; color:#94a3b8;">
+  Generada el {% now "d/m/Y H:i" %} por {{ generado_por }} — {{ institucion.nombre }}. Documento confidencial de uso institucional.
+</div>
+</body>
+</html>

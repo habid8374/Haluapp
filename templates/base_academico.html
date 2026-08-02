@@ -932,15 +932,16 @@
         </a>
       </li>
       <li class="nav-item item-color-7">
-        <a class="nav-link" href="{% url 'gestion_academica:dashboard_bienestar' %}">
-          <i class="bi bi-heart-pulse-fill"></i> Alertas de Bienestar
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_bienestar' %}active{% endif %}"
+           href="{% url 'gestion_academica:dashboard_bienestar' %}">
+          <i class="bi bi-shield-heart"></i> Convivencia y Bienestar (HALU Sentinel)
+          <span class="badge bg-danger ms-1 sentinel-badge" style="display:none"></span>
         </a>
       </li>
       <li class="nav-item item-color-8">
-        <a class="nav-link {% if 'sentinel' in request.path %}active{% endif %}"
-           href="{% url 'gestion_academica:dashboard_bienestar' %}?sentinel=1">
-          <i class="bi bi-shield-shaded"></i> Halu Sentinel
-          <span class="badge bg-danger ms-1 sentinel-badge" style="display:none"></span>
+        <a class="nav-link {% if request.resolver_match.url_name == 'seleccionar_estudiante_observador' or request.resolver_match.url_name == 'historial_observador' %}active{% endif %}"
+           href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}">
+          <i class="bi bi-journal-bookmark-fill"></i> Observador de Estudiantes
         </a>
       </li>
       <li class="nav-item item-color-8">
@@ -1051,6 +1052,18 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_bienestar' %}active{% endif %}"
            href="{% url 'gestion_academica:dashboard_bienestar' %}">
           <i class="bi bi-shield-exclamation"></i> {% trans "Convivencia y Bienestar" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-6">
+        <a class="nav-link {% if request.resolver_match.url_name == 'seleccionar_estudiante_observador' or request.resolver_match.url_name == 'historial_observador' %}active{% endif %}"
+           href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}">
+          <i class="bi bi-journal-bookmark-fill"></i> {% trans "Observador de Estudiantes" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-3">
+        <a class="nav-link {% if request.resolver_match.url_name == 'seleccionar_estudiante_orientacion' or request.resolver_match.url_name == 'ficha_orientacion_estudiante' %}active{% endif %}"
+           href="{% url 'gestion_academica:seleccionar_estudiante_orientacion' %}">
+          <i class="bi bi-folder-symlink-fill"></i> {% trans "Fichas de Orientación" %}
         </a>
       </li>
       <li class="nav-item item-color-5">

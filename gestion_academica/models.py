@@ -2026,6 +2026,50 @@ class CitaOrientacion(models.Model):
         return f"Cita de {self.familiar} con {self.orientador.get_full_name()} el {self.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M')}"
 
 
+class SeguimientoOrientacion(models.Model):
+    """
+    Registro de seguimiento psicosocial que hace el/la orientador(a) escolar
+    por estudiante. CONFIDENCIAL (Ley 1581/2012 habeas data): solo accede el
+    orientador y la rectoría. Se acumula en la carpeta del estudiante y queda
+    disponible para inspección y vigilancia (Decreto 1075/2015). Marco de la
+    orientación: Resolución 3842/2022, Decreto 1421/2017 (PIAR), Ley 1620/2013.
+    """
+    class Motivo(models.TextChoices):
+        EMOCIONAL = 'EMOCIONAL', _('Acompañamiento emocional')
+        CONVIVENCIA = 'CONVIVENCIA', _('Convivencia / comportamiento')
+        FAMILIAR = 'FAMILIAR', _('Situación familiar')
+        ACADEMICO = 'ACADEMICO', _('Dificultad académica')
+        RIESGO = 'RIESGO', _('Riesgo psicosocial')
+        REMISION = 'REMISION', _('Remisión a entidad externa')
+        PIAR = 'PIAR', _('Seguimiento PIAR / inclusión')
+        ORIENTACION_VOCACIONAL = 'VOCACIONAL', _('Orientación vocacional')
+        OTRO = 'OTRO', _('Otro')
+
+    institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, related_name='seguimientos_orientacion')
+    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='seguimientos_orientacion')
+    orientador = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='seguimientos_orientacion_registrados',
+        limit_choices_to={'rol': 'psicologo'},
+    )
+    fecha = models.DateTimeField(default=timezone.now, verbose_name=_("Fecha de la atención"))
+    motivo = models.CharField(max_length=20, choices=Motivo.choices, default=Motivo.EMOCIONAL, verbose_name=_("Motivo de la atención"))
+    descripcion = models.TextField(verbose_name=_("Relato / observaciones (confidencial)"))
+    acuerdos = models.TextField(blank=True, null=True, verbose_name=_("Acuerdos y recomendaciones"))
+    remision = models.TextField(blank=True, null=True, verbose_name=_("Remisión / entidad externa"), help_text="Si se remitió a EPS, ICBF, comisaría u otra entidad.")
+    requiere_seguimiento = models.BooleanField(default=False, verbose_name=_("Requiere seguimiento"))
+    proxima_cita = models.DateField(null=True, blank=True, verbose_name=_("Próxima cita / seguimiento"))
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Seguimiento de Orientación")
+        verbose_name_plural = _("Seguimientos de Orientación")
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"Seguimiento {self.get_motivo_display()} — {self.estudiante} ({self.fecha:%d/%m/%Y})"
+
+
 class Eleccion(models.Model):
     nombre = models.CharField(max_length=255)
     descripcion = models.TextField(blank=True)

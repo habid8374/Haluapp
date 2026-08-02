@@ -117,7 +117,7 @@ from ..models import (
     ConfiguracionInstitucion, Noticia, RegistroAsistencia, BloqueHorario, LeccionDiaria,
     Pregunta, Opcion, RespuestaEstudiante, IntentoActividad, DescriptorLogro, ObservacionBoletin,
     PeriodoAcademico, EscalaValorativa, AnotacionObservador, AnalisisRiesgo, PrediccionRiesgoEstudiante,
-    Notificacion, DisponibilidadDocente, CitaReunion, DisponibilidadOrientador, CitaOrientacion, Eleccion, Candidato, Voto, Estudiante, RegistroAsistenciaDocente,
+    Notificacion, DisponibilidadDocente, CitaReunion, DisponibilidadOrientador, CitaOrientacion, SeguimientoOrientacion, Eleccion, Candidato, Voto, Estudiante, RegistroAsistenciaDocente,
     Aula, AreaAcademica, Egresado, ArchivoHistorico, SolicitudDocumento, EvaluacionLogroPreescolar, EscalaCualitativa,
     DimensionDesarrollo, LogroPreescolar, TicketSoporte, RespuestaTicket, PlaneacionClase, DetalleClase, NivelEscolaridad,
     AnalisisComportamientoIA,
@@ -164,6 +164,7 @@ from ..forms import (
     GestionCitaForm,
     DisponibilidadOrientadorForm,
     GestionCitaOrientacionForm,
+    SeguimientoOrientacionForm,
     EleccionForm,
     PreguntaForm,
     OpcionFormSet,
@@ -6183,28 +6184,43 @@ def generar_mencion_pdf(request, mencion_pk):
 @login_required
 def seleccionar_estudiante_observador(request):
     """
-    Muestra al docente una lista de sus estudiantes para seleccionar a quién
-    le hará una anotación en el observador.
+    Lista de estudiantes para abrir su Observador. El docente ve solo los
+    estudiantes de sus cursos; el coordinador, rector, administrador y el/la
+    orientador(a) escolar ven TODOS los de su institución (seguimiento
+    institucional). Marco: Decreto 1860/1994 art. 17 (Registro Escolar).
     """
-    if not hasattr(request.user, 'docente'):
+    user = request.user
+    es_docente = hasattr(user, 'docente')
+    es_staff = _es_psicoorientador_o_superior(user)  # coord/rector/admin/psico/superuser
+    if not (es_docente or es_staff):
         messages.error(request, _("Acceso denegado."))
-        return redirect('gestion_academica:dashboard_docente')
+        return redirect('gestion_academica:inicio_academico')
 
-    docente = request.user.docente
-    periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=docente.institucion).first()
-    
-    estudiantes = []
-    if periodo_activo:
-        cursos_docente = Curso.objects.filter(docentes_asignados=docente, periodo_academico=periodo_activo)
-        grados_ids = cursos_docente.values_list('grado_id', flat=True).distinct()
-        estudiantes = Estudiante.objects.filter(
-            grado_actual_id__in=grados_ids,
-            institucion=docente.institucion
-        ).select_related('usuario', 'grado_actual').order_by('grado_actual__nombre', 'usuario__last_name')
+    institucion = getattr(user, 'institucion_asociada', None)
+    periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=institucion).first()
+
+    if es_staff:
+        # Coordinación / rectoría / orientación: todos los estudiantes activos.
+        estudiantes = get_filtered_queryset(
+            Estudiante, user,
+            Estudiante.objects.select_related('usuario', 'grado_actual'),
+        ).order_by('grado_actual__nombre', 'usuario__last_name')
+    else:
+        # Docente: solo estudiantes de los grados donde dicta este período.
+        estudiantes = Estudiante.objects.none()
+        if periodo_activo:
+            docente = user.docente
+            grados_ids = Curso.objects.filter(
+                docentes_asignados=docente, periodo_academico=periodo_activo
+            ).values_list('grado_id', flat=True).distinct()
+            estudiantes = Estudiante.objects.filter(
+                grado_actual_id__in=grados_ids, institucion=docente.institucion
+            ).select_related('usuario', 'grado_actual').order_by('grado_actual__nombre', 'usuario__last_name')
 
     context = {
         'estudiantes': estudiantes,
-        'titulo_pagina': _('Seleccionar Estudiante para Observador')
+        'titulo_pagina': _('Seleccionar Estudiante para Observador'),
+        'es_staff_observador': es_staff,
     }
     return render(request, 'gestion_academica/seleccionar_estudiante_observador.html', context)
 
@@ -9486,6 +9502,175 @@ def api_familiares_de_estudiante(request, estudiante_pk):
         for f in familiares
     ]
     return JsonResponse({'familiares': data})
+
+
+# ============================================================================
+#  FICHAS DE ORIENTACIÓN ESCOLAR (seguimiento psicosocial confidencial)
+#  Ley 1581/2012 (habeas data): acceso restringido. Se acumula en la carpeta
+#  del estudiante y queda disponible para inspección y vigilancia (Dcto 1075).
+# ============================================================================
+
+def _puede_ver_orientacion(user):
+    """Confidencial: solo orientador, rectoría y superusuario."""
+    rol = getattr(user, 'rol', '') or ''
+    return user.is_superuser or rol in ('psicologo', 'rector')
+
+
+def _puede_editar_orientacion(user):
+    """Solo el/la orientador(a) (y superusuario) registran seguimientos."""
+    return user.is_superuser or (getattr(user, 'rol', '') or '') == 'psicologo'
+
+
+@login_required
+def seleccionar_estudiante_orientacion(request):
+    """Lista de estudiantes para abrir su Ficha de Orientación (confidencial)."""
+    user = request.user
+    if not _puede_ver_orientacion(user):
+        messages.error(request, _("Acceso denegado. Sección confidencial de orientación escolar."))
+        return redirect('gestion_academica:inicio_academico')
+
+    estudiantes = get_filtered_queryset(
+        Estudiante, user,
+        Estudiante.objects.select_related('usuario', 'grado_actual'),
+    ).order_by('grado_actual__nombre', 'usuario__last_name')
+
+    context = {
+        'estudiantes': estudiantes,
+        'titulo_pagina': _('Fichas de Orientación Escolar'),
+    }
+    return render(request, 'gestion_academica/seleccionar_estudiante_orientacion.html', context)
+
+
+@login_required
+def ficha_orientacion_estudiante(request, estudiante_pk):
+    """Ficha de orientación de un estudiante: seguimientos psicosociales +
+    citas de orientación. El orientador puede registrar nuevos seguimientos."""
+    user = request.user
+    if not _puede_ver_orientacion(user):
+        messages.error(request, _("Acceso denegado. Sección confidencial de orientación escolar."))
+        return redirect('gestion_academica:inicio_academico')
+
+    estudiante = get_object_or_404(
+        get_filtered_queryset(Estudiante, user, Estudiante.objects.select_related('usuario', 'grado_actual', 'institucion')),
+        pk=estudiante_pk,
+    )
+
+    puede_editar = _puede_editar_orientacion(user)
+    if request.method == 'POST':
+        if not puede_editar:
+            messages.error(request, _("Solo orientación escolar puede registrar seguimientos."))
+            return redirect('gestion_academica:ficha_orientacion_estudiante', estudiante_pk=estudiante.pk)
+        form = SeguimientoOrientacionForm(request.POST)
+        if form.is_valid():
+            seg = form.save(commit=False)
+            seg.estudiante = estudiante
+            seg.institucion = estudiante.institucion
+            seg.orientador = user
+            seg.save()
+            messages.success(request, _("Seguimiento registrado en la ficha del estudiante."))
+            return redirect('gestion_academica:ficha_orientacion_estudiante', estudiante_pk=estudiante.pk)
+    else:
+        form = SeguimientoOrientacionForm()
+
+    seguimientos = SeguimientoOrientacion.objects.filter(
+        estudiante=estudiante
+    ).select_related('orientador').order_by('-fecha')
+    citas = CitaOrientacion.objects.filter(
+        estudiante=estudiante
+    ).select_related('orientador', 'familiar__usuario').order_by('-fecha_hora_inicio')
+
+    context = {
+        'estudiante': estudiante,
+        'form': form,
+        'seguimientos': seguimientos,
+        'citas': citas,
+        'puede_editar': puede_editar,
+        'titulo_pagina': _("Ficha de Orientación — %(est)s") % {'est': estudiante.usuario.get_full_name()},
+    }
+    return render(request, 'gestion_academica/ficha_orientacion_estudiante.html', context)
+
+
+@login_required
+def exportar_ficha_orientacion_pdf(request, estudiante_pk):
+    """PDF confidencial de la Ficha de Orientación del estudiante, con firmas.
+    Para la carpeta del estudiante e inspección de los entes de control."""
+    user = request.user
+    if not _puede_ver_orientacion(user):
+        messages.error(request, _("Acceso denegado."))
+        return redirect('gestion_academica:inicio_academico')
+
+    from gestion_academica.models import Familiar
+
+    estudiante = get_object_or_404(
+        get_filtered_queryset(Estudiante, user, Estudiante.objects.select_related('usuario', 'grado_actual', 'institucion')),
+        pk=estudiante_pk,
+    )
+    institucion = estudiante.institucion
+    familiar = (
+        Familiar.objects.filter(estudiantes_asociados=estudiante, institucion=institucion)
+        .select_related('usuario').first()
+    )
+    seguimientos = SeguimientoOrientacion.objects.filter(
+        estudiante=estudiante
+    ).select_related('orientador').order_by('fecha')
+    citas = CitaOrientacion.objects.filter(
+        estudiante=estudiante
+    ).exclude(estado='CANCELADA').select_related('orientador').order_by('fecha_hora_inicio')
+
+    context = {
+        'estudiante': estudiante,
+        'familiar': familiar,
+        'seguimientos': seguimientos,
+        'citas': citas,
+        'institucion': institucion,
+        'generado_por': user.get_full_name() or user.username,
+        'fecha_generacion': timezone.now(),
+    }
+    template = get_template('gestion_academica/ficha_orientacion_imprimible.html')
+    html = template.render(context)
+    response = HttpResponse(content_type='application/pdf')
+    nombre = f"FichaOrientacion_{estudiante.usuario.get_full_name().replace(' ', '_')}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{nombre}"'
+    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
+    if pisa_status.err:
+        return HttpResponse('Ocurrió un error al generar la Ficha de Orientación.')
+    return response
+
+
+@login_required
+def exportar_acta_cita_orientacion_pdf(request, pk):
+    """Acta de atención de una cita de orientación, con firmas de las partes."""
+    user = request.user
+    cita = get_object_or_404(
+        CitaOrientacion.objects.select_related(
+            'orientador', 'familiar__usuario', 'estudiante__usuario',
+            'estudiante__grado_actual', 'institucion',
+        ),
+        pk=pk,
+    )
+    # Acceso: el orientador dueño, rectoría, o superusuario.
+    if not (user.is_superuser or cita.orientador_id == user.pk or (getattr(user, 'rol', '') or '') == 'rector'):
+        messages.error(request, _("Acceso denegado a esta acta."))
+        return redirect('gestion_academica:inicio_academico')
+
+    familiar = cita.familiar
+    context = {
+        'cita': cita,
+        'estudiante': cita.estudiante,
+        'familiar': familiar,
+        'institucion': cita.institucion,
+        'generado_por': user.get_full_name() or user.username,
+        'fecha_generacion': timezone.now(),
+    }
+    template = get_template('gestion_academica/acta_cita_orientacion_imprimible.html')
+    html = template.render(context)
+    response = HttpResponse(content_type='application/pdf')
+    nombre = f"ActaOrientacion_{cita.estudiante.usuario.get_full_name().replace(' ', '_')}_{cita.pk}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{nombre}"'
+    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
+    if pisa_status.err:
+        return HttpResponse('Ocurrió un error al generar el acta.')
+    return response
 
 
 @login_required
