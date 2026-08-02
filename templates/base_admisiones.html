@@ -135,6 +135,20 @@
       display: none;
     }
   }
+  /* FIX: menús del navbar (notificaciones/perfil) flotantes en móvil para que
+     NO agranden la barra al abrirlos. */
+  @media (max-width: 575.98px) {
+    body.layout-admisiones .top-navbar .navbar-nav .nav-item.dropdown { position: static !important; }
+    body.layout-admisiones .top-navbar .navbar-nav .dropdown-menu {
+      position: absolute !important;
+      top: 100% !important;
+      right: .4rem !important;
+      left: auto !important;
+      margin-top: .35rem !important;
+      z-index: 1200 !important;
+      box-shadow: 0 12px 30px rgba(0,0,0,.22) !important;
+    }
+  }
 </style>
 {% endblock extrastyles %}
 {% block navbar_brand %}
