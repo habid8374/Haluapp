@@ -117,7 +117,7 @@ from ..models import (
     ConfiguracionInstitucion, Noticia, RegistroAsistencia, BloqueHorario, LeccionDiaria,
     Pregunta, Opcion, RespuestaEstudiante, IntentoActividad, DescriptorLogro, ObservacionBoletin,
     PeriodoAcademico, EscalaValorativa, AnotacionObservador, AnalisisRiesgo, PrediccionRiesgoEstudiante,
-    Notificacion, DisponibilidadDocente, CitaReunion, Eleccion, Candidato, Voto, Estudiante, RegistroAsistenciaDocente,
+    Notificacion, DisponibilidadDocente, CitaReunion, DisponibilidadOrientador, CitaOrientacion, Eleccion, Candidato, Voto, Estudiante, RegistroAsistenciaDocente,
     Aula, AreaAcademica, Egresado, ArchivoHistorico, SolicitudDocumento, EvaluacionLogroPreescolar, EscalaCualitativa,
     DimensionDesarrollo, LogroPreescolar, TicketSoporte, RespuestaTicket, PlaneacionClase, DetalleClase, NivelEscolaridad,
     AnalisisComportamientoIA,
@@ -162,6 +162,8 @@ from ..forms import (
     FamiliarForm,
     DisponibilidadDocenteForm,
     GestionCitaForm,
+    DisponibilidadOrientadorForm,
+    GestionCitaOrientacionForm,
     EleccionForm,
     PreguntaForm,
     OpcionFormSet,
@@ -353,6 +355,8 @@ def dashboard_psicoorientador(request):
         'piars_vigentes': 0,
         'casos_recientes': [],
         'anotaciones_recientes': [],
+        'citas_proximas': [],
+        'citas_pendientes_count': 0,
     }
     try:
         from .models import CasoConvivencia, AnotacionObservador
@@ -377,6 +381,19 @@ def dashboard_psicoorientador(request):
         from piar.models import PIAR
         piar_qs = PIAR.objects.all() if user.is_superuser else PIAR.objects.filter(institucion=institucion)
         ctx['piars_vigentes'] = piar_qs.filter(estado='ACTIVO').count()
+    except Exception:
+        pass
+
+    # Próximas citas con familias (solo del orientador que ha iniciado sesión).
+    try:
+        if _es_orientador(user):
+            citas_qs = CitaOrientacion.objects.filter(
+                orientador=user,
+                estado__in=['PENDIENTE', 'CONFIRMADA'],
+                fecha_hora_inicio__gte=timezone.now(),
+            ).select_related('familiar__usuario', 'estudiante__usuario').order_by('fecha_hora_inicio')
+            ctx['citas_pendientes_count'] = citas_qs.count()
+            ctx['citas_proximas'] = list(citas_qs[:5])
     except Exception:
         pass
 
@@ -8655,7 +8672,427 @@ def detalle_cita_supervision_view(request, pk):
         'titulo_pagina': "Detalle de Reunión Agendada",
         'cita': cita,
     }
-    return render(request, 'gestion_academica/detalle_cita_supervision.html', context)         
+    return render(request, 'gestion_academica/detalle_cita_supervision.html', context)
+
+
+# ============================================================================
+#  CITAS DE ORIENTACIÓN (Psicoorientador ↔ Familia) — bidireccional
+#  Espejo del sistema de citas del docente, pero ligado a Usuario (rol
+#  'psicologo'). NO toca CitaReunion/DisponibilidadDocente: el flujo del
+#  docente queda 100% intacto. Marco: Ley 2025/2020 (Escuela para Padres),
+#  Resolución 3842/2022 (docente orientador), Decreto 1421/2017 (PIAR).
+# ============================================================================
+
+def _es_orientador(user):
+    return (getattr(user, 'rol', '') or '') == 'psicologo'
+
+
+def _notificar_cita_orientacion(destinatario, mensaje, enlace, institucion):
+    """Crea una Notificacion y, si es posible, la empuja por WebSocket."""
+    if destinatario is None:
+        return
+    try:
+        Notificacion.objects.create(
+            destinatario=destinatario,
+            mensaje=mensaje,
+            enlace=enlace or '',
+            institucion=institucion,
+        )
+    except Exception:
+        pass
+    try:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        channel_layer = get_channel_layer()
+        if channel_layer is not None:
+            async_to_sync(channel_layer.group_send)(
+                f"user_{destinatario.pk}",
+                {
+                    "type": "send_notification",
+                    "kind": "cita_orientacion",
+                    "title": "Orientación Escolar",
+                    "message": mensaje,
+                    "url": enlace or "",
+                    "severity": "info",
+                },
+            )
+    except Exception:
+        pass
+
+
+@login_required
+def gestionar_disponibilidad_orientador_view(request):
+    """
+    Permite al/a la orientador(a) escolar ver, añadir y eliminar sus bloques
+    de disponibilidad (horario de atención) para reuniones con familias.
+    """
+    user = request.user
+    if not _es_orientador(user):
+        messages.error(request, _("Acceso denegado. Esta sección es solo para orientación escolar."))
+        return redirect('gestion_academica:inicio_academico')
+
+    institucion = getattr(user, 'institucion_asociada', None)
+    if institucion is None:
+        messages.error(request, _("Tu cuenta no está asociada a ninguna institución."))
+        return redirect('gestion_academica:dashboard_psicoorientador')
+
+    if request.method == 'POST':
+        form = DisponibilidadOrientadorForm(request.POST)
+        if form.is_valid():
+            disponibilidad = form.save(commit=False)
+            disponibilidad.orientador = user
+            disponibilidad.institucion = institucion
+            try:
+                disponibilidad.save()
+                messages.success(request, _("Nuevo bloque de disponibilidad añadido correctamente."))
+            except IntegrityError:
+                messages.error(request, _("Ya tienes un bloque que empieza a esa hora ese día."))
+            return redirect('gestion_academica:gestionar_disponibilidad_orientador')
+        else:
+            messages.error(request, _("Hubo un error en el formulario. Por favor, revisa los datos."))
+    else:
+        form = DisponibilidadOrientadorForm()
+
+    disponibilidades_actuales = DisponibilidadOrientador.objects.filter(
+        orientador=user
+    ).order_by('dia_semana', 'hora_inicio')
+
+    context = {
+        'titulo_pagina': _("Mi Horario de Atención a Familias"),
+        'form': form,
+        'disponibilidades': disponibilidades_actuales,
+    }
+    return render(request, 'gestion_academica/gestionar_disponibilidad_orientador.html', context)
+
+
+@login_required
+@require_POST
+def eliminar_disponibilidad_orientador_view(request, pk):
+    """Elimina un bloque de disponibilidad del orientador (solo el propio)."""
+    user = request.user
+    if not _es_orientador(user):
+        messages.error(request, _("Acción no permitida."))
+        return redirect('gestion_academica:inicio_academico')
+    disponibilidad = get_object_or_404(DisponibilidadOrientador, pk=pk, orientador=user)
+    disponibilidad.delete()
+    messages.success(request, _("El bloque de disponibilidad ha sido eliminado."))
+    return redirect('gestion_academica:gestionar_disponibilidad_orientador')
+
+
+@login_required
+def familiar_seleccionar_orientador_cita(request):
+    """
+    Muestra a la familia el/los orientador(es) escolar(es) de su institución
+    para agendar una cita de acompañamiento psicosocial.
+    """
+    try:
+        familiar = request.user.familiar
+    except (AttributeError, Familiar.DoesNotExist):
+        messages.error(request, _("Acceso denegado. Esta sección es solo para familiares."))
+        return redirect('gestion_academica:inicio_academico')
+
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    orientadores = Usuario.objects.filter(
+        rol='psicologo', institucion_asociada=institucion, is_active=True
+    ).order_by('last_name', 'first_name')
+
+    context = {
+        'titulo_pagina': _("Agendar con Orientación Escolar"),
+        'orientadores': orientadores,
+    }
+    return render(request, 'gestion_academica/familiar_seleccionar_orientador.html', context)
+
+
+@login_required
+def familiar_agendar_cita_orientador_view(request, orientador_pk):
+    """
+    Permite a una familia ver los horarios disponibles del orientador y
+    reservar una cita, evitando dobles reservas del mismo horario.
+    """
+    try:
+        familiar = request.user.familiar
+    except (AttributeError, Familiar.DoesNotExist):
+        messages.error(request, _("Acceso denegado. Esta sección es solo para familiares."))
+        return redirect('gestion_academica:inicio_academico')
+
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    orientador = get_object_or_404(
+        Usuario, pk=orientador_pk, rol='psicologo', institucion_asociada=institucion
+    )
+
+    citas_existentes = CitaOrientacion.objects.filter(
+        orientador=orientador,
+        fecha_hora_inicio__gte=timezone.now(),
+    ).exclude(estado='CANCELADA')
+    slots_ocupados_keys = {_cita_reunion_slot_minuto_utc(c.fecha_hora_inicio) for c in citas_existentes}
+
+    disponibilidades = DisponibilidadOrientador.objects.filter(orientador=orientador)
+    slots_disponibles = []
+    hoy = timezone.localdate()
+    for i in range(14):
+        fecha_actual = hoy + timedelta(days=i)
+        dia_semana_actual = fecha_actual.weekday()
+        for disp in disponibilidades.filter(dia_semana=dia_semana_actual):
+            hora_actual_slot = timezone.make_aware(
+                datetime.combine(fecha_actual, disp.hora_inicio),
+                timezone.get_current_timezone(),
+            )
+            hora_fin_bloque = timezone.make_aware(
+                datetime.combine(fecha_actual, disp.hora_fin),
+                timezone.get_current_timezone(),
+            )
+            while hora_actual_slot < hora_fin_bloque:
+                if hora_actual_slot > timezone.now() and _cita_reunion_slot_minuto_utc(hora_actual_slot) not in slots_ocupados_keys:
+                    slots_disponibles.append(hora_actual_slot)
+                hora_actual_slot += timedelta(minutes=30)
+
+    if request.method == 'POST':
+        fecha_hora_str = request.POST.get('fecha_hora')
+        asunto = request.POST.get('asunto')
+        estudiante_id = request.POST.get('estudiante_id')
+
+        if not (fecha_hora_str and asunto and estudiante_id):
+            messages.error(request, _("Por favor, completa todos los campos del formulario."))
+            return redirect('gestion_academica:familiar_agendar_cita_orientador', orientador_pk=orientador.pk)
+
+        fecha_hora_cita = datetime.fromisoformat(fecha_hora_str)
+        if timezone.is_naive(fecha_hora_cita):
+            fecha_hora_cita = timezone.make_aware(fecha_hora_cita, timezone.get_current_timezone())
+
+        estudiante = get_object_or_404(
+            Estudiante,
+            pk=estudiante_id,
+            pk__in=familiar.estudiantes_asociados.values_list("pk", flat=True),
+        )
+
+        try:
+            with transaction.atomic():
+                ocupadas = {
+                    _cita_reunion_slot_minuto_utc(c.fecha_hora_inicio)
+                    for c in CitaOrientacion.objects.select_for_update().filter(
+                        orientador_id=orientador.pk,
+                        fecha_hora_inicio__gte=timezone.now(),
+                    ).exclude(estado='CANCELADA')
+                }
+                if _cita_reunion_slot_minuto_utc(fecha_hora_cita) in ocupadas:
+                    messages.error(request, _("Lo sentimos, ese horario acaba de ser reservado. Por favor, elige otro."))
+                    return redirect('gestion_academica:familiar_agendar_cita_orientador', orientador_pk=orientador.pk)
+
+                cita = CitaOrientacion.objects.create(
+                    orientador=orientador,
+                    familiar=familiar,
+                    estudiante=estudiante,
+                    fecha_hora_inicio=fecha_hora_cita,
+                    asunto=asunto,
+                    origen=CitaOrientacion.Origen.FAMILIA,
+                    institucion_id=estudiante.institucion_id,
+                )
+        except IntegrityError:
+            messages.error(request, _("Lo sentimos, ese horario acaba de ser reservado. Por favor, elige otro."))
+            return redirect('gestion_academica:familiar_agendar_cita_orientador', orientador_pk=orientador.pk)
+
+        _notificar_cita_orientacion(
+            orientador,
+            _("%(fam)s solicitó una cita de orientación para el %(fecha)s.") % {
+                'fam': request.user.get_full_name() or request.user.username,
+                'fecha': timezone.localtime(fecha_hora_cita).strftime('%d/%m/%Y %H:%M'),
+            },
+            reverse('gestion_academica:orientador_mis_citas'),
+            institucion,
+        )
+        messages.success(
+            request,
+            _("Cita con %(nombre)s solicitada exitosamente.") % {'nombre': orientador.get_full_name()},
+        )
+        return redirect('gestion_academica:portal_familiar_inicio')
+
+    context = {
+        'titulo_pagina': _("Agendar Cita con %(nombre)s") % {'nombre': orientador.get_full_name()},
+        'orientador': orientador,
+        'slots_disponibles': slots_disponibles,
+        'estudiantes_del_familiar': familiar.estudiantes_asociados.all(),
+    }
+    return render(request, 'gestion_academica/familiar_agendar_cita_orientador.html', context)
+
+
+@login_required
+def orientador_mis_citas_view(request):
+    """Lista de citas del orientador (pendientes/confirmadas y el historial)."""
+    user = request.user
+    if not _es_orientador(user):
+        messages.error(request, _("Acceso denegado. Esta sección es solo para orientación escolar."))
+        return redirect('gestion_academica:inicio_academico')
+
+    base = CitaOrientacion.objects.filter(orientador=user).select_related(
+        'familiar__usuario', 'estudiante__usuario', 'estudiante__grado_actual'
+    )
+    citas_activas = base.filter(estado__in=['PENDIENTE', 'CONFIRMADA']).order_by('fecha_hora_inicio')
+    citas_historial = base.filter(estado__in=['REALIZADA', 'CANCELADA']).order_by('-fecha_hora_inicio')[:30]
+
+    context = {
+        'titulo_pagina': _("Mis Citas con Familias"),
+        'citas_activas': citas_activas,
+        'citas_historial': citas_historial,
+    }
+    return render(request, 'gestion_academica/orientador_mis_citas.html', context)
+
+
+@login_required
+def gestionar_cita_orientacion_view(request, pk):
+    """Permite al orientador actualizar el estado de una cita y registrar
+    observaciones y acuerdos. Solo sus propias citas."""
+    user = request.user
+    if not _es_orientador(user):
+        messages.error(request, _("Acceso denegado."))
+        return redirect('gestion_academica:inicio_academico')
+
+    cita = get_object_or_404(
+        CitaOrientacion.objects.select_related('familiar__usuario', 'estudiante__usuario'),
+        pk=pk, orientador=user,
+    )
+
+    if request.method == 'POST':
+        form = GestionCitaOrientacionForm(request.POST, instance=cita)
+        if form.is_valid():
+            form.save()
+            # Avisar a la familia si se confirmó/canceló o se registraron acuerdos.
+            fam_user = getattr(cita.familiar, 'usuario', None)
+            _notificar_cita_orientacion(
+                fam_user,
+                _("Tu cita de orientación del %(fecha)s fue actualizada: %(estado)s.") % {
+                    'fecha': timezone.localtime(cita.fecha_hora_inicio).strftime('%d/%m/%Y %H:%M'),
+                    'estado': cita.get_estado_display(),
+                },
+                reverse('gestion_academica:portal_familiar_inicio'),
+                cita.institucion,
+            )
+            messages.success(request, _("La información de la cita ha sido actualizada."))
+            return redirect('gestion_academica:orientador_mis_citas')
+    else:
+        form = GestionCitaOrientacionForm(instance=cita)
+
+    context = {
+        'titulo_pagina': _("Gestionar Cita de Orientación"),
+        'form': form,
+        'cita': cita,
+    }
+    return render(request, 'gestion_academica/gestionar_cita_orientacion.html', context)
+
+
+@login_required
+def orientador_citar_familia_view(request):
+    """
+    Permite al/a la orientador(a) CITAR a una familia (flujo inverso): elige un
+    estudiante de su institución, la familia (acudiente) asociada, fecha/hora y
+    asunto. La cita queda con origen=ORIENTADOR y se notifica a la familia.
+    """
+    user = request.user
+    if not _es_orientador(user):
+        messages.error(request, _("Acceso denegado. Esta sección es solo para orientación escolar."))
+        return redirect('gestion_academica:inicio_academico')
+
+    institucion = getattr(user, 'institucion_asociada', None)
+    if institucion is None:
+        messages.error(request, _("Tu cuenta no está asociada a ninguna institución."))
+        return redirect('gestion_academica:dashboard_psicoorientador')
+
+    estudiantes = Estudiante.objects.filter(
+        institucion=institucion, activo=True
+    ).select_related('usuario', 'grado_actual').order_by('usuario__last_name', 'usuario__first_name')
+
+    if request.method == 'POST':
+        estudiante_id = request.POST.get('estudiante_id')
+        familiar_id = request.POST.get('familiar_id')
+        fecha_hora_str = request.POST.get('fecha_hora')
+        asunto = request.POST.get('asunto')
+
+        if not (estudiante_id and familiar_id and fecha_hora_str and asunto):
+            messages.error(request, _("Por favor, completa todos los campos del formulario."))
+            return redirect('gestion_academica:orientador_citar_familia')
+
+        estudiante = get_object_or_404(Estudiante, pk=estudiante_id, institucion=institucion)
+        familiar = get_object_or_404(
+            Familiar, pk=familiar_id,
+            estudiantes_asociados=estudiante,
+        )
+
+        fecha_hora_cita = datetime.fromisoformat(fecha_hora_str)
+        if timezone.is_naive(fecha_hora_cita):
+            fecha_hora_cita = timezone.make_aware(fecha_hora_cita, timezone.get_current_timezone())
+        if fecha_hora_cita <= timezone.now():
+            messages.error(request, _("La fecha de la cita debe ser futura."))
+            return redirect('gestion_academica:orientador_citar_familia')
+
+        try:
+            with transaction.atomic():
+                ocupada = CitaOrientacion.objects.select_for_update().filter(
+                    orientador=user, fecha_hora_inicio=fecha_hora_cita,
+                ).exclude(estado='CANCELADA').exists()
+                if ocupada:
+                    messages.error(request, _("Ya tienes una cita activa a esa hora. Elige otro horario."))
+                    return redirect('gestion_academica:orientador_citar_familia')
+
+                cita = CitaOrientacion.objects.create(
+                    orientador=user,
+                    familiar=familiar,
+                    estudiante=estudiante,
+                    fecha_hora_inicio=fecha_hora_cita,
+                    asunto=asunto,
+                    origen=CitaOrientacion.Origen.ORIENTADOR,
+                    estado=CitaOrientacion.EstadoCita.CONFIRMADA,
+                    institucion=institucion,
+                )
+        except IntegrityError:
+            messages.error(request, _("Ya tienes una cita activa a esa hora. Elige otro horario."))
+            return redirect('gestion_academica:orientador_citar_familia')
+
+        fam_user = getattr(familiar, 'usuario', None)
+        _notificar_cita_orientacion(
+            fam_user,
+            _("Orientación Escolar te ha citado a una reunión el %(fecha)s. Asunto: %(asunto)s") % {
+                'fecha': timezone.localtime(fecha_hora_cita).strftime('%d/%m/%Y %H:%M'),
+                'asunto': asunto,
+            },
+            reverse('gestion_academica:portal_familiar_inicio'),
+            institucion,
+        )
+        messages.success(
+            request,
+            _("Has citado a la familia de %(est)s para el %(fecha)s.") % {
+                'est': estudiante.usuario.get_full_name(),
+                'fecha': timezone.localtime(fecha_hora_cita).strftime('%d/%m/%Y %H:%M'),
+            },
+        )
+        return redirect('gestion_academica:orientador_mis_citas')
+
+    context = {
+        'titulo_pagina': _("Citar a una Familia"),
+        'estudiantes': estudiantes,
+    }
+    return render(request, 'gestion_academica/orientador_citar_familia.html', context)
+
+
+@login_required
+def api_familiares_de_estudiante(request, estudiante_pk):
+    """Devuelve (JSON) los acudientes asociados a un estudiante de la misma
+    institución del orientador. Alimenta el selector dependiente en el flujo
+    'Citar a una Familia'."""
+    user = request.user
+    if not _es_orientador(user):
+        return JsonResponse({'error': 'forbidden'}, status=403)
+    institucion = getattr(user, 'institucion_asociada', None)
+    estudiante = get_object_or_404(Estudiante, pk=estudiante_pk, institucion=institucion)
+    familiares = estudiante.familiares.select_related('usuario').all()
+    data = [
+        {
+            'id': f.pk,
+            'nombre': f.usuario.get_full_name() or f.usuario.username,
+            'parentesco': getattr(f, 'parentesco', '') or '',
+        }
+        for f in familiares
+    ]
+    return JsonResponse({'familiares': data})
+
 
 @login_required
 @permission_required('gestion_academica.view_estudiante')

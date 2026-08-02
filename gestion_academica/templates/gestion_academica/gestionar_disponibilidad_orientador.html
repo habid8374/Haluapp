@@ -1,0 +1,107 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#0f766e 0%,#0891b2 100%);border-radius:18px;padding:1.6rem 2rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h2 style="color:#fff;" class="mb-1"><i class="bi bi-calendar-week-fill me-2"></i>{{ titulo_pagina }}</h2>
+        <p style="color:#fff;opacity:.9;margin-bottom:0;">{% trans "Define los días y horas en que atenderás a las familias. Estos horarios serán visibles para que ellas puedan solicitar una cita." %}</p>
+      </div>
+      <a href="{% url 'gestion_academica:orientador_mis_citas' %}" class="btn btn-light fw-bold">
+        <i class="bi bi-calendar-check me-1"></i>{% trans "Mis Citas" %}
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0" style="border-radius:14px;">
+        <div class="card-header bg-light fw-bold" style="border:none;border-radius:14px 14px 0 0;color:#0f766e;">
+          <i class="bi bi-plus-circle me-1"></i>{% trans "Añadir Nuevo Bloque Horario" %}
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="d-grid mt-3">
+              <button type="submit" class="btn btn-primary" style="background:#0f766e;border-color:#0f766e;">{% trans "Añadir Disponibilidad" %}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card shadow-sm border-0" style="border-radius:14px;">
+        <div class="card-header bg-light fw-bold" style="border:none;border-radius:14px 14px 0 0;color:#0f766e;">
+          <i class="bi bi-clock-history me-1"></i>{% trans "Mis Horarios de Atención Actuales" %}
+        </div>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead class="table-light">
+              <tr><th>{% trans "Día" %}</th><th>{% trans "Desde" %}</th><th>{% trans "Hasta" %}</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for disp in disponibilidades %}
+              <tr>
+                <td><strong>{{ disp.get_dia_semana_display }}</strong></td>
+                <td>{{ disp.hora_inicio|time:"h:i A" }}</td>
+                <td>{{ disp.hora_fin|time:"h:i A" }}</td>
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-outline-danger"
+                          title="{% trans 'Eliminar' %}"
+                          data-bs-toggle="modal" data-bs-target="#modalEliminarDisp"
+                          data-action="{% url 'gestion_academica:eliminar_disponibilidad_orientador' disp.pk %}"
+                          data-label="{{ disp.get_dia_semana_display }} {{ disp.hora_inicio|time:'H:i' }}–{{ disp.hora_fin|time:'H:i' }}">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center p-4 text-muted">{% trans "Aún no has definido ningún horario de atención." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalEliminarDisp" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">{% trans "¿Eliminar este bloque horario?" %}</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;">{% trans "Bloque:" %} <strong id="disp-label-modal"></strong></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Esta acción no se puede deshacer." %}</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="form-eliminar-disp" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('[data-bs-target="#modalEliminarDisp"]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.getElementById('form-eliminar-disp').action = this.dataset.action;
+    document.getElementById('disp-label-modal').textContent = this.dataset.label || '';
+  });
+});
+</script>
+{% endblock %}

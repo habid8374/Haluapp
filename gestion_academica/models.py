@@ -1906,9 +1906,103 @@ class CitaReunion(models.Model):
         ]
 
     def __str__(self):
-        return f"Cita de {self.familiar} con {self.docente} el {self.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M')}"          
+        return f"Cita de {self.familiar} con {self.docente} el {self.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M')}"
 
-          
+
+class DisponibilidadOrientador(models.Model):
+    """
+    Bloque de tiempo RECURRENTE en el que el/la orientador(a) escolar
+    (psicoorientador, rol='psicologo') está disponible para atender a las
+    familias. Es el espejo de DisponibilidadDocente, pero ligado a un Usuario
+    y NO a un Docente: así el flujo de citas del docente queda 100% intacto.
+    """
+    DIA_SEMANA_CHOICES = [
+        (0, 'Lunes'), (1, 'Martes'), (2, 'Miércoles'),
+        (3, 'Jueves'), (4, 'Viernes'),
+    ]
+
+    orientador = models.ForeignKey(
+        Usuario, on_delete=models.CASCADE,
+        related_name='disponibilidades_orientacion',
+        limit_choices_to={'rol': 'psicologo'},
+    )
+    dia_semana = models.IntegerField(choices=DIA_SEMANA_CHOICES, verbose_name=_("Día de la semana"))
+    hora_inicio = models.TimeField(verbose_name=_("Hora de inicio de disponibilidad"))
+    hora_fin = models.TimeField(verbose_name=_("Hora de fin de disponibilidad"))
+    institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _("Disponibilidad de Orientador")
+        verbose_name_plural = _("Disponibilidades de Orientadores")
+        unique_together = ('orientador', 'dia_semana', 'hora_inicio')
+
+    def __str__(self):
+        return f"{self.orientador.get_full_name()} - {self.get_dia_semana_display()} de {self.hora_inicio.strftime('%H:%M')} a {self.hora_fin.strftime('%H:%M')}"
+
+
+class CitaOrientacion(models.Model):
+    """
+    Cita entre una familia y el/la orientador(a) escolar. Es bidireccional:
+    puede ser solicitada por la familia (origen=FAMILIA) desde el portal, o
+    citada por el propio orientador (origen=ORIENTADOR) cuando lo considera
+    pertinente. Espejo de CitaReunion, ligado a Usuario (rol='psicologo').
+    """
+    class EstadoCita(models.TextChoices):
+        PENDIENTE = 'PENDIENTE', _('Pendiente')
+        CONFIRMADA = 'CONFIRMADA', _('Confirmada')
+        CANCELADA = 'CANCELADA', _('Cancelada')
+        REALIZADA = 'REALIZADA', _('Realizada')
+
+    class Origen(models.TextChoices):
+        FAMILIA = 'FAMILIA', _('Solicitada por la familia')
+        ORIENTADOR = 'ORIENTADOR', _('Citada por el orientador')
+
+    orientador = models.ForeignKey(
+        Usuario, on_delete=models.CASCADE,
+        related_name='citas_orientacion',
+        limit_choices_to={'rol': 'psicologo'},
+    )
+    familiar = models.ForeignKey(Familiar, on_delete=models.CASCADE, related_name='citas_orientacion')
+    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='citas_orientacion')
+
+    fecha_hora_inicio = models.DateTimeField(verbose_name=_("Fecha y hora de la cita"))
+    duracion_minutos = models.PositiveIntegerField(default=30, verbose_name=_("Duración (minutos)"))
+
+    asunto = models.CharField(max_length=255, verbose_name=_("Asunto principal de la reunión"))
+    enlace_virtual = models.URLField(blank=True, null=True, verbose_name=_("Enlace de la videollamada (si aplica)"))
+
+    estado = models.CharField(max_length=15, choices=EstadoCita.choices, default=EstadoCita.PENDIENTE)
+    origen = models.CharField(max_length=12, choices=Origen.choices, default=Origen.FAMILIA)
+    institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE)
+
+    observaciones_orientador = models.TextField(
+        blank=True, null=True,
+        verbose_name=_("Observaciones de la Reunión"),
+        help_text="Notas privadas del orientador sobre lo discutido en la reunión.",
+    )
+    acuerdos_compromisos = models.TextField(
+        blank=True, null=True,
+        verbose_name=_("Acuerdos y Compromisos"),
+        help_text="Resumen de los acuerdos a los que se llegaron. Será visible para la familia.",
+    )
+    creada = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Cita de Orientación")
+        verbose_name_plural = _("Citas de Orientación")
+        ordering = ['fecha_hora_inicio']
+        constraints = [
+            # Solo las citas activas (no canceladas) bloquean el horario.
+            models.UniqueConstraint(
+                fields=['orientador', 'fecha_hora_inicio'],
+                condition=~models.Q(estado='CANCELADA'),
+                name='unique_cita_orientacion_activa',
+            )
+        ]
+
+    def __str__(self):
+        return f"Cita de {self.familiar} con {self.orientador.get_full_name()} el {self.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M')}"
+
 
 class Eleccion(models.Model):
     nombre = models.CharField(max_length=255)

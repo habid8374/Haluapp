@@ -66,11 +66,51 @@
     </a>
   </div>
   <div class="col-6 col-md-4 col-lg-3">
+    <a href="{% url 'gestion_academica:orientador_mis_citas' %}" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:12px;">
+      <div class="card-body text-center position-relative">
+        <i class="bi bi-calendar-check-fill d-block mb-1" style="font-size:1.4rem;color:#0f766e;"></i>
+        <span style="color:#334155;font-weight:600;font-size:.82rem;">{% trans "Citas con Familias" %}</span>
+        {% if citas_pendientes_count %}<span class="badge bg-danger position-absolute top-0 end-0 m-2">{{ citas_pendientes_count }}</span>{% endif %}
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <a href="{% url 'gestion_academica:gestionar_disponibilidad_orientador' %}" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:12px;">
+      <div class="card-body text-center"><i class="bi bi-calendar-week-fill d-block mb-1" style="font-size:1.4rem;color:#0891b2;"></i><span style="color:#334155;font-weight:600;font-size:.82rem;">{% trans "Mi Horario de Atención" %}</span></div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <a href="{% url 'gestion_academica:orientador_citar_familia' %}" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:12px;">
+      <div class="card-body text-center"><i class="bi bi-person-plus-fill d-block mb-1" style="font-size:1.4rem;color:#0d9488;"></i><span style="color:#334155;font-weight:600;font-size:.82rem;">{% trans "Citar a una Familia" %}</span></div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
     <a href="{% url 'mensajeria:inbox' %}" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:12px;">
       <div class="card-body text-center"><i class="bi bi-chat-dots-fill d-block mb-1" style="font-size:1.4rem;color:#7c3aed;"></i><span style="color:#334155;font-weight:600;font-size:.82rem;">{% trans "Mensajes" %}</span></div>
     </a>
   </div>
 </div>
+
+<!-- Próximas citas con familias -->
+{% if citas_proximas %}
+<div class="card border-0 shadow-sm mb-4" style="border-radius:14px;">
+  <div class="card-header bg-light fw-bold d-flex justify-content-between align-items-center" style="border:none;border-radius:14px 14px 0 0;color:#0f766e;">
+    <span><i class="bi bi-calendar-check me-1"></i>{% trans "Próximas citas con familias" %}</span>
+    <a href="{% url 'gestion_academica:orientador_mis_citas' %}" class="btn btn-sm btn-outline-secondary">{% trans "Ver todas" %}</a>
+  </div>
+  <div class="list-group list-group-flush">
+    {% for cita in citas_proximas %}
+    <a href="{% url 'gestion_academica:gestionar_cita_orientacion' cita.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+      <span style="font-size:.86rem;">
+        <strong>{{ cita.fecha_hora_inicio|date:"d/m H:i" }}</strong> · {{ cita.estudiante.usuario.get_full_name }}
+        <span class="text-muted">— {{ cita.familiar.usuario.get_full_name }}</span>
+      </span>
+      <span class="badge {% if cita.estado == 'CONFIRMADA' %}bg-success{% else %}bg-warning text-dark{% endif %}" style="font-size:.7rem;">{{ cita.get_estado_display }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <div class="row g-3">
   <!-- Casos de convivencia recientes -->

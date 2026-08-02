@@ -1063,6 +1063,18 @@
           <i class="bi bi-graph-down-arrow"></i> {% trans "Reporte de Riesgo (IA)" %}
         </a>
       </li>
+      <li class="nav-item item-color-4">
+        <a class="nav-link {% if request.resolver_match.url_name == 'orientador_mis_citas' or request.resolver_match.url_name == 'gestionar_cita_orientacion' or request.resolver_match.url_name == 'orientador_citar_familia' %}active{% endif %}"
+           href="{% url 'gestion_academica:orientador_mis_citas' %}">
+          <i class="bi bi-calendar-check"></i> {% trans "Citas con Familias" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-5">
+        <a class="nav-link {% if request.resolver_match.url_name == 'gestionar_disponibilidad_orientador' %}active{% endif %}"
+           href="{% url 'gestion_academica:gestionar_disponibilidad_orientador' %}">
+          <i class="bi bi-calendar-week"></i> {% trans "Mi Horario de Atención" %}
+        </a>
+      </li>
       <li class="nav-item item-color-2">
         <a class="nav-link {% if request.resolver_match.namespace == 'mensajeria' %}active{% endif %}"
            href="{% url 'mensajeria:inbox' %}">

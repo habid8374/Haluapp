@@ -15,6 +15,7 @@ from .models import (
     PlanCurricular, MencionReconocimiento, ArchivoPlanAcademico, Noticia,
     ConfiguracionInstitucion, Usuario, LeccionDiaria, ObservacionBoletin,
     DescriptorLogro, AnotacionObservador, DisponibilidadDocente, CitaReunion,
+    DisponibilidadOrientador, CitaOrientacion,
     Pregunta, Opcion, Eleccion, Aula, AreaAcademica, NivelEscolaridad,
     DimensionDesarrollo, EscalaCualitativa, LogroPreescolar, TicketSoporte,
     RespuestaTicket, PlaneacionClase, Candidato, CaracterizacionEstudiante,
@@ -1159,6 +1160,49 @@ class GestionCitaForm(forms.ModelForm):
             'acuerdos_compromisos': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }                              
 
+
+
+class DisponibilidadOrientadorForm(forms.ModelForm):
+    """
+    Formulario para que el/la orientador(a) escolar defina un bloque de
+    disponibilidad para atender familias. Espejo de DisponibilidadDocenteForm.
+    """
+    class Meta:
+        model = DisponibilidadOrientador
+        fields = ['dia_semana', 'hora_inicio', 'hora_fin']
+        widgets = {
+            'dia_semana': forms.Select(attrs={'class': 'form-select'}),
+            'hora_inicio': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'hora_fin': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+        }
+        labels = {
+            'dia_semana': _('Día de la Semana'),
+            'hora_inicio': _('Disponible Desde'),
+            'hora_fin': _('Disponible Hasta'),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        inicio = cleaned.get('hora_inicio')
+        fin = cleaned.get('hora_fin')
+        if inicio and fin and fin <= inicio:
+            self.add_error('hora_fin', _("La hora de fin debe ser posterior a la hora de inicio."))
+        return cleaned
+
+
+class GestionCitaOrientacionForm(forms.ModelForm):
+    """
+    Formulario para que el/la orientador(a) gestione una cita: actualizar su
+    estado y registrar observaciones y acuerdos tras la reunión.
+    """
+    class Meta:
+        model = CitaOrientacion
+        fields = ['estado', 'observaciones_orientador', 'acuerdos_compromisos']
+        widgets = {
+            'estado': forms.Select(attrs={'class': 'form-select'}),
+            'observaciones_orientador': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'acuerdos_compromisos': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
 
 
 class EleccionForm(forms.ModelForm):

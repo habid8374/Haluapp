@@ -1,0 +1,53 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4" style="max-width:720px;">
+  <div style="background:linear-gradient(135deg,#0f766e 0%,#0891b2 100%);border-radius:18px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 style="color:#fff;" class="mb-1"><i class="bi bi-calendar-plus-fill me-2"></i>{{ titulo_pagina }}</h2>
+    <p style="color:#fff;opacity:.9;margin-bottom:0;">{% trans "Selecciona un horario disponible para tu reunión de orientación." %}</p>
+  </div>
+
+  <form method="post" class="card border-0 shadow-sm" style="border-radius:14px;">
+    {% csrf_token %}
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="estudiante_id" class="form-label fw-bold">{% trans "¿La cita es para cuál de tus hijos?" %}</label>
+        <select name="estudiante_id" id="estudiante_id" class="form-select" required>
+          {% for est in estudiantes_del_familiar %}
+          <option value="{{ est.pk }}">{{ est.usuario.get_full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="asunto" class="form-label fw-bold">{% trans "Asunto principal de la reunión" %}</label>
+        <input type="text" name="asunto" id="asunto" class="form-control" maxlength="255" required
+               placeholder="{% trans 'Ej.: acompañamiento emocional, convivencia, seguimiento PIAR…' %}">
+      </div>
+      <div class="mb-2">
+        <label class="form-label fw-bold">{% trans "Selecciona un horario disponible:" %}</label>
+        <div class="list-group" style="max-height:360px;overflow-y:auto;">
+          {% for slot in slots_disponibles %}
+          <label class="list-group-item">
+            <input type="radio" name="fecha_hora" value="{{ slot.isoformat }}" class="form-check-input me-2" required>
+            {{ slot|date:"l, d F Y, h:i A" }}
+          </label>
+          {% empty %}
+          <p class="text-muted mb-0 p-2"><i class="bi bi-info-circle me-1"></i>{% trans "Este profesional aún no tiene horarios de atención configurados." %}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="card-footer bg-white border-0 d-flex justify-content-between">
+      <a href="{% url 'gestion_academica:familiar_seleccionar_orientador' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>{% trans "Volver" %}
+      </a>
+      {% if slots_disponibles %}
+      <button type="submit" class="btn btn-primary" style="background:#0f766e;border-color:#0f766e;">
+        <i class="bi bi-calendar-check me-1"></i>{% trans "Solicitar Cita" %}
+      </button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4" style="max-width:720px;">
+  <div style="background:linear-gradient(135deg,#0f766e 0%,#0891b2 100%);border-radius:18px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 style="color:#fff;" class="mb-1"><i class="bi bi-person-plus-fill me-2"></i>{{ titulo_pagina }}</h2>
+    <p style="color:#fff;opacity:.9;margin-bottom:0;">{% trans "Convoca a una familia a una reunión de orientación. Se le notificará automáticamente." %}</p>
+  </div>
+
+  <form method="post" class="card border-0 shadow-sm" style="border-radius:14px;">
+    {% csrf_token %}
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="estudiante_id" class="form-label fw-bold">{% trans "Estudiante" %}</label>
+        <select name="estudiante_id" id="estudiante_id" class="form-select" required>
+          <option value="">{% trans "— Selecciona un estudiante —" %}</option>
+          {% for est in estudiantes %}
+          <option value="{{ est.pk }}">{{ est.usuario.get_full_name }}{% if est.grado_actual %} ({{ est.grado_actual.nombre }}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="familiar_id" class="form-label fw-bold">{% trans "Familia / Acudiente" %}</label>
+        <select name="familiar_id" id="familiar_id" class="form-select" required disabled>
+          <option value="">{% trans "Primero selecciona un estudiante…" %}</option>
+        </select>
+        <div class="form-text" id="familiar-help">{% trans "Se listarán los acudientes vinculados al estudiante." %}</div>
+      </div>
+      <div class="mb-3">
+        <label for="fecha_hora" class="form-label fw-bold">{% trans "Fecha y hora" %}</label>
+        <input type="datetime-local" name="fecha_hora" id="fecha_hora" class="form-control" required>
+      </div>
+      <div class="mb-2">
+        <label for="asunto" class="form-label fw-bold">{% trans "Asunto principal de la reunión" %}</label>
+        <input type="text" name="asunto" id="asunto" class="form-control" maxlength="255" required
+               placeholder="{% trans 'Motivo de la convocatoria' %}">
+      </div>
+    </div>
+    <div class="card-footer bg-white border-0 d-flex justify-content-between">
+      <a href="{% url 'gestion_academica:orientador_mis_citas' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Volver" %}</a>
+      <button type="submit" class="btn btn-primary" style="background:#0f766e;border-color:#0f766e;"><i class="bi bi-send-check me-1"></i>{% trans "Citar y notificar" %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+(function () {
+  var estSel = document.getElementById('estudiante_id');
+  var famSel = document.getElementById('familiar_id');
+  var famHelp = document.getElementById('familiar-help');
+  var urlTpl = "{% url 'gestion_academica:api_familiares_de_estudiante' 0 %}";
+
+  function resetFam(msg) {
+    famSel.innerHTML = '<option value="">' + msg + '</option>';
+    famSel.disabled = true;
+  }
+
+  estSel.addEventListener('change', function () {
+    var id = this.value;
+    if (!id) { resetFam("{% trans 'Primero selecciona un estudiante…' %}"); return; }
+    resetFam("{% trans 'Cargando…' %}");
+    fetch(urlTpl.replace('/0/', '/' + id + '/'), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var fams = (data && data.familiares) || [];
+        if (!fams.length) {
+          resetFam("{% trans 'Este estudiante no tiene acudientes vinculados.' %}");
+          famHelp.textContent = "{% trans 'Pídele a la secretaría vincular un acudiente.' %}";
+          return;
+        }
+        famSel.innerHTML = '<option value="">{% trans "— Selecciona un acudiente —" %}</option>';
+        fams.forEach(function (f) {
+          var opt = document.createElement('option');
+          opt.value = f.id;
+          opt.textContent = f.nombre + (f.parentesco ? ' (' + f.parentesco + ')' : '');
+          famSel.appendChild(opt);
+        });
+        famSel.disabled = false;
+        famHelp.textContent = "{% trans 'Selecciona a quién deseas citar.' %}";
+      })
+      .catch(function () { resetFam("{% trans 'No se pudieron cargar los acudientes.' %}"); });
+  });
+})();
+</script>
+{% endblock %}

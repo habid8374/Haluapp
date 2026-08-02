@@ -1,0 +1,81 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+  .estado-PENDIENTE  { background:#fef9c3; color:#854d0e; }
+  .estado-CONFIRMADA { background:#dcfce7; color:#166534; }
+  .estado-REALIZADA  { background:#e0f2fe; color:#075985; }
+  .estado-CANCELADA  { background:#fee2e2; color:#991b1b; }
+  .origen-badge { background:#f1f5f9; color:#475569; font-size:.68rem; border-radius:20px; padding:.2em .7em; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#0f766e 0%,#0891b2 100%);border-radius:18px;padding:1.6rem 2rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h2 style="color:#fff;" class="mb-1"><i class="bi bi-calendar-check-fill me-2"></i>{{ titulo_pagina }}</h2>
+        <p style="color:#fff;opacity:.9;margin-bottom:0;">{% trans "Reuniones solicitadas por las familias y las que tú has citado." %}</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'gestion_academica:orientador_citar_familia' %}" class="btn btn-light fw-bold">
+          <i class="bi bi-person-plus-fill me-1"></i>{% trans "Citar a una Familia" %}
+        </a>
+        <a href="{% url 'gestion_academica:gestionar_disponibilidad_orientador' %}" class="btn btn-outline-light fw-bold">
+          <i class="bi bi-calendar-week me-1"></i>{% trans "Mi Horario" %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <h5 class="fw-bold mb-2" style="color:#0f766e;"><i class="bi bi-hourglass-split me-1"></i>{% trans "Citas activas" %}</h5>
+  <div class="vstack gap-2 mb-4">
+    {% for cita in citas_activas %}
+    <div class="card border-0 shadow-sm" style="border-radius:12px;">
+      <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+              <span class="fw-bold">{{ cita.estudiante.usuario.get_full_name }}</span>
+              {% if cita.estudiante.grado_actual %}<span class="badge bg-light text-dark" style="font-size:.72rem;">{{ cita.estudiante.grado_actual.nombre }}</span>{% endif %}
+              <span class="badge rounded-pill estado-{{ cita.estado }}" style="font-size:.72rem;">{{ cita.get_estado_display }}</span>
+              <span class="origen-badge">{{ cita.get_origen_display }}</span>
+            </div>
+            <div class="d-flex gap-3 flex-wrap" style="font-size:.82rem;color:#64748b;">
+              <span><i class="bi bi-calendar-event me-1"></i>{{ cita.fecha_hora_inicio|date:"d/m/Y H:i" }}</span>
+              <span><i class="bi bi-people me-1"></i>{{ cita.familiar.usuario.get_full_name }}</span>
+              <span><i class="bi bi-chat-left-text me-1"></i>{{ cita.asunto|truncatechars:60 }}</span>
+            </div>
+          </div>
+          <a href="{% url 'gestion_academica:gestionar_cita_orientacion' cita.pk %}" class="btn btn-sm btn-outline-primary fw-bold">
+            <i class="bi bi-gear me-1"></i>{% trans "Gestionar" %}
+          </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-4 text-muted"><i class="bi bi-calendar-x" style="font-size:2.2rem;opacity:.3;"></i><p class="mt-2 mb-0">{% trans "No tienes citas activas." %}</p></div>
+    {% endfor %}
+  </div>
+
+  {% if citas_historial %}
+  <h5 class="fw-bold mb-2" style="color:#64748b;"><i class="bi bi-clock-history me-1"></i>{% trans "Historial reciente" %}</h5>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead class="table-light"><tr><th>{% trans "Estudiante" %}</th><th>{% trans "Familia" %}</th><th>{% trans "Fecha" %}</th><th>{% trans "Estado" %}</th></tr></thead>
+      <tbody>
+        {% for cita in citas_historial %}
+        <tr>
+          <td>{{ cita.estudiante.usuario.get_full_name }}</td>
+          <td>{{ cita.familiar.usuario.get_full_name }}</td>
+          <td>{{ cita.fecha_hora_inicio|date:"d/m/Y H:i" }}</td>
+          <td><span class="badge rounded-pill estado-{{ cita.estado }}" style="font-size:.7rem;">{{ cita.get_estado_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
