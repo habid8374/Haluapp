@@ -303,6 +303,7 @@ urlpatterns = [
     path('orientacion/disponibilidad/eliminar/<int:pk>/', views.eliminar_disponibilidad_orientador_view, name='eliminar_disponibilidad_orientador'),
     path('orientacion/mis-citas/', views.orientador_mis_citas_view, name='orientador_mis_citas'),
     path('orientacion/citas/gestionar/<int:pk>/', views.gestionar_cita_orientacion_view, name='gestionar_cita_orientacion'),
+    path('orientacion/citas/<int:pk>/reprogramar/', views.orientador_reprogramar_cita_view, name='orientador_reprogramar_cita'),
     path('orientacion/citar-familia/', views.orientador_citar_familia_view, name='orientador_citar_familia'),
     path('orientacion/api/familiares/<int:estudiante_pk>/', views.api_familiares_de_estudiante, name='api_familiares_de_estudiante'),
     path('citas/seleccionar-orientador/', views.familiar_seleccionar_orientador_cita, name='familiar_seleccionar_orientador'),

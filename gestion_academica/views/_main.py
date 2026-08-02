@@ -389,7 +389,7 @@ def dashboard_psicoorientador(request):
         if _es_orientador(user):
             citas_qs = CitaOrientacion.objects.filter(
                 orientador=user,
-                estado__in=['PENDIENTE', 'CONFIRMADA'],
+                estado__in=['PENDIENTE', 'CONFIRMADA', 'REAGENDANDO'],
                 fecha_hora_inicio__gte=timezone.now(),
             ).select_related('familiar__usuario', 'estudiante__usuario').order_by('fecha_hora_inicio')
             ctx['citas_pendientes_count'] = citas_qs.count()
@@ -3226,11 +3226,15 @@ def portal_familiar_inicio(request):
         for est in estudiantes_qs
     ]
 
-    # Citas de orientación activas de esta familia (para confirmar/cancelar).
+    # Citas de orientación activas de esta familia (confirmar/cancelar/reprogramar).
+    # Incluye las que están en negociación aunque su hora original ya pasara,
+    # mientras el horario propuesto siga siendo futuro.
+    _ahora = timezone.now()
     citas_orientacion = CitaOrientacion.objects.filter(
         familiar=familiar_actual,
-        estado__in=['PENDIENTE', 'CONFIRMADA'],
-        fecha_hora_inicio__gte=timezone.now(),
+        estado__in=['PENDIENTE', 'CONFIRMADA', 'REAGENDANDO'],
+    ).filter(
+        Q(fecha_hora_inicio__gte=_ahora) | Q(fecha_propuesta__gte=_ahora)
     ).select_related('orientador', 'estudiante__usuario').order_by('fecha_hora_inicio')
 
     context = {
@@ -9027,7 +9031,7 @@ def orientador_mis_citas_view(request):
     base = CitaOrientacion.objects.filter(orientador=user).select_related(
         'familiar__usuario', 'estudiante__usuario', 'estudiante__grado_actual'
     )
-    citas_activas = base.filter(estado__in=['PENDIENTE', 'CONFIRMADA']).order_by('fecha_hora_inicio')
+    citas_activas = base.filter(estado__in=['PENDIENTE', 'CONFIRMADA', 'REAGENDANDO']).order_by('fecha_hora_inicio')
     citas_historial = base.filter(estado__in=['REALIZADA', 'CANCELADA']).order_by('-fecha_hora_inicio')[:30]
 
     context = {
@@ -9093,6 +9097,123 @@ def gestionar_cita_orientacion_view(request, pk):
         'cita': cita,
     }
     return render(request, 'gestion_academica/gestionar_cita_orientacion.html', context)
+
+
+def _cita_orientacion_slot_libre(orientador, dt, excluir_pk=None):
+    """True si el orientador no tiene otra cita activa (no cancelada) a esa hora."""
+    qs = CitaOrientacion.objects.filter(
+        orientador=orientador, fecha_hora_inicio=dt,
+    ).exclude(estado=CitaOrientacion.EstadoCita.CANCELADA)
+    if excluir_pk:
+        qs = qs.exclude(pk=excluir_pk)
+    return not qs.exists()
+
+
+def _parse_fecha_local(fecha_hora_str):
+    """Parsea un valor datetime-local (ISO) a datetime aware; None si inválido."""
+    if not fecha_hora_str:
+        return None
+    try:
+        dt = datetime.fromisoformat(fecha_hora_str)
+    except ValueError:
+        return None
+    if timezone.is_naive(dt):
+        dt = timezone.make_aware(dt, timezone.get_current_timezone())
+    return dt
+
+
+@login_required
+@require_POST
+def orientador_reprogramar_cita_view(request, pk):
+    """El orientador ACEPTA el horario propuesto por la familia, o CONTRAPROPONE
+    otro. Notifica a la familia. Solo sus propias citas."""
+    user = request.user
+    if not _es_orientador(user):
+        messages.error(request, _("Acceso denegado."))
+        return redirect('gestion_academica:inicio_academico')
+
+    cita = get_object_or_404(
+        CitaOrientacion.objects.select_related('familiar__usuario', 'estudiante__usuario'),
+        pk=pk, orientador=user,
+    )
+    if cita.estado in (CitaOrientacion.EstadoCita.REALIZADA, CitaOrientacion.EstadoCita.CANCELADA):
+        messages.warning(request, _("Esta cita ya no se puede modificar."))
+        return redirect('gestion_academica:gestionar_cita_orientacion', pk=cita.pk)
+
+    fam_user = getattr(cita.familiar, 'usuario', None)
+    accion = (request.POST.get('accion') or '').strip()
+
+    if accion == 'aceptar':
+        if cita.estado != CitaOrientacion.EstadoCita.REAGENDANDO or cita.propuesta_por != CitaOrientacion.Parte.FAMILIA or not cita.fecha_propuesta:
+            messages.warning(request, _("No hay una propuesta de la familia pendiente de aceptar."))
+            return redirect('gestion_academica:gestionar_cita_orientacion', pk=cita.pk)
+        nueva = cita.fecha_propuesta
+        if not _cita_orientacion_slot_libre(user, nueva, excluir_pk=cita.pk):
+            messages.error(request, _("Ya tienes otra cita a esa hora. Propón un horario distinto."))
+            return redirect('gestion_academica:gestionar_cita_orientacion', pk=cita.pk)
+        cita.fecha_hora_inicio = nueva
+        cita.fecha_propuesta = None
+        cita.propuesta_por = None
+        cita.estado = CitaOrientacion.EstadoCita.CONFIRMADA
+        try:
+            cita.save(update_fields=['fecha_hora_inicio', 'fecha_propuesta', 'propuesta_por', 'estado'])
+        except IntegrityError:
+            messages.error(request, _("Ya tienes otra cita a esa hora. Propón un horario distinto."))
+            return redirect('gestion_academica:gestionar_cita_orientacion', pk=cita.pk)
+        _txt = timezone.localtime(nueva).strftime('%d/%m/%Y %H:%M')
+        _notificar_cita_orientacion(
+            fam_user,
+            _("Orientación aceptó el horario propuesto: %(fecha)s. Cita confirmada.") % {'fecha': _txt},
+            reverse('gestion_academica:portal_familiar_inicio'),
+            cita.institucion,
+            email_asunto=_("Tu nuevo horario fue aceptado"),
+            email_html=_html_correo_cita_orientacion(
+                cita.institucion,
+                titulo=str(_("Horario confirmado")),
+                saludo=str(_("Hola %(nombre)s,") % {'nombre': (fam_user.get_full_name() if fam_user else '') or ''}),
+                cuerpo_html=str(_("<p>Orientación aceptó el horario que propusiste. ¡La cita quedó confirmada!</p>")),
+                detalle_cita=[
+                    (str(_("Estudiante")), cita.estudiante.usuario.get_full_name()),
+                    (str(_("Fecha y hora")), _txt),
+                ],
+            ),
+        )
+        messages.success(request, _("Aceptaste el horario. La cita quedó confirmada."))
+    elif accion == 'proponer':
+        nueva = _parse_fecha_local(request.POST.get('fecha_hora'))
+        if nueva is None or nueva <= timezone.now():
+            messages.error(request, _("Elige una fecha y hora futura válida para proponer."))
+            return redirect('gestion_academica:gestionar_cita_orientacion', pk=cita.pk)
+        if not _cita_orientacion_slot_libre(user, nueva, excluir_pk=cita.pk):
+            messages.error(request, _("Ya tienes otra cita a esa hora. Elige un horario distinto."))
+            return redirect('gestion_academica:gestionar_cita_orientacion', pk=cita.pk)
+        cita.fecha_propuesta = nueva
+        cita.propuesta_por = CitaOrientacion.Parte.ORIENTADOR
+        cita.estado = CitaOrientacion.EstadoCita.REAGENDANDO
+        cita.save(update_fields=['fecha_propuesta', 'propuesta_por', 'estado'])
+        _txt = timezone.localtime(nueva).strftime('%d/%m/%Y %H:%M')
+        _notificar_cita_orientacion(
+            fam_user,
+            _("Orientación propone reprogramar la cita para el %(fecha)s.") % {'fecha': _txt},
+            reverse('gestion_academica:portal_familiar_inicio'),
+            cita.institucion,
+            email_asunto=_("Orientación propuso un nuevo horario"),
+            email_html=_html_correo_cita_orientacion(
+                cita.institucion,
+                titulo=str(_("Propuesta de nuevo horario")),
+                saludo=str(_("Hola %(nombre)s,") % {'nombre': (fam_user.get_full_name() if fam_user else '') or ''}),
+                cuerpo_html=str(_("<p>Orientación propone un nuevo horario para la cita. Ingresa al portal para <strong>aceptarlo</strong> o <strong>proponer otro</strong>.</p>")),
+                detalle_cita=[
+                    (str(_("Estudiante")), cita.estudiante.usuario.get_full_name()),
+                    (str(_("Horario propuesto")), _txt),
+                ],
+            ),
+        )
+        messages.success(request, _("Propuesta enviada a la familia."))
+    else:
+        messages.error(request, _("Acción no válida."))
+
+    return redirect('gestion_academica:gestionar_cita_orientacion', pk=cita.pk)
 
 
 @login_required
@@ -9166,6 +9287,73 @@ def familiar_responder_cita_orientacion_view(request, pk):
             ),
         )
         messages.success(request, _("Cancelaste la cita. Se notificó a Orientación Escolar."))
+    elif accion == 'reprogramar':
+        nueva = _parse_fecha_local(request.POST.get('fecha_hora'))
+        if nueva is None or nueva <= timezone.now():
+            messages.error(request, _("Elige una fecha y hora futura válida para proponer."))
+            return redirect('gestion_academica:portal_familiar_inicio')
+        cita.fecha_propuesta = nueva
+        cita.propuesta_por = CitaOrientacion.Parte.FAMILIA
+        cita.estado = CitaOrientacion.EstadoCita.REAGENDANDO
+        cita.save(update_fields=['fecha_propuesta', 'propuesta_por', 'estado'])
+        _nueva_txt = timezone.localtime(nueva).strftime('%d/%m/%Y %H:%M')
+        _notificar_cita_orientacion(
+            cita.orientador,
+            _("%(fam)s propone reprogramar la cita para el %(fecha)s.") % {'fam': _fam_nombre, 'fecha': _nueva_txt},
+            reverse('gestion_academica:gestionar_cita_orientacion', args=[cita.pk]),
+            cita.institucion,
+            email_asunto=_("La familia propuso un nuevo horario"),
+            email_html=_html_correo_cita_orientacion(
+                cita.institucion,
+                titulo=str(_("Propuesta de nuevo horario")),
+                saludo=str(_("Hola %(nombre)s,") % {'nombre': cita.orientador.get_full_name() or cita.orientador.username}),
+                cuerpo_html=str(_("<p>La familia propone reprogramar la cita. Puedes <strong>aceptar</strong> ese horario si te sirve, o <strong>proponer otro</strong> desde la plataforma.</p>")),
+                detalle_cita=[
+                    (str(_("Familia")), _fam_nombre),
+                    (str(_("Estudiante")), cita.estudiante.usuario.get_full_name()),
+                    (str(_("Horario propuesto")), _nueva_txt),
+                ],
+            ),
+        )
+        messages.success(request, _("Propuesta enviada. Orientación revisará si puede en ese horario."))
+    elif accion == 'aceptar_propuesta':
+        # La familia acepta el horario que propuso el ORIENTADOR.
+        if cita.estado != CitaOrientacion.EstadoCita.REAGENDANDO or cita.propuesta_por != CitaOrientacion.Parte.ORIENTADOR or not cita.fecha_propuesta:
+            messages.warning(request, _("No hay una propuesta de Orientación pendiente de aceptar."))
+            return redirect('gestion_academica:portal_familiar_inicio')
+        nueva = cita.fecha_propuesta
+        if not _cita_orientacion_slot_libre(cita.orientador, nueva, excluir_pk=cita.pk):
+            messages.error(request, _("Ese horario ya no está libre. Propón otro."))
+            return redirect('gestion_academica:portal_familiar_inicio')
+        cita.fecha_hora_inicio = nueva
+        cita.fecha_propuesta = None
+        cita.propuesta_por = None
+        cita.estado = CitaOrientacion.EstadoCita.CONFIRMADA
+        try:
+            cita.save(update_fields=['fecha_hora_inicio', 'fecha_propuesta', 'propuesta_por', 'estado'])
+        except IntegrityError:
+            messages.error(request, _("Ese horario ya no está libre. Propón otro."))
+            return redirect('gestion_academica:portal_familiar_inicio')
+        _nueva_txt = timezone.localtime(nueva).strftime('%d/%m/%Y %H:%M')
+        _notificar_cita_orientacion(
+            cita.orientador,
+            _("%(fam)s aceptó el horario propuesto: %(fecha)s.") % {'fam': _fam_nombre, 'fecha': _nueva_txt},
+            reverse('gestion_academica:orientador_mis_citas'),
+            cita.institucion,
+            email_asunto=_("La familia aceptó el nuevo horario"),
+            email_html=_html_correo_cita_orientacion(
+                cita.institucion,
+                titulo=str(_("Horario acordado")),
+                saludo=str(_("Hola %(nombre)s,") % {'nombre': cita.orientador.get_full_name() or cita.orientador.username}),
+                cuerpo_html=str(_("<p>La familia aceptó el horario que propusiste. La cita quedó confirmada.</p>")),
+                detalle_cita=[
+                    (str(_("Familia")), _fam_nombre),
+                    (str(_("Estudiante")), cita.estudiante.usuario.get_full_name()),
+                    (str(_("Fecha y hora")), _nueva_txt),
+                ],
+            ),
+        )
+        messages.success(request, _("¡Cita confirmada para el %(fecha)s!") % {'fecha': _nueva_txt})
     else:
         messages.error(request, _("Acción no válida."))
 

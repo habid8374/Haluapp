@@ -1950,12 +1950,17 @@ class CitaOrientacion(models.Model):
     class EstadoCita(models.TextChoices):
         PENDIENTE = 'PENDIENTE', _('Pendiente')
         CONFIRMADA = 'CONFIRMADA', _('Confirmada')
+        REAGENDANDO = 'REAGENDANDO', _('En reprogramación')
         CANCELADA = 'CANCELADA', _('Cancelada')
         REALIZADA = 'REALIZADA', _('Realizada')
 
     class Origen(models.TextChoices):
         FAMILIA = 'FAMILIA', _('Solicitada por la familia')
         ORIENTADOR = 'ORIENTADOR', _('Citada por el orientador')
+
+    class Parte(models.TextChoices):
+        FAMILIA = 'FAMILIA', _('Familia')
+        ORIENTADOR = 'ORIENTADOR', _('Orientador(a)')
 
     orientador = models.ForeignKey(
         Usuario, on_delete=models.CASCADE,
@@ -1989,6 +1994,18 @@ class CitaOrientacion(models.Model):
         blank=True, null=True,
         verbose_name=_("Motivo de cancelación"),
         help_text="Razón indicada por quien canceló la cita (familia u orientador).",
+    )
+    # ── Reprogramación (negociación de horario) ──────────────────────────
+    # Cuando una de las partes propone un nuevo horario, se guarda aquí a la
+    # espera de que la OTRA parte lo acepte o contraproponga. Al aceptar, el
+    # valor pasa a fecha_hora_inicio y estos campos se limpian.
+    fecha_propuesta = models.DateTimeField(
+        blank=True, null=True,
+        verbose_name=_("Nuevo horario propuesto"),
+    )
+    propuesta_por = models.CharField(
+        max_length=12, choices=Parte.choices, blank=True, null=True,
+        verbose_name=_("Propuesta hecha por"),
     )
     creada = models.DateTimeField(auto_now_add=True)
 

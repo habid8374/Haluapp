@@ -28,6 +28,45 @@
     </div>
   </div>
 
+  {% if cita.estado != 'REALIZADA' and cita.estado != 'CANCELADA' %}
+  <div class="card border-0 shadow-sm mb-3" style="border-radius:14px;border-left:5px solid #0891b2;">
+    <div class="card-body">
+      <h6 class="fw-bold mb-2" style="color:#0891b2;"><i class="bi bi-arrow-left-right me-1"></i>{% trans "Reprogramación / negociación de horario" %}</h6>
+
+      {% if cita.estado == 'REAGENDANDO' and cita.propuesta_por == 'FAMILIA' and cita.fecha_propuesta %}
+      <div class="alert alert-info d-flex justify-content-between align-items-center flex-wrap gap-2 py-2">
+        <span style="font-size:.88rem;">
+          <i class="bi bi-people-fill me-1"></i>{% trans "La familia propone:" %}
+          <strong>{{ cita.fecha_propuesta|date:"l d/m/Y · h:i A" }}</strong>
+        </span>
+        <form method="post" action="{% url 'gestion_academica:orientador_reprogramar_cita' cita.pk %}" class="m-0">
+          {% csrf_token %}<input type="hidden" name="accion" value="aceptar">
+          <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check2-circle me-1"></i>{% trans "Puedo: aceptar este horario" %}</button>
+        </form>
+      </div>
+      {% elif cita.estado == 'REAGENDANDO' and cita.propuesta_por == 'ORIENTADOR' and cita.fecha_propuesta %}
+      <div class="alert alert-secondary py-2" style="font-size:.88rem;">
+        <i class="bi bi-hourglass-split me-1"></i>{% trans "Propusiste" %}
+        <strong>{{ cita.fecha_propuesta|date:"l d/m/Y · h:i A" }}</strong> — {% trans "esperando la respuesta de la familia." %}
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'gestion_academica:orientador_reprogramar_cita' cita.pk %}" class="row g-2 align-items-end">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="proponer">
+        <div class="col-sm-7">
+          <label for="fecha_hora_prop" class="form-label mb-1" style="font-size:.82rem;">{% trans "Proponer otro horario a la familia" %}</label>
+          <input type="datetime-local" name="fecha_hora" id="fecha_hora_prop" class="form-control form-control-sm" required>
+        </div>
+        <div class="col-sm-5">
+          <button type="submit" class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-send me-1"></i>{% trans "Enviar propuesta" %}</button>
+        </div>
+      </form>
+      <p class="text-muted mt-2 mb-0" style="font-size:.76rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Al aceptar o proponer un horario se notifica a la familia por la plataforma y por correo." %}</p>
+    </div>
+  </div>
+  {% endif %}
+
   <form method="post" class="card border-0 shadow-sm" style="border-radius:14px;">
     {% csrf_token %}
     <div class="card-body">
