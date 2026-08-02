@@ -170,7 +170,7 @@
         <div class="d-flex align-items-center gap-2 mb-1">
           <span class="pulse-badge-rol">
             <i class="bi bi-person-fill"></i>
-            {{ rol_usuario|default:"Administrador"|capfirst }}
+            {{ user.get_rol_display|default:rol_usuario|capfirst }}
           </span>
           <span class="pulse-date-chip" id="pulse-fecha-live"></span>
         </div>

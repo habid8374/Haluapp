@@ -37,6 +37,9 @@
 <!-- Hero -->
 <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem; position:relative;">
   {% include 'partials/hero_branding.html' %}
+  <span style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);color:#fff;padding:.28rem .7rem;border-radius:999px;font-size:.8rem;font-weight:700;margin-bottom:.6rem;">
+    <i class="bi bi-person-fill"></i> {{ user.get_rol_display }}
+  </span>
   <h2 style="color:#fff;"><i class="bi bi-mortarboard-fill"></i> {% trans "Panel de Dirección" %}</h2>
   <p style="color:#fff; margin-bottom:0;">
     {% blocktrans with n=nombre_usuario %}Bienvenido(a), {{ n }}.{% endblocktrans %}
