@@ -1031,6 +1031,15 @@ class AnotacionObservadorForm(forms.ModelForm):
             else:
                 self.fields['curso'].queryset = Curso.objects.none()
 
+        # Al EDITAR: garantizar que el curso ya asociado siga siendo
+        # seleccionable aunque sea de un período anterior (no aparecería en el
+        # queryset filtrado por período activo).
+        inst_actual = getattr(self, 'instance', None)
+        if inst_actual and inst_actual.pk and inst_actual.curso_id:
+            self.fields['curso'].queryset = (
+                self.fields['curso'].queryset | Curso.objects.filter(pk=inst_actual.curso_id)
+            ).distinct()
+
 class DocenteActividadForm(forms.ModelForm):
     class Meta:
         model = ActividadCalificable

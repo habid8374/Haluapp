@@ -6262,6 +6262,47 @@ def historial_observador_estudiante(request, estudiante_pk):
 
 
 @login_required
+def editar_anotacion_observador(request, pk):
+    """
+    Edita una anotación del observador (corregir el tipo, ajustar/ampliar la
+    descripción o el curso). Puede editar quien la registró, o coordinación /
+    rectoría / orientación. Editar NO re-dispara el análisis IA de convivencia
+    (el signal solo corre al crear), así que no duplica casos.
+    """
+    anotacion = get_object_or_404(
+        AnotacionObservador.objects.select_related('estudiante__usuario', 'institucion'),
+        pk=pk,
+    )
+    user = request.user
+    inst = getattr(user, 'institucion_asociada', None)
+
+    if not user.is_superuser:
+        if anotacion.institucion_id != getattr(inst, 'pk', None):
+            messages.error(request, _("Acceso denegado."))
+            return redirect('gestion_academica:inicio_academico')
+        if not (anotacion.registrado_por_id == user.pk or _es_psicoorientador_o_superior(user)):
+            messages.error(request, _("Solo quien la registró o coordinación/orientación puede editar esta anotación."))
+            return redirect('gestion_academica:historial_observador', estudiante_pk=anotacion.estudiante_id)
+
+    if request.method == 'POST':
+        form = AnotacionObservadorForm(request.POST, instance=anotacion, request=request)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Anotación actualizada correctamente."))
+            return redirect('gestion_academica:historial_observador', estudiante_pk=anotacion.estudiante_id)
+    else:
+        form = AnotacionObservadorForm(instance=anotacion, request=request)
+
+    context = {
+        'form': form,
+        'anotacion': anotacion,
+        'estudiante': anotacion.estudiante,
+        'titulo_pagina': _("Editar anotación del observador"),
+    }
+    return render(request, 'gestion_academica/editar_anotacion_observador.html', context)
+
+
+@login_required
 def exportar_observador_pdf(request, estudiante_pk):
     """
     Genera el Observador del Estudiante en PDF (formato oficial Decreto 1860/1994).
@@ -6300,7 +6341,7 @@ def exportar_observador_pdf(request, estudiante_pk):
         AnotacionObservador.objects
         .filter(estudiante=estudiante)
         .select_related('registrado_por', 'registrado_por__docente', 'curso__materia')
-        .order_by('fecha_hora')
+        .order_by('tipo', 'fecha_hora')
     )
     if periodo_seleccionado:
         qs_anotaciones = qs_anotaciones.filter(

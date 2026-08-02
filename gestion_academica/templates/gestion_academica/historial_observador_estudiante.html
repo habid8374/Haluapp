@@ -239,6 +239,10 @@
             {% if anotacion.curso %}
             <span><i class="bi bi-book"></i> {{ anotacion.curso.materia }}</span>
             {% endif %}
+            <a href="{% url 'gestion_academica:editar_anotacion_observador' anotacion.pk %}"
+               class="ms-auto text-decoration-none" style="color:#1d4ed8;font-weight:600;">
+              <i class="bi bi-pencil"></i> {% trans "Editar" %}
+            </a>
           </div>
         </div>
       </div>

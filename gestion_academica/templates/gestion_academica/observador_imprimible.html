@@ -104,6 +104,7 @@ body {
 .anot-table tbody tr { border-bottom: 1px solid #f1f5f9; page-break-inside: avoid; }
 .anot-table tbody tr:nth-child(even) { background: #f8faff; }
 .anot-table tbody td { padding: 5px 6px; font-size: 8pt; vertical-align: top; }
+.tipo-subheader { background: #f1f5f9; border-left: 4px solid #0f3460; padding: 4px 10px; font-size: 8.5pt; font-weight: bold; margin: 10px 0 4px; color: #0f3460; }
 .tipo-ACADEMICA       { color: #0369a1; font-weight: bold; font-size: 7pt; }
 .tipo-CONVIVENCIA     { color: #b45309; font-weight: bold; font-size: 7pt; }
 .tipo-FELICITACION    { color: #15803d; font-weight: bold; font-size: 7pt; }
@@ -344,43 +345,43 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
 <!-- SECCIÓN 3: REGISTRO DE ANOTACIONES                        -->
 <!-- ══════════════════════════════════════════════════════════ -->
 <div class="section-label">
-    3. Registro de Anotaciones
+    3. Registro de Anotaciones por Tipo
     {% if periodo_seleccionado %} — {{ periodo_seleccionado.nombre }}{% endif %}
+</div>
+{% regroup anotaciones by tipo as grupos_tipo %}
+{% for grupo in grupos_tipo %}
+<div class="tipo-subheader">
+    {% if grupo.grouper == 'ACADEMICA' %}📚 Académicas
+    {% elif grupo.grouper == 'CONVIVENCIA' %}🤝 Convivencia
+    {% elif grupo.grouper == 'FELICITACION' %}⭐ Felicitaciones
+    {% elif grupo.grouper == 'LLAMADO_ATENCION' %}⚠ Llamados de Atención
+    {% else %}📝 Otras
+    {% endif %}
+    &nbsp;·&nbsp; {{ grupo.list|length }} anotación{{ grupo.list|length|pluralize:"es" }}
 </div>
 <table class="anot-table">
     <thead>
         <tr>
             <th style="width:66px;">Fecha</th>
-            <th style="width:82px;">Tipo</th>
-            <th style="width:80px;">Materia / Clase</th>
+            <th style="width:88px;">Materia / Clase</th>
             <th>Descripción</th>
             <th style="width:95px;">Registrado por</th>
             <th style="width:58px;">IA</th>
         </tr>
     </thead>
     <tbody>
-        {% for a in anotaciones %}
+        {% for a in grupo.list %}
         <tr>
             <td style="white-space:nowrap;">{{ a.fecha_hora|date:"d/m/Y" }}<br><span style="font-size:6.5pt;color:#94a3b8;">{{ a.fecha_hora|date:"H:i" }}</span></td>
-            <td>
-                <span class="tipo-{{ a.tipo }}">
-                    {% if a.tipo == 'ACADEMICA' %}📚 Académica
-                    {% elif a.tipo == 'CONVIVENCIA' %}🤝 Convivencia
-                    {% elif a.tipo == 'FELICITACION' %}⭐ Felicitación
-                    {% elif a.tipo == 'LLAMADO_ATENCION' %}⚠ Llamado de Atención
-                    {% else %}📝 Otro
-                    {% endif %}
-                </span>
-                {% if a.tipo_situacion_ia and a.tipo_situacion_ia != 'NINGUNO' %}
-                <br><span style="font-size:6.5pt;color:#b45309;">{{ a.tipo_situacion_ia }}</span>
-                {% endif %}
-            </td>
             <td style="font-size:7.5pt;">
                 {% if a.curso %}{{ a.curso.materia.nombre_materia|truncatechars:20 }}
                 {% else %}<span style="color:#94a3b8;">—</span>{% endif %}
             </td>
             <td style="font-size:8pt;">
                 {{ a.descripcion|linebreaksbr|truncatechars:280 }}
+                {% if a.tipo_situacion_ia and a.tipo_situacion_ia != 'NINGUNO' %}
+                <br><span style="font-size:6.5pt;color:#b45309;">{{ a.tipo_situacion_ia }}</span>
+                {% endif %}
                 {% if a.requiere_revision %}
                 <br><span style="font-size:6.5pt; color:#b91c1c; font-weight:bold;">⚑ Requiere revisión</span>
                 {% endif %}
@@ -397,13 +398,14 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
                 {% else %}—{% endif %}
             </td>
         </tr>
-        {% empty %}
-        <tr class="empty-row">
-            <td colspan="6">No hay anotaciones registradas{% if periodo_seleccionado %} para el {{ periodo_seleccionado.nombre }}{% endif %}.</td>
-        </tr>
         {% endfor %}
     </tbody>
 </table>
+{% empty %}
+<p style="font-size:8pt; color:#94a3b8; font-style:italic; padding:8px 0;">
+    No hay anotaciones registradas{% if periodo_seleccionado %} para el {{ periodo_seleccionado.nombre }}{% endif %}.
+</p>
+{% endfor %}
 <!-- ══════════════════════════════════════════════════════════ -->
 <!-- SECCIÓN 4: COMPROMISOS Y ACUERDOS                         -->
 <!-- ══════════════════════════════════════════════════════════ -->

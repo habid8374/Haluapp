@@ -1,0 +1,31 @@
+{% extends "base_academico.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4" style="max-width:720px;">
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:18px;padding:1.4rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 style="color:#fff;" class="mb-1"><i class="bi bi-pencil-square me-2"></i>{{ titulo_pagina }}</h2>
+    <p style="color:#fff;opacity:.9;margin-bottom:0;">
+      {{ estudiante.usuario.get_full_name }}{% if estudiante.grado_actual %} · {{ estudiante.grado_actual.nombre }}{% endif %}
+    </p>
+  </div>
+
+  <div class="alert alert-info py-2" style="font-size:.83rem;">
+    <i class="bi bi-info-circle me-1"></i>{% trans "Puedes corregir el tipo, ampliar la descripción o cambiar la clase asociada. Editar no vuelve a ejecutar el análisis de convivencia." %}
+  </div>
+
+  <form method="post" class="card border-0 shadow-sm" style="border-radius:14px;">
+    {% csrf_token %}
+    <div class="card-body">
+      {{ form|crispy }}
+    </div>
+    <div class="card-footer bg-white border-0 d-flex justify-content-between">
+      <a href="{% url 'gestion_academica:historial_observador' estudiante_pk=estudiante.pk %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>{% trans "Volver" %}
+      </a>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{% trans "Guardar cambios" %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

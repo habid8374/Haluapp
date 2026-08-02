@@ -186,6 +186,7 @@ urlpatterns = [
     path('docente/gestion/observador/', views.seleccionar_estudiante_observador, name='seleccionar_estudiante_observador'),
     path('docente/gestion/observador/<int:estudiante_pk>/', views.historial_observador_estudiante, name='historial_observador'),
     path('docente/gestion/observador/<int:estudiante_pk>/pdf/', views.exportar_observador_pdf, name='exportar_observador_pdf'),
+    path('docente/gestion/observador/anotacion/<int:pk>/editar/', views.editar_anotacion_observador, name='editar_anotacion_observador'),
     # --- Gestión de Actividades por Docente ---
     path('docente/gestion/actividades/', views.DocenteActividadListView.as_view(), name='docente_lista_actividades'),
     path('docente/gestion/actividades/crear/', views.DocenteActividadCreateView.as_view(), name='docente_crear_actividad'),
