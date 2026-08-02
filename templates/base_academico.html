@@ -1038,6 +1038,40 @@
       </li>
     {% endif %}
 
+    {% if user.rol == 'psicologo' %}
+      <hr class="menu-divider">
+      <h5 class="menu-section-title">{% trans "Orientación Escolar" %}</h5>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_psicoorientador' %}active{% endif %}"
+           href="{% url 'gestion_academica:dashboard_psicoorientador' %}">
+          <i class="bi bi-heart-pulse-fill"></i> {% trans "Panel del Orientador" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-2">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_bienestar' %}active{% endif %}"
+           href="{% url 'gestion_academica:dashboard_bienestar' %}">
+          <i class="bi bi-shield-exclamation"></i> {% trans "Convivencia y Bienestar" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-5">
+        <a class="nav-link {% if 'piar' in request.path %}active{% endif %}" href="{% url 'piar:lista_piars' %}">
+          <i class="bi bi-person-hearts"></i> {% trans "PIARs / Inclusión" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-3">
+        <a class="nav-link" href="{% url 'gestion_academica:reporte_riesgo_academico' %}">
+          <i class="bi bi-graph-down-arrow"></i> {% trans "Reporte de Riesgo (IA)" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-2">
+        <a class="nav-link {% if request.resolver_match.namespace == 'mensajeria' %}active{% endif %}"
+           href="{% url 'mensajeria:inbox' %}">
+          <i class="bi bi-chat-dots-fill"></i> {% trans "Mensajes" %}
+          <span id="nav-mensajes-badge" class="badge bg-danger ms-1" style="display:none"></span>
+        </a>
+      </li>
+    {% endif %}
+
     {% if user.rol == 'secretaria' %}
       <hr class="menu-divider">
       {% include 'partials/menu_secretaria.html' %}

@@ -45,6 +45,7 @@ class Usuario(AbstractUser):
         ('rector', 'Rector(a) / Directivo'),
         ('secretaria', 'Secretaría'),
         ('tesoreria', 'Tesorería / Financiera'),
+        ('psicologo', 'Psicoorientador(a)'),
         ('docente', 'Docente'),
         ('estudiante', 'Estudiante'),
         ('familiar', 'Familiar'),

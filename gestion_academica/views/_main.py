@@ -257,6 +257,8 @@ def inicio_academico(request):
             return redirect('admisiones:dashboard_admisiones')
         elif user.rol == 'rector':
             return redirect('gestion_academica:dashboard_rector')
+        elif user.rol == 'psicologo':
+            return redirect('gestion_academica:dashboard_psicoorientador')
 
     # 2. Acceso para staff/admin — HALU PULSE con KPIs en vivo
     if user.is_staff:
@@ -327,6 +329,58 @@ def inicio_academico(request):
     # 4. Fallback final (Tu lógica original se mantiene como última opción)
     messages.warning(request, "Tu cuenta no tiene un rol válido para acceder al sistema.")
     return redirect('logout')
+
+
+def _es_psicoorientador_o_superior(user):
+    rol = getattr(user, 'rol', '') or ''
+    return user.is_superuser or rol in ('psicologo', 'coordinador', 'rector', 'administrador')
+
+
+@login_required
+def dashboard_psicoorientador(request):
+    """Panel del Psicoorientador(a): convivencia (Ley 1620), observador,
+    bienestar psicosocial y apoyo a PIAR (Decreto 1421). Scoped por institución."""
+    user = request.user
+    if not _es_psicoorientador_o_superior(user):
+        messages.error(request, "Acceso denegado a esta sección.")
+        return redirect('gestion_academica:inicio_academico')
+
+    institucion = getattr(user, 'institucion_asociada', None)
+    ctx = {
+        'titulo_pagina': 'Panel del Orientador',
+        'casos_abiertos': 0,
+        'anotaciones_por_revisar': 0,
+        'piars_vigentes': 0,
+        'casos_recientes': [],
+        'anotaciones_recientes': [],
+    }
+    try:
+        from .models import CasoConvivencia, AnotacionObservador
+        casos_qs = CasoConvivencia.objects.all() if user.is_superuser else CasoConvivencia.objects.filter(institucion=institucion)
+        casos_abiertos_qs = casos_qs.exclude(estado='CERRADO')
+        ctx['casos_abiertos'] = casos_abiertos_qs.count()
+        ctx['casos_recientes'] = list(
+            casos_abiertos_qs.select_related('anotacion_origen__estudiante__usuario').order_by('-id')[:5]
+        )
+
+        anot_qs = AnotacionObservador.objects.filter(requiere_revision=True)
+        if not user.is_superuser:
+            anot_qs = anot_qs.filter(estudiante__institucion=institucion)
+        ctx['anotaciones_por_revisar'] = anot_qs.count()
+        ctx['anotaciones_recientes'] = list(
+            anot_qs.select_related('estudiante__usuario', 'estudiante__grado_actual').order_by('-fecha_hora')[:5]
+        )
+    except Exception:
+        pass
+
+    try:
+        from piar.models import PIAR
+        piar_qs = PIAR.objects.all() if user.is_superuser else PIAR.objects.filter(institucion=institucion)
+        ctx['piars_vigentes'] = piar_qs.filter(estado='ACTIVO').count()
+    except Exception:
+        pass
+
+    return render(request, 'gestion_academica/dashboard_psicoorientador.html', ctx)
 
 
 @login_required

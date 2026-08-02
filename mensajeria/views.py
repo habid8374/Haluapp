@@ -56,14 +56,14 @@ def _get_institucion(user):
 # (estudiante/familiar) solo se comunican con docentes.
 ROLES_PERSONAL = {
     'rector', 'coordinador', 'administrador', 'administrativo',
-    'admin_institucion', 'tesoreria', 'secretaria', 'docente',
+    'admin_institucion', 'tesoreria', 'secretaria', 'psicologo', 'docente',
 }
 ROLES_ALUMNO = {'estudiante', 'familiar'}
 _ROL_ETIQUETA = {
     'rector': 'Rector(a) / Directivo', 'coordinador': 'Coordinador(a)',
     'administrador': 'Administrador(a)', 'administrativo': 'Administrativo(a)',
     'admin_institucion': 'Administrador(a)', 'tesoreria': 'Tesorería',
-    'secretaria': 'Secretaría', 'docente': 'Docente',
+    'secretaria': 'Secretaría', 'psicologo': 'Psicoorientador(a)', 'docente': 'Docente',
 }
 
 

@@ -1,0 +1,117 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block cinta_institucion %}{% endblock %}
+{% block titulo %}{{ titulo_pagina|default:"Panel del Orientador" }}{% endblock %}
+{% block contenido %}
+<!-- Hero -->
+<div style="background:linear-gradient(135deg,#0f766e 0%,#0891b2 100%);border-radius:18px;padding:1.8rem 2rem;color:#fff;margin-bottom:1.5rem;position:relative;">
+  {% include 'partials/hero_branding.html' %}
+  <span style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);color:#fff;padding:.28rem .7rem;border-radius:999px;font-size:.8rem;font-weight:700;margin-bottom:.6rem;">
+    <i class="bi bi-heart-pulse-fill"></i> {{ user.get_rol_display }}
+  </span>
+  <h2 style="color:#fff;" class="mb-1"><i class="bi bi-people-fill me-2"></i>{% trans "Panel del Orientador" %}</h2>
+  <p style="color:#fff;opacity:.9;margin-bottom:0;">
+    {% blocktrans with n=user.get_full_name|default:user.username %}Bienvenido(a), {{ n }}.{% endblocktrans %}
+    {% trans "Convivencia, bienestar y acompañamiento psicosocial." %}
+  </p>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-4">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+      <div class="card-body">
+        <div style="width:42px;height:42px;border-radius:10px;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin-bottom:.6rem;"><i class="bi bi-shield-exclamation" style="color:#dc2626;font-size:1.2rem;"></i></div>
+        <div style="font-size:1.8rem;font-weight:800;color:#0f172a;">{{ casos_abiertos }}</div>
+        <div class="text-muted" style="font-size:.82rem;">{% trans "Casos de convivencia abiertos" %}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-4">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+      <div class="card-body">
+        <div style="width:42px;height:42px;border-radius:10px;background:#fff7ed;display:flex;align-items:center;justify-content:center;margin-bottom:.6rem;"><i class="bi bi-clipboard-pulse" style="color:#ea580c;font-size:1.2rem;"></i></div>
+        <div style="font-size:1.8rem;font-weight:800;color:#0f172a;">{{ anotaciones_por_revisar }}</div>
+        <div class="text-muted" style="font-size:.82rem;">{% trans "Anotaciones por revisar" %}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-4">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+      <div class="card-body">
+        <div style="width:42px;height:42px;border-radius:10px;background:#eff6ff;display:flex;align-items:center;justify-content:center;margin-bottom:.6rem;"><i class="bi bi-person-hearts" style="color:#2563eb;font-size:1.2rem;"></i></div>
+        <div style="font-size:1.8rem;font-weight:800;color:#0f172a;">{{ piars_vigentes }}</div>
+        <div class="text-muted" style="font-size:.82rem;">{% trans "PIARs vigentes" %}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Accesos rápidos -->
+<div class="pulse-sec-hdr mb-2"><h2 class="h6 fw-bold" style="color:#0f766e;"><i class="bi bi-lightning-charge-fill me-1"></i>{% trans "Accesos rápidos" %}</h2></div>
+<div class="row g-2 mb-4">
+  <div class="col-6 col-md-4 col-lg-3">
+    <a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:12px;">
+      <div class="card-body text-center"><i class="bi bi-heart-pulse-fill d-block mb-1" style="font-size:1.4rem;color:#0891b2;"></i><span style="color:#334155;font-weight:600;font-size:.82rem;">{% trans "Bienestar / Alertas" %}</span></div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <a href="{% url 'piar:lista_piars' %}" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:12px;">
+      <div class="card-body text-center"><i class="bi bi-person-hearts d-block mb-1" style="font-size:1.4rem;color:#16a34a;"></i><span style="color:#334155;font-weight:600;font-size:.82rem;">{% trans "PIARs / Inclusión" %}</span></div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <a href="{% url 'gestion_academica:reporte_riesgo_academico' %}" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:12px;">
+      <div class="card-body text-center"><i class="bi bi-shield-exclamation d-block mb-1" style="font-size:1.4rem;color:#dc2626;"></i><span style="color:#334155;font-weight:600;font-size:.82rem;">{% trans "Reporte de Riesgo (IA)" %}</span></div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-lg-3">
+    <a href="{% url 'mensajeria:inbox' %}" class="card border-0 shadow-sm text-decoration-none h-100" style="border-radius:12px;">
+      <div class="card-body text-center"><i class="bi bi-chat-dots-fill d-block mb-1" style="font-size:1.4rem;color:#7c3aed;"></i><span style="color:#334155;font-weight:600;font-size:.82rem;">{% trans "Mensajes" %}</span></div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Casos de convivencia recientes -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+      <div class="card-header bg-light fw-bold" style="border:none;border-radius:14px 14px 0 0;color:#0f766e;"><i class="bi bi-shield-exclamation me-1"></i>{% trans "Casos de convivencia por atender" %}</div>
+      <div class="list-group list-group-flush">
+        {% for caso in casos_recientes %}
+        <a href="{% url 'gestion_academica:detalle_caso_convivencia' caso.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+          <span style="font-size:.86rem;">
+            {% if caso.anotacion_origen.estudiante %}{{ caso.anotacion_origen.estudiante.usuario.get_full_name }}{% else %}{% trans "Caso" %} #{{ caso.pk }}{% endif %}
+          </span>
+          <span class="badge {% if caso.estado == 'ABIERTO' %}bg-danger{% else %}bg-warning text-dark{% endif %}" style="font-size:.7rem;">{{ caso.get_estado_display }}</span>
+        </a>
+        {% empty %}
+        <div class="list-group-item text-muted fst-italic" style="font-size:.85rem;">{% trans "No hay casos abiertos. 🎉" %}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <!-- Anotaciones del observador por revisar -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100" style="border-radius:14px;">
+      <div class="card-header bg-light fw-bold" style="border:none;border-radius:14px 14px 0 0;color:#0f766e;"><i class="bi bi-clipboard-pulse me-1"></i>{% trans "Observador — por revisar" %}</div>
+      <div class="list-group list-group-flush">
+        {% for a in anotaciones_recientes %}
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-start">
+            <span style="font-size:.86rem;font-weight:600;color:#1e293b;">{{ a.estudiante.usuario.get_full_name }}{% if a.estudiante.grado_actual %} · {{ a.estudiante.grado_actual.nombre }}{% endif %}</span>
+            {% if a.tipo_situacion_ia %}<span class="badge bg-info-subtle text-info-emphasis" style="font-size:.68rem;">{{ a.tipo_situacion_ia }}</span>{% endif %}
+          </div>
+          <div class="text-muted" style="font-size:.78rem;">{{ a.descripcion|truncatewords:14 }}</div>
+        </div>
+        {% empty %}
+        <div class="list-group-item text-muted fst-italic" style="font-size:.85rem;">{% trans "Sin anotaciones pendientes de revisión." %}</div>
+        {% endfor %}
+      </div>
+      <div class="card-footer bg-white border-0 text-end">
+        <a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="btn btn-sm btn-outline-secondary">{% trans "Ver todo" %}</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

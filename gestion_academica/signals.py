@@ -438,6 +438,15 @@ def sincronizar_usuario_a_grupo_por_rol(sender, instance, **kwargs):
         instance.groups.add(group)
 
 
+@receiver(pre_save, sender=Usuario)
+def marcar_staff_psicoorientador(sender, instance, **kwargs):
+    """El psicoorientador necesita is_staff=True: sus vistas de convivencia,
+    bienestar y observador se protegen con `is_staff and rol in [...]`. Se marca
+    automáticamente para que el rol funcione sin depender de marcarlo a mano."""
+    if getattr(instance, 'rol', '') == 'psicologo' and not instance.is_staff:
+        instance.is_staff = True
+
+
 @receiver(post_save, sender=RegistroAsistencia)
 def enviar_correo_inasistencia(sender, instance, created, **kwargs):
     """Encola correo a acudientes cuando el estudiante falta o llega tarde."""

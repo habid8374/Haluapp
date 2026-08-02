@@ -78,7 +78,7 @@ def set_auto_away(usuario_id, away):
 # circular (views importa presencia).
 ROLES_PERSONAL = {
     'rector', 'coordinador', 'administrador', 'administrativo',
-    'admin_institucion', 'tesoreria', 'secretaria', 'docente',
+    'admin_institucion', 'tesoreria', 'secretaria', 'psicologo', 'docente',
 }
 
 

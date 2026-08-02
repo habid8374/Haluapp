@@ -434,6 +434,7 @@ urlpatterns = [
     path('elecciones/<int:eleccion_id>/analizar-propuestas/', views.analizar_propuestas_ia_view, name='analizar_propuestas_ia'),
     path('elecciones/<int:eleccion_id>/votar/', views.votar_view, name='votar_eleccion'),
     path('direccion/panel/', views.dashboard_rector, name='dashboard_rector'),
+    path('orientacion/panel/', views.dashboard_psicoorientador, name='dashboard_psicoorientador'),
     path('acceso-suspendido/', views.acceso_suspendido, name='acceso_suspendido'),
     path('bloqueos/', views.gestion_bloqueos_estudiantes, name='gestion_bloqueos_estudiantes'),
     path('bloqueos/configurar/', views.guardar_config_bloqueo, name='guardar_config_bloqueo'),

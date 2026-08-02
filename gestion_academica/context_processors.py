@@ -32,7 +32,7 @@ def branding_processor(request):
     ve_menu_staff = False
     if request.user.is_authenticated:
         _rol = getattr(request.user, 'rol', '') or ''
-        ve_menu_staff = bool(request.user.is_staff and _rol not in ('tesoreria', 'secretaria'))
+        ve_menu_staff = bool(request.user.is_staff and _rol not in ('tesoreria', 'secretaria', 'psicologo'))
 
     # ¿La institución usa el módulo de finanzas? Si NO (colegio público o con
     # usa_modulo_financiero=False), en los portales de estudiante y familiar se

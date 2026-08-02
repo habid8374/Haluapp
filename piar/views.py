@@ -26,7 +26,14 @@ def _es_coordinador_o_admin(user):
 
 def _es_docente_o_superior(user):
     rol = getattr(user, 'rol', '') or ''
-    return rol in ('docente', 'coordinador', 'administrador', 'rector') or user.is_superuser
+    return rol in ('docente', 'coordinador', 'administrador', 'rector', 'psicologo') or user.is_superuser
+
+
+def _puede_crear_piar(user):
+    """Pueden crear PIAR: coordinación/dirección y el psicoorientador. El
+    psicoorientador crea en BORRADOR y el coordinador aprueba (activa)."""
+    rol = getattr(user, 'rol', '') or ''
+    return rol in ('coordinador', 'administrador', 'rector', 'psicologo') or user.is_superuser
 
 
 # ──────────────────────────────────────────────
@@ -88,8 +95,8 @@ def lista_piars(request):
 
 @login_required
 def crear_piar(request):
-    if not _es_coordinador_o_admin(request.user):
-        messages.error(request, _('Solo coordinadores pueden crear PIARs.'))
+    if not _puede_crear_piar(request.user):
+        messages.error(request, _('No tienes permiso para crear PIARs.'))
         return redirect('piar:lista_piars')
 
     institucion = _get_institucion(request)
@@ -121,6 +128,10 @@ def crear_piar(request):
         fecha_elaboracion = request.POST.get('fecha_elaboracion')
         fecha_revision = request.POST.get('fecha_revision') or None
         estado = request.POST.get('estado', PIAR.Estado.BORRADOR)
+        # El psicoorientador NO puede auto-aprobar: su PIAR queda en BORRADOR
+        # hasta que el coordinador lo active (aprobación entre los dos).
+        if not _es_coordinador_o_admin(request.user):
+            estado = PIAR.Estado.BORRADOR
         observaciones_generales = request.POST.get('observaciones_generales', '')
 
         try:
