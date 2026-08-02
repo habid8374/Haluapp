@@ -2,16 +2,71 @@
 {% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
-<div class="container mt-4">
-    <h1 class="mb-4">{{ titulo_pagina }}</h1>
-    <div class="list-group shadow-sm">
-        {% for estudiante in estudiantes %}
-            <a href="{% url 'gestion_academica:historial_observador' estudiante_pk=estudiante.pk %}" class="list-group-item list-group-item-action">
-                <strong>{{ estudiante.usuario.get_full_name }}</strong> - {% blocktrans with grado=estudiante.grado_actual.nombre %}Grado: {{ grado }}{% endblocktrans %}
+<div class="container mt-4" style="max-width:900px;">
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:18px;padding:1.4rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 style="color:#fff;" class="mb-1"><i class="bi bi-journal-bookmark-fill me-2"></i>{{ titulo_pagina }}</h2>
+    <p style="color:#fff;opacity:.9;margin-bottom:0;">{% trans "Selecciona un estudiante para ver o registrar su observador." %}</p>
+  </div>
+
+  {% if es_staff_observador %}
+    {# Coordinación / rectoría / orientación: organizado por grado (acordeón). #}
+    <input type="text" id="buscador-obs" class="form-control mb-3" placeholder="{% trans 'Buscar estudiante…' %}">
+    {% regroup estudiantes by grado_actual as grados_list %}
+    <div class="accordion" id="accObservador">
+      {% for grupo in grados_list %}
+      <div class="accordion-item" style="border-radius:10px;overflow:hidden;margin-bottom:.5rem;border:1px solid #e2e8f0;">
+        <h2 class="accordion-header">
+          <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#grado-{{ forloop.counter }}">
+            <i class="bi bi-mortarboard-fill me-2" style="color:#1d4ed8;"></i>
+            <strong>{{ grupo.grouper.nombre|default:"Sin grado asignado" }}</strong>
+            <span class="badge bg-primary ms-2">{{ grupo.list|length }}</span>
+          </button>
+        </h2>
+        <div id="grado-{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+             data-bs-parent="#accObservador">
+          <div class="list-group list-group-flush">
+            {% for estudiante in grupo.list %}
+            <a href="{% url 'gestion_academica:historial_observador' estudiante_pk=estudiante.pk %}"
+               class="list-group-item list-group-item-action obs-item d-flex justify-content-between align-items-center"
+               data-nombre="{{ estudiante.usuario.get_full_name|lower }}">
+              <span>{{ estudiante.usuario.get_full_name }}</span>
+              <i class="bi bi-chevron-right text-muted"></i>
             </a>
-        {% empty %}
-            <div class="list-group-item">{% trans "No tienes estudiantes asignados en el periodo activo." %}</div>
-        {% endfor %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="list-group-item text-muted">{% trans "No hay estudiantes en tu institución." %}</div>
+      {% endfor %}
     </div>
+  {% else %}
+    {# Docente: lista simple de sus estudiantes. #}
+    <div class="list-group shadow-sm">
+      {% for estudiante in estudiantes %}
+        <a href="{% url 'gestion_academica:historial_observador' estudiante_pk=estudiante.pk %}" class="list-group-item list-group-item-action">
+          <strong>{{ estudiante.usuario.get_full_name }}</strong> — {% blocktrans with grado=estudiante.grado_actual.nombre %}Grado: {{ grado }}{% endblocktrans %}
+        </a>
+      {% empty %}
+        <div class="list-group-item">{% trans "No tienes estudiantes asignados en el periodo activo." %}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
 </div>
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+var buscadorObs = document.getElementById('buscador-obs');
+if (buscadorObs) {
+  buscadorObs.addEventListener('input', function () {
+    var q = this.value.toLowerCase();
+    document.querySelectorAll('.obs-item').forEach(function (el) {
+      el.style.display = el.dataset.nombre.indexOf(q) !== -1 ? '' : 'none';
+    });
+    // Abre todos los acordeones al buscar para que se vean los resultados.
+    if (q) document.querySelectorAll('#accObservador .accordion-collapse').forEach(function (c) { c.classList.add('show'); });
+  });
+}
+</script>
 {% endblock %}

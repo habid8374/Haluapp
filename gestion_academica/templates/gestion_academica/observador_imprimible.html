@@ -165,7 +165,7 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
     <tr>
         <td class="logo-cell">
             {% if institucion.logo %}
-            <img src="{{ institucion.logo.path }}" alt="{{ institucion.nombre }}">
+            <img src="{{ institucion.logo.url }}" alt="{{ institucion.nombre }}">
             {% endif %}
         </td>
         <td class="inst-cell">
@@ -427,7 +427,7 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
     <tr>
         <td>
             {% if firma_docente %}
-            <img src="{{ firma_docente.path }}" class="firma-img" alt="Firma docente">
+            <img src="{{ firma_docente.url }}" class="firma-img" alt="Firma docente">
             {% else %}
             <div style="height:45px;"></div>
             {% endif %}
@@ -442,7 +442,7 @@ hr.div { border: none; border-top: 1px solid #e2e8f0; margin: 6px 0; }
         </td>
         <td>
             {% if institucion.firma_rectora %}
-            <img src="{{ institucion.firma_rectora.path }}" class="firma-img" alt="Firma rector">
+            <img src="{{ institucion.firma_rectora.url }}" class="firma-img" alt="Firma rector">
             {% else %}
             <div style="height:45px;"></div>
             {% endif %}

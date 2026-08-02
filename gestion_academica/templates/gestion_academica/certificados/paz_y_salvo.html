@@ -76,7 +76,7 @@
             <tr>
                 <td class="logo-cell">
                     {% if institucion.logo %}
-                        <img src="{{ institucion.logo.path }}" class="logo">
+                        <img src="{{ institucion.logo.url }}" class="logo">
                     {% endif %}
                 </td>
                 <td class="title-cell">
@@ -103,7 +103,7 @@
     </div>
     <div class="signature-section">
         {% if institucion.firma_rectora %}
-            <img src="{{ institucion.firma_rectora.path }}" alt="Firma Rector(a)" style="max-height: 40px; margin-bottom: 0px;">
+            <img src="{{ institucion.firma_rectora.url }}" alt="Firma Rector(a)" style="max-height: 40px; margin-bottom: 0px;">
         {% endif %}
         <div class="signature-line"></div>
         <strong>{{ institucion.nombre_rectora }}</strong><br>
