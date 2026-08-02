@@ -678,11 +678,21 @@ def api_no_leidos(request):
     GET /mensajeria/api/no-leidos/
     Devuelve el número total de mensajes no leídos del usuario.
     Útil para el badge del menú.
+
+    Excluye las conversaciones que el usuario eliminó de su bandeja
+    (soft-delete propio): esas están ocultas en el inbox y reaparecen solo
+    cuando llega un mensaje nuevo, así que sus mensajes no leídos NO deben
+    contar para el badge (si no, se veía "1" con la bandeja vacía).
     """
+    user = request.user
+    convs_visibles = _qs_conversaciones(user).filter(
+        Q(participante_a=user, eliminada_por_a=False)
+        | Q(participante_b=user, eliminada_por_b=False)
+    )
     total = Mensaje.objects.filter(
-        conversacion__in=_qs_conversaciones(request.user),
+        conversacion__in=convs_visibles,
         leido=False,
-    ).exclude(remitente=request.user).count()
+    ).exclude(remitente=user).count()
 
     return JsonResponse({'no_leidos': total})
 
