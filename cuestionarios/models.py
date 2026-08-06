@@ -71,6 +71,7 @@ class PreguntaCuestionario(models.Model):
         ('emparejamiento', 'Emparejamiento'),
         ('completar', 'Completar (rellenar espacios)'),
         ('clasificar', 'Clasificar en categorías'),
+        ('etiquetar', 'Etiquetar imagen (esquema)'),
     ]
     # ▲▲▲ FIN DE LA MODIFICACIÓN ▲▲▲
 

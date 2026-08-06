@@ -32,6 +32,13 @@ from gestion_academica.decorators import redirect_si_moroso_estudiante, estudian
 logger = logging.getLogger(__name__)
 
 
+def _normalizar_texto(s):
+    """Normaliza para comparar respuestas: minúsculas, sin tildes ni espacios sobrantes."""
+    import unicodedata as _ud
+    s = (str(s) if s is not None else '').strip().lower()
+    return ''.join(c for c in _ud.normalize('NFD', s) if _ud.category(c) != 'Mn')
+
+
 class CuestionarioListView(LoginRequiredMixin, ListView):
     model = Cuestionario
     template_name = 'cuestionarios/cuestionario_lista.html'
@@ -168,6 +175,31 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                     for o in pregunta_data.get('opciones', []):
                         o.pop('emparejamiento', None)
 
+            # "Etiquetar": cada opción es un marcador (texto=etiqueta correcta,
+            # emparejamiento="x,y" en % sobre la imagen, orden=índice).
+            if p.tipo == 'etiquetar':
+                import random as _rnd3
+                marcadores, etiquetas = [], []
+                for op in p.opciones.order_by('orden'):
+                    coords = (op.emparejamiento or '0,0').split(',')
+                    try:
+                        mx, my = float(coords[0]), float(coords[1])
+                    except (ValueError, IndexError):
+                        mx, my = 0.0, 0.0
+                    marcadores.append({'orden': op.orden, 'x': mx, 'y': my})
+                    etiquetas.append(op.texto)
+                pregunta_data['marcadores'] = marcadores
+                if es_estudiante:
+                    # Solo posiciones + banco de etiquetas barajado (sin la respuesta).
+                    _rnd3.shuffle(etiquetas)
+                    pregunta_data['etiquetas'] = etiquetas
+                else:
+                    # Docente/editor: opciones completas para poder editarlas.
+                    pregunta_data['opciones'] = [
+                        {'id': op.id, 'texto': op.texto, 'emparejamiento': op.emparejamiento, 'orden': op.orden}
+                        for op in p.opciones.order_by('orden')
+                    ]
+
             preguntas.append(pregunta_data)
 
         response_data = {
@@ -230,7 +262,7 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 )
                 
                 # 4. Creamos las opciones para cada pregunta.
-                if pregunta.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento', 'clasificar']:
+                if pregunta.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento', 'clasificar', 'etiquetar']:
                     for opcion_data in pregunta_data.get('opciones', []):
                         OpcionPregunta.objects.create(
                             pregunta=pregunta,
@@ -517,6 +549,17 @@ class ResolverCuestionarioAPIView(APIView):
                         )
                         puntaje_pregunta = round(pregunta.puntaje * (aciertos / len(correctas)), 2)
 
+                elif tipo_pregunta == 'etiquetar':
+                    # correctas: {orden_marcador: etiqueta}. enviadas: {orden: etiqueta puesta}.
+                    correctas = {op.orden: op.texto for op in pregunta.opciones.all()}
+                    enviadas = respuesta_enviada.get('respuesta_etiquetar', {}) or {}
+                    if correctas:
+                        aciertos = sum(
+                            1 for k, v in correctas.items()
+                            if _normalizar_texto(enviadas.get(str(k), '')) == _normalizar_texto(v)
+                        )
+                        puntaje_pregunta = round(pregunta.puntaje * (aciertos / len(correctas)), 2)
+
             puntaje_total += puntaje_pregunta
 
             # Esta línea ahora usará el modelo RespuestaEstudiante correcto de la app 'cuestionarios'
@@ -524,7 +567,11 @@ class ResolverCuestionarioAPIView(APIView):
                 intento=intento,
                 pregunta=pregunta,
                 texto_respuesta=respuesta_enviada.get('texto_respuesta') if respuesta_enviada else None,
-                respuesta_emparejamiento=respuesta_enviada.get('respuesta_emparejamiento') if respuesta_enviada else None,
+                respuesta_emparejamiento=(
+                    (respuesta_enviada.get('respuesta_emparejamiento')
+                     or respuesta_enviada.get('respuesta_etiquetar'))
+                    if respuesta_enviada else None
+                ),
                 respuesta_completar=respuesta_enviada.get('respuesta_completar') if respuesta_enviada else None,
                 puntaje_obtenido=puntaje_pregunta
             )

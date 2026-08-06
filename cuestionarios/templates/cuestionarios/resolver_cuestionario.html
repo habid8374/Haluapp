@@ -10,6 +10,25 @@
   .clasif-chip { display:inline-block; background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; border-radius:20px; padding:4px 12px; font-size:.85rem; cursor:pointer; user-select:none; }
   .clasif-chip.selected { background:#2563eb; color:#fff; border-color:#1d4ed8; box-shadow:0 0 0 3px rgba(37,99,235,.25); }
   .clasif-zone .clasif-drop { background:#fff; border-radius:6px; }
+  /* Etiquetar imagen (esquema) */
+  .etiq-wrap { position:relative; display:inline-block; max-width:100%; }
+  .etiq-img { max-width:100%; display:block; border-radius:8px; border:1px solid #e5e7eb; }
+  .etiq-marker-drop { position:absolute; transform:translate(-50%,-50%); display:flex; align-items:center; gap:5px;
+      background:rgba(255,255,255,.94); border:2px solid #4f46e5; border-radius:22px; padding:2px 8px 2px 2px;
+      cursor:pointer; z-index:2; box-shadow:0 1px 5px rgba(0,0,0,.3); max-width:150px; }
+  .etiq-marker-drop.filled { border-color:#16a34a; }
+  .etiq-marker-drop.target { box-shadow:0 0 0 4px rgba(37,99,235,.45); }
+  .etiq-marker-num { width:24px; height:24px; border-radius:50%; background:#4f46e5; color:#fff; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; }
+  .etiq-marker-drop.filled .etiq-marker-num { background:#16a34a; }
+  .etiq-marker-slot { min-width:14px; font-size:.8rem; font-weight:600; color:#1e293b; white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis; }
+  .etiq-marker-slot:empty::before { content:'—'; color:#cbd5e1; }
+  .etiq-bank { border:1.5px dashed #cbd5e1; border-radius:10px; padding:8px 10px; margin-top:10px; background:#f8fafc; }
+  .etiq-bank-chips { display:flex; flex-wrap:wrap; gap:6px; min-height:34px; }
+  .etiq-chip { display:inline-block; background:#ede9fe; color:#5b21b6; border:1px solid #c4b5fd; border-radius:20px;
+      padding:4px 12px; font-size:.85rem; cursor:pointer; user-select:none; }
+  .etiq-chip.selected { background:#6d28d9; color:#fff; border-color:#5b21b6; box-shadow:0 0 0 3px rgba(109,40,217,.25); }
 </style>
 {% endblock %}
 
@@ -135,6 +154,34 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
+        else if (tipo === 'etiquetar') {
+            const marcadores = pregunta.marcadores || [];
+            const etiquetas = pregunta.etiquetas || [];
+            const dropsHtml = marcadores.map((m, i) => `
+                <div class="etiq-marker-drop empty" data-orden="${esc(m.orden)}" style="left:${m.x}%;top:${m.y}%;">
+                    <span class="etiq-marker-num">${i + 1}</span>
+                    <span class="etiq-marker-slot"></span>
+                </div>`).join('');
+            const chipsHtml = etiquetas.map(t =>
+                `<span class="etiq-chip" data-texto="${esc(t)}">${esc(t)}</span>`).join('');
+            const imgSrc = pregunta.imagen_url
+                ? `<img src="${esc(pregunta.imagen_url)}" alt="" class="etiq-img">`
+                : `<div class="alert alert-warning mb-0">{% trans "Esta pregunta no tiene imagen." %}</div>`;
+            opcionesHtml = `
+                <p class="text-muted mb-2" style="font-size:.85rem;">
+                    <i class="bi bi-hand-index"></i> {% trans "Toca una etiqueta y luego el número donde va sobre la imagen." %}
+                </p>
+                <div class="etiq-wrap">
+                    ${imgSrc}
+                    ${dropsHtml}
+                </div>
+                <div class="etiq-bank">
+                    <div class="clasif-zone-label">{% trans "Etiquetas" %}</div>
+                    <div class="etiq-bank-chips">${chipsHtml}</div>
+                </div>
+            `;
+        }
+
         // Enunciado: para "completar" convertimos cada [[]] en un input.
         let enunciadoHtml = esc(pregunta.enunciado);
         if (tipo === 'completar') {
@@ -145,8 +192,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     : '')
             ).join('');
         }
-        const imagenHtml = pregunta.imagen_url
-            ? `<div class="mb-3 text-center"><img src="${pregunta.imagen_url}" alt="" style="max-width:100%;max-height:320px;border-radius:8px;border:1px solid #e5e7eb;"></div>`
+        // En "etiquetar" la imagen ya se muestra (con sus marcadores) dentro de las opciones.
+        const imagenHtml = (pregunta.imagen_url && tipo !== 'etiquetar')
+            ? `<div class="mb-3 text-center"><img src="${esc(pregunta.imagen_url)}" alt="" style="max-width:100%;max-height:320px;border-radius:8px;border:1px solid #e5e7eb;"></div>`
             : '';
 
         // Se añade data-pregunta-tipo para facilitar la recolección de respuestas
@@ -269,6 +317,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     break;
                 }
+                case 'etiquetar': {
+                    const mapa = {};
+                    preguntaCard.querySelectorAll('.etiq-marker-drop').forEach(drop => {
+                        const chip = drop.querySelector('.etiq-chip');
+                        if (chip) mapa[drop.dataset.orden] = chip.dataset.texto;
+                    });
+                    if (Object.keys(mapa).length) {
+                        respuestas[preguntaId] = { tipo, respuesta_etiquetar: mapa };
+                    }
+                    break;
+                }
                 case 'emparejamiento': {
                     const pares = [];
                     preguntaCard.querySelectorAll('.emparejamiento-par').forEach(par => {
@@ -330,6 +389,53 @@ document.addEventListener('DOMContentLoaded', function() {
             const card = drop.closest('.card');
             const sel = card && card.querySelector('.clasif-chip.selected');
             if (sel) { drop.appendChild(sel); sel.classList.remove('selected'); }
+        }
+
+        // ── Etiquetar: tocar etiqueta y luego el marcador (nº) sobre la imagen ──
+        const etiqChip = e.target.closest('.etiq-chip');
+        if (etiqChip) {
+            const card = etiqChip.closest('.card');
+            const yaSel = etiqChip.classList.contains('selected');
+            card.querySelectorAll('.etiq-chip.selected').forEach(c => c.classList.remove('selected'));
+            if (!yaSel) etiqChip.classList.add('selected');
+            return;
+        }
+        const marker = e.target.closest('.etiq-marker-drop');
+        if (marker) {
+            const card = marker.closest('.card');
+            const sel = card && card.querySelector('.etiq-chip.selected');
+            const bank = card && card.querySelector('.etiq-bank-chips');
+            const slot = marker.querySelector('.etiq-marker-slot');
+            if (sel) {
+                // Devolver la etiqueta previa del marcador al banco (si la hay).
+                const previa = slot.querySelector('.etiq-chip');
+                if (previa && bank) bank.appendChild(previa);
+                slot.appendChild(sel);
+                sel.classList.remove('selected');
+                marker.classList.remove('empty');
+                marker.classList.add('filled');
+            } else {
+                // Sin selección: tocar un marcador ocupado devuelve su etiqueta al banco.
+                const actual = slot.querySelector('.etiq-chip');
+                if (actual && bank) {
+                    bank.appendChild(actual);
+                    marker.classList.remove('filled');
+                    marker.classList.add('empty');
+                }
+            }
+            return;
+        }
+        const bankZone = e.target.closest('.etiq-bank');
+        if (bankZone) {
+            const card = bankZone.closest('.card');
+            const sel = card && card.querySelector('.etiq-chip.selected');
+            const bank = card && card.querySelector('.etiq-bank-chips');
+            if (sel && bank) {
+                const marker = sel.closest('.etiq-marker-drop');
+                bank.appendChild(sel);
+                sel.classList.remove('selected');
+                if (marker) { marker.classList.remove('filled'); marker.classList.add('empty'); }
+            }
         }
     });
 
