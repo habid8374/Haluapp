@@ -459,8 +459,8 @@
   <div class="doc-panel-duo">
     <div class="doc-cuestion-card">
       <div class="dcc-header">
-        <h6><i class="bi bi-pencil-square me-2"></i>{% trans "Mis Cuestionarios Recientes" %}</h6>
-        <a href="{% url 'cuestionarios:lista' %}" class="btn btn-sm btn-outline-secondary">{% trans "Ver todos" %}</a>
+        <h6><i class="bi bi-pencil-square me-2"></i>{% trans "Mis Evaluaciones Recientes" %}</h6>
+        <a href="{% url 'gestion_academica:docente_lista_actividades' %}" class="btn btn-sm btn-outline-secondary">{% trans "Ver todas" %}</a>
       </div>
       <div class="dcc-body">
         {% for cuestionario in ultimos_cuestionarios %}

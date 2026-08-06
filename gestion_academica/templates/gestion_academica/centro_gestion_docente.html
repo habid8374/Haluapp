@@ -172,11 +172,11 @@
       <div class="cg-card" style="border-top:3px solid #7c3aed;background:#faf5ff;">
         <div class="cg-card-top">
           <div class="cgc-icon" style="background:#ede9fe;color:#7c3aed;"><i class="bi bi-patch-question-fill"></i></div>
-          <div class="cgc-title" style="color:#5b21b6;">{% trans "Evaluaciones con IA" %}</div>
-          <div class="cgc-desc">{% trans "Crea cuestionarios y evaluaciones de opción múltiple, V/F y preguntas abiertas usando inteligencia artificial." %}</div>
+          <div class="cgc-title" style="color:#5b21b6;">{% trans "Evaluaciones" %}</div>
+          <div class="cgc-desc">{% trans "Crea la evaluación con su categoría y arma su cuestionario (opción múltiple, V/F, abiertas) con o sin IA, en un solo lugar." %}</div>
         </div>
         <div class="cg-card-foot">
-          <a href="{% url 'cuestionarios:lista' %}" class="cgc-link" style="color:#7c3aed;">
+          <a href="{% url 'gestion_academica:docente_lista_actividades' %}" class="cgc-link" style="color:#7c3aed;">
             {% trans "Ir a Evaluaciones" %} <i class="bi bi-arrow-right-short"></i>
           </a>
         </div>

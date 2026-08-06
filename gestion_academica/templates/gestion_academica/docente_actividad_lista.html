@@ -10,8 +10,8 @@
       <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
         <i class="bi bi-clipboard2-check me-1"></i>{% trans "Evaluación Académica" %}
       </div>
-      <h2 class="mb-1 fw-800" style="font-size:1.4rem;color:#fff;">{% trans "Mis Actividades Evaluativas" %}</h2>
-      <p class="mb-0" style="opacity:.82;font-size:.88rem;color:#fff;">{% trans "Gestiona las actividades y cuestionarios de tus cursos" %}</p>
+      <h2 class="mb-1 fw-800" style="font-size:1.4rem;color:#fff;">{% trans "Mis Evaluaciones" %}</h2>
+      <p class="mb-0" style="opacity:.82;font-size:.88rem;color:#fff;">{% trans "Crea la evaluación con su categoría y arma su cuestionario (con o sin IA) en un solo lugar." %}</p>
     </div>
     <a href="{% url 'gestion_academica:docente_crear_actividad' %}" class="btn btn-light btn-sm fw-600">
       <i class="bi bi-plus-circle-fill me-1"></i>{% trans "Nueva Actividad" %}
@@ -47,11 +47,8 @@
                 <a href="{% url 'gestion_academica:docente_editar_actividad' pk=act.pk %}" class="btn btn-warning" title="{% trans 'Editar actividad' %}">
                   <i class="bi bi-pencil-fill"></i>
                 </a>
-                <a href="{% url 'gestion_academica:gestionar_preguntas_actividad' act.pk %}" class="btn btn-info" title="{% trans 'Gestionar preguntas' %}">
-                  <i class="bi bi-question-circle-fill"></i>
-                </a>
-                <a href="{% url 'cuestionarios:editor_cuestionario' act.pk %}" class="btn btn-success" title="{% trans 'Editor de cuestionario' %}">
-                  <i class="bi bi-patch-question-fill"></i>
+                <a href="{% url 'cuestionarios:editor_cuestionario' act.pk %}" class="btn btn-success" title="{% trans 'Preguntas / Cuestionario (con o sin IA)' %}">
+                  <i class="bi bi-patch-question-fill me-1"></i>{% trans "Cuestionario" %}
                 </a>
                 <a href="{% url 'gestion_academica:docente_eliminar_actividad' pk=act.pk %}" class="btn btn-danger" title="{% trans 'Eliminar actividad' %}">
                   <i class="bi bi-trash-fill"></i>
@@ -80,10 +77,9 @@
           <span class="text-muted" style="font-size:.8rem;"><i class="bi bi-tag me-1"></i>{{ act.tipo_actividad }}</span>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-          <a href="{% url 'gestion_academica:docente_editar_actividad' pk=act.pk %}" class="btn btn-sm btn-warning flex-fill"><i class="bi bi-pencil-fill me-1"></i>{% trans "Editar" %}</a>
           <a href="{% url 'cuestionarios:editor_cuestionario' act.pk %}" class="btn btn-sm btn-success flex-fill"><i class="bi bi-patch-question-fill me-1"></i>{% trans "Cuestionario" %}</a>
-          <a href="{% url 'gestion_academica:gestionar_preguntas_actividad' act.pk %}" class="btn btn-sm btn-info text-white flex-fill"><i class="bi bi-question-circle-fill me-1"></i>{% trans "Preguntas" %}</a>
-          <a href="{% url 'gestion_academica:docente_eliminar_actividad' pk=act.pk %}" class="btn btn-sm btn-danger flex-fill"><i class="bi bi-trash-fill me-1"></i>{% trans "Eliminar" %}</a>
+          <a href="{% url 'gestion_academica:docente_editar_actividad' pk=act.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil-fill"></i></a>
+          <a href="{% url 'gestion_academica:docente_eliminar_actividad' pk=act.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash-fill"></i></a>
         </div>
       </div>
       {% endfor %}

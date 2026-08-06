@@ -621,8 +621,9 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_actividades' %}">
-                <i class="bi bi-card-list"></i> {% trans "Definir Actividades" %}
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'docente_lista_actividades' or 'cuestionarios' in request.path %}active{% endif %}"
+                 href="{% url 'gestion_academica:docente_lista_actividades' %}">
+                <i class="bi bi-patch-question-fill"></i> {% trans "Evaluaciones" %}
               </a>
             </li>
             <li class="nav-item">
@@ -645,12 +646,6 @@
             <li class="nav-item">
               <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_descriptores' %}">
                 <i class="bi bi-card-list"></i> {% trans "Gestionar Descriptores" %}
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link sub-item {% if 'cuestionarios' in request.path %}active{% endif %}"
-                 href="{% url 'cuestionarios:lista' %}">
-                <i class="bi bi-patch-question-fill"></i> {% trans "Evaluaciones con IA" %}
               </a>
             </li>
             <li class="nav-item">
