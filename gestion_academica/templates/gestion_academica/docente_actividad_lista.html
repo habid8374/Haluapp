@@ -10,8 +10,8 @@
       <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;opacity:.75;margin-bottom:.4rem;">
         <i class="bi bi-clipboard2-check me-1"></i>{% trans "Evaluación Académica" %}
       </div>
-      <h2 class="mb-1 fw-800" style="font-size:1.4rem;">{% trans "Mis Actividades Evaluativas" %}</h2>
-      <p class="mb-0" style="opacity:.82;font-size:.88rem;">{% trans "Gestiona las actividades y cuestionarios de tus cursos" %}</p>
+      <h2 class="mb-1 fw-800" style="font-size:1.4rem;color:#fff;">{% trans "Mis Actividades Evaluativas" %}</h2>
+      <p class="mb-0" style="opacity:.82;font-size:.88rem;color:#fff;">{% trans "Gestiona las actividades y cuestionarios de tus cursos" %}</p>
     </div>
     <a href="{% url 'gestion_academica:docente_crear_actividad' %}" class="btn btn-light btn-sm fw-600">
       <i class="bi bi-plus-circle-fill me-1"></i>{% trans "Nueva Actividad" %}
@@ -21,7 +21,8 @@
 <div class="card shadow-sm border-0" style="border-radius:14px;">
   <div class="card-body p-0">
     {% if actividades %}
-    <div class="table-responsive">
+    <!-- Tabla — escritorio -->
+    <div class="table-responsive d-none d-md-block">
       <table class="table table-hover align-middle mb-0">
         <thead style="background:#f8faff;">
           <tr>
@@ -68,6 +69,24 @@
           {% endfor %}
         </tbody>
       </table>
+    </div>
+    <!-- Tarjetas — móvil -->
+    <div class="d-md-none p-2">
+      {% for act in actividades %}
+      <div class="border rounded-3 p-3 mb-2">
+        <div class="fw-bold" style="font-size:.95rem;color:#111;">{{ act.titulo }}</div>
+        <div class="d-flex align-items-center gap-2 flex-wrap mt-1 mb-2">
+          <span class="badge" style="background:#eff6ff;color:#1d4ed8;font-weight:600;font-size:.72rem;">{{ act.curso }}</span>
+          <span class="text-muted" style="font-size:.8rem;"><i class="bi bi-tag me-1"></i>{{ act.tipo_actividad }}</span>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="{% url 'gestion_academica:docente_editar_actividad' pk=act.pk %}" class="btn btn-sm btn-warning flex-fill"><i class="bi bi-pencil-fill me-1"></i>{% trans "Editar" %}</a>
+          <a href="{% url 'cuestionarios:editor_cuestionario' act.pk %}" class="btn btn-sm btn-success flex-fill"><i class="bi bi-patch-question-fill me-1"></i>{% trans "Cuestionario" %}</a>
+          <a href="{% url 'gestion_academica:gestionar_preguntas_actividad' act.pk %}" class="btn btn-sm btn-info text-white flex-fill"><i class="bi bi-question-circle-fill me-1"></i>{% trans "Preguntas" %}</a>
+          <a href="{% url 'gestion_academica:docente_eliminar_actividad' pk=act.pk %}" class="btn btn-sm btn-danger flex-fill"><i class="bi bi-trash-fill me-1"></i>{% trans "Eliminar" %}</a>
+        </div>
+      </div>
+      {% endfor %}
     </div>
     {% else %}
     <div class="text-center py-5" style="color:#9ca3af;">
