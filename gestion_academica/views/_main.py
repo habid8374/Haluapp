@@ -4173,8 +4173,68 @@ class CrearJustificacionInasistenciaView(LoginRequiredMixin, CreateView):
         )
         response = super().form_valid(form)
         from django.db import transaction
-        transaction.on_commit(lambda pk=self.object.pk: _notificar_nueva_justificacion_inasistencia(pk))
+
+        def _notificar_seguro(pk=self.object.pk):
+            # La notificación NUNCA debe afectar la carga de la justificación:
+            # si falla la BD/WebSocket/Redis, se registra y se sigue.
+            try:
+                _notificar_nueva_justificacion_inasistencia(pk)
+            except Exception:
+                logger.exception("Fallo notificando nueva justificación de inasistencia %s", pk)
+
+        transaction.on_commit(_notificar_seguro)
         return response
+
+
+class EditarJustificacionInasistenciaView(LoginRequiredMixin, UpdateView):
+    """El estudiante puede editar su justificación SOLO mientras siga
+    pendiente de revisión (no una ya aprobada/rechazada)."""
+    model = JustificacionInasistencia
+    form_class = JustificacionInasistenciaForm
+    template_name = 'gestion_academica/justificacion_inasistencia_formulario.html'
+    success_url = reverse_lazy('gestion_academica:mis_justificaciones_inasistencia')
+
+    def get_queryset(self):
+        try:
+            estudiante = self.request.user.estudiante
+        except Estudiante.DoesNotExist:
+            return JustificacionInasistencia.objects.none()
+        return JustificacionInasistencia.objects.filter(
+            estudiante=estudiante,
+            estado_revision=JustificacionInasistencia.EstadoRevision.PENDIENTE,
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['es_edicion'] = True
+        return ctx
+
+    def form_valid(self, form):
+        messages.success(self.request, "Tu justificación fue actualizada.")
+        return super().form_valid(form)
+
+
+@login_required
+@require_POST
+def eliminar_justificacion_inasistencia(request, pk):
+    """El estudiante elimina su justificación (solo la propia y solo si sigue
+    pendiente de revisión)."""
+    try:
+        estudiante = request.user.estudiante
+    except (AttributeError, Estudiante.DoesNotExist):
+        messages.error(request, "Acción no permitida.")
+        return redirect('gestion_academica:inicio_academico')
+
+    justificacion = get_object_or_404(
+        JustificacionInasistencia, pk=pk, estudiante=estudiante,
+    )
+    if justificacion.estado_revision != JustificacionInasistencia.EstadoRevision.PENDIENTE:
+        messages.warning(request, "No puedes eliminar una justificación que ya fue revisada.")
+        return redirect('gestion_academica:mis_justificaciones_inasistencia')
+
+    justificacion.delete()
+    messages.success(request, "Tu justificación fue eliminada.")
+    return redirect('gestion_academica:mis_justificaciones_inasistencia')
 
 
 # ─── Justificación de inasistencias — Docente / Coordinación ────────────────
@@ -4192,8 +4252,11 @@ def _puede_revisar_justificacion(user, justificacion):
     if rol in ('coordinador', 'administrador', 'admin_institucion', 'rector'):
         return getattr(user, 'institucion_asociada_id', None) == justificacion.institucion_id
     if rol == 'docente':
-        cursos_ids = _cursos_del_docente(user).values_list('id', flat=True)
-        return justificacion.registros_relacionados().filter(curso_id__in=cursos_ids).exists()
+        if getattr(user, 'institucion_asociada_id', None) != justificacion.institucion_id:
+            return False
+        grados_ids = _cursos_del_docente(user).values_list('grado_id', flat=True).distinct()
+        grado_est = getattr(justificacion.estudiante, 'grado_actual_id', None)
+        return grado_est is not None and grado_est in set(grados_ids)
     return False
 
 
@@ -4212,17 +4275,16 @@ def revisar_justificaciones_inasistencia(request):
         else:
             qs = JustificacionInasistencia.objects.filter(institucion=institucion)
     elif rol == 'docente':
-        cursos_ids = _cursos_del_docente(request.user).values_list('id', flat=True)
-        registros_relevantes = RegistroAsistencia.objects.filter(
-            estudiante_id=OuterRef('estudiante_id'),
-            curso_id__in=cursos_ids,
-            estado__in=['AUSENTE', 'TARDANZA'],
-            fecha_solo__gte=OuterRef('fecha_inicio'),
-            fecha_solo__lte=OuterRef('fecha_fin'),
+        # El docente ve las justificaciones de los estudiantes de los grados
+        # donde dicta (aunque todavía no exista una falta registrada), para
+        # poder aprobarlas/rechazarlas igual que coordinación.
+        grados_ids = _cursos_del_docente(request.user).values_list('grado_id', flat=True).distinct()
+        estudiantes_ids = Estudiante.objects.filter(
+            grado_actual_id__in=grados_ids, institucion=institucion
+        ).values_list('pk', flat=True)
+        qs = JustificacionInasistencia.objects.filter(
+            institucion=institucion, estudiante_id__in=estudiantes_ids
         )
-        qs = JustificacionInasistencia.objects.filter(institucion=institucion).annotate(
-            _visible=Exists(registros_relevantes)
-        ).filter(_visible=True)
     else:
         qs = JustificacionInasistencia.objects.none()
 

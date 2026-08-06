@@ -37,6 +37,7 @@
                     <th>{% trans "Soporte" %}</th>
                     <th class="text-center">{% trans "Estado" %}</th>
                     <th>{% trans "Observaciones de revisión" %}</th>
+                    <th class="text-center">{% trans "Acciones" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -62,10 +63,24 @@
                         {% endif %}
                     </td>
                     <td style="max-width:220px;">{{ j.observaciones_revision|default:"—" }}</td>
+                    <td class="text-center text-nowrap">
+                        {% if j.estado_revision == 'PENDIENTE' %}
+                            <a href="{% url 'gestion_academica:editar_justificacion_inasistencia' j.pk %}"
+                               class="btn btn-sm btn-outline-primary" title="{% trans 'Editar' %}"><i class="bi bi-pencil"></i></a>
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-just" title="{% trans 'Eliminar' %}"
+                                    data-bs-toggle="modal" data-bs-target="#modalEliminarJust"
+                                    data-action="{% url 'gestion_academica:eliminar_justificacion_inasistencia' j.pk %}"
+                                    data-info="{{ j.fecha_inicio|date:'d/m/Y' }} — {{ j.fecha_fin|date:'d/m/Y' }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        {% else %}
+                            <span class="text-muted" style="font-size:.8rem;">{% trans "Ya revisada" %}</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center text-muted p-4">
+                    <td colspan="7" class="text-center text-muted p-4">
                         {% trans "Aún no has enviado ninguna justificación de inasistencia." %}
                     </td>
                 </tr>
@@ -74,4 +89,40 @@
         </table>
     </div>
 </div>
+
+<!-- Modal — Confirmar eliminación de justificación -->
+<div class="modal fade" id="modalEliminarJust" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">{% trans "¿Eliminar esta justificación?" %}</h5>
+        <p class="text-muted mb-0" style="font-size:.85rem;">{% trans "Rango:" %} <strong id="just-info-modal"></strong></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Solo puedes eliminarla mientras esté pendiente. Esta acción no se puede deshacer." %}</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="form-eliminar-just" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('.btn-eliminar-just').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-eliminar-just').action = this.dataset.action;
+    document.getElementById('just-info-modal').textContent = this.dataset.info || '';
+  });
+});
+</script>
 {% endblock %}

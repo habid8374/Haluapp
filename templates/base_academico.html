@@ -266,9 +266,15 @@
         </a>
       </li>
       <li class="nav-item item-color-6">
-        <a class="nav-link {% if 'historial-asistencia' in request.path or 'justificaciones' in request.path or 'justificar-inasistencia' in request.path %}active{% endif %}"
+        <a class="nav-link {% if 'historial-asistencia' in request.path %}active{% endif %}"
            href="{% url 'gestion_academica:mi_historial_asistencia' %}">
           <i class="bi bi-calendar-check-fill"></i> {% trans "Mi Asistencia" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-6">
+        <a class="nav-link {% if 'justificaciones' in request.path or 'justificar-inasistencia' in request.path %}active{% endif %}"
+           href="{% url 'gestion_academica:mis_justificaciones_inasistencia' %}">
+          <i class="bi bi-file-earmark-medical-fill"></i> {% trans "Mis Justificaciones" %}
         </a>
       </li>
       <li class="nav-item item-color-7">
