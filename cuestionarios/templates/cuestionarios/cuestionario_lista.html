@@ -1,46 +1,86 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
 {% block titulo %}{% trans "Mis Cuestionarios" %}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+  @media (max-width: 575.98px) {
+    .btn-crear-cuest { width: 100%; }
+  }
+</style>
+{% endblock %}
 {% block contenido %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">{% trans "Mis Cuestionarios" %}</h1>
-        <a href="{% url 'gestion_academica:docente_crear_actividad' %}" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>{% trans "Crear Nueva Actividad/Cuestionario" %}</a>
+<div class="container-fluid px-2 px-md-3 mt-3" style="max-width:1100px;">
+  <!-- Hero -->
+  <div style="background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);border-radius:18px;padding:1.5rem 1.6rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div style="min-width:0;">
+        <h2 class="mb-1 fw-bold" style="font-size:1.35rem;color:#fff;"><i class="bi bi-patch-question-fill me-2"></i>{% trans "Mis Cuestionarios" %}</h2>
+        <p class="mb-0" style="opacity:.85;font-size:.86rem;color:#fff;">{% trans "Primero crea una actividad y luego edita su cuestionario." %}</p>
+      </div>
+      <a href="{% url 'gestion_academica:docente_crear_actividad' %}" class="btn btn-light fw-600 btn-crear-cuest" style="white-space:normal;">
+        <i class="bi bi-plus-circle-fill me-1"></i>{% trans "Crear Nueva Actividad" %}
+      </a>
     </div>
-    <p class="text-muted">{% trans "Desde aquí puedes gestionar las preguntas de tus actividades evaluativas. Primero crea una actividad y luego edita su cuestionario." %}</p>
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th>{% trans "Título de la Actividad" %}</th>
-                            <th>{% trans "Curso" %}</th>
-                            <th>{% trans "Nº de Preguntas" %}</th>
-                            <th>{% trans "Acciones" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- ▼▼▼ CORRECCIÓN CLAVE AQUÍ ▼▼▼ -->
-                        {% for cuestionario in cuestionarios %}
-                        <tr>
-                            <td>{{ cuestionario.actividad_calificable.titulo }}</td>
-                            <td>{{ cuestionario.actividad_calificable.curso }}</td>
-                            <td>{{ cuestionario.preguntas.count }}</td>
-                            <td>
-                                <a href="{% url 'cuestionarios:editor_cuestionario' cuestionario.actividad_calificable.pk %}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-edit me-1"></i> {% trans "Editar Cuestionario" %}
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="4" class="text-center">{% trans "No has creado actividades evaluativas para el periodo activo." %}</td></tr>
-                        {% endfor %}
-                        <!-- ▲▲▲ FIN DE LA CORRECCIÓN ▲▲▲ -->
-                    </tbody>
-                </table>
-            </div>
+  </div>
+
+  <div class="card shadow-sm border-0" style="border-radius:14px;">
+    <div class="card-body p-0">
+      {% if cuestionarios %}
+        <!-- Tabla — escritorio -->
+        <div class="d-none d-md-block">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead style="background:#f8faff;">
+                <tr>
+                  <th class="ps-4 py-3" style="font-size:.76rem;font-weight:700;color:#6b7280;text-transform:uppercase;">{% trans "Actividad" %}</th>
+                  <th class="py-3" style="font-size:.76rem;font-weight:700;color:#6b7280;text-transform:uppercase;">{% trans "Curso" %}</th>
+                  <th class="py-3 text-center" style="font-size:.76rem;font-weight:700;color:#6b7280;text-transform:uppercase;">{% trans "Preguntas" %}</th>
+                  <th class="py-3 text-end pe-4" style="font-size:.76rem;font-weight:700;color:#6b7280;text-transform:uppercase;">{% trans "Acciones" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cuestionario in cuestionarios %}
+                <tr>
+                  <td class="ps-4 py-3 fw-600" style="color:#111;">{{ cuestionario.actividad_calificable.titulo }}</td>
+                  <td class="py-3"><span class="badge" style="background:#eff6ff;color:#1d4ed8;font-weight:600;font-size:.74rem;">{{ cuestionario.actividad_calificable.curso }}</span></td>
+                  <td class="py-3 text-center"><span class="badge bg-secondary rounded-pill">{{ cuestionario.preguntas.count }}</span></td>
+                  <td class="py-3 pe-4 text-end">
+                    <a href="{% url 'cuestionarios:editor_cuestionario' cuestionario.actividad_calificable.pk %}" class="btn btn-sm btn-info text-white">
+                      <i class="bi bi-pencil-square me-1"></i>{% trans "Editar" %}
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        <!-- Tarjetas — móvil -->
+        <div class="d-md-none p-2">
+          {% for cuestionario in cuestionarios %}
+          <div class="border rounded-3 p-3 mb-2">
+            <div class="fw-bold" style="font-size:.95rem;color:#111;">{{ cuestionario.actividad_calificable.titulo }}</div>
+            <div class="d-flex align-items-center gap-2 flex-wrap mt-1 mb-2">
+              <span class="badge" style="background:#eff6ff;color:#1d4ed8;font-weight:600;font-size:.72rem;">{{ cuestionario.actividad_calificable.curso }}</span>
+              <span class="text-muted" style="font-size:.8rem;"><i class="bi bi-question-circle me-1"></i>{{ cuestionario.preguntas.count }} {% trans "pregunta(s)" %}</span>
+            </div>
+            <a href="{% url 'cuestionarios:editor_cuestionario' cuestionario.actividad_calificable.pk %}" class="btn btn-sm btn-info text-white w-100">
+              <i class="bi bi-pencil-square me-1"></i>{% trans "Editar Cuestionario" %}
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5" style="color:#9ca3af;">
+          <i class="bi bi-clipboard2-x" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+          <p class="mb-3">{% trans "No has creado actividades evaluativas para el periodo activo." %}</p>
+          <a href="{% url 'gestion_academica:docente_crear_actividad' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle-fill me-1"></i>{% trans "Crear primera actividad" %}
+          </a>
+        </div>
+      {% endif %}
     </div>
+  </div>
 </div>
 {% endblock %}
