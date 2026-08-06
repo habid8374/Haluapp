@@ -580,3 +580,31 @@ def notificar_familiares_nueva_actividad(sender, instance, created, **kwargs):
         _delay_seguro(notificar_nueva_tarea_familiares, curso_pk, inst_pk, titulo, "actividad", fecha_str)
 
     transaction.on_commit(_on_commit)
+
+
+@receiver(post_save, sender=ActividadCalificable)
+def notificar_coordinacion_nueva_actividad(sender, instance, created, **kwargs):
+    """Avisa a coordinación/rectoría cuando un docente crea una actividad calificable
+    (incluye evaluaciones y cuestionarios, que son actividades calificables). El correo
+    reutiliza las credenciales Brevo de la propia institución (enviar_correo_dinamico)."""
+    if not created:
+        return
+    from django.db import transaction
+    from gestion_academica.tasks_notificaciones import notificar_actividad_creada_coordinacion
+
+    fecha_str = (
+        instance.fecha_publicacion.strftime('%d/%m/%Y')
+        if instance.fecha_publicacion else ""
+    )
+    curso_pk = instance.curso_id
+    inst_pk = instance.institucion_id
+    titulo = instance.titulo
+    tipo_actividad = instance.tipo_actividad.nombre if instance.tipo_actividad_id else "Actividad"
+
+    def _on_commit():
+        _delay_seguro(
+            notificar_actividad_creada_coordinacion,
+            curso_pk, inst_pk, titulo, tipo_actividad, fecha_str,
+        )
+
+    transaction.on_commit(_on_commit)

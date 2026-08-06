@@ -1181,3 +1181,223 @@ def notificar_nueva_tarea_familiares(
             "notificar_nueva_tarea_familiares: error curso %s: %s", curso_id, exc, exc_info=True
         )
         raise self.retry(exc=exc)
+
+
+# ---------------------------------------------------------------------------
+# Aviso a coordinación/rectoría: un docente creó una actividad calificable
+# ---------------------------------------------------------------------------
+
+def _html_actividad_creada(
+    institucion_nombre: str,
+    docente_nombre: str,
+    tipo_actividad: str,
+    titulo: str,
+    materia_nombre: str,
+    grado_nombre: str,
+    fecha_str: str,
+) -> str:
+    fecha_fila = (
+        f"""<tr>
+              <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                         letter-spacing:.6px;padding-bottom:4px;">Fecha de publicación</td>
+            </tr>
+            <tr>
+              <td style="color:#374151;font-size:15px;font-weight:600;
+                         padding-bottom:16px;">{fecha_str}</td>
+            </tr>"""
+        if fecha_str else ""
+    )
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0"
+             style="background:#ffffff;border-radius:16px;overflow:hidden;
+                    box-shadow:0 4px 24px rgba(0,0,0,.10);max-width:560px;width:100%;">
+        <tr>
+          <td style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);
+                     padding:32px 36px;text-align:center;">
+            <div style="display:inline-block;background:rgba(255,255,255,.18);
+                        border-radius:50%;width:56px;height:56px;line-height:56px;
+                        font-size:28px;margin-bottom:12px;">&#128221;</div>
+            <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:700;">
+              Nueva actividad creada
+            </h1>
+            <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:14px;">
+              {institucion_nombre}
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px 36px;">
+            <p style="color:#374151;font-size:15px;margin:0 0 16px;">
+              Estimado/a coordinador(a) / directivo,
+            </p>
+            <p style="color:#374151;font-size:15px;margin:0 0 24px;">
+              El/la docente <strong>{docente_nombre}</strong> ha creado una nueva
+              actividad calificable en la plataforma.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;
+                          margin-bottom:24px;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Docente</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#111827;font-size:16px;font-weight:700;
+                                 padding-bottom:16px;">{docente_nombre}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Tipo</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#4f46e5;font-size:13px;font-weight:700;
+                                 padding-bottom:16px;">{tipo_actividad.upper()}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Título</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#111827;font-size:17px;font-weight:700;
+                                 padding-bottom:16px;">{titulo}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#6b7280;font-size:12px;text-transform:uppercase;
+                                 letter-spacing:.6px;padding-bottom:4px;">Materia · Grado</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#374151;font-size:15px;font-weight:600;
+                                 padding-bottom:16px;">{materia_nombre} · {grado_nombre}</td>
+                    </tr>
+                    {fecha_fila}
+                  </table>
+                </td>
+              </tr>
+            </table>
+            <p style="color:#6b7280;font-size:13px;margin:0;">
+              Ingrese al portal de la institución para supervisar los detalles completos.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f8fafc;padding:20px 36px;text-align:center;
+                     border-top:1px solid #e2e8f0;">
+            <p style="color:#94a3b8;font-size:12px;margin:0;">
+              Este es un correo automático de {institucion_nombre} — HALU Plataforma Educativa
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+
+
+@shared_task(
+    name="gestion_academica.notificar_actividad_creada_coordinacion",
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,
+)
+def notificar_actividad_creada_coordinacion(
+    self,
+    curso_id: int,
+    institucion_id: int,
+    titulo: str,
+    tipo_actividad: str,
+    fecha_str: str,
+) -> None:
+    """Avisa a coordinación/rectoría que un docente creó una actividad calificable
+    (incluye evaluaciones y cuestionarios). Reutiliza el envío por Brevo de la
+    institución (enviar_correo_dinamico). Si la institución no tiene credenciales
+    configuradas, el envío simplemente no se realiza (queda en el log)."""
+    from django.contrib.auth import get_user_model
+    from gestion_academica.models import Curso
+    from finanzas.models import InstitucionEducativa
+    from admisiones.utils import enviar_correo_dinamico
+
+    Usuario = get_user_model()
+
+    try:
+        curso = Curso.objects.select_related('materia', 'grado').get(pk=curso_id)
+        institucion = InstitucionEducativa.objects.get(pk=institucion_id)
+    except Exception as exc:
+        logger.warning("notificar_actividad_creada_coordinacion: curso/inst no encontrado. %s", exc)
+        return
+
+    materia_nombre = curso.materia.nombre_materia
+    grado_nombre = curso.grado.nombre
+
+    # Docente(s) del curso — atribución de quién creó la actividad.
+    docentes = list(
+        curso.docentes_asignados
+        .select_related('usuario')
+        .all()
+    )
+    if docentes:
+        nombres = []
+        for d in docentes:
+            u = getattr(d, 'usuario', None)
+            nombre = (u.get_full_name() if u else '') or (u.username if u else '')
+            if nombre:
+                nombres.append(nombre)
+        docente_nombre = ", ".join(nombres) if nombres else "Docente no identificado"
+    else:
+        docente_nombre = "Docente no asignado"
+
+    # Destinatarios: coordinación / rectoría / administración de la institución.
+    emails = list(
+        Usuario.objects.filter(
+            institucion_asociada=institucion,
+            rol__in=('coordinador', 'rector', 'administrador'),
+            is_active=True,
+        )
+        .exclude(email="")
+        .exclude(email__isnull=True)
+        .values_list("email", flat=True)
+        .distinct()
+    )
+    if not emails:
+        logger.info(
+            "notificar_actividad_creada_coordinacion: sin coordinadores con email en inst %s.",
+            institucion_id,
+        )
+        return
+
+    html = _html_actividad_creada(
+        institucion_nombre=institucion.nombre,
+        docente_nombre=docente_nombre,
+        tipo_actividad=tipo_actividad,
+        titulo=titulo,
+        materia_nombre=materia_nombre,
+        grado_nombre=grado_nombre,
+        fecha_str=fecha_str,
+    )
+    asunto = f"Nueva actividad de {docente_nombre}: {titulo} — {materia_nombre} ({grado_nombre})"
+
+    try:
+        enviar_correo_dinamico(
+            institucion=institucion,
+            asunto=asunto,
+            destinatarios=emails,
+            html_content=html,
+        )
+        logger.info(
+            "notificar_actividad_creada_coordinacion: correo enviado inst %s a %d destinatario(s).",
+            institucion_id, len(emails),
+        )
+    except Exception as exc:
+        logger.error(
+            "notificar_actividad_creada_coordinacion: error inst %s: %s",
+            institucion_id, exc, exc_info=True,
+        )
+        raise self.retry(exc=exc)
