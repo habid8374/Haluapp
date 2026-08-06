@@ -278,7 +278,8 @@ textarea.eq-input { resize: vertical; }
           </div>
           <div class="col-sm-4">
             <label class="eq-label" for="intentos-permitidos">{% trans "Intentos permitidos" %}</label>
-            <input type="number" class="eq-input" id="intentos-permitidos" min="1" value="1">
+            <input type="number" class="eq-input" id="intentos-permitidos" min="1" max="10" value="1">
+            <div style="font-size:.72rem;color:#94a3b8;margin-top:.25rem;">{% trans "De 1 a 10 intentos." %}</div>
           </div>
           <div class="col-sm-8 d-flex align-items-end">
             <div class="form-check mb-1">
@@ -299,6 +300,10 @@ textarea.eq-input { resize: vertical; }
       <h2><i class="bi bi-list-ol me-2" style="color:#0b5ed7;"></i>{% trans "Preguntas" %}</h2>
     </div>
     <div class="eq-section-body">
+      <div class="alert alert-light border d-flex align-items-center gap-2 py-2 mb-3" style="font-size:.82rem;color:#475569;">
+        <i class="bi bi-info-circle" style="color:#0b5ed7;"></i>
+        <span>{% trans "Puedes agregar las preguntas manualmente con «Agregar pregunta», o generarlas automáticamente con «Generar con IA». Puedes combinar ambas." %}</span>
+      </div>
       <div id="editor-preguntas"></div>
       <button class="btn-add-question" id="btn-agregar-pregunta" type="button">
         <i class="bi bi-plus-circle-fill"></i> {% trans "Agregar pregunta" %}
@@ -316,8 +321,8 @@ textarea.eq-input { resize: vertical; }
 
   <!-- Barra de acciones -->
   <div class="eq-action-bar">
-    <a href="{% url 'cuestionarios:lista' %}" class="eq-btn eq-btn-secondary">
-      <i class="bi bi-arrow-left"></i> {% trans "Volver a la lista" %}
+    <a href="{% url 'gestion_academica:docente_lista_actividades' %}" class="eq-btn eq-btn-secondary">
+      <i class="bi bi-arrow-left"></i> {% trans "Volver a Evaluaciones" %}
     </a>
     <div class="eq-action-bar-right">
       <button type="button" class="eq-btn eq-btn-ia" data-bs-toggle="modal" data-bs-target="#iaGenerateModal">
@@ -546,7 +551,7 @@ document.addEventListener('DOMContentLoaded', function () {
             titulo: document.getElementById('titulo').value,
             descripcion: document.getElementById('descripcion').value,
             tiempo_limite: parseInt(document.getElementById('tiempo-limite').value) || 0,
-            intentos_permitidos: parseInt(document.getElementById('intentos-permitidos').value) || 1,
+            intentos_permitidos: Math.min(10, Math.max(1, parseInt(document.getElementById('intentos-permitidos').value) || 1)),
             mostrar_respuestas: document.getElementById('mostrar-respuestas').checked,
             activo: document.getElementById('toggle-activo').checked,
             preguntas: []
