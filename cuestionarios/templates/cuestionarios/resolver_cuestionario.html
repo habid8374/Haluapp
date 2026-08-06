@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (tipo === 'texto_libre') {
             opcionesHtml = `
                 <div class="form-group">
-                    <textarea class="form-control" id="pregunta_${pregunta.id}" rows="4" placeholder="Escribe tu respuesta aquí..."></textarea>
+                    <textarea class="form-control" id="pregunta_${pregunta.id}" rows="4" placeholder="{% trans "Escribe tu respuesta aquí…" %}"></textarea>
                 </div>
             `;
         }
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="col-md-5">
                         <select class="form-select">
-                            <option value="">Selecciona una opción...</option>
+                            <option value="">{% trans "Selecciona una opción…" %}</option>
                             ${definiciones.map(def => `<option value="${esc(def)}">${esc(def)}</option>`).join('')}
                         </select>
                     </div>
@@ -120,8 +120,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return `
             <div class="card mb-3" data-pregunta-id="${pregunta.id}" data-pregunta-tipo="${tipo}">
                 <div class="card-header d-flex justify-content-between">
-                    <strong>Pregunta ${index + 1}</strong>
-                    <span class="badge bg-secondary">${pregunta.puntaje} pts</span>
+                    <strong>{% trans "Pregunta" %} ${index + 1}</strong>
+                    <span class="badge bg-secondary">${pregunta.puntaje} {% trans "pts" %}</span>
                 </div>
                 <div class="card-body">
                     <div class="enunciado mb-3">${enunciadoHtml}</div>
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (tiempoLimite > 0) {
             iniciarTemporizador();
         } else {
-            document.getElementById('timer').textContent = 'Sin límite';
+            document.getElementById('timer').textContent = '{% trans "Sin límite" %}';
         }
 
         document.getElementById('finalizar-btn').addEventListener('click', finalizarIntento);
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clearInterval(timerInterval);
         const btn = document.getElementById('finalizar-btn');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Calificando...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {% trans "Calificando…" %}';
 
         const respuestas = {};
 
@@ -264,14 +264,14 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         })
         .catch(error => {
-             app.innerHTML = `<div class="alert alert-danger"><h4>Error de Conexión</h4><p>No se pudo finalizar el intento. Por favor, revisa tu conexión a internet.</p></div>`;
+             app.innerHTML = `<div class="alert alert-danger"><h4>{% trans "Error de Conexión" %}</h4><p>{% trans "No se pudo finalizar el intento. Por favor, revisa tu conexión a internet." %}</p></div>`;
         });
     }
 
     // Cargar los datos del cuestionario al iniciar
     fetch(apiUrl)
         .then(response => {
-            if (!response.ok) throw new Error('No se pudo cargar el cuestionario.');
+            if (!response.ok) throw new Error('{% trans "No se pudo cargar el cuestionario." %}');
             return response.json();
         })
         .then(data => {

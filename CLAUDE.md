@@ -452,6 +452,26 @@ ROL_GRUPO_MAP = {
 
 ---
 
+## ⚠️ REGLA CRÍTICA: INTERNACIONALIZACIÓN (i18n) — TODO TEXTO TRADUCIBLE
+
+**La plataforma es bilingüe (Español / Inglés). CADA texto visible al usuario, en CUALQUIER portal (docente, estudiante, familiar, coordinador, admin, etc.) y en CUALQUIER pantalla — incluidas las de resolver/crear — DEBE ser traducible. Nunca hardcodear español (ni inglés) en texto visible.**
+
+**Templates Django:**
+- Incluir `{% load i18n %}` al inicio.
+- Texto simple: `{% trans "Texto" %}`. Texto con variables: `{% blocktrans with x=valor %}... {{ x }} ...{% endblocktrans %}`.
+- **También el texto DENTRO del JavaScript embebido en el template**: usar `{% trans %}` dentro de las comillas del JS, p. ej. `showNotification('{% trans "Error" %}', ...)` o `` `<strong>{% trans "Pregunta" %} ${i}</strong>` ``. (Ver `cuestionarios/templates/cuestionarios/editor.html` y `resolver_cuestionario.html` como referencia.)
+- Aplica a: títulos, labels, placeholders, botones, mensajes, tooltips (`title=`), estados vacíos, opciones de `<select>`, y cualquier cadena que lea un humano.
+
+**Python:**
+- `from django.utils.translation import gettext_lazy as _` (o `gettext as _`).
+- `messages.*`, `verbose_name`, `help_text`, `label`, choices legibles, y strings de error → envolver con `_( "..." )`.
+
+**Al terminar una funcionalidad con textos nuevos:** quedan pendientes de compilar en el catálogo (`makemessages` → traducir en `locale/en/LC_MESSAGES/django.po` → `compilemessages` a `.mo`). Si no puedes compilar aquí, deja anotado que el `.po/.mo` debe regenerarse en el despliegue.
+
+**Regla operativa:** ninguna creación o edición de UI se considera terminada si tiene texto visible sin `{% trans %}` / `_()`. Antes de dar por hecha una vista, verifica que no queden cadenas hardcodeadas (incluidas las del JS).
+
+---
+
 ## ⚠️ REGLA CRÍTICA: CERO DIÁLOGOS DEL NAVEGADOR
 
 **NUNCA usar diálogos nativos del navegador.** Está PROHIBIDO en todo el proyecto:
