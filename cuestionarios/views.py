@@ -135,8 +135,10 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 pregunta_data['respuesta_correcta_abierta'] = p.respuesta_correcta_abierta
 
             # "Completar": las respuestas correctas van marcadas como [[respuesta]].
-            # Al estudiante que resuelve NO se le envían: se enmascaran a [[]].
-            if p.tipo == 'completar' and not puede_ver_respuestas:
+            # Al estudiante que RESUELVE nunca se le envían (aunque el docente
+            # haya activado "mostrar respuestas al finalizar", eso es para la
+            # pantalla de resultados, no mientras resuelve): se enmascaran a [[]].
+            if p.tipo == 'completar' and es_estudiante:
                 import re as _re
                 pregunta_data['enunciado'] = _re.sub(r'\[\[.*?\]\]', '[[]]', p.enunciado or '')
 
@@ -162,7 +164,7 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 ))
                 _rnd.shuffle(cats)
                 pregunta_data['categorias'] = cats
-                if not puede_ver_respuestas:
+                if es_estudiante:
                     for o in pregunta_data.get('opciones', []):
                         o.pop('emparejamiento', None)
 
