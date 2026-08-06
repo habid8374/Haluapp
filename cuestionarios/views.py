@@ -238,6 +238,23 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 else:
                     pregunta_data['opciones'] = pasos
 
+            # "Mapa conceptual": cada opción es un concepto (nodo). Las conexiones
+            # correctas se guardan en emparejamiento como índices (orden) de los
+            # nodos vecinos, separados por comas. El estudiante recibe solo los
+            # nodos (sin conexiones) y debe relacionarlos.
+            if p.tipo == 'mapa_conceptual':
+                nodos = [
+                    {'id': op.id, 'texto': op.texto, 'orden': op.orden,
+                     'emparejamiento': op.emparejamiento}
+                    for op in p.opciones.order_by('orden')
+                ]
+                if es_estudiante:
+                    pregunta_data['nodos'] = [
+                        {'orden': n['orden'], 'texto': n['texto']} for n in nodos
+                    ]
+                else:
+                    pregunta_data['opciones'] = nodos
+
             preguntas.append(pregunta_data)
 
         response_data = {
@@ -300,7 +317,7 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 )
                 
                 # 4. Creamos las opciones para cada pregunta.
-                if pregunta.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento', 'clasificar', 'etiquetar', 'hotspot', 'ordenar']:
+                if pregunta.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento', 'clasificar', 'etiquetar', 'hotspot', 'ordenar', 'mapa_conceptual']:
                     for opcion_data in pregunta_data.get('opciones', []):
                         texto_val = (opcion_data.get('texto') or '').strip()
                         emp_val = opcion_data.get('emparejamiento')
@@ -652,6 +669,38 @@ class ResolverCuestionarioAPIView(APIView):
                         )
                         puntaje_pregunta = round(pregunta.puntaje * (aciertos / len(correctas)), 2)
 
+                elif tipo_pregunta == 'mapa_conceptual':
+                    # Conexiones correctas: en cada opción, emparejamiento = índices
+                    # (orden) de nodos vecinos, separados por comas. Se arma un conjunto
+                    # de aristas no dirigidas. El estudiante envía respuesta_mapa=[[a,b],…].
+                    correctas = set()
+                    for op in pregunta.opciones.all():
+                        for parte in (op.emparejamiento or '').split(','):
+                            parte = parte.strip()
+                            if parte == '':
+                                continue
+                            try:
+                                vecino = int(parte)
+                            except ValueError:
+                                continue
+                            if vecino != op.orden:
+                                correctas.add(frozenset((op.orden, vecino)))
+                    enviadas_raw = respuesta_enviada.get('respuesta_mapa', []) or []
+                    enviadas = set()
+                    for par in enviadas_raw:
+                        try:
+                            a, b = int(par[0]), int(par[1])
+                        except (TypeError, ValueError, IndexError):
+                            continue
+                        if a != b:
+                            enviadas.add(frozenset((a, b)))
+                    if correctas:
+                        aciertos = len(correctas & enviadas)
+                        sobrantes = len(enviadas - correctas)
+                        # Penaliza conexiones de más para desincentivar "conectar todo".
+                        fraccion = max(0, aciertos - sobrantes) / len(correctas)
+                        puntaje_pregunta = round(pregunta.puntaje * min(1.0, fraccion), 2)
+
             puntaje_total += puntaje_pregunta
 
             # Esta línea ahora usará el modelo RespuestaEstudiante correcto de la app 'cuestionarios'
@@ -663,7 +712,8 @@ class ResolverCuestionarioAPIView(APIView):
                     (respuesta_enviada.get('respuesta_emparejamiento')
                      or respuesta_enviada.get('respuesta_etiquetar')
                      or respuesta_enviada.get('respuesta_hotspot')
-                     or respuesta_enviada.get('respuesta_ordenar'))
+                     or respuesta_enviada.get('respuesta_ordenar')
+                     or respuesta_enviada.get('respuesta_mapa'))
                     if respuesta_enviada else None
                 ),
                 respuesta_completar=respuesta_enviada.get('respuesta_completar') if respuesta_enviada else None,

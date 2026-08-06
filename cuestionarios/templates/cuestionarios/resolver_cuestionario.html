@@ -45,6 +45,15 @@
   .ord-btns { flex-shrink:0; display:flex; gap:4px; }
   .ord-btns button { border:1px solid #cbd5e1; background:#fff; border-radius:6px; padding:4px 8px; cursor:pointer; color:#475569; }
   .ord-btns button:hover { background:#eef2ff; border-color:#a5b4fc; color:#4f46e5; }
+  /* Mapa conceptual */
+  .mapa-canvas { position:relative; width:100%; height:320px; background:#f8fafc; border:1px solid #e2e8f0;
+      border-radius:10px; overflow:hidden; touch-action:manipulation; }
+  .mapa-svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+  .mapa-node { position:absolute; transform:translate(-50%,-50%); max-width:38%; padding:6px 11px; border-radius:16px;
+      font-size:.82rem; font-weight:600; background:#ede9fe; color:#5b21b6; border:2px solid #c4b5fd; z-index:2;
+      cursor:pointer; user-select:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      box-shadow:0 1px 3px rgba(0,0,0,.15); }
+  .mapa-node.sel { background:#6d28d9; color:#fff; border-color:#5b21b6; box-shadow:0 0 0 3px rgba(109,40,217,.3); }
 </style>
 {% endblock %}
 
@@ -234,6 +243,17 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
+        else if (tipo === 'mapa_conceptual') {
+            opcionesHtml = `
+                <p class="text-muted mb-2" style="font-size:.85rem;">
+                    <i class="bi bi-diagram-3"></i> {% trans "Toca un concepto y luego otro para relacionarlos. Toca la conexión de nuevo para quitarla." %}
+                </p>
+                <div class="mapa-canvas" data-mapa="1">
+                    <svg class="mapa-svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+                </div>
+            `;
+        }
+
         // Enunciado: para "completar" convertimos cada [[]] en un input.
         let enunciadoHtml = esc(pregunta.enunciado);
         if (tipo === 'completar') {
@@ -291,6 +311,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         document.getElementById('finalizar-btn').addEventListener('click', finalizarIntento);
+        initMapasResolver();
+    }
+
+    /* ── Mapa conceptual (estudiante): dibujar nodos en círculo ── */
+    function _mapaKeyR(a, b) { return [a, b].sort((x, y) => x - y).join('|'); }
+
+    function _dibujarMapaResolver(card) {
+        const canvas = card.querySelector('.mapa-canvas');
+        const svg = card.querySelector('.mapa-svg');
+        if (!canvas || !svg) return;
+        const nodos = card._nodos || [];
+        const n = nodos.length;
+        const pos = {};
+        nodos.forEach((nd, i) => {
+            if (n === 1) { pos[nd.orden] = {x: 50, y: 50}; return; }
+            const ang = -Math.PI / 2 + (2 * Math.PI * i) / n;
+            pos[nd.orden] = { x: 50 + 38 * Math.cos(ang), y: 50 + 38 * Math.sin(ang) };
+        });
+        let lineas = '';
+        (card._edges || new Set()).forEach(k => {
+            const [a, b] = k.split('|').map(Number);
+            if (!pos[a] || !pos[b]) return;
+            lineas += `<line x1="${pos[a].x}" y1="${pos[a].y}" x2="${pos[b].x}" y2="${pos[b].y}" stroke="#6d28d9" stroke-width="0.7" />`;
+        });
+        svg.innerHTML = lineas;
+        canvas.querySelectorAll('.mapa-node').forEach(el => el.remove());
+        const sel = card._mapaSel;
+        nodos.forEach((nd, i) => {
+            const p = pos[nd.orden];
+            const chip = document.createElement('div');
+            chip.className = 'mapa-node' + (nd.orden === sel ? ' sel' : '');
+            chip.dataset.orden = nd.orden;
+            chip.textContent = nd.texto || (i + 1);
+            chip.style.left = p.x + '%';
+            chip.style.top = p.y + '%';
+            canvas.appendChild(chip);
+        });
+    }
+
+    function initMapasResolver() {
+        document.querySelectorAll('.card[data-pregunta-tipo="mapa_conceptual"]').forEach(card => {
+            const pid = card.dataset.preguntaId;
+            const preg = (cuestionarioData.preguntas || []).find(p => String(p.id) === String(pid));
+            card._nodos = (preg && preg.nodos) ? preg.nodos : [];
+            card._edges = new Set();
+            card._mapaSel = null;
+            _dibujarMapaResolver(card);
+        });
     }
 
     function iniciarTemporizador() {
@@ -395,6 +463,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     preguntaCard.querySelectorAll('.ord-item').forEach(it => orden.push(it.dataset.texto));
                     if (orden.length) {
                         respuestas[preguntaId] = { tipo, respuesta_ordenar: orden };
+                    }
+                    break;
+                }
+                case 'mapa_conceptual': {
+                    const edges = [];
+                    (preguntaCard._edges || new Set()).forEach(k => {
+                        const [a, b] = k.split('|').map(Number);
+                        edges.push([a, b]);
+                    });
+                    if (edges.length) {
+                        respuestas[preguntaId] = { tipo, respuesta_mapa: edges };
                     }
                     break;
                 }
@@ -557,6 +636,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 list.insertBefore(item.nextElementSibling, item);
             }
             list.querySelectorAll('.ord-item .ord-badge').forEach((b, i) => b.textContent = i + 1);
+            return;
+        }
+
+        // ── Mapa conceptual: tocar dos conceptos para relacionarlos ──
+        const mnode = e.target.closest('.mapa-node');
+        if (mnode) {
+            const card = mnode.closest('.card');
+            if (!card || !card._nodos) return;
+            const orden = parseInt(mnode.dataset.orden, 10);
+            const sel = card._mapaSel;
+            if (sel === null || sel === undefined) {
+                card._mapaSel = orden;
+            } else if (sel === orden) {
+                card._mapaSel = null;
+            } else {
+                const key = _mapaKeyR(sel, orden);
+                if (!card._edges) card._edges = new Set();
+                if (card._edges.has(key)) card._edges.delete(key);
+                else card._edges.add(key);
+                card._mapaSel = null;
+            }
+            _dibujarMapaResolver(card);
             return;
         }
     });

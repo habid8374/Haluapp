@@ -489,6 +489,16 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>`;
         }
 
+        if (pregunta.tipo === 'mapa_conceptual') {
+            return `
+            <div class="opcion-item mapa-row" data-opcion-id="${opcionId}">
+              <span class="mapa-num" style="flex-shrink:0;font-weight:700;color:#4f46e5;min-width:22px;"></span>
+              <input type="text" class="opcion-texto" value="${opcion.texto || ''}" placeholder="{% trans "Concepto" %}" style="min-width:0;flex:1;">
+              <input type="hidden" class="opcion-emparejamiento" value="${opcion.emparejamiento || ''}">
+              <button class="btn-del-opcion btn-eliminar-opcion" type="button" title="{% trans "Eliminar" %}"><i class="bi bi-trash3-fill"></i></button>
+            </div>`;
+        }
+
         if (pregunta.tipo === 'emparejamiento' || pregunta.tipo === 'clasificar') {
             const esClasif = pregunta.tipo === 'clasificar';
             const ph1 = esClasif ? '{% trans "Elemento" %}' : '{% trans "Elemento A" %}';
@@ -521,6 +531,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const showEtiquetar = pregunta.tipo === 'etiquetar';
         const showHotspot   = pregunta.tipo === 'hotspot';
         const showOrdenar   = pregunta.tipo === 'ordenar';
+        const showMapa      = pregunta.tipo === 'mapa_conceptual';
 
         const card = document.createElement('div');
         card.className = 'pregunta-card';
@@ -545,6 +556,9 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
           <div class="ordenar-hint alert alert-info py-2 mb-2 ${showOrdenar ? '' : 'd-none'}" style="font-size:.8rem;">
             <i class="bi bi-info-circle me-1"></i>{% trans "Escribe los pasos o eventos EN EL ORDEN CORRECTO (usa las flechas para reordenar). El estudiante los verá barajados y deberá ordenarlos." %}
+          </div>
+          <div class="mapa-hint alert alert-info py-2 mb-2 ${showMapa ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Escribe los conceptos (uno por fila). Luego, en el mapa de abajo, toca un concepto y después otro para conectarlos: esas serán las relaciones correctas. El estudiante verá los conceptos sin conexiones y deberá relacionarlos." %}
           </div>
           <div class="pregunta-imagen-block mb-2">
             <input type="hidden" class="imagen-path" value="${pregunta.imagen_path || ''}">
@@ -575,6 +589,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <option value="etiquetar"         ${pregunta.tipo==='etiquetar'         ?'selected':''}>{% trans "Etiquetar imagen (esquema)" %}</option>
                 <option value="hotspot"           ${pregunta.tipo==='hotspot'           ?'selected':''}>{% trans "Zonas activas (clic en la imagen)" %}</option>
                 <option value="ordenar"           ${pregunta.tipo==='ordenar'           ?'selected':''}>{% trans "Ordenar / Línea de tiempo" %}</option>
+                <option value="mapa_conceptual"   ${pregunta.tipo==='mapa_conceptual'   ?'selected':''}>{% trans "Mapa conceptual (relacionar)" %}</option>
               </select>
             </div>
             <div style="max-width:110px;">
@@ -590,12 +605,121 @@ document.addEventListener('DOMContentLoaded', function () {
           <button class="btn-agregar-opcion btn-agregar-opcion ${showOptions ? '' : 'd-none'}" type="button">
             <i class="bi bi-plus-circle"></i> {% trans "Agregar opción" %}
           </button>
+          <div class="mapa-canvas-block ${showMapa ? '' : 'd-none'}" style="margin-top:.75rem;">
+            <div style="font-size:.78rem;font-weight:700;color:#475569;margin-bottom:4px;">
+              <i class="bi bi-diagram-3 me-1"></i>{% trans "Mapa de relaciones (toca dos conceptos para conectarlos)" %}
+            </div>
+            <div class="mapa-canvas" style="position:relative;width:100%;height:280px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+              <svg class="mapa-svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;"></svg>
+            </div>
+          </div>
         `;
         editorPreguntas.appendChild(card);
         renumerarPreguntas();
         if (showEtiquetar) refrescarEtiquetar(card);
         if (showHotspot) refrescarHotspot(card);
         if (showOrdenar) refrescarOrdenar(card);
+        if (showMapa) refrescarMapa(card);
+    }
+
+    /* ── Mapa conceptual: nodos en círculo + aristas correctas (editor) ── */
+    function _mapaKey(a, b) { return [a, b].sort().join('|'); }
+
+    function refrescarMapa(card) {
+        const filas = Array.from(card.querySelectorAll('.mapa-row'));
+        filas.forEach((fila, i) => {
+            const numEl = fila.querySelector('.mapa-num');
+            if (numEl) numEl.textContent = (i + 1) + '.';
+        });
+        const canvas = card.querySelector('.mapa-canvas');
+        const svg = card.querySelector('.mapa-svg');
+        if (!canvas || !svg) return;
+
+        // id estable por fila
+        const nodos = filas.map((fila, i) => ({
+            id: fila.dataset.opcionId,
+            idx: i,
+            texto: (fila.querySelector('.opcion-texto')?.value || '').trim(),
+        }));
+        const idToIdx = {};
+        nodos.forEach(n => { idToIdx[n.id] = n.idx; });
+
+        // Primera vez: reconstruir aristas (basadas en índices) → set por id.
+        if (!card._mapaEdges) {
+            card._mapaEdges = new Set();
+            filas.forEach((fila, i) => {
+                const csv = (fila.querySelector('.opcion-emparejamiento')?.value || '').trim();
+                if (!csv) return;
+                csv.split(',').forEach(p => {
+                    const j = parseInt(p, 10);
+                    if (!isNaN(j) && j !== i && filas[j]) {
+                        card._mapaEdges.add(_mapaKey(fila.dataset.opcionId, filas[j].dataset.opcionId));
+                    }
+                });
+            });
+        }
+
+        // Podar aristas cuyos extremos ya no existen.
+        const idsVivos = new Set(nodos.map(n => n.id));
+        card._mapaEdges.forEach(k => {
+            const [a, b] = k.split('|');
+            if (!idsVivos.has(a) || !idsVivos.has(b)) card._mapaEdges.delete(k);
+        });
+
+        // Escribir emparejamiento (índices de vecinos) en cada fila para el guardado.
+        const vecinos = {};
+        nodos.forEach(n => { vecinos[n.id] = []; });
+        card._mapaEdges.forEach(k => {
+            const [a, b] = k.split('|');
+            if (vecinos[a]) vecinos[a].push(idToIdx[b]);
+            if (vecinos[b]) vecinos[b].push(idToIdx[a]);
+        });
+        filas.forEach(fila => {
+            const inp = fila.querySelector('.opcion-emparejamiento');
+            if (inp) inp.value = (vecinos[fila.dataset.opcionId] || []).sort((x, y) => x - y).join(',');
+        });
+
+        _dibujarMapa(card, canvas, svg, nodos, card._mapaEdges, true);
+    }
+
+    // Posición de cada nodo en % (círculo). Devuelve {id: {x,y}}.
+    function _posicionesMapa(nodos) {
+        const pos = {};
+        const n = nodos.length;
+        nodos.forEach((nd, i) => {
+            if (n === 1) { pos[nd.id] = {x: 50, y: 50}; return; }
+            const ang = -Math.PI / 2 + (2 * Math.PI * i) / n;
+            pos[nd.id] = { x: 50 + 38 * Math.cos(ang), y: 50 + 38 * Math.sin(ang) };
+        });
+        return pos;
+    }
+
+    function _dibujarMapa(card, canvas, svg, nodos, edges, editable) {
+        const pos = _posicionesMapa(nodos);
+        // Líneas
+        let lineas = '';
+        edges.forEach(k => {
+            const [a, b] = k.split('|');
+            if (!pos[a] || !pos[b]) return;
+            lineas += `<line x1="${pos[a].x}" y1="${pos[a].y}" x2="${pos[b].x}" y2="${pos[b].y}" stroke="#4f46e5" stroke-width="0.7" />`;
+        });
+        svg.innerHTML = lineas;
+        // Nodos
+        canvas.querySelectorAll('.mapa-node').forEach(el => el.remove());
+        const selId = card.dataset.mapaSel || '';
+        nodos.forEach((nd, i) => {
+            const p = pos[nd.id];
+            const chip = document.createElement('div');
+            chip.className = 'mapa-node' + (nd.id === selId ? ' sel' : '');
+            chip.dataset.nodeId = nd.id;
+            chip.textContent = nd.texto || ((i + 1) + '');
+            chip.style.cssText = `position:absolute;left:${p.x}%;top:${p.y}%;transform:translate(-50%,-50%);`
+                + `max-width:38%;padding:5px 10px;border-radius:16px;font-size:.8rem;font-weight:600;`
+                + `background:${nd.id === selId ? '#4f46e5' : '#ede9fe'};color:${nd.id === selId ? '#fff' : '#5b21b6'};`
+                + `border:2px solid ${nd.id === selId ? '#4f46e5' : '#c4b5fd'};z-index:2;cursor:${editable ? 'pointer' : 'default'};`
+                + `white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 3px rgba(0,0,0,.15);`;
+            canvas.appendChild(chip);
+        });
     }
 
     /* ── Hotspot: numerar zonas y dibujar círculos sobre la imagen ── */
@@ -852,6 +976,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (tipo === 'etiquetar') refrescarEtiquetar(card);
             if (tipo === 'hotspot') refrescarHotspot(card);
             if (tipo === 'ordenar') refrescarOrdenar(card);
+            if (tipo === 'mapa_conceptual') refrescarMapa(card);
         }
         if (e.target.closest('.btn-eliminar-opcion')) {
             const card = e.target.closest('.pregunta-card');
@@ -860,6 +985,29 @@ document.addEventListener('DOMContentLoaded', function () {
             if (t === 'etiquetar') { card.dataset.armadoOpcion = ''; refrescarEtiquetar(card); }
             if (t === 'hotspot')   { card.dataset.armadoOpcion = ''; refrescarHotspot(card); }
             if (t === 'ordenar')   { refrescarOrdenar(card); }
+            if (t === 'mapa_conceptual') { card.dataset.mapaSel = ''; refrescarMapa(card); }
+        }
+        /* ── Mapa conceptual: tocar dos nodos para conectar/desconectar ── */
+        const nodo = e.target.closest('.mapa-node');
+        if (nodo) {
+            const card = nodo.closest('.pregunta-card');
+            if (card && card.querySelector('.tipo-pregunta')?.value === 'mapa_conceptual') {
+                const id = nodo.dataset.nodeId;
+                const sel = card.dataset.mapaSel || '';
+                if (!sel) {
+                    card.dataset.mapaSel = id;
+                } else if (sel === id) {
+                    card.dataset.mapaSel = '';
+                } else {
+                    const key = _mapaKey(sel, id);
+                    if (!card._mapaEdges) card._mapaEdges = new Set();
+                    if (card._mapaEdges.has(key)) card._mapaEdges.delete(key);
+                    else card._mapaEdges.add(key);
+                    card.dataset.mapaSel = '';
+                }
+                refrescarMapa(card);
+            }
+            return;
         }
         /* ── Ordenar: subir/bajar una fila ── */
         const btnUp = e.target.closest('.btn-ord-up');
@@ -937,17 +1085,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Hotspot: cambiar el radio de una zona actualiza el círculo ── */
     editorPreguntas.addEventListener('input', function (e) {
-        if (!e.target.classList.contains('zona-radio')) return;
-        const fila = e.target.closest('.hot-row');
-        const card = e.target.closest('.pregunta-card');
-        if (!fila) return;
-        const emp = fila.querySelector('.opcion-emparejamiento');
-        const val = (emp.value || '').trim();
-        if (val) {
-            const parts = val.split(',');
-            const r = parseFloat(e.target.value || '10') || 10;
-            emp.value = `${parts[0]},${parts[1]},${r}`;
-            refrescarHotspot(card);
+        if (e.target.classList.contains('zona-radio')) {
+            const fila = e.target.closest('.hot-row');
+            const card = e.target.closest('.pregunta-card');
+            if (!fila) return;
+            const emp = fila.querySelector('.opcion-emparejamiento');
+            const val = (emp.value || '').trim();
+            if (val) {
+                const parts = val.split(',');
+                const r = parseFloat(e.target.value || '10') || 10;
+                emp.value = `${parts[0]},${parts[1]},${r}`;
+                refrescarHotspot(card);
+            }
+            return;
+        }
+        /* ── Mapa conceptual: al editar un concepto, refrescar las etiquetas de los nodos ── */
+        if (e.target.classList.contains('opcion-texto') && e.target.closest('.mapa-row')) {
+            const card = e.target.closest('.pregunta-card');
+            if (card) refrescarMapa(card);
         }
     });
 
@@ -962,12 +1117,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const etiquetarHint = card.querySelector('.etiquetar-hint');
         const hotspotHint = card.querySelector('.hotspot-hint');
         const ordenarHint = card.querySelector('.ordenar-hint');
+        const mapaHint = card.querySelector('.mapa-hint');
+        const mapaCanvasBlock = card.querySelector('.mapa-canvas-block');
 
         rubrica.classList.toggle('d-none', tipo !== 'texto_libre');
         if (completarHint) completarHint.classList.toggle('d-none', tipo !== 'completar');
         if (etiquetarHint) etiquetarHint.classList.toggle('d-none', tipo !== 'etiquetar');
         if (hotspotHint) hotspotHint.classList.toggle('d-none', tipo !== 'hotspot');
         if (ordenarHint) ordenarHint.classList.toggle('d-none', tipo !== 'ordenar');
+        if (mapaHint) mapaHint.classList.toggle('d-none', tipo !== 'mapa_conceptual');
+        if (mapaCanvasBlock) mapaCanvasBlock.classList.toggle('d-none', tipo !== 'mapa_conceptual');
+        // Reiniciar estado del mapa al cambiar de tipo.
+        card._mapaEdges = null;
+        card.dataset.mapaSel = '';
         const showOpts = !['texto_libre','completar'].includes(tipo);
         opcionesContainer.classList.toggle('d-none', !showOpts);
         btnAdd.classList.toggle('d-none', !showOpts);
@@ -983,6 +1145,8 @@ document.addEventListener('DOMContentLoaded', function () {
             opciones = [{texto:'', emparejamiento:'', orden:0}];
         } else if (tipo === 'ordenar') {
             opciones = [{texto:'', orden:0},{texto:'', orden:1},{texto:'', orden:2}];
+        } else if (tipo === 'mapa_conceptual') {
+            opciones = [{texto:'', emparejamiento:'', orden:0},{texto:'', emparejamiento:'', orden:1},{texto:'', emparejamiento:'', orden:2},{texto:'', emparejamiento:'', orden:3}];
         } else if (['opcion_multiple','seleccion_multiple'].includes(tipo)) {
             opciones = [{texto:'', es_correcta:true, orden:0},{texto:'', es_correcta:false, orden:1}];
         }
@@ -991,6 +1155,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (tipo === 'etiquetar') refrescarEtiquetar(card);
         if (tipo === 'hotspot') refrescarHotspot(card);
         if (tipo === 'ordenar') refrescarOrdenar(card);
+        if (tipo === 'mapa_conceptual') refrescarMapa(card);
     });
 
     /* ── Imagen de la pregunta ── */

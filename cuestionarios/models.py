@@ -74,6 +74,7 @@ class PreguntaCuestionario(models.Model):
         ('etiquetar', 'Etiquetar imagen (esquema)'),
         ('hotspot', 'Zonas activas (clic en la imagen)'),
         ('ordenar', 'Ordenar / Línea de tiempo'),
+        ('mapa_conceptual', 'Mapa conceptual (relacionar)'),
     ]
     # ▲▲▲ FIN DE LA MODIFICACIÓN ▲▲▲
 
