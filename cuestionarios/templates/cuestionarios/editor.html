@@ -532,6 +532,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const showHotspot   = pregunta.tipo === 'hotspot';
         const showOrdenar   = pregunta.tipo === 'ordenar';
         const showMapa      = pregunta.tipo === 'mapa_conceptual';
+        const showOU        = pregunta.tipo === 'opcion_multiple';
+        const showSM        = pregunta.tipo === 'seleccion_multiple';
+        const showVF        = pregunta.tipo === 'verdadero_falso';
+        const showTL        = pregunta.tipo === 'texto_libre';
+        const showEmp       = pregunta.tipo === 'emparejamiento';
+        const showClas      = pregunta.tipo === 'clasificar';
 
         const card = document.createElement('div');
         card.className = 'pregunta-card';
@@ -559,6 +565,24 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
           <div class="mapa-hint alert alert-info py-2 mb-2 ${showMapa ? '' : 'd-none'}" style="font-size:.8rem;">
             <i class="bi bi-info-circle me-1"></i>{% trans "Escribe los conceptos (uno por fila). Luego, en el mapa de abajo, toca un concepto y después otro para conectarlos: esas serán las relaciones correctas. El estudiante verá los conceptos sin conexiones y deberá relacionarlos." %}
+          </div>
+          <div class="ou-hint alert alert-info py-2 mb-2 ${showOU ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Opción única: escribe las opciones y marca con el círculo la ÚNICA respuesta correcta. El estudiante podrá elegir solo una." %}
+          </div>
+          <div class="sm-hint alert alert-info py-2 mb-2 ${showSM ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Selección múltiple: marca con las casillas TODAS las respuestas correctas (pueden ser varias). El estudiante deberá seleccionarlas todas para acertar." %}
+          </div>
+          <div class="vf-hint alert alert-info py-2 mb-2 ${showVF ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Verdadero / Falso: deja marcada como correcta la opción que corresponda (Verdadero o Falso)." %}
+          </div>
+          <div class="tl-hint alert alert-info py-2 mb-2 ${showTL ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Texto libre: el estudiante responde por escrito. Escribe abajo la rúbrica o respuesta ideal para orientar la corrección (incluida la de la IA)." %}
+          </div>
+          <div class="emp-hint alert alert-info py-2 mb-2 ${showEmp ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Emparejamiento: escribe cada par (Elemento A y su Elemento B correspondiente). El estudiante deberá unir cada elemento con su pareja." %}
+          </div>
+          <div class="clas-hint alert alert-info py-2 mb-2 ${showClas ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Clasificar: escribe cada elemento y la categoría a la que pertenece. El estudiante deberá arrastrar cada elemento a su categoría correcta." %}
           </div>
           <div class="pregunta-imagen-block mb-2">
             <input type="hidden" class="imagen-path" value="${pregunta.imagen_path || ''}">
@@ -1127,6 +1151,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (ordenarHint) ordenarHint.classList.toggle('d-none', tipo !== 'ordenar');
         if (mapaHint) mapaHint.classList.toggle('d-none', tipo !== 'mapa_conceptual');
         if (mapaCanvasBlock) mapaCanvasBlock.classList.toggle('d-none', tipo !== 'mapa_conceptual');
+        // Guías de los tipos clásicos
+        [['.ou-hint','opcion_multiple'],['.sm-hint','seleccion_multiple'],['.vf-hint','verdadero_falso'],
+         ['.tl-hint','texto_libre'],['.emp-hint','emparejamiento'],['.clas-hint','clasificar']].forEach(([sel, t]) => {
+            const el = card.querySelector(sel);
+            if (el) el.classList.toggle('d-none', tipo !== t);
+        });
         // Reiniciar estado del mapa al cambiar de tipo.
         card._mapaEdges = null;
         card.dataset.mapaSel = '';
