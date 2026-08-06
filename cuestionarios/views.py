@@ -128,9 +128,17 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 'puntaje': p.puntaje,
                 'orden': p.orden,
                 'retroalimentacion': p.retroalimentacion,
+                'imagen_url': p.imagen.url if p.imagen else None,
+                'imagen_path': p.imagen.name if p.imagen else None,
             }
             if puede_ver_respuestas:
                 pregunta_data['respuesta_correcta_abierta'] = p.respuesta_correcta_abierta
+
+            # "Completar": las respuestas correctas van marcadas como [[respuesta]].
+            # Al estudiante que resuelve NO se le envían: se enmascaran a [[]].
+            if p.tipo == 'completar' and not puede_ver_respuestas:
+                import re as _re
+                pregunta_data['enunciado'] = _re.sub(r'\[\[.*?\]\]', '[[]]', p.enunciado or '')
 
             if p.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento']:
                 pregunta_data['opciones'] = [
@@ -200,7 +208,10 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                     puntaje=pregunta_data.get('puntaje', 1),
                     orden=pregunta_data['orden'],
                     retroalimentacion=pregunta_data.get('retroalimentacion'),
-                    respuesta_correcta_abierta=pregunta_data.get('respuesta_correcta_abierta')
+                    respuesta_correcta_abierta=pregunta_data.get('respuesta_correcta_abierta'),
+                    # La imagen se sube aparte y aquí solo se re-referencia su ruta
+                    # (no se vuelve a subir el archivo). Ver SubirImagenPreguntaView.
+                    imagen=(pregunta_data.get('imagen_path') or None),
                 )
                 
                 # 4. Creamos las opciones para cada pregunta.
@@ -227,8 +238,35 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
             }, status=400)
 
 
+class SubirImagenPreguntaView(LoginRequiredMixin, View):
+    """Sube la imagen/gráfico de una pregunta y devuelve su ruta y URL. El
+    editor guarda esa ruta en el JSON del cuestionario (no reenvía el archivo)."""
+
+    def post(self, request, actividad_pk):
+        actividad = get_object_or_404(ActividadCalificable, pk=actividad_pk)
+        if not (request.user.is_superuser or (
+            hasattr(request.user, 'docente') and docente_asignado_a_actividad(request.user, actividad)
+        )):
+            return JsonResponse({'error': 'No autorizado.'}, status=403)
+
+        archivo = request.FILES.get('imagen')
+        if not archivo:
+            return JsonResponse({'error': 'No se recibió ninguna imagen.'}, status=400)
+        if archivo.size > 5 * 1024 * 1024:
+            return JsonResponse({'error': 'La imagen supera el tamaño máximo (5 MB).'}, status=400)
+        ext = (archivo.name.rsplit('.', 1)[-1] if '.' in archivo.name else '').lower()
+        if ext not in ('jpg', 'jpeg', 'png', 'gif', 'webp'):
+            return JsonResponse({'error': 'Formato no permitido. Usa JPG, PNG, GIF o WEBP.'}, status=400)
+
+        import uuid
+        from django.core.files.storage import default_storage
+        nombre = f"cuestionarios/preguntas/{actividad_pk}/{uuid.uuid4().hex}.{ext}"
+        path = default_storage.save(nombre, archivo)
+        return JsonResponse({'path': path, 'url': default_storage.url(path)})
+
+
 class ToggleCuestionarioActivoView(LoginRequiredMixin, View):
-    
+
     def post(self, request, cuestionario_id):
         if request.user.is_superuser:
             cuestionario = get_object_or_404(Cuestionario, pk=cuestionario_id)
@@ -441,6 +479,27 @@ class ResolverCuestionarioAPIView(APIView):
                     if pares_correctos_db and pares_correctos_db == pares_enviados:
                         puntaje_pregunta = pregunta.puntaje
 
+                elif tipo_pregunta == 'completar':
+                    # Las respuestas correctas están marcadas en el enunciado como [[respuesta]].
+                    # Se califica proporcional a los espacios acertados (comparación
+                    # sin distinguir mayúsculas/acentos ni espacios sobrantes).
+                    import re as _re, unicodedata as _ud
+
+                    def _norm(s):
+                        s = (s or '').strip().lower()
+                        return ''.join(
+                            c for c in _ud.normalize('NFD', s) if _ud.category(c) != 'Mn'
+                        )
+
+                    correctas = _re.findall(r'\[\[(.*?)\]\]', pregunta.enunciado or '')
+                    enviadas = respuesta_enviada.get('respuesta_completar', []) or []
+                    if correctas:
+                        aciertos = sum(
+                            1 for i, c in enumerate(correctas)
+                            if i < len(enviadas) and _norm(enviadas[i]) == _norm(c)
+                        )
+                        puntaje_pregunta = round(pregunta.puntaje * (aciertos / len(correctas)), 2)
+
             puntaje_total += puntaje_pregunta
 
             # Esta línea ahora usará el modelo RespuestaEstudiante correcto de la app 'cuestionarios'
@@ -449,6 +508,7 @@ class ResolverCuestionarioAPIView(APIView):
                 pregunta=pregunta,
                 texto_respuesta=respuesta_enviada.get('texto_respuesta') if respuesta_enviada else None,
                 respuesta_emparejamiento=respuesta_enviada.get('respuesta_emparejamiento') if respuesta_enviada else None,
+                respuesta_completar=respuesta_enviada.get('respuesta_completar') if respuesta_enviada else None,
                 puntaje_obtenido=puntaje_pregunta
             )
 

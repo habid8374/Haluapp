@@ -102,15 +102,30 @@ document.addEventListener('DOMContentLoaded', function() {
             `).join('');
         }
 
+        // Enunciado: para "completar" convertimos cada [[]] en un input.
+        let enunciadoHtml = esc(pregunta.enunciado);
+        if (tipo === 'completar') {
+            const partes = (pregunta.enunciado || '').split('[[]]');
+            enunciadoHtml = partes.map((p, i) =>
+                esc(p) + (i < partes.length - 1
+                    ? `<input type="text" class="completar-input" data-blank="${i}" autocomplete="off" style="display:inline-block;width:130px;margin:0 4px;padding:2px 8px;border:1px solid #94a3b8;border-radius:6px;">`
+                    : '')
+            ).join('');
+        }
+        const imagenHtml = pregunta.imagen_url
+            ? `<div class="mb-3 text-center"><img src="${pregunta.imagen_url}" alt="" style="max-width:100%;max-height:320px;border-radius:8px;border:1px solid #e5e7eb;"></div>`
+            : '';
+
         // Se añade data-pregunta-tipo para facilitar la recolección de respuestas
         return `
             <div class="card mb-3" data-pregunta-id="${pregunta.id}" data-pregunta-tipo="${tipo}">
                 <div class="card-header d-flex justify-content-between">
-                    <strong>Pregunta ${index + 1}</strong> 
+                    <strong>Pregunta ${index + 1}</strong>
                     <span class="badge bg-secondary">${pregunta.puntaje} pts</span>
                 </div>
                 <div class="card-body">
-                    <div class="enunciado mb-3">${esc(pregunta.enunciado)}</div>
+                    <div class="enunciado mb-3">${enunciadoHtml}</div>
+                    ${imagenHtml}
                     <div class="opciones-container">
                         ${opcionesHtml}
                     </div>
@@ -196,6 +211,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     const textarea = preguntaCard.querySelector('textarea');
                     if (textarea && textarea.value.trim() !== '') {
                         respuestas[preguntaId] = { tipo, texto_respuesta: textarea.value.trim() };
+                    }
+                    break;
+                }
+                case 'completar': {
+                    const inputs = preguntaCard.querySelectorAll('.completar-input');
+                    const valores = Array.from(inputs).map(inp => inp.value.trim());
+                    if (valores.some(v => v !== '')) {
+                        respuestas[preguntaId] = { tipo, respuesta_completar: valores };
                     }
                     break;
                 }

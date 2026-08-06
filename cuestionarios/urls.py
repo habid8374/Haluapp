@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.CuestionarioListView.as_view(), name='lista'),
     path('editor/<int:actividad_pk>/', views.EditorCuestionarioView.as_view(), name='editor_cuestionario'),
     path('api/<int:actividad_pk>/', views.CuestionarioAPIView.as_view(), name='api_cuestionario'),
+    path('api/<int:actividad_pk>/subir-imagen/', views.SubirImagenPreguntaView.as_view(), name='subir_imagen_pregunta'),
     path('toggle-activo/<int:cuestionario_id>/', views.ToggleCuestionarioActivoView.as_view(), name='toggle_activo'),
     path('resolver/<int:actividad_pk>/iniciar/', views.IniciarCuestionarioView.as_view(), name='iniciar_cuestionario'),
     path('resolver/intento/<int:intento_pk>/', views.ResolverCuestionarioView.as_view(), name='resolver_cuestionario'),

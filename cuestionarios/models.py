@@ -69,15 +69,22 @@ class PreguntaCuestionario(models.Model):
         ('verdadero_falso', 'Verdadero/Falso'),
         ('texto_libre', 'Texto Libre'),
         ('emparejamiento', 'Emparejamiento'),
+        ('completar', 'Completar (rellenar espacios)'),
     ]
     # ▲▲▲ FIN DE LA MODIFICACIÓN ▲▲▲
-    
+
     cuestionario = models.ForeignKey(
         Cuestionario,
         on_delete=models.CASCADE,
         related_name='preguntas'
     )
     enunciado = models.TextField()
+    imagen = models.ImageField(
+        upload_to='cuestionarios/preguntas/%Y/%m/',
+        null=True, blank=True,
+        verbose_name="Imagen / gráfico de la pregunta",
+        help_text="Opcional: gráfica, esquema o imagen para interpretar."
+    )
     tipo = models.CharField(
         max_length=20,
         choices=TIPOS_PREGUNTA,
@@ -196,6 +203,8 @@ class RespuestaEstudiante(models.Model):
     texto_respuesta = models.TextField(blank=True, null=True)
     # Para emparejamiento, guardamos un JSON con los pares
     respuesta_emparejamiento = models.JSONField(null=True, blank=True)
+    # Para "completar", lista de textos que el estudiante puso en cada espacio
+    respuesta_completar = models.JSONField(null=True, blank=True)
     puntaje_obtenido = models.FloatField(default=0)
     porcentaje_similitud = models.PositiveIntegerField(
         null=True, blank=True, 

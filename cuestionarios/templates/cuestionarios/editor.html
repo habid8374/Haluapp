@@ -468,8 +468,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderizarPregunta(pregunta) {
         const preguntaId  = pregunta.id || `new_${Date.now()}_${Math.random()}`;
         const opcionesHtml = (pregunta.opciones || []).map(op => renderizarOpcion(op, pregunta)).join('');
-        const showOptions  = pregunta.tipo !== 'texto_libre';
+        const showOptions  = !['texto_libre','completar'].includes(pregunta.tipo);
         const showRubrica  = pregunta.tipo === 'texto_libre';
+        const showCompletar = pregunta.tipo === 'completar';
 
         const card = document.createElement('div');
         card.className = 'pregunta-card';
@@ -482,6 +483,23 @@ document.addEventListener('DOMContentLoaded', function () {
             </button>
           </div>
           <textarea class="pregunta-enunciado enunciado" placeholder="{% trans "Escribe el enunciado de la pregunta…" %}">${pregunta.enunciado || ''}</textarea>
+          <div class="completar-hint alert alert-info py-2 mb-2 ${showCompletar ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Marca cada espacio a rellenar entre dobles corchetes. Ej:" %}
+            <code>{% trans "La capital es [[Bogotá]]." %}</code>
+          </div>
+          <div class="pregunta-imagen-block mb-2">
+            <input type="hidden" class="imagen-path" value="${pregunta.imagen_path || ''}">
+            <div class="imagen-preview mb-1 ${pregunta.imagen_url ? '' : 'd-none'}">
+              <img src="${pregunta.imagen_url || ''}" class="preg-img" style="max-height:150px;max-width:100%;border-radius:8px;border:1px solid #e5e7eb;">
+              <button type="button" class="btn btn-sm btn-outline-danger btn-quitar-imagen ms-2">
+                <i class="bi bi-x-lg"></i> {% trans "Quitar" %}
+              </button>
+            </div>
+            <label class="btn btn-sm btn-outline-secondary mb-0">
+              <i class="bi bi-image me-1"></i>{% trans "Imagen / gráfico (opcional)" %}
+              <input type="file" accept="image/*" class="input-imagen d-none">
+            </label>
+          </div>
           <div class="pregunta-meta">
             <div>
               <label>{% trans "Tipo de pregunta" %}</label>
@@ -491,6 +509,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <option value="verdadero_falso"   ${pregunta.tipo==='verdadero_falso'   ?'selected':''}>{% trans "Verdadero / Falso" %}</option>
                 <option value="texto_libre"       ${pregunta.tipo==='texto_libre'       ?'selected':''}>{% trans "Texto libre" %}</option>
                 <option value="emparejamiento"    ${pregunta.tipo==='emparejamiento'    ?'selected':''}>{% trans "Emparejamiento" %}</option>
+                <option value="completar"         ${pregunta.tipo==='completar'         ?'selected':''}>{% trans "Completar espacios" %}</option>
               </select>
             </div>
             <div style="max-width:110px;">
@@ -565,9 +584,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 puntaje: parseInt(card.querySelector('.puntaje').value) || 1,
                 orden: idx,
                 respuesta_correcta_abierta: card.querySelector('.respuesta-correcta-abierta').value,
+                imagen_path: card.querySelector('.imagen-path')?.value || null,
                 opciones: []
             };
-            if (preg.tipo !== 'texto_libre') {
+            if (!['texto_libre','completar'].includes(preg.tipo)) {
                 card.querySelectorAll('.opcion-item').forEach((el, oi) => {
                     const inp = el.querySelector('input[type=radio], input[type=checkbox]');
                     preg.opciones.push({
@@ -701,9 +721,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const opcionesContainer = card.querySelector('.opciones-container');
         const btnAdd = card.querySelector('.btn-agregar-opcion');
         const rubrica = card.querySelector('.rubrica-container');
+        const completarHint = card.querySelector('.completar-hint');
 
         rubrica.classList.toggle('d-none', tipo !== 'texto_libre');
-        const showOpts = tipo !== 'texto_libre';
+        if (completarHint) completarHint.classList.toggle('d-none', tipo !== 'completar');
+        const showOpts = !['texto_libre','completar'].includes(tipo);
         opcionesContainer.classList.toggle('d-none', !showOpts);
         btnAdd.classList.toggle('d-none', !showOpts);
 
@@ -716,6 +738,42 @@ document.addEventListener('DOMContentLoaded', function () {
             opciones = [{texto:'', es_correcta:true, orden:0},{texto:'', es_correcta:false, orden:1}];
         }
         opcionesContainer.innerHTML = opciones.map(op => renderizarOpcion(op, {id:card.dataset.preguntaId, tipo})).join('');
+    });
+
+    /* ── Imagen de la pregunta ── */
+    const apiUrlImagen = `/cuestionarios/api/${actividadId}/subir-imagen/`;
+    editorPreguntas.addEventListener('change', function (e) {
+        if (!e.target.classList.contains('input-imagen')) return;
+        const input = e.target;
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const card = input.closest('.pregunta-card');
+        const label = input.closest('label');
+        const original = label ? label.innerHTML : '';
+        if (label) label.innerHTML = '<span class="spinner-border spinner-border-sm"></span> {% trans "Subiendo…" %}';
+        const fd = new FormData();
+        fd.append('imagen', file);
+        fetch(apiUrlImagen, { method: 'POST', headers: { 'X-CSRFToken': csrfToken }, body: fd })
+            .then(r => r.json())
+            .then(res => {
+                if (res.path) {
+                    card.querySelector('.imagen-path').value = res.path;
+                    const prev = card.querySelector('.imagen-preview');
+                    prev.querySelector('.preg-img').src = res.url;
+                    prev.classList.remove('d-none');
+                } else {
+                    showNotification('{% trans "Error" %}', res.error || '{% trans "No se pudo subir la imagen." %}', false);
+                }
+            })
+            .catch(() => showNotification('{% trans "Error" %}', '{% trans "No se pudo subir la imagen." %}', false))
+            .finally(() => { if (label) label.innerHTML = original; input.value = ''; });
+    });
+    editorPreguntas.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-quitar-imagen');
+        if (!btn) return;
+        const card = btn.closest('.pregunta-card');
+        card.querySelector('.imagen-path').value = '';
+        card.querySelector('.imagen-preview').classList.add('d-none');
     });
 
     cargarDatos();
