@@ -9313,7 +9313,34 @@ def familiar_responder_cita_orientacion_view(request, pk):
                 ],
             ),
         )
-        messages.success(request, _("Confirmaste tu asistencia a la cita."))
+        # Comprobante de confirmación para el propio acudiente (correo), con
+        # las credenciales de la institución (Brevo/SMTP). Le queda un registro
+        # con todos los datos de la cita ya confirmada.
+        _correo_fam = (getattr(request.user, 'email', '') or '').strip()
+        if _correo_fam:
+            try:
+                from admisiones.utils import enviar_correo_dinamico
+                enviar_correo_dinamico(
+                    cita.institucion,
+                    str(_("Confirmación de tu cita de orientación")),
+                    [_correo_fam],
+                    _html_correo_cita_orientacion(
+                        cita.institucion,
+                        titulo=str(_("¡Cita confirmada!")),
+                        saludo=str(_("Hola %(nombre)s,") % {'nombre': _fam_nombre}),
+                        cuerpo_html=str(_("<p>Tu cita de orientación quedó <strong>confirmada</strong>. Te esperamos en la fecha y hora indicadas. Si necesitas cambiarla, puedes reprogramarla o cancelarla desde el portal de familias.</p>")),
+                        detalle_cita=[
+                            (str(_("Estudiante")), cita.estudiante.usuario.get_full_name()),
+                            (str(_("Orientador(a)")), cita.orientador.get_full_name() or cita.orientador.username),
+                            (str(_("Fecha y hora")), _fecha_txt),
+                            (str(_("Asunto")), cita.asunto),
+                            (str(_("Estado")), str(_("Confirmada"))),
+                        ],
+                    ),
+                )
+            except Exception:
+                logger.exception("No se pudo enviar el comprobante de confirmación a %s", _correo_fam)
+        messages.success(request, _("Confirmaste tu asistencia. Te enviamos un correo de confirmación."))
     elif accion == 'cancelar':
         motivo = (request.POST.get('motivo') or '').strip()
         cita.estado = CitaOrientacion.EstadoCita.CANCELADA
