@@ -200,6 +200,44 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                         for op in p.opciones.order_by('orden')
                     ]
 
+            # "Hotspot": cada opción es una zona correcta (emparejamiento="x,y,r"
+            # en % sobre la imagen; texto=nombre opcional). El estudiante hace clic
+            # sobre la imagen; nunca recibe las coordenadas de las zonas.
+            if p.tipo == 'hotspot':
+                zonas = []
+                for op in p.opciones.order_by('orden'):
+                    partes = (op.emparejamiento or '0,0,8').split(',')
+                    try:
+                        zx, zy = float(partes[0]), float(partes[1])
+                        zr = float(partes[2]) if len(partes) > 2 else 8.0
+                    except (ValueError, IndexError):
+                        zx, zy, zr = 0.0, 0.0, 8.0
+                    zonas.append({'orden': op.orden, 'x': zx, 'y': zy, 'r': zr, 'texto': op.texto})
+                if es_estudiante:
+                    # Solo el número de zonas a marcar (los clics permitidos), sin posiciones.
+                    pregunta_data['num_zonas'] = len(zonas)
+                else:
+                    pregunta_data['zonas'] = zonas
+                    pregunta_data['opciones'] = [
+                        {'id': op.id, 'texto': op.texto, 'emparejamiento': op.emparejamiento, 'orden': op.orden}
+                        for op in p.opciones.order_by('orden')
+                    ]
+
+            # "Ordenar": cada opción es un paso (texto) con su posición correcta (orden).
+            # El estudiante recibe los pasos barajados y debe ordenarlos.
+            if p.tipo == 'ordenar':
+                import random as _rnd4
+                pasos = [
+                    {'id': op.id, 'texto': op.texto, 'orden': op.orden}
+                    for op in p.opciones.order_by('orden')
+                ]
+                if es_estudiante:
+                    solo_textos = [x['texto'] for x in pasos]
+                    _rnd4.shuffle(solo_textos)
+                    pregunta_data['pasos'] = solo_textos
+                else:
+                    pregunta_data['opciones'] = pasos
+
             preguntas.append(pregunta_data)
 
         response_data = {
@@ -262,14 +300,29 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 )
                 
                 # 4. Creamos las opciones para cada pregunta.
-                if pregunta.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento', 'clasificar', 'etiquetar']:
+                if pregunta.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento', 'clasificar', 'etiquetar', 'hotspot', 'ordenar']:
                     for opcion_data in pregunta_data.get('opciones', []):
+                        texto_val = (opcion_data.get('texto') or '').strip()
+                        emp_val = opcion_data.get('emparejamiento')
+                        orden_val = opcion_data.get('orden', 0)
+                        # En "hotspot" el nombre de la zona es opcional: se completa
+                        # con uno por defecto (el campo texto no admite vacío). Las
+                        # filas de hotspot sin coordenadas se descartan.
+                        if pregunta.tipo == 'hotspot':
+                            if not emp_val:
+                                continue
+                            if not texto_val:
+                                texto_val = f"Zona {orden_val + 1}"
+                        # Filas totalmente vacías (sin texto) se ignoran para no romper
+                        # el guardado con opciones en blanco.
+                        elif not texto_val:
+                            continue
                         OpcionPregunta.objects.create(
                             pregunta=pregunta,
-                            texto=opcion_data['texto'],
-                            emparejamiento=opcion_data.get('emparejamiento'),
-                            es_correcta=opcion_data['es_correcta'],
-                            orden=opcion_data['orden']
+                            texto=texto_val,
+                            emparejamiento=emp_val,
+                            es_correcta=opcion_data.get('es_correcta', False),
+                            orden=orden_val,
                         )
             
             return JsonResponse({
@@ -560,6 +613,45 @@ class ResolverCuestionarioAPIView(APIView):
                         )
                         puntaje_pregunta = round(pregunta.puntaje * (aciertos / len(correctas)), 2)
 
+                elif tipo_pregunta == 'hotspot':
+                    # Zonas correctas: emparejamiento="x,y,r" en %. El estudiante envía
+                    # una lista de clics [{x,y}]. Se cuenta cada zona que reciba al menos
+                    # un clic dentro de su radio. Calificación proporcional a las zonas.
+                    zonas = []
+                    for op in pregunta.opciones.all():
+                        partes = (op.emparejamiento or '0,0,8').split(',')
+                        try:
+                            zx, zy = float(partes[0]), float(partes[1])
+                            zr = float(partes[2]) if len(partes) > 2 else 8.0
+                        except (ValueError, IndexError):
+                            continue
+                        zonas.append((zx, zy, zr))
+                    clics = respuesta_enviada.get('respuesta_hotspot', []) or []
+                    if zonas:
+                        aciertos = 0
+                        for (zx, zy, zr) in zonas:
+                            for c in clics:
+                                try:
+                                    cx, cy = float(c.get('x')), float(c.get('y'))
+                                except (TypeError, ValueError):
+                                    continue
+                                if ((cx - zx) ** 2 + (cy - zy) ** 2) ** 0.5 <= zr:
+                                    aciertos += 1
+                                    break
+                        puntaje_pregunta = round(pregunta.puntaje * (aciertos / len(zonas)), 2)
+
+                elif tipo_pregunta == 'ordenar':
+                    # correctas: lista de textos en el orden correcto. enviadas: lista del
+                    # estudiante. Calificación proporcional por posiciones acertadas.
+                    correctas = [op.texto for op in pregunta.opciones.order_by('orden')]
+                    enviadas = respuesta_enviada.get('respuesta_ordenar', []) or []
+                    if correctas:
+                        aciertos = sum(
+                            1 for i, c in enumerate(correctas)
+                            if i < len(enviadas) and _normalizar_texto(enviadas[i]) == _normalizar_texto(c)
+                        )
+                        puntaje_pregunta = round(pregunta.puntaje * (aciertos / len(correctas)), 2)
+
             puntaje_total += puntaje_pregunta
 
             # Esta línea ahora usará el modelo RespuestaEstudiante correcto de la app 'cuestionarios'
@@ -569,7 +661,9 @@ class ResolverCuestionarioAPIView(APIView):
                 texto_respuesta=respuesta_enviada.get('texto_respuesta') if respuesta_enviada else None,
                 respuesta_emparejamiento=(
                     (respuesta_enviada.get('respuesta_emparejamiento')
-                     or respuesta_enviada.get('respuesta_etiquetar'))
+                     or respuesta_enviada.get('respuesta_etiquetar')
+                     or respuesta_enviada.get('respuesta_hotspot')
+                     or respuesta_enviada.get('respuesta_ordenar'))
                     if respuesta_enviada else None
                 ),
                 respuesta_completar=respuesta_enviada.get('respuesta_completar') if respuesta_enviada else None,

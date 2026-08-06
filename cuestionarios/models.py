@@ -72,6 +72,8 @@ class PreguntaCuestionario(models.Model):
         ('completar', 'Completar (rellenar espacios)'),
         ('clasificar', 'Clasificar en categorías'),
         ('etiquetar', 'Etiquetar imagen (esquema)'),
+        ('hotspot', 'Zonas activas (clic en la imagen)'),
+        ('ordenar', 'Ordenar / Línea de tiempo'),
     ]
     # ▲▲▲ FIN DE LA MODIFICACIÓN ▲▲▲
 

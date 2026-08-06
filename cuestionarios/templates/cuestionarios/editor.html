@@ -459,6 +459,36 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>`;
         }
 
+        if (pregunta.tipo === 'hotspot') {
+            const c = opcion.emparejamiento || '';           // "x,y,r"
+            const parts = c.split(',');
+            const tiene = parts.length >= 2 && parts[0] !== '';
+            const rval = parts.length > 2 ? parts[2] : '10';
+            return `
+            <div class="opcion-item hot-row" data-opcion-id="${opcionId}">
+              <span class="etiq-num" style="flex-shrink:0;font-weight:700;color:#4f46e5;"></span>
+              <input type="text" class="opcion-texto" value="${opcion.texto || ''}" placeholder="{% trans "Nombre de la zona (opcional)" %}" style="min-width:0;flex:1;">
+              <input type="hidden" class="opcion-emparejamiento" value="${c}">
+              <label style="flex-shrink:0;font-size:.72rem;color:#64748b;display:flex;align-items:center;gap:2px;">{% trans "Radio" %}
+                <input type="number" class="zona-radio" value="${rval || 10}" min="3" max="45" style="width:52px;">%
+              </label>
+              <button class="btn-ubicar btn-ubicar-hot" type="button" style="flex-shrink:0;border:1px solid #a5b4fc;background:#eef2ff;color:#4f46e5;border-radius:.4rem;padding:.28rem .55rem;font-size:.75rem;cursor:pointer;"><i class="bi bi-geo-alt-fill"></i> {% trans "Ubicar" %}</button>
+              <span class="etiq-coords" style="flex-shrink:0;font-size:.72rem;color:#94a3b8;min-width:70px;">${tiene ? `${parts[0]}% , ${parts[1]}%` : '{% trans "sin ubicar" %}'}</span>
+              <button class="btn-del-opcion btn-eliminar-opcion" type="button" title="{% trans "Eliminar" %}"><i class="bi bi-trash3-fill"></i></button>
+            </div>`;
+        }
+
+        if (pregunta.tipo === 'ordenar') {
+            return `
+            <div class="opcion-item ord-row" data-opcion-id="${opcionId}">
+              <span class="ord-num" style="flex-shrink:0;font-weight:700;color:#4f46e5;min-width:22px;"></span>
+              <input type="text" class="opcion-texto" value="${opcion.texto || ''}" placeholder="{% trans "Paso o evento (en el orden correcto)" %}" style="min-width:0;flex:1;">
+              <button class="btn-ord-up" type="button" title="{% trans "Subir" %}" style="flex-shrink:0;border:1px solid #cbd5e1;background:#f8fafc;border-radius:.4rem;padding:.28rem .5rem;cursor:pointer;"><i class="bi bi-arrow-up"></i></button>
+              <button class="btn-ord-down" type="button" title="{% trans "Bajar" %}" style="flex-shrink:0;border:1px solid #cbd5e1;background:#f8fafc;border-radius:.4rem;padding:.28rem .5rem;cursor:pointer;"><i class="bi bi-arrow-down"></i></button>
+              <button class="btn-del-opcion btn-eliminar-opcion" type="button" title="{% trans "Eliminar" %}"><i class="bi bi-trash3-fill"></i></button>
+            </div>`;
+        }
+
         if (pregunta.tipo === 'emparejamiento' || pregunta.tipo === 'clasificar') {
             const esClasif = pregunta.tipo === 'clasificar';
             const ph1 = esClasif ? '{% trans "Elemento" %}' : '{% trans "Elemento A" %}';
@@ -489,6 +519,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const showRubrica  = pregunta.tipo === 'texto_libre';
         const showCompletar = pregunta.tipo === 'completar';
         const showEtiquetar = pregunta.tipo === 'etiquetar';
+        const showHotspot   = pregunta.tipo === 'hotspot';
+        const showOrdenar   = pregunta.tipo === 'ordenar';
 
         const card = document.createElement('div');
         card.className = 'pregunta-card';
@@ -507,6 +539,12 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
           <div class="etiquetar-hint alert alert-info py-2 mb-2 ${showEtiquetar ? '' : 'd-none'}" style="font-size:.8rem;">
             <i class="bi bi-info-circle me-1"></i>{% trans "Sube una imagen o esquema. Escribe cada etiqueta y pulsa «Ubicar» para marcar su posición sobre la imagen. El estudiante deberá arrastrar cada etiqueta a su punto." %}
+          </div>
+          <div class="hotspot-hint alert alert-info py-2 mb-2 ${showHotspot ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Sube una imagen y define las zonas correctas: pulsa «Ubicar» y haz clic sobre la imagen. Ajusta el radio de cada zona. El estudiante deberá hacer clic dentro de la zona correcta." %}
+          </div>
+          <div class="ordenar-hint alert alert-info py-2 mb-2 ${showOrdenar ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Escribe los pasos o eventos EN EL ORDEN CORRECTO (usa las flechas para reordenar). El estudiante los verá barajados y deberá ordenarlos." %}
           </div>
           <div class="pregunta-imagen-block mb-2">
             <input type="hidden" class="imagen-path" value="${pregunta.imagen_path || ''}">
@@ -535,6 +573,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <option value="completar"         ${pregunta.tipo==='completar'         ?'selected':''}>{% trans "Completar espacios" %}</option>
                 <option value="clasificar"        ${pregunta.tipo==='clasificar'        ?'selected':''}>{% trans "Clasificar en categorías" %}</option>
                 <option value="etiquetar"         ${pregunta.tipo==='etiquetar'         ?'selected':''}>{% trans "Etiquetar imagen (esquema)" %}</option>
+                <option value="hotspot"           ${pregunta.tipo==='hotspot'           ?'selected':''}>{% trans "Zonas activas (clic en la imagen)" %}</option>
+                <option value="ordenar"           ${pregunta.tipo==='ordenar'           ?'selected':''}>{% trans "Ordenar / Línea de tiempo" %}</option>
               </select>
             </div>
             <div style="max-width:110px;">
@@ -554,6 +594,51 @@ document.addEventListener('DOMContentLoaded', function () {
         editorPreguntas.appendChild(card);
         renumerarPreguntas();
         if (showEtiquetar) refrescarEtiquetar(card);
+        if (showHotspot) refrescarHotspot(card);
+        if (showOrdenar) refrescarOrdenar(card);
+    }
+
+    /* ── Hotspot: numerar zonas y dibujar círculos sobre la imagen ── */
+    function refrescarHotspot(card) {
+        const filas = card.querySelectorAll('.hot-row');
+        filas.forEach((fila, i) => {
+            const numEl = fila.querySelector('.etiq-num');
+            if (numEl) numEl.textContent = (i + 1) + '.';
+        });
+        const wrap = card.querySelector('.img-marker-wrap');
+        const img = card.querySelector('.preg-img');
+        if (!wrap || !img) return;
+        img.style.cursor = 'crosshair';
+        wrap.querySelectorAll('.hot-zone').forEach(m => m.remove());
+        const w = img.clientWidth || 0;
+        filas.forEach((fila, i) => {
+            const coords = (fila.querySelector('.opcion-emparejamiento')?.value || '').trim();
+            if (!coords) return;
+            const parts = coords.split(',');
+            const x = parseFloat(parts[0]), y = parseFloat(parts[1]);
+            const r = parseFloat(parts[2] || '10');
+            if (isNaN(x) || isNaN(y)) return;
+            const diamPx = w ? (2 * r / 100) * w : 40;
+            const circ = document.createElement('span');
+            circ.className = 'hot-zone';
+            circ.style.cssText = `position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);`
+                + `width:${diamPx}px;height:${diamPx}px;border-radius:50%;`
+                + `background:rgba(79,70,229,.22);border:2px solid #4f46e5;pointer-events:none;z-index:2;`;
+            const num = document.createElement('span');
+            num.textContent = (i + 1);
+            num.style.cssText = `position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);`
+                + `color:#4f46e5;font-weight:800;font-size:.8rem;pointer-events:none;z-index:3;`;
+            wrap.appendChild(circ);
+            wrap.appendChild(num);
+        });
+    }
+
+    /* ── Ordenar: numerar filas según su posición (orden correcto) ── */
+    function refrescarOrdenar(card) {
+        card.querySelectorAll('.ord-row').forEach((fila, i) => {
+            const numEl = fila.querySelector('.ord-num');
+            if (numEl) numEl.textContent = (i + 1) + '.';
+        });
     }
 
     /* ── Etiquetar: numerar filas y dibujar marcadores sobre la imagen ── */
@@ -765,33 +850,49 @@ document.addEventListener('DOMContentLoaded', function () {
             card.querySelector('.opciones-container')
                 .insertAdjacentHTML('beforeend', renderizarOpcion(nueva, {id:card.dataset.preguntaId, tipo}));
             if (tipo === 'etiquetar') refrescarEtiquetar(card);
+            if (tipo === 'hotspot') refrescarHotspot(card);
+            if (tipo === 'ordenar') refrescarOrdenar(card);
         }
         if (e.target.closest('.btn-eliminar-opcion')) {
             const card = e.target.closest('.pregunta-card');
             e.target.closest('.opcion-item').remove();
-            if (card && card.querySelector('.tipo-pregunta')?.value === 'etiquetar') {
-                card.dataset.armadoOpcion = '';
-                refrescarEtiquetar(card);
-            }
+            const t = card && card.querySelector('.tipo-pregunta')?.value;
+            if (t === 'etiquetar') { card.dataset.armadoOpcion = ''; refrescarEtiquetar(card); }
+            if (t === 'hotspot')   { card.dataset.armadoOpcion = ''; refrescarHotspot(card); }
+            if (t === 'ordenar')   { refrescarOrdenar(card); }
         }
-        /* ── Etiquetar: armar una fila para ubicarla ── */
+        /* ── Ordenar: subir/bajar una fila ── */
+        const btnUp = e.target.closest('.btn-ord-up');
+        const btnDown = e.target.closest('.btn-ord-down');
+        if (btnUp || btnDown) {
+            const fila = (btnUp || btnDown).closest('.ord-row');
+            const card = fila.closest('.pregunta-card');
+            if (btnUp && fila.previousElementSibling) {
+                fila.parentNode.insertBefore(fila, fila.previousElementSibling);
+            } else if (btnDown && fila.nextElementSibling) {
+                fila.parentNode.insertBefore(fila.nextElementSibling, fila);
+            }
+            refrescarOrdenar(card);
+            return;
+        }
+        /* ── Etiquetar/Hotspot: armar una fila para ubicarla sobre la imagen ── */
         const btnUbicar = e.target.closest('.btn-ubicar');
         if (btnUbicar) {
             const card = btnUbicar.closest('.pregunta-card');
-            const fila = btnUbicar.closest('.etiq-row');
+            const fila = btnUbicar.closest('.etiq-row, .hot-row');
             const img = card.querySelector('.preg-img');
             if (!img || !img.getAttribute('src')) {
-                showNotification('{% trans "Falta la imagen" %}', '{% trans "Primero sube la imagen o el esquema para poder ubicar las etiquetas." %}', false);
+                showNotification('{% trans "Falta la imagen" %}', '{% trans "Primero sube la imagen para poder ubicar las zonas o etiquetas." %}', false);
                 return;
             }
             const yaArmada = card.dataset.armadoOpcion === fila.dataset.opcionId;
-            // Reset visual de todas las filas
-            card.querySelectorAll('.etiq-row .btn-ubicar').forEach(b => {
+            card.querySelectorAll('.btn-ubicar').forEach(b => {
                 b.classList.remove('btn-ubicar-activo');
                 b.style.background = '#eef2ff'; b.style.color = '#4f46e5';
             });
             if (yaArmada) {
                 card.dataset.armadoOpcion = '';
+                img.style.outline = '';
             } else {
                 card.dataset.armadoOpcion = fila.dataset.opcionId;
                 btnUbicar.classList.add('btn-ubicar-activo');
@@ -799,11 +900,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 img.style.outline = '2px dashed #4f46e5';
             }
         }
-        /* ── Etiquetar: colocar el marcador donde se hace clic en la imagen ── */
+        /* ── Etiquetar/Hotspot: colocar donde se hace clic en la imagen ── */
         const img = e.target.closest('.preg-img');
         if (img) {
             const card = img.closest('.pregunta-card');
-            if (!card || card.querySelector('.tipo-pregunta')?.value !== 'etiquetar') return;
+            const tipo = card && card.querySelector('.tipo-pregunta')?.value;
+            if (tipo !== 'etiquetar' && tipo !== 'hotspot') return;
             const armadoId = card.dataset.armadoOpcion;
             if (!armadoId) return;
             const rect = img.getBoundingClientRect();
@@ -811,19 +913,41 @@ document.addEventListener('DOMContentLoaded', function () {
             let y = ((e.clientY - rect.top) / rect.height) * 100;
             x = Math.max(0, Math.min(100, Math.round(x * 10) / 10));
             y = Math.max(0, Math.min(100, Math.round(y * 10) / 10));
-            const fila = card.querySelector(`.etiq-row[data-opcion-id="${armadoId}"]`);
+            const sel = tipo === 'hotspot' ? '.hot-row' : '.etiq-row';
+            const fila = card.querySelector(`${sel}[data-opcion-id="${armadoId}"]`);
             if (fila) {
-                fila.querySelector('.opcion-emparejamiento').value = `${x},${y}`;
+                let val = `${x},${y}`;
+                if (tipo === 'hotspot') {
+                    const r = parseFloat(fila.querySelector('.zona-radio')?.value || '10') || 10;
+                    val = `${x},${y},${r}`;
+                }
+                fila.querySelector('.opcion-emparejamiento').value = val;
                 const cEl = fila.querySelector('.etiq-coords');
                 if (cEl) cEl.textContent = `${x}% , ${y}%`;
             }
             card.dataset.armadoOpcion = '';
-            card.querySelectorAll('.etiq-row .btn-ubicar').forEach(b => {
+            card.querySelectorAll('.btn-ubicar').forEach(b => {
                 b.classList.remove('btn-ubicar-activo');
                 b.style.background = '#eef2ff'; b.style.color = '#4f46e5';
             });
             img.style.outline = '';
-            refrescarEtiquetar(card);
+            if (tipo === 'hotspot') refrescarHotspot(card); else refrescarEtiquetar(card);
+        }
+    });
+
+    /* ── Hotspot: cambiar el radio de una zona actualiza el círculo ── */
+    editorPreguntas.addEventListener('input', function (e) {
+        if (!e.target.classList.contains('zona-radio')) return;
+        const fila = e.target.closest('.hot-row');
+        const card = e.target.closest('.pregunta-card');
+        if (!fila) return;
+        const emp = fila.querySelector('.opcion-emparejamiento');
+        const val = (emp.value || '').trim();
+        if (val) {
+            const parts = val.split(',');
+            const r = parseFloat(e.target.value || '10') || 10;
+            emp.value = `${parts[0]},${parts[1]},${r}`;
+            refrescarHotspot(card);
         }
     });
 
@@ -836,10 +960,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const rubrica = card.querySelector('.rubrica-container');
         const completarHint = card.querySelector('.completar-hint');
         const etiquetarHint = card.querySelector('.etiquetar-hint');
+        const hotspotHint = card.querySelector('.hotspot-hint');
+        const ordenarHint = card.querySelector('.ordenar-hint');
 
         rubrica.classList.toggle('d-none', tipo !== 'texto_libre');
         if (completarHint) completarHint.classList.toggle('d-none', tipo !== 'completar');
         if (etiquetarHint) etiquetarHint.classList.toggle('d-none', tipo !== 'etiquetar');
+        if (hotspotHint) hotspotHint.classList.toggle('d-none', tipo !== 'hotspot');
+        if (ordenarHint) ordenarHint.classList.toggle('d-none', tipo !== 'ordenar');
         const showOpts = !['texto_libre','completar'].includes(tipo);
         opcionesContainer.classList.toggle('d-none', !showOpts);
         btnAdd.classList.toggle('d-none', !showOpts);
@@ -851,12 +979,18 @@ document.addEventListener('DOMContentLoaded', function () {
             opciones = [{texto:'', emparejamiento:'', orden:0},{texto:'', emparejamiento:'', orden:1}];
         } else if (tipo === 'etiquetar') {
             opciones = [{texto:'', emparejamiento:'', orden:0},{texto:'', emparejamiento:'', orden:1},{texto:'', emparejamiento:'', orden:2}];
+        } else if (tipo === 'hotspot') {
+            opciones = [{texto:'', emparejamiento:'', orden:0}];
+        } else if (tipo === 'ordenar') {
+            opciones = [{texto:'', orden:0},{texto:'', orden:1},{texto:'', orden:2}];
         } else if (['opcion_multiple','seleccion_multiple'].includes(tipo)) {
             opciones = [{texto:'', es_correcta:true, orden:0},{texto:'', es_correcta:false, orden:1}];
         }
         opcionesContainer.innerHTML = opciones.map(op => renderizarOpcion(op, {id:card.dataset.preguntaId, tipo})).join('');
         card.dataset.armadoOpcion = '';
         if (tipo === 'etiquetar') refrescarEtiquetar(card);
+        if (tipo === 'hotspot') refrescarHotspot(card);
+        if (tipo === 'ordenar') refrescarOrdenar(card);
     });
 
     /* ── Imagen de la pregunta ── */
@@ -881,9 +1015,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     const imgEl = prev.querySelector('.preg-img');
                     imgEl.src = res.url;
                     prev.classList.remove('d-none');
-                    if (card.querySelector('.tipo-pregunta')?.value === 'etiquetar') {
+                    const tEl = card.querySelector('.tipo-pregunta')?.value;
+                    if (tEl === 'etiquetar') {
                         imgEl.addEventListener('load', () => refrescarEtiquetar(card), {once:true});
                         refrescarEtiquetar(card);
+                    } else if (tEl === 'hotspot') {
+                        imgEl.addEventListener('load', () => refrescarHotspot(card), {once:true});
+                        refrescarHotspot(card);
                     }
                 } else {
                     showNotification('{% trans "Error" %}', res.error || '{% trans "No se pudo subir la imagen." %}', false);

@@ -29,6 +29,22 @@
   .etiq-chip { display:inline-block; background:#ede9fe; color:#5b21b6; border:1px solid #c4b5fd; border-radius:20px;
       padding:4px 12px; font-size:.85rem; cursor:pointer; user-select:none; }
   .etiq-chip.selected { background:#6d28d9; color:#fff; border-color:#5b21b6; box-shadow:0 0 0 3px rgba(109,40,217,.25); }
+  /* Hotspot (zonas activas) */
+  .hot-wrap { position:relative; display:inline-block; max-width:100%; }
+  .hot-img { max-width:100%; display:block; border-radius:8px; border:1px solid #e5e7eb; cursor:crosshair; }
+  .hot-dot { position:absolute; transform:translate(-50%,-50%); width:28px; height:28px; border-radius:50%;
+      background:#4f46e5; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;
+      font-size:.85rem; border:2px solid #fff; box-shadow:0 1px 5px rgba(0,0,0,.4); cursor:pointer; z-index:2; }
+  /* Ordenar / línea de tiempo */
+  .ord-list { display:flex; flex-direction:column; gap:6px; }
+  .ord-item { display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px solid #e2e8f0;
+      border-radius:10px; padding:8px 10px; }
+  .ord-badge { flex-shrink:0; width:26px; height:26px; border-radius:50%; background:#4f46e5; color:#fff;
+      display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.85rem; }
+  .ord-text { flex:1; font-size:.9rem; color:#1e293b; }
+  .ord-btns { flex-shrink:0; display:flex; gap:4px; }
+  .ord-btns button { border:1px solid #cbd5e1; background:#fff; border-radius:6px; padding:4px 8px; cursor:pointer; color:#475569; }
+  .ord-btns button:hover { background:#eef2ff; border-color:#a5b4fc; color:#4f46e5; }
 </style>
 {% endblock %}
 
@@ -182,6 +198,42 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
+        else if (tipo === 'hotspot') {
+            const n = pregunta.num_zonas || 1;
+            const imgSrc = pregunta.imagen_url
+                ? `<img src="${esc(pregunta.imagen_url)}" alt="" class="hot-img">`
+                : `<div class="alert alert-warning mb-0">{% trans "Esta pregunta no tiene imagen." %}</div>`;
+            opcionesHtml = `
+                <p class="text-muted mb-2" style="font-size:.85rem;">
+                    <i class="bi bi-hand-index"></i> {% trans "Haz clic sobre la(s) zona(s) correcta(s) de la imagen. Toca un punto para quitarlo." %}
+                </p>
+                <div class="hot-wrap" data-num="${n}">${imgSrc}</div>
+                <div class="text-muted mt-2" style="font-size:.82rem;">
+                    <i class="bi bi-check2-circle"></i> <span class="hot-count">0</span> / ${n}
+                    &nbsp;·&nbsp;<button type="button" class="btn btn-sm btn-link p-0 align-baseline hot-reset">{% trans "Reiniciar" %}</button>
+                </div>
+            `;
+        }
+
+        else if (tipo === 'ordenar') {
+            const pasos = pregunta.pasos || [];
+            const items = pasos.map((t, i) => `
+                <div class="ord-item" data-texto="${esc(t)}">
+                    <span class="ord-badge">${i + 1}</span>
+                    <span class="ord-text">${esc(t)}</span>
+                    <span class="ord-btns">
+                        <button type="button" class="ord-up" title="{% trans "Subir" %}"><i class="bi bi-arrow-up"></i></button>
+                        <button type="button" class="ord-down" title="{% trans "Bajar" %}"><i class="bi bi-arrow-down"></i></button>
+                    </span>
+                </div>`).join('');
+            opcionesHtml = `
+                <p class="text-muted mb-2" style="font-size:.85rem;">
+                    <i class="bi bi-sort-numeric-down"></i> {% trans "Ordena los elementos con las flechas (arriba = primero)." %}
+                </p>
+                <div class="ord-list">${items}</div>
+            `;
+        }
+
         // Enunciado: para "completar" convertimos cada [[]] en un input.
         let enunciadoHtml = esc(pregunta.enunciado);
         if (tipo === 'completar') {
@@ -192,8 +244,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     : '')
             ).join('');
         }
-        // En "etiquetar" la imagen ya se muestra (con sus marcadores) dentro de las opciones.
-        const imagenHtml = (pregunta.imagen_url && tipo !== 'etiquetar')
+        // En "etiquetar"/"hotspot" la imagen ya se muestra (interactiva) dentro de las opciones.
+        const imagenHtml = (pregunta.imagen_url && tipo !== 'etiquetar' && tipo !== 'hotspot')
             ? `<div class="mb-3 text-center"><img src="${esc(pregunta.imagen_url)}" alt="" style="max-width:100%;max-height:320px;border-radius:8px;border:1px solid #e5e7eb;"></div>`
             : '';
 
@@ -328,6 +380,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     break;
                 }
+                case 'hotspot': {
+                    const clicks = [];
+                    preguntaCard.querySelectorAll('.hot-dot').forEach(d => {
+                        clicks.push({ x: parseFloat(d.dataset.x), y: parseFloat(d.dataset.y) });
+                    });
+                    if (clicks.length) {
+                        respuestas[preguntaId] = { tipo, respuesta_hotspot: clicks };
+                    }
+                    break;
+                }
+                case 'ordenar': {
+                    const orden = [];
+                    preguntaCard.querySelectorAll('.ord-item').forEach(it => orden.push(it.dataset.texto));
+                    if (orden.length) {
+                        respuestas[preguntaId] = { tipo, respuesta_ordenar: orden };
+                    }
+                    break;
+                }
                 case 'emparejamiento': {
                     const pares = [];
                     preguntaCard.querySelectorAll('.emparejamiento-par').forEach(par => {
@@ -436,8 +506,66 @@ document.addEventListener('DOMContentLoaded', function() {
                 sel.classList.remove('selected');
                 if (marker) { marker.classList.remove('filled'); marker.classList.add('empty'); }
             }
+            return;
+        }
+
+        // ── Hotspot: quitar un punto, reiniciar, o colocar uno nuevo ──
+        const hotDot = e.target.closest('.hot-dot');
+        if (hotDot) {
+            const wrap = hotDot.closest('.hot-wrap');
+            hotDot.remove();
+            wrap.querySelectorAll('.hot-dot').forEach((d, i) => d.textContent = i + 1);
+            actualizarHotCount(wrap);
+            return;
+        }
+        const hotReset = e.target.closest('.hot-reset');
+        if (hotReset) {
+            const card = hotReset.closest('.card');
+            const wrap = card.querySelector('.hot-wrap');
+            wrap.querySelectorAll('.hot-dot').forEach(d => d.remove());
+            actualizarHotCount(wrap);
+            return;
+        }
+        const hotImg = e.target.closest('.hot-img');
+        if (hotImg) {
+            const wrap = hotImg.closest('.hot-wrap');
+            const num = parseInt(wrap.dataset.num, 10) || 1;
+            const puestos = wrap.querySelectorAll('.hot-dot').length;
+            if (puestos >= num) return;   // límite de clics alcanzado
+            const rect = hotImg.getBoundingClientRect();
+            const x = Math.round(((e.clientX - rect.left) / rect.width) * 1000) / 10;
+            const y = Math.round(((e.clientY - rect.top) / rect.height) * 1000) / 10;
+            const dot = document.createElement('span');
+            dot.className = 'hot-dot';
+            dot.dataset.x = x; dot.dataset.y = y;
+            dot.style.left = x + '%'; dot.style.top = y + '%';
+            dot.textContent = puestos + 1;
+            wrap.appendChild(dot);
+            actualizarHotCount(wrap);
+            return;
+        }
+
+        // ── Ordenar: mover un elemento arriba/abajo ──
+        const ordUp = e.target.closest('.ord-up');
+        const ordDown = e.target.closest('.ord-down');
+        if (ordUp || ordDown) {
+            const item = (ordUp || ordDown).closest('.ord-item');
+            const list = item.closest('.ord-list');
+            if (ordUp && item.previousElementSibling) {
+                list.insertBefore(item, item.previousElementSibling);
+            } else if (ordDown && item.nextElementSibling) {
+                list.insertBefore(item.nextElementSibling, item);
+            }
+            list.querySelectorAll('.ord-item .ord-badge').forEach((b, i) => b.textContent = i + 1);
+            return;
         }
     });
+
+    function actualizarHotCount(wrap) {
+        const card = wrap.closest('.card');
+        const cnt = card && card.querySelector('.hot-count');
+        if (cnt) cnt.textContent = wrap.querySelectorAll('.hot-dot').length;
+    }
 
     // Cargar los datos del cuestionario al iniciar
     fetch(apiUrl)
