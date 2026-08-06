@@ -1,6 +1,17 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+  .clasif-bank, .clasif-zone { border:1.5px dashed #cbd5e1; border-radius:10px; padding:8px 10px; margin-bottom:8px; background:#f8fafc; }
+  .clasif-zone-label { font-size:.78rem; font-weight:700; color:#475569; margin-bottom:6px; }
+  .clasif-drop { display:flex; flex-wrap:wrap; gap:6px; min-height:38px; }
+  .clasif-zones { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-top:6px; }
+  .clasif-chip { display:inline-block; background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; border-radius:20px; padding:4px 12px; font-size:.85rem; cursor:pointer; user-select:none; }
+  .clasif-chip.selected { background:#2563eb; color:#fff; border-color:#1d4ed8; box-shadow:0 0 0 3px rgba(37,99,235,.25); }
+  .clasif-zone .clasif-drop { background:#fff; border-radius:6px; }
+</style>
+{% endblock %}
 
 {% block contenido %}
 <div class="container mt-4">
@@ -100,6 +111,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `).join('');
+        }
+
+        else if (tipo === 'clasificar') {
+            const cats = pregunta.categorias || [];
+            const chips = (pregunta.opciones || [])
+                .map(op => `<span class="clasif-chip" data-texto="${esc(op.texto)}">${esc(op.texto)}</span>`)
+                .join('');
+            const zonas = cats.map(cat => `
+                <div class="clasif-zone">
+                    <div class="clasif-zone-label">${esc(cat)}</div>
+                    <div class="clasif-drop" data-cat="${esc(cat)}"></div>
+                </div>`).join('');
+            opcionesHtml = `
+                <p class="text-muted mb-2" style="font-size:.85rem;">
+                    <i class="bi bi-hand-index"></i> {% trans "Toca un elemento y luego la categoría donde va." %}
+                </p>
+                <div class="clasif-bank">
+                    <div class="clasif-zone-label">{% trans "Elementos" %}</div>
+                    <div class="clasif-drop" data-cat="">${chips}</div>
+                </div>
+                <div class="clasif-zones">${zonas}</div>
+            `;
         }
 
         // Enunciado: para "completar" convertimos cada [[]] en un input.
@@ -222,6 +255,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     break;
                 }
+                case 'clasificar': {
+                    const pares = [];
+                    preguntaCard.querySelectorAll('.clasif-drop[data-cat]').forEach(zone => {
+                        const cat = zone.dataset.cat;
+                        if (!cat) return; // la bandeja de elementos no cuenta
+                        zone.querySelectorAll('.clasif-chip').forEach(chip => {
+                            pares.push({ texto: chip.dataset.texto, emparejamiento: cat });
+                        });
+                    });
+                    if (pares.length) {
+                        respuestas[preguntaId] = { tipo, respuesta_emparejamiento: pares };
+                    }
+                    break;
+                }
                 case 'emparejamiento': {
                     const pares = [];
                     preguntaCard.querySelectorAll('.emparejamiento-par').forEach(par => {
@@ -267,6 +314,24 @@ document.addEventListener('DOMContentLoaded', function() {
              app.innerHTML = `<div class="alert alert-danger"><h4>{% trans "Error de Conexión" %}</h4><p>{% trans "No se pudo finalizar el intento. Por favor, revisa tu conexión a internet." %}</p></div>`;
         });
     }
+
+    // Clasificar — tocar para colocar (funciona en móvil y escritorio):
+    // 1) tocas un elemento (se resalta), 2) tocas la categoría donde va.
+    app.addEventListener('click', function (e) {
+        const chip = e.target.closest('.clasif-chip');
+        if (chip) {
+            const card = chip.closest('.card');
+            card.querySelectorAll('.clasif-chip.selected').forEach(c => c.classList.remove('selected'));
+            chip.classList.add('selected');
+            return;
+        }
+        const drop = e.target.closest('.clasif-drop');
+        if (drop) {
+            const card = drop.closest('.card');
+            const sel = card && card.querySelector('.clasif-chip.selected');
+            if (sel) { drop.appendChild(sel); sel.classList.remove('selected'); }
+        }
+    });
 
     // Cargar los datos del cuestionario al iniciar
     fetch(apiUrl)

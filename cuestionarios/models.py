@@ -70,6 +70,7 @@ class PreguntaCuestionario(models.Model):
         ('texto_libre', 'Texto Libre'),
         ('emparejamiento', 'Emparejamiento'),
         ('completar', 'Completar (rellenar espacios)'),
+        ('clasificar', 'Clasificar en categorías'),
     ]
     # ▲▲▲ FIN DE LA MODIFICACIÓN ▲▲▲
 

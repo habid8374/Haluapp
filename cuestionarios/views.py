@@ -140,7 +140,7 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 import re as _re
                 pregunta_data['enunciado'] = _re.sub(r'\[\[.*?\]\]', '[[]]', p.enunciado or '')
 
-            if p.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento']:
+            if p.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento', 'clasificar']:
                 pregunta_data['opciones'] = [
                     {
                         'id': op.id,
@@ -152,6 +152,19 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                     }
                     for op in p.opciones.order_by('orden')
                 ]
+
+            # "Clasificar": el estudiante recibe los ítems (texto) y la lista de
+            # categorías (barajadas), SIN saber a qué categoría va cada ítem.
+            if p.tipo == 'clasificar':
+                import random as _rnd
+                cats = list(dict.fromkeys(
+                    op.emparejamiento for op in p.opciones.all() if op.emparejamiento
+                ))
+                _rnd.shuffle(cats)
+                pregunta_data['categorias'] = cats
+                if not puede_ver_respuestas:
+                    for o in pregunta_data.get('opciones', []):
+                        o.pop('emparejamiento', None)
 
             preguntas.append(pregunta_data)
 
@@ -215,7 +228,7 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 )
                 
                 # 4. Creamos las opciones para cada pregunta.
-                if pregunta.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento']:
+                if pregunta.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento', 'clasificar']:
                     for opcion_data in pregunta_data.get('opciones', []):
                         OpcionPregunta.objects.create(
                             pregunta=pregunta,
@@ -472,7 +485,9 @@ class ResolverCuestionarioAPIView(APIView):
                     if opciones_correctas_db and opciones_correctas_db == opciones_enviadas:
                         puntaje_pregunta = pregunta.puntaje
 
-                elif tipo_pregunta == 'emparejamiento':
+                elif tipo_pregunta in ('emparejamiento', 'clasificar'):
+                    # Clasificar reutiliza el mismo formato: cada ítem (texto)
+                    # debe quedar en su categoría (emparejamiento).
                     pares_correctos_db = set(pregunta.opciones.values_list('texto', 'emparejamiento'))
                     pares_enviados_data = respuesta_enviada.get('respuesta_emparejamiento', [])
                     pares_enviados = set((p['texto'], p['emparejamiento']) for p in pares_enviados_data)
