@@ -332,10 +332,9 @@ urlpatterns = [
     path('elecciones/<int:eleccion_id>/analisis/', views.dashboard_eleccion_ia, name='dashboard_eleccion_ia'),
     path('elecciones/<int:eleccion_id>/acta/', views.acta_eleccion_view, name='acta_eleccion'),
     path('coordinacion/elecciones/', views.gestionar_elecciones_view, name='gestionar_elecciones'),
-    path('actividad/<int:actividad_pk>/preguntas/', views.GestionarPreguntasActividadView.as_view(), name='gestionar_preguntas_actividad'),
-    path('actividad/<int:actividad_pk>/preguntas/crear/', views.PreguntaCreateView.as_view(), name='crear_pregunta'),
-    path('pregunta/<int:pk>/editar/', views.PreguntaUpdateView.as_view(), name='editar_pregunta'),
-    path('pregunta/<int:pk>/eliminar/', views.PreguntaDeleteView.as_view(), name='eliminar_pregunta'),
+    # Sistema viejo de preguntas por actividad JUBILADO: las evaluaciones se
+    # gestionan ahora en un solo lugar con el editor de cuestionarios
+    # (con o sin IA). Sus datos se migraron en cuestionarios/0013.
 
     path('aulas/', views.AulaListView.as_view(), name='lista_aulas'),
     path('aulas/crear/', views.AulaCreateView.as_view(), name='crear_aula'),
