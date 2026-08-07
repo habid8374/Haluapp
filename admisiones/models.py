@@ -415,9 +415,10 @@ class Aspirante(models.Model):
 
         Deduplica por documento (o correo) dentro de la institución para no
         crear cuentas repetidas cuando varios hermanos comparten acudiente.
-        El Familiar exige una cuenta de Usuario (rol 'familiar'); se crea sin
-        contraseña utilizable → el acudiente entra con «¿Olvidaste tu
-        contraseña?» (correo por la cuenta Brevo de la institución).
+        El Familiar exige una cuenta de Usuario (rol 'familiar'). Misma
+        convención que el cargue masivo de familiares: contraseña temporal = su
+        documento (o, si no hay documento, sin contraseña → entra por «¿Olvidaste
+        tu contraseña?» con el correo Brevo de la institución).
         """
         from gestion_academica.models import Familiar
 
@@ -445,16 +446,18 @@ class Aspirante(models.Model):
             while Usuario.objects.filter(username=username).exists():
                 username = f"{base}.fam{contador}@halu.com"
                 contador += 1
-            usuario = Usuario.objects.create(
+            # Misma convención que el cargue masivo de familiares: la contraseña
+            # temporal es el documento (si lo hay); si no, sin contraseña (reset).
+            usuario = Usuario.objects.create_user(
                 username=username,
+                email=email,
+                password=(doc or None),
                 first_name=nombres,
                 last_name=(self.acudiente_apellidos or '').strip(),
-                email=email,
-                rol='familiar',
-                institucion_asociada=self.institucion,
             )
-            usuario.set_unusable_password()
-            usuario.save(update_fields=['password'])
+            usuario.rol = 'familiar'
+            usuario.institucion_asociada = self.institucion
+            usuario.save(update_fields=['rol', 'institucion_asociada'])
             familiar = Familiar.objects.create(
                 usuario=usuario,
                 parentesco=(self.acudiente_parentesco or 'OTRO'),
