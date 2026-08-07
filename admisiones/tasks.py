@@ -352,6 +352,20 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
     except (ArithmeticError, ValueError):
         sisben_puntaje = None
 
+    # FK de catálogo (se calculan una sola vez; de aquí derivamos los campos de
+    # texto internos para no duplicar columnas en la plantilla).
+    depto_nac = _fk("cod_depto_nacimiento", "depto")
+    mpio_nac = _fk("cod_mpio_nacimiento", "mpio")
+    depto_res = _fk("cod_depto_residencia", "depto")
+    mpio_res = _fk("cod_mpio_residencia", "mpio")
+    eps_obj = _fk("cod_eps_simat", "eps")
+
+    def _nom_mpio_depto(mpio):
+        try:
+            return f"{mpio.nombre}, {mpio.departamento.nombre}"
+        except Exception:
+            return None
+
     return {
         "documento": documento,
         "grado": grado,
@@ -362,13 +376,14 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
         "telefono_contacto": _v("telefono_contacto") or None,
         "sexo": sexo,
         "tipo_documento": tipo_documento,
-        "lugar_nacimiento": _v("lugar_nacimiento") or None,
+        # Texto interno derivado del desplegable (una sola columna por concepto)
+        "lugar_nacimiento": _v("lugar_nacimiento") or _nom_mpio_depto(mpio_nac),
         "grupo_sanguineo": grupo_sanguineo,
-        "eps": _v("eps") or None,
+        "eps": _v("eps") or (eps_obj.nombre if eps_obj else None),
         "discapacidad": _v("discapacidad") or None,
         "colegio_procedencia": _v("colegio_procedencia") or None,
-        "municipio_ciudad": _v("municipio_ciudad") or None,
-        "departamento": _v("departamento") or None,
+        "municipio_ciudad": _v("municipio_ciudad") or (mpio_res.nombre if mpio_res else None),
+        "departamento": _v("departamento") or (depto_res.nombre if depto_res else (mpio_res.departamento.nombre if mpio_res else None)),
         "direccion": _v("direccion") or None,
         "paga_inscripcion": paga,
         # ── Caracterización ──
@@ -399,15 +414,15 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
         "campesino": _bool_si_no(_v("campesino")),
         "matricula_contratada": _bool_si_no(_v("matricula_contratada")),
         "repitente": _bool_si_no(_v("repitente")),
-        "departamento_nacimiento": _fk("cod_depto_nacimiento", "depto"),
-        "municipio_nacimiento": _fk("cod_mpio_nacimiento", "mpio"),
-        "departamento_residencia": _fk("cod_depto_residencia", "depto"),
-        "municipio_residencia": _fk("cod_mpio_residencia", "mpio"),
+        "departamento_nacimiento": depto_nac,
+        "municipio_nacimiento": mpio_nac,
+        "departamento_residencia": depto_res,
+        "municipio_residencia": mpio_res,
         "lugar_expedicion_departamento": _fk("cod_depto_expedicion", "depto"),
         "lugar_expedicion_municipio": _fk("cod_mpio_expedicion", "mpio"),
         "etnia_simat": _fk("cod_etnia_simat", "etnia"),
         "resguardo": _fk("cod_resguardo", "resguardo"),
-        "eps_simat": _fk("cod_eps_simat", "eps"),
+        "eps_simat": eps_obj,
         "sede": _fk("nombre_sede", "sede"),
     }
 

@@ -43,16 +43,15 @@ class AspiranteForm(forms.ModelForm):
             Fieldset(
                 _("1. Identificación"),
                 'nombres', 'apellidos',
-                'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
                 'tipo_documento', 'numero_documento',
                 'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
-                'fecha_nacimiento', 'sexo', 'grupo_sanguineo', 'nacionalidad',
+                'fecha_nacimiento', 'sexo', 'grupo_sanguineo',
             ),
             Fieldset(
                 _("2. Nacimiento y residencia"),
-                'pais_origen', 'pais_nacimiento', 'departamento_nacimiento', 'municipio_nacimiento', 'lugar_nacimiento',
+                'pais_origen', 'departamento_nacimiento', 'municipio_nacimiento',
                 'departamento_residencia', 'municipio_residencia', 'barrio',
-                'municipio_ciudad', 'departamento', 'direccion', 'zona_residencia',
+                'direccion', 'zona_residencia',
             ),
             Fieldset(
                 _("3. Contacto"),
@@ -61,7 +60,7 @@ class AspiranteForm(forms.ModelForm):
             Fieldset(
                 _("4. Caracterización socio-económica (SIMPADE)"),
                 'estrato', 'sisben_grupo', 'sisben_puntaje', 'regimen_salud',
-                'eps', 'eps_simat',
+                'eps_simat',
                 'discapacidad', 'discapacidad_categoria', 'capacidad_excepcional',
                 'grupo_etnico', 'etnia_simat', 'resguardo',
                 'victima_conflicto', 'tipo_poblacion_victima', 'srpa', 'campesino',
@@ -69,36 +68,35 @@ class AspiranteForm(forms.ModelForm):
             ),
             Fieldset(
                 _("5. Matrícula"),
-                'grado_aspira', 'sede', 'jornada', 'grupo', 'modelo_educativo',
-                'fuente_recursos', 'internado', 'matricula_contratada', 'repitente',
-                'situacion_academica_anterior', 'colegio_procedencia',
-                'requiere_pago_inscripcion',
+                'grado_aspira', 'sede', 'jornada', 'grupo',
+                'matricula_contratada', 'repitente',
+                'colegio_procedencia', 'requiere_pago_inscripcion',
             ),
         )
 
     class Meta:
         model = Aspirante
+        # CRITERIO ÚNICO (igual que la carga masiva): una sola representación por
+        # concepto. El nombre va completo (se separa al guardar); ubicación/EPS
+        # van por desplegable de catálogo y se derivan los textos internos.
         fields = [
             'nombres', 'apellidos', 'numero_documento', 'tipo_documento',
-            'fecha_nacimiento', 'lugar_nacimiento',
+            'fecha_nacimiento',
             'email_contacto', 'telefono_contacto', 'grado_aspira',
-            'sexo', 'grupo_sanguineo', 'eps', 'discapacidad',
-            'colegio_procedencia', 'municipio_ciudad', 'departamento',
-            'direccion', 'requiere_pago_inscripcion',
-            # ── Caracterización SIMAT/SIMPADE (Fase 2) ──
+            'sexo', 'grupo_sanguineo', 'discapacidad',
+            'colegio_procedencia', 'direccion', 'requiere_pago_inscripcion',
+            # ── Caracterización SIMPADE ──
             'pais_origen', 'zona_residencia', 'regimen_salud',
             'discapacidad_categoria', 'capacidad_excepcional', 'grupo_etnico',
             'estrato', 'sisben_grupo', 'sisben_puntaje',
             'victima_conflicto', 'tipo_poblacion_victima',
-            'srpa', 'apoyo_academico_especial',
-            # ── SIMAT Fase 2: identidad separada, ubicación DANE y matrícula ──
-            'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
-            'lugar_expedicion_departamento', 'lugar_expedicion_municipio', 'nacionalidad',
-            'pais_nacimiento', 'departamento_nacimiento', 'municipio_nacimiento',
-            'departamento_residencia', 'municipio_residencia', 'barrio', 'campesino',
+            'srpa', 'apoyo_academico_especial', 'campesino',
+            # ── SIMAT: ubicación DANE, etnia/EPS por código y matrícula ──
+            'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
+            'departamento_nacimiento', 'municipio_nacimiento',
+            'departamento_residencia', 'municipio_residencia', 'barrio',
             'etnia_simat', 'resguardo', 'eps_simat',
-            'sede', 'jornada', 'grupo', 'modelo_educativo', 'fuente_recursos',
-            'internado', 'matricula_contratada', 'repitente', 'situacion_academica_anterior',
+            'sede', 'jornada', 'grupo', 'matricula_contratada', 'repitente',
         ]
         widgets = {
             'nombres': forms.TextInput(attrs={'class': 'form-control'}),
@@ -136,14 +134,40 @@ class AspiranteForm(forms.ModelForm):
         }
         labels = {
             'requiere_pago_inscripcion': _('¿Generar cobro de inscripción para este aspirante?'),
-            'eps': _('EPS / Entidad de Salud'),
             'grupo_sanguineo': _('Grupo Sanguíneo'),
-            'lugar_nacimiento': _('Lugar de Nacimiento'),
         }
         help_texts = {
             'requiere_pago_inscripcion': _('Marque esta casilla si debe crearse una cuenta por cobrar para la inscripción.'),
             'discapacidad': _('Opcional. Describe brevemente si el aspirante tiene alguna condición de salud o discapacidad.'),
         }
+
+    def save(self, commit=True):
+        """Deriva los campos internos desde la selección (sin duplicar columnas):
+        separa nombres/apellidos y toma el texto de ubicación/EPS de las FK."""
+        obj = super().save(commit=False)
+        pn = (obj.nombres or '').split()
+        obj.primer_nombre = (pn[0] if pn else '')[:60]
+        obj.segundo_nombre = (' '.join(pn[1:]))[:60]
+        pa = (obj.apellidos or '').split()
+        obj.primer_apellido = (pa[0] if pa else '')[:60]
+        obj.segundo_apellido = (' '.join(pa[1:]))[:60]
+        if obj.municipio_nacimiento_id:
+            try:
+                obj.lugar_nacimiento = f"{obj.municipio_nacimiento.nombre}, {obj.municipio_nacimiento.departamento.nombre}"
+            except Exception:
+                pass
+        if obj.municipio_residencia_id:
+            obj.municipio_ciudad = obj.municipio_residencia.nombre
+            try:
+                obj.departamento = obj.municipio_residencia.departamento.nombre
+            except Exception:
+                pass
+        if obj.eps_simat_id:
+            obj.eps = obj.eps_simat.nombre
+        if commit:
+            obj.save()
+            self.save_m2m()
+        return obj
 
 
 class ImportarAspirantesForm(forms.Form):

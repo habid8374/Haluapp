@@ -458,54 +458,65 @@ def descargar_plantilla_importacion(request):
     ws = wb.active
     ws.title = "Aspirantes"
     
-    # Columnas: obligatorias primero, luego opcionales (marcadas con *)
-    headers = [
-        # Obligatorias
-        'nombres', 'apellidos', 'numero_documento', 'fecha_nacimiento',
-        'email_contacto', 'grado_aspira', 'paga_inscripcion',
-        # Opcionales — Observador del Estudiante
-        'tipo_documento', 'lugar_nacimiento',
-        'telefono_contacto', 'sexo', 'grupo_sanguineo', 'eps', 'discapacidad',
-        'colegio_procedencia', 'municipio_ciudad', 'departamento', 'direccion',
-        # Opcionales — Caracterización SIMAT/SIMPADE
-        'pais_origen', 'zona_residencia', 'regimen_salud', 'discapacidad_categoria',
-        'capacidad_excepcional', 'grupo_etnico', 'estrato', 'sisben_grupo',
-        'sisben_puntaje', 'victima_conflicto', 'tipo_poblacion_victima',
-        'srpa', 'apoyo_academico_especial',
-        # Opcionales — SIMAT (nombres separados, ubicación DANE y matrícula)
-        'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
-        'nacionalidad', 'cod_depto_nacimiento', 'cod_mpio_nacimiento',
-        'cod_depto_residencia', 'cod_mpio_residencia', 'barrio',
-        'cod_depto_expedicion', 'cod_mpio_expedicion',
-        'cod_etnia_simat', 'cod_resguardo', 'cod_eps_simat',
-        'nombre_sede', 'jornada', 'grupo',
-        'campesino', 'matricula_contratada', 'repitente',
+    # CRITERIO ÚNICO: una sola columna por concepto (sin duplicados). El nombre
+    # va COMPLETO (se separa solo al importar); la ubicación, etnia, EPS y sede
+    # van SOLO por desplegable de catálogo → nunca se digita → no falla al cargar.
+    # Cada par (columna, texto de ayuda) va junto para no desalinearse.
+    columnas = [
+        # Obligatorias (las primeras 7)
+        ('nombres', 'Nombres completos'),
+        ('apellidos', 'Apellidos completos'),
+        ('numero_documento', 'Documento de identidad'),
+        ('fecha_nacimiento', 'DD/MM/AAAA o AAAA-MM-DD'),
+        ('email_contacto', 'Correo electrónico'),
+        ('grado_aspira', 'Selecciona (lista)'),
+        ('paga_inscripcion', 'SI o NO'),
+        # Datos básicos
+        ('tipo_documento', 'Selecciona (lista)'),
+        ('telefono_contacto', 'Teléfono'),
+        ('sexo', 'Selecciona (lista)'),
+        ('grupo_sanguineo', 'Selecciona (lista)'),
+        ('discapacidad', 'Texto (vacío = ninguna)'),
+        ('colegio_procedencia', 'Colegio anterior'),
+        ('direccion', 'Dirección de residencia'),
+        ('barrio', 'Barrio'),
+        # Caracterización socio-económica (SIMPADE)
+        ('pais_origen', 'Vacío si es Colombia'),
+        ('zona_residencia', 'Selecciona (lista)'),
+        ('regimen_salud', 'Selecciona (lista)'),
+        ('discapacidad_categoria', 'Selecciona (lista)'),
+        ('capacidad_excepcional', 'Selecciona (lista)'),
+        ('grupo_etnico', 'Selecciona (lista)'),
+        ('estrato', 'Selecciona (lista)'),
+        ('sisben_grupo', 'Ej: A1, B2, C3'),
+        ('sisben_puntaje', 'Puntaje SISBÉN'),
+        ('victima_conflicto', 'SI o NO'),
+        ('tipo_poblacion_victima', 'Selecciona (lista)'),
+        ('srpa', 'SI o NO'),
+        ('apoyo_academico_especial', 'SI o NO'),
+        ('campesino', 'SI o NO'),
+        # Ubicación DANE (solo desplegable)
+        ('cod_depto_nacimiento', 'Selecciona (lista)'),
+        ('cod_mpio_nacimiento', 'Selecciona (lista)'),
+        ('cod_depto_residencia', 'Selecciona (lista)'),
+        ('cod_mpio_residencia', 'Selecciona (lista)'),
+        ('cod_depto_expedicion', 'Selecciona (lista)'),
+        ('cod_mpio_expedicion', 'Selecciona (lista)'),
+        # Étnico específico (indígenas)
+        ('cod_etnia_simat', 'Selecciona (lista)'),
+        ('cod_resguardo', 'Selecciona (lista)'),
+        # Salud
+        ('cod_eps_simat', 'Selecciona (lista)'),
+        # Matrícula
+        ('nombre_sede', 'Selecciona (lista)'),
+        ('jornada', 'Selecciona (lista)'),
+        ('grupo', 'Grupo/Curso'),
+        ('matricula_contratada', 'SI o NO'),
+        ('repitente', 'SI o NO'),
     ]
+    headers = [c for c, _ in columnas]
     ws.append(headers)
-
-    # Fila de ayuda con descripción de cada columna
-    ws.append([
-        'Nombres completos', 'Apellidos completos', 'Documento de identidad',
-        'DD/MM/AAAA o AAAA-MM-DD', 'Correo electrónico', 'Nombre exacto del grado', 'SI o NO',
-        'TI/CC/RC/PA/CE/OT', 'Ciudad y departamento',
-        'Teléfono', 'M/F/O', 'A+/A-/B+/B-/AB+/AB-/O+/O-', 'Nombre de la EPS',
-        'Condición (vacío=ninguna)',
-        'Colegio anterior', 'Municipio/ciudad', 'Departamento', 'Dirección residencia',
-        # Caracterización SIMAT/SIMPADE
-        'Vacío si es Colombia', 'URBANA/RURAL', 'CONTRIBUTIVO/SUBSIDIADO/ESPECIAL/NO_AFILIADO',
-        'Ver lista (vacío=ninguna)', 'Ver lista (vacío=ninguna)',
-        'NINGUNO/INDIGENA/AFROCOLOMBIANO/RAIZAL/PALENQUERO/ROM', '0 a 6',
-        'Ej: A1, B2, C3', 'Puntaje SISBÉN', 'SI o NO', 'Solo si es víctima',
-        'SI o NO', 'SI o NO',
-        # SIMAT
-        'Primer nombre', 'Segundo nombre', 'Primer apellido', 'Segundo apellido',
-        'Nacionalidad', 'Selecciona (lista)', 'Selecciona (lista)',
-        'Selecciona (lista)', 'Selecciona (lista)', 'Barrio',
-        'Selecciona (lista)', 'Selecciona (lista)',
-        'Selecciona (lista)', 'Selecciona (lista)', 'Selecciona (lista)',
-        'Selecciona (lista)', 'Selecciona (lista)', 'Grupo/Curso',
-        'SI o NO', 'SI o NO', 'SI o NO',
-    ])
+    ws.append([ayuda for _, ayuda in columnas])
 
     from openpyxl.styles import PatternFill, Font as OFont, Alignment
     # Cabecera principal: azul oscuro
@@ -528,49 +539,6 @@ def descargar_plantilla_importacion(request):
     for cell in ws[2]:
         cell.fill = help_fill
         cell.font = help_font
-
-    grados = Grado.objects.filter(institucion=institucion).order_by('orden')
-    if grados.exists():
-        grado_names = f'"{",".join([grado.nombre for grado in grados])}"'
-        dv_grado = DataValidation(type="list", formula1=grado_names, allow_blank=False)
-        ws.add_data_validation(dv_grado)
-        dv_grado.add('F3:F1000')  # Columna F (grado_aspira)
-
-    dv_paga = DataValidation(type="list", formula1='"SI,NO"', allow_blank=False)
-    ws.add_data_validation(dv_paga)
-    dv_paga.add('G3:G1000')  # Columna G (paga_inscripcion)
-
-    dv_tipo_doc = DataValidation(type="list", formula1='"TI,CC,RC,PA,CE,OT"', allow_blank=True)
-    ws.add_data_validation(dv_tipo_doc)
-    dv_tipo_doc.add('H3:H1000')
-
-    dv_sexo = DataValidation(type="list", formula1='"M,F,O"', allow_blank=True)
-    ws.add_data_validation(dv_sexo)
-    dv_sexo.add('K3:K1000')
-
-    dv_gs = DataValidation(type="list", formula1='"A+,A-,B+,B-,AB+,AB-,O+,O-"', allow_blank=True)
-    ws.add_data_validation(dv_gs)
-    dv_gs.add('L3:L1000')
-
-    # ── Desplegables de caracterización SIMAT/SIMPADE ──
-    # (columnas: T=zona, U=régimen, V=discapacidad, W=capacidad, X=étnico,
-    #  Y=estrato, AB=víctima, AC=tipo víctima, AD=srpa, AE=apoyo)
-    _dvs_caracterizacion = [
-        ('T', '"URBANA,RURAL"'),
-        ('U', '"CONTRIBUTIVO,SUBSIDIADO,ESPECIAL,NO_AFILIADO"'),
-        ('V', '"NINGUNA,FISICA,INTELECTUAL,PSICOSOCIAL,VISUAL_BAJA,VISUAL_CEGUERA,AUDITIVA_HIPOACUSIA,AUDITIVA_SORDA,SORDOCEGUERA,MULTIPLE,SISTEMICA,VOZ_Y_HABLA,TEA,OTRA"'),
-        ('W', '"NINGUNA,GLOBAL,TALENTO_CIENTIFICO,TALENTO_ARTISTICO,TALENTO_DEPORTIVO,OTRA"'),
-        ('X', '"NINGUNO,INDIGENA,AFROCOLOMBIANO,RAIZAL,PALENQUERO,ROM"'),
-        ('Y', '"0,1,2,3,4,5,6"'),
-        ('AB', '"SI,NO"'),
-        ('AC', '"DESPLAZADO,VICTIMA_MINAS,DESVINCULADO,HIJO_DESMOVILIZADO,OTRA"'),
-        ('AD', '"SI,NO"'),
-        ('AE', '"SI,NO"'),
-    ]
-    for col, formula in _dvs_caracterizacion:
-        dv = DataValidation(type="list", formula1=formula, allow_blank=True)
-        ws.add_data_validation(dv)
-        dv.add(f'{col}3:{col}1000')
 
     # ── Catálogos oficiales SIMAT en hojas ocultas → desplegables ──
     # El usuario SELECCIONA "CODIGO - NOMBRE"; el parser toma el código. Así no
@@ -599,21 +567,42 @@ def descargar_plantilla_importacion(request):
         con_codigo=False,
     )
 
-    # columna nueva → fórmula de validación (rango de catálogo o lista inline)
-    _dvs_simat = {
+    grados = Grado.objects.filter(institucion=institucion).order_by('orden')
+    ref_grado = ('"' + ",".join(g.nombre for g in grados) + '"') if grados.exists() else ''
+
+    # TODAS las validaciones en un solo lugar, por NOMBRE de columna (robusto
+    # ante cambios de orden). Fórmula = lista inline o rango de catálogo.
+    dvs = {
+        'grado_aspira': ref_grado,
+        'paga_inscripcion': '"SI,NO"',
+        'tipo_documento': '"TI,CC,RC,PA,CE,OT"',
+        'sexo': '"M,F,O"',
+        'grupo_sanguineo': '"A+,A-,B+,B-,AB+,AB-,O+,O-"',
+        'zona_residencia': '"URBANA,RURAL"',
+        'regimen_salud': '"CONTRIBUTIVO,SUBSIDIADO,ESPECIAL,NO_AFILIADO"',
+        'discapacidad_categoria': '"NINGUNA,FISICA,INTELECTUAL,PSICOSOCIAL,VISUAL_BAJA,VISUAL_CEGUERA,AUDITIVA_HIPOACUSIA,AUDITIVA_SORDA,SORDOCEGUERA,MULTIPLE,SISTEMICA,VOZ_Y_HABLA,TEA,OTRA"',
+        'capacidad_excepcional': '"NINGUNA,GLOBAL,TALENTO_CIENTIFICO,TALENTO_ARTISTICO,TALENTO_DEPORTIVO,OTRA"',
+        'grupo_etnico': '"NINGUNO,INDIGENA,AFROCOLOMBIANO,RAIZAL,PALENQUERO,ROM"',
+        'estrato': '"0,1,2,3,4,5,6"',
+        'victima_conflicto': '"SI,NO"',
+        'tipo_poblacion_victima': '"DESPLAZADO,VICTIMA_MINAS,DESVINCULADO,HIJO_DESMOVILIZADO,OTRA"',
+        'srpa': '"SI,NO"',
+        'apoyo_academico_especial': '"SI,NO"',
+        'campesino': '"SI,NO"',
         'cod_depto_nacimiento': ref_depto, 'cod_mpio_nacimiento': ref_mpio,
         'cod_depto_residencia': ref_depto, 'cod_mpio_residencia': ref_mpio,
         'cod_depto_expedicion': ref_depto, 'cod_mpio_expedicion': ref_mpio,
         'cod_etnia_simat': ref_etnia, 'cod_resguardo': ref_resg, 'cod_eps_simat': ref_eps,
         'nombre_sede': ref_sede,
         'jornada': '"MANANA,TARDE,NOCHE,UNICA,COMPLETA,FIN_DE_SEMANA"',
-        'campesino': '"SI,NO"', 'matricula_contratada': '"SI,NO"', 'repitente': '"SI,NO"',
+        'matricula_contratada': '"SI,NO"', 'repitente': '"SI,NO"',
     }
-    for nombre_col, formula in _dvs_simat.items():
+    obligatorias = {'grado_aspira', 'paga_inscripcion'}
+    for nombre_col, formula in dvs.items():
         if nombre_col not in headers or not formula or formula == '""':
             continue
         letra = get_column_letter(headers.index(nombre_col) + 1)
-        dv = DataValidation(type="list", formula1=formula, allow_blank=True)
+        dv = DataValidation(type="list", formula1=formula, allow_blank=(nombre_col not in obligatorias))
         ws.add_data_validation(dv)
         dv.add(f'{letra}3:{letra}1000')
 
