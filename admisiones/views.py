@@ -472,6 +472,12 @@ def descargar_plantilla_importacion(request):
         'capacidad_excepcional', 'grupo_etnico', 'estrato', 'sisben_grupo',
         'sisben_puntaje', 'victima_conflicto', 'tipo_poblacion_victima',
         'srpa', 'apoyo_academico_especial',
+        # Opcionales — SIMAT (nombres separados, ubicación DANE y matrícula)
+        'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
+        'nacionalidad', 'cod_depto_nacimiento', 'cod_mpio_nacimiento',
+        'cod_depto_residencia', 'cod_mpio_residencia', 'barrio',
+        'cod_etnia_simat', 'cod_eps_simat', 'jornada', 'grupo',
+        'campesino', 'matricula_contratada', 'repitente',
     ]
     ws.append(headers)
 
@@ -489,6 +495,12 @@ def descargar_plantilla_importacion(request):
         'NINGUNO/INDIGENA/AFROCOLOMBIANO/RAIZAL/PALENQUERO/ROM', '0 a 6',
         'Ej: A1, B2, C3', 'Puntaje SISBÉN', 'SI o NO', 'Solo si es víctima',
         'SI o NO', 'SI o NO',
+        # SIMAT
+        'Primer nombre', 'Segundo nombre', 'Primer apellido', 'Segundo apellido',
+        'Nacionalidad', 'Selecciona (lista)', 'Selecciona (lista)',
+        'Selecciona (lista)', 'Selecciona (lista)', 'Barrio',
+        'Selecciona (lista)', 'Selecciona (lista)', 'Selecciona (lista)', 'Grupo/Curso',
+        'SI o NO', 'SI o NO', 'SI o NO',
     ])
 
     from openpyxl.styles import PatternFill, Font as OFont, Alignment
@@ -555,6 +567,43 @@ def descargar_plantilla_importacion(request):
         dv = DataValidation(type="list", formula1=formula, allow_blank=True)
         ws.add_data_validation(dv)
         dv.add(f'{col}3:{col}1000')
+
+    # ── Catálogos oficiales SIMAT en hojas ocultas → desplegables ──
+    # El usuario SELECCIONA "CODIGO - NOMBRE"; el parser toma el código. Así no
+    # hay errores de digitación y la importación no falla por nombres.
+    from openpyxl.utils import get_column_letter
+    from simat.models import Departamento, Municipio, Etnia, EPS
+
+    def _hoja_catalogo(nombre_hoja, queryset):
+        hoja = wb.create_sheet(nombre_hoja)
+        hoja.append(["valor"])
+        n = 0
+        for obj in queryset:
+            hoja.append([f"{obj.codigo} - {obj.nombre}"])
+            n += 1
+        hoja.sheet_state = "hidden"
+        return f"='{nombre_hoja}'!$A$2:$A${n + 1}" if n else '""'
+
+    ref_depto = _hoja_catalogo("CAT_DEPTO", Departamento.objects.all().order_by('nombre'))
+    ref_mpio = _hoja_catalogo("CAT_MPIO", Municipio.objects.select_related('departamento').order_by('nombre'))
+    ref_etnia = _hoja_catalogo("CAT_ETNIA", Etnia.objects.filter(habilitado=True).order_by('nombre'))
+    ref_eps = _hoja_catalogo("CAT_EPS", EPS.objects.filter(habilitado=True).order_by('nombre'))
+
+    # columna nueva → fórmula de validación (rango de catálogo o lista inline)
+    _dvs_simat = {
+        'cod_depto_nacimiento': ref_depto, 'cod_mpio_nacimiento': ref_mpio,
+        'cod_depto_residencia': ref_depto, 'cod_mpio_residencia': ref_mpio,
+        'cod_etnia_simat': ref_etnia, 'cod_eps_simat': ref_eps,
+        'jornada': '"MANANA,TARDE,NOCHE,UNICA,COMPLETA,FIN_DE_SEMANA"',
+        'campesino': '"SI,NO"', 'matricula_contratada': '"SI,NO"', 'repitente': '"SI,NO"',
+    }
+    for nombre_col, formula in _dvs_simat.items():
+        if nombre_col not in headers or not formula or formula == '""':
+            continue
+        letra = get_column_letter(headers.index(nombre_col) + 1)
+        dv = DataValidation(type="list", formula1=formula, allow_blank=True)
+        ws.add_data_validation(dv)
+        dv.add(f'{letra}3:{letra}1000')
 
     for col_cells in ws.columns:
         max_length = max(len(str(cell.value or '')) for cell in col_cells)

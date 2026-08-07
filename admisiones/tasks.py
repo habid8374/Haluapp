@@ -267,11 +267,30 @@ def _bool_si_no(raw):
     return _norm_texto(raw) in {"SI", "S", "TRUE", "1", "YES", "Y", "X", "VERDADERO"}
 
 
-def _parsear_fila(row, grados_por_nombre):
-    """Valida y convierte una fila del Excel a un dict listo para crear el Aspirante."""
+def _parsear_fila(row, grados_por_nombre, catalogos=None):
+    """Valida y convierte una fila del Excel a un dict listo para crear el Aspirante.
+
+    ``catalogos`` (opcional): dict de dicts {code→obj} para resolver las columnas
+    codificadas SIMAT (departamento/municipio/etnia/EPS). Los desplegables de la
+    plantilla entregan "CODIGO - NOMBRE"; tomamos el código antes de " - ".
+    """
 
     def _v(col, default=""):
         return str(row.get(col, default) or "").strip()
+
+    def _fk(col, clave_catalogo):
+        if not catalogos:
+            return None
+        raw = _v(col)
+        if not raw:
+            return None
+        code = raw.split(" - ", 1)[0].strip()
+        cat = catalogos.get(clave_catalogo, {})
+        return cat.get(code) or cat.get(raw)
+
+    def _split2(texto):
+        partes = (texto or "").split()
+        return (partes[0][:60], " ".join(partes[1:])[:60]) if partes else ("", "")
 
     documento = _v("numero_documento")
     grado_nombre = _v("grado_aspira")
@@ -366,6 +385,26 @@ def _parsear_fila(row, grados_por_nombre):
         "tipo_poblacion_victima": _match_choice(_v("tipo_poblacion_victima"), C.TipoPoblacionVictima.choices),
         "srpa": _bool_si_no(_v("srpa")),
         "apoyo_academico_especial": _bool_si_no(_v("apoyo_academico_especial")),
+        # ── SIMAT: identidad separada, ubicación DANE y matrícula ──
+        "primer_nombre": _v("primer_nombre") or _split2(_v("nombres"))[0],
+        "segundo_nombre": _v("segundo_nombre") or _split2(_v("nombres"))[1],
+        "primer_apellido": _v("primer_apellido") or _split2(_v("apellidos"))[0],
+        "segundo_apellido": _v("segundo_apellido") or _split2(_v("apellidos"))[1],
+        "nacionalidad": _v("nacionalidad") or None,
+        "barrio": _v("barrio") or None,
+        "grupo": _v("grupo") or None,
+        "jornada": (_v("jornada").upper().replace(" ", "_")
+                    if _v("jornada").upper().replace(" ", "_") in
+                    {"MANANA", "TARDE", "NOCHE", "UNICA", "COMPLETA", "FIN_DE_SEMANA"} else None),
+        "campesino": _bool_si_no(_v("campesino")),
+        "matricula_contratada": _bool_si_no(_v("matricula_contratada")),
+        "repitente": _bool_si_no(_v("repitente")),
+        "departamento_nacimiento": _fk("cod_depto_nacimiento", "depto"),
+        "municipio_nacimiento": _fk("cod_mpio_nacimiento", "mpio"),
+        "departamento_residencia": _fk("cod_depto_residencia", "depto"),
+        "municipio_residencia": _fk("cod_mpio_residencia", "mpio"),
+        "etnia_simat": _fk("cod_etnia_simat", "etnia"),
+        "eps_simat": _fk("cod_eps_simat", "eps"),
     }
 
 
@@ -454,6 +493,15 @@ def procesar_importacion_aspirantes_task(self, lote_id):
         )
         grados_por_nombre = {g.nombre.lower(): g for g in grados_qs}
 
+        # 2b) Pre-cache catálogos SIMAT (código→objeto) para resolver las FK
+        from simat.models import Departamento, Municipio, Etnia, EPS
+        catalogos = {
+            "depto": {d.codigo: d for d in Departamento.objects.all()},
+            "mpio": {m.codigo: m for m in Municipio.objects.all()},
+            "etnia": {e.codigo: e for e in Etnia.objects.all()},
+            "eps": {e.codigo: e for e in EPS.objects.all()},
+        }
+
         # 3) Set existente para detectar duplicados de documento en una sola query
         existentes = set(
             Aspirante.objects.filter(institucion=institucion)
@@ -499,7 +547,7 @@ def procesar_importacion_aspirantes_task(self, lote_id):
 
             documento_raw = str(row.get("numero_documento", "")).strip()
             try:
-                datos = _parsear_fila(row, grados_por_nombre)
+                datos = _parsear_fila(row, grados_por_nombre, catalogos)
                 if datos["documento"] in existentes:
                     raise _FilaInvalida(
                         f"Ya existe un aspirante con documento '{datos['documento']}' en esta institución."
@@ -704,6 +752,24 @@ def _crear_aspirante_desde_datos(datos, institucion, lote, smtp_connection):
         tipo_poblacion_victima=datos["tipo_poblacion_victima"],
         srpa=datos["srpa"],
         apoyo_academico_especial=datos["apoyo_academico_especial"],
+        # ── SIMAT (Fase 2): identidad separada, ubicación DANE y matrícula ──
+        primer_nombre=datos.get("primer_nombre", ""),
+        segundo_nombre=datos.get("segundo_nombre", ""),
+        primer_apellido=datos.get("primer_apellido", ""),
+        segundo_apellido=datos.get("segundo_apellido", ""),
+        nacionalidad=datos.get("nacionalidad") or "",
+        barrio=datos.get("barrio") or "",
+        grupo=datos.get("grupo") or "",
+        jornada=datos.get("jornada") or "",
+        campesino=datos.get("campesino", False),
+        matricula_contratada=datos.get("matricula_contratada", False),
+        repitente=datos.get("repitente", False),
+        departamento_nacimiento=datos.get("departamento_nacimiento"),
+        municipio_nacimiento=datos.get("municipio_nacimiento"),
+        departamento_residencia=datos.get("departamento_residencia"),
+        municipio_residencia=datos.get("municipio_residencia"),
+        etnia_simat=datos.get("etnia_simat"),
+        eps_simat=datos.get("eps_simat"),
     )
     # No queremos que la señal abra otra conexión SMTP por fila. El correo lo
     # enviaremos manualmente reusando la conexión del lote.
