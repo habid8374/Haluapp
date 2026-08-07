@@ -403,8 +403,12 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
         "municipio_nacimiento": _fk("cod_mpio_nacimiento", "mpio"),
         "departamento_residencia": _fk("cod_depto_residencia", "depto"),
         "municipio_residencia": _fk("cod_mpio_residencia", "mpio"),
+        "lugar_expedicion_departamento": _fk("cod_depto_expedicion", "depto"),
+        "lugar_expedicion_municipio": _fk("cod_mpio_expedicion", "mpio"),
         "etnia_simat": _fk("cod_etnia_simat", "etnia"),
+        "resguardo": _fk("cod_resguardo", "resguardo"),
         "eps_simat": _fk("cod_eps_simat", "eps"),
+        "sede": _fk("nombre_sede", "sede"),
     }
 
 
@@ -494,12 +498,15 @@ def procesar_importacion_aspirantes_task(self, lote_id):
         grados_por_nombre = {g.nombre.lower(): g for g in grados_qs}
 
         # 2b) Pre-cache catálogos SIMAT (código→objeto) para resolver las FK
-        from simat.models import Departamento, Municipio, Etnia, EPS
+        from simat.models import Departamento, Municipio, Etnia, EPS, Resguardo, Sede
         catalogos = {
             "depto": {d.codigo: d for d in Departamento.objects.all()},
             "mpio": {m.codigo: m for m in Municipio.objects.all()},
             "etnia": {e.codigo: e for e in Etnia.objects.all()},
+            "resguardo": {r.codigo: r for r in Resguardo.objects.all()},
             "eps": {e.codigo: e for e in EPS.objects.all()},
+            # Sede es por institución y en la plantilla va por NOMBRE
+            "sede": {s.nombre: s for s in Sede.objects.filter(institucion=institucion)},
         }
 
         # 3) Set existente para detectar duplicados de documento en una sola query
@@ -768,8 +775,12 @@ def _crear_aspirante_desde_datos(datos, institucion, lote, smtp_connection):
         municipio_nacimiento=datos.get("municipio_nacimiento"),
         departamento_residencia=datos.get("departamento_residencia"),
         municipio_residencia=datos.get("municipio_residencia"),
+        lugar_expedicion_departamento=datos.get("lugar_expedicion_departamento"),
+        lugar_expedicion_municipio=datos.get("lugar_expedicion_municipio"),
         etnia_simat=datos.get("etnia_simat"),
+        resguardo=datos.get("resguardo"),
         eps_simat=datos.get("eps_simat"),
+        sede=datos.get("sede"),
     )
     # No queremos que la señal abra otra conexión SMTP por fila. El correo lo
     # enviaremos manualmente reusando la conexión del lote.

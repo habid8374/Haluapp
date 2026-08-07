@@ -476,7 +476,9 @@ def descargar_plantilla_importacion(request):
         'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
         'nacionalidad', 'cod_depto_nacimiento', 'cod_mpio_nacimiento',
         'cod_depto_residencia', 'cod_mpio_residencia', 'barrio',
-        'cod_etnia_simat', 'cod_eps_simat', 'jornada', 'grupo',
+        'cod_depto_expedicion', 'cod_mpio_expedicion',
+        'cod_etnia_simat', 'cod_resguardo', 'cod_eps_simat',
+        'nombre_sede', 'jornada', 'grupo',
         'campesino', 'matricula_contratada', 'repitente',
     ]
     ws.append(headers)
@@ -499,7 +501,9 @@ def descargar_plantilla_importacion(request):
         'Primer nombre', 'Segundo nombre', 'Primer apellido', 'Segundo apellido',
         'Nacionalidad', 'Selecciona (lista)', 'Selecciona (lista)',
         'Selecciona (lista)', 'Selecciona (lista)', 'Barrio',
-        'Selecciona (lista)', 'Selecciona (lista)', 'Selecciona (lista)', 'Grupo/Curso',
+        'Selecciona (lista)', 'Selecciona (lista)',
+        'Selecciona (lista)', 'Selecciona (lista)', 'Selecciona (lista)',
+        'Selecciona (lista)', 'Selecciona (lista)', 'Grupo/Curso',
         'SI o NO', 'SI o NO', 'SI o NO',
     ])
 
@@ -572,14 +576,15 @@ def descargar_plantilla_importacion(request):
     # El usuario SELECCIONA "CODIGO - NOMBRE"; el parser toma el código. Así no
     # hay errores de digitación y la importación no falla por nombres.
     from openpyxl.utils import get_column_letter
-    from simat.models import Departamento, Municipio, Etnia, EPS
+    from simat.models import Departamento, Municipio, Etnia, EPS, Resguardo, Sede
 
-    def _hoja_catalogo(nombre_hoja, queryset):
+    def _hoja_catalogo(nombre_hoja, queryset, con_codigo=True):
         hoja = wb.create_sheet(nombre_hoja)
         hoja.append(["valor"])
         n = 0
         for obj in queryset:
-            hoja.append([f"{obj.codigo} - {obj.nombre}"])
+            valor = f"{obj.codigo} - {obj.nombre}" if con_codigo else str(obj)
+            hoja.append([valor])
             n += 1
         hoja.sheet_state = "hidden"
         return f"='{nombre_hoja}'!$A$2:$A${n + 1}" if n else '""'
@@ -587,13 +592,20 @@ def descargar_plantilla_importacion(request):
     ref_depto = _hoja_catalogo("CAT_DEPTO", Departamento.objects.all().order_by('nombre'))
     ref_mpio = _hoja_catalogo("CAT_MPIO", Municipio.objects.select_related('departamento').order_by('nombre'))
     ref_etnia = _hoja_catalogo("CAT_ETNIA", Etnia.objects.filter(habilitado=True).order_by('nombre'))
+    ref_resg = _hoja_catalogo("CAT_RESGUARDO", Resguardo.objects.filter(habilitado=True).order_by('nombre'))
     ref_eps = _hoja_catalogo("CAT_EPS", EPS.objects.filter(habilitado=True).order_by('nombre'))
+    ref_sede = _hoja_catalogo(
+        "CAT_SEDE", Sede.objects.filter(institucion=institucion, activa=True).order_by('nombre'),
+        con_codigo=False,
+    )
 
     # columna nueva → fórmula de validación (rango de catálogo o lista inline)
     _dvs_simat = {
         'cod_depto_nacimiento': ref_depto, 'cod_mpio_nacimiento': ref_mpio,
         'cod_depto_residencia': ref_depto, 'cod_mpio_residencia': ref_mpio,
-        'cod_etnia_simat': ref_etnia, 'cod_eps_simat': ref_eps,
+        'cod_depto_expedicion': ref_depto, 'cod_mpio_expedicion': ref_mpio,
+        'cod_etnia_simat': ref_etnia, 'cod_resguardo': ref_resg, 'cod_eps_simat': ref_eps,
+        'nombre_sede': ref_sede,
         'jornada': '"MANANA,TARDE,NOCHE,UNICA,COMPLETA,FIN_DE_SEMANA"',
         'campesino': '"SI,NO"', 'matricula_contratada': '"SI,NO"', 'repitente': '"SI,NO"',
     }
