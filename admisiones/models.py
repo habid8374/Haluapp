@@ -200,6 +200,23 @@ class Aspirante(models.Model):
     simat_nui = models.CharField(max_length=30, blank=True, verbose_name="SIMAT · NUI")
     # ────────────────────────────────────────────────────────────────────────
 
+    # ════════════════════════════════════════════════════════════════════════
+    #  ACUDIENTE / FAMILIAR — se captura en la MISMA fila (manual y masivo).
+    #  Al inscribir, se crea/vincula un Familiar (con su cuenta) al estudiante.
+    # ════════════════════════════════════════════════════════════════════════
+    PARENTESCO_CHOICES = [
+        ('PADRE', 'Padre'), ('MADRE', 'Madre'), ('ABUELO', 'Abuelo(a)'),
+        ('TIO', 'Tío(a)'), ('HERMANO', 'Hermano(a)'), ('TUTOR', 'Tutor legal'),
+        ('OTRO', 'Otro'),
+    ]
+    acudiente_nombres = models.CharField(max_length=150, blank=True, verbose_name="Acudiente · Nombres")
+    acudiente_apellidos = models.CharField(max_length=150, blank=True, verbose_name="Acudiente · Apellidos")
+    acudiente_tipo_documento = models.CharField(max_length=2, choices=TIPO_DOCUMENTO_CHOICES, blank=True, null=True, verbose_name="Acudiente · Tipo de documento")
+    acudiente_documento = models.CharField(max_length=20, blank=True, verbose_name="Acudiente · Documento")
+    acudiente_parentesco = models.CharField(max_length=15, choices=PARENTESCO_CHOICES, blank=True, verbose_name="Acudiente · Parentesco")
+    acudiente_email = models.EmailField(blank=True, verbose_name="Acudiente · Correo")
+    acudiente_telefono = models.CharField(max_length=20, blank=True, verbose_name="Acudiente · Teléfono")
+
     fecha_inscripcion = models.DateTimeField(auto_now_add=True)
     access_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     
@@ -330,6 +347,14 @@ class Aspirante(models.Model):
         #     para no borrar datos ya cargados manualmente.
         self._sincronizar_caracterizacion(estudiante_obj)
 
+        # 2.c Crea/vincula el acudiente (Familiar) desde los datos de la fila.
+        try:
+            self._sincronizar_acudiente(estudiante_obj)
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "No se pudo sincronizar el acudiente del aspirante %s", self.pk
+            )
+
         # 3. Lógica de cobro — solo si el módulo financiero está activo para la
         #    institución (si no, los pagos se manejan por fuera de la plataforma).
         if self.requiere_pago_inscripcion and getattr(self.institucion, 'usa_modulo_financiero', True):
@@ -384,6 +409,66 @@ class Aspirante(models.Model):
             logging.getLogger(__name__).exception(
                 "No se pudo sincronizar la caracterización del aspirante %s", self.pk
             )
+
+    def _sincronizar_acudiente(self, estudiante):
+        """Crea o vincula el Familiar (acudiente) desde los datos capturados.
+
+        Deduplica por documento (o correo) dentro de la institución para no
+        crear cuentas repetidas cuando varios hermanos comparten acudiente.
+        El Familiar exige una cuenta de Usuario (rol 'familiar'); se crea sin
+        contraseña utilizable → el acudiente entra con «¿Olvidaste tu
+        contraseña?» (correo por la cuenta Brevo de la institución).
+        """
+        from gestion_academica.models import Familiar
+
+        nombres = (self.acudiente_nombres or '').strip()
+        doc = (self.acudiente_documento or '').strip()
+        email = (self.acudiente_email or '').strip()
+        if not nombres or not (doc or email):
+            return None  # sin datos suficientes → no se crea acudiente
+
+        familiar = None
+        if doc:
+            familiar = Familiar.objects.filter(
+                institucion=self.institucion, documento_identidad=doc
+            ).first()
+        if familiar is None and email:
+            familiar = Familiar.objects.filter(
+                institucion=self.institucion, usuario__email__iexact=email
+            ).first()
+
+        if familiar is None:
+            base = unicodedata.normalize('NFKD', (nombres.split()[0]).lower()).encode('ascii', 'ignore').decode('utf-8')
+            base = (base or 'acudiente')
+            username = f"{base}.fam@halu.com"
+            contador = 1
+            while Usuario.objects.filter(username=username).exists():
+                username = f"{base}.fam{contador}@halu.com"
+                contador += 1
+            usuario = Usuario.objects.create(
+                username=username,
+                first_name=nombres,
+                last_name=(self.acudiente_apellidos or '').strip(),
+                email=email,
+                rol='familiar',
+                institucion_asociada=self.institucion,
+            )
+            usuario.set_unusable_password()
+            usuario.save(update_fields=['password'])
+            familiar = Familiar.objects.create(
+                usuario=usuario,
+                parentesco=(self.acudiente_parentesco or 'OTRO'),
+                telefono=(self.acudiente_telefono or '').strip() or None,
+                documento_identidad=doc or None,
+                tipo_documento=self.acudiente_tipo_documento or None,
+                institucion=self.institucion,
+            )
+
+        familiar.estudiantes_asociados.add(estudiante)
+        if estudiante.acudiente_responsable_id is None:
+            estudiante.acudiente_responsable = familiar
+            estudiante.save(update_fields=['acudiente_responsable'])
+        return familiar
 
     @transaction.atomic
     def matricular(self):

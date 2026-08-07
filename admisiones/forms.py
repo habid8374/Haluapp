@@ -72,6 +72,12 @@ class AspiranteForm(forms.ModelForm):
                 'matricula_contratada', 'repitente',
                 'colegio_procedencia', 'requiere_pago_inscripcion',
             ),
+            Fieldset(
+                _("6. Acudiente / Familiar"),
+                'acudiente_nombres', 'acudiente_apellidos',
+                'acudiente_tipo_documento', 'acudiente_documento',
+                'acudiente_parentesco', 'acudiente_email', 'acudiente_telefono',
+            ),
         )
 
     class Meta:
@@ -97,6 +103,10 @@ class AspiranteForm(forms.ModelForm):
             'departamento_residencia', 'municipio_residencia', 'barrio',
             'etnia_simat', 'resguardo', 'eps_simat',
             'sede', 'jornada', 'grupo', 'matricula_contratada', 'repitente',
+            # ── Acudiente / Familiar (se crea/vincula al inscribir) ──
+            'acudiente_nombres', 'acudiente_apellidos', 'acudiente_tipo_documento',
+            'acudiente_documento', 'acudiente_parentesco', 'acudiente_email',
+            'acudiente_telefono',
         ]
         widgets = {
             'nombres': forms.TextInput(attrs={'class': 'form-control'}),

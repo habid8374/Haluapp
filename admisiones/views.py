@@ -513,6 +513,14 @@ def descargar_plantilla_importacion(request):
         ('grupo', 'Grupo/Curso'),
         ('matricula_contratada', 'SI o NO'),
         ('repitente', 'SI o NO'),
+        # Acudiente / Familiar (se crea su cuenta y se vincula al estudiante)
+        ('acudiente_nombres', 'Nombres del acudiente'),
+        ('acudiente_apellidos', 'Apellidos del acudiente'),
+        ('acudiente_tipo_documento', 'Selecciona (lista)'),
+        ('acudiente_documento', 'Documento del acudiente'),
+        ('acudiente_parentesco', 'Selecciona (lista)'),
+        ('acudiente_email', 'Correo del acudiente'),
+        ('acudiente_telefono', 'Teléfono del acudiente'),
     ]
     headers = [c for c, _ in columnas]
     ws.append(headers)
@@ -596,6 +604,8 @@ def descargar_plantilla_importacion(request):
         'nombre_sede': ref_sede,
         'jornada': '"MANANA,TARDE,NOCHE,UNICA,COMPLETA,FIN_DE_SEMANA"',
         'matricula_contratada': '"SI,NO"', 'repitente': '"SI,NO"',
+        'acudiente_tipo_documento': '"TI,CC,RC,PA,CE,OT"',
+        'acudiente_parentesco': '"PADRE,MADRE,ABUELO,TIO,HERMANO,TUTOR,OTRO"',
     }
     obligatorias = {'grado_aspira', 'paga_inscripcion'}
     for nombre_col, formula in dvs.items():

@@ -424,6 +424,17 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
         "resguardo": _fk("cod_resguardo", "resguardo"),
         "eps_simat": eps_obj,
         "sede": _fk("nombre_sede", "sede"),
+        # ── Acudiente / Familiar ──
+        "acudiente_nombres": _v("acudiente_nombres") or None,
+        "acudiente_apellidos": _v("acudiente_apellidos") or None,
+        "acudiente_tipo_documento": (_v("acudiente_tipo_documento").upper()
+                                     if _v("acudiente_tipo_documento").upper() in tipo_doc_validos else None),
+        "acudiente_documento": _v("acudiente_documento") or None,
+        "acudiente_parentesco": (_v("acudiente_parentesco").upper()
+                                 if _v("acudiente_parentesco").upper() in
+                                 {"PADRE", "MADRE", "ABUELO", "TIO", "HERMANO", "TUTOR", "OTRO"} else None),
+        "acudiente_email": _v("acudiente_email") or None,
+        "acudiente_telefono": _v("acudiente_telefono") or None,
     }
 
 
@@ -796,6 +807,14 @@ def _crear_aspirante_desde_datos(datos, institucion, lote, smtp_connection):
         resguardo=datos.get("resguardo"),
         eps_simat=datos.get("eps_simat"),
         sede=datos.get("sede"),
+        # ── Acudiente / Familiar (procesar_inscripcion_completa crea el Familiar) ──
+        acudiente_nombres=datos.get("acudiente_nombres") or "",
+        acudiente_apellidos=datos.get("acudiente_apellidos") or "",
+        acudiente_tipo_documento=datos.get("acudiente_tipo_documento"),
+        acudiente_documento=datos.get("acudiente_documento") or "",
+        acudiente_parentesco=datos.get("acudiente_parentesco") or "",
+        acudiente_email=datos.get("acudiente_email") or "",
+        acudiente_telefono=datos.get("acudiente_telefono") or "",
     )
     # No queremos que la señal abra otra conexión SMTP por fila. El correo lo
     # enviaremos manualmente reusando la conexión del lote.
