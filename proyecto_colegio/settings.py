@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'autenticacion_2fa.apps.Autenticacion2faConfig',
     'simulacros.apps.SimulacrosConfig',
     'piar.apps.PiarConfig',
+    'simat.apps.SimatConfig',
     'evaluacion_docente.apps.EvaluacionDocenteConfig',
     'autoevaluacion_institucional.apps.AutoevaluacionInstitucionalConfig',
     'crucigramas.apps.CrucigramasConfig',

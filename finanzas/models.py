@@ -54,6 +54,20 @@ class InstitucionEducativa(models.Model):
     texto_resolucion = models.TextField(blank=True, default="Resolución Ampliación Nivel Básica Primaria\nN°3161 del 18 de octubre de 2022", verbose_name="Texto de Resolución(es)")
     codigo_dane = models.CharField(max_length=50, blank=True, verbose_name="Código de Identificación DANE")
     ciudad_departamento = models.CharField(max_length=150, blank=True, default="Sabanalarga - Atlántico", verbose_name="Ciudad y Departamento")
+    # --- Configuración SIMAT (reporte de matrícula al MEN) ---
+    simat_codigo_municipio_dane = models.CharField(
+        max_length=5, blank=True, verbose_name="SIMAT · Código DANE del municipio (ETC)",
+        help_text="Código DANE del municipio/distrito de la Secretaría de Educación (ETC).",
+    )
+    simat_calendario = models.CharField(
+        max_length=1, blank=True, choices=[('A', 'Calendario A'), ('B', 'Calendario B')],
+        verbose_name="SIMAT · Calendario",
+    )
+    simat_sector = models.CharField(
+        max_length=12, blank=True,
+        choices=[('OFICIAL', 'Oficial'), ('NO_OFICIAL', 'No oficial')],
+        verbose_name="SIMAT · Sector",
+    )
     nombre_rectora = models.CharField(max_length=150, blank=True, verbose_name="Nombre Completo del Rector(a)")
     firma_rectora = models.ImageField(upload_to='firmas/', blank=True, null=True, verbose_name="Firma del Rector(a) (Imagen)")
     eslogan = models.CharField(max_length=255, blank=True, null=True, verbose_name="Eslogan (Opcional)")

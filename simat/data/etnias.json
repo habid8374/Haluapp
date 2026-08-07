@@ -1,0 +1,517 @@
+[
+{
+"codigo": "0",
+"nombre": "NO APLICA",
+"habilitado": true
+},
+{
+"codigo": "1",
+"nombre": "ACHAGUA",
+"habilitado": true
+},
+{
+"codigo": "2",
+"nombre": "AMORÚA",
+"habilitado": true
+},
+{
+"codigo": "3",
+"nombre": "ANDOQUE",
+"habilitado": true
+},
+{
+"codigo": "4",
+"nombre": "ARHUACO",
+"habilitado": true
+},
+{
+"codigo": "5",
+"nombre": "AWA",
+"habilitado": true
+},
+{
+"codigo": "6",
+"nombre": "BARA",
+"habilitado": true
+},
+{
+"codigo": "7",
+"nombre": "BARASANO",
+"habilitado": true
+},
+{
+"codigo": "8",
+"nombre": "BARI",
+"habilitado": true
+},
+{
+"codigo": "9",
+"nombre": "BETOYE (GUAHIBO)",
+"habilitado": true
+},
+{
+"codigo": "10",
+"nombre": "BORA",
+"habilitado": true
+},
+{
+"codigo": "11",
+"nombre": "KAWIYARI (CABIYARI)",
+"habilitado": true
+},
+{
+"codigo": "12",
+"nombre": "KARAPANA (CARAPANA)",
+"habilitado": true
+},
+{
+"codigo": "13",
+"nombre": "KARIJONA (CARIJONA)",
+"habilitado": true
+},
+{
+"codigo": "14",
+"nombre": "CHIMILAS",
+"habilitado": true
+},
+{
+"codigo": "15",
+"nombre": "CHIRICOA",
+"habilitado": true
+},
+{
+"codigo": "16",
+"nombre": "COCAMA",
+"habilitado": true
+},
+{
+"codigo": "17",
+"nombre": "COCONUCO",
+"habilitado": true
+},
+{
+"codigo": "18",
+"nombre": "KOFAN",
+"habilitado": true
+},
+{
+"codigo": "19",
+"nombre": "PIJAO (COYAIMAS - NATAGAIMAS)",
+"habilitado": true
+},
+{
+"codigo": "20",
+"nombre": "CUBEO",
+"habilitado": true
+},
+{
+"codigo": "21",
+"nombre": "CUIVA (CUIBA - KUIVA)",
+"habilitado": true
+},
+{
+"codigo": "22",
+"nombre": "CURRIPACO",
+"habilitado": true
+},
+{
+"codigo": "23",
+"nombre": "DESANO",
+"habilitado": true
+},
+{
+"codigo": "24",
+"nombre": "TAMAS (DUJOS DE PANIQUITA)",
+"habilitado": true
+},
+{
+"codigo": "26",
+"nombre": "EMBERA KATIO",
+"habilitado": true
+},
+{
+"codigo": "27",
+"nombre": "EMBERA CHAMI",
+"habilitado": true
+},
+{
+"codigo": "28",
+"nombre": "EPERARA SIAPIDARA",
+"habilitado": true
+},
+{
+"codigo": "29",
+"nombre": "GUAMBIANO (AUTODENOMINACION NAM MISAK)",
+"habilitado": true
+},
+{
+"codigo": "31",
+"nombre": "GUAYABERO (AUTODENOMICACION JIW)",
+"habilitado": true
+},
+{
+"codigo": "33",
+"nombre": "HITNU",
+"habilitado": true
+},
+{
+"codigo": "34",
+"nombre": "INGA",
+"habilitado": true
+},
+{
+"codigo": "35",
+"nombre": "CAMENTSA (KAMSA - KAMENTSA)",
+"habilitado": true
+},
+{
+"codigo": "36",
+"nombre": "KOGUI",
+"habilitado": true
+},
+{
+"codigo": "37",
+"nombre": "COREGUAJE",
+"habilitado": true
+},
+{
+"codigo": "38",
+"nombre": "LETUAMA",
+"habilitado": true
+},
+{
+"codigo": "39",
+"nombre": "MACAGUAJE",
+"habilitado": true
+},
+{
+"codigo": "40",
+"nombre": "NUKAK MAKU (SE INCLUYEN HUPHU, JUHUP, JUJUPDA, KAKUA)",
+"habilitado": true
+},
+{
+"codigo": "41",
+"nombre": "MAKUNA",
+"habilitado": true
+},
+{
+"codigo": "42",
+"nombre": "MASIWARE (MASIGUARE - MAIBEN)",
+"habilitado": true
+},
+{
+"codigo": "43",
+"nombre": "MATAPÍ",
+"habilitado": true
+},
+{
+"codigo": "44",
+"nombre": "MIRAÑA",
+"habilitado": true
+},
+{
+"codigo": "45",
+"nombre": "MUINANE",
+"habilitado": true
+},
+{
+"codigo": "46",
+"nombre": "MUISCA",
+"habilitado": true
+},
+{
+"codigo": "47",
+"nombre": "NONUYA",
+"habilitado": true
+},
+{
+"codigo": "48",
+"nombre": "OCAINA",
+"habilitado": true
+},
+{
+"codigo": "49",
+"nombre": "PAEZ (AUTODENOMINACION NASA)",
+"habilitado": true
+},
+{
+"codigo": "50",
+"nombre": "PASTOS",
+"habilitado": true
+},
+{
+"codigo": "51",
+"nombre": "PIAPOCO",
+"habilitado": true
+},
+{
+"codigo": "52",
+"nombre": "PIAROA",
+"habilitado": true
+},
+{
+"codigo": "53",
+"nombre": "PIRATAPUYO",
+"habilitado": true
+},
+{
+"codigo": "54",
+"nombre": "PISAMIRA",
+"habilitado": true
+},
+{
+"codigo": "55",
+"nombre": "PUINAVE",
+"habilitado": true
+},
+{
+"codigo": "56",
+"nombre": "SALIVA (SALIBA)",
+"habilitado": true
+},
+{
+"codigo": "57",
+"nombre": "SIKUANI (SICUANI)",
+"habilitado": true
+},
+{
+"codigo": "58",
+"nombre": "SIONA",
+"habilitado": true
+},
+{
+"codigo": "59",
+"nombre": "SIRIANO",
+"habilitado": true
+},
+{
+"codigo": "60",
+"nombre": "TSIRIPU (TSHIRIPO)",
+"habilitado": true
+},
+{
+"codigo": "61",
+"nombre": "TAIWANO",
+"habilitado": true
+},
+{
+"codigo": "62",
+"nombre": "TANIMUKA",
+"habilitado": true
+},
+{
+"codigo": "63",
+"nombre": "TARIANO",
+"habilitado": true
+},
+{
+"codigo": "64",
+"nombre": "TATUYO",
+"habilitado": true
+},
+{
+"codigo": "65",
+"nombre": "TIKUNA",
+"habilitado": true
+},
+{
+"codigo": "66",
+"nombre": "TOTORÓ",
+"habilitado": true
+},
+{
+"codigo": "67",
+"nombre": "TUKANO",
+"habilitado": true
+},
+{
+"codigo": "68",
+"nombre": "CUNA (TULE)",
+"habilitado": true
+},
+{
+"codigo": "69",
+"nombre": "TUYUCA",
+"habilitado": true
+},
+{
+"codigo": "70",
+"nombre": "U´WA",
+"habilitado": true
+},
+{
+"codigo": "71",
+"nombre": "GUANANO (WANANO)",
+"habilitado": true
+},
+{
+"codigo": "72",
+"nombre": "WAYUU",
+"habilitado": true
+},
+{
+"codigo": "73",
+"nombre": "UITOTOS (HUITOTO - WITOTO)",
+"habilitado": true
+},
+{
+"codigo": "74",
+"nombre": "WIWA",
+"habilitado": true
+},
+{
+"codigo": "75",
+"nombre": "WAUNANA (WOUNAAN)",
+"habilitado": true
+},
+{
+"codigo": "76",
+"nombre": "YAGUA",
+"habilitado": true
+},
+{
+"codigo": "77",
+"nombre": "YANACONA",
+"habilitado": true
+},
+{
+"codigo": "78",
+"nombre": "YAUNA",
+"habilitado": true
+},
+{
+"codigo": "79",
+"nombre": "YUCUNA",
+"habilitado": true
+},
+{
+"codigo": "80",
+"nombre": "YUKO (YUKPA)",
+"habilitado": true
+},
+{
+"codigo": "81",
+"nombre": "YURI",
+"habilitado": true
+},
+{
+"codigo": "82",
+"nombre": "YURUTI (TAPUYA)",
+"habilitado": true
+},
+{
+"codigo": "83",
+"nombre": "ZENU (SENU)",
+"habilitado": true
+},
+{
+"codigo": "84",
+"nombre": "QUILLACINGAS",
+"habilitado": true
+},
+{
+"codigo": "94",
+"nombre": "POLINDARAS",
+"habilitado": true
+},
+{
+"codigo": "95",
+"nombre": "RAIZAL",
+"habilitado": true
+},
+{
+"codigo": "96",
+"nombre": "KANKUAMO",
+"habilitado": true
+},
+{
+"codigo": "97",
+"nombre": "AFRODESCENDIENTE",
+"habilitado": true
+},
+{
+"codigo": "98",
+"nombre": "PALANQUERO",
+"habilitado": true
+},
+{
+"codigo": "99",
+"nombre": "MOKANA",
+"habilitado": true
+},
+{
+"codigo": "100",
+"nombre": "AMBALO",
+"habilitado": true
+},
+{
+"codigo": "101",
+"nombre": "KICHWA",
+"habilitado": true
+},
+{
+"codigo": "102",
+"nombre": "BANIVA",
+"habilitado": true
+},
+{
+"codigo": "103",
+"nombre": "GUARIQUEMA",
+"habilitado": true
+},
+{
+"codigo": "104",
+"nombre": "JURUMI (URTUMI)",
+"habilitado": true
+},
+{
+"codigo": "105",
+"nombre": "KIZGO (QUISGO)",
+"habilitado": true
+},
+{
+"codigo": "106",
+"nombre": "MACAHUA(N)",
+"habilitado": true
+},
+{
+"codigo": "107",
+"nombre": "MURUI (MURUI - WITO)",
+"habilitado": true
+},
+{
+"codigo": "108",
+"nombre": "WIPIWI",
+"habilitado": true
+},
+{
+"codigo": "109",
+"nombre": "YAMALERO",
+"habilitado": true
+},
+{
+"codigo": "110",
+"nombre": "YARI",
+"habilitado": true
+},
+{
+"codigo": "111",
+"nombre": "YARURO",
+"habilitado": true
+},
+{
+"codigo": "112",
+"nombre": "MAPAYERRY",
+"habilitado": true
+},
+{
+"codigo": "200",
+"nombre": "NEGRITUDES",
+"habilitado": true
+},
+{
+"codigo": "400",
+"nombre": "ROM",
+"habilitado": true
+}
+]

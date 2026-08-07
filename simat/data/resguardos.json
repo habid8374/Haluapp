@@ -1,0 +1,3757 @@
+[
+{
+"codigo": "0",
+"nombre": "NO APLICA",
+"habilitado": true
+},
+{
+"codigo": "213",
+"nombre": "GABARRA",
+"habilitado": true
+},
+{
+"codigo": "214",
+"nombre": "GABARRA",
+"habilitado": true
+},
+{
+"codigo": "215",
+"nombre": "GAITANIA",
+"habilitado": true
+},
+{
+"codigo": "216",
+"nombre": "GEGORA,QUIPARA,MURANDO,TIRAVENADO,JIGUADO",
+"habilitado": true
+},
+{
+"codigo": "217",
+"nombre": "GENAREROS",
+"habilitado": true
+},
+{
+"codigo": "218",
+"nombre": "GETUCHA",
+"habilitado": true
+},
+{
+"codigo": "220",
+"nombre": "GITO DOCABU",
+"habilitado": true
+},
+{
+"codigo": "221",
+"nombre": "GORGONIA",
+"habilitado": true
+},
+{
+"codigo": "222",
+"nombre": "GRAN ROSARIO -CALVI-LAS PEÑAS-OTROS",
+"habilitado": true
+},
+{
+"codigo": "223",
+"nombre": "GUACAMAYA MAMIYARE",
+"habilitado": true
+},
+{
+"codigo": "224",
+"nombre": "GUACHAVEZ",
+"habilitado": true
+},
+{
+"codigo": "225",
+"nombre": "GUACHICONO",
+"habilitado": true
+},
+{
+"codigo": "226",
+"nombre": "GUACHUCAL",
+"habilitado": true
+},
+{
+"codigo": "227",
+"nombre": "GUACO BAJO-GUACO ALTO",
+"habilitado": true
+},
+{
+"codigo": "228",
+"nombre": "GUADUAL-CUMBAS-INVINA-ARRAYAN",
+"habilitado": true
+},
+{
+"codigo": "229",
+"nombre": "GUADUALITO",
+"habilitado": true
+},
+{
+"codigo": "230",
+"nombre": "GUAGUANDO",
+"habilitado": true
+},
+{
+"codigo": "231",
+"nombre": "GUAIPA",
+"habilitado": true
+},
+{
+"codigo": "232",
+"nombre": "GUAIPA CENTRO",
+"habilitado": true
+},
+{
+"codigo": "233",
+"nombre": "GUALCALA",
+"habilitado": true
+},
+{
+"codigo": "234",
+"nombre": "GUAMBIA",
+"habilitado": true
+},
+{
+"codigo": "235",
+"nombre": "GUAMBI-YASLAMBI",
+"habilitado": true
+},
+{
+"codigo": "236",
+"nombre": "GUARANDO CARRIZAL",
+"habilitado": true
+},
+{
+"codigo": "237",
+"nombre": "GUASIMAL",
+"habilitado": true
+},
+{
+"codigo": "238",
+"nombre": "GUATAVITA TUA",
+"habilitado": true
+},
+{
+"codigo": "239",
+"nombre": "GUAYABAL DE PARTADO",
+"habilitado": true
+},
+{
+"codigo": "240",
+"nombre": "GUAYACAN-SANTA ROSA",
+"habilitado": true
+},
+{
+"codigo": "241",
+"nombre": "GUAYUYACO",
+"habilitado": true
+},
+{
+"codigo": "242",
+"nombre": "GUELNAMBI-CARANO",
+"habilitado": true
+},
+{
+"codigo": "243",
+"nombre": "HERICHA",
+"habilitado": true
+},
+{
+"codigo": "244",
+"nombre": "HERMEREGILDO CHAKIAMA",
+"habilitado": true
+},
+{
+"codigo": "245",
+"nombre": "HILARQUITO",
+"habilitado": true
+},
+{
+"codigo": "246",
+"nombre": "HONDURAS",
+"habilitado": true
+},
+{
+"codigo": "247",
+"nombre": "HONDURAS",
+"habilitado": true
+},
+{
+"codigo": "248",
+"nombre": "HUELLAS",
+"habilitado": true
+},
+{
+"codigo": "249",
+"nombre": "HUILA",
+"habilitado": true
+},
+{
+"codigo": "250",
+"nombre": "HURTADO-TEGAVERA",
+"habilitado": true
+},
+{
+"codigo": "251",
+"nombre": "IBIBI (IWIWI)",
+"habilitado": true
+},
+{
+"codigo": "252",
+"nombre": "IGUANA",
+"habilitado": true
+},
+{
+"codigo": "253",
+"nombre": "IMBA",
+"habilitado": true
+},
+{
+"codigo": "254",
+"nombre": "INFI",
+"habilitado": true
+},
+{
+"codigo": "255",
+"nombre": "INGA DE CONDAGUA",
+"habilitado": true
+},
+{
+"codigo": "256",
+"nombre": "INGA DE PUERTO LIMON",
+"habilitado": true
+},
+{
+"codigo": "257",
+"nombre": "INGA-KAMSA DE MOCOA",
+"habilitado": true
+},
+{
+"codigo": "258",
+"nombre": "INTEGRADO DEL CHARCO",
+"habilitado": true
+},
+{
+"codigo": "259",
+"nombre": "IPIALES",
+"habilitado": true
+},
+{
+"codigo": "260",
+"nombre": "IROKA",
+"habilitado": true
+},
+{
+"codigo": "261",
+"nombre": "ISLA DE RONDA",
+"habilitado": true
+},
+{
+"codigo": "262",
+"nombre": "ISLA DEL MONO",
+"habilitado": true
+},
+{
+"codigo": "263",
+"nombre": "JACOME",
+"habilitado": true
+},
+{
+"codigo": "264",
+"nombre": "JAGUAL RIO CHINTADO",
+"habilitado": true
+},
+{
+"codigo": "265",
+"nombre": "JAIDEZAVE",
+"habilitado": true
+},
+{
+"codigo": "266",
+"nombre": "JAIKERAZAVI (ABIBE MUTATA)",
+"habilitado": true
+},
+{
+"codigo": "267",
+"nombre": "JAMBALO",
+"habilitado": true
+},
+{
+"codigo": "268",
+"nombre": "JEBALA",
+"habilitado": true
+},
+{
+"codigo": "269",
+"nombre": "JENATURADO",
+"habilitado": true
+},
+{
+"codigo": "270",
+"nombre": "JENGADO-APARTADO",
+"habilitado": true
+},
+{
+"codigo": "271",
+"nombre": "JERICO-CONSAYA-PEÑAS ALTAS",
+"habilitado": true
+},
+{
+"codigo": "272",
+"nombre": "JIRIJIRI",
+"habilitado": true
+},
+{
+"codigo": "273",
+"nombre": "JULIEROS Y VELAZQUEROS",
+"habilitado": true
+},
+{
+"codigo": "274",
+"nombre": "JURADO-CHOCO",
+"habilitado": true
+},
+{
+"codigo": "275",
+"nombre": "KAMENTZA-BIYA",
+"habilitado": true
+},
+{
+"codigo": "276",
+"nombre": "KAWANARUBA",
+"habilitado": true
+},
+{
+"codigo": "277",
+"nombre": "KILOMETRO 6 Y 11 LETICIA TARAPACA",
+"habilitado": true
+},
+{
+"codigo": "278",
+"nombre": "KOGUI-MALAYO-ARHUACO",
+"habilitado": true
+},
+{
+"codigo": "279",
+"nombre": "KWE´S KIWE NASA (LA CRISTALINA)",
+"habilitado": true
+},
+{
+"codigo": "280",
+"nombre": "KWET WALA (PIEDRA GRANDE)",
+"habilitado": true
+},
+{
+"codigo": "281",
+"nombre": "LA AGUADA-SAN ANTONIO",
+"habilitado": true
+},
+{
+"codigo": "282",
+"nombre": "LA AGUADITA",
+"habilitado": true
+},
+{
+"codigo": "283",
+"nombre": "LA ALBANIA",
+"habilitado": true
+},
+{
+"codigo": "284",
+"nombre": "LA ASUNCION",
+"habilitado": true
+},
+{
+"codigo": "285",
+"nombre": "LA CERINDA",
+"habilitado": true
+},
+{
+"codigo": "286",
+"nombre": "LA CONCEPCION",
+"habilitado": true
+},
+{
+"codigo": "287",
+"nombre": "LA CRISTALINA",
+"habilitado": true
+},
+{
+"codigo": "288",
+"nombre": "LA ESMERALDA",
+"habilitado": true
+},
+{
+"codigo": "289",
+"nombre": "LA ESPERANZA",
+"habilitado": true
+},
+{
+"codigo": "290",
+"nombre": "LA FLECHA ALTOZANO",
+"habilitado": true
+},
+{
+"codigo": "291",
+"nombre": "LA FUGA (CONV)",
+"habilitado": true
+},
+{
+"codigo": "292",
+"nombre": "LA GAITANA",
+"habilitado": true
+},
+{
+"codigo": "293",
+"nombre": "LA ISLA",
+"habilitado": true
+},
+{
+"codigo": "294",
+"nombre": "LA JUAGUA-GUACHAL-PITALITO",
+"habilitado": true
+},
+{
+"codigo": "295",
+"nombre": "LA LEONA",
+"habilitado": true
+},
+{
+"codigo": "296",
+"nombre": "LA LLANURA",
+"habilitado": true
+},
+{
+"codigo": "297",
+"nombre": "LA LOMA",
+"habilitado": true
+},
+{
+"codigo": "298",
+"nombre": "LA MARIA",
+"habilitado": true
+},
+{
+"codigo": "299",
+"nombre": "LA MIRLA",
+"habilitado": true
+},
+{
+"codigo": "300",
+"nombre": "LA MONTAÑA",
+"habilitado": true
+},
+{
+"codigo": "301",
+"nombre": "LA PAILA-NAYA",
+"habilitado": true
+},
+{
+"codigo": "302",
+"nombre": "LA PALMA",
+"habilitado": true
+},
+{
+"codigo": "303",
+"nombre": "LA PASCUA",
+"habilitado": true
+},
+{
+"codigo": "304",
+"nombre": "LA PLAYA",
+"habilitado": true
+},
+{
+"codigo": "305",
+"nombre": "LA PURIA",
+"habilitado": true
+},
+{
+"codigo": "306",
+"nombre": "LA REFORMA",
+"habilitado": true
+},
+{
+"codigo": "307",
+"nombre": "LA SAL",
+"habilitado": true
+},
+{
+"codigo": "308",
+"nombre": "LA SORTIJA",
+"habilitado": true
+},
+{
+"codigo": "309",
+"nombre": "LA TATACOA",
+"habilitado": true
+},
+{
+"codigo": "310",
+"nombre": "LA TURBIA",
+"habilitado": true
+},
+{
+"codigo": "311",
+"nombre": "LA TUTIRA",
+"habilitado": true
+},
+{
+"codigo": "312",
+"nombre": "LA VICTORIA (UMAPO)",
+"habilitado": true
+},
+{
+"codigo": "313",
+"nombre": "LA VORAGINE-LA ILUSION",
+"habilitado": true
+},
+{
+"codigo": "314",
+"nombre": "LA YUQUERA",
+"habilitado": true
+},
+{
+"codigo": "315",
+"nombre": "LAGARTO COCHA",
+"habilitado": true
+},
+{
+"codigo": "316",
+"nombre": "LAGOS DEL DORADO Y OTROS",
+"habilitado": true
+},
+{
+"codigo": "318",
+"nombre": "LAGUNA CURVINA-SAPUARA",
+"habilitado": true
+},
+{
+"codigo": "320",
+"nombre": "LAGUNA NIÑAL,CUCUY,LOMABAJA",
+"habilitado": true
+},
+{
+"codigo": "321",
+"nombre": "LAGUNA SIBERIA",
+"habilitado": true
+},
+{
+"codigo": "322",
+"nombre": "LAGUNA TRANQUILA",
+"habilitado": true
+},
+{
+"codigo": "323",
+"nombre": "LAME",
+"habilitado": true
+},
+{
+"codigo": "324",
+"nombre": "LAS BRISAS",
+"habilitado": true
+},
+{
+"codigo": "325",
+"nombre": "LAS DELICIAS",
+"habilitado": true
+},
+{
+"codigo": "326",
+"nombre": "LAS MERCEDES",
+"habilitado": true
+},
+{
+"codigo": "327",
+"nombre": "LAS PALMAS",
+"habilitado": true
+},
+{
+"codigo": "328",
+"nombre": "LAS PLAYAS",
+"habilitado": true
+},
+{
+"codigo": "329",
+"nombre": "LOMAS DE HILARCO",
+"habilitado": true
+},
+{
+"codigo": "330",
+"nombre": "LOMITA DE CURUNDO",
+"habilitado": true
+},
+{
+"codigo": "331",
+"nombre": "LOS ANGELES",
+"habilitado": true
+},
+{
+"codigo": "332",
+"nombre": "LOS IGUANITOS",
+"habilitado": true
+},
+{
+"codigo": "333",
+"nombre": "LOS NIASA",
+"habilitado": true
+},
+{
+"codigo": "334",
+"nombre": "LOS PIJAOS",
+"habilitado": true
+},
+{
+"codigo": "335",
+"nombre": "LOS PLANES",
+"habilitado": true
+},
+{
+"codigo": "336",
+"nombre": "MACARIEROS SAN JOSE",
+"habilitado": true
+},
+{
+"codigo": "337",
+"nombre": "MACEDONIA",
+"habilitado": true
+},
+{
+"codigo": "338",
+"nombre": "MACUARE",
+"habilitado": true
+},
+{
+"codigo": "339",
+"nombre": "MACUCUANA",
+"habilitado": true
+},
+{
+"codigo": "340",
+"nombre": "MAJORE-AMBURA",
+"habilitado": true
+},
+{
+"codigo": "341",
+"nombre": "MALLAMA",
+"habilitado": true
+},
+{
+"codigo": "342",
+"nombre": "MAÑATURE",
+"habilitado": true
+},
+{
+"codigo": "345",
+"nombre": "MATECANDELA",
+"habilitado": true
+},
+{
+"codigo": "346",
+"nombre": "MATICURU",
+"habilitado": true
+},
+{
+"codigo": "347",
+"nombre": "MAYABANGLOMA",
+"habilitado": true
+},
+{
+"codigo": "348",
+"nombre": "MAYASQUER",
+"habilitado": true
+},
+{
+"codigo": "349",
+"nombre": "MENKUE-MISAYA Y LA PISTA",
+"habilitado": true
+},
+{
+"codigo": "350",
+"nombre": "MERCADILLO",
+"habilitado": true
+},
+{
+"codigo": "351",
+"nombre": "MEREY LA VERAITA",
+"habilitado": true
+},
+{
+"codigo": "352",
+"nombre": "MESA DE ORTEGA",
+"habilitado": true
+},
+{
+"codigo": "353",
+"nombre": "MESAI",
+"habilitado": true
+},
+{
+"codigo": "354",
+"nombre": "MIASA DE PARTADO",
+"habilitado": true
+},
+{
+"codigo": "355",
+"nombre": "MINITAS-MIRALINDO",
+"habilitado": true
+},
+{
+"codigo": "356",
+"nombre": "MIRITI PARANA",
+"habilitado": true
+},
+{
+"codigo": "357",
+"nombre": "MOCAGUA",
+"habilitado": true
+},
+{
+"codigo": "358",
+"nombre": "MONDO-MONDOCITO",
+"habilitado": true
+},
+{
+"codigo": "360",
+"nombre": "MONTE HARMON",
+"habilitado": true
+},
+{
+"codigo": "362",
+"nombre": "MOSOCO",
+"habilitado": true
+},
+{
+"codigo": "363",
+"nombre": "MOTILON-BARI",
+"habilitado": true
+},
+{
+"codigo": "364",
+"nombre": "MOTORDO",
+"habilitado": true
+},
+{
+"codigo": "365",
+"nombre": "MUCO-MAYORAGUA",
+"habilitado": true
+},
+{
+"codigo": "366",
+"nombre": "MUELLAMUES",
+"habilitado": true
+},
+{
+"codigo": "367",
+"nombre": "MUNGARADO",
+"habilitado": true
+},
+{
+"codigo": "368",
+"nombre": "MURCIELAGO-ALTAMIRA",
+"habilitado": true
+},
+{
+"codigo": "369",
+"nombre": "MURRI-PANTANOS",
+"habilitado": true
+},
+{
+"codigo": "370",
+"nombre": "NABERA DRUA",
+"habilitado": true
+},
+{
+"codigo": "371",
+"nombre": "NAPIPI",
+"habilitado": true
+},
+{
+"codigo": "372",
+"nombre": "NARIKIZAVI",
+"habilitado": true
+},
+{
+"codigo": "373",
+"nombre": "NASA KIWE",
+"habilitado": true
+},
+{
+"codigo": "374",
+"nombre": "NASA KWE´S KIWE",
+"habilitado": true
+},
+{
+"codigo": "375",
+"nombre": "NASA THA",
+"habilitado": true
+},
+{
+"codigo": "376",
+"nombre": "NAZARET",
+"habilitado": true
+},
+{
+"codigo": "377",
+"nombre": "NICOLAS RAMIREZ",
+"habilitado": true
+},
+{
+"codigo": "378",
+"nombre": "NIÑERAS",
+"habilitado": true
+},
+{
+"codigo": "380",
+"nombre": "NUEVA ESPERANZA",
+"habilitado": true
+},
+{
+"codigo": "381",
+"nombre": "NUEVA ESPERANZA DEL TOMO",
+"habilitado": true
+},
+{
+"codigo": "382",
+"nombre": "NUEVO PITALITO",
+"habilitado": true
+},
+{
+"codigo": "383",
+"nombre": "NUKAK-MAKU",
+"habilitado": true
+},
+{
+"codigo": "385",
+"nombre": "NULPE MEDIO-ALTO RIO SAN JUAN",
+"habilitado": true
+},
+{
+"codigo": "386",
+"nombre": "NUNUYA DE VILLA AZUL",
+"habilitado": true
+},
+{
+"codigo": "387",
+"nombre": "NUSIDO",
+"habilitado": true
+},
+{
+"codigo": "388",
+"nombre": "NUSSI PURRU",
+"habilitado": true
+},
+{
+"codigo": "389",
+"nombre": "OKOCHI",
+"habilitado": true
+},
+{
+"codigo": "390",
+"nombre": "OLIRCO",
+"habilitado": true
+},
+{
+"codigo": "391",
+"nombre": "ONDAS DEL CAFRE",
+"habilitado": true
+},
+{
+"codigo": "392",
+"nombre": "OPOGADO-GUAGUANDO",
+"habilitado": true
+},
+{
+"codigo": "393",
+"nombre": "ORDO-SIVARU-AGUACLARA",
+"habilitado": true
+},
+{
+"codigo": "394",
+"nombre": "PABLO MUERA",
+"habilitado": true
+},
+{
+"codigo": "395",
+"nombre": "PACANDE",
+"habilitado": true
+},
+{
+"codigo": "396",
+"nombre": "PAEZ DE QUINTANA",
+"habilitado": true
+},
+{
+"codigo": "397",
+"nombre": "PAEZ DE VILLA LUCIA",
+"habilitado": true
+},
+{
+"codigo": "398",
+"nombre": "PALERMO",
+"habilitado": true
+},
+{
+"codigo": "399",
+"nombre": "PALETARA",
+"habilitado": true
+},
+{
+"codigo": "400",
+"nombre": "PALMA ALTA",
+"habilitado": true
+},
+{
+"codigo": "401",
+"nombre": "PALMAR IMBI",
+"habilitado": true
+},
+{
+"codigo": "402",
+"nombre": "PANAN",
+"habilitado": true
+},
+{
+"codigo": "403",
+"nombre": "PANCITARA",
+"habilitado": true
+},
+{
+"codigo": "405",
+"nombre": "PANIQUITA",
+"habilitado": true
+},
+{
+"codigo": "406",
+"nombre": "PANURE (VENEZUELA) (CONV)",
+"habilitado": true
+},
+{
+"codigo": "407",
+"nombre": "PAPAYO (AMP)",
+"habilitado": true
+},
+{
+"codigo": "408",
+"nombre": "PARAVARE",
+"habilitado": true
+},
+{
+"codigo": "409",
+"nombre": "PARREROS",
+"habilitado": true
+},
+{
+"codigo": "410",
+"nombre": "PARTE ALTA RIO GUAINIA",
+"habilitado": true
+},
+{
+"codigo": "412",
+"nombre": "PASO ANCHO-CHICUAMBE",
+"habilitado": true
+},
+{
+"codigo": "413",
+"nombre": "PAUJIL",
+"habilitado": true
+},
+{
+"codigo": "414",
+"nombre": "PAVASA-JELLA",
+"habilitado": true
+},
+{
+"codigo": "415",
+"nombre": "PEÑA BLANCA-RIO TRUANDO",
+"habilitado": true
+},
+{
+"codigo": "416",
+"nombre": "PEÑAS DEL OLVIDO",
+"habilitado": true
+},
+{
+"codigo": "417",
+"nombre": "PEÑAS ROJAS",
+"habilitado": true
+},
+{
+"codigo": "418",
+"nombre": "PERANCHITO (AMP)",
+"habilitado": true
+},
+{
+"codigo": "419",
+"nombre": "PERANCHO (AMP)",
+"habilitado": true
+},
+{
+"codigo": "420",
+"nombre": "PESCADITO",
+"habilitado": true
+},
+{
+"codigo": "421",
+"nombre": "PIALAPI PUEBLO VIEJO",
+"habilitado": true
+},
+{
+"codigo": "422",
+"nombre": "PICHICORA",
+"habilitado": true
+},
+{
+"codigo": "423",
+"nombre": "PIEDRA SELLADA-Q.TRONQUERIA",
+"habilitado": true
+},
+{
+"codigo": "424",
+"nombre": "PIGUAMBI PALANGALA",
+"habilitado": true
+},
+{
+"codigo": "425",
+"nombre": "PINGULLOS-SARDINERO",
+"habilitado": true
+},
+{
+"codigo": "426",
+"nombre": "PIOYA",
+"habilitado": true
+},
+{
+"codigo": "427",
+"nombre": "PIPALTA PALBI YAGUAPI",
+"habilitado": true
+},
+{
+"codigo": "428",
+"nombre": "PITAYO",
+"habilitado": true
+},
+{
+"codigo": "429",
+"nombre": "PLAYAS DE BOJABA",
+"habilitado": true
+},
+{
+"codigo": "430",
+"nombre": "POBLAZON",
+"habilitado": true
+},
+{
+"codigo": "431",
+"nombre": "POCARA",
+"habilitado": true
+},
+{
+"codigo": "432",
+"nombre": "POCHARCO",
+"habilitado": true
+},
+{
+"codigo": "433",
+"nombre": "POLINDARA",
+"habilitado": true
+},
+{
+"codigo": "434",
+"nombre": "POLINES",
+"habilitado": true
+},
+{
+"codigo": "435",
+"nombre": "PORVENIR-KANANGUCHAL",
+"habilitado": true
+},
+{
+"codigo": "436",
+"nombre": "POTOSI",
+"habilitado": true
+},
+{
+"codigo": "437",
+"nombre": "POTRERITO",
+"habilitado": true
+},
+{
+"codigo": "438",
+"nombre": "POTRERITO-DOYARE",
+"habilitado": true
+},
+{
+"codigo": "439",
+"nombre": "PREDIO PUTUMAYO",
+"habilitado": true
+},
+{
+"codigo": "440",
+"nombre": "PREDIO PUTUMAYO (PUERTO LIMÓN)",
+"habilitado": true
+},
+{
+"codigo": "441",
+"nombre": "PROVINCIAL",
+"habilitado": true
+},
+{
+"codigo": "442",
+"nombre": "PTO VIEJO Y PTO ESPERANZA",
+"habilitado": true
+},
+{
+"codigo": "443",
+"nombre": "PUADO, MATARE, LA LERMA, TERDO",
+"habilitado": true
+},
+{
+"codigo": "444",
+"nombre": "PUEBLO NUEVO",
+"habilitado": true
+},
+{
+"codigo": "445",
+"nombre": "PUEBLO NUEVO-LAGUNA COLORADA",
+"habilitado": true
+},
+{
+"codigo": "446",
+"nombre": "PUERTO ALEGRE-LA DIVISA",
+"habilitado": true
+},
+{
+"codigo": "447",
+"nombre": "PUERTO ANTIOQUIA",
+"habilitado": true
+},
+{
+"codigo": "448",
+"nombre": "PUERTO CORDOBA",
+"habilitado": true
+},
+{
+"codigo": "449",
+"nombre": "PUERTO LIBIA TRIPICAY",
+"habilitado": true
+},
+{
+"codigo": "450",
+"nombre": "PUERTO LIBRE-RIO PEPE",
+"habilitado": true
+},
+{
+"codigo": "451",
+"nombre": "PUERTO NARANJO",
+"habilitado": true
+},
+{
+"codigo": "452",
+"nombre": "PUERTO NARIÑO",
+"habilitado": true
+},
+{
+"codigo": "453",
+"nombre": "PUERTO TRIUNFO",
+"habilitado": true
+},
+{
+"codigo": "454",
+"nombre": "PUERTO ZABALO-LOS MONOS",
+"habilitado": true
+},
+{
+"codigo": "455",
+"nombre": "PULGANDE CAMPOALEGRE",
+"habilitado": true
+},
+{
+"codigo": "456",
+"nombre": "PUNTA BANDERA",
+"habilitado": true
+},
+{
+"codigo": "457",
+"nombre": "PURACE",
+"habilitado": true
+},
+{
+"codigo": "458",
+"nombre": "PUYEROS",
+"habilitado": true
+},
+{
+"codigo": "459",
+"nombre": "QUEBRADA CAÑAVERAL-R SAN JORGE",
+"habilitado": true
+},
+{
+"codigo": "460",
+"nombre": "QUEBRADA QUERA",
+"habilitado": true
+},
+{
+"codigo": "461",
+"nombre": "QUEBRADITAS",
+"habilitado": true
+},
+{
+"codigo": "462",
+"nombre": "QUICHAYA",
+"habilitado": true
+},
+{
+"codigo": "463",
+"nombre": "QUIZGO",
+"habilitado": true
+},
+{
+"codigo": "464",
+"nombre": "RAMOS-MONGON-MANCHURIA",
+"habilitado": true
+},
+{
+"codigo": "465",
+"nombre": "RECINTO PALMAROSA",
+"habilitado": true
+},
+{
+"codigo": "466",
+"nombre": "REMANSO CHORRO BOCON",
+"habilitado": true
+},
+{
+"codigo": "468",
+"nombre": "RICAURTE",
+"habilitado": true
+},
+{
+"codigo": "469",
+"nombre": "RINCON BODEGA",
+"habilitado": true
+},
+{
+"codigo": "470",
+"nombre": "RINCON DE ANCHIQUE",
+"habilitado": true
+},
+{
+"codigo": "471",
+"nombre": "RIO BEBARA",
+"habilitado": true
+},
+{
+"codigo": "472",
+"nombre": "RIO BEBARAMA",
+"habilitado": true
+},
+{
+"codigo": "473",
+"nombre": "RIO BLANCO",
+"habilitado": true
+},
+{
+"codigo": "474",
+"nombre": "RIO CHAJERADO",
+"habilitado": true
+},
+{
+"codigo": "475",
+"nombre": "RIO DAGUA",
+"habilitado": true
+},
+{
+"codigo": "476",
+"nombre": "RIO DOMINGODO",
+"habilitado": true
+},
+{
+"codigo": "477",
+"nombre": "RIO GARRAPATAS",
+"habilitado": true
+},
+{
+"codigo": "478",
+"nombre": "RIO GUANGUI",
+"habilitado": true
+},
+{
+"codigo": "479",
+"nombre": "RIO ICHO QUEBRADA BARATUDO",
+"habilitado": true
+},
+{
+"codigo": "480",
+"nombre": "RIO JARAPETO",
+"habilitado": true
+},
+{
+"codigo": "481",
+"nombre": "RIO LA PLAYA-CHOCO",
+"habilitado": true
+},
+{
+"codigo": "482",
+"nombre": "RIO LA RAYA",
+"habilitado": true
+},
+{
+"codigo": "483",
+"nombre": "RIO LANAS O CAPA",
+"habilitado": true
+},
+{
+"codigo": "484",
+"nombre": "RIO MUCO Y GUARROJO",
+"habilitado": true
+},
+{
+"codigo": "485",
+"nombre": "RIO MUMBU",
+"habilitado": true
+},
+{
+"codigo": "486",
+"nombre": "RIO MUNGUIDO",
+"habilitado": true
+},
+{
+"codigo": "487",
+"nombre": "RIO MURINDO",
+"habilitado": true
+},
+{
+"codigo": "488",
+"nombre": "RIO NAYA (JOAQUINCITO)",
+"habilitado": true
+},
+{
+"codigo": "489",
+"nombre": "RIO NEGUA",
+"habilitado": true
+},
+{
+"codigo": "490",
+"nombre": "RIO NUQUI",
+"habilitado": true
+},
+{
+"codigo": "491",
+"nombre": "RIO ORPUA",
+"habilitado": true
+},
+{
+"codigo": "492",
+"nombre": "RIO PANGUI",
+"habilitado": true
+},
+{
+"codigo": "493",
+"nombre": "RIO PICHIMA",
+"habilitado": true
+},
+{
+"codigo": "494",
+"nombre": "RIO PURRICHA",
+"habilitado": true
+},
+{
+"codigo": "495",
+"nombre": "RIO QUIPARADO",
+"habilitado": true
+},
+{
+"codigo": "496",
+"nombre": "RIO SANQUIANGA",
+"habilitado": true
+},
+{
+"codigo": "497",
+"nombre": "RIO SATINGA (BACAO)",
+"habilitado": true
+},
+{
+"codigo": "498",
+"nombre": "RIO SIARE-BARRANCO LINDO",
+"habilitado": true
+},
+{
+"codigo": "499",
+"nombre": "RIO TAPARAL",
+"habilitado": true
+},
+{
+"codigo": "500",
+"nombre": "RIO TOMO Y WEBERI",
+"habilitado": true
+},
+{
+"codigo": "501",
+"nombre": "RIO TORREIDO-CHIMANI",
+"habilitado": true
+},
+{
+"codigo": "502",
+"nombre": "RIO UVA Y POGUE",
+"habilitado": true
+},
+{
+"codigo": "503",
+"nombre": "RIOS ATABAPO E INIRIDA (CACAHUAL)",
+"habilitado": true
+},
+{
+"codigo": "504",
+"nombre": "RIOS CATRU, DUBASA, ANCOSO",
+"habilitado": true
+},
+{
+"codigo": "505",
+"nombre": "RIOS CUIARI E ISANA  (PTO.COLOMBIA)",
+"habilitado": true
+},
+{
+"codigo": "506",
+"nombre": "RIOS JURUBIDA-CHORI-ALTO BAUDO",
+"habilitado": true
+},
+{
+"codigo": "507",
+"nombre": "RIOS PATO-JENGADO",
+"habilitado": true
+},
+{
+"codigo": "509",
+"nombre": "ROQUEROS EL DORADO",
+"habilitado": true
+},
+{
+"codigo": "510",
+"nombre": "RUMIYACO",
+"habilitado": true
+},
+{
+"codigo": "511",
+"nombre": "SABALETA",
+"habilitado": true
+},
+{
+"codigo": "512",
+"nombre": "SABANAS DE CURRIPAO",
+"habilitado": true
+},
+{
+"codigo": "513",
+"nombre": "SALAQUI-PAVARANDO",
+"habilitado": true
+},
+{
+"codigo": "514",
+"nombre": "SAN AGUSTIN",
+"habilitado": true
+},
+{
+"codigo": "515",
+"nombre": "SAN AGUSTIN-LA FLORESTA",
+"habilitado": true
+},
+{
+"codigo": "516",
+"nombre": "SAN ANDRES DE PISIMBALA",
+"habilitado": true
+},
+{
+"codigo": "517",
+"nombre": "SAN ANDRES DE SOTAVENTO",
+"habilitado": true
+},
+{
+"codigo": "518",
+"nombre": "SAN ANTONIO DE CALARMA",
+"habilitado": true
+},
+{
+"codigo": "519",
+"nombre": "SAN ANTONIO DE FRAGUA",
+"habilitado": true
+},
+{
+"codigo": "520",
+"nombre": "SAN ANTONIO DE LOS LAGOS",
+"habilitado": true
+},
+{
+"codigo": "521",
+"nombre": "SAN DIEGO",
+"habilitado": true
+},
+{
+"codigo": "522",
+"nombre": "SAN FRANCISCO",
+"habilitado": true
+},
+{
+"codigo": "523",
+"nombre": "SAN JOSE",
+"habilitado": true
+},
+{
+"codigo": "524",
+"nombre": "SAN JOSE AMIA DE PATO",
+"habilitado": true
+},
+{
+"codigo": "525",
+"nombre": "SAN JOSE DE LIPA (CONVERSION)",
+"habilitado": true
+},
+{
+"codigo": "526",
+"nombre": "SAN JOSE DEL RIO",
+"habilitado": true
+},
+{
+"codigo": "527",
+"nombre": "SAN JUAN",
+"habilitado": true
+},
+{
+"codigo": "528",
+"nombre": "SAN JUAN DE LOS PARENTES",
+"habilitado": true
+},
+{
+"codigo": "529",
+"nombre": "SAN JUAN PAMPON",
+"habilitado": true
+},
+{
+"codigo": "530",
+"nombre": "SAN JUANITO",
+"habilitado": true
+},
+{
+"codigo": "531",
+"nombre": "SAN LORENZO",
+"habilitado": true
+},
+{
+"codigo": "533",
+"nombre": "SAN LUIS",
+"habilitado": true
+},
+{
+"codigo": "534",
+"nombre": "SAN LUIS DEL TOMO",
+"habilitado": true
+},
+{
+"codigo": "535",
+"nombre": "SAN MATIAS O JAI-DUKAMA",
+"habilitado": true
+},
+{
+"codigo": "536",
+"nombre": "SAN MIGUEL",
+"habilitado": true
+},
+{
+"codigo": "537",
+"nombre": "SAN MIGUEL DE LA CASTELLANA",
+"habilitado": true
+},
+{
+"codigo": "538",
+"nombre": "SAN PABLO EL PARA",
+"habilitado": true
+},
+{
+"codigo": "539",
+"nombre": "SAN RAFAEL",
+"habilitado": true
+},
+{
+"codigo": "540",
+"nombre": "SAN SEBASTIAN",
+"habilitado": true
+},
+{
+"codigo": "541",
+"nombre": "SANANDOCITO",
+"habilitado": true
+},
+{
+"codigo": "542",
+"nombre": "SANQUIANGUITA",
+"habilitado": true
+},
+{
+"codigo": "543",
+"nombre": "SANTA CECILIA-QUEBRADA ORO",
+"habilitado": true
+},
+{
+"codigo": "544",
+"nombre": "SANTA CRUZ DE PIÑUÑA BLANCO",
+"habilitado": true
+},
+{
+"codigo": "545",
+"nombre": "SANTA MARIA DE PANGALA",
+"habilitado": true
+},
+{
+"codigo": "546",
+"nombre": "SANTA MARIA EL CHARCON",
+"habilitado": true
+},
+{
+"codigo": "547",
+"nombre": "SANTA MARTA",
+"habilitado": true
+},
+{
+"codigo": "548",
+"nombre": "SANTA MARTA DE CURICHE",
+"habilitado": true
+},
+{
+"codigo": "549",
+"nombre": "SANTA MARTA INSPECCION",
+"habilitado": true
+},
+{
+"codigo": "550",
+"nombre": "SANTA MARTA PALMAR",
+"habilitado": true
+},
+{
+"codigo": "551",
+"nombre": "SANTA MARTA-DIAMANTE",
+"habilitado": true
+},
+{
+"codigo": "552",
+"nombre": "SANTA RITA",
+"habilitado": true
+},
+{
+"codigo": "553",
+"nombre": "SANTA ROSA CERRO CUCUY MORICHALVIEJO",
+"habilitado": true
+},
+{
+"codigo": "554",
+"nombre": "SANTA ROSA DE CAPISCO",
+"habilitado": true
+},
+{
+"codigo": "555",
+"nombre": "SANTA ROSA DE IJUA",
+"habilitado": true
+},
+{
+"codigo": "556",
+"nombre": "SANTA ROSA DE SUCUMBIOS",
+"habilitado": true
+},
+{
+"codigo": "557",
+"nombre": "SANTA ROSA DEL GUAMUEZ (CONV)",
+"habilitado": true
+},
+{
+"codigo": "558",
+"nombre": "SANTA ROSALIA",
+"habilitado": true
+},
+{
+"codigo": "559",
+"nombre": "SANTA SOFIA Y EL PROGRESO",
+"habilitado": true
+},
+{
+"codigo": "560",
+"nombre": "SANTA TERESITA DEL TUPARRO",
+"habilitado": true
+},
+{
+"codigo": "561",
+"nombre": "SARACURE RIO CADA",
+"habilitado": true
+},
+{
+"codigo": "563",
+"nombre": "SEVER",
+"habilitado": true
+},
+{
+"codigo": "564",
+"nombre": "SIBERIA",
+"habilitado": true
+},
+{
+"codigo": "565",
+"nombre": "SIBUNDOY PARTE ALTA",
+"habilitado": true
+},
+{
+"codigo": "566",
+"nombre": "SIRENA BERRECUY",
+"habilitado": true
+},
+{
+"codigo": "567",
+"nombre": "SOCORPA",
+"habilitado": true
+},
+{
+"codigo": "568",
+"nombre": "SOLDADO PARATE BIEN",
+"habilitado": true
+},
+{
+"codigo": "569",
+"nombre": "SUIN",
+"habilitado": true
+},
+{
+"codigo": "570",
+"nombre": "SURATENA",
+"habilitado": true
+},
+{
+"codigo": "571",
+"nombre": "TACUEYO",
+"habilitado": true
+},
+{
+"codigo": "572",
+"nombre": "TAGUAL-LA PO",
+"habilitado": true
+},
+{
+"codigo": "573",
+"nombre": "TAHAMI DEL ANDAGUEDA",
+"habilitado": true
+},
+{
+"codigo": "574",
+"nombre": "TALAGA",
+"habilitado": true
+},
+{
+"codigo": "575",
+"nombre": "TAMA-PAEZ-LA GABRIELA",
+"habilitado": true
+},
+{
+"codigo": "576",
+"nombre": "TAMAS DEL CAGUAN",
+"habilitado": true
+},
+{
+"codigo": "577",
+"nombre": "TAMIRCO",
+"habilitado": true
+},
+{
+"codigo": "578",
+"nombre": "TANELA, (DADICHI, CITARA)",
+"habilitado": true
+},
+{
+"codigo": "579",
+"nombre": "TARENA",
+"habilitado": true
+},
+{
+"codigo": "580",
+"nombre": "TIERRA ALTA",
+"habilitado": true
+},
+{
+"codigo": "581",
+"nombre": "TIGRES Y MUNCHIQUE",
+"habilitado": true
+},
+{
+"codigo": "582",
+"nombre": "TINAJAS",
+"habilitado": true
+},
+{
+"codigo": "583",
+"nombre": "TIOSILIDIO",
+"habilitado": true
+},
+{
+"codigo": "584",
+"nombre": "TOEZ",
+"habilitado": true
+},
+{
+"codigo": "585",
+"nombre": "TOGOIMA",
+"habilitado": true
+},
+{
+"codigo": "586",
+"nombre": "TOGOROMA",
+"habilitado": true
+},
+{
+"codigo": "587",
+"nombre": "TOKOLLORO",
+"habilitado": true
+},
+{
+"codigo": "588",
+"nombre": "TONINA-SEJAL-SAN JOSE",
+"habilitado": true
+},
+{
+"codigo": "589",
+"nombre": "TORIBIO",
+"habilitado": true
+},
+{
+"codigo": "590",
+"nombre": "TORTUGAÑA-TELEMBI-OTROS",
+"habilitado": true
+},
+{
+"codigo": "591",
+"nombre": "TOTARCO DINDE TRADICIONAL",
+"habilitado": true
+},
+{
+"codigo": "592",
+"nombre": "TOTARCO DINDE-INDEPENDIENTE",
+"habilitado": true
+},
+{
+"codigo": "593",
+"nombre": "TOTARCO NIPLE",
+"habilitado": true
+},
+{
+"codigo": "594",
+"nombre": "TOTARCO PIEDRAS",
+"habilitado": true
+},
+{
+"codigo": "595",
+"nombre": "TOTARCO TAMARINDO",
+"habilitado": true
+},
+{
+"codigo": "596",
+"nombre": "TOTORO",
+"habilitado": true
+},
+{
+"codigo": "597",
+"nombre": "TOTUMAL",
+"habilitado": true
+},
+{
+"codigo": "598",
+"nombre": "TRAPICHE-RIO PEPE",
+"habilitado": true
+},
+{
+"codigo": "599",
+"nombre": "TRES ESQUINAS",
+"habilitado": true
+},
+{
+"codigo": "600",
+"nombre": "TRONQUERIA,PULGRANDE,PALICITO",
+"habilitado": true
+},
+{
+"codigo": "601",
+"nombre": "TRUPIOGACHO-LA MESETA",
+"habilitado": true
+},
+{
+"codigo": "602",
+"nombre": "TUMBICHUCUE",
+"habilitado": true
+},
+{
+"codigo": "603",
+"nombre": "TUMBURAO",
+"habilitado": true
+},
+{
+"codigo": "604",
+"nombre": "TUNGINA-APARTADO-ZUÑIGA",
+"habilitado": true
+},
+{
+"codigo": "605",
+"nombre": "TUQUERRES",
+"habilitado": true
+},
+{
+"codigo": "606",
+"nombre": "UKUMARI KANKHE",
+"habilitado": true
+},
+{
+"codigo": "607",
+"nombre": "UNA APUCHON",
+"habilitado": true
+},
+{
+"codigo": "608",
+"nombre": "UNIDO U´WA",
+"habilitado": true
+},
+{
+"codigo": "609",
+"nombre": "UNION CHOCO SAN CRISTOBAL",
+"habilitado": true
+},
+{
+"codigo": "610",
+"nombre": "VALDIVIA",
+"habilitado": true
+},
+{
+"codigo": "611",
+"nombre": "VALLE BOROBORO-POZO MANZA-BRAZO",
+"habilitado": true
+},
+{
+"codigo": "612",
+"nombre": "VALLE DE PERDIDAS JENGAMECONDA",
+"habilitado": true
+},
+{
+"codigo": "613",
+"nombre": "VALLE DE SIBUNDOY",
+"habilitado": true
+},
+{
+"codigo": "614",
+"nombre": "VALLES DEL SOL",
+"habilitado": true
+},
+{
+"codigo": "615",
+"nombre": "VANIA CHAMI DE ARGELIA",
+"habilitado": true
+},
+{
+"codigo": "616",
+"nombre": "VENCEDOR PIRIRI (CONV)",
+"habilitado": true
+},
+{
+"codigo": "617",
+"nombre": "VILLA CATALINA DE PUERTO ROSARIO",
+"habilitado": true
+},
+{
+"codigo": "618",
+"nombre": "VILLANUEVA JUNA",
+"habilitado": true
+},
+{
+"codigo": "619",
+"nombre": "VITONCO",
+"habilitado": true
+},
+{
+"codigo": "620",
+"nombre": "VUELTA DEL ALIVIO",
+"habilitado": true
+},
+{
+"codigo": "621",
+"nombre": "VUELTA DEL RIO",
+"habilitado": true
+},
+{
+"codigo": "622",
+"nombre": "WACOYO (COROCITO,YOPALITO,G.)",
+"habilitado": true
+},
+{
+"codigo": "623",
+"nombre": "WALLIANI",
+"habilitado": true
+},
+{
+"codigo": "624",
+"nombre": "WANCHIRADO-CHOCO",
+"habilitado": true
+},
+{
+"codigo": "625",
+"nombre": "WASIPUNGO",
+"habilitado": true
+},
+{
+"codigo": "626",
+"nombre": "WASIRUMA",
+"habilitado": true
+},
+{
+"codigo": "627",
+"nombre": "WAYUU DE LOMAMATO",
+"habilitado": true
+},
+{
+"codigo": "628",
+"nombre": "WITORA O HUITORA",
+"habilitado": true
+},
+{
+"codigo": "629",
+"nombre": "WITOTO DE TUKUNARE",
+"habilitado": true
+},
+{
+"codigo": "630",
+"nombre": "YABERARADO (ABIBE CHIGORODO)",
+"habilitado": true
+},
+{
+"codigo": "631",
+"nombre": "YACO MOLANA",
+"habilitado": true
+},
+{
+"codigo": "632",
+"nombre": "YAGUARA II-LLANOS DEL YARI",
+"habilitado": true
+},
+{
+"codigo": "633",
+"nombre": "YAIGOJE-RIO APAPORIS**",
+"habilitado": true
+},
+{
+"codigo": "634",
+"nombre": "YAQUIVA",
+"habilitado": true
+},
+{
+"codigo": "635",
+"nombre": "YARAMAL",
+"habilitado": true
+},
+{
+"codigo": "636",
+"nombre": "YARINAL-SAN MARCELINO (CONV)",
+"habilitado": true
+},
+{
+"codigo": "637",
+"nombre": "YARUMAL Y EL BARRANCO",
+"habilitado": true
+},
+{
+"codigo": "638",
+"nombre": "YASCUAL",
+"habilitado": true
+},
+{
+"codigo": "639",
+"nombre": "YAVILLA II",
+"habilitado": true
+},
+{
+"codigo": "640",
+"nombre": "YUNGUILLO",
+"habilitado": true
+},
+{
+"codigo": "642",
+"nombre": "ZARAGOZA",
+"habilitado": true
+},
+{
+"codigo": "643",
+"nombre": "ZARAGOZA TAMARINDO",
+"habilitado": true
+},
+{
+"codigo": "644",
+"nombre": "ZIT-SEK DEL QUECAL",
+"habilitado": true
+},
+{
+"codigo": "645",
+"nombre": "REFUGIO DEL SOL",
+"habilitado": true
+},
+{
+"codigo": "649",
+"nombre": "KANKUAMO",
+"habilitado": true
+},
+{
+"codigo": "1002",
+"nombre": "COMEYAFU",
+"habilitado": true
+},
+{
+"codigo": "1003",
+"nombre": "CURARE-LOS INGLESES",
+"habilitado": true
+},
+{
+"codigo": "1005",
+"nombre": "ARARA",
+"habilitado": true
+},
+{
+"codigo": "1006",
+"nombre": "EL VERGEL (LETICIA - AMAZONAS)",
+"habilitado": true
+},
+{
+"codigo": "1020",
+"nombre": "COTHUE-PUTUMAYO",
+"habilitado": true
+},
+{
+"codigo": "1021",
+"nombre": "ANDOQUE DE ADUCHE",
+"habilitado": true
+},
+{
+"codigo": "1024",
+"nombre": "AMPARRADO-ALTO-MEDIO Y QUEBRADA CHONTADURO",
+"habilitado": true
+},
+{
+"codigo": "1025",
+"nombre": "CAÑAVERALES-ANTADO",
+"habilitado": true
+},
+{
+"codigo": "1026",
+"nombre": "CHIMURRO-NENDO",
+"habilitado": true
+},
+{
+"codigo": "1027",
+"nombre": "CHUSCAL-TUGURIDOCITO",
+"habilitado": true
+},
+{
+"codigo": "1030",
+"nombre": "PAVARANDO-AMPARRADO MEDIO",
+"habilitado": true
+},
+{
+"codigo": "1031",
+"nombre": "CHAQUENODA",
+"habilitado": true
+},
+{
+"codigo": "1034",
+"nombre": "CRISTIANIA",
+"habilitado": true
+},
+{
+"codigo": "1037",
+"nombre": "CHONTADURAL-CAÑERO",
+"habilitado": true
+},
+{
+"codigo": "1038",
+"nombre": "CAIMAN NUEVO",
+"habilitado": true
+},
+{
+"codigo": "1039",
+"nombre": "EL VOLAO",
+"habilitado": true
+},
+{
+"codigo": "1044",
+"nombre": "EL SALADO",
+"habilitado": true
+},
+{
+"codigo": "1048",
+"nombre": "EL ZAMURO",
+"habilitado": true
+},
+{
+"codigo": "1052",
+"nombre": "EL VIGIA",
+"habilitado": true
+},
+{
+"codigo": "1053",
+"nombre": "CUSAY-LA COLORADA",
+"habilitado": true
+},
+{
+"codigo": "1054",
+"nombre": "ANGOSTURA",
+"habilitado": true
+},
+{
+"codigo": "1055",
+"nombre": "CAÑO CLARO",
+"habilitado": true
+},
+{
+"codigo": "1056",
+"nombre": "CUILOTO LI",
+"habilitado": true
+},
+{
+"codigo": "1069",
+"nombre": "CAÑAMOMO-LOMAPRIETA",
+"habilitado": true
+},
+{
+"codigo": "1072",
+"nombre": "EL GUAYABAL",
+"habilitado": true
+},
+{
+"codigo": "1075",
+"nombre": "EL CEDRITO",
+"habilitado": true
+},
+{
+"codigo": "1076",
+"nombre": "AGUANEGRA",
+"habilitado": true
+},
+{
+"codigo": "1085",
+"nombre": "EL PORTAL",
+"habilitado": true
+},
+{
+"codigo": "1088",
+"nombre": "ALTAMIRA",
+"habilitado": true
+},
+{
+"codigo": "1090",
+"nombre": "AGUAS NEGRAS",
+"habilitado": true
+},
+{
+"codigo": "1092",
+"nombre": "COROPOYA",
+"habilitado": true
+},
+{
+"codigo": "1093",
+"nombre": "CUERAZO",
+"habilitado": true
+},
+{
+"codigo": "1095",
+"nombre": "EL QUINCE",
+"habilitado": true
+},
+{
+"codigo": "1096",
+"nombre": "EL TRIUNFO",
+"habilitado": true
+},
+{
+"codigo": "1099",
+"nombre": "HUITOTO DE MONOCHOA",
+"habilitado": true
+},
+{
+"codigo": "1106",
+"nombre": "CUSUMBE-AGUA BLANCA",
+"habilitado": true
+},
+{
+"codigo": "1107",
+"nombre": "CAÑO MOCHUELO-HATO COROZAL",
+"habilitado": true
+},
+{
+"codigo": "1108",
+"nombre": "EL CONSEJO",
+"habilitado": true
+},
+{
+"codigo": "1109",
+"nombre": "EL DUYA",
+"habilitado": true
+},
+{
+"codigo": "1110",
+"nombre": "EL MEDANO",
+"habilitado": true
+},
+{
+"codigo": "1111",
+"nombre": "EL SALADILLO",
+"habilitado": true
+},
+{
+"codigo": "1112",
+"nombre": "EL SUSPIRO",
+"habilitado": true
+},
+{
+"codigo": "1116",
+"nombre": "CHAPARRAL Y BARRO NEGRO",
+"habilitado": true
+},
+{
+"codigo": "1117",
+"nombre": "CAQUIONA",
+"habilitado": true
+},
+{
+"codigo": "1125",
+"nombre": "CORINTO",
+"habilitado": true
+},
+{
+"codigo": "1126",
+"nombre": "ALTO DEL REY",
+"habilitado": true
+},
+{
+"codigo": "1135",
+"nombre": "AGUA NEGRA (MORALES CAUCA)",
+"habilitado": true
+},
+{
+"codigo": "1136",
+"nombre": "CHIMBORAZO",
+"habilitado": true
+},
+{
+"codigo": "1138",
+"nombre": "AVIRAMA",
+"habilitado": true
+},
+{
+"codigo": "1139",
+"nombre": "BELALCAZAR",
+"habilitado": true
+},
+{
+"codigo": "1140",
+"nombre": "CHINAS",
+"habilitado": true
+},
+{
+"codigo": "1157",
+"nombre": "COCONUCO",
+"habilitado": true
+},
+{
+"codigo": "1161",
+"nombre": "EL DESCANSE",
+"habilitado": true
+},
+{
+"codigo": "1162",
+"nombre": "CANOAS",
+"habilitado": true
+},
+{
+"codigo": "1166",
+"nombre": "AMBALO",
+"habilitado": true
+},
+{
+"codigo": "1173",
+"nombre": "CALLE SANTA ROSA - RIO SAIJA",
+"habilitado": true
+},
+{
+"codigo": "1188",
+"nombre": "BUSINCHAMA",
+"habilitado": true
+},
+{
+"codigo": "1189",
+"nombre": "ARHUACO DE LA SIERRA",
+"habilitado": true
+},
+{
+"codigo": "1191",
+"nombre": "AGUA CLARA-BELLALUZ",
+"habilitado": true
+},
+{
+"codigo": "1192",
+"nombre": "DOMINICO-LONDOÑO-PARTADO",
+"habilitado": true
+},
+{
+"codigo": "1198",
+"nombre": "BELLAVISTA-UNION PITALITO",
+"habilitado": true
+},
+{
+"codigo": "1210",
+"nombre": "ALTO RIO BOJAYA",
+"habilitado": true
+},
+{
+"codigo": "1211",
+"nombre": "ALTO RIO CUIA",
+"habilitado": true
+},
+{
+"codigo": "1212",
+"nombre": "BUCHADO-AMPARRADO",
+"habilitado": true
+},
+{
+"codigo": "1217",
+"nombre": "EL DOCE-QUEBRADA BORBOLLON",
+"habilitado": true
+},
+{
+"codigo": "1225",
+"nombre": "BUENAVISTA (LITORAL DE SAN JUAN CHOCO)",
+"habilitado": true
+},
+{
+"codigo": "1226",
+"nombre": "BURUJON - LA UNION SAN BERNARDO",
+"habilitado": true
+},
+{
+"codigo": "1227",
+"nombre": "CHAGPIEN-TORDO",
+"habilitado": true
+},
+{
+"codigo": "1228",
+"nombre": "DOCORDO-BALSALITO",
+"habilitado": true
+},
+{
+"codigo": "1240",
+"nombre": "ALTO RIO BUEY",
+"habilitado": true
+},
+{
+"codigo": "1241",
+"nombre": "ALTO RIO TAGACHI",
+"habilitado": true
+},
+{
+"codigo": "1242",
+"nombre": "AME",
+"habilitado": true
+},
+{
+"codigo": "1243",
+"nombre": "BETE-AURO BETE,AURO DEL BUEY",
+"habilitado": true
+},
+{
+"codigo": "1244",
+"nombre": "CAIMANERO DE JAMPAPA",
+"habilitado": true
+},
+{
+"codigo": "1245",
+"nombre": "CHIQUE-RIO TANGUI",
+"habilitado": true
+},
+{
+"codigo": "1246",
+"nombre": "EL VEINTE PLAYA ALTA Y EL NOVENTA",
+"habilitado": true
+},
+{
+"codigo": "1247",
+"nombre": "EL VEINTIUNO",
+"habilitado": true
+},
+{
+"codigo": "1263",
+"nombre": "COPEG DEL RIO INGARA",
+"habilitado": true
+},
+{
+"codigo": "1264",
+"nombre": "BOCHOROMA-BOCHOROMACITO",
+"habilitado": true
+},
+{
+"codigo": "1267",
+"nombre": "ARQUIA",
+"habilitado": true
+},
+{
+"codigo": "1268",
+"nombre": "CUTI",
+"habilitado": true
+},
+{
+"codigo": "1272",
+"nombre": "ALTO SINU (KARAGAVI E IWAGADO)",
+"habilitado": true
+},
+{
+"codigo": "1275",
+"nombre": "ARRECIFAL",
+"habilitado": true
+},
+{
+"codigo": "1281",
+"nombre": "ALMIDON LA CEIBA",
+"habilitado": true
+},
+{
+"codigo": "1282",
+"nombre": "BACHACO BUENAVISTA",
+"habilitado": true
+},
+{
+"codigo": "1283",
+"nombre": "BAJO RIO GUAINIA Y RIO NEGRO",
+"habilitado": true
+},
+{
+"codigo": "1285",
+"nombre": "CARANACOA YURI LAGUNA MOROCOTO",
+"habilitado": true
+},
+{
+"codigo": "1286",
+"nombre": "CARRIZAL",
+"habilitado": true
+},
+{
+"codigo": "1287",
+"nombre": "CHIGÜIRO",
+"habilitado": true
+},
+{
+"codigo": "1288",
+"nombre": "COAYARE EL COCO",
+"habilitado": true
+},
+{
+"codigo": "1289",
+"nombre": "CONCORDIA",
+"habilitado": true
+},
+{
+"codigo": "1290",
+"nombre": "CUENCA MEDIA Y ALTA RIO INIRIDA",
+"habilitado": true
+},
+{
+"codigo": "1291",
+"nombre": "CUMARAL, GUAMUCO",
+"habilitado": true
+},
+{
+"codigo": "1292",
+"nombre": "EL VENADO",
+"habilitado": true
+},
+{
+"codigo": "1302",
+"nombre": "BARRANQUILLITA",
+"habilitado": true
+},
+{
+"codigo": "1304",
+"nombre": "BARRANCO CEIBA-LAGUNA ARAGUATO",
+"habilitado": true
+},
+{
+"codigo": "1305",
+"nombre": "BARRANCO COLORADO",
+"habilitado": true
+},
+{
+"codigo": "1306",
+"nombre": "BARRANCON",
+"habilitado": true
+},
+{
+"codigo": "1307",
+"nombre": "CAÑO NEGRO",
+"habilitado": true
+},
+{
+"codigo": "1308",
+"nombre": "COROCORO",
+"habilitado": true
+},
+{
+"codigo": "1313",
+"nombre": "BACHE",
+"habilitado": true
+},
+{
+"codigo": "1316",
+"nombre": "EL ZAHINO GUAYABITO MURIAYTUY",
+"habilitado": true
+},
+{
+"codigo": "1320",
+"nombre": "CAICEMAPA",
+"habilitado": true
+},
+{
+"codigo": "1324",
+"nombre": "ALTA Y MEDIA GUAJIRA",
+"habilitado": true
+},
+{
+"codigo": "1325",
+"nombre": "CUATRO DE NOVIEMBRE",
+"habilitado": true
+},
+{
+"codigo": "1327",
+"nombre": "CHIMILA DE SAN ANGEL",
+"habilitado": true
+},
+{
+"codigo": "1328",
+"nombre": "CAÑO JABON",
+"habilitado": true
+},
+{
+"codigo": "1329",
+"nombre": "CAÑO OVEJAS",
+"habilitado": true
+},
+{
+"codigo": "1330",
+"nombre": "CHARCO CAIMAN",
+"habilitado": true
+},
+{
+"codigo": "1334",
+"nombre": "AWALIBA (ABARIBA)",
+"habilitado": true
+},
+{
+"codigo": "1335",
+"nombre": "COROZAL TAPAOJO",
+"habilitado": true
+},
+{
+"codigo": "1336",
+"nombre": "DOMO PLANAS (SAN RAFAEL)",
+"habilitado": true
+},
+{
+"codigo": "1337",
+"nombre": "EL TIGRE",
+"habilitado": true
+},
+{
+"codigo": "1338",
+"nombre": "EL UNUMA",
+"habilitado": true
+},
+{
+"codigo": "1342",
+"nombre": "EL TURPIAL",
+"habilitado": true
+},
+{
+"codigo": "1344",
+"nombre": "ALDANA",
+"habilitado": true
+},
+{
+"codigo": "1347",
+"nombre": "CORDOBA (MALES)",
+"habilitado": true
+},
+{
+"codigo": "1348",
+"nombre": "CARLOSAMA",
+"habilitado": true
+},
+{
+"codigo": "1349",
+"nombre": "CHILES",
+"habilitado": true
+},
+{
+"codigo": "1350",
+"nombre": "CUMBAL",
+"habilitado": true
+},
+{
+"codigo": "1353",
+"nombre": "APONTE",
+"habilitado": true
+},
+{
+"codigo": "1354",
+"nombre": "COLIMBA",
+"habilitado": true
+},
+{
+"codigo": "1364",
+"nombre": "AWA DEL ALTO ALBI",
+"habilitado": true
+},
+{
+"codigo": "1365",
+"nombre": "CUASBIL-LA FALDADA",
+"habilitado": true
+},
+{
+"codigo": "1366",
+"nombre": "CUASCUABI-PALDUBI",
+"habilitado": true
+},
+{
+"codigo": "1367",
+"nombre": "CUCHILLA-PALMAR",
+"habilitado": true
+},
+{
+"codigo": "1368",
+"nombre": "EL SANDE",
+"habilitado": true
+},
+{
+"codigo": "1377",
+"nombre": "EL GRAN SABALO",
+"habilitado": true
+},
+{
+"codigo": "1387",
+"nombre": "CHOROMANDO ALTO Y MEDIO",
+"habilitado": true
+},
+{
+"codigo": "1396",
+"nombre": "CALENTURAS",
+"habilitado": true
+},
+{
+"codigo": "1397",
+"nombre": "EL DESCANSO",
+"habilitado": true
+},
+{
+"codigo": "1399",
+"nombre": "CALARCA",
+"habilitado": true
+},
+{
+"codigo": "1400",
+"nombre": "CECILIA COCHA",
+"habilitado": true
+},
+{
+"codigo": "1401",
+"nombre": "CONSARA-MECAYA",
+"habilitado": true
+},
+{
+"codigo": "1402",
+"nombre": "EL HACHA",
+"habilitado": true
+},
+{
+"codigo": "1403",
+"nombre": "EL PROGRESO",
+"habilitado": true
+},
+{
+"codigo": "1404",
+"nombre": "EL TABLERO",
+"habilitado": true
+},
+{
+"codigo": "1406",
+"nombre": "LA PAYA",
+"habilitado": true
+},
+{
+"codigo": "1410",
+"nombre": "UNIFICADO CHAMI RIO SAN JUAN",
+"habilitado": true
+},
+{
+"codigo": "1411",
+"nombre": "AMAYARCO",
+"habilitado": true
+},
+{
+"codigo": "1412",
+"nombre": "CHENCHE BUENOS AIRES TRADICIONAL",
+"habilitado": true
+},
+{
+"codigo": "1413",
+"nombre": "CHENCHE-SOCORRO-LOS GUAYABOS",
+"habilitado": true
+},
+{
+"codigo": "1414",
+"nombre": "EL TAMBO",
+"habilitado": true
+},
+{
+"codigo": "1428",
+"nombre": "ANACARCO",
+"habilitado": true
+},
+{
+"codigo": "1429",
+"nombre": "BATEAS",
+"habilitado": true
+},
+{
+"codigo": "1435",
+"nombre": "AICO",
+"habilitado": true
+},
+{
+"codigo": "1445",
+"nombre": "CAÑON RIO SAN QUININI",
+"habilitado": true
+},
+{
+"codigo": "1447",
+"nombre": "CABECERAS",
+"habilitado": true
+},
+{
+"codigo": "1448",
+"nombre": "CHACHAJO",
+"habilitado": true
+},
+{
+"codigo": "1454",
+"nombre": "EL TRIUNFO-CRISTAL  PAEZ",
+"habilitado": true
+},
+{
+"codigo": "1458",
+"nombre": "BACATI-ARARA",
+"habilitado": true
+},
+{
+"codigo": "1459",
+"nombre": "VAUPÉS",
+"habilitado": true
+},
+{
+"codigo": "1463",
+"nombre": "CALI-BARRANQUILLA",
+"habilitado": true
+},
+{
+"codigo": "1467",
+"nombre": "CARPINTERO-PALOMAS",
+"habilitado": true
+},
+{
+"codigo": "1468",
+"nombre": "CHOCON",
+"habilitado": true
+},
+{
+"codigo": "1469",
+"nombre": "CHOLOLOBO-MATATU",
+"habilitado": true
+},
+{
+"codigo": "1472",
+"nombre": "EGUA-GUARIACANA",
+"habilitado": true
+},
+{
+"codigo": "1473",
+"nombre": "FLORES-SOMBRERO",
+"habilitado": true
+},
+{
+"codigo": "1493",
+"nombre": "CAMPOALEGRE-RIPIALITO",
+"habilitado": true
+},
+{
+"codigo": "1495",
+"nombre": "CAÑO BACHACO",
+"habilitado": true
+},
+{
+"codigo": "1496",
+"nombre": "CAÑO GUARIPA",
+"habilitado": true
+},
+{
+"codigo": "1497",
+"nombre": "CAÑO HORMIGA",
+"habilitado": true
+},
+{
+"codigo": "1498",
+"nombre": "CAÑO MESETAS-DAGUA",
+"habilitado": true
+},
+{
+"codigo": "1499",
+"nombre": "GUACAMAYAS-MAIPORE",
+"habilitado": true
+},
+{
+"codigo": "1502",
+"nombre": "ALTOMIRA",
+"habilitado": true
+},
+{
+"codigo": "1506",
+"nombre": "EL REFUGIO",
+"habilitado": true
+},
+{
+"codigo": "1512",
+"nombre": "AFILADOR-CAMPOALEGRE",
+"habilitado": true
+},
+{
+"codigo": "1514",
+"nombre": "CIBARIZA",
+"habilitado": true
+},
+{
+"codigo": "1534",
+"nombre": "DACHI DRUA CHAMI",
+"habilitado": true
+},
+{
+"codigo": "1536",
+"nombre": "PAINA",
+"habilitado": true
+},
+{
+"codigo": "1544",
+"nombre": "CHENCHE BUENOS AIRES INDEPENDIENTE",
+"habilitado": true
+},
+{
+"codigo": "1553",
+"nombre": "ANDABU",
+"habilitado": true
+},
+{
+"codigo": "1557",
+"nombre": "BAYONEROS",
+"habilitado": true
+},
+{
+"codigo": "1558",
+"nombre": "CAJAROS",
+"habilitado": true
+},
+{
+"codigo": "1566",
+"nombre": "CHENCHE MEDIA LUNA",
+"habilitado": true
+},
+{
+"codigo": "1568",
+"nombre": "DRUA DO (PORTALES DEL RIO)",
+"habilitado": true
+},
+{
+"codigo": "1571",
+"nombre": "CASTILLA - ANGOSTURAS",
+"habilitado": true
+},
+{
+"codigo": "1575",
+"nombre": "ABEJERO",
+"habilitado": true
+},
+{
+"codigo": "1577",
+"nombre": "ALBANIA",
+"habilitado": true
+},
+{
+"codigo": "1582",
+"nombre": "CANANAMA",
+"habilitado": true
+},
+{
+"codigo": "1585",
+"nombre": "CAÑO PADILLA",
+"habilitado": true
+},
+{
+"codigo": "1586",
+"nombre": "DEARADE - BIAKIRUDE",
+"habilitado": true
+},
+{
+"codigo": "1589",
+"nombre": "CACHIVERA DE NARE",
+"habilitado": true
+},
+{
+"codigo": "1591",
+"nombre": "EL CEDRO,LAS PEÑAS,LA BRAVA,PILVI",
+"habilitado": true
+},
+{
+"codigo": "1592",
+"nombre": "CHALUAYACO",
+"habilitado": true
+},
+{
+"codigo": "1594",
+"nombre": "CHAQUIRA",
+"habilitado": true
+},
+{
+"codigo": "1597",
+"nombre": "COHETANDO",
+"habilitado": true
+},
+{
+"codigo": "1598",
+"nombre": "EL ROSARIO-BELLAVISTA-YUCATAN",
+"habilitado": true
+},
+{
+"codigo": "1609",
+"nombre": "DIAMANTE",
+"habilitado": true
+},
+{
+"codigo": "1616",
+"nombre": "CALDERAS",
+"habilitado": true
+},
+{
+"codigo": "1617",
+"nombre": "CHIDIMA TOLO",
+"habilitado": true
+},
+{
+"codigo": "1618",
+"nombre": "EL PIÑAL",
+"habilitado": true
+},
+{
+"codigo": "1623",
+"nombre": "BAJO GRANDE",
+"habilitado": true
+},
+{
+"codigo": "1625",
+"nombre": "BARZALOZA",
+"habilitado": true
+},
+{
+"codigo": "1631",
+"nombre": "DOKERAZAVI",
+"habilitado": true
+},
+{
+"codigo": "1633",
+"nombre": "CERRO DE HATONUEVO",
+"habilitado": true
+},
+{
+"codigo": "1639",
+"nombre": "DOXURA",
+"habilitado": true
+},
+{
+"codigo": "1641",
+"nombre": "CERRODEO",
+"habilitado": true
+},
+{
+"codigo": "1642",
+"nombre": "CHAGÜI,CHIMBUZA,VEGAS, SAN ANTONIO,OTROS",
+"habilitado": true
+},
+{
+"codigo": "1644",
+"nombre": "CAMARITAGUA",
+"habilitado": true
+},
+{
+"codigo": "1647",
+"nombre": "ALMORZADERO, SAN ISIDRO, Y LA NUEVA UNION",
+"habilitado": true
+},
+{
+"codigo": "1648",
+"nombre": "ALTO BONITO VIRA VIRA",
+"habilitado": true
+},
+{
+"codigo": "1650",
+"nombre": "EL ITILLA",
+"habilitado": true
+},
+{
+"codigo": "1652",
+"nombre": "CUAIQUER INTEGRADO LA MILAGROSA",
+"habilitado": true
+},
+{
+"codigo": "1654",
+"nombre": "ALTO CARTAGENA",
+"habilitado": true
+},
+{
+"codigo": "1657",
+"nombre": "DACHI DRUA MUNDI",
+"habilitado": true
+},
+{
+"codigo": "1660",
+"nombre": "EMBERA-DRUA",
+"habilitado": true
+},
+{
+"codigo": "1661",
+"nombre": "CORIBI-BEDADO",
+"habilitado": true
+},
+{
+"codigo": "1662",
+"nombre": "ESCOPETERA-PIRZA",
+"habilitado": true
+},
+{
+"codigo": "1663",
+"nombre": "YURAYACO",
+"habilitado": true
+},
+{
+"codigo": "1664",
+"nombre": "LA TEOFILA",
+"habilitado": true
+},
+{
+"codigo": "1665",
+"nombre": "PAT YU",
+"habilitado": true
+},
+{
+"codigo": "1666",
+"nombre": "PAEZ DE TOEZ",
+"habilitado": true
+},
+{
+"codigo": "1667",
+"nombre": "LA FLORESTA-LAESPAÑOLA",
+"habilitado": true
+},
+{
+"codigo": "1668",
+"nombre": "SAN JOAQUIN",
+"habilitado": true
+},
+{
+"codigo": "1670",
+"nombre": "DO IMAMA TUMA Y BELLA LUZ",
+"habilitado": true
+},
+{
+"codigo": "1671",
+"nombre": "EMBERA DE CHIGORODO-MENBA",
+"habilitado": true
+},
+{
+"codigo": "1672",
+"nombre": "PATIO BONITO",
+"habilitado": true
+},
+{
+"codigo": "1673",
+"nombre": "PUERTO DE CHINCHILIANO",
+"habilitado": true
+},
+{
+"codigo": "1674",
+"nombre": "PARED Y PARECITO",
+"habilitado": true
+},
+{
+"codigo": "1675",
+"nombre": "SABALETERA SAN ONOFRE EL TIGRE",
+"habilitado": true
+},
+{
+"codigo": "1676",
+"nombre": "MAMEY DE DIBURDU",
+"habilitado": true
+},
+{
+"codigo": "1677",
+"nombre": "WAYUU RODELTO EL POZO",
+"habilitado": true
+},
+{
+"codigo": "1678",
+"nombre": "PUERTO NARE",
+"habilitado": true
+},
+{
+"codigo": "1679",
+"nombre": "NUEVO AMANECER LA MESETA",
+"habilitado": true
+},
+{
+"codigo": "1680",
+"nombre": "LA ESTACION-TALAGA",
+"habilitado": true
+},
+{
+"codigo": "1681",
+"nombre": "LA JULIA",
+"habilitado": true
+},
+{
+"codigo": "1682",
+"nombre": "HONDA RIO GUIZA",
+"habilitado": true
+},
+{
+"codigo": "1683",
+"nombre": "INGA DE MOCOA",
+"habilitado": true
+},
+{
+"codigo": "1684",
+"nombre": "SAUNDE GULGUAY",
+"habilitado": true
+},
+{
+"codigo": "1685",
+"nombre": "CHINQUIRITO MIRA",
+"habilitado": true
+},
+{
+"codigo": "1686",
+"nombre": "INDA SABALETA",
+"habilitado": true
+},
+{
+"codigo": "1687",
+"nombre": "KEJUAMBI FELICIANA",
+"habilitado": true
+},
+{
+"codigo": "1688",
+"nombre": "NUNALBI ALTO ULBI",
+"habilitado": true
+},
+{
+"codigo": "1689",
+"nombre": "DAMASCO VIDES",
+"habilitado": true
+},
+{
+"codigo": "1690",
+"nombre": "LA ARGELIA",
+"habilitado": true
+},
+{
+"codigo": "1691",
+"nombre": "NUEVO HORIZONTE",
+"habilitado": true
+},
+{
+"codigo": "1692",
+"nombre": "CHONARA HUENA",
+"habilitado": true
+},
+{
+"codigo": "1693",
+"nombre": "MONZHOMANDÓ",
+"habilitado": true
+},
+{
+"codigo": "1694",
+"nombre": "PAEZ DE EL LIBANO",
+"habilitado": true
+},
+{
+"codigo": "1695",
+"nombre": "PAEZ DE LAS MERCEDES",
+"habilitado": true
+},
+{
+"codigo": "1696",
+"nombre": "LA CILIA",
+"habilitado": true
+},
+{
+"codigo": "1697",
+"nombre": "INGA DE WASIPANGA",
+"habilitado": true
+},
+{
+"codigo": "1698",
+"nombre": "MANDIYACO",
+"habilitado": true
+},
+{
+"codigo": "1699",
+"nombre": "URADA JIGUAMIANDÓ",
+"habilitado": true
+},
+{
+"codigo": "1701",
+"nombre": "PIC ´KUE IKH",
+"habilitado": true
+},
+{
+"codigo": "1702",
+"nombre": "NASA-PAEZ DE JUAN TAMA",
+"habilitado": true
+},
+{
+"codigo": "1704",
+"nombre": "PIC-KWE-THA-FIW",
+"habilitado": true
+},
+{
+"codigo": "1706",
+"nombre": "AWA  DE CAÑAVERAL",
+"habilitado": true
+},
+{
+"codigo": "1707",
+"nombre": "AWA  DE LOS GUADUALES",
+"habilitado": true
+},
+{
+"codigo": "1708",
+"nombre": "LA ITALIA",
+"habilitado": true
+},
+{
+"codigo": "1709",
+"nombre": "VEGAS DE SANTA ANA",
+"habilitado": true
+},
+{
+"codigo": "1710",
+"nombre": "ALTO LORENZO",
+"habilitado": true
+},
+{
+"codigo": "1711",
+"nombre": "CHENCHE BALSILLAS",
+"habilitado": true
+},
+{
+"codigo": "1712",
+"nombre": "COCANA",
+"habilitado": true
+},
+{
+"codigo": "1713",
+"nombre": "NATACOY PIJAO",
+"habilitado": true
+},
+{
+"codigo": "1714",
+"nombre": "BOCAS DE TETUAN",
+"habilitado": true
+},
+{
+"codigo": "1715",
+"nombre": "SELVA DE MATAVEN",
+"habilitado": true
+},
+{
+"codigo": "1716",
+"nombre": "LA FLORIDA",
+"habilitado": true
+},
+{
+"codigo": "1717",
+"nombre": "EL PORVENIR LA BARRIALOSA",
+"habilitado": true
+},
+{
+"codigo": "1718",
+"nombre": "BLASIAKU",
+"habilitado": true
+},
+{
+"codigo": "1719",
+"nombre": "TUCAN DE CAÑO GIRIZA Y PUERTO LA PALMA",
+"habilitado": true
+},
+{
+"codigo": "1720",
+"nombre": "LLANO BUCO",
+"habilitado": true
+},
+{
+"codigo": "1721",
+"nombre": "ALTO ORITO",
+"habilitado": true
+},
+{
+"codigo": "1722",
+"nombre": "BELLAVISTA",
+"habilitado": true
+},
+{
+"codigo": "1723",
+"nombre": "CAICEDONIA",
+"habilitado": true
+},
+{
+"codigo": "1724",
+"nombre": "SELVA VERDE",
+"habilitado": true
+},
+{
+"codigo": "1725",
+"nombre": "SIMORNA O LA VENADA",
+"habilitado": true
+},
+{
+"codigo": "1727",
+"nombre": "ALPAMANGA",
+"habilitado": true
+},
+{
+"codigo": "1728",
+"nombre": "PIAROA DE CACHICAMO",
+"habilitado": true
+},
+{
+"codigo": "1729",
+"nombre": "BERNARDO PANCHÍ",
+"habilitado": true
+},
+{
+"codigo": "1730",
+"nombre": "SANTA ROSA DE JUANAMBU",
+"habilitado": true
+},
+{
+"codigo": "1731",
+"nombre": "ESPIGO",
+"habilitado": true
+},
+{
+"codigo": "1732",
+"nombre": "BELTRÁN",
+"habilitado": true
+},
+{
+"codigo": "1733",
+"nombre": "BONANZA",
+"habilitado": true
+},
+{
+"codigo": "1734",
+"nombre": "NAM MISAK",
+"habilitado": true
+},
+{
+"codigo": "1735",
+"nombre": "MAIZ BLANCO",
+"habilitado": true
+},
+{
+"codigo": "1736",
+"nombre": "MORRITO",
+"habilitado": true
+},
+{
+"codigo": "1737",
+"nombre": "QUEBRADA GRANDE",
+"habilitado": true
+},
+{
+"codigo": "1738",
+"nombre": "MUSSE UKWE",
+"habilitado": true
+},
+{
+"codigo": "1739",
+"nombre": "CENTRO MIRAFLORES",
+"habilitado": true
+},
+{
+"codigo": "1740",
+"nombre": "PERRATPU",
+"habilitado": true
+},
+{
+"codigo": "1741",
+"nombre": "BALSILLAS",
+"habilitado": true
+},
+{
+"codigo": "1742",
+"nombre": "BALSILLAS EL LIMÓN",
+"habilitado": true
+},
+{
+"codigo": "1743",
+"nombre": "YU YIK KWE",
+"habilitado": true
+},
+{
+"codigo": "1744",
+"nombre": "PIEDRA SAGRADA LA GRAN FAMILIA",
+"habilitado": true
+},
+{
+"codigo": "1745",
+"nombre": "CANIME",
+"habilitado": true
+},
+{
+"codigo": "1746",
+"nombre": "CXAYUCE FIW",
+"habilitado": true
+},
+{
+"codigo": "1747",
+"nombre": "PLANADAS DE TELEMBI",
+"habilitado": true
+},
+{
+"codigo": "1748",
+"nombre": "FLORAL TRADICIONAL",
+"habilitado": true
+},
+{
+"codigo": "1749",
+"nombre": "LA DELFINA",
+"habilitado": true
+},
+{
+"codigo": "1750",
+"nombre": "PLAYITA SAN FRANCISCO",
+"habilitado": true
+},
+{
+"codigo": "1751",
+"nombre": "PLAYA BENDITA",
+"habilitado": true
+},
+{
+"codigo": "1752",
+"nombre": "YUKPA DE LA LAGUNA, EL COSO, CINCO CAMINOS",
+"habilitado": true
+},
+{
+"codigo": "1753",
+"nombre": "JERUSALÉN, SAN LUIS ALTO PICUDITO",
+"habilitado": true
+},
+{
+"codigo": "1755",
+"nombre": "AWA DE PLAYA LARGA",
+"habilitado": true
+},
+{
+"codigo": "1756",
+"nombre": "ZANJA HONDA",
+"habilitado": true
+},
+{
+"codigo": "1757",
+"nombre": "PEÑA LA ALEGRÍA",
+"habilitado": true
+},
+{
+"codigo": "1758",
+"nombre": "BOCANA DE LUZON",
+"habilitado": true
+},
+{
+"codigo": "1759",
+"nombre": "SANTA ROSITA",
+"habilitado": true
+},
+{
+"codigo": "1760",
+"nombre": "INDA GUACARAY",
+"habilitado": true
+},
+{
+"codigo": "1761",
+"nombre": "INKAL AWA",
+"habilitado": true
+},
+{
+"codigo": "1762",
+"nombre": "BAJO CASA CUNTE",
+"habilitado": true
+},
+{
+"codigo": "1763",
+"nombre": "EL FIERA",
+"habilitado": true
+},
+{
+"codigo": "1764",
+"nombre": "UITIBOC",
+"habilitado": true
+},
+{
+"codigo": "1765",
+"nombre": "DACHI AGORE DRUA",
+"habilitado": true
+},
+{
+"codigo": "1766",
+"nombre": "PUERTO MONFORT",
+"habilitado": true
+},
+{
+"codigo": "1767",
+"nombre": "LOS ALMENDROS",
+"habilitado": true
+},
+{
+"codigo": "1768",
+"nombre": "VILLA MARÍA DE ANAMÚ",
+"habilitado": true
+},
+{
+"codigo": "1769",
+"nombre": "WITAC´KWE",
+"habilitado": true
+},
+{
+"codigo": "1770",
+"nombre": "RINCÓN VELÚ",
+"habilitado": true
+},
+{
+"codigo": "1771",
+"nombre": "GEGENADÓ",
+"habilitado": true
+},
+{
+"codigo": "1772",
+"nombre": "EL SILENCIO",
+"habilitado": true
+},
+{
+"codigo": "1774",
+"nombre": "AGUA BLANCA",
+"habilitado": true
+},
+{
+"codigo": "1775",
+"nombre": "BAJO CÁCERES",
+"habilitado": true
+},
+{
+"codigo": "1776",
+"nombre": "NASA CHAMB",
+"habilitado": true
+},
+{
+"codigo": "1777",
+"nombre": "ISHU AWA",
+"habilitado": true
+},
+{
+"codigo": "1779",
+"nombre": "LOMAS DE GUAGUARCO",
+"habilitado": true
+},
+{
+"codigo": "1780",
+"nombre": "NASA UH",
+"habilitado": true
+},
+{
+"codigo": "1781",
+"nombre": "LA PERECERA",
+"habilitado": true
+},
+{
+"codigo": "1782",
+"nombre": "PAPALLAQTA",
+"habilitado": true
+},
+{
+"codigo": "1783",
+"nombre": "EL PEÑON",
+"habilitado": true
+},
+{
+"codigo": "1784",
+"nombre": "PUEBLO KOKONUCO",
+"habilitado": true
+},
+{
+"codigo": "1785",
+"nombre": "NASA KIWE TEKH KSXAW",
+"habilitado": true
+},
+{
+"codigo": "1786",
+"nombre": "SAN ANTONIO",
+"habilitado": true
+},
+{
+"codigo": "1787",
+"nombre": "EL OSO",
+"habilitado": true
+},
+{
+"codigo": "1788",
+"nombre": "PISCITAU",
+"habilitado": true
+},
+{
+"codigo": "1789",
+"nombre": "CHENCHE BUENAVISTA",
+"habilitado": true
+},
+{
+"codigo": "1790",
+"nombre": "MECHE SAN CAYETANO",
+"habilitado": true
+},
+{
+"codigo": "1791",
+"nombre": "DOGIBI",
+"habilitado": true
+},
+{
+"codigo": "1792",
+"nombre": "ZENÚ DEL ALTO SAN JORGE",
+"habilitado": true
+},
+{
+"codigo": "1808",
+"nombre": "CAMPOALEGRE (ORTEGA - TOLIMA)",
+"habilitado": true
+}
+]

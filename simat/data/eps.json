@@ -1,0 +1,252 @@
+[
+{
+"codigo": "EPS001",
+"nombre": "SALUD COLMENA E.P.S. S.A.",
+"habilitado": true
+},
+{
+"codigo": "EPS002",
+"nombre": "SALUD TOTAL S.A. E.P.S.",
+"habilitado": true
+},
+{
+"codigo": "EPS003",
+"nombre": "CAFESALUD E.P.S. S.A.",
+"habilitado": true
+},
+{
+"codigo": "EPS004",
+"nombre": "BONSALUD EN LIQUIDACIÓN",
+"habilitado": true
+},
+{
+"codigo": "EPS005",
+"nombre": "E.P.S. SANITAS S.A.",
+"habilitado": true
+},
+{
+"codigo": "EPS006",
+"nombre": "INSTITUTO DE SEGUROS SOCIALES EPS",
+"habilitado": true
+},
+{
+"codigo": "EPS007",
+"nombre": "UNIMEC E.P.S. S.A.",
+"habilitado": true
+},
+{
+"codigo": "EPS008",
+"nombre": "COMPENSAR E.P.S.",
+"habilitado": true
+},
+{
+"codigo": "EPS009",
+"nombre": "EPS PROGR. COMFENALCO ANTIOQUIA",
+"habilitado": true
+},
+{
+"codigo": "EPS010",
+"nombre": "SUSALUD EPS",
+"habilitado": true
+},
+{
+"codigo": "EPS011",
+"nombre": "COLSEGUROS E.P.S.",
+"habilitado": true
+},
+{
+"codigo": "EPS012",
+"nombre": "COMFENALCO VALLE E.P.S.",
+"habilitado": true
+},
+{
+"codigo": "EPS013",
+"nombre": "E.P.S. SALUDCOOP",
+"habilitado": true
+},
+{
+"codigo": "EPS014",
+"nombre": "HUMANA VIVIR S.A. E.P.S.",
+"habilitado": true
+},
+{
+"codigo": "EPS015",
+"nombre": "SALUD COLPATRIA E.P.S.",
+"habilitado": true
+},
+{
+"codigo": "EPS016",
+"nombre": "COOMEVA E.P.S. S.A.",
+"habilitado": true
+},
+{
+"codigo": "EPS017",
+"nombre": "E.P.S. FAMISANAR LTDA.",
+"habilitado": true
+},
+{
+"codigo": "EPS018",
+"nombre": "EPS SERVICIO OCCIDENTAL DE SALUD S.A. - EPS-S.O.S. S.A.",
+"habilitado": true
+},
+{
+"codigo": "EPS019",
+"nombre": "EPS RISARALDA LTDA. EN LIQUIDACIÓN",
+"habilitado": true
+},
+{
+"codigo": "EPS020",
+"nombre": "CAPRECOM EPS",
+"habilitado": true
+},
+{
+"codigo": "EPS021",
+"nombre": "CORPORANONIMAS EN LIQUIDACIÓN",
+"habilitado": true
+},
+{
+"codigo": "EPS022",
+"nombre": "EPS CONVIDA",
+"habilitado": true
+},
+{
+"codigo": "EPS023",
+"nombre": "CRUZ BLANCA EPS S.A.",
+"habilitado": true
+},
+{
+"codigo": "EPS024",
+"nombre": "CAJANAL EPS",
+"habilitado": true
+},
+{
+"codigo": "EPS025",
+"nombre": "CAPRESOCA EPS",
+"habilitado": true
+},
+{
+"codigo": "EPS026",
+"nombre": "SOLSALUD E.P.S. S.A.",
+"habilitado": true
+},
+{
+"codigo": "EPS027",
+"nombre": "BARRANQUILLA SANA E.P.S. EN LIQUIDACIÓN",
+"habilitado": true
+},
+{
+"codigo": "EPS028",
+"nombre": "CALISALUD E.P.S.",
+"habilitado": true
+},
+{
+"codigo": "EPS029",
+"nombre": "E.P.S. DE CALDAS S.A.",
+"habilitado": true
+},
+{
+"codigo": "EPS030",
+"nombre": "E.P.S. CONDOR S.A.",
+"habilitado": true
+},
+{
+"codigo": "EPS031",
+"nombre": "SELVASALUD S.A. E.P.S.",
+"habilitado": true
+},
+{
+"codigo": "EPS032",
+"nombre": "METROPOLITANA DE SALUD EPS EN LIQUIDACIÓN",
+"habilitado": true
+},
+{
+"codigo": "EPS033",
+"nombre": "SALUDVIDA EPS S.A.",
+"habilitado": true
+},
+{
+"codigo": "ESS002",
+"nombre": "EMPRESA MUTUAL PARA EL DESARROLLO INTEGRAL DE LA SALUD E.S.S.",
+"habilitado": true
+},
+{
+"codigo": "ESS024",
+"nombre": "COOPERATIVA DE SALUD Y DESARROLLO INTEGRAL DE LA ZONA SUR ORIENTAL DE CARTAGENA LTDA ¿COOSALUD LTDA\"",
+"habilitado": true
+},
+{
+"codigo": "ESS061",
+"nombre": "ASOCIACION MUTUAL LA SUIZA DE AMERICA EPS INDIGENA",
+"habilitado": true
+},
+{
+"codigo": "ESS062",
+"nombre": "ASOCIACION MUTUAL LA ESPERANZA ASMET SALUD ESS",
+"habilitado": true
+},
+{
+"codigo": "ESS076",
+"nombre": "ASOCIACION MUTUAL BARRIOS UNIDOS DE QUIBDO E.S.S.",
+"habilitado": true
+},
+{
+"codigo": "ESS091",
+"nombre": "EMPRESA COOPERATIVA SOLIDARIA DE SALUD ¿ECOOPSOS¿",
+"habilitado": true
+},
+{
+"codigo": "ESS115",
+"nombre": "ENTIDAD PROMOTORA DE SALUD MALLAMAS EPSI",
+"habilitado": true
+},
+{
+"codigo": "ESS133",
+"nombre": "COOPERATIVA DE SALUD COMUNITARIA DE GARCIA ROVIRA ¿COOPSAGAR LTDA¿",
+"habilitado": true
+},
+{
+"codigo": "ESS164",
+"nombre": "ENTIDAD PROMOTORA DE SALUD, PIJAOSALUD EPSI",
+"habilitado": true
+},
+{
+"codigo": "ESS177",
+"nombre": "ASOCIACION DE CABILDOS INDIGENAS DEL CESAR DUSAKAWI EPSI",
+"habilitado": true
+},
+{
+"codigo": "ESS182",
+"nombre": "ASOCIACION INDIGENA DEL CAUCA ¿AIC¿",
+"habilitado": true
+},
+{
+"codigo": "ESS184",
+"nombre": "ASOCIACION DE CABILDOS DEL RESGUARDO INDIGENA SINU DE SAN ANDRES DE SOTAVENTO CORDOBA, SUCRE, MANEXK",
+"habilitado": true
+},
+{
+"codigo": "ESS188",
+"nombre": "ASOCIACION MUTUAL EMPRESA SOLIDARIA DE SALUD DE NARIÑO E.S.S. ¿EMSSANAR E.S.S.¿",
+"habilitado": true
+},
+{
+"codigo": "ESS190",
+"nombre": "EMMANUEL EPS INDIGENA",
+"habilitado": true
+},
+{
+"codigo": "ESS203",
+"nombre": "TAYRONA EPS INDIGENA",
+"habilitado": true
+},
+{
+"codigo": "ESS207",
+"nombre": "MUTUAL SER E.S.S.",
+"habilitado": true
+},
+{
+"codigo": "ESS208",
+"nombre": "ANAS WAYUU EPS INDIGENA",
+"habilitado": true
+}
+]
