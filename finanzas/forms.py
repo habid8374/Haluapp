@@ -1,5 +1,6 @@
 # finanzas/forms.py
 from django import forms
+import re
 import datetime # Para el initial de fechas
 from decimal import Decimal # Importar Decimal para validaciones y valores iniciales
 
@@ -50,8 +51,47 @@ def choices_conceptos_agrupados(institucion):
         clave = (c.tipo_concepto_id, base.lower())
         grupos.setdefault(clave, []).append(c)
 
-    choices = [('', '--------- Selecciona un concepto ---------')]
+    # ── Orden cronológico + ocultar meses ya pasados ──
+    # Inscripción → Matrícula → Pensiones (por mes calendario), no alfabético.
+    # Las pensiones de meses ANTERIORES al mes en curso se ocultan del masivo
+    # (facturar masivo un mes pasado no aplica; los cobros atrasados de un
+    # alumno puntual se hacen por su cuenta individual).
+    _MESES = {'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5,
+              'junio': 6, 'julio': 7, 'agosto': 8, 'septiembre': 9, 'setiembre': 9,
+              'octubre': 10, 'noviembre': 11, 'diciembre': 12}
+    _hoy = datetime.date.today()
+
+    def _clave(rep, base):
+        b = base.lower()
+        if getattr(rep, 'es_pago_inscripcion', False) or 'inscrip' in b:
+            rank = 0
+        elif getattr(rep, 'es_pago_matricula', False) or 'matríc' in b or 'matric' in b:
+            rank = 1
+        elif getattr(rep, 'es_pago_pension', False) or 'pensi' in b:
+            rank = 2
+        else:
+            rank = 3
+        mes = next((n for nom, n in _MESES.items() if nom in b), 0)
+        m_anio = re.search(r'(20\d{2})', base)
+        anio = int(m_anio.group(1)) if m_anio else 0
+        if rank == 2 and not mes and getattr(rep, 'fecha_vencimiento_general', None):
+            mes = rep.fecha_vencimiento_general.month
+            anio = anio or rep.fecha_vencimiento_general.year
+        return rank, anio, mes
+
+    ordenados = []
     for lista in grupos.values():
+        rep = lista[0]
+        base = nombre_base_concepto(rep, tokens)
+        rank, anio, mes = _clave(rep, base)
+        # Ocultar pensiones de meses ya cumplidos (solo si se pudo determinar).
+        if rank == 2 and mes and anio and (anio, mes) < (_hoy.year, _hoy.month):
+            continue
+        ordenados.append(((rank, anio, mes, base.lower()), lista))
+    ordenados.sort(key=lambda x: x[0])
+
+    choices = [('', '--------- Selecciona un concepto ---------')]
+    for _, lista in ordenados:
         rep = lista[0]
         base = nombre_base_concepto(rep, tokens)
         # Niveles del grupo, sin duplicar y ordenados por su 'orden'.
