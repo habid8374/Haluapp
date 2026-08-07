@@ -489,6 +489,16 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>`;
         }
 
+        if (pregunta.tipo === 'respuesta_numerica') {
+            return `
+            <div class="opcion-item num-row" data-opcion-id="${opcionId}">
+              <input type="number" step="any" class="opcion-texto" value="${opcion.texto || ''}" placeholder="{% trans "Valor correcto" %}" style="min-width:0;flex:1;">
+              <span style="color:#9ca3af;font-size:.9rem;flex-shrink:0;">±</span>
+              <input type="number" step="any" min="0" class="opcion-emparejamiento" value="${opcion.emparejamiento || ''}" placeholder="{% trans "Tolerancia" %}" style="min-width:0;flex:1;">
+              <button class="btn-del-opcion btn-eliminar-opcion" type="button" title="{% trans "Eliminar" %}"><i class="bi bi-trash3-fill"></i></button>
+            </div>`;
+        }
+
         if (pregunta.tipo === 'mapa_conceptual') {
             return `
             <div class="opcion-item mapa-row" data-opcion-id="${opcionId}">
@@ -538,6 +548,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const showTL        = pregunta.tipo === 'texto_libre';
         const showEmp       = pregunta.tipo === 'emparejamiento';
         const showClas      = pregunta.tipo === 'clasificar';
+        const showNum       = pregunta.tipo === 'respuesta_numerica';
 
         const card = document.createElement('div');
         card.className = 'pregunta-card';
@@ -584,6 +595,9 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="clas-hint alert alert-info py-2 mb-2 ${showClas ? '' : 'd-none'}" style="font-size:.8rem;">
             <i class="bi bi-info-circle me-1"></i>{% trans "Clasificar: escribe cada elemento y la categoría a la que pertenece. El estudiante deberá arrastrar cada elemento a su categoría correcta." %}
           </div>
+          <div class="num-hint alert alert-info py-2 mb-2 ${showNum ? '' : 'd-none'}" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>{% trans "Respuesta numérica: escribe el valor correcto y una tolerancia (±). El estudiante escribirá un número y acertará si queda dentro del rango. Puedes agregar varios valores válidos (ej. una fracción y su decimal)." %}
+          </div>
           <div class="pregunta-imagen-block mb-2">
             <input type="hidden" class="imagen-path" value="${pregunta.imagen_path || ''}">
             <div class="imagen-preview mb-1 ${pregunta.imagen_url ? '' : 'd-none'}">
@@ -614,6 +628,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <option value="hotspot"           ${pregunta.tipo==='hotspot'           ?'selected':''}>{% trans "Zonas activas (clic en la imagen)" %}</option>
                 <option value="ordenar"           ${pregunta.tipo==='ordenar'           ?'selected':''}>{% trans "Ordenar / Línea de tiempo" %}</option>
                 <option value="mapa_conceptual"   ${pregunta.tipo==='mapa_conceptual'   ?'selected':''}>{% trans "Mapa conceptual (relacionar)" %}</option>
+                <option value="respuesta_numerica"${pregunta.tipo==='respuesta_numerica'?'selected':''}>{% trans "Respuesta numérica (con tolerancia)" %}</option>
               </select>
             </div>
             <div style="max-width:110px;">
@@ -1153,7 +1168,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (mapaCanvasBlock) mapaCanvasBlock.classList.toggle('d-none', tipo !== 'mapa_conceptual');
         // Guías de los tipos clásicos
         [['.ou-hint','opcion_multiple'],['.sm-hint','seleccion_multiple'],['.vf-hint','verdadero_falso'],
-         ['.tl-hint','texto_libre'],['.emp-hint','emparejamiento'],['.clas-hint','clasificar']].forEach(([sel, t]) => {
+         ['.tl-hint','texto_libre'],['.emp-hint','emparejamiento'],['.clas-hint','clasificar'],
+         ['.num-hint','respuesta_numerica']].forEach(([sel, t]) => {
             const el = card.querySelector(sel);
             if (el) el.classList.toggle('d-none', tipo !== t);
         });
@@ -1177,6 +1193,8 @@ document.addEventListener('DOMContentLoaded', function () {
             opciones = [{texto:'', orden:0},{texto:'', orden:1},{texto:'', orden:2}];
         } else if (tipo === 'mapa_conceptual') {
             opciones = [{texto:'', emparejamiento:'', orden:0},{texto:'', emparejamiento:'', orden:1},{texto:'', emparejamiento:'', orden:2},{texto:'', emparejamiento:'', orden:3}];
+        } else if (tipo === 'respuesta_numerica') {
+            opciones = [{texto:'', emparejamiento:'0', orden:0}];
         } else if (['opcion_multiple','seleccion_multiple'].includes(tipo)) {
             opciones = [{texto:'', es_correcta:true, orden:0},{texto:'', es_correcta:false, orden:1}];
         }

@@ -254,6 +254,18 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
 
+        else if (tipo === 'respuesta_numerica') {
+            opcionesHtml = `
+                <div class="input-group" style="max-width:280px;">
+                    <span class="input-group-text"><i class="bi bi-123"></i></span>
+                    <input type="number" step="any" class="form-control num-input" placeholder="{% trans "Escribe tu respuesta numérica" %}" autocomplete="off">
+                </div>
+                <p class="text-muted mt-1" style="font-size:.8rem;">
+                    <i class="bi bi-info-circle"></i> {% trans "Escribe solo el número (puedes usar decimales)." %}
+                </p>
+            `;
+        }
+
         // Enunciado: para "completar" convertimos cada [[]] en un input.
         let enunciadoHtml = esc(pregunta.enunciado);
         if (tipo === 'completar') {
@@ -474,6 +486,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     if (edges.length) {
                         respuestas[preguntaId] = { tipo, respuesta_mapa: edges };
+                    }
+                    break;
+                }
+                case 'respuesta_numerica': {
+                    const inp = preguntaCard.querySelector('.num-input');
+                    const val = inp ? inp.value.trim() : '';
+                    if (val !== '') {
+                        respuestas[preguntaId] = { tipo, respuesta_numerica: val };
                     }
                     break;
                 }

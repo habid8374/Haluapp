@@ -255,6 +255,14 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 else:
                     pregunta_data['opciones'] = nodos
 
+            # "Respuesta numérica": cada opción es un valor válido (texto) con su
+            # tolerancia (emparejamiento). Al estudiante NUNCA se le envía el valor.
+            if p.tipo == 'respuesta_numerica' and not es_estudiante:
+                pregunta_data['opciones'] = [
+                    {'id': op.id, 'texto': op.texto, 'emparejamiento': op.emparejamiento, 'orden': op.orden}
+                    for op in p.opciones.order_by('orden')
+                ]
+
             preguntas.append(pregunta_data)
 
         response_data = {
@@ -317,7 +325,7 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 )
                 
                 # 4. Creamos las opciones para cada pregunta.
-                if pregunta.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento', 'clasificar', 'etiquetar', 'hotspot', 'ordenar', 'mapa_conceptual']:
+                if pregunta.tipo in ['opcion_multiple', 'seleccion_multiple', 'verdadero_falso', 'emparejamiento', 'clasificar', 'etiquetar', 'hotspot', 'ordenar', 'mapa_conceptual', 'respuesta_numerica']:
                     for opcion_data in pregunta_data.get('opciones', []):
                         texto_val = (opcion_data.get('texto') or '').strip()
                         emp_val = opcion_data.get('emparejamiento')
@@ -701,13 +709,36 @@ class ResolverCuestionarioAPIView(APIView):
                         fraccion = max(0, aciertos - sobrantes) / len(correctas)
                         puntaje_pregunta = round(pregunta.puntaje * min(1.0, fraccion), 2)
 
+                elif tipo_pregunta == 'respuesta_numerica':
+                    # Correcto si el número del estudiante cae dentro de ±tolerancia de
+                    # ALGÚN valor válido. Acepta coma o punto decimal.
+                    def _num(s):
+                        try:
+                            return float(str(s).strip().replace(',', '.'))
+                        except (TypeError, ValueError):
+                            return None
+                    enviado = _num(respuesta_enviada.get('respuesta_numerica'))
+                    if enviado is not None:
+                        for op in pregunta.opciones.all():
+                            valor = _num(op.texto)
+                            if valor is None:
+                                continue
+                            tol = _num(op.emparejamiento) or 0.0
+                            if abs(enviado - valor) <= abs(tol):
+                                puntaje_pregunta = pregunta.puntaje
+                                break
+
             puntaje_total += puntaje_pregunta
 
             # Esta línea ahora usará el modelo RespuestaEstudiante correcto de la app 'cuestionarios'
             respuesta_obj = RespuestaEstudiante.objects.create(
                 intento=intento,
                 pregunta=pregunta,
-                texto_respuesta=respuesta_enviada.get('texto_respuesta') if respuesta_enviada else None,
+                texto_respuesta=(
+                    (respuesta_enviada.get('texto_respuesta')
+                     or respuesta_enviada.get('respuesta_numerica'))
+                    if respuesta_enviada else None
+                ),
                 respuesta_emparejamiento=(
                     (respuesta_enviada.get('respuesta_emparejamiento')
                      or respuesta_enviada.get('respuesta_etiquetar')

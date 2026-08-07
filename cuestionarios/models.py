@@ -75,6 +75,7 @@ class PreguntaCuestionario(models.Model):
         ('hotspot', 'Zonas activas (clic en la imagen)'),
         ('ordenar', 'Ordenar / Línea de tiempo'),
         ('mapa_conceptual', 'Mapa conceptual (relacionar)'),
+        ('respuesta_numerica', 'Respuesta numérica (con tolerancia)'),
     ]
     # ▲▲▲ FIN DE LA MODIFICACIÓN ▲▲▲
 

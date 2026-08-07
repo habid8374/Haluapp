@@ -10227,3 +10227,27 @@ msgid ""
 msgstr ""
 "Classify: write each item and the category it belongs to. The student must "
 "drag each item to its correct category."
+
+msgid "Valor correcto"
+msgstr "Correct value"
+
+msgid "Tolerancia"
+msgstr "Tolerance"
+
+msgid "Respuesta numérica (con tolerancia)"
+msgstr "Numeric answer (with tolerance)"
+
+msgid "Escribe tu respuesta numérica"
+msgstr "Enter your numeric answer"
+
+msgid "Escribe solo el número (puedes usar decimales)."
+msgstr "Enter only the number (decimals allowed)."
+
+msgid ""
+"Respuesta numérica: escribe el valor correcto y una tolerancia (±). El "
+"estudiante escribirá un número y acertará si queda dentro del rango. Puedes "
+"agregar varios valores válidos (ej. una fracción y su decimal)."
+msgstr ""
+"Numeric answer: write the correct value and a tolerance (±). The student "
+"enters a number and is correct if it falls within the range. You can add "
+"several valid values (e.g. a fraction and its decimal)."
