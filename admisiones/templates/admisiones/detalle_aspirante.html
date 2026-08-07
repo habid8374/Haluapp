@@ -66,6 +66,47 @@
                     {% endif %}
                 </div>
             </div>
+
+            <!-- ================================================================ -->
+            <!--  DATOS SIMAT / SIMPADE (reporte de matrícula MEN)               -->
+            <!-- ================================================================ -->
+            <hr>
+            <h5 class="mt-2 mb-3"><i class="bi bi-clipboard-data me-2 text-primary"></i>Datos SIMAT / SIMPADE</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-muted">Identificación</h6>
+                    <p class="mb-1"><strong>Primer nombre:</strong> {{ aspirante.primer_nombre|default:"—" }}</p>
+                    <p class="mb-1"><strong>Segundo nombre:</strong> {{ aspirante.segundo_nombre|default:"—" }}</p>
+                    <p class="mb-1"><strong>Primer apellido:</strong> {{ aspirante.primer_apellido|default:"—" }}</p>
+                    <p class="mb-1"><strong>Segundo apellido:</strong> {{ aspirante.segundo_apellido|default:"—" }}</p>
+                    <p class="mb-1"><strong>Nacionalidad:</strong> {{ aspirante.nacionalidad|default:"—" }}</p>
+                    <p class="mb-1"><strong>Expedición documento:</strong> {{ aspirante.lugar_expedicion_municipio|default:"—" }}</p>
+                    <h6 class="text-muted mt-3">Ubicación (DANE)</h6>
+                    <p class="mb-1"><strong>Municipio de nacimiento:</strong> {{ aspirante.municipio_nacimiento|default:"—" }}</p>
+                    <p class="mb-1"><strong>Municipio de residencia:</strong> {{ aspirante.municipio_residencia|default:"—" }}</p>
+                    <p class="mb-1"><strong>Barrio:</strong> {{ aspirante.barrio|default:"—" }}</p>
+                    <p class="mb-1"><strong>Zona:</strong> {{ aspirante.get_zona_residencia_display|default:"—" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted">Caracterización (SIMPADE)</h6>
+                    <p class="mb-1"><strong>Estrato:</strong> {{ aspirante.get_estrato_display|default:"—" }}</p>
+                    <p class="mb-1"><strong>SISBÉN:</strong> {{ aspirante.sisben_grupo|default:"—" }}</p>
+                    <p class="mb-1"><strong>Régimen de salud:</strong> {{ aspirante.get_regimen_salud_display|default:"—" }}</p>
+                    <p class="mb-1"><strong>EPS (SIMAT):</strong> {{ aspirante.eps_simat|default:"—" }}</p>
+                    <p class="mb-1"><strong>Etnia (SIMAT):</strong> {{ aspirante.etnia_simat|default:aspirante.get_grupo_etnico_display|default:"—" }}</p>
+                    <p class="mb-1"><strong>Resguardo:</strong> {{ aspirante.resguardo|default:"—" }}</p>
+                    <p class="mb-1"><strong>Discapacidad:</strong> {{ aspirante.get_discapacidad_categoria_display|default:"—" }}</p>
+                    <p class="mb-1"><strong>Capacidad excepcional:</strong> {{ aspirante.get_capacidad_excepcional_display|default:"—" }}</p>
+                    <p class="mb-1"><strong>Víctima del conflicto:</strong> {% if aspirante.victima_conflicto %}Sí{% else %}No{% endif %}</p>
+                    <p class="mb-1"><strong>Población campesina:</strong> {% if aspirante.campesino %}Sí{% else %}No{% endif %}</p>
+                    <h6 class="text-muted mt-3">Matrícula</h6>
+                    <p class="mb-1"><strong>Sede:</strong> {{ aspirante.sede|default:"—" }}</p>
+                    <p class="mb-1"><strong>Jornada:</strong> {{ aspirante.get_jornada_display|default:"—" }}</p>
+                    <p class="mb-1"><strong>Grupo/Curso:</strong> {{ aspirante.grupo|default:"—" }}</p>
+                    <p class="mb-1"><strong>Repitente:</strong> {% if aspirante.repitente %}Sí{% else %}No{% endif %}</p>
+                </div>
+            </div>
+
             <!-- ================================================================ -->
             <!--  SECCIÓN DEL PORTAL CON LÓGICA DE DEPURACIÓN                     -->
             <!-- ================================================================ -->
