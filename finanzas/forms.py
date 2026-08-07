@@ -18,15 +18,57 @@ from gestion_academica.models import Estudiante, PeriodoAcademico, Grado, NivelE
 from .models import CategoriaGasto, Proveedor, Gasto, Descuento, CuentaContable
 
 
-def _conceptos_pago_orden_por_nivel(qs):
-    """Orden homogéneo con el listado de finanzas: primero nivel (orden), luego nombre."""
-    from django.db.models import F, OrderBy
+_MESES_ORDEN = {
+    'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5, 'junio': 6,
+    'julio': 7, 'agosto': 8, 'septiembre': 9, 'setiembre': 9, 'octubre': 10,
+    'noviembre': 11, 'diciembre': 12,
+}
 
-    return qs.select_related('nivel_escolaridad').order_by(
-        OrderBy(F('nivel_escolaridad__orden'), descending=False, nulls_last=True),
-        'nivel_escolaridad__nombre',
-        'nombre_concepto',
+
+def _clave_cronologica_concepto(c):
+    """Clave de orden LÓGICO de un ConceptoPago:
+    Inscripción → Matrícula → Pensiones por mes calendario → otros; luego nivel.
+    El mes se deduce del nombre ("Pensión Abril 2026") o de fecha_vencimiento_general.
+    """
+    nombre = c.nombre_concepto or ''
+    b = nombre.lower()
+    if getattr(c, 'es_pago_inscripcion', False) or 'inscrip' in b:
+        rank = 0
+    elif getattr(c, 'es_pago_matricula', False) or 'matríc' in b or 'matric' in b:
+        rank = 1
+    elif getattr(c, 'es_pago_pension', False) or 'pensi' in b:
+        rank = 2
+    else:
+        rank = 3
+    mes = next((n for nom, n in _MESES_ORDEN.items() if nom in b), 0)
+    m_anio = re.search(r'(20\d{2})', nombre)
+    anio = int(m_anio.group(1)) if m_anio else 0
+    if rank == 2 and not mes and getattr(c, 'fecha_vencimiento_general', None):
+        mes = c.fecha_vencimiento_general.month
+        anio = anio or c.fecha_vencimiento_general.year
+    niv = getattr(c, 'nivel_escolaridad', None)
+    nivel_orden = niv.orden if (niv and niv.orden is not None) else 9999
+    return (rank, anio, mes, nivel_orden, b)
+
+
+def _conceptos_pago_orden_por_nivel(qs):
+    """Orden LÓGICO/cronológico homogéneo (cobro individual, masivo y reportes):
+    Inscripción → Matrícula → Pensiones por mes → otros; dentro de cada uno por nivel.
+
+    El mes vive en el texto del concepto (no hay campo de mes), así que el orden
+    se calcula en Python y se preserva en el queryset con Case/When.
+    """
+    qs = qs.select_related('nivel_escolaridad')
+    conceptos = sorted(qs, key=_clave_cronologica_concepto)
+    orden_pks = [c.pk for c in conceptos]
+    if not orden_pks:
+        return qs
+    from django.db.models import Case, When, IntegerField
+    preservado = Case(
+        *[When(pk=pk, then=pos) for pos, pk in enumerate(orden_pks)],
+        output_field=IntegerField(),
     )
+    return qs.filter(pk__in=orden_pks).order_by(preservado)
 
 
 def choices_conceptos_agrupados(institucion):
@@ -51,40 +93,17 @@ def choices_conceptos_agrupados(institucion):
         clave = (c.tipo_concepto_id, base.lower())
         grupos.setdefault(clave, []).append(c)
 
-    # ── Orden cronológico + ocultar meses ya pasados ──
+    # ── Orden cronológico + ocultar meses ya pasados (solo en el MASIVO) ──
     # Inscripción → Matrícula → Pensiones (por mes calendario), no alfabético.
     # Las pensiones de meses ANTERIORES al mes en curso se ocultan del masivo
     # (facturar masivo un mes pasado no aplica; los cobros atrasados de un
-    # alumno puntual se hacen por su cuenta individual).
-    _MESES = {'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5,
-              'junio': 6, 'julio': 7, 'agosto': 8, 'septiembre': 9, 'setiembre': 9,
-              'octubre': 10, 'noviembre': 11, 'diciembre': 12}
+    # alumno puntual se hacen por su cuenta individual, que SÍ los muestra).
     _hoy = datetime.date.today()
-
-    def _clave(rep, base):
-        b = base.lower()
-        if getattr(rep, 'es_pago_inscripcion', False) or 'inscrip' in b:
-            rank = 0
-        elif getattr(rep, 'es_pago_matricula', False) or 'matríc' in b or 'matric' in b:
-            rank = 1
-        elif getattr(rep, 'es_pago_pension', False) or 'pensi' in b:
-            rank = 2
-        else:
-            rank = 3
-        mes = next((n for nom, n in _MESES.items() if nom in b), 0)
-        m_anio = re.search(r'(20\d{2})', base)
-        anio = int(m_anio.group(1)) if m_anio else 0
-        if rank == 2 and not mes and getattr(rep, 'fecha_vencimiento_general', None):
-            mes = rep.fecha_vencimiento_general.month
-            anio = anio or rep.fecha_vencimiento_general.year
-        return rank, anio, mes
-
     ordenados = []
     for lista in grupos.values():
         rep = lista[0]
         base = nombre_base_concepto(rep, tokens)
-        rank, anio, mes = _clave(rep, base)
-        # Ocultar pensiones de meses ya cumplidos (solo si se pudo determinar).
+        rank, anio, mes, _niv, _b = _clave_cronologica_concepto(rep)
         if rank == 2 and mes and anio and (anio, mes) < (_hoy.year, _hoy.month):
             continue
         ordenados.append(((rank, anio, mes, base.lower()), lista))
