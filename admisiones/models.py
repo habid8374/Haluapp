@@ -131,6 +131,73 @@ class Aspirante(models.Model):
     apoyo_academico_especial = models.BooleanField(
         default=False, verbose_name="¿Requiere apoyo académico especial?",
     )
+
+    # ════════════════════════════════════════════════════════════════════════
+    #  SIMAT / SIMPADE — Fase 1 (captura de matrícula para el MEN).
+    #  Campos ADITIVOS y opcionales. Los `nombres`/`apellidos` de arriba se
+    #  conservan; aquí se guardan separados como los exige el Anexo 6A.
+    #  Las FK apuntan a los catálogos oficiales (app simat) para que el
+    #  usuario SELECCIONE (nunca escriba) y no falle la importación.
+    # ════════════════════════════════════════════════════════════════════════
+    SIMAT_JORNADA_CHOICES = [
+        ('MANANA', 'Mañana'), ('TARDE', 'Tarde'), ('NOCHE', 'Noche'),
+        ('UNICA', 'Única'), ('COMPLETA', 'Completa'), ('FIN_DE_SEMANA', 'Fin de semana'),
+    ]
+    # Identificación (nombres/apellidos separados)
+    primer_nombre = models.CharField(max_length=60, blank=True, verbose_name="Primer nombre")
+    segundo_nombre = models.CharField(max_length=60, blank=True, verbose_name="Segundo nombre")
+    primer_apellido = models.CharField(max_length=60, blank=True, verbose_name="Primer apellido")
+    segundo_apellido = models.CharField(max_length=60, blank=True, verbose_name="Segundo apellido")
+    lugar_expedicion_departamento = models.ForeignKey(
+        'simat.Departamento', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Expedición documento · Departamento")
+    lugar_expedicion_municipio = models.ForeignKey(
+        'simat.Municipio', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Expedición documento · Municipio")
+    nacionalidad = models.CharField(max_length=60, blank=True, verbose_name="Nacionalidad")
+    # Nacimiento (estructurado con código DANE)
+    pais_nacimiento = models.CharField(max_length=60, blank=True, verbose_name="País de nacimiento")
+    departamento_nacimiento = models.ForeignKey(
+        'simat.Departamento', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Nacimiento · Departamento")
+    municipio_nacimiento = models.ForeignKey(
+        'simat.Municipio', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Nacimiento · Municipio")
+    # Residencia (estructurada con código DANE)
+    departamento_residencia = models.ForeignKey(
+        'simat.Departamento', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Residencia · Departamento")
+    municipio_residencia = models.ForeignKey(
+        'simat.Municipio', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Residencia · Municipio")
+    barrio = models.CharField(max_length=150, blank=True, verbose_name="Barrio")
+    campesino = models.BooleanField(default=False, verbose_name="¿Población campesina?")
+    # Caracterización detallada (códigos oficiales SIMAT)
+    etnia_simat = models.ForeignKey(
+        'simat.Etnia', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Etnia (código SIMAT)")
+    resguardo = models.ForeignKey(
+        'simat.Resguardo', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Resguardo indígena")
+    eps_simat = models.ForeignKey(
+        'simat.EPS', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="EPS (código SIMAT)")
+    # Matrícula
+    sede = models.ForeignKey(
+        'simat.Sede', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Sede")
+    jornada = models.CharField(max_length=15, choices=SIMAT_JORNADA_CHOICES, blank=True, verbose_name="Jornada")
+    grupo = models.CharField(max_length=20, blank=True, verbose_name="Grupo/Curso")
+    modelo_educativo = models.CharField(max_length=60, blank=True, verbose_name="Modelo/Metodología educativa")
+    fuente_recursos = models.CharField(max_length=60, blank=True, verbose_name="Fuente de recursos")
+    internado = models.CharField(max_length=20, blank=True, verbose_name="Internado")
+    matricula_contratada = models.BooleanField(default=False, verbose_name="¿Matrícula contratada?")
+    repitente = models.BooleanField(default=False, verbose_name="¿Repitente?")
+    situacion_academica_anterior = models.CharField(
+        max_length=60, blank=True, verbose_name="Situación académica año anterior")
+    # Identificadores que devuelve el SIMAT (se llenan al re-importar el reporte)
+    simat_per_id = models.CharField(max_length=20, blank=True, verbose_name="SIMAT · PER_ID")
+    simat_nui = models.CharField(max_length=30, blank=True, verbose_name="SIMAT · NUI")
     # ────────────────────────────────────────────────────────────────────────
 
     fecha_inscripcion = models.DateTimeField(auto_now_add=True)
