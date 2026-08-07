@@ -2,9 +2,11 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm 
+from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Fieldset
 
 
 # Modelos propios de gestion_academica
@@ -296,7 +298,8 @@ class EstudianteForm(forms.ModelForm):
 
 
 class CaracterizacionEstudianteForm(forms.ModelForm):
-    """Caracterización SIMAT/SIMPADE del estudiante. Todos los campos opcionales."""
+    """Caracterización SIMAT/SIMPADE del estudiante (a la par del Aspirante).
+    Todos los campos opcionales; las FK van por desplegable de catálogo."""
 
     class Meta:
         model = CaracterizacionEstudiante
@@ -306,6 +309,14 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
             'grupo_etnico', 'estrato', 'sisben_grupo', 'sisben_puntaje',
             'victima_conflicto', 'tipo_poblacion_victima',
             'srpa', 'apoyo_academico_especial',
+            # ── SIMAT (espejo del Aspirante) ──
+            'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
+            'nacionalidad', 'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
+            'pais_nacimiento', 'departamento_nacimiento', 'municipio_nacimiento',
+            'departamento_residencia', 'municipio_residencia', 'barrio', 'campesino',
+            'etnia_simat', 'resguardo', 'eps_simat',
+            'sede', 'jornada', 'grupo', 'modelo_educativo', 'fuente_recursos',
+            'internado', 'matricula_contratada', 'repitente', 'situacion_academica_anterior',
         ]
         widgets = {
             'pais_origen': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dejar en blanco si es Colombia'}),
@@ -322,6 +333,41 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
             'srpa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'apoyo_academico_especial': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from simat.models import Sede
+        # Sede filtrada a la institución de la caracterización (si ya se conoce)
+        institucion = getattr(self.instance, 'institucion', None)
+        if institucion is not None:
+            self.fields['sede'].queryset = Sede.objects.filter(institucion=institucion, activa=True)
+        for f in ['lugar_expedicion_departamento', 'lugar_expedicion_municipio',
+                  'departamento_nacimiento', 'municipio_nacimiento',
+                  'departamento_residencia', 'municipio_residencia',
+                  'etnia_simat', 'resguardo', 'eps_simat', 'sede']:
+            if f in self.fields:
+                self.fields[f].required = False
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.disable_csrf = True
+        self.helper.layout = Layout(
+            Fieldset(_("Identificación (SIMAT)"),
+                'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
+                'nacionalidad', 'lugar_expedicion_departamento', 'lugar_expedicion_municipio'),
+            Fieldset(_("Nacimiento y residencia (DANE)"),
+                'pais_origen', 'pais_nacimiento', 'departamento_nacimiento', 'municipio_nacimiento',
+                'departamento_residencia', 'municipio_residencia', 'barrio', 'zona_residencia'),
+            Fieldset(_("Salud y grupos"),
+                'regimen_salud', 'eps_simat', 'discapacidad_categoria', 'capacidad_excepcional',
+                'grupo_etnico', 'etnia_simat', 'resguardo'),
+            Fieldset(_("Socio-económico (SIMPADE)"),
+                'estrato', 'sisben_grupo', 'sisben_puntaje', 'victima_conflicto',
+                'tipo_poblacion_victima', 'srpa', 'campesino', 'apoyo_academico_especial'),
+            Fieldset(_("Matrícula"),
+                'sede', 'jornada', 'grupo', 'modelo_educativo', 'fuente_recursos',
+                'internado', 'matricula_contratada', 'repitente', 'situacion_academica_anterior'),
+        )
 
 
 class DocenteForm(forms.ModelForm):
