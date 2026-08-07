@@ -527,7 +527,28 @@ class FacturacionMasivaForm(forms.Form):
         # Sacamos el 'user' que le pasamos desde la vista
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        
+
+        # ── Preselección del MES en curso ──
+        # La corrida mensual (primeros días del mes) queda a un clic: se propone
+        # como fecha de vencimiento el día 10 del mes actual (el operador puede
+        # cambiarla). El año/mes de la cuenta se derivan de esta fecha.
+        hoy = datetime.date.today()
+        try:
+            venc_propuesto = hoy.replace(day=10)
+        except ValueError:
+            venc_propuesto = hoy
+        self.fields['fecha_vencimiento'].initial = venc_propuesto
+        meses_es = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+                    'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+        self.fields['fecha_vencimiento'].label = (
+            f"2. Fecha de Vencimiento (mes en curso: {meses_es[hoy.month - 1]} {hoy.year})"
+        )
+        self.fields['fecha_vencimiento'].help_text = (
+            "Preseleccionada en el mes en curso; ajústala si tu colegio usa otra fecha límite."
+        )
+        # También proponemos facturar a toda la institución (corrida mensual típica).
+        self.fields['toda_la_institucion'].initial = True
+
         # Si el usuario está logueado y tiene una institución, filtramos los querysets
         if user and hasattr(user, 'institucion_asociada'):
             institucion = user.institucion_asociada
