@@ -16,6 +16,10 @@ class AspiranteForm(forms.ModelForm):
         
         super().__init__(*args, **kwargs)
 
+        # La fecha nativa (type=date) intercambia siempre en formato ISO.
+        if 'fecha_nacimiento' in self.fields:
+            self.fields['fecha_nacimiento'].input_formats = ['%Y-%m-%d', '%d/%m/%Y']
+
         # Si el usuario no es superadmin, filtramos por su institución
         if user and not user.is_superuser:
             institucion = user.institucion_asociada
@@ -101,7 +105,7 @@ class AspiranteForm(forms.ModelForm):
             'apellidos': forms.TextInput(attrs={'class': 'form-control'}),
             'numero_documento': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo_documento': forms.Select(attrs={'class': 'form-select'}),
-            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),
             'lugar_nacimiento': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Barranquilla, Atlántico'}),
             'email_contacto': forms.EmailInput(attrs={'class': 'form-control'}),
             'telefono_contacto': forms.TextInput(attrs={'class': 'form-control'}),

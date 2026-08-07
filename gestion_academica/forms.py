@@ -222,7 +222,7 @@ class EstudianteForm(forms.ModelForm):
             'documento_identidad': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo_documento': forms.Select(attrs={'class': 'form-select'}),
             'codigo_estudiante': forms.TextInput(attrs={'class': 'form-control'}),
-            'fecha_nacimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'fecha_nacimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
             'lugar_nacimiento': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ciudad y departamento'}),
             'direccion': forms.TextInput(attrs={'class': 'form-control'}),
             'grado_actual': forms.Select(attrs={'class': 'form-select'}),
@@ -254,6 +254,10 @@ class EstudianteForm(forms.ModelForm):
         # Tu lógica de __init__ se mantiene intacta
         request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        # La fecha nativa (type=date) intercambia siempre en formato ISO.
+        self.fields['fecha_nacimiento'].input_formats = ['%Y-%m-%d', '%d/%m/%Y']
+
         if request:
             self.fields['grado_actual'].queryset = filter_by_user_institution(self.fields['grado_actual'].queryset, request.user)
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
@@ -261,11 +265,34 @@ class EstudianteForm(forms.ModelForm):
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
 
+        # Colegios que NO usan el módulo financiero (p. ej. oficiales/gratuitos)
+        # no cobran matrícula ni pensión: esos campos quedan OPCIONALES (default 0),
+        # sin asterisco de obligatorio.
+        institucion = None
+        if getattr(self.instance, 'institucion_id', None):
+            institucion = self.instance.institucion
+        elif request is not None:
+            institucion = getattr(request.user, 'institucion_asociada', None)
+        if institucion is not None and not getattr(institucion, 'usa_modulo_financiero', True):
+            for campo in ('valor_matricula', 'valor_mensualidad'):
+                if campo in self.fields:
+                    self.fields[campo].required = False
+                    self.fields[campo].initial = 0
+                    self.fields[campo].help_text = _("Tu institución no cobra este concepto; puede quedar en 0.")
+
     def clean_documento_identidad(self):
         return (self.cleaned_data.get('documento_identidad') or '').strip()
 
     def clean_codigo_estudiante(self):
         return (self.cleaned_data.get('codigo_estudiante') or '').strip()
+
+    def clean_valor_matricula(self):
+        from decimal import Decimal
+        return self.cleaned_data.get('valor_matricula') or Decimal('0.00')
+
+    def clean_valor_mensualidad(self):
+        from decimal import Decimal
+        return self.cleaned_data.get('valor_mensualidad') or Decimal('0.00')
 
 
 class CaracterizacionEstudianteForm(forms.ModelForm):
