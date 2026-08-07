@@ -57,6 +57,13 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
         ('Información para Boletines', {
             'fields': ('texto_aprobacion', 'texto_resolucion', 'codigo_dane', 'ciudad_departamento', 'nombre_rectora', 'firma_rectora', 'nota_minima_aprobacion')
         }),
+        ('Reporte SIMAT (MEN)', {
+            'classes': ('collapse',),
+            'description': 'Datos oficiales para el reporte de matrícula SIMAT. '
+                           'El código DANE de la institución se toma de "Información para Boletines". '
+                           'Las sedes se administran en SIMAT › Sedes.',
+            'fields': ('simat_codigo_municipio_dane', 'simat_calendario', 'simat_sector'),
+        }),
         ('Configuración de Pagos', {
             'classes': ('collapse',),
             'fields': (
