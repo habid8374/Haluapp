@@ -1,0 +1,51 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{% trans "Reporte SIMAT" %}{% endblock %}
+
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #0d3b66 0%, #1d4ed8 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem;">
+  <h2 style="color:#fff;"><i class="bi bi-clipboard-data"></i> {% trans "Reporte de Matrícula SIMAT" %}</h2>
+  <p style="color:#fff;">{% trans "Exporta la matrícula de tu institución en el formato del reporte plano del SIMAT (Ministerio de Educación)." %}</p>
+</div>
+
+{% if not institucion %}
+  <div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-1"></i>{% trans "Tu usuario no tiene una institución asociada." %}</div>
+{% else %}
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body text-center">
+        <div class="display-6 fw-bold text-primary">{{ matriculados }}</div>
+        <div class="text-muted">{% trans "Estudiantes matriculados a exportar" %}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="fw-bold mb-2"><i class="bi bi-gear me-1"></i>{% trans "Configuración SIMAT de la institución" %}</h6>
+        {% if faltan_config %}
+          <p class="text-danger mb-1" style="font-size:.9rem;"><i class="bi bi-x-circle me-1"></i>{% trans "Faltan datos para un reporte completo:" %}</p>
+          <ul style="font-size:.85rem;" class="mb-2">
+            {% for f in faltan_config %}<li>{{ f }}</li>{% endfor %}
+          </ul>
+          <p class="text-muted mb-0" style="font-size:.8rem;">{% trans "Complétalos en Configuración de la institución y en Sedes (panel de administración)." %}</p>
+        {% else %}
+          <p class="text-success mb-0"><i class="bi bi-check-circle me-1"></i>{% trans "Configuración completa." %}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-4">
+  <a href="{% url 'simat:exportar_reporte' %}" class="btn btn-primary btn-lg">
+    <i class="bi bi-file-earmark-excel me-1"></i>{% trans "Descargar reporte SIMAT (Excel)" %}
+  </a>
+</div>
+
+<div class="alert alert-info mt-4" style="font-size:.85rem;">
+  <i class="bi bi-info-circle me-1"></i>{% trans "El reporte incluye los datos que la plataforma ya tiene. Los campos codificados (municipios DANE, sede, etc.) se llenan a medida que se capturan en admisiones. Antes de subirlo al SIMAT, valida las columnas contra la plantilla oficial vigente de tu Secretaría de Educación." %}
+</div>
+{% endif %}
+{% endblock %}
