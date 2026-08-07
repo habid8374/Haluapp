@@ -19,7 +19,7 @@
                     <hr>
                     <form method="post" novalidate>
                         {% csrf_token %}
-                        {{ form|crispy }}
+                        {% crispy form %}
                         <hr class="my-4">
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{% url 'admisiones:lista_grados_aspirantes' %}" class="btn btn-secondary me-md-2">

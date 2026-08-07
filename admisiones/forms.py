@@ -2,8 +2,11 @@
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Fieldset, HTML
 from .models import Aspirante
 from gestion_academica.models import Grado
+from simat.models import Sede
 
 class AspiranteForm(forms.ModelForm):
     
@@ -12,12 +15,62 @@ class AspiranteForm(forms.ModelForm):
         user = kwargs.pop('user', None) 
         
         super().__init__(*args, **kwargs)
-        
-        # Si el usuario no es superadmin, filtramos el queryset de grados
+
+        # Si el usuario no es superadmin, filtramos por su institución
         if user and not user.is_superuser:
             institucion = user.institucion_asociada
             if institucion:
                 self.fields['grado_aspira'].queryset = Grado.objects.filter(institucion=institucion)
+                self.fields['sede'].queryset = Sede.objects.filter(institucion=institucion, activa=True)
+
+        # Las FK a catálogos SIMAT no son obligatorias
+        for f in ['lugar_expedicion_departamento', 'lugar_expedicion_municipio',
+                  'departamento_nacimiento', 'municipio_nacimiento',
+                  'departamento_residencia', 'municipio_residencia',
+                  'etnia_simat', 'resguardo', 'eps_simat', 'sede']:
+            if f in self.fields:
+                self.fields[f].required = False
+
+        # Diseño en secciones profesionales (se renderiza con {% crispy form %})
+        self.helper = FormHelper()
+        self.helper.form_tag = False   # el <form> lo pone la plantilla
+        self.helper.disable_csrf = True
+        self.helper.layout = Layout(
+            Fieldset(
+                _("1. Identificación"),
+                'nombres', 'apellidos',
+                'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
+                'tipo_documento', 'numero_documento',
+                'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
+                'fecha_nacimiento', 'sexo', 'grupo_sanguineo', 'nacionalidad',
+            ),
+            Fieldset(
+                _("2. Nacimiento y residencia"),
+                'pais_origen', 'pais_nacimiento', 'departamento_nacimiento', 'municipio_nacimiento', 'lugar_nacimiento',
+                'departamento_residencia', 'municipio_residencia', 'barrio',
+                'municipio_ciudad', 'departamento', 'direccion', 'zona_residencia',
+            ),
+            Fieldset(
+                _("3. Contacto"),
+                'email_contacto', 'telefono_contacto',
+            ),
+            Fieldset(
+                _("4. Caracterización socio-económica (SIMPADE)"),
+                'estrato', 'sisben_grupo', 'sisben_puntaje', 'regimen_salud',
+                'eps', 'eps_simat',
+                'discapacidad', 'discapacidad_categoria', 'capacidad_excepcional',
+                'grupo_etnico', 'etnia_simat', 'resguardo',
+                'victima_conflicto', 'tipo_poblacion_victima', 'srpa', 'campesino',
+                'apoyo_academico_especial',
+            ),
+            Fieldset(
+                _("5. Matrícula"),
+                'grado_aspira', 'sede', 'jornada', 'grupo', 'modelo_educativo',
+                'fuente_recursos', 'internado', 'matricula_contratada', 'repitente',
+                'situacion_academica_anterior', 'colegio_procedencia',
+                'requiere_pago_inscripcion',
+            ),
+        )
 
     class Meta:
         model = Aspirante
@@ -34,6 +87,14 @@ class AspiranteForm(forms.ModelForm):
             'estrato', 'sisben_grupo', 'sisben_puntaje',
             'victima_conflicto', 'tipo_poblacion_victima',
             'srpa', 'apoyo_academico_especial',
+            # ── SIMAT Fase 2: identidad separada, ubicación DANE y matrícula ──
+            'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
+            'lugar_expedicion_departamento', 'lugar_expedicion_municipio', 'nacionalidad',
+            'pais_nacimiento', 'departamento_nacimiento', 'municipio_nacimiento',
+            'departamento_residencia', 'municipio_residencia', 'barrio', 'campesino',
+            'etnia_simat', 'resguardo', 'eps_simat',
+            'sede', 'jornada', 'grupo', 'modelo_educativo', 'fuente_recursos',
+            'internado', 'matricula_contratada', 'repitente', 'situacion_academica_anterior',
         ]
         widgets = {
             'nombres': forms.TextInput(attrs={'class': 'form-control'}),
