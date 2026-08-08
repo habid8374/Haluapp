@@ -84,6 +84,14 @@ class Usuario(AbstractUser):
         blank=True,
         verbose_name=_("Foto de Perfil")
     )
+    # Preferencias de accesibilidad (Ola 1): tamaño de texto, alto contraste,
+    # fuente legible, espaciado, reducir animaciones, lectura fácil. Se guardan
+    # como JSON para poder crecer sin migraciones y siguen al usuario entre
+    # dispositivos. No son datos sensibles (son ajustes de interfaz).
+    preferencias_accesibilidad = models.JSONField(
+        default=dict, blank=True,
+        verbose_name=_("Preferencias de accesibilidad"),
+    )
 
     # ---- Aceptación de la Política de Tratamiento de Datos Personales ----
     # Se completa exclusivamente desde la vista de aceptación (nunca editable

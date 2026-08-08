@@ -230,6 +230,7 @@ urlpatterns = [
     path('eventos/<int:pk>/editar/', views.editar_evento, name='editar_evento'),
     path('eventos/<int:pk>/eliminar/', views.eliminar_evento, name='eliminar_evento'),
     path('idioma/', views.cambiar_idioma, name='cambiar_idioma'),
+    path('accesibilidad/guardar/', views.guardar_preferencias_accesibilidad, name='guardar_preferencias_accesibilidad'),
     path('ayuda-soporte/', views.ayuda_soporte_view, name='ayuda_soporte'),
     path('mi-boletin/', views.mi_boletin_periodo_actual, name='mi_boletin'),
     path('mi-boletin/imprimir/', views.boletin_imprimible, name='boletin_imprimible'),

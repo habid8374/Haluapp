@@ -297,10 +297,140 @@
                 background: rgba(255, 255, 255, .2);
             }
         }
+
+        /* ═══════════════════════════════════════════════════════════════
+           ACCESIBILIDAD (Ola 1 — base WCAG 2.1 AA)
+           Clases aplicadas a <html> por el panel de accesibilidad.
+           ═══════════════════════════════════════════════════════════════ */
+        /* Tamaño de texto (afecta todo lo que use rem/em + texto base) */
+        html.acc-font-lg { font-size: 112.5%; }
+        html.acc-font-xl { font-size: 125%; }
+
+        /* Espaciado de texto legible (WCAG 1.4.12) */
+        html.acc-spacing body,
+        html.acc-spacing p, html.acc-spacing li, html.acc-spacing td,
+        html.acc-spacing .card-body, html.acc-spacing label {
+            line-height: 1.8 !important;
+            letter-spacing: .03em !important;
+            word-spacing: .08em !important;
+        }
+
+        /* Fuente legible (modo dislexia): tipografía amplia + más aire.
+           Nota: usa una pila legible del sistema; puede sustituirse por
+           OpenDyslexic si más adelante se aloja el archivo de fuente. */
+        html.acc-dyslexia body,
+        html.acc-dyslexia .card, html.acc-dyslexia .btn,
+        html.acc-dyslexia input, html.acc-dyslexia textarea, html.acc-dyslexia select {
+            font-family: Verdana, Tahoma, "Trebuchet MS", sans-serif !important;
+            letter-spacing: .04em !important;
+            word-spacing: .12em !important;
+        }
+        html.acc-dyslexia body { line-height: 1.85 !important; }
+
+        /* Reducir animaciones */
+        html.acc-reduce-motion *,
+        html.acc-reduce-motion *::before,
+        html.acc-reduce-motion *::after {
+            animation-duration: .001ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .001ms !important;
+            scroll-behavior: auto !important;
+        }
+
+        /* Lectura fácil: menos distracciones (fondo plano, menos sombras) */
+        html.acc-easy-read body {
+            background: #ffffff !important;
+        }
+        html.acc-easy-read main.container,
+        html.acc-easy-read .card,
+        html.acc-easy-read footer.container {
+            box-shadow: none !important;
+        }
+        html.acc-easy-read #halu-chat-bubble { display: none !important; }
+
+        /* Alto contraste */
+        html.acc-contrast body {
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
+        html.acc-contrast main.container,
+        html.acc-contrast .card,
+        html.acc-contrast footer.container,
+        html.acc-contrast .dropdown-menu,
+        html.acc-contrast .institucion-strip {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid #000000 !important;
+            box-shadow: none !important;
+        }
+        html.acc-contrast .top-navbar { background: #000000 !important; }
+        html.acc-contrast .text-muted,
+        html.acc-contrast .card-body,
+        html.acc-contrast p, html.acc-contrast li, html.acc-contrast label,
+        html.acc-contrast td, html.acc-contrast th {
+            color: #000000 !important;
+        }
+        html.acc-contrast a:not(.btn) {
+            color: #0000cc !important;
+            text-decoration: underline !important;
+        }
+        html.acc-contrast a:not(.btn):visited { color: #551a8b !important; }
+        html.acc-contrast .btn-primary,
+        html.acc-contrast .btn-success,
+        html.acc-contrast .btn-danger {
+            border: 2px solid #000000 !important;
+        }
+        /* Foco visible reforzado en TODA la plataforma (beneficia teclado) */
+        html.acc-contrast :focus,
+        html.acc-contrast :focus-visible {
+            outline: 3px solid #ff8c00 !important;
+            outline-offset: 2px !important;
+        }
+
+        /* Foco visible base (siempre, no solo en alto contraste) */
+        a:focus-visible, button:focus-visible,
+        input:focus-visible, select:focus-visible, textarea:focus-visible,
+        [tabindex]:focus-visible {
+            outline: 2px solid #1d4ed8;
+            outline-offset: 2px;
+        }
+
+        /* Enlace "saltar al contenido" (accesibilidad de teclado) */
+        .skip-to-content {
+            position: absolute; left: -999px; top: 0; z-index: 20001;
+            background: #0d3b66; color: #fff; padding: .6rem 1rem;
+            border-radius: 0 0 .5rem 0; font-weight: 700;
+        }
+        .skip-to-content:focus { left: 0; }
+
+        /* ── Panel de accesibilidad (offcanvas) ── */
+        .acc-toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: .55rem .2rem; border-bottom: 1px solid #eef2f7;
+        }
+        .acc-seg { display: inline-flex; gap: .25rem; }
+        .acc-seg .btn { min-width: 2.6rem; }
     </style>
     {% block extrastyles %}{% endblock %}
+    {# No-flash: aplica las preferencias guardadas ANTES de pintar la página #}
+    <script>
+      (function () {
+        try {
+          var p = JSON.parse(localStorage.getItem('haluAcc') || '{}');
+          var el = document.documentElement;
+          if (p.font === 'lg') el.classList.add('acc-font-lg');
+          if (p.font === 'xl') el.classList.add('acc-font-xl');
+          if (p.contrast) el.classList.add('acc-contrast');
+          if (p.dyslexia) el.classList.add('acc-dyslexia');
+          if (p.spacing) el.classList.add('acc-spacing');
+          if (p.reduce_motion) el.classList.add('acc-reduce-motion');
+          if (p.easy_read) el.classList.add('acc-easy-read');
+        } catch (e) {}
+      })();
+    </script>
 </head>
 <body class="{% block body_class %}layout-default{% endblock %}">
+    <a href="#contenido-principal" class="skip-to-content">{% trans "Saltar al contenido" %}</a>
     {% if messages %}
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
     {% for message in messages %}
@@ -447,7 +577,7 @@
       })();
     </script>
     {% endif %}
-    <main class="container">
+    <main class="container" id="contenido-principal" tabindex="-1">
         {% block cinta_institucion %}
         {% if user.is_authenticated and institucion_actual %}
         <div class="institucion-strip">
@@ -527,6 +657,155 @@
         });
     });
 </script>
+    {% if user.is_authenticated %}
+    {# ── Panel de accesibilidad (Ola 1) ── #}
+    {{ user.preferencias_accesibilidad|json_script:"acc-server-prefs" }}
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="accPanel" aria-labelledby="accPanelLabel" style="max-width:340px;">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="accPanelLabel"><i class="bi bi-universal-access-circle me-2"></i>{% trans "Accesibilidad" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{% trans 'Cerrar' %}"></button>
+      </div>
+      <div class="offcanvas-body">
+        <p class="text-muted small">{% trans "Ajusta cómo ves y escuchas la plataforma. Tus preferencias se guardan y te acompañan en cualquier dispositivo." %}</p>
+
+        <div class="acc-toggle-row">
+          <span><i class="bi bi-fonts me-2"></i>{% trans "Tamaño del texto" %}</span>
+          <span class="acc-seg btn-group" role="group" aria-label="{% trans 'Tamaño del texto' %}">
+            <button type="button" class="btn btn-sm btn-outline-primary" data-acc-font="normal">A</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-acc-font="lg">A+</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-acc-font="xl">A++</button>
+          </span>
+        </div>
+
+        <div class="acc-toggle-row">
+          <label class="form-check-label" for="accContrast"><i class="bi bi-circle-half me-2"></i>{% trans "Alto contraste" %}</label>
+          <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="accContrast" data-acc="contrast"></div>
+        </div>
+        <div class="acc-toggle-row">
+          <label class="form-check-label" for="accDyslexia"><i class="bi bi-type me-2"></i>{% trans "Fuente legible" %}</label>
+          <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="accDyslexia" data-acc="dyslexia"></div>
+        </div>
+        <div class="acc-toggle-row">
+          <label class="form-check-label" for="accSpacing"><i class="bi bi-distribute-vertical me-2"></i>{% trans "Más espaciado" %}</label>
+          <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="accSpacing" data-acc="spacing"></div>
+        </div>
+        <div class="acc-toggle-row">
+          <label class="form-check-label" for="accMotion"><i class="bi bi-pause-circle me-2"></i>{% trans "Reducir animaciones" %}</label>
+          <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="accMotion" data-acc="reduce_motion"></div>
+        </div>
+        <div class="acc-toggle-row">
+          <label class="form-check-label" for="accEasy"><i class="bi bi-book me-2"></i>{% trans "Lectura fácil" %}</label>
+          <div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="accEasy" data-acc="easy_read"></div>
+        </div>
+
+        <hr>
+        <h6 class="fw-bold small text-uppercase text-muted"><i class="bi bi-volume-up me-1"></i>{% trans "Lectura por voz" %}</h6>
+        <div class="d-grid gap-2">
+          <button type="button" class="btn btn-outline-primary btn-sm" id="accReadPage"><i class="bi bi-play-fill me-1"></i>{% trans "Leer esta página" %}</button>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="accReadSel"><i class="bi bi-cursor-text me-1"></i>{% trans "Leer lo seleccionado" %}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="accReadStop"><i class="bi bi-stop-fill me-1"></i>{% trans "Detener" %}</button>
+        </div>
+        <p class="text-muted small mt-2" id="accTtsUnsupported" style="display:none;">{% trans "Tu navegador no permite la lectura por voz." %}</p>
+
+        <hr>
+        <button type="button" class="btn btn-link btn-sm text-danger p-0" id="accReset"><i class="bi bi-arrow-counterclockwise me-1"></i>{% trans "Restablecer todo" %}</button>
+      </div>
+    </div>
+
+    <script>
+    (function () {
+      var el = document.documentElement;
+      var SAVE_URL = "{% url 'gestion_academica:guardar_preferencias_accesibilidad' %}";
+      var CSRF = "{{ csrf_token }}";
+      var FONTS = { normal: '', lg: 'acc-font-lg', xl: 'acc-font-xl' };
+      var BOOLS = {
+        contrast: 'acc-contrast', dyslexia: 'acc-dyslexia', spacing: 'acc-spacing',
+        reduce_motion: 'acc-reduce-motion', easy_read: 'acc-easy-read'
+      };
+
+      // Estado: localStorage tiene prioridad; si está vacío, usa lo del servidor.
+      var state = {};
+      try { state = JSON.parse(localStorage.getItem('haluAcc') || 'null'); } catch (e) {}
+      if (!state) {
+        try { state = JSON.parse(document.getElementById('acc-server-prefs').textContent || '{}'); }
+        catch (e) { state = {}; }
+      }
+      if (!state || typeof state !== 'object') state = {};
+
+      function apply() {
+        Object.keys(FONTS).forEach(function (k) { if (FONTS[k]) el.classList.remove(FONTS[k]); });
+        if (state.font && FONTS[state.font]) el.classList.add(FONTS[state.font]);
+        Object.keys(BOOLS).forEach(function (k) {
+          el.classList.toggle(BOOLS[k], !!state[k]);
+        });
+      }
+      function reflect() {
+        document.querySelectorAll('[data-acc-font]').forEach(function (b) {
+          b.classList.toggle('active', (state.font || 'normal') === b.getAttribute('data-acc-font'));
+        });
+        document.querySelectorAll('[data-acc]').forEach(function (c) {
+          c.checked = !!state[c.getAttribute('data-acc')];
+        });
+      }
+      var saveTimer = null;
+      function persist() {
+        try { localStorage.setItem('haluAcc', JSON.stringify(state)); } catch (e) {}
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(function () {
+          fetch(SAVE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify(state)
+          }).catch(function () {});
+        }, 500);
+      }
+      function update() { apply(); reflect(); persist(); }
+
+      apply(); reflect();
+
+      document.querySelectorAll('[data-acc-font]').forEach(function (b) {
+        b.addEventListener('click', function () { state.font = b.getAttribute('data-acc-font'); update(); });
+      });
+      document.querySelectorAll('[data-acc]').forEach(function (c) {
+        c.addEventListener('change', function () { state[c.getAttribute('data-acc')] = c.checked; update(); });
+      });
+      var reset = document.getElementById('accReset');
+      if (reset) reset.addEventListener('click', function () { state = {}; update(); });
+
+      // ── Lectura por voz (Web Speech API) ──
+      var synth = window.speechSynthesis;
+      function lang() {
+        var l = (document.documentElement.lang || 'es').toLowerCase();
+        return l.indexOf('en') === 0 ? 'en-US' : 'es-ES';
+      }
+      function speak(text) {
+        if (!synth) return;
+        text = (text || '').replace(/\s+/g, ' ').trim();
+        if (!text) return;
+        synth.cancel();
+        var u = new SpeechSynthesisUtterance(text.slice(0, 6000));
+        u.lang = lang(); u.rate = 1;
+        synth.speak(u);
+      }
+      if (!synth) {
+        var warn = document.getElementById('accTtsUnsupported');
+        if (warn) warn.style.display = 'block';
+        ['accReadPage', 'accReadSel', 'accReadStop'].forEach(function (id) {
+          var b = document.getElementById(id); if (b) b.disabled = true;
+        });
+      } else {
+        document.getElementById('accReadPage').addEventListener('click', function () {
+          var main = document.getElementById('contenido-principal');
+          speak(main ? main.innerText : document.body.innerText);
+        });
+        document.getElementById('accReadSel').addEventListener('click', function () {
+          speak(window.getSelection ? window.getSelection().toString() : '');
+        });
+        document.getElementById('accReadStop').addEventListener('click', function () { synth.cancel(); });
+      }
+    })();
+    </script>
+    {% endif %}
     {% block extra_js %}{% endblock %}
     {% include "partials/pwa_install.html" %}
 </body>
