@@ -478,33 +478,59 @@ def _construir_plantilla_aspirantes(institucion):
     # va COMPLETO (se separa solo al importar); la ubicación, etnia, EPS y sede
     # van SOLO por desplegable de catálogo → nunca se digita → no falla al cargar.
     # Cada par (columna, texto de ayuda) va junto para no desalinearse.
+    # Campos obligatorios (se colorean distinto y se marcan con (*) en la ayuda).
+    REQUERIDAS = {
+        'primer_nombre', 'primer_apellido', 'numero_documento',
+        'fecha_nacimiento', 'email_contacto', 'grado_aspira', 'paga_inscripcion',
+    }
+    # Orden PROFESIONAL por secciones lógicas; los campos relacionados van juntos
+    # (los 4 del nombre seguidos, el documento junto, etc.). El lector de la carga
+    # ubica cada columna por su NOMBRE, así que el orden es solo para el usuario.
     columnas = [
-        # Obligatorias (las primeras 7)
+        # ── 1) Datos del estudiante ──
         ('primer_nombre', 'Primer nombre'),
+        ('segundo_nombre', 'Segundo nombre'),
         ('primer_apellido', 'Primer apellido'),
+        ('segundo_apellido', 'Segundo apellido'),
+        ('tipo_documento', 'Selecciona (lista)'),
         ('numero_documento', 'Documento de identidad'),
         ('fecha_nacimiento', 'DD/MM/AAAA o AAAA-MM-DD'),
-        ('email_contacto', 'Correo electrónico'),
-        ('grado_aspira', 'Selecciona (lista)'),
-        ('paga_inscripcion', 'SI o NO'),
-        # Datos básicos
-        ('segundo_nombre', 'Segundo nombre (opcional)'),
-        ('segundo_apellido', 'Segundo apellido (opcional)'),
-        ('tipo_documento', 'Selecciona (lista)'),
-        ('telefono_contacto', 'Teléfono'),
         ('sexo', 'Selecciona (lista)'),
         ('grupo_sanguineo', 'Selecciona (lista)'),
-        ('discapacidad', 'Texto (vacío = ninguna)'),
+        # ── 2) Contacto ──
+        ('email_contacto', 'Correo electrónico'),
+        ('telefono_contacto', 'Teléfono'),
+        # ── 3) Matrícula ──
+        ('grado_aspira', 'Selecciona (lista)'),
+        ('paga_inscripcion', 'SI o NO'),
+        ('nombre_sede', 'Selecciona (lista)'),
+        ('jornada', 'Selecciona (lista)'),
+        ('grupo', 'Selecciona (lista)'),
         ('colegio_procedencia', 'Colegio anterior'),
+        ('matricula_contratada', 'SI o NO'),
+        ('repitente', 'SI o NO'),
+        # ── 4) Nacimiento y residencia (DANE por lista) ──
+        ('pais_origen', 'Vacío si es Colombia'),
+        ('cod_depto_nacimiento', 'Selecciona (lista)'),
+        ('cod_mpio_nacimiento', 'Selecciona (lista)'),
+        ('cod_depto_residencia', 'Selecciona (lista)'),
+        ('cod_mpio_residencia', 'Selecciona (lista)'),
+        ('cod_depto_expedicion', 'Selecciona (lista)'),
+        ('cod_mpio_expedicion', 'Selecciona (lista)'),
         ('direccion', 'Dirección de residencia'),
         ('barrio', 'Barrio'),
-        # Caracterización socio-económica (SIMPADE)
-        ('pais_origen', 'Vacío si es Colombia'),
         ('zona_residencia', 'Selecciona (lista)'),
+        # ── 5) Salud y discapacidad ──
         ('regimen_salud', 'Selecciona (lista)'),
+        ('cod_eps_simat', 'Selecciona (lista)'),
+        ('discapacidad', 'Texto (vacío = ninguna)'),
         ('discapacidad_categoria', 'Selecciona (lista)'),
         ('capacidad_excepcional', 'Selecciona (lista)'),
+        # ── 6) Pertenencia étnica ──
         ('grupo_etnico', 'Selecciona (lista)'),
+        ('cod_etnia_simat', 'Selecciona (lista)'),
+        ('cod_resguardo', 'Selecciona (lista)'),
+        # ── 7) Caracterización socio-económica (SIMPADE) ──
         ('estrato', 'Selecciona (lista)'),
         ('sisben_grupo', 'Ej: A1, B2, C3'),
         ('sisben_puntaje', 'Puntaje SISBÉN'),
@@ -513,25 +539,7 @@ def _construir_plantilla_aspirantes(institucion):
         ('srpa', 'SI o NO'),
         ('apoyo_academico_especial', 'SI o NO'),
         ('campesino', 'SI o NO'),
-        # Ubicación DANE (solo desplegable)
-        ('cod_depto_nacimiento', 'Selecciona (lista)'),
-        ('cod_mpio_nacimiento', 'Selecciona (lista)'),
-        ('cod_depto_residencia', 'Selecciona (lista)'),
-        ('cod_mpio_residencia', 'Selecciona (lista)'),
-        ('cod_depto_expedicion', 'Selecciona (lista)'),
-        ('cod_mpio_expedicion', 'Selecciona (lista)'),
-        # Étnico específico (indígenas)
-        ('cod_etnia_simat', 'Selecciona (lista)'),
-        ('cod_resguardo', 'Selecciona (lista)'),
-        # Salud
-        ('cod_eps_simat', 'Selecciona (lista)'),
-        # Matrícula
-        ('nombre_sede', 'Selecciona (lista)'),
-        ('jornada', 'Selecciona (lista)'),
-        ('grupo', 'Selecciona (lista)'),
-        ('matricula_contratada', 'SI o NO'),
-        ('repitente', 'SI o NO'),
-        # Acudiente / Familiar (se crea su cuenta y se vincula al estudiante)
+        # ── 8) Acudiente / Familiar (se crea su cuenta y se vincula) ──
         ('acudiente_nombres', 'Nombres del acudiente'),
         ('acudiente_apellidos', 'Apellidos del acudiente'),
         ('acudiente_tipo_documento', 'Selecciona (lista)'),
@@ -542,7 +550,11 @@ def _construir_plantilla_aspirantes(institucion):
     ]
     headers = [c for c, _ in columnas]
     ws.append(headers)
-    ws.append([ayuda for _, ayuda in columnas])
+    # Fila de ayuda: agrega "(*) obligatorio" a los campos requeridos.
+    ws.append([
+        (f"(*) {ayuda}" if col in REQUERIDAS else ayuda)
+        for col, ayuda in columnas
+    ])
 
     from openpyxl.styles import PatternFill, Font as OFont, Alignment
     # Cabecera principal: azul oscuro
@@ -554,12 +566,11 @@ def _construir_plantilla_aspirantes(institucion):
     help_fill  = PatternFill(start_color="F1F5F9", end_color="F1F5F9", fill_type="solid")
     help_font  = OFont(italic=True, size=9, color="475569")
 
-    OBLIGATORIAS_COUNT = 7  # primeras 7 columnas son obligatorias
+    # Azul = obligatoria; verde = opcional. Se colorea por NOMBRE de columna, no
+    # por posición, para poder ordenar los campos de forma lógica.
     for i, cell in enumerate(ws[1], start=1):
-        if i <= OBLIGATORIAS_COUNT:
-            cell.fill = header_fill
-        else:
-            cell.fill = opt_fill
+        col_nombre = headers[i - 1]
+        cell.fill = header_fill if col_nombre in REQUERIDAS else opt_fill
         cell.font = header_font
         cell.alignment = Alignment(horizontal='center')
     for cell in ws[2]:
