@@ -218,7 +218,7 @@ class EstudianteForm(forms.ModelForm):
         fields = [
             'documento_identidad', 'tipo_documento', 'codigo_estudiante',
             'fecha_nacimiento',
-            'direccion', 'grado_actual', 'institucion', 'valor_matricula',
+            'direccion', 'grado_actual', 'grupo', 'institucion', 'valor_matricula',
             'valor_mensualidad',
             'sexo', 'grupo_sanguineo', 'discapacidad',
             'colegio_procedencia',
@@ -232,6 +232,7 @@ class EstudianteForm(forms.ModelForm):
             'lugar_nacimiento': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ciudad y departamento'}),
             'direccion': forms.TextInput(attrs={'class': 'form-control'}),
             'grado_actual': forms.Select(attrs={'class': 'form-select'}),
+            'grupo': forms.Select(attrs={'class': 'form-select'}),
             'institucion': forms.Select(attrs={'class': 'form-select'}),
             'valor_matricula': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'valor_mensualidad': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -267,6 +268,14 @@ class EstudianteForm(forms.ModelForm):
         if request:
             self.fields['grado_actual'].queryset = filter_by_user_institution(self.fields['grado_actual'].queryset, request.user)
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
+            if 'grupo' in self.fields:
+                self.fields['grupo'].queryset = filter_by_user_institution(
+                    self.fields['grupo'].queryset, request.user
+                ).filter(activo=True).select_related('grado')
+
+        # El grupo es opcional y se filtra a la institución del estudiante.
+        if 'grupo' in self.fields:
+            self.fields['grupo'].required = False
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True
@@ -320,7 +329,10 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
             'pais_nacimiento', 'departamento_nacimiento', 'municipio_nacimiento',
             'departamento_residencia', 'municipio_residencia', 'barrio', 'campesino',
             'etnia_simat', 'resguardo', 'eps_simat',
-            'sede', 'jornada', 'grupo', 'modelo_educativo', 'fuente_recursos',
+            # sede / jornada / grupo NO se capturan aquí: se definen al elegir el
+            # Grupo del estudiante (arriba, en "Datos del estudiante"), del cual
+            # la sede y la jornada se derivan. Así no se duplica la selección.
+            'modelo_educativo', 'fuente_recursos',
             'internado', 'matricula_contratada', 'repitente', 'situacion_academica_anterior',
         ]
         widgets = {
@@ -341,15 +353,10 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from simat.models import Sede
-        # Sede filtrada a la institución de la caracterización (si ya se conoce)
-        institucion = getattr(self.instance, 'institucion', None)
-        if institucion is not None:
-            self.fields['sede'].queryset = Sede.objects.filter(institucion=institucion, activa=True)
         for f in ['lugar_expedicion_departamento', 'lugar_expedicion_municipio',
                   'departamento_nacimiento', 'municipio_nacimiento',
                   'departamento_residencia', 'municipio_residencia',
-                  'etnia_simat', 'resguardo', 'eps_simat', 'sede']:
+                  'etnia_simat', 'resguardo', 'eps_simat']:
             if f in self.fields:
                 self.fields[f].required = False
 
@@ -369,7 +376,7 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
                 'estrato', 'sisben_grupo', 'sisben_puntaje', 'victima_conflicto',
                 'tipo_poblacion_victima', 'srpa', 'campesino', 'apoyo_academico_especial'),
             Fieldset(_("Matrícula"),
-                'sede', 'jornada', 'grupo', 'modelo_educativo', 'fuente_recursos',
+                'modelo_educativo', 'fuente_recursos',
                 'internado', 'matricula_contratada', 'repitente', 'situacion_academica_anterior'),
         )
 

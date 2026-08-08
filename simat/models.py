@@ -162,7 +162,24 @@ class Sede(models.Model):
             institucion=institucion,
             nombre='Sede Principal',
             codigo_dane_sede=(getattr(institucion, 'codigo_dane', '') or '')[:20],
+            consecutivo='01',
             zona='URBANA',
             es_principal=True,
             activa=True,
         )
+
+    @classmethod
+    def siguiente_consecutivo(cls, institucion):
+        """Calcula el próximo consecutivo numérico de sede para la institución.
+        La sede principal es 01; las anexas siguen 02, 03… Devuelve un str de 2
+        dígitos."""
+        if institucion is None:
+            return '01'
+        maximo = 0
+        for c in cls.objects.filter(institucion=institucion).values_list('consecutivo', flat=True):
+            try:
+                n = int(str(c).strip())
+            except (TypeError, ValueError):
+                continue
+            maximo = max(maximo, n)
+        return f"{maximo + 1:02d}"

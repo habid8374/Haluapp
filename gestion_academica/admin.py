@@ -12,7 +12,7 @@ from django.shortcuts import redirect
 
 # Importa los modelos desde tu aplicación gestion_academica
 from .models import (
-    Usuario, Grado, Estudiante, Docente, Familiar,
+    Usuario, Grado, Grupo, Estudiante, Docente, Familiar,
     Materia, PeriodoAcademico, Curso, DirectorCurso,
     TipoActividad, ActividadCalificable, Calificacion,
     PlanCurricular, Deber, EntregaDeber, MencionReconocimiento, ArchivoPlanAcademico,
@@ -133,6 +133,14 @@ class GradoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
             'fields': ('orden', 'siguiente_grado', 'tipo_evaluacion')
         }),
     )
+
+@admin.register(Grupo)
+class GrupoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('nombre', 'grado', 'jornada', 'sede', 'institucion', 'activo')
+    search_fields = ('nombre', 'grado__nombre')
+    list_filter = ('institucion', 'jornada', 'activo', 'grado')
+    raw_id_fields = ('institucion', 'grado', 'sede')
+
 
 @admin.register(EscalaCualitativa)
 class EscalaCualitativaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):

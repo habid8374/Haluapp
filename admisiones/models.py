@@ -363,6 +363,16 @@ class Aspirante(models.Model):
                 "No se pudo asignar la sede del aspirante/estudiante %s", self.pk
             )
 
+        # 2.b.ter Grupo/sección: resuelve (o crea) el Grupo estructurado para
+        # (institución, grado, nombre) a partir del texto capturado en admisión
+        # y lo asigna al estudiante. Si no se capturó nada, usa "01".
+        try:
+            self._sincronizar_grupo(estudiante_obj)
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "No se pudo asignar el grupo del aspirante/estudiante %s", self.pk
+            )
+
         # 2.c Crea/vincula el acudiente (Familiar) desde los datos de la fila.
         try:
             self._sincronizar_acudiente(estudiante_obj)
@@ -389,6 +399,32 @@ class Aspirante(models.Model):
             aspirante=self,
             cobro_inscripcion=resultado_cobro,
         )
+
+    def _sincronizar_grupo(self, estudiante):
+        """Resuelve el Grupo estructurado para el estudiante desde el texto de
+        admisión y lo asigna. Crea el Grupo si no existe (para el grado + nombre).
+
+        - Sin grado no se puede crear grupo → se omite silenciosamente.
+        - Si el aspirante no trae grupo, se usa "01" (grupo por defecto).
+        - Es idempotente y no pisa un grupo ya asignado manualmente al estudiante.
+        """
+        from gestion_academica.models import Grupo
+        grado = self.grado_aspira or estudiante.grado_actual
+        if grado is None:
+            return
+        if estudiante.grupo_id:
+            return  # respeta una asignación previa
+        nombre = (self.grupo or '').strip() or '01'
+        jornada = (getattr(self, 'jornada', '') or '')
+        grupo, _creado = Grupo.objects.get_or_create(
+            institucion=estudiante.institucion,
+            grado=grado,
+            jornada=jornada,
+            nombre=nombre,
+            defaults={'sede': self.sede or estudiante.sede, 'activo': True},
+        )
+        estudiante.grupo = grupo
+        estudiante.save(update_fields=['grupo'])
 
     def _sincronizar_caracterizacion(self, estudiante):
         """Crea o actualiza el CaracterizacionEstudiante a partir del aspirante.

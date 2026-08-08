@@ -21,6 +21,7 @@ class AspiranteForm(forms.ModelForm):
             self.fields['fecha_nacimiento'].input_formats = ['%Y-%m-%d', '%d/%m/%Y']
 
         # Si el usuario no es superadmin, filtramos por su institución
+        institucion = None
         if user and not user.is_superuser:
             institucion = user.institucion_asociada
             if institucion:
@@ -28,6 +29,20 @@ class AspiranteForm(forms.ModelForm):
                 self.fields['sede'].queryset = Sede.objects.filter(institucion=institucion, activa=True)
                 if not self.instance.pk:
                     self.fields['sede'].initial = Sede.principal_de(institucion)
+
+        # Grupo/sección como DESPLEGABLE (sin digitar) con los nombres de grupo
+        # ya existentes en la institución; siempre incluye "01" por defecto.
+        if 'grupo' in self.fields and institucion is not None:
+            from gestion_academica.models import Grupo
+            nombres = set(
+                Grupo.objects.filter(institucion=institucion, activo=True)
+                .values_list('nombre', flat=True)
+            )
+            nombres.add('01')
+            choices = [('', '—')] + [(n, n) for n in sorted(nombres)]
+            self.fields['grupo'].widget = forms.Select(attrs={'class': 'form-select'}, choices=choices)
+            if not self.instance.pk and not (self.initial.get('grupo') or self.data.get('grupo')):
+                self.fields['grupo'].initial = '01'
 
         # Las FK a catálogos SIMAT no son obligatorias
         for f in ['lugar_expedicion_departamento', 'lugar_expedicion_municipio',

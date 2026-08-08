@@ -55,9 +55,11 @@ class InstitucionEducativa(models.Model):
     codigo_dane = models.CharField(max_length=50, blank=True, verbose_name="Código de Identificación DANE")
     ciudad_departamento = models.CharField(max_length=150, blank=True, default="Sabanalarga - Atlántico", verbose_name="Ciudad y Departamento")
     # --- Configuración SIMAT (reporte de matrícula al MEN) ---
-    simat_codigo_municipio_dane = models.CharField(
-        max_length=5, blank=True, verbose_name="SIMAT · Código DANE del municipio (ETC)",
-        help_text="Código DANE del municipio/distrito de la Secretaría de Educación (ETC).",
+    simat_municipio_etc = models.ForeignKey(
+        'simat.Municipio', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="SIMAT · Municipio (ETC)",
+        help_text="Municipio/distrito de la Secretaría de Educación (ETC). "
+                  "Se elige de la lista oficial DIVIPOLA; el código DANE se toma de ahí.",
     )
     simat_calendario = models.CharField(
         max_length=1, blank=True, choices=[('A', 'Calendario A'), ('B', 'Calendario B')],
@@ -67,6 +69,12 @@ class InstitucionEducativa(models.Model):
         max_length=12, blank=True,
         choices=[('OFICIAL', 'Oficial'), ('NO_OFICIAL', 'No oficial')],
         verbose_name="SIMAT · Sector",
+    )
+    simat_consecutivo_sede_automatico = models.BooleanField(
+        default=True, verbose_name="SIMAT · Numerar consecutivo de sedes automáticamente",
+        help_text="Si está activo, al crear una sede el sistema le asigna el consecutivo "
+                  "(Principal=01, anexas 02, 03…) y queda editable. Si se desactiva, el "
+                  "consecutivo se digita manualmente en cada sede.",
     )
     nombre_rectora = models.CharField(max_length=150, blank=True, verbose_name="Nombre Completo del Rector(a)")
     firma_rectora = models.ImageField(upload_to='firmas/', blank=True, null=True, verbose_name="Firma del Rector(a) (Imagen)")

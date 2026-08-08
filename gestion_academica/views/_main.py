@@ -1054,6 +1054,14 @@ def editar_estudiante(request, pk):
             caracterizacion.institucion = estudiante.institucion
             # Nombres SIMAT separados: se derivan del usuario (no se duplican).
             caracterizacion.aplicar_nombres_desde(usuario)
+            # Sede/jornada/grupo se DERIVAN del Grupo elegido (fuente única): así
+            # la caracterización SIMAT y el estudiante quedan siempre coherentes.
+            grupo_sel = getattr(estudiante, 'grupo', None)
+            if grupo_sel is not None:
+                caracterizacion.grupo = grupo_sel.nombre
+                caracterizacion.jornada = grupo_sel.jornada or ''
+                if grupo_sel.sede_id:
+                    caracterizacion.sede_id = grupo_sel.sede_id
             caracterizacion.save()
 
             # Derivar los textos internos del estudiante desde la selección DANE
@@ -1082,6 +1090,10 @@ def editar_estudiante(request, pk):
             if caracterizacion.eps_simat_id:
                 estudiante.eps = caracterizacion.eps_simat.nombre
                 _cambios.append('eps')
+            # La sede del estudiante sigue a la del grupo elegido (fuente única).
+            if grupo_sel is not None and grupo_sel.sede_id and estudiante.sede_id != grupo_sel.sede_id:
+                estudiante.sede_id = grupo_sel.sede_id
+                _cambios.append('sede')
             if _cambios:
                 estudiante.save(update_fields=_cambios)
 

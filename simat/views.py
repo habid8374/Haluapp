@@ -59,11 +59,19 @@ def _fila_aspirante(asp, institucion, anio, contador):
     etnia = asp.etnia_simat.nombre if asp.etnia_simat_id else (asp.get_grupo_etnico_display() if asp.grupo_etnico else '')
     eps = asp.eps_simat.nombre if asp.eps_simat_id else _txt(asp.eps)
     fnac = asp.fecha_nacimiento.strftime('%Y-%m-%d') if asp.fecha_nacimiento else ''
+    etc = institucion.simat_municipio_etc.codigo if institucion.simat_municipio_etc_id else ''
+    # Grupo/sección: prioriza el grupo estructurado del estudiante matriculado;
+    # si no, cae al texto libre capturado en la admisión.
+    estudiante = getattr(asp, 'estudiante_creado', None)
+    if estudiante is not None and getattr(estudiante, 'grupo_id', None):
+        grupo_nombre = estudiante.grupo.nombre
+    else:
+        grupo_nombre = asp.grupo
     return {
         'ANO': anio,
-        'ETC': _txt(institucion.simat_codigo_municipio_dane),
+        'ETC': _txt(etc),
         'ESTADO': 'MATRICULADO',
-        'JERARQUIA': _txt(institucion.simat_codigo_municipio_dane),
+        'JERARQUIA': _txt(etc),
         'INSTITUCION': _txt(institucion.nombre),
         'DANE': _txt(institucion.codigo_dane),
         'CALENDARIO': _txt(institucion.simat_calendario),
@@ -74,7 +82,7 @@ def _fila_aspirante(asp, institucion, anio, contador):
         'ZONA_SEDE': (sede.get_zona_display() if sede and sede.zona else ''),
         'JORNADA': asp.get_jornada_display() if asp.jornada else '',
         'GRADO_COD': _txt(grado.nombre) if grado else '',
-        'GRUPO': _txt(asp.grupo),
+        'GRUPO': _txt(grupo_nombre),
         'RENOMBRE': '',
         'MODELO': _txt(asp.modelo_educativo),
         'MOTIVO': '',
@@ -134,7 +142,8 @@ def exportar_reporte_simat(request):
     aspirantes = (
         Aspirante.objects
         .filter(institucion=institucion, estado=Aspirante.EstadoAdmision.MATRICULADO)
-        .select_related('sede', 'grado_aspira', 'etnia_simat', 'eps_simat')
+        .select_related('sede', 'grado_aspira', 'etnia_simat', 'eps_simat',
+                        'estudiante_creado', 'estudiante_creado__grupo')
         .order_by('primer_apellido', 'primer_nombre', 'apellidos')
     )
 
@@ -178,8 +187,8 @@ def hub_simat(request):
         ).count()
         if not institucion.codigo_dane:
             faltan_config.append("Código DANE de la institución")
-        if not institucion.simat_codigo_municipio_dane:
-            faltan_config.append("Código DANE del municipio (ETC)")
+        if not institucion.simat_municipio_etc_id:
+            faltan_config.append("Municipio (ETC)")
         if not institucion.simat_calendario:
             faltan_config.append("Calendario (A/B)")
         if not institucion.simat_sector:
@@ -222,6 +231,7 @@ def crear_sede(request):
     if not _puede_gestionar(request.user):
         raise PermissionDenied
     from .forms import SedeForm
+    from .models import Sede
     institucion = _institucion_de(request)
     if institucion is None:
         raise PermissionDenied("Sin institución asociada.")
@@ -230,11 +240,17 @@ def crear_sede(request):
         if form.is_valid():
             sede = form.save(commit=False)
             sede.institucion = institucion
+            # Consecutivo automático (si la institución lo tiene activado y quedó vacío).
+            if getattr(institucion, 'simat_consecutivo_sede_automatico', True) and not (sede.consecutivo or '').strip():
+                sede.consecutivo = Sede.siguiente_consecutivo(institucion)
             sede.save()
             messages.success(request, _("Sede «%(n)s» creada.") % {'n': sede.nombre})
             return redirect('simat:lista_sedes')
     else:
-        form = SedeForm()
+        initial = {}
+        if getattr(institucion, 'simat_consecutivo_sede_automatico', True):
+            initial['consecutivo'] = Sede.siguiente_consecutivo(institucion)
+        form = SedeForm(initial=initial)
     return render(request, 'simat/sede_form.html', {
         'titulo_pagina': _('Nueva sede'), 'form': form, 'institucion': institucion,
     })
@@ -276,3 +292,94 @@ def eliminar_sede(request, pk):
             sede.delete()
             messages.success(request, _("Sede «%(n)s» eliminada.") % {'n': nombre})
     return redirect('simat:lista_sedes')
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  CRUD de Grupos / Secciones (institución-scoped)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+def lista_grupos(request):
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from gestion_academica.models import Grupo
+    institucion = _institucion_de(request)
+    if institucion is None:
+        raise PermissionDenied("Sin institución asociada.")
+    grupos = (
+        Grupo.objects.filter(institucion=institucion)
+        .select_related('grado', 'sede')
+        .order_by('grado__orden', 'grado__nombre', 'nombre')
+    )
+    return render(request, 'simat/grupos_lista.html', {
+        'titulo_pagina': _('Grupos'),
+        'institucion': institucion,
+        'grupos': grupos,
+    })
+
+
+@login_required
+def crear_grupo(request):
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from .forms import GrupoForm
+    institucion = _institucion_de(request)
+    if institucion is None:
+        raise PermissionDenied("Sin institución asociada.")
+    if request.method == 'POST':
+        form = GrupoForm(request.POST, institucion=institucion)
+        if form.is_valid():
+            grupo = form.save(commit=False)
+            grupo.institucion = institucion
+            grupo.save()
+            messages.success(request, _("Grupo «%(n)s» creado.") % {'n': str(grupo)})
+            return redirect('simat:lista_grupos')
+    else:
+        form = GrupoForm(institucion=institucion)
+    return render(request, 'simat/grupo_form.html', {
+        'titulo_pagina': _('Nuevo grupo'), 'form': form, 'institucion': institucion,
+    })
+
+
+@login_required
+def editar_grupo(request, pk):
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from .forms import GrupoForm
+    from gestion_academica.models import Grupo
+    institucion = _institucion_de(request)
+    grupo = get_object_or_404(Grupo, pk=pk, institucion=institucion)
+    if request.method == 'POST':
+        form = GrupoForm(request.POST, instance=grupo, institucion=institucion)
+        if form.is_valid():
+            grupo = form.save(commit=False)
+            grupo.institucion = institucion
+            grupo.save()
+            messages.success(request, _("Grupo «%(n)s» actualizado.") % {'n': str(grupo)})
+            return redirect('simat:lista_grupos')
+    else:
+        form = GrupoForm(instance=grupo, institucion=institucion)
+    return render(request, 'simat/grupo_form.html', {
+        'titulo_pagina': _('Editar grupo'), 'form': form, 'institucion': institucion, 'grupo': grupo,
+    })
+
+
+@login_required
+def eliminar_grupo(request, pk):
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from gestion_academica.models import Grupo
+    institucion = _institucion_de(request)
+    grupo = get_object_or_404(Grupo, pk=pk, institucion=institucion)
+    if request.method == 'POST':
+        if grupo.estudiantes.exists():
+            messages.error(
+                request,
+                _("No puedes eliminar «%(n)s»: tiene estudiantes asignados. "
+                  "Muévelos a otro grupo primero.") % {'n': str(grupo)},
+            )
+        else:
+            nombre = str(grupo)
+            grupo.delete()
+            messages.success(request, _("Grupo «%(n)s» eliminado.") % {'n': nombre})
+    return redirect('simat:lista_grupos')

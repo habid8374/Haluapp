@@ -40,6 +40,7 @@
                             <li><strong>Documento:</strong> {{ estudiante.documento_identidad|default:"-" }}</li>
                             <li><strong>{% trans "Código de Estudiante:" %}</strong> {{ estudiante.codigo_estudiante|default:"-" }}</li>
                             <li><strong>{% trans "Grado Actual:" %}</strong> {{ estudiante.grado_actual.nombre|default:"No asignado" }}</li>
+                            <li><strong>{% trans "Grupo/Sección:" %}</strong> {{ estudiante.grupo.nombre|default:"—" }}</li>
                             <li><strong>Lugar de Nacimiento:</strong> {{ estudiante.lugar_nacimiento|default:"-" }}</li>
                             <li><strong>Colegio de Procedencia:</strong> {{ estudiante.colegio_procedencia|default:"-" }}</li>
                             <li><strong>Institución:</strong> {{ estudiante.institucion.nombre|default:"-" }}</li>

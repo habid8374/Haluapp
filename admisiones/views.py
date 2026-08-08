@@ -510,7 +510,7 @@ def descargar_plantilla_importacion(request):
         # Matrícula
         ('nombre_sede', 'Selecciona (lista)'),
         ('jornada', 'Selecciona (lista)'),
-        ('grupo', 'Grupo/Curso'),
+        ('grupo', 'Selecciona (lista)'),
         ('matricula_contratada', 'SI o NO'),
         ('repitente', 'SI o NO'),
         # Acudiente / Familiar (se crea su cuenta y se vincula al estudiante)
@@ -578,6 +578,14 @@ def descargar_plantilla_importacion(request):
     grados = Grado.objects.filter(institucion=institucion).order_by('orden')
     ref_grado = ('"' + ",".join(g.nombre for g in grados) + '"') if grados.exists() else ''
 
+    # Grupos/secciones existentes en la institución (nombres). Siempre "01".
+    from gestion_academica.models import Grupo
+    nombres_grupo = sorted(set(
+        Grupo.objects.filter(institucion=institucion, activo=True)
+        .values_list('nombre', flat=True)
+    ) | {'01'})
+    ref_grupo = ('"' + ",".join(nombres_grupo) + '"') if nombres_grupo else ''
+
     # TODAS las validaciones en un solo lugar, por NOMBRE de columna (robusto
     # ante cambios de orden). Fórmula = lista inline o rango de catálogo.
     dvs = {
@@ -602,6 +610,7 @@ def descargar_plantilla_importacion(request):
         'cod_depto_expedicion': ref_depto, 'cod_mpio_expedicion': ref_mpio,
         'cod_etnia_simat': ref_etnia, 'cod_resguardo': ref_resg, 'cod_eps_simat': ref_eps,
         'nombre_sede': ref_sede,
+        'grupo': ref_grupo,
         'jornada': '"MANANA,TARDE,NOCHE,UNICA,COMPLETA,FIN_DE_SEMANA"',
         'matricula_contratada': '"SI,NO"', 'repitente': '"SI,NO"',
         'acudiente_tipo_documento': '"TI,CC,RC,PA,CE,OT"',

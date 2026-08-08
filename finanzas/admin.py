@@ -36,8 +36,9 @@ class EscalaValorativaInline(admin.TabularInline):
 
 class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
     # ¡¡¡AQUÍ ESTÁ LA LÍNEA CORREGIDA!!!
-    list_display = ('nombre', 'nit', 'telefono', 'correo_electronico', 'activa') 
+    list_display = ('nombre', 'nit', 'telefono', 'correo_electronico', 'activa')
     list_filter = ('activa',) # Para poder filtrar por instituciones activas o bloqueadas
+    autocomplete_fields = ['simat_municipio_etc']
     fieldsets = (
         ('Información Básica', {
             'fields': ('nombre', 'nit', 'direccion', 'telefono', 'correo_electronico', 'logo', 'eslogan')
@@ -62,7 +63,7 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
             'description': 'Datos oficiales para el reporte de matrícula SIMAT. '
                            'El código DANE de la institución se toma de "Información para Boletines". '
                            'Las sedes se administran en SIMAT › Sedes.',
-            'fields': ('simat_codigo_municipio_dane', 'simat_calendario', 'simat_sector'),
+            'fields': ('simat_municipio_etc', 'simat_calendario', 'simat_sector', 'simat_consecutivo_sede_automatico'),
         }),
         ('Configuración de Pagos', {
             'classes': ('collapse',),

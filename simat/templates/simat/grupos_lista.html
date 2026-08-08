@@ -1,0 +1,92 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{% trans "Grupos" %}{% endblock %}
+
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #0d3b66 0%, #1d4ed8 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem;">
+  <h2 style="color:#fff;"><i class="bi bi-collection"></i> {% trans "Grupos y secciones" %}</h2>
+  <p style="color:#fff;">{% trans "Organiza cada grado en grupos o secciones (01, 02, A, B…). Todo grado tiene al menos un grupo «01». El grupo se usa en el reporte SIMAT y para asignar estudiantes." %}</p>
+</div>
+
+<div class="d-flex justify-content-end mb-3">
+  <a href="{% url 'simat:crear_grupo' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>{% trans "Nuevo grupo" %}</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% trans "Grado" %}</th>
+            <th>{% trans "Grupo" %}</th>
+            <th>{% trans "Jornada" %}</th>
+            <th>{% trans "Sede" %}</th>
+            <th>{% trans "Estudiantes" %}</th>
+            <th>{% trans "Estado" %}</th>
+            <th class="text-end">{% trans "Acciones" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for grupo in grupos %}
+          <tr>
+            <td>{{ grupo.grado.nombre }}</td>
+            <td><span class="badge bg-primary">{{ grupo.nombre }}</span></td>
+            <td>{{ grupo.get_jornada_display|default:"—" }}</td>
+            <td>{{ grupo.sede.nombre|default:"—" }}</td>
+            <td>{{ grupo.estudiantes.count }}</td>
+            <td>
+              {% if grupo.activo %}<span class="badge bg-success">{% trans "Activo" %}</span>
+              {% else %}<span class="badge bg-secondary">{% trans "Inactivo" %}</span>{% endif %}
+            </td>
+            <td class="text-end">
+              <a href="{% url 'simat:editar_grupo' grupo.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil-fill"></i></a>
+              <button type="button" class="btn btn-sm btn-outline-danger"
+                      data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                      data-action="{% url 'simat:eliminar_grupo' grupo.pk %}"
+                      data-nombre="{{ grupo.grado.nombre }} · {{ grupo.nombre }}"><i class="bi bi-trash-fill"></i></button>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-muted text-center py-4">{% trans "Aún no hay grupos." %}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">{% trans "¿Eliminar este grupo?" %}</h5>
+        <p id="modal-eliminar-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Esta acción no se puede deshacer." %}</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="form-eliminar" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('[data-bs-target="#modalEliminar"]').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-eliminar').action = this.dataset.action;
+    document.getElementById('modal-eliminar-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
+{% endblock %}

@@ -197,6 +197,62 @@ class Grado(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.institucion.nombre})"
 
+
+class Grupo(models.Model):
+    """Grupo/sección de estudiantes dentro de un grado (columna GRUPO del SIMAT).
+
+    Un grado puede dividirse en varias secciones (01, 02, "A", "B"...). El SIMAT
+    identifica cada estudiante por sede + jornada + grado + grupo. Para colegios
+    que no manejan secciones, existe un único grupo "01" por grado (autocreado).
+
+    Institución-scoped: cada grupo pertenece a un colegio.
+    """
+    JORNADA_CHOICES = [
+        ('MANANA', _("Mañana")),
+        ('TARDE', _("Tarde")),
+        ('NOCHE', _("Noche")),
+        ('UNICA', _("Única")),
+        ('COMPLETA', _("Completa")),
+        ('FIN_DE_SEMANA', _("Fin de semana")),
+    ]
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='grupos', verbose_name=_("Institución"),
+    )
+    grado = models.ForeignKey(
+        'Grado', on_delete=models.CASCADE, related_name='grupos',
+        verbose_name=_("Grado"),
+    )
+    sede = models.ForeignKey(
+        'simat.Sede', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='grupos', verbose_name=_("Sede"),
+    )
+    jornada = models.CharField(
+        _("Jornada"), max_length=15, choices=JORNADA_CHOICES, blank=True,
+    )
+    nombre = models.CharField(
+        _("Nombre del grupo"), max_length=20,
+        help_text=_("Código o letra de la sección, ej. 01, 02, A, B."),
+    )
+    activo = models.BooleanField(_("Activo"), default=True)
+
+    class Meta:
+        verbose_name = _("Grupo")
+        verbose_name_plural = _("Grupos")
+        ordering = ['grado__orden', 'nombre']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['institucion', 'grado', 'jornada', 'nombre'],
+                name='uniq_grupo_institucion_grado_jornada_nombre',
+            ),
+        ]
+
+    def __str__(self):
+        etiqueta = f"{self.grado.nombre} · {self.nombre}"
+        if self.jornada:
+            etiqueta += f" ({self.get_jornada_display()})"
+        return etiqueta
+
 class DimensionDesarrollo(models.Model):
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE)
     nombre = models.CharField(max_length=100, verbose_name=_("Nombre de la Dimensión"))
@@ -320,6 +376,7 @@ class Estudiante(models.Model):
     fecha_nacimiento = models.DateField(null=True, blank=True, verbose_name=_("Fecha de Nacimiento"))
     direccion = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Dirección"))
     grado_actual = models.ForeignKey(Grado, on_delete=models.SET_NULL, null=True, blank=True, related_name='estudiantes_actuales', verbose_name=_("Grado Actual"))
+    grupo = models.ForeignKey('Grupo', on_delete=models.SET_NULL, null=True, blank=True, related_name='estudiantes', verbose_name=_("Grupo/Sección"))
     # Acudiente titular para facturación electrónica (el adquiriente de la factura).
     acudiente_responsable = models.ForeignKey(
         'gestion_academica.Familiar', on_delete=models.SET_NULL, null=True, blank=True,

@@ -31,3 +31,38 @@ class SedeForm(forms.ModelForm):
             'es_principal': _('¿Sede principal?'),
             'activa': _('Activa'),
         }
+
+
+class GrupoForm(forms.ModelForm):
+    """Alta/edición de un grupo/sección. La institución la fija la vista.
+
+    Los desplegables de grado y sede se filtran a la institución (multi-tenant).
+    """
+
+    def __init__(self, *args, institucion=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from gestion_academica.models import Grado
+        if institucion is not None:
+            self.fields['grado'].queryset = Grado.objects.filter(institucion=institucion).order_by('orden', 'nombre')
+            self.fields['sede'].queryset = Sede.objects.filter(institucion=institucion, activa=True).order_by('-es_principal', 'nombre')
+        self.fields['sede'].required = False
+        self.fields['jornada'].required = False
+
+    class Meta:
+        from gestion_academica.models import Grupo
+        model = Grupo
+        fields = ['grado', 'nombre', 'sede', 'jornada', 'activo']
+        widgets = {
+            'grado': forms.Select(attrs={'class': 'form-select'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ej: 01, 02, A, B…')}),
+            'sede': forms.Select(attrs={'class': 'form-select'}),
+            'jornada': forms.Select(attrs={'class': 'form-select'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'grado': _('Grado'),
+            'nombre': _('Nombre del grupo'),
+            'sede': _('Sede'),
+            'jornada': _('Jornada'),
+            'activo': _('Activo'),
+        }
