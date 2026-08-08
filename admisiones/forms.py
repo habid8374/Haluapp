@@ -79,42 +79,50 @@ class AspiranteForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_tag = False   # el <form> lo pone la plantilla
         self.helper.disable_csrf = True
+        # Mismo orden por secciones que la plantilla de carga masiva (a la par).
         self.helper.layout = Layout(
             Fieldset(
-                _("1. Identificación"),
+                _("1. Datos del estudiante"),
                 'primer_nombre', 'segundo_nombre',
                 'primer_apellido', 'segundo_apellido',
                 'tipo_documento', 'numero_documento',
-                'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
                 'fecha_nacimiento', 'sexo', 'grupo_sanguineo',
             ),
             Fieldset(
-                _("2. Nacimiento y residencia"),
-                'pais_origen', 'departamento_nacimiento', 'municipio_nacimiento',
-                'departamento_residencia', 'municipio_residencia', 'barrio',
-                'direccion', 'zona_residencia',
-            ),
-            Fieldset(
-                _("3. Contacto"),
+                _("2. Contacto"),
                 'email_contacto', 'telefono_contacto',
             ),
             Fieldset(
-                _("4. Caracterización socio-económica (SIMPADE)"),
-                'estrato', 'sisben_grupo', 'sisben_puntaje', 'regimen_salud',
-                'eps_simat',
+                _("3. Matrícula"),
+                'grado_aspira', 'requiere_pago_inscripcion',
+                'sede', 'jornada', 'grupo',
+                'colegio_procedencia', 'matricula_contratada', 'repitente',
+            ),
+            Fieldset(
+                _("4. Nacimiento y residencia"),
+                'pais_origen',
+                'departamento_nacimiento', 'municipio_nacimiento',
+                'departamento_residencia', 'municipio_residencia',
+                'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
+                'direccion', 'barrio', 'zona_residencia',
+            ),
+            Fieldset(
+                _("5. Salud y discapacidad"),
+                'regimen_salud', 'eps_simat',
                 'discapacidad', 'discapacidad_categoria', 'capacidad_excepcional',
+            ),
+            Fieldset(
+                _("6. Pertenencia étnica"),
                 'grupo_etnico', 'etnia_simat', 'resguardo',
-                'victima_conflicto', 'tipo_poblacion_victima', 'srpa', 'campesino',
-                'apoyo_academico_especial',
             ),
             Fieldset(
-                _("5. Matrícula"),
-                'grado_aspira', 'sede', 'jornada', 'grupo',
-                'matricula_contratada', 'repitente',
-                'colegio_procedencia', 'requiere_pago_inscripcion',
+                _("7. Caracterización socio-económica (SIMPADE)"),
+                'estrato', 'sisben_grupo', 'sisben_puntaje',
+                'victima_conflicto', 'tipo_poblacion_victima', 'srpa',
+                'apoyo_academico_especial', 'campesino',
             ),
             Fieldset(
-                _("6. Acudiente / Familiar"),
+                _("8. Acudiente / Familiar"),
                 'acudiente_nombres', 'acudiente_apellidos',
                 'acudiente_tipo_documento', 'acudiente_documento',
                 'acudiente_parentesco', 'acudiente_email', 'acudiente_telefono',
