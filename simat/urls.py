@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.hub_simat, name='hub'),
     path('reporte/exportar/', views.exportar_reporte_simat, name='exportar_reporte'),
     path('reporte/exportar/csv/', views.exportar_reporte_simat_csv, name='exportar_reporte_csv'),
+    path('reporte/exportar/txt/', views.exportar_reporte_simat_txt, name='exportar_reporte_txt'),
     # Sedes (institución-scoped)
     path('sedes/', views.lista_sedes, name='lista_sedes'),
     path('sedes/nueva/', views.crear_sede, name='crear_sede'),
