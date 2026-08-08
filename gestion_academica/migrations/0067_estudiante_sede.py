@@ -25,9 +25,10 @@ def backfill_sede(apps, schema_editor):
             principal[inst_id] = s.id if s else None
         return principal[inst_id]
 
+    # Estudiante usa `usuario` como PK (no hay campo `id`); `pk` == usuario_id.
     por_actualizar = []
-    for e in Estudiante.objects.filter(sede__isnull=True).only('id', 'institucion_id'):
-        sede_id = sede_por_estudiante.get(e.id) or principal_de(e.institucion_id)
+    for e in Estudiante.objects.filter(sede__isnull=True).only('institucion_id'):
+        sede_id = sede_por_estudiante.get(e.pk) or principal_de(e.institucion_id)
         if sede_id:
             e.sede_id = sede_id
             por_actualizar.append(e)
