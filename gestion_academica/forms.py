@@ -211,13 +211,17 @@ class EstudianteForm(forms.ModelForm):
     class Meta:
         model = Estudiante
         # Añadimos los nuevos campos a la lista de fields
+        # CRITERIO ÚNICO (igual que el aspirante): sin duplicados. La ubicación
+        # (nacimiento/residencia) y la EPS se capturan por CÓDIGO en la
+        # Caracterización SIMAT; los textos internos (lugar_nacimiento,
+        # municipio_ciudad, departamento, eps) se DERIVAN de esa selección.
         fields = [
             'documento_identidad', 'tipo_documento', 'codigo_estudiante',
-            'fecha_nacimiento', 'lugar_nacimiento',
+            'fecha_nacimiento',
             'direccion', 'grado_actual', 'institucion', 'valor_matricula',
             'valor_mensualidad',
-            'sexo', 'grupo_sanguineo', 'eps', 'discapacidad',
-            'colegio_procedencia', 'municipio_ciudad', 'departamento',
+            'sexo', 'grupo_sanguineo', 'discapacidad',
+            'colegio_procedencia',
             'descuentos',
         ]
         widgets = {

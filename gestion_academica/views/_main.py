@@ -1048,13 +1048,42 @@ def editar_estudiante(request, pk):
         caracterizacion_form = CaracterizacionEstudianteForm(request.POST, instance=caracterizacion, prefix="car")
         if usuario_form.is_valid() and estudiante_form.is_valid() and caracterizacion_form.is_valid():
             usuario = usuario_form.save()
-            estudiante_form.save()
+            estudiante = estudiante_form.save()
             caracterizacion = caracterizacion_form.save(commit=False)
             # La institución nunca se edita desde el form: se fija desde el estudiante.
             caracterizacion.institucion = estudiante.institucion
             # Nombres SIMAT separados: se derivan del usuario (no se duplican).
             caracterizacion.aplicar_nombres_desde(usuario)
             caracterizacion.save()
+
+            # Derivar los textos internos del estudiante desde la selección DANE
+            # (una sola fuente por concepto). Solo si el código está definido, para
+            # no borrar un dato ya cargado como texto.
+            _cambios = []
+            if caracterizacion.municipio_nacimiento_id:
+                _m = caracterizacion.municipio_nacimiento
+                try:
+                    estudiante.lugar_nacimiento = f"{_m.nombre}, {_m.departamento.nombre}"
+                    _cambios.append('lugar_nacimiento')
+                except Exception:
+                    pass
+            if caracterizacion.municipio_residencia_id:
+                _m = caracterizacion.municipio_residencia
+                estudiante.municipio_ciudad = _m.nombre
+                _cambios.append('municipio_ciudad')
+                try:
+                    estudiante.departamento = _m.departamento.nombre
+                    _cambios.append('departamento')
+                except Exception:
+                    pass
+            elif caracterizacion.departamento_residencia_id:
+                estudiante.departamento = caracterizacion.departamento_residencia.nombre
+                _cambios.append('departamento')
+            if caracterizacion.eps_simat_id:
+                estudiante.eps = caracterizacion.eps_simat.nombre
+                _cambios.append('eps')
+            if _cambios:
+                estudiante.save(update_fields=_cambios)
 
             # --- CORRECCIÓN DE LA REDIRECCIÓN ---
             if estudiante.grado_actual:
