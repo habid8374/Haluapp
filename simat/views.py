@@ -172,6 +172,44 @@ def exportar_reporte_simat(request):
 
 
 @login_required
+def exportar_reporte_simat_csv(request):
+    """Descarga el Reporte Plano SIMAT en CSV (archivo plano separado por comas).
+
+    El SIMAT ingesta la matrícula como archivo PLANO delimitado por comas; el
+    Excel se conserva para revisión humana. Mismas 54 columnas y mismo orden.
+    Comas dentro de un valor → el campo se encierra entre comillas (QUOTE_MINIMAL);
+    fin de línea CRLF. Encoding UTF-8. (Valida delimitador/encoding contra la
+    plantilla vigente de tu Secretaría antes de subirlo.)
+    """
+    import csv
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from admisiones.models import Aspirante
+
+    institucion = _institucion_de(request)
+    if institucion is None:
+        raise PermissionDenied("Sin institución asociada.")
+    anio = timezone.now().year
+
+    aspirantes = (
+        Aspirante.objects
+        .filter(institucion=institucion, estado=Aspirante.EstadoAdmision.MATRICULADO)
+        .select_related('sede', 'grado_aspira', 'etnia_simat', 'eps_simat',
+                        'estudiante_creado', 'estudiante_creado__grupo')
+        .order_by('primer_apellido', 'primer_nombre', 'apellidos')
+    )
+
+    resp = HttpResponse(content_type='text/csv; charset=utf-8')
+    resp['Content-Disposition'] = f'attachment; filename="reporte_simat_{anio}.csv"'
+    writer = csv.writer(resp, delimiter=',', quoting=csv.QUOTE_MINIMAL, lineterminator='\r\n')
+    writer.writerow(COLUMNAS_REPORTE)
+    for idx, asp in enumerate(aspirantes.iterator(), start=1):
+        fila = _fila_aspirante(asp, institucion, anio, idx)
+        writer.writerow([fila.get(col, '') for col in COLUMNAS_REPORTE])
+    return resp
+
+
+@login_required
 def hub_simat(request):
     """Página con el estado de configuración SIMAT y el botón de exportación."""
     if not _puede_gestionar(request.user):

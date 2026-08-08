@@ -38,11 +38,17 @@
   </div>
 </div>
 
-<div class="mt-4">
-  <a href="{% url 'simat:exportar_reporte' %}" class="btn btn-primary btn-lg">
-    <i class="bi bi-file-earmark-excel me-1"></i>{% trans "Descargar reporte SIMAT (Excel)" %}
+<div class="mt-4 d-flex flex-wrap gap-2">
+  <a href="{% url 'simat:exportar_reporte_csv' %}" class="btn btn-primary btn-lg">
+    <i class="bi bi-filetype-csv me-1"></i>{% trans "Descargar reporte SIMAT (CSV)" %}
+  </a>
+  <a href="{% url 'simat:exportar_reporte' %}" class="btn btn-outline-primary btn-lg">
+    <i class="bi bi-file-earmark-excel me-1"></i>{% trans "Descargar en Excel (revisión)" %}
   </a>
 </div>
+<p class="text-muted mt-2" style="font-size:.82rem;">
+  <i class="bi bi-info-circle me-1"></i>{% trans "El SIMAT recibe el archivo plano en CSV (separado por comas). El Excel es para revisar los datos antes de subirlos." %}
+</p>
 
 <div class="alert alert-info mt-4" style="font-size:.85rem;">
   <i class="bi bi-info-circle me-1"></i>{% trans "El reporte incluye los datos que la plataforma ya tiene. Los campos codificados (municipios DANE, sede, etc.) se llenan a medida que se capturan en admisiones. Antes de subirlo al SIMAT, valida las columnas contra la plantilla oficial vigente de tu Secretaría de Educación." %}
