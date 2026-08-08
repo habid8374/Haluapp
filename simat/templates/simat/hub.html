@@ -39,6 +39,11 @@
 </div>
 
 <div class="mt-4 d-flex flex-wrap gap-2">
+  <a href="{% url 'simat:validar_simat' %}" class="btn btn-warning btn-lg">
+    <i class="bi bi-clipboard-check me-1"></i>{% trans "Validar antes de exportar" %}
+  </a>
+</div>
+<div class="mt-2 d-flex flex-wrap gap-2">
   <a href="{% url 'simat:exportar_reporte_txt' %}" class="btn btn-primary btn-lg">
     <i class="bi bi-file-earmark-text me-1"></i>{% trans "Reporte plano (.txt oficial)" %}
   </a>

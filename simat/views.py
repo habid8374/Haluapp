@@ -474,6 +474,141 @@ def cargar_men_per_id(request):
     return redirect('simat:hub')
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+#  Pre-validador de calidad SIMAT (reglas de auditoría del MEN, revisadas en local)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Edad típica esperada por grado (ID SIMAT). Preescolar (-) y adultos (21-25) se
+# omiten del chequeo de edad.
+_EDAD_ESPERADA = {'0': 5, '1': 6, '2': 7, '3': 8, '4': 9, '5': 10, '6': 11,
+                  '7': 12, '8': 13, '9': 14, '10': 15, '11': 16, '12': 17, '13': 18}
+
+
+def _validar_matricula_simat(institucion, anio):
+    """Corre localmente las reglas de calidad del SIMAT sobre los matriculados.
+    Devuelve dict con 'config' (errores de establecimiento), 'errores' y
+    'advertencias' por estudiante, y contadores."""
+    from admisiones.models import Aspirante
+
+    config, errores, advertencias = [], [], []
+
+    # ── Configuración del establecimiento ──
+    if not (institucion.codigo_dane or '').strip():
+        config.append(_("Falta el Código DANE de la institución."))
+    if not institucion.simat_municipio_etc_id:
+        config.append(_("Falta el municipio (ETC) del SIMAT."))
+    if not (institucion.simat_calendario or '').strip():
+        config.append(_("Falta el calendario (A/B)."))
+    if not (institucion.simat_sector or '').strip():
+        config.append(_("Falta el sector (oficial/no oficial)."))
+    sedes = list(institucion.sedes.filter(activa=True))
+    if not sedes:
+        config.append(_("No hay sedes activas."))
+    for s in sedes:
+        if not (s.codigo_dane_sede or '').strip():
+            config.append(_("La sede «%(n)s» no tiene Código DANE de sede.") % {'n': s.nombre})
+        if not (s.consecutivo or '').strip():
+            config.append(_("La sede «%(n)s» no tiene consecutivo.") % {'n': s.nombre})
+
+    # Departamento de la institución (para la Regla 4) = 2 primeros dígitos del ETC.
+    depto_inst = ''
+    if institucion.simat_municipio_etc_id:
+        depto_inst = (institucion.simat_municipio_etc.codigo or '')[:2]
+
+    aspirantes = list(
+        Aspirante.objects
+        .filter(institucion=institucion, estado=Aspirante.EstadoAdmision.MATRICULADO)
+        .select_related('grado_aspira', 'municipio_residencia', 'departamento_residencia',
+                        'estudiante_creado', 'estudiante_creado__grupo')
+    )
+
+    # Índices para duplicados (Regla 1 y 1.2).
+    docs, perids = {}, {}
+    for a in aspirantes:
+        d = (a.numero_documento or '').strip()
+        if d:
+            docs.setdefault(d, []).append(a)
+        p = (a.simat_per_id or '').strip()
+        if p:
+            perids.setdefault(p, []).append(a)
+
+    def _nombre(a):
+        n = ' '.join(x for x in [a.primer_nombre, a.primer_apellido] if x) or (a.nombres + ' ' + a.apellidos)
+        return f"{n.strip()} ({a.numero_documento})"
+
+    for a in aspirantes:
+        nom = _nombre(a)
+        # Regla 1 — documento faltante o duplicado
+        if not (a.numero_documento or '').strip():
+            errores.append((_("Regla 1 · Documento"), _("%(e)s no tiene número de documento.") % {'e': nom}))
+        elif len(docs.get(a.numero_documento.strip(), [])) > 1:
+            errores.append((_("Regla 1 · Duplicado"), _("Documento repetido: %(e)s.") % {'e': nom}))
+        if not (a.tipo_documento or '').strip():
+            advertencias.append((_("Identificación"), _("%(e)s no tiene tipo de documento.") % {'e': nom}))
+        # Regla 1.2 — PER_ID duplicado
+        p = (a.simat_per_id or '').strip()
+        if p and len(perids.get(p, [])) > 1:
+            errores.append((_("Regla 1.2 · PER_ID"), _("PER_ID repetido (%(p)s): %(e)s.") % {'p': p, 'e': nom}))
+        # Género válido (F/M)
+        if a.sexo not in ('F', 'M'):
+            errores.append((_("Género"), _("%(e)s: el género debe ser Femenino o Masculino.") % {'e': nom}))
+        # Fecha de nacimiento
+        if not a.fecha_nacimiento:
+            errores.append((_("Fecha de nacimiento"), _("%(e)s no tiene fecha de nacimiento.") % {'e': nom}))
+        # Regla 2/grado — grado sin ID SIMAT
+        gid = getattr(a.grado_aspira, 'simat_grado_id', '') if a.grado_aspira_id else ''
+        if not a.grado_aspira_id:
+            errores.append((_("Regla 2 · Grado"), _("%(e)s no tiene grado.") % {'e': nom}))
+        elif not gid:
+            errores.append((_("Regla 2 · Grado"), _("El grado «%(g)s» no tiene ID SIMAT asignado.") % {'g': a.grado_aspira.nombre}))
+        # Jornada / grupo
+        if not (a.jornada or '').strip():
+            advertencias.append((_("Jornada"), _("%(e)s no tiene jornada.") % {'e': nom}))
+        # Regla 3 — edad atípica para el grado
+        if a.fecha_nacimiento and gid in _EDAD_ESPERADA:
+            edad = anio - a.fecha_nacimiento.year
+            esp = _EDAD_ESPERADA[gid]
+            if edad < esp - 2:
+                advertencias.append((_("Regla 3 · Edad"), _("%(e)s: edad %(a)s años parece baja para el grado (esperado ~%(x)s).") % {'e': nom, 'a': edad, 'x': esp}))
+            elif edad > esp + 3:
+                advertencias.append((_("Regla 3 · Edad"), _("%(e)s: extraedad (%(a)s años; esperado ~%(x)s).") % {'e': nom, 'a': edad, 'x': esp}))
+        # Regla 4 — departamento de residencia distante
+        if depto_inst and a.departamento_residencia_id:
+            dep_est = (a.departamento_residencia.codigo or '')[:2]
+            if dep_est and dep_est != depto_inst:
+                advertencias.append((_("Regla 4 · Residencia"), _("%(e)s reside en otro departamento (%(d)s) distinto al de la institución.") % {'e': nom, 'd': a.departamento_residencia.nombre}))
+
+    return {
+        'total': len(aspirantes),
+        'config': config,
+        'errores': errores,
+        'advertencias': advertencias,
+        'ok': not config and not errores and not advertencias,
+    }
+
+
+@login_required
+def validar_simat(request):
+    """Muestra el resultado de la pre-validación de calidad antes de exportar."""
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    institucion = _institucion_de(request)
+    if institucion is None:
+        raise PermissionDenied("Sin institución asociada.")
+    anio = timezone.now().year
+    resultado = _validar_matricula_simat(institucion, anio)
+    logging.getLogger(__name__).info(
+        "Validación SIMAT institución=%s: %s estudiantes, %s errores config, %s errores, %s advertencias",
+        institucion.pk, resultado['total'], len(resultado['config']),
+        len(resultado['errores']), len(resultado['advertencias']),
+    )
+    return render(request, 'simat/validacion.html', {
+        'titulo_pagina': _('Validación SIMAT'),
+        'institucion': institucion,
+        'r': resultado,
+    })
+
+
 @login_required
 def hub_simat(request):
     """Página con el estado de configuración SIMAT y el botón de exportación."""

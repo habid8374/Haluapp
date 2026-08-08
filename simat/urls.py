@@ -11,6 +11,7 @@ urlpatterns = [
     path('reporte/exportar/txt/', views.exportar_reporte_simat_txt, name='exportar_reporte_txt'),
     path('reporte/men-per-id/plantilla/', views.descargar_plantilla_men_per_id, name='plantilla_men_per_id'),
     path('reporte/men-per-id/cargar/', views.cargar_men_per_id, name='cargar_men_per_id'),
+    path('reporte/validar/', views.validar_simat, name='validar_simat'),
     # Sedes (institución-scoped)
     path('sedes/', views.lista_sedes, name='lista_sedes'),
     path('sedes/nueva/', views.crear_sede, name='crear_sede'),
