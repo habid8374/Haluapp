@@ -225,7 +225,7 @@ def _fila_oficial(asp, institucion, anio, contador):
         'jornada_id': _cod(_JORNADA_SIMAT, asp.jornada),
         'caracter_id': '',
         'especialidad_id': '',
-        'grado_id': '',  # requiere el ID de grado del SIMAT (pendiente de mapear)
+        'grado_id': _txt(getattr(asp.grado_aspira, 'simat_grado_id', '') if asp.grado_aspira_id else ''),
         'grupo': _txt(grupo_nombre),
         'metodologia_id': '',
         'subsidiado': '',

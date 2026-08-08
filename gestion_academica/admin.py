@@ -130,7 +130,7 @@ class GradoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
             'fields': ('nombre', 'nivel_escolaridad', 'institucion')
         }),
         ('Configuración Académica', {
-            'fields': ('orden', 'siguiente_grado', 'tipo_evaluacion')
+            'fields': ('orden', 'siguiente_grado', 'tipo_evaluacion', 'simat_grado_id')
         }),
     )
 

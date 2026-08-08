@@ -196,6 +196,28 @@ class Grado(models.Model):
         verbose_name=_("Tipo de Evaluación Predominante")
     )
 
+    # ID de grado OFICIAL del SIMAT (MEN). Cada institución mapea su grado al
+    # código nacional para el reporte de matrícula (grado_id del archivo plano).
+    SIMAT_GRADO_CHOICES = [
+        ('-3', _('Primera Infancia (-3)')),
+        ('-2', _('Pre-Jardín (-2)')),
+        ('-1', _('Jardín / Kínder (-1)')),
+        ('0', _('Transición / Grado 0')),
+        ('1', _('Primero')), ('2', _('Segundo')), ('3', _('Tercero')),
+        ('4', _('Cuarto')), ('5', _('Quinto')), ('6', _('Sexto')),
+        ('7', _('Séptimo')), ('8', _('Octavo')), ('9', _('Noveno')),
+        ('10', _('Décimo')), ('11', _('Once')),
+        ('12', _('Doce (Normal Superior)')), ('13', _('Trece (Normal Superior)')),
+        ('21', _('CLEI 1 (adultos)')), ('22', _('CLEI 2 (adultos)')),
+        ('23', _('CLEI 3 (adultos)')), ('24', _('CLEI 4 (adultos)')),
+        ('25', _('CLEI 5 (adultos)')),
+    ]
+    simat_grado_id = models.CharField(
+        _("ID de grado SIMAT (MEN)"), max_length=3, blank=True,
+        choices=SIMAT_GRADO_CHOICES,
+        help_text=_("Código oficial del grado en el SIMAT, para el reporte de matrícula."),
+    )
+
     class Meta:
         verbose_name = _("Grado")
         verbose_name_plural = _("Grados")

@@ -217,13 +217,17 @@ class GradoForm(forms.ModelForm):
         model = Grado
         # ✅ CORRECCIÓN: Nos aseguramos de que todos los nombres coincidan con el modelo
         fields = [
-            'nombre', 
+            'nombre',
             'nivel_escolaridad', # <-- El nuevo campo para el nivel
-            'orden', 
-            'siguiente_grado', 
+            'orden',
+            'siguiente_grado',
             'tipo_evaluacion',
+            'simat_grado_id',  # ID oficial del grado en el SIMAT (reporte MEN)
             'institucion'
         ]
+        widgets = {
+            'simat_grado_id': forms.Select(attrs={'class': 'form-select'}),
+        }
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop('request', None)
