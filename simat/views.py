@@ -39,6 +39,29 @@ def _txt(valor):
     return '' if valor is None else str(valor)
 
 
+# ── Tablas de códigos oficiales SIMAT (para exportar CÓDIGO, no la etiqueta) ──
+_TIPODOC_SIMAT = {'CC': '1', 'TI': '2', 'CE': '3', 'RC': '5', 'NES': '8', 'PEP': '10', 'VISA': '11', 'TMF': '12'}
+_GENERO_SIMAT = {'M': 'M', 'F': 'F'}
+_JORNADA_SIMAT = {'COMPLETA': '1', 'MANANA': '2', 'TARDE': '3', 'NOCHE': '4', 'FIN_DE_SEMANA': '5', 'UNICA': '6'}
+_ZONA_SIMAT = {'URBANA': '1', 'RURAL': '2'}
+_SECTOR_SIMAT = {'OFICIAL': '1001', 'NO_OFICIAL': '1002'}
+_DISCAP_SIMAT = {
+    'NINGUNA': '99', 'FISICA': '15', 'INTELECTUAL': '8', 'PSICOSOCIAL': '18',
+    'VISUAL_BAJA': '3', 'VISUAL_CEGUERA': '4', 'AUDITIVA_HIPOACUSIA': '2',
+    'AUDITIVA_SORDA': '1', 'SORDOCEGUERA': '14', 'MULTIPLE': '10', 'SISTEMICA': '17',
+    'VOZ_Y_HABLA': '19', 'TEA': '7', 'OTRA': '11',
+}
+_CAPACID_SIMAT = {
+    'NINGUNA': '9', 'GLOBAL': '1', 'TALENTO_CIENTIFICO': '3',
+    'TALENTO_ARTISTICO': '4', 'TALENTO_DEPORTIVO': '5', 'OTRA': '',
+}
+
+
+def _cod(mapa, valor):
+    """Devuelve el código SIMAT de un valor de choice; '' si no mapea."""
+    return mapa.get(valor or '', '')
+
+
 def _institucion_de(request):
     """Institución objetivo: la del usuario; superusuario puede pasar ?institucion=."""
     from finanzas.models import InstitucionEducativa
@@ -56,7 +79,8 @@ def _fila_aspirante(asp, institucion, anio, contador):
     """Arma el dict de una fila del reporte a partir de un Aspirante matriculado."""
     sede = asp.sede
     grado = asp.grado_aspira
-    etnia = asp.etnia_simat.nombre if asp.etnia_simat_id else (asp.get_grupo_etnico_display() if asp.grupo_etnico else '')
+    # Etnia: código oficial SIMAT (no la etiqueta). Sin etnia → '0' (NO APLICA).
+    etnia = asp.etnia_simat.codigo if asp.etnia_simat_id else '0'
     eps = asp.eps_simat.nombre if asp.eps_simat_id else _txt(asp.eps)
     fnac = asp.fecha_nacimiento.strftime('%Y-%m-%d') if asp.fecha_nacimiento else ''
     etc = institucion.simat_municipio_etc.codigo if institucion.simat_municipio_etc_id else ''
@@ -75,12 +99,12 @@ def _fila_aspirante(asp, institucion, anio, contador):
         'INSTITUCION': _txt(institucion.nombre),
         'DANE': _txt(institucion.codigo_dane),
         'CALENDARIO': _txt(institucion.simat_calendario),
-        'SECTOR': 'OFICIAL' if institucion.simat_sector == 'OFICIAL' else ('NO OFICIAL' if institucion.simat_sector else ''),
+        'SECTOR': _cod(_SECTOR_SIMAT, institucion.simat_sector),
         'SEDE': _txt(sede.nombre) if sede else _txt(institucion.nombre),
         'CODIGO_DANE_SEDE': _txt(sede.codigo_dane_sede) if sede else '',
         'CONSECUTIVO': _txt(sede.consecutivo) if sede else '',
-        'ZONA_SEDE': (sede.get_zona_display() if sede and sede.zona else ''),
-        'JORNADA': asp.get_jornada_display() if asp.jornada else '',
+        'ZONA_SEDE': _cod(_ZONA_SIMAT, sede.zona) if sede else '',
+        'JORNADA': _cod(_JORNADA_SIMAT, asp.jornada),
         'GRADO_COD': _txt(grado.nombre) if grado else '',
         'GRUPO': _txt(grupo_nombre),
         'RENOMBRE': '',
@@ -89,16 +113,16 @@ def _fila_aspirante(asp, institucion, anio, contador):
         'FECHAINI': '',
         'FECHAFIN': '',
         'NUI': _txt(asp.simat_nui),
-        'ESTRATO': asp.get_estrato_display() if asp.estrato else '',
+        'ESTRATO': ('NO APLICA' if asp.estrato == '0' else _txt(asp.estrato)),
         'SISBEN IV': _txt(asp.sisben_grupo),
         'PER_ID': _txt(asp.simat_per_id),
         'DOC': _txt(asp.numero_documento),
-        'TIPODOC': asp.get_tipo_documento_display() if asp.tipo_documento else '',
+        'TIPODOC': _cod(_TIPODOC_SIMAT, asp.tipo_documento),
         'APELLIDO1': _txt(asp.primer_apellido),
         'APELLIDO2': _txt(asp.segundo_apellido),
         'NOMBRE1': _txt(asp.primer_nombre),
         'NOMBRE2': _txt(asp.segundo_nombre),
-        'GENERO': asp.get_sexo_display() if asp.sexo else '',
+        'GENERO': _cod(_GENERO_SIMAT, asp.sexo),
         'FECHA_NACIMIENTO': fnac,
         'BARRIO': _txt(asp.barrio),
         'EPS': eps,
@@ -109,14 +133,14 @@ def _fila_aspirante(asp, institucion, anio, contador):
         'NUM_CONTRATO': '',
         'HA_ESTADO_VINCULADO_SRPA': _sn(asp.srpa),
         'ESTA_ACTIVO_SRPA': _sn(asp.srpa),
-        'DISCAPACIDAD': asp.get_discapacidad_categoria_display() if asp.discapacidad_categoria else '',
+        'DISCAPACIDAD': _cod(_DISCAP_SIMAT, asp.discapacidad_categoria),
         'PAIS_ORIGEN': _txt(asp.pais_origen),
         'CORREO': _txt(asp.email_contacto),
         'TELEFONO': _txt(asp.telefono_contacto),
         'ETNIA': etnia,
         'TRA_ESP_APR_ESCOLAR': '',
         'APOYO_ACADEMICO_ESPECIAL': _sn(asp.apoyo_academico_especial),
-        'LIST_CAP_EXCEPCIONALES': asp.get_capacidad_excepcional_display() if getattr(asp, 'capacidad_excepcional', '') else '',
+        'LIST_CAP_EXCEPCIONALES': _cod(_CAPACID_SIMAT, getattr(asp, 'capacidad_excepcional', '')),
         'CAMPESINO': _sn(asp.campesino),
         'PAIS_NACIMIENTO': _txt(asp.pais_nacimiento),
         'PAIS_NACIONALIDAD2': _txt(asp.nacionalidad),
