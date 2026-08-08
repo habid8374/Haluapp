@@ -17,4 +17,7 @@ urlpatterns = [
     path('intento/<int:intento_pk>/eliminar/', views.EliminarIntentoView.as_view(), name='eliminar_intento'),
     path('api/generar-preguntas/<int:cuestionario_pk>/', views.GenerarPreguntasIAView.as_view(), name='generar_preguntas_ia'),
     path('api/sugerir-calificacion/<int:respuesta_pk>/', views.SugerirCalificacionIAView.as_view(), name='sugerir_calificacion_ia'),
+    # Accesibilidad (Ola 3) — IA de apoyo
+    path('api/pregunta/<int:pregunta_pk>/simplificar/', views.simplificar_enunciado_ia, name='simplificar_enunciado_ia'),
+    path('api/cuestionario/<int:cuestionario_pk>/generar-alt/', views.generar_alt_cuestionario_ia, name='generar_alt_cuestionario_ia'),
 ]

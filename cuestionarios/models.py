@@ -99,6 +99,18 @@ class PreguntaCuestionario(models.Model):
     puntaje = models.PositiveIntegerField(default=1)
     orden = models.PositiveIntegerField(default=0)
     retroalimentacion = models.TextField(blank=True, null=True)
+    # Accesibilidad (Ola 3 — IA de apoyo). Se calculan UNA vez con IA y se cachean
+    # aquí para reutilizarlos con todos los estudiantes (sin gastar créditos de más).
+    enunciado_simple = models.TextField(
+        blank=True, default='',
+        verbose_name="Enunciado en lectura fácil (IA)",
+        help_text="Versión simplificada del enunciado, generada con IA para apoyo a la lectura.",
+    )
+    imagen_alt = models.TextField(
+        blank=True, default='',
+        verbose_name="Descripción de la imagen (IA)",
+        help_text="Texto alternativo de la imagen para lectores de pantalla, generado con IA.",
+    )
     creado_en = models.DateTimeField(auto_now_add=True)
     respuesta_correcta_abierta = models.TextField(
         blank=True,

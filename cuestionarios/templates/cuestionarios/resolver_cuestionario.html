@@ -95,6 +95,32 @@ document.addEventListener('DOMContentLoaded', function() {
     let cuestionarioData = {};
     let timerInterval;
 
+    // ── Accesibilidad (Ola 3): "Explícalo fácil" (simplificar enunciado con IA) ──
+    const SIMPLIFY_URL = "{% url 'cuestionarios:simplificar_enunciado_ia' 0 %}";
+    app.addEventListener('click', function (ev) {
+        const btn = ev.target.closest('.acc-simplify-btn');
+        if (!btn) return;
+        const pid = btn.getAttribute('data-pregunta-id');
+        const box = app.querySelector('.acc-simple-text[data-for="' + pid + '"]');
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Simplificando…" %}';
+        fetch(SIMPLIFY_URL.replace('/0/', '/' + pid + '/'), {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
+            body: '{}'
+        }).then(function (r) { return r.json(); }).then(function (d) {
+            if (!box) return;
+            box.style.display = 'block';
+            box.className = 'acc-simple-text py-2 mb-3 alert ' + (d.ok ? 'alert-info' : 'alert-warning');
+            box.textContent = d.ok ? d.texto : (d.message || '{% trans "No se pudo simplificar." %}');
+        }).catch(function () {
+            if (box) { box.style.display = 'block'; box.className = 'acc-simple-text py-2 mb-3 alert alert-warning'; box.textContent = '{% trans "No se pudo simplificar." %}'; }
+        }).finally(function () {
+            btn.disabled = false; btn.innerHTML = original;
+        });
+    });
+
     // Escapa contenido controlado por docente/IA antes de inyectarlo en innerHTML
     // (previene XSS almacenado vía enunciado/opciones).
     function esc(s) {
@@ -190,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const chipsHtml = etiquetas.map(t =>
                 `<span class="etiq-chip" data-texto="${esc(t)}">${esc(t)}</span>`).join('');
             const imgSrc = pregunta.imagen_url
-                ? `<img src="${esc(pregunta.imagen_url)}" alt="" class="etiq-img">`
+                ? `<img src="${esc(pregunta.imagen_url)}" alt="${esc(pregunta.imagen_alt || '')}" class="etiq-img">`
                 : `<div class="alert alert-warning mb-0">{% trans "Esta pregunta no tiene imagen." %}</div>`;
             opcionesHtml = `
                 <p class="text-muted mb-2" style="font-size:.85rem;">
@@ -210,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (tipo === 'hotspot') {
             const n = pregunta.num_zonas || 1;
             const imgSrc = pregunta.imagen_url
-                ? `<img src="${esc(pregunta.imagen_url)}" alt="" class="hot-img">`
+                ? `<img src="${esc(pregunta.imagen_url)}" alt="${esc(pregunta.imagen_alt || '')}" class="hot-img">`
                 : `<div class="alert alert-warning mb-0">{% trans "Esta pregunta no tiene imagen." %}</div>`;
             opcionesHtml = `
                 <p class="text-muted mb-2" style="font-size:.85rem;">
@@ -278,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // En "etiquetar"/"hotspot" la imagen ya se muestra (interactiva) dentro de las opciones.
         const imagenHtml = (pregunta.imagen_url && tipo !== 'etiquetar' && tipo !== 'hotspot')
-            ? `<div class="mb-3 text-center"><img src="${esc(pregunta.imagen_url)}" alt="" style="max-width:100%;max-height:320px;border-radius:8px;border:1px solid #e5e7eb;"></div>`
+            ? `<div class="mb-3 text-center"><img src="${esc(pregunta.imagen_url)}" alt="${esc(pregunta.imagen_alt || '')}" style="max-width:100%;max-height:320px;border-radius:8px;border:1px solid #e5e7eb;"></div>`
             : '';
 
         // Se añade data-pregunta-tipo para facilitar la recolección de respuestas
@@ -289,7 +315,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="badge bg-secondary">${pregunta.puntaje} {% trans "pts" %}</span>
                 </div>
                 <div class="card-body">
-                    <div class="enunciado mb-3">${enunciadoHtml}</div>
+                    <div class="enunciado mb-2">${enunciadoHtml}</div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mb-2 acc-simplify-btn"
+                            data-pregunta-id="${pregunta.id}">
+                        <i class="bi bi-stars"></i> {% trans "Explícalo fácil" %}
+                    </button>
+                    <div class="acc-simple-text alert alert-info py-2 mb-3" data-for="${pregunta.id}" style="display:none;"></div>
                     ${imagenHtml}
                     <div class="opciones-container">
                         ${opcionesHtml}

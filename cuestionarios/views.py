@@ -137,6 +137,7 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 'retroalimentacion': p.retroalimentacion,
                 'imagen_url': p.imagen.url if p.imagen else None,
                 'imagen_path': p.imagen.name if p.imagen else None,
+                'imagen_alt': p.imagen_alt or '',
             }
             if puede_ver_respuestas:
                 pregunta_data['respuesta_correcta_abierta'] = p.respuesta_correcta_abierta
@@ -1071,3 +1072,89 @@ class SugerirCalificacionIAView(APIView):
         except Exception as e:
             logger.exception("SugerirCalificacionIA error: %s", e)
             return JsonResponse({'status': 'error', 'message': 'Error inesperado al generar la sugerencia. Inténtalo de nuevo.'}, status=500)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Accesibilidad (Ola 3) — IA de apoyo: lectura fácil y descripción de imágenes
+# ═══════════════════════════════════════════════════════════════════════════════
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from .ia_accesibilidad import simplificar_texto, describir_imagen
+
+
+def _institucion_de_pregunta(pregunta):
+    act = pregunta.cuestionario.actividad_calificable
+    return getattr(act, 'institucion', None)
+
+
+@login_required
+@require_POST
+def simplificar_enunciado_ia(request, pregunta_pk):
+    """Devuelve el enunciado en 'lectura fácil'. Se calcula UNA vez con IA y se
+    cachea en la pregunta para reutilizarlo con todos los estudiantes."""
+    pregunta = get_object_or_404(
+        PreguntaCuestionario.objects.select_related(
+            'cuestionario__actividad_calificable__institucion'
+        ),
+        pk=pregunta_pk,
+    )
+    institucion = _institucion_de_pregunta(pregunta)
+    # Aislamiento por institución (salvo superusuario).
+    if not request.user.is_superuser:
+        if getattr(request.user, 'institucion_asociada_id', None) != getattr(institucion, 'pk', None):
+            return HttpResponseForbidden("No autorizado.")
+
+    if pregunta.enunciado_simple:
+        return JsonResponse({'ok': True, 'texto': pregunta.enunciado_simple, 'cache': True})
+
+    # En "completar" el enunciado guarda las respuestas en [[...]]: se enmascaran
+    # antes de enviarlas a la IA para no filtrarlas al estudiante.
+    texto_fuente = pregunta.enunciado or ''
+    if pregunta.tipo == 'completar':
+        import re as _re
+        texto_fuente = _re.sub(r'\[\[.*?\]\]', '____', texto_fuente)
+
+    ok, resultado = simplificar_texto(institucion, texto_fuente)
+    if ok:
+        pregunta.enunciado_simple = resultado
+        pregunta.save(update_fields=['enunciado_simple'])
+        return JsonResponse({'ok': True, 'texto': resultado, 'cache': False})
+    return JsonResponse({'ok': False, 'message': resultado}, status=200)
+
+
+@login_required
+@require_POST
+def generar_alt_cuestionario_ia(request, cuestionario_pk):
+    """Genera con IA la descripción (alt) de las imágenes del cuestionario que
+    aún no la tengan. Acción del docente/coordinador (un botón, sin comandos)."""
+    cuestionario = get_object_or_404(
+        Cuestionario.objects.select_related('actividad_calificable__institucion'),
+        pk=cuestionario_pk,
+    )
+    actividad = cuestionario.actividad_calificable
+    if not (request.user.is_superuser or docente_asignado_a_actividad(request.user, actividad)):
+        return HttpResponseForbidden("No autorizado.")
+
+    institucion = getattr(actividad, 'institucion', None)
+    generadas, fallidas, ultimo_error = 0, 0, ''
+    for p in cuestionario.preguntas.all():
+        if not p.imagen or p.imagen_alt:
+            continue
+        ok, resultado = describir_imagen(institucion, p.imagen)
+        if ok:
+            p.imagen_alt = resultado
+            p.save(update_fields=['imagen_alt'])
+            generadas += 1
+        else:
+            fallidas += 1
+            ultimo_error = resultado
+
+    if generadas == 0 and fallidas == 0:
+        return JsonResponse({'ok': True, 'message': 'No hay imágenes pendientes de describir.', 'generadas': 0})
+    if generadas == 0 and fallidas:
+        return JsonResponse({'ok': False, 'message': ultimo_error or 'No se pudo generar la descripción.'}, status=200)
+    return JsonResponse({
+        'ok': True,
+        'generadas': generadas,
+        'fallidas': fallidas,
+        'message': f'Descripciones generadas: {generadas}.' + (f' No se pudieron generar: {fallidas}.' if fallidas else ''),
+    })

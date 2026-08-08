@@ -328,6 +328,11 @@ textarea.eq-input { resize: vertical; }
       <button type="button" class="eq-btn eq-btn-ia" data-bs-toggle="modal" data-bs-target="#iaGenerateModal">
         <i class="bi bi-robot"></i> {% trans "Generar con IA" %}
       </button>
+      <button type="button" class="eq-btn eq-btn-outline" id="btn-generar-alt"
+              data-url="{% url 'cuestionarios:generar_alt_cuestionario_ia' cuestionario.pk %}"
+              title="{% trans 'Genera con IA la descripción (alt) de las imágenes para lectores de pantalla' %}">
+        <i class="bi bi-universal-access"></i> {% trans "Describir imágenes (IA)" %}
+      </button>
       <button class="eq-btn eq-btn-outline" id="btn-vista-previa" type="button">
         <i class="bi bi-eye"></i> {% trans "Vista previa" %}
       </button>
@@ -1251,6 +1256,30 @@ document.addEventListener('DOMContentLoaded', function () {
         card.querySelector('.imagen-preview').classList.add('d-none');
         card.dataset.armadoOpcion = '';
     });
+
+    // ── Accesibilidad (Ola 3): generar descripción (alt) de imágenes con IA ──
+    const btnAlt = document.getElementById('btn-generar-alt');
+    if (btnAlt) {
+        btnAlt.addEventListener('click', function () {
+            const url = btnAlt.dataset.url;
+            const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const original = btnAlt.innerHTML;
+            btnAlt.disabled = true;
+            btnAlt.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Describiendo…" %}';
+            fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' }, body: '{}' })
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    showNotification(
+                        d.ok ? '{% trans "Descripciones de imágenes" %}' : '{% trans "No se pudo" %}',
+                        d.message || '', !!d.ok
+                    );
+                })
+                .catch(function () {
+                    showNotification('{% trans "Error de red" %}', '{% trans "No se pudo conectar." %}', false);
+                })
+                .finally(function () { btnAlt.disabled = false; btnAlt.innerHTML = original; });
+        });
+    }
 
     cargarDatos();
 });
