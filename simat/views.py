@@ -35,6 +35,11 @@ def _sn(valor):
     return 'S' if valor else 'N'
 
 
+def _si_no(valor):
+    """Bool → 'SI'/'NO' (formato SIMAT para campos SI/NO)."""
+    return 'SI' if valor else 'NO'
+
+
 def _txt(valor):
     return '' if valor is None else str(valor)
 
@@ -54,6 +59,10 @@ _DISCAP_SIMAT = {
 _CAPACID_SIMAT = {
     'NINGUNA': '9', 'GLOBAL': '1', 'TALENTO_CIENTIFICO': '3',
     'TALENTO_ARTISTICO': '4', 'TALENTO_DEPORTIVO': '5', 'OTRA': '',
+}
+_VICTIMA_SIMAT = {
+    'DESPLAZADO': '1', 'DESVINCULADO': '2', 'HIJO_DESMOVILIZADO': '3',
+    'VICTIMA_MINAS': '4', 'OTRA': '17',
 }
 
 
@@ -149,6 +158,101 @@ def _fila_aspirante(asp, institucion, anio, contador):
     }
 
 
+# ── Encabezado EXACTO del reporte plano del SIMAT (55 columnas, orden oficial) ──
+# El SIMAT identifica al alumno por men_per_id / simat_anexo_id (por eso el plano
+# NO lleva documento ni nombres: es el anexo que se cruza por ID interno). Lo que
+# HALU aún no captura sale vacío (ver auditoría). El Excel conserva los nombres
+# legibles para revisión humana.
+OFICIAL_COLUMNAS = [
+    'simat_anexo_id', 'anio', 'municipio_id', 'dane', 'dane_sede', 'consecutivo_sede', 'sede',
+    'prestacion_servicio', 'expedicion_departamento_id', 'expedicion_municipio_id',
+    'dir_departamento_id', 'dir_municipio_id', 'estrato_id', 'sisben',
+    'nacimiento_departamento_id', 'nacimiento_municipio_id', 'genero_id', 'tipo_victima_id',
+    'expulsor_departamento_id', 'expulsor_municipio_id', 'proviene_sector_privado',
+    'proviene_otro_municipio', 'discapacidad_id', 'capacidad_id', 'etnia_id', 'resguardo_id',
+    'institucion_bienestar', 'jornada_id', 'caracter_id', 'especialidad_id', 'grado_id', 'grupo',
+    'metodologia_id', 'subsidiado', 'repitente', 'nuevo', 'situacion_academica_va_id',
+    'condicion_alumno_va_id', 'recurso_id', 'zona_id', 'madre_cf', 'hijo_mcf',
+    'beneficiario_veterano', 'beneficiario_heroe', 'codigo_internado', 'codigo_valoracion_1',
+    'codigo_valoracion_2', 'numero_convenio', 'men_per_id', 'apoyo_acad_esp', 'sist_resp_penal',
+    'pais_origen', 'trastorno_id', 'fecha_anexo', 'tipo_anexo_id',
+]
+
+
+def _fk_cod(obj):
+    return obj.codigo if obj else ''
+
+
+def _fila_oficial(asp, institucion, anio, contador):
+    """Fila con los nombres/orden EXACTOS del reporte plano del SIMAT. Los campos
+    que HALU aún no captura salen vacíos (ver auditoría)."""
+    sede = asp.sede
+    est = getattr(asp, 'estudiante_creado', None)
+    if est is not None and getattr(est, 'grupo_id', None):
+        grupo_nombre = est.grupo.nombre
+    else:
+        grupo_nombre = asp.grupo
+    etc = institucion.simat_municipio_etc.codigo if institucion.simat_municipio_etc_id else ''
+    tipo_victima = _cod(_VICTIMA_SIMAT, asp.tipo_poblacion_victima) if asp.victima_conflicto else '99'
+    return {
+        'simat_anexo_id': '',
+        'anio': anio,
+        'municipio_id': _txt(etc),
+        'dane': _txt(institucion.codigo_dane),
+        'dane_sede': _txt(sede.codigo_dane_sede) if sede else '',
+        'consecutivo_sede': _txt(sede.consecutivo) if sede else '',
+        'sede': _txt(sede.nombre) if sede else '',
+        'prestacion_servicio': '',
+        'expedicion_departamento_id': _fk_cod(asp.lugar_expedicion_departamento),
+        'expedicion_municipio_id': _fk_cod(asp.lugar_expedicion_municipio),
+        'dir_departamento_id': _fk_cod(asp.departamento_residencia),
+        'dir_municipio_id': _fk_cod(asp.municipio_residencia),
+        'estrato_id': _txt(asp.estrato),
+        'sisben': '',  # la norma pide 1–6; HALU guarda SISBÉN IV (A1/B2) → pendiente
+        'nacimiento_departamento_id': _fk_cod(asp.departamento_nacimiento),
+        'nacimiento_municipio_id': _fk_cod(asp.municipio_nacimiento),
+        'genero_id': _cod(_GENERO_SIMAT, asp.sexo),
+        'tipo_victima_id': tipo_victima,
+        'expulsor_departamento_id': '',
+        'expulsor_municipio_id': '',
+        'proviene_sector_privado': '',
+        'proviene_otro_municipio': '',
+        'discapacidad_id': _cod(_DISCAP_SIMAT, asp.discapacidad_categoria),
+        'capacidad_id': _cod(_CAPACID_SIMAT, getattr(asp, 'capacidad_excepcional', '')),
+        'etnia_id': asp.etnia_simat.codigo if asp.etnia_simat_id else '0',
+        'resguardo_id': _fk_cod(asp.resguardo),
+        'institucion_bienestar': '',
+        'jornada_id': _cod(_JORNADA_SIMAT, asp.jornada),
+        'caracter_id': '',
+        'especialidad_id': '',
+        'grado_id': '',  # requiere el ID de grado del SIMAT (pendiente de mapear)
+        'grupo': _txt(grupo_nombre),
+        'metodologia_id': '',
+        'subsidiado': '',
+        'repitente': _si_no(asp.repitente),
+        'nuevo': '',
+        'situacion_academica_va_id': '',
+        'condicion_alumno_va_id': '',
+        'recurso_id': '',
+        'zona_id': _cod(_ZONA_SIMAT, asp.zona_residencia),
+        'madre_cf': '',
+        'hijo_mcf': '',
+        'beneficiario_veterano': '',
+        'beneficiario_heroe': '',
+        'codigo_internado': '',
+        'codigo_valoracion_1': '',
+        'codigo_valoracion_2': '',
+        'numero_convenio': '',
+        'men_per_id': _txt(asp.simat_per_id),
+        'apoyo_acad_esp': _si_no(asp.apoyo_academico_especial),
+        'sist_resp_penal': _si_no(asp.srpa),
+        'pais_origen': _txt(asp.pais_origen),
+        'trastorno_id': '',
+        'fecha_anexo': '',
+        'tipo_anexo_id': '',
+    }
+
+
 @login_required
 def exportar_reporte_simat(request):
     """Descarga el Reporte Plano SIMAT (.xlsx) de los matriculados."""
@@ -195,26 +299,31 @@ def exportar_reporte_simat(request):
     return resp
 
 
-def _escribir_reporte_delimitado(resp, institucion):
-    """Escribe el reporte plano (delimitado por comas) en `resp`. Compartido por
-    las descargas .csv y .txt. Coma como separador, comillas en valores con coma
-    (QUOTE_MINIMAL), fin de línea CRLF, encoding UTF-8. Mismas columnas/orden que
-    el Excel."""
+def _escribir_reporte_delimitado(resp, institucion, delimiter=','):
+    """Escribe el reporte plano con la estructura OFICIAL del SIMAT (55 columnas,
+    orden y nombres exactos). Compartido por .csv (coma) y .txt (tabulador).
+    Comillas en valores con el separador (QUOTE_MINIMAL), fin de línea CRLF,
+    encoding UTF-8."""
     import csv
     from admisiones.models import Aspirante
     anio = timezone.now().year
     aspirantes = (
         Aspirante.objects
         .filter(institucion=institucion, estado=Aspirante.EstadoAdmision.MATRICULADO)
-        .select_related('sede', 'grado_aspira', 'etnia_simat', 'eps_simat',
-                        'estudiante_creado', 'estudiante_creado__grupo')
+        .select_related(
+            'sede', 'grado_aspira', 'etnia_simat', 'resguardo',
+            'estudiante_creado', 'estudiante_creado__grupo',
+            'departamento_residencia', 'municipio_residencia',
+            'departamento_nacimiento', 'municipio_nacimiento',
+            'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
+        )
         .order_by('primer_apellido', 'primer_nombre', 'apellidos')
     )
-    writer = csv.writer(resp, delimiter=',', quoting=csv.QUOTE_MINIMAL, lineterminator='\r\n')
-    writer.writerow(COLUMNAS_REPORTE)
+    writer = csv.writer(resp, delimiter=delimiter, quoting=csv.QUOTE_MINIMAL, lineterminator='\r\n')
+    writer.writerow(OFICIAL_COLUMNAS)
     for idx, asp in enumerate(aspirantes.iterator(), start=1):
-        fila = _fila_aspirante(asp, institucion, anio, idx)
-        writer.writerow([fila.get(col, '') for col in COLUMNAS_REPORTE])
+        fila = _fila_oficial(asp, institucion, anio, idx)
+        writer.writerow([fila.get(col, '') for col in OFICIAL_COLUMNAS])
 
 
 @login_required
@@ -246,7 +355,7 @@ def exportar_reporte_simat_txt(request):
     anio = timezone.now().year
     resp = HttpResponse(content_type='text/plain; charset=utf-8')
     resp['Content-Disposition'] = f'attachment; filename="reporte_simat_{anio}.txt"'
-    _escribir_reporte_delimitado(resp, institucion)
+    _escribir_reporte_delimitado(resp, institucion, delimiter='\t')
     return resp
 
 
