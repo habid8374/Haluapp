@@ -7,6 +7,10 @@ from gestion_academica.models import (   # Importamos Grado para saber a cuál a
     Grado, Usuario, Estudiante,
     TIPO_DOCUMENTO_CHOICES, GRUPO_SANGUINEO_CHOICES,
     CaracterizacionEstudiante,
+    SIMAT_SISBEN_CHOICES, SIMAT_CARACTER_CHOICES, SIMAT_ESPECIALIDAD_CHOICES,
+    SIMAT_METODOLOGIA_CHOICES, SIMAT_SITUACION_VA_CHOICES, SIMAT_CONDICION_VA_CHOICES,
+    SIMAT_RECURSO_CHOICES, SIMAT_INTERNADO_CHOICES, SIMAT_VALORACION_CHOICES,
+    SIMAT_SN_CHOICES, SIMAT_SINO_CHOICES,
 )
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -198,6 +202,30 @@ class Aspirante(models.Model):
     # Identificadores que devuelve el SIMAT (se llenan al re-importar el reporte)
     simat_per_id = models.CharField(max_length=20, blank=True, verbose_name="SIMAT · PER_ID")
     simat_nui = models.CharField(max_length=30, blank=True, verbose_name="SIMAT · NUI")
+
+    # ── SIMAT/SIMPADE — campos codificados adicionales (se vuelcan al estudiante) ──
+    sisben_simat = models.CharField("SISBÉN (grupo SIMAT)", max_length=10, blank=True, choices=SIMAT_SISBEN_CHOICES)
+    caracter = models.CharField("Carácter", max_length=2, blank=True, choices=SIMAT_CARACTER_CHOICES)
+    especialidad = models.CharField("Especialidad (media)", max_length=2, blank=True, choices=SIMAT_ESPECIALIDAD_CHOICES)
+    metodologia = models.CharField("Metodología/Modelo educativo", max_length=2, blank=True, choices=SIMAT_METODOLOGIA_CHOICES)
+    situacion_va = models.CharField("Situación académica año anterior", max_length=1, blank=True, choices=SIMAT_SITUACION_VA_CHOICES)
+    condicion_va = models.CharField("Condición del alumno año anterior", max_length=1, blank=True, choices=SIMAT_CONDICION_VA_CHOICES)
+    fuente_recurso = models.CharField("Fuente de recursos", max_length=1, blank=True, choices=SIMAT_RECURSO_CHOICES)
+    tipo_internado = models.CharField("Internado", max_length=1, blank=True, choices=SIMAT_INTERNADO_CHOICES)
+    valoracion_p1 = models.CharField("Valoración período 1", max_length=1, blank=True, choices=SIMAT_VALORACION_CHOICES)
+    valoracion_p2 = models.CharField("Valoración período 2", max_length=1, blank=True, choices=SIMAT_VALORACION_CHOICES)
+    subsidiado = models.CharField("¿Subsidiado?", max_length=2, blank=True, choices=SIMAT_SINO_CHOICES)
+    es_nuevo = models.CharField("¿Nuevo en la institución?", max_length=2, blank=True, choices=SIMAT_SINO_CHOICES)
+    proviene_sector_privado = models.CharField("¿Proviene del sector privado?", max_length=2, blank=True, choices=SIMAT_SINO_CHOICES)
+    proviene_otro_municipio = models.CharField("¿Proviene de otro municipio?", max_length=2, blank=True, choices=SIMAT_SINO_CHOICES)
+    madre_cabeza_familia = models.CharField("¿Madre cabeza de familia?", max_length=1, blank=True, choices=SIMAT_SN_CHOICES)
+    hijo_madre_cabeza_familia = models.CharField("¿Hijo de madre cabeza de familia?", max_length=1, blank=True, choices=SIMAT_SN_CHOICES)
+    beneficiario_veterano = models.CharField("¿Beneficiario veterano fuerza pública?", max_length=1, blank=True, choices=SIMAT_SN_CHOICES)
+    beneficiario_heroe = models.CharField("¿Beneficiario héroe de la nación?", max_length=1, blank=True, choices=SIMAT_SN_CHOICES)
+    numero_convenio = models.CharField("Número de convenio", max_length=30, blank=True)
+    institucion_bienestar = models.CharField("Institución de bienestar (ICBF)", max_length=120, blank=True)
+    expulsor_departamento = models.ForeignKey('simat.Departamento', on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Depto. expulsor (víctima)")
+    expulsor_municipio = models.ForeignKey('simat.Municipio', on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="Municipio expulsor (víctima)")
     # ────────────────────────────────────────────────────────────────────────
 
     # ════════════════════════════════════════════════════════════════════════
@@ -446,6 +474,14 @@ class Aspirante(models.Model):
                 'discapacidad_categoria', 'capacidad_excepcional', 'grupo_etnico',
                 'estrato', 'sisben_grupo', 'sisben_puntaje',
                 'tipo_poblacion_victima',
+                # SIMAT/SIMPADE codificados (Fase 3)
+                'sisben_simat', 'caracter', 'especialidad', 'metodologia',
+                'situacion_va', 'condicion_va', 'fuente_recurso', 'tipo_internado',
+                'valoracion_p1', 'valoracion_p2', 'subsidiado', 'es_nuevo',
+                'proviene_sector_privado', 'proviene_otro_municipio',
+                'madre_cabeza_familia', 'hijo_madre_cabeza_familia',
+                'beneficiario_veterano', 'beneficiario_heroe',
+                'numero_convenio', 'institucion_bienestar',
             ]
             actualizados = []
             for campo in campos:
@@ -453,6 +489,11 @@ class Aspirante(models.Model):
                 if valor not in (None, ''):
                     setattr(caracterizacion, campo, valor)
                     actualizados.append(campo)
+            # FK expulsor (víctima): copiar por _id si viene.
+            for campo in ('expulsor_departamento_id', 'expulsor_municipio_id'):
+                valor = getattr(self, campo, None)
+                if valor:
+                    setattr(caracterizacion, campo, valor)
             # Los booleanos siempre se reflejan (False es un valor válido).
             for campo in ('victima_conflicto', 'srpa', 'apoyo_academico_especial'):
                 setattr(caracterizacion, campo, getattr(self, campo, False))

@@ -375,6 +375,15 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
             # la sede y la jornada se derivan. Así no se duplica la selección.
             'modelo_educativo', 'fuente_recursos',
             'internado', 'matricula_contratada', 'repitente', 'situacion_academica_anterior',
+            # ── SIMAT/SIMPADE codificados (reporte plano oficial) ──
+            'sisben_simat', 'caracter', 'especialidad', 'metodologia',
+            'situacion_va', 'condicion_va', 'fuente_recurso', 'tipo_internado',
+            'valoracion_p1', 'valoracion_p2', 'subsidiado', 'es_nuevo',
+            'proviene_sector_privado', 'proviene_otro_municipio',
+            'madre_cabeza_familia', 'hijo_madre_cabeza_familia',
+            'beneficiario_veterano', 'beneficiario_heroe',
+            'numero_convenio', 'institucion_bienestar',
+            'expulsor_departamento', 'expulsor_municipio',
         ]
         widgets = {
             'primer_nombre': forms.TextInput(attrs={'class': 'form-control'}),
@@ -439,11 +448,19 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
                 'regimen_salud', 'eps_simat', 'discapacidad_categoria', 'capacidad_excepcional',
                 'grupo_etnico', 'etnia_simat', 'resguardo'),
             Fieldset(_("Socio-económico (SIMPADE)"),
-                'estrato', 'sisben_grupo', 'sisben_puntaje', 'victima_conflicto',
-                'tipo_poblacion_victima', 'srpa', 'campesino', 'apoyo_academico_especial'),
-            Fieldset(_("Matrícula"),
+                'estrato', 'sisben_grupo', 'sisben_simat', 'sisben_puntaje', 'victima_conflicto',
+                'tipo_poblacion_victima', 'srpa', 'campesino', 'apoyo_academico_especial',
+                'expulsor_departamento', 'expulsor_municipio',
+                'proviene_sector_privado', 'proviene_otro_municipio',
+                'madre_cabeza_familia', 'hijo_madre_cabeza_familia',
+                'beneficiario_veterano', 'beneficiario_heroe'),
+            Fieldset(_("Matrícula (SIMAT oficial)"),
                 'modelo_educativo', 'fuente_recursos',
-                'internado', 'matricula_contratada', 'repitente', 'situacion_academica_anterior'),
+                'internado', 'matricula_contratada', 'repitente', 'situacion_academica_anterior',
+                'caracter', 'especialidad', 'metodologia',
+                'situacion_va', 'condicion_va', 'fuente_recurso', 'tipo_internado',
+                'valoracion_p1', 'valoracion_p2', 'subsidiado', 'es_nuevo',
+                'numero_convenio', 'institucion_bienestar'),
         )
 
 

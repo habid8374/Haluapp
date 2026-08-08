@@ -98,7 +98,15 @@
                             {% if c.get_regimen_salud_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Régimen de salud:" %}</strong> <span>{{ c.get_regimen_salud_display }}</span></li>{% endif %}
                             {% if c.get_grupo_etnico_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Grupo étnico:" %}</strong> <span>{{ c.get_grupo_etnico_display }}</span></li>{% endif %}
                             {% if c.get_discapacidad_categoria_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Categoría de discapacidad:" %}</strong> <span>{{ c.get_discapacidad_categoria_display }}</span></li>{% endif %}
-                            {% if c.sisben_grupo %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Grupo SISBÉN:" %}</strong> <span>{{ c.sisben_grupo }}</span></li>{% endif %}
+                            {% if c.sisben_grupo %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Grupo SISBÉN (IV):" %}</strong> <span>{{ c.sisben_grupo }}</span></li>{% endif %}
+                            {% if c.get_sisben_simat_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "SISBÉN (SIMAT):" %}</strong> <span>{{ c.get_sisben_simat_display }}</span></li>{% endif %}
+                            {% if c.get_caracter_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Carácter:" %}</strong> <span>{{ c.get_caracter_display }}</span></li>{% endif %}
+                            {% if c.get_especialidad_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Especialidad:" %}</strong> <span>{{ c.get_especialidad_display }}</span></li>{% endif %}
+                            {% if c.get_metodologia_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Metodología:" %}</strong> <span>{{ c.get_metodologia_display }}</span></li>{% endif %}
+                            {% if c.get_situacion_va_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Situación año anterior:" %}</strong> <span>{{ c.get_situacion_va_display }}</span></li>{% endif %}
+                            {% if c.get_fuente_recurso_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Fuente de recursos:" %}</strong> <span>{{ c.get_fuente_recurso_display }}</span></li>{% endif %}
+                            {% if c.get_tipo_internado_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Internado:" %}</strong> <span>{{ c.get_tipo_internado_display }}</span></li>{% endif %}
+                            {% if c.get_subsidiado_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Subsidiado:" %}</strong> <span>{{ c.get_subsidiado_display }}</span></li>{% endif %}
                         </ul>
                         {% endif %}
 

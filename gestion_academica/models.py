@@ -664,6 +664,41 @@ class Estudiante(models.Model):
         return self.dias_de_atraso_max <= gracia
 
 
+# ── Choices SIMAT/SIMPADE (el VALOR guardado = el código oficial del MEN, para
+#    exportar el reporte plano sin tablas de conversión) ──────────────────────
+SIMAT_SISBEN_CHOICES = [
+    ('1', 'Grupo 1'), ('2', 'Grupo 2'), ('3', 'Grupo 3'),
+    ('4', 'Grupo 4'), ('5', 'Grupo 5'), ('6', 'Grupo 6'), ('NO APLICA', 'No aplica'),
+]
+SIMAT_CARACTER_CHOICES = [('1', 'Académico'), ('2', 'Técnico'), ('0', 'No aplica')]
+SIMAT_ESPECIALIDAD_CHOICES = [
+    ('05', 'Académico'), ('06', 'Industrial'), ('08', 'Comercial'),
+    ('09', 'Pedagógico'), ('10', 'Agropecuario'), ('11', 'Promoción social'),
+    ('07', 'Otro'), ('00', 'No aplica'),
+]
+SIMAT_METODOLOGIA_CHOICES = [
+    ('1', 'Educación tradicional'), ('2', 'Escuela nueva'), ('3', 'Post primaria'),
+    ('4', 'Telesecundaria'), ('5', 'SER'), ('8', 'Etnoeducación'),
+    ('9', 'Aceleración del aprendizaje'), ('10', 'Jóvenes en extraedad y adultos'),
+    ('11', 'Preescolar escolarizado'), ('12', 'Preescolar no/semi escolarizado'),
+    ('39', 'Secundaria activa'), ('43', 'Escuela nueva activa'), ('51', 'Otra'),
+]
+SIMAT_SITUACION_VA_CHOICES = [
+    ('0', 'No estudió el año anterior'), ('1', 'Aprobó'), ('2', 'Reprobó'),
+    ('4', 'Pendiente de logros'), ('6', 'Viene de otra IE'),
+    ('7', 'Ingresa por primera vez'), ('8', 'No culminó estudios'),
+]
+SIMAT_CONDICION_VA_CHOICES = [('3', 'Desertó'), ('5', 'Trasladado a otra IE'), ('9', 'No aplica')]
+SIMAT_RECURSO_CHOICES = [
+    ('1', 'SGP'), ('2', 'FNR'), ('3', 'Recursos adicionales MEN'),
+    ('4', 'Otros recursos de la Nación'), ('5', 'Recursos propios de la SE'),
+]
+SIMAT_INTERNADO_CHOICES = [('1', 'Internado'), ('2', 'Semi-internado'), ('3', 'Ninguno')]
+SIMAT_VALORACION_CHOICES = [('1', 'Superior'), ('2', 'Alto'), ('3', 'Básico'), ('4', 'Bajo')]
+SIMAT_SN_CHOICES = [('S', 'Sí'), ('N', 'No')]
+SIMAT_SINO_CHOICES = [('SI', 'Sí'), ('NO', 'No')]
+
+
 class CaracterizacionEstudiante(models.Model):
     """Caracterización socioeconómica y poblacional del estudiante.
 
@@ -845,6 +880,30 @@ class CaracterizacionEstudiante(models.Model):
     situacion_academica_anterior = models.CharField(max_length=60, blank=True, verbose_name=_("Situación académica año anterior"))
     simat_per_id = models.CharField(max_length=20, blank=True, verbose_name=_("SIMAT · PER_ID"))
     simat_nui = models.CharField(max_length=30, blank=True, verbose_name=_("SIMAT · NUI"))
+
+    # ── SIMAT/SIMPADE — campos codificados adicionales (reporte plano) ──
+    sisben_simat = models.CharField(_("SISBÉN (grupo SIMAT)"), max_length=10, blank=True, choices=SIMAT_SISBEN_CHOICES)
+    caracter = models.CharField(_("Carácter"), max_length=2, blank=True, choices=SIMAT_CARACTER_CHOICES)
+    especialidad = models.CharField(_("Especialidad (media)"), max_length=2, blank=True, choices=SIMAT_ESPECIALIDAD_CHOICES)
+    metodologia = models.CharField(_("Metodología/Modelo educativo"), max_length=2, blank=True, choices=SIMAT_METODOLOGIA_CHOICES)
+    situacion_va = models.CharField(_("Situación académica año anterior"), max_length=1, blank=True, choices=SIMAT_SITUACION_VA_CHOICES)
+    condicion_va = models.CharField(_("Condición del alumno año anterior"), max_length=1, blank=True, choices=SIMAT_CONDICION_VA_CHOICES)
+    fuente_recurso = models.CharField(_("Fuente de recursos"), max_length=1, blank=True, choices=SIMAT_RECURSO_CHOICES)
+    tipo_internado = models.CharField(_("Internado"), max_length=1, blank=True, choices=SIMAT_INTERNADO_CHOICES)
+    valoracion_p1 = models.CharField(_("Valoración período 1"), max_length=1, blank=True, choices=SIMAT_VALORACION_CHOICES)
+    valoracion_p2 = models.CharField(_("Valoración período 2"), max_length=1, blank=True, choices=SIMAT_VALORACION_CHOICES)
+    subsidiado = models.CharField(_("¿Subsidiado?"), max_length=2, blank=True, choices=SIMAT_SINO_CHOICES)
+    es_nuevo = models.CharField(_("¿Nuevo en la institución?"), max_length=2, blank=True, choices=SIMAT_SINO_CHOICES)
+    proviene_sector_privado = models.CharField(_("¿Proviene del sector privado?"), max_length=2, blank=True, choices=SIMAT_SINO_CHOICES)
+    proviene_otro_municipio = models.CharField(_("¿Proviene de otro municipio?"), max_length=2, blank=True, choices=SIMAT_SINO_CHOICES)
+    madre_cabeza_familia = models.CharField(_("¿Madre cabeza de familia?"), max_length=1, blank=True, choices=SIMAT_SN_CHOICES)
+    hijo_madre_cabeza_familia = models.CharField(_("¿Hijo de madre cabeza de familia?"), max_length=1, blank=True, choices=SIMAT_SN_CHOICES)
+    beneficiario_veterano = models.CharField(_("¿Beneficiario veterano fuerza pública?"), max_length=1, blank=True, choices=SIMAT_SN_CHOICES)
+    beneficiario_heroe = models.CharField(_("¿Beneficiario héroe de la nación?"), max_length=1, blank=True, choices=SIMAT_SN_CHOICES)
+    numero_convenio = models.CharField(_("Número de convenio"), max_length=30, blank=True)
+    institucion_bienestar = models.CharField(_("Institución de bienestar (ICBF)"), max_length=120, blank=True)
+    expulsor_departamento = models.ForeignKey('simat.Departamento', on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name=_("Depto. expulsor (víctima)"))
+    expulsor_municipio = models.ForeignKey('simat.Municipio', on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name=_("Municipio expulsor (víctima)"))
 
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
