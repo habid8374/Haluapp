@@ -23,6 +23,7 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.views.generic import DetailView, UpdateView, DeleteView
 from django.db import models
@@ -448,12 +449,27 @@ def dashboard_data(request):
 @login_required
 @permission_required('admisiones.add_aspirante', raise_exception=True)
 def descargar_plantilla_importacion(request):
-    """
-    Genera la plantilla de Excel DEFINITIVA con nombres de columna simples
-    y una lista desplegable de grados para evitar errores.
-    """
+    """Descarga la plantilla de Excel. Si algo falla al generarla, muestra un
+    mensaje visible (y lo registra) en vez de "no descargar" en silencio."""
     institucion = request.user.institucion_asociada
-    
+    try:
+        return _construir_plantilla_aspirantes(institucion)
+    except Exception:
+        logger.exception(
+            "Fallo al generar la plantilla de importación (institución=%s)",
+            getattr(institucion, 'pk', None),
+        )
+        messages.error(
+            request,
+            _("No se pudo generar la plantilla de Excel en este momento. "
+              "Vuelve a intentarlo; si el problema persiste, avísale al soporte."),
+        )
+        return redirect('admisiones:importar_aspirantes')
+
+
+def _construir_plantilla_aspirantes(institucion):
+    """Arma el libro de Excel de la plantilla de aspirantes (una hoja visible
+    + hojas ocultas de catálogos con desplegables). Devuelve el HttpResponse."""
     wb = Workbook()
     ws = wb.active
     ws.title = "Aspirantes"
@@ -578,15 +594,12 @@ def descargar_plantilla_importacion(request):
     )
 
     def _lista_valores(nombre_hoja, valores):
-        """Devuelve una fórmula de validación por lista. Si la lista inline
-        superaría el tope de Excel (255 caracteres), la vuelca en una hoja
-        oculta y devuelve el rango — así el archivo nunca queda corrupto."""
+        """Vuelca valores de NOMBRE LIBRE (grados, grupos) a una hoja oculta y
+        devuelve el rango. Nunca usa lista en línea: los nombres pueden traer
+        comas, comillas o superar el tope de Excel (255) y corromper el archivo."""
         vals = [str(v).strip() for v in valores if str(v).strip()]
         if not vals:
             return ''
-        inline = '"' + ",".join(vals) + '"'
-        if len(inline) <= 255:
-            return inline
         hoja = wb.create_sheet(nombre_hoja)
         hoja.append(["valor"])
         for v in vals:
