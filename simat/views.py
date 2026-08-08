@@ -209,7 +209,7 @@ def _fila_oficial(asp, institucion, anio, contador):
         'expedicion_municipio_id': _fk_cod(asp.lugar_expedicion_municipio),
         'dir_departamento_id': _fk_cod(asp.departamento_residencia),
         'dir_municipio_id': _fk_cod(asp.municipio_residencia),
-        'estrato_id': _txt(asp.estrato),
+        'estrato_id': (_txt(asp.estrato) if asp.estrato and asp.estrato != '0' else ''),
         'sisben': _txt(asp.sisben_simat),
         'nacimiento_departamento_id': _fk_cod(asp.departamento_nacimiento),
         'nacimiento_municipio_id': _fk_cod(asp.municipio_nacimiento),

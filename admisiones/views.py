@@ -657,7 +657,7 @@ def _construir_plantilla_aspirantes(institucion):
     dvs = {
         'grado_aspira': ref_grado,
         'paga_inscripcion': '"SI,NO"',
-        'tipo_documento': '"TI,CC,RC,PA,CE,OT"',
+        'tipo_documento': '"TI,CC,RC,PA,CE,NES,PEP,VISA,TMF,OT"',
         'sexo': '"M,F,O"',
         'grupo_sanguineo': '"A+,A-,B+,B-,AB+,AB-,O+,O-"',
         'zona_residencia': '"URBANA,RURAL"',
@@ -679,7 +679,7 @@ def _construir_plantilla_aspirantes(institucion):
         'grupo': ref_grupo,
         'jornada': '"MANANA,TARDE,NOCHE,UNICA,COMPLETA,FIN_DE_SEMANA"',
         'matricula_contratada': '"SI,NO"', 'repitente': '"SI,NO"',
-        'acudiente_tipo_documento': '"TI,CC,RC,PA,CE,OT"',
+        'acudiente_tipo_documento': '"TI,CC,RC,PA,CE,NES,PEP,VISA,TMF,OT"',
         'acudiente_parentesco': '"PADRE,MADRE,ABUELO,TIO,HERMANO,TUTOR,OTRO"',
         # ── SIMAT/SIMPADE codificados (Fase 3) ──
         'sisben_simat': '"1,2,3,4,5,6,NO APLICA"',

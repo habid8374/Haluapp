@@ -263,7 +263,7 @@ class ImportarAspirantesForm(forms.Form):
             "'fecha_nacimiento' (AAAA-MM-DD o DD/MM/AAAA), "
             "'email_contacto', 'grado_aspira' (nombre exacto del grado), 'paga_inscripcion' (SI/NO). "
             "Columnas opcionales: 'segundo_nombre', 'segundo_apellido', "
-            "'tipo_documento' (TI/CC/RC/PA/CE/OT), "
+            "'tipo_documento' (TI/CC/RC/PA/CE/NES/PEP/VISA/TMF/OT), "
             "'telefono_contacto', 'sexo' (M/F/O), 'grupo_sanguineo' (A+/O-/…), "
             "'discapacidad', 'colegio_procedencia', 'direccion'."
         ),

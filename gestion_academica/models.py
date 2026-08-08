@@ -23,6 +23,11 @@ TIPO_DOCUMENTO_CHOICES = [
     ('RC', _('Registro Civil')),
     ('PA', _('Pasaporte')),
     ('CE', _('Cédula de Extranjería')),
+    # Población migrante (exigidos por el SIMAT / circulares de auditoría)
+    ('NES', _('NES — Número establecido por la Secretaría')),
+    ('PEP', _('PEP — Permiso Especial de Permanencia')),
+    ('VISA', _('Visa')),
+    ('TMF', _('TMF — Tarjeta de Movilidad Fronteriza')),
     ('OT', _('Otro')),
 ]
 

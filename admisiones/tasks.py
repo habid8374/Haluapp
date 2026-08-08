@@ -344,7 +344,7 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
 
     # Normalizar tipo_documento
     tipo_doc_raw = _v("tipo_documento").upper()
-    tipo_doc_validos = {"TI", "CC", "RC", "PA", "CE", "OT"}
+    tipo_doc_validos = {"TI", "CC", "RC", "PA", "CE", "NES", "PEP", "VISA", "TMF", "OT"}
     tipo_documento = tipo_doc_raw if tipo_doc_raw in tipo_doc_validos else None
 
     # Normalizar grupo_sanguineo
