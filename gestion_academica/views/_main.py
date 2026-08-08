@@ -4611,6 +4611,9 @@ def ver_mi_perfil(request):
         
         context['saldo_pendiente'] = saldo_total
         context['esta_en_mora'] = cuentas_pendientes.filter(estado='VENCIDO').exists()
+        # Perfil completo: caracterización SIMAT (si existe) y acudientes.
+        context['caracterizacion'] = getattr(estudiante_profile, 'caracterizacion', None)
+        context['acudientes'] = estudiante_profile.familiares.all()
 
     elif docente_profile:
         context['docente_profile'] = docente_profile

@@ -62,11 +62,68 @@
                 </div>
                 <div class="card-body">
                     {% if estudiante_profile %}
+                        {% with e=estudiante_profile c=caracterizacion %}
+                        <h6 class="text-primary fw-bold mb-2"><i class="bi bi-person-vcard me-1"></i>{% trans "Datos personales" %}</h6>
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Tipo de documento:" %}</strong> <span>{{ e.get_tipo_documento_display|default:"—" }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Documento:" %}</strong> <span>{{ e.documento_identidad|default:"—" }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Fecha de nacimiento:" %}</strong> <span>{{ e.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Sexo:" %}</strong> <span>{{ e.get_sexo_display|default:"—" }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Lugar de nacimiento:" %}</strong> <span>{{ e.lugar_nacimiento|default:"—" }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Grupo sanguíneo:" %}</strong> <span>{{ e.grupo_sanguineo|default:"—" }}</span></li>
+                            {% if e.eps %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "EPS:" %}</strong> <span>{{ e.eps }}</span></li>{% endif %}
+                            {% if e.discapacidad %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Discapacidad:" %}</strong> <span>{{ e.discapacidad }}</span></li>{% endif %}
+                        </ul>
+
+                        <h6 class="text-primary fw-bold mb-2"><i class="bi bi-mortarboard me-1"></i>{% trans "Datos académicos" %}</h6>
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Grado Actual:" %}</strong> <span>{{ e.grado_actual.nombre|default:"—" }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Grupo/Sección:" %}</strong> <span>{{ e.grupo.nombre|default:"—" }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Sede:" %}</strong> <span>{{ e.sede.nombre|default:"—" }}</span></li>
+                            {% if e.grupo.jornada %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Jornada:" %}</strong> <span>{{ e.grupo.get_jornada_display }}</span></li>{% endif %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Colegio de procedencia:" %}</strong> <span>{{ e.colegio_procedencia|default:"—" }}</span></li>
+                        </ul>
+
+                        <h6 class="text-primary fw-bold mb-2"><i class="bi bi-geo-alt me-1"></i>{% trans "Ubicación" %}</h6>
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Dirección:" %}</strong> <span>{{ e.direccion|default:"—" }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Municipio/Ciudad:" %}</strong> <span>{{ e.municipio_ciudad|default:"—" }}</span></li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Departamento:" %}</strong> <span>{{ e.departamento|default:"—" }}</span></li>
+                        </ul>
+
+                        {% if c %}
+                        <h6 class="text-primary fw-bold mb-2"><i class="bi bi-clipboard-data me-1"></i>{% trans "Caracterización (SIMAT/SIMPADE)" %}</h6>
+                        <ul class="list-group list-group-flush mb-3">
+                            {% if c.get_estrato_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Estrato:" %}</strong> <span>{{ c.get_estrato_display }}</span></li>{% endif %}
+                            {% if c.get_regimen_salud_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Régimen de salud:" %}</strong> <span>{{ c.get_regimen_salud_display }}</span></li>{% endif %}
+                            {% if c.get_grupo_etnico_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Grupo étnico:" %}</strong> <span>{{ c.get_grupo_etnico_display }}</span></li>{% endif %}
+                            {% if c.get_discapacidad_categoria_display %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Categoría de discapacidad:" %}</strong> <span>{{ c.get_discapacidad_categoria_display }}</span></li>{% endif %}
+                            {% if c.sisben_grupo %}<li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Grupo SISBÉN:" %}</strong> <span>{{ c.sisben_grupo }}</span></li>{% endif %}
+                        </ul>
+                        {% endif %}
+
+                        <h6 class="text-primary fw-bold mb-2"><i class="bi bi-people me-1"></i>{% trans "Acudientes" %}</h6>
+                        <ul class="list-group list-group-flush mb-3">
+                            {% for a in acudientes %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>{{ a.usuario.get_full_name|default:a.usuario.username }}</strong>
+                                    {% if a == e.acudiente_responsable %}<span class="badge bg-success">{% trans "Responsable" %}</span>{% else %}<span class="badge bg-secondary">{% trans "Adicional" %}</span>{% endif %}
+                                </div>
+                                <div class="text-muted small">
+                                    {% if a.parentesco %}{{ a.parentesco }} · {% endif %}{{ a.usuario.email|default:"" }}{% if a.telefono %} · {{ a.telefono }}{% endif %}
+                                </div>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item text-muted">{% trans "No hay acudientes registrados." %}</li>
+                            {% endfor %}
+                        </ul>
+
+                        <h6 class="text-primary fw-bold mb-2"><i class="bi bi-cash-coin me-1"></i>{% trans "Financiero" %}</h6>
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Documento:" %}</strong> <span>{{ estudiante_profile.documento_identidad }}</span></li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Grado Actual:" %}</strong> <span>{{ estudiante_profile.grado_actual.nombre }}</span></li>
                             <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Saldo Pendiente:" %}</strong> <span class="fw-bold {% if esta_en_mora %}text-danger{% else %}text-success{% endif %}">${{ saldo_pendiente|intcomma }}</span></li>
                         </ul>
+                        {% endwith %}
                     {% elif docente_profile %}
                         <h6 class="card-subtitle mb-2 text-muted">{% trans "Cursos Asignados (Periodo Actual)" %}</h6>
                         <ul class="list-group list-group-flush">
