@@ -412,20 +412,29 @@
         .acc-seg .btn { min-width: 2.6rem; }
     </style>
     {% block extrastyles %}{% endblock %}
-    {# No-flash: aplica las preferencias guardadas ANTES de pintar la página #}
+    {# Ola 2: el estudiante hereda su Perfil de Accesibilidad como base (sin parpadeo) #}
+    {% if user.is_authenticated %}{{ user.estudiante.perfil_accesibilidad.como_prefs|json_script:"acc-profile-prefs" }}{% endif %}
+    {# No-flash: aplica base (perfil) + preferencias propias ANTES de pintar la página #}
     <script>
       (function () {
+        var el = document.documentElement;
+        var base = {}, own = {};
         try {
-          var p = JSON.parse(localStorage.getItem('haluAcc') || '{}');
-          var el = document.documentElement;
-          if (p.font === 'lg') el.classList.add('acc-font-lg');
-          if (p.font === 'xl') el.classList.add('acc-font-xl');
-          if (p.contrast) el.classList.add('acc-contrast');
-          if (p.dyslexia) el.classList.add('acc-dyslexia');
-          if (p.spacing) el.classList.add('acc-spacing');
-          if (p.reduce_motion) el.classList.add('acc-reduce-motion');
-          if (p.easy_read) el.classList.add('acc-easy-read');
+          var b = document.getElementById('acc-profile-prefs');
+          if (b) { var pb = JSON.parse(b.textContent || '{}'); if (pb && typeof pb === 'object') base = pb; }
         } catch (e) {}
+        try {
+          var po = JSON.parse(localStorage.getItem('haluAcc') || '{}');
+          if (po && typeof po === 'object') own = po;
+        } catch (e) {}
+        var p = Object.assign({}, base, own); // lo que elija el usuario gana sobre su perfil
+        if (p.font === 'lg') el.classList.add('acc-font-lg');
+        if (p.font === 'xl') el.classList.add('acc-font-xl');
+        if (p.contrast) el.classList.add('acc-contrast');
+        if (p.dyslexia) el.classList.add('acc-dyslexia');
+        if (p.spacing) el.classList.add('acc-spacing');
+        if (p.reduce_motion) el.classList.add('acc-reduce-motion');
+        if (p.easy_read) el.classList.add('acc-easy-read');
       })();
     </script>
 </head>
@@ -723,39 +732,45 @@
         reduce_motion: 'acc-reduce-motion', easy_read: 'acc-easy-read'
       };
 
-      // Estado: localStorage tiene prioridad; si está vacío, usa lo del servidor.
-      var state = {};
-      try { state = JSON.parse(localStorage.getItem('haluAcc') || 'null'); } catch (e) {}
-      if (!state) {
-        try { state = JSON.parse(document.getElementById('acc-server-prefs').textContent || '{}'); }
-        catch (e) { state = {}; }
+      // Base = Perfil de Accesibilidad del estudiante (si lo tiene).
+      var baseline = {};
+      try {
+        var be = document.getElementById('acc-profile-prefs');
+        if (be) { var pb = JSON.parse(be.textContent || '{}'); if (pb && typeof pb === 'object') baseline = pb; }
+      } catch (e) {}
+      // "own" = ajustes propios del usuario (localStorage; si no, lo del servidor).
+      var own = {};
+      try { own = JSON.parse(localStorage.getItem('haluAcc') || 'null'); } catch (e) {}
+      if (!own) {
+        try { own = JSON.parse(document.getElementById('acc-server-prefs').textContent || '{}'); } catch (e) { own = {}; }
       }
-      if (!state || typeof state !== 'object') state = {};
+      if (!own || typeof own !== 'object') own = {};
 
+      function effective() { return Object.assign({}, baseline, own); }
       function apply() {
+        var s = effective();
         Object.keys(FONTS).forEach(function (k) { if (FONTS[k]) el.classList.remove(FONTS[k]); });
-        if (state.font && FONTS[state.font]) el.classList.add(FONTS[state.font]);
-        Object.keys(BOOLS).forEach(function (k) {
-          el.classList.toggle(BOOLS[k], !!state[k]);
-        });
+        if (s.font && FONTS[s.font]) el.classList.add(FONTS[s.font]);
+        Object.keys(BOOLS).forEach(function (k) { el.classList.toggle(BOOLS[k], !!s[k]); });
       }
       function reflect() {
+        var s = effective();
         document.querySelectorAll('[data-acc-font]').forEach(function (b) {
-          b.classList.toggle('active', (state.font || 'normal') === b.getAttribute('data-acc-font'));
+          b.classList.toggle('active', (s.font || 'normal') === b.getAttribute('data-acc-font'));
         });
         document.querySelectorAll('[data-acc]').forEach(function (c) {
-          c.checked = !!state[c.getAttribute('data-acc')];
+          c.checked = !!s[c.getAttribute('data-acc')];
         });
       }
       var saveTimer = null;
       function persist() {
-        try { localStorage.setItem('haluAcc', JSON.stringify(state)); } catch (e) {}
+        try { localStorage.setItem('haluAcc', JSON.stringify(own)); } catch (e) {}
         clearTimeout(saveTimer);
         saveTimer = setTimeout(function () {
           fetch(SAVE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-            body: JSON.stringify(state)
+            body: JSON.stringify(own)
           }).catch(function () {});
         }, 500);
       }
@@ -764,13 +779,13 @@
       apply(); reflect();
 
       document.querySelectorAll('[data-acc-font]').forEach(function (b) {
-        b.addEventListener('click', function () { state.font = b.getAttribute('data-acc-font'); update(); });
+        b.addEventListener('click', function () { own.font = b.getAttribute('data-acc-font'); update(); });
       });
       document.querySelectorAll('[data-acc]').forEach(function (c) {
-        c.addEventListener('change', function () { state[c.getAttribute('data-acc')] = c.checked; update(); });
+        c.addEventListener('change', function () { own[c.getAttribute('data-acc')] = c.checked; update(); });
       });
       var reset = document.getElementById('accReset');
-      if (reset) reset.addEventListener('click', function () { state = {}; update(); });
+      if (reset) reset.addEventListener('click', function () { own = {}; update(); });
 
       // ── Lectura por voz (Web Speech API) ──
       var synth = window.speechSynthesis;

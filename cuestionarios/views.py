@@ -535,9 +535,20 @@ class ResolverCuestionarioView(LoginRequiredMixin, View):
         if not estudiante_en_curso_actividad(request.user.estudiante, actividad):
             messages.error(request, _("No tienes acceso a este intento."))
             return redirect('gestion_academica:dashboard_estudiante')
+        # Tiempo extra por accesibilidad (Ola 2): si el estudiante tiene un perfil
+        # activo con tiempo_extra_pct, se amplía el temporizador de este intento.
+        tiempo_limite = intento.cuestionario.tiempo_limite or 0
+        tiempo_limite_efectivo = tiempo_limite
+        try:
+            perfil = request.user.estudiante.perfil_accesibilidad
+        except Exception:
+            perfil = None
+        if tiempo_limite and perfil and perfil.activo and perfil.tiempo_extra_pct:
+            tiempo_limite_efectivo = int(round(tiempo_limite * (1 + perfil.tiempo_extra_pct / 100.0)))
         context = {
             'intento': intento,
             'cuestionario': intento.cuestionario,
+            'tiempo_limite_efectivo': tiempo_limite_efectivo,
             'titulo_pagina': _("Resolviendo: %(intento_cuestionario)s") % {'intento_cuestionario': intento.cuestionario.titulo}
         }
         return render(request, 'cuestionarios/resolver_cuestionario.html', context)

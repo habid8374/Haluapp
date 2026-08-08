@@ -21,13 +21,42 @@ from .models import (
     Pregunta, Opcion, Eleccion, Aula, AreaAcademica, NivelEscolaridad,
     DimensionDesarrollo, EscalaCualitativa, LogroPreescolar, TicketSoporte,
     RespuestaTicket, PlaneacionClase, Candidato, CaracterizacionEstudiante,
-    JustificacionInasistencia,
+    JustificacionInasistencia, PerfilAccesibilidad,
 )
 
 
 
 # Modelos de finanzas que pueden necesitarse para querysets en formularios
-from finanzas.models import InstitucionEducativa 
+from finanzas.models import InstitucionEducativa
+
+
+class PerfilAccesibilidadForm(forms.ModelForm):
+    """Editor del perfil de accesibilidad del estudiante (Ola 2)."""
+
+    class Meta:
+        model = PerfilAccesibilidad
+        fields = [
+            'activo', 'font', 'contrast', 'dyslexia', 'spacing',
+            'reduce_motion', 'easy_read', 'tts_default',
+            'tiempo_extra_pct', 'enunciado_simplificado', 'notas',
+        ]
+        widgets = {
+            'font': forms.Select(attrs={'class': 'form-select'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'contrast': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'dyslexia': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'spacing': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'reduce_motion': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'easy_read': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'tts_default': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'enunciado_simplificado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'tiempo_extra_pct': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100, 'step': 5}),
+            'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+    def clean_tiempo_extra_pct(self):
+        v = self.cleaned_data.get('tiempo_extra_pct') or 0
+        return min(int(v), 100)
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(

@@ -261,6 +261,96 @@ class Grupo(models.Model):
             etiqueta += f" ({self.get_jornada_display()})"
         return etiqueta
 
+
+class PerfilAccesibilidad(models.Model):
+    """Perfil de accesibilidad del estudiante (Ola 2 — inclusión operativa).
+
+    Convierte los ajustes razonables del PIAR en una configuración que la
+    plataforma APLICA automáticamente para ese estudiante: tamaño de texto,
+    alto contraste, fuente legible, espaciado, lectura por voz, tiempo extra en
+    evaluaciones, etc. El estudiante no tiene que configurar nada; hereda su
+    perfil y puede ajustar por encima con el panel de accesibilidad.
+
+    Acceso restringido (coordinación/orientación) por tratarse de apoyos ligados
+    a la condición del estudiante. Institución-scoped.
+    """
+    FONT_CHOICES = [
+        ('normal', _("Normal")),
+        ('lg', _("Grande")),
+        ('xl', _("Muy grande")),
+    ]
+    estudiante = models.OneToOneField(
+        'Estudiante', on_delete=models.CASCADE, related_name='perfil_accesibilidad',
+        verbose_name=_("Estudiante"),
+    )
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='perfiles_accesibilidad', verbose_name=_("Institución"),
+    )
+    activo = models.BooleanField(_("Perfil activo"), default=True)
+    font = models.CharField(_("Tamaño de texto"), max_length=10, choices=FONT_CHOICES, default='normal')
+    contrast = models.BooleanField(_("Alto contraste"), default=False)
+    dyslexia = models.BooleanField(_("Fuente legible"), default=False)
+    spacing = models.BooleanField(_("Más espaciado"), default=False)
+    reduce_motion = models.BooleanField(_("Reducir animaciones"), default=False)
+    easy_read = models.BooleanField(_("Lectura fácil"), default=False)
+    tts_default = models.BooleanField(_("Lectura por voz destacada"), default=False)
+    tiempo_extra_pct = models.PositiveIntegerField(
+        _("Tiempo extra en evaluaciones (%)"), default=0,
+        help_text=_("Porcentaje adicional de tiempo en cuestionarios con temporizador (ej. 25, 50)."),
+    )
+    enunciado_simplificado = models.BooleanField(
+        _("Enunciados simplificados"), default=False,
+        help_text=_("Prepara la simplificación de enunciados con IA (se aplicará progresivamente)."),
+    )
+    notas = models.TextField(_("Notas del apoyo"), blank=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Perfil de accesibilidad")
+        verbose_name_plural = _("Perfiles de accesibilidad")
+
+    def __str__(self):
+        return f"Accesibilidad de {self.estudiante}"
+
+    def como_prefs(self):
+        """Ajustes visuales en el formato que entiende el panel de accesibilidad
+        (base para el estudiante; sus propios ajustes se aplican por encima)."""
+        if not self.activo:
+            return {}
+        return {
+            'font': self.font,
+            'contrast': self.contrast,
+            'dyslexia': self.dyslexia,
+            'spacing': self.spacing,
+            'reduce_motion': self.reduce_motion,
+            'easy_read': self.easy_read,
+        }
+
+    @staticmethod
+    def sugerencias_por_condicion(condicion):
+        """Sugerencias iniciales de apoyos según la condición del PIAR.
+        Es un punto de partida editable, no una imposición."""
+        c = (condicion or '').upper()
+        base = {
+            'font': 'normal', 'contrast': False, 'dyslexia': False, 'spacing': False,
+            'reduce_motion': False, 'easy_read': False, 'tts_default': False,
+            'tiempo_extra_pct': 0,
+        }
+        if c == 'VIS':
+            base.update(font='xl', contrast=True, tts_default=True, tiempo_extra_pct=25)
+        elif c == 'AUD':
+            base.update(easy_read=True)
+        elif c == 'MOT':
+            base.update(spacing=True, reduce_motion=True, tiempo_extra_pct=50)
+        elif c in ('COG', 'APR'):
+            base.update(dyslexia=True, spacing=True, easy_read=True, tts_default=True, font='lg', tiempo_extra_pct=50)
+        elif c == 'CON':
+            base.update(easy_read=True, reduce_motion=True, tiempo_extra_pct=25)
+        elif c == 'MUL':
+            base.update(font='xl', contrast=True, spacing=True, easy_read=True, tts_default=True, tiempo_extra_pct=50)
+        return base
+
 class DimensionDesarrollo(models.Model):
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE)
     nombre = models.CharField(max_length=100, verbose_name=_("Nombre de la Dimensión"))

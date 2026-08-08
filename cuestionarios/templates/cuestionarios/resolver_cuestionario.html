@@ -62,7 +62,7 @@
     <div id="cuestionario-app"
          data-intento-id="{{ intento.pk }}"
          data-actividad-id="{{ cuestionario.actividad_calificable.pk }}"
-         data-tiempo-limite="{{ cuestionario.tiempo_limite }}"
+         data-tiempo-limite="{{ tiempo_limite_efectivo|default:cuestionario.tiempo_limite }}"
          data-submit-url="{% url 'cuestionarios:resolver_api' intento.pk %}"
          data-api-url="{% url 'cuestionarios:api_cuestionario' cuestionario.actividad_calificable.pk %}"
          data-csrf-token="{{ csrf_token }}">

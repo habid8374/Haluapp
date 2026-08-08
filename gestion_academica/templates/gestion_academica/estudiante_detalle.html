@@ -69,6 +69,7 @@
                 </div>
             </div>
             <div class="card-footer text-end">
+                {% if request.user.is_superuser or request.user.rol == 'coordinador' or request.user.rol == 'administrador' or request.user.rol == 'admin_institucion' or request.user.rol == 'rector' or request.user.rol == 'psicologo' %}<a href="{% url 'gestion_academica:editar_perfil_accesibilidad' estudiante.pk %}" class="btn btn-outline-primary me-2"><i class="bi bi-universal-access-circle"></i> {% trans "Accesibilidad" %}</a>{% endif %}
                 {% if perms.gestion_academica.change_estudiante %}<a href="{% url 'gestion_academica:editar_estudiante' estudiante.pk %}" class="btn btn-warning me-2"><i class="bi bi-pencil-square"></i> {% trans "Editar" %}</a>{% endif %}
                 {% if perms.gestion_academica.delete_estudiante %}<a href="{% url 'gestion_academica:eliminar_estudiante' estudiante.pk %}" class="btn btn-danger"><i class="bi bi-trash-fill"></i> {% trans "Eliminar" %}</a>{% endif %}
             </div>

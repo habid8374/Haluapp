@@ -119,6 +119,20 @@
                             {% endfor %}
                         </ul>
 
+                        {% with pa=e.perfil_accesibilidad %}
+                        {% if pa and pa.activo %}
+                        <h6 class="text-primary fw-bold mb-2"><i class="bi bi-universal-access-circle me-1"></i>{% trans "Apoyos de accesibilidad activos" %}</h6>
+                        <ul class="list-group list-group-flush mb-3">
+                            {% if pa.font != 'normal' %}<li class="list-group-item"><i class="bi bi-fonts me-2 text-primary"></i>{% trans "Tamaño de texto" %}: {{ pa.get_font_display }}</li>{% endif %}
+                            {% if pa.contrast %}<li class="list-group-item"><i class="bi bi-circle-half me-2 text-primary"></i>{% trans "Alto contraste" %}</li>{% endif %}
+                            {% if pa.dyslexia %}<li class="list-group-item"><i class="bi bi-type me-2 text-primary"></i>{% trans "Fuente legible" %}</li>{% endif %}
+                            {% if pa.spacing %}<li class="list-group-item"><i class="bi bi-distribute-vertical me-2 text-primary"></i>{% trans "Más espaciado" %}</li>{% endif %}
+                            {% if pa.easy_read %}<li class="list-group-item"><i class="bi bi-book me-2 text-primary"></i>{% trans "Lectura fácil" %}</li>{% endif %}
+                            {% if pa.tiempo_extra_pct %}<li class="list-group-item"><i class="bi bi-clock-history me-2 text-primary"></i>{% trans "Tiempo extra en evaluaciones" %}: +{{ pa.tiempo_extra_pct }}%</li>{% endif %}
+                        </ul>
+                        {% endif %}
+                        {% endwith %}
+
                         <h6 class="text-primary fw-bold mb-2"><i class="bi bi-cash-coin me-1"></i>{% trans "Financiero" %}</h6>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between align-items-center"><strong>{% trans "Saldo Pendiente:" %}</strong> <span class="fw-bold {% if esta_en_mora %}text-danger{% else %}text-success{% endif %}">${{ saldo_pendiente|intcomma }}</span></li>
