@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 # Columnas esperadas en la plantilla Excel (en minúsculas, ya normalizadas).
-COLUMNAS_OBLIGATORIAS = ("nombres", "apellidos", "numero_documento", "grado_aspira", "fecha_nacimiento", "email_contacto")
+COLUMNAS_OBLIGATORIAS = ("primer_nombre", "primer_apellido", "numero_documento", "grado_aspira", "fecha_nacimiento", "email_contacto")
 
 
 class _FilaInvalida(Exception):
@@ -301,8 +301,19 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
     fecha_raw = row.get("fecha_nacimiento", "")
     fecha_str = str(fecha_raw or "").strip()
 
+    # Nombres SIMAT (4 campos). Se admite la plantilla antigua (nombres/apellidos)
+    # como respaldo para no romper archivos ya diligenciados.
+    primer_nombre = _v("primer_nombre") or _split2(_v("nombres"))[0]
+    segundo_nombre = _v("segundo_nombre") or _split2(_v("nombres"))[1]
+    primer_apellido = _v("primer_apellido") or _split2(_v("apellidos"))[0]
+    segundo_apellido = _v("segundo_apellido") or _split2(_v("apellidos"))[1]
+
     if not documento:
         raise _FilaInvalida("Falta el número de documento.")
+    if not primer_nombre:
+        raise _FilaInvalida("Falta el primer nombre.")
+    if not primer_apellido:
+        raise _FilaInvalida("Falta el primer apellido.")
     if not grado_nombre:
         raise _FilaInvalida("Falta el grado al que aspira.")
     if not fecha_str or fecha_str.lower() in {"nat", "none", "null", "nan"}:
@@ -369,8 +380,10 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
     return {
         "documento": documento,
         "grado": grado,
-        "nombres": _v("nombres") or "Sin nombre",
-        "apellidos": _v("apellidos") or "Sin apellido",
+        # El nombre "completo" (para mostrar y generar el usuario) se compone de
+        # los 4 campos SIMAT, que son la fuente única.
+        "nombres": " ".join(p for p in [primer_nombre, segundo_nombre] if p) or "Sin nombre",
+        "apellidos": " ".join(p for p in [primer_apellido, segundo_apellido] if p) or "Sin apellido",
         "fecha_nacimiento": fecha_nacimiento,
         "email_contacto": _v("email_contacto"),
         "telefono_contacto": _v("telefono_contacto") or None,
@@ -401,10 +414,10 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
         "srpa": _bool_si_no(_v("srpa")),
         "apoyo_academico_especial": _bool_si_no(_v("apoyo_academico_especial")),
         # ── SIMAT: identidad separada, ubicación DANE y matrícula ──
-        "primer_nombre": _v("primer_nombre") or _split2(_v("nombres"))[0],
-        "segundo_nombre": _v("segundo_nombre") or _split2(_v("nombres"))[1],
-        "primer_apellido": _v("primer_apellido") or _split2(_v("apellidos"))[0],
-        "segundo_apellido": _v("segundo_apellido") or _split2(_v("apellidos"))[1],
+        "primer_nombre": primer_nombre,
+        "segundo_nombre": segundo_nombre,
+        "primer_apellido": primer_apellido,
+        "segundo_apellido": segundo_apellido,
         "nacionalidad": _v("nacionalidad") or None,
         "barrio": _v("barrio") or None,
         "grupo": _v("grupo") or None,

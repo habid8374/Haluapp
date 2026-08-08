@@ -84,7 +84,13 @@ class CustomUserUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop('request', None)
+        # Cuando el nombre se captura como 4 campos SIMAT en otro formulario
+        # (p. ej. estudiante), se ocultan aquí para no duplicar la captura.
+        ocultar_nombre = kwargs.pop('ocultar_nombre', False)
         super().__init__(*args, **kwargs)
+        if ocultar_nombre:
+            self.fields.pop('first_name', None)
+            self.fields.pop('last_name', None)
         if request:
             self.fields['institucion_asociada'].queryset = filter_by_user_institution(self.fields['institucion_asociada'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
@@ -317,14 +323,16 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
     class Meta:
         model = CaracterizacionEstudiante
         fields = [
+            # ── Nombres SIMAT: fuente única del nombre (el login/nombre mostrado
+            #    se compone de estos 4 campos; por eso NO se piden en "Datos de
+            #    Usuario"). ──
+            'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
             'pais_origen', 'zona_residencia',
             'regimen_salud', 'discapacidad_categoria', 'capacidad_excepcional',
             'grupo_etnico', 'estrato', 'sisben_grupo', 'sisben_puntaje',
             'victima_conflicto', 'tipo_poblacion_victima',
             'srpa', 'apoyo_academico_especial',
             # ── SIMAT (espejo del Aspirante) ──
-            # (primer/segundo nombre y apellido NO se capturan aquí: se derivan
-            #  del nombre del usuario para no duplicar "Datos de Usuario".)
             'nacionalidad', 'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
             'pais_nacimiento', 'departamento_nacimiento', 'municipio_nacimiento',
             'departamento_residencia', 'municipio_residencia', 'barrio', 'campesino',
@@ -336,6 +344,10 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
             'internado', 'matricula_contratada', 'repitente', 'situacion_academica_anterior',
         ]
         widgets = {
+            'primer_nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'segundo_nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'primer_apellido': forms.TextInput(attrs={'class': 'form-control'}),
+            'segundo_apellido': forms.TextInput(attrs={'class': 'form-control'}),
             'pais_origen': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dejar en blanco si es Colombia'}),
             'zona_residencia': forms.Select(attrs={'class': 'form-select'}),
             'regimen_salud': forms.Select(attrs={'class': 'form-select'}),
@@ -360,10 +372,31 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
             if f in self.fields:
                 self.fields[f].required = False
 
+        # Nombres SIMAT: primer nombre y primer apellido obligatorios.
+        self.fields['primer_nombre'].required = True
+        self.fields['primer_apellido'].required = True
+        self.fields['segundo_nombre'].required = False
+        self.fields['segundo_apellido'].required = False
+        # Estudiante existente sin los 4 campos: prellenar desde el nombre del
+        # usuario (para que no se vean vacíos la primera vez).
+        inst = getattr(self, 'instance', None)
+        usuario = getattr(getattr(inst, 'estudiante', None), 'usuario', None)
+        if usuario is not None:
+            if not (inst.primer_nombre or '') and (usuario.first_name or ''):
+                pn = usuario.first_name.split()
+                self.fields['primer_nombre'].initial = pn[0] if pn else ''
+                self.fields['segundo_nombre'].initial = ' '.join(pn[1:])
+            if not (inst.primer_apellido or '') and (usuario.last_name or ''):
+                pa = usuario.last_name.split()
+                self.fields['primer_apellido'].initial = pa[0] if pa else ''
+                self.fields['segundo_apellido'].initial = ' '.join(pa[1:])
+
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.disable_csrf = True
         self.helper.layout = Layout(
+            Fieldset(_("Nombre completo (SIMAT)"),
+                'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido'),
             Fieldset(_("Identificación (SIMAT)"),
                 'nacionalidad', 'lugar_expedicion_departamento', 'lugar_expedicion_municipio'),
             Fieldset(_("Nacimiento y residencia (DANE)"),

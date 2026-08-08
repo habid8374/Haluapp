@@ -44,6 +44,29 @@ class AspiranteForm(forms.ModelForm):
             if not self.instance.pk and not (self.initial.get('grupo') or self.data.get('grupo')):
                 self.fields['grupo'].initial = '01'
 
+        # Nombres SIMAT: primer nombre y primer apellido obligatorios; los
+        # "segundo" son opcionales. Etiquetas claras (con asterisco los req.).
+        if 'primer_nombre' in self.fields:
+            self.fields['primer_nombre'].required = True
+            self.fields['primer_nombre'].label = _("Primer nombre")
+            self.fields['segundo_nombre'].required = False
+            self.fields['segundo_nombre'].label = _("Segundo nombre")
+            self.fields['primer_apellido'].required = True
+            self.fields['primer_apellido'].label = _("Primer apellido")
+            self.fields['segundo_apellido'].required = False
+            self.fields['segundo_apellido'].label = _("Segundo apellido")
+            # Aspirante antiguo sin los 4 campos: prellenar desde nombres/apellidos.
+            inst = self.instance
+            if inst and inst.pk:
+                if not inst.primer_nombre and (inst.nombres or ''):
+                    pn = inst.nombres.split()
+                    self.fields['primer_nombre'].initial = pn[0] if pn else ''
+                    self.fields['segundo_nombre'].initial = ' '.join(pn[1:])
+                if not inst.primer_apellido and (inst.apellidos or ''):
+                    pa = inst.apellidos.split()
+                    self.fields['primer_apellido'].initial = pa[0] if pa else ''
+                    self.fields['segundo_apellido'].initial = ' '.join(pa[1:])
+
         # Las FK a catálogos SIMAT no son obligatorias
         for f in ['lugar_expedicion_departamento', 'lugar_expedicion_municipio',
                   'departamento_nacimiento', 'municipio_nacimiento',
@@ -59,7 +82,8 @@ class AspiranteForm(forms.ModelForm):
         self.helper.layout = Layout(
             Fieldset(
                 _("1. Identificación"),
-                'nombres', 'apellidos',
+                'primer_nombre', 'segundo_nombre',
+                'primer_apellido', 'segundo_apellido',
                 'tipo_documento', 'numero_documento',
                 'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
                 'fecha_nacimiento', 'sexo', 'grupo_sanguineo',
@@ -103,7 +127,8 @@ class AspiranteForm(forms.ModelForm):
         # concepto. El nombre va completo (se separa al guardar); ubicación/EPS
         # van por desplegable de catálogo y se derivan los textos internos.
         fields = [
-            'nombres', 'apellidos', 'numero_documento', 'tipo_documento',
+            'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
+            'numero_documento', 'tipo_documento',
             'fecha_nacimiento',
             'email_contacto', 'telefono_contacto', 'grado_aspira',
             'sexo', 'grupo_sanguineo', 'discapacidad',
@@ -126,8 +151,10 @@ class AspiranteForm(forms.ModelForm):
             'acudiente_telefono',
         ]
         widgets = {
-            'nombres': forms.TextInput(attrs={'class': 'form-control'}),
-            'apellidos': forms.TextInput(attrs={'class': 'form-control'}),
+            'primer_nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'segundo_nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'primer_apellido': forms.TextInput(attrs={'class': 'form-control'}),
+            'segundo_apellido': forms.TextInput(attrs={'class': 'form-control'}),
             'numero_documento': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo_documento': forms.Select(attrs={'class': 'form-select'}),
             'fecha_nacimiento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),
@@ -169,15 +196,17 @@ class AspiranteForm(forms.ModelForm):
         }
 
     def save(self, commit=True):
-        """Deriva los campos internos desde la selección (sin duplicar columnas):
-        separa nombres/apellidos y toma el texto de ubicación/EPS de las FK."""
+        """Compone nombres/apellidos completos desde los 4 campos SIMAT (fuente
+        única) y toma el texto de ubicación/EPS de las FK de catálogo."""
         obj = super().save(commit=False)
-        pn = (obj.nombres or '').split()
-        obj.primer_nombre = (pn[0] if pn else '')[:60]
-        obj.segundo_nombre = (' '.join(pn[1:]))[:60]
-        pa = (obj.apellidos or '').split()
-        obj.primer_apellido = (pa[0] if pa else '')[:60]
-        obj.segundo_apellido = (' '.join(pa[1:]))[:60]
+        # Los 4 campos SIMAT son la fuente; el nombre "completo" (para mostrar y
+        # generar el usuario/login) se arma a partir de ellos.
+        obj.primer_nombre = (obj.primer_nombre or '').strip()[:60]
+        obj.segundo_nombre = (obj.segundo_nombre or '').strip()[:60]
+        obj.primer_apellido = (obj.primer_apellido or '').strip()[:60]
+        obj.segundo_apellido = (obj.segundo_apellido or '').strip()[:60]
+        obj.nombres = ' '.join(p for p in [obj.primer_nombre, obj.segundo_nombre] if p)[:150]
+        obj.apellidos = ' '.join(p for p in [obj.primer_apellido, obj.segundo_apellido] if p)[:150]
         if obj.municipio_nacimiento_id:
             try:
                 obj.lugar_nacimiento = f"{obj.municipio_nacimiento.nombre}, {obj.municipio_nacimiento.departamento.nombre}"
@@ -202,11 +231,13 @@ class ImportarAspirantesForm(forms.Form):
         label=_("Selecciona un archivo Excel (.xlsx)"),
         help_text=(
             "Usa la plantilla oficial. Columnas obligatorias: "
-            "'nombres', 'apellidos', 'numero_documento', 'fecha_nacimiento' (AAAA-MM-DD o DD/MM/AAAA), "
+            "'primer_nombre', 'primer_apellido', 'numero_documento', "
+            "'fecha_nacimiento' (AAAA-MM-DD o DD/MM/AAAA), "
             "'email_contacto', 'grado_aspira' (nombre exacto del grado), 'paga_inscripcion' (SI/NO). "
-            "Columnas opcionales: 'tipo_documento' (TI/CC/RC/PA/CE/OT), 'lugar_nacimiento', "
-            "'telefono_contacto', 'sexo' (M/F/O), 'grupo_sanguineo' (A+/O-/…), 'eps', "
-            "'discapacidad', 'colegio_procedencia', 'municipio_ciudad', 'departamento', 'direccion'."
+            "Columnas opcionales: 'segundo_nombre', 'segundo_apellido', "
+            "'tipo_documento' (TI/CC/RC/PA/CE/OT), "
+            "'telefono_contacto', 'sexo' (M/F/O), 'grupo_sanguineo' (A+/O-/…), "
+            "'discapacidad', 'colegio_procedencia', 'direccion'."
         ),
         widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.xlsx'}),
     )

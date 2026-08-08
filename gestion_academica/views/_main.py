@@ -1043,17 +1043,22 @@ def editar_estudiante(request, pk):
         defaults={'institucion': estudiante.institucion},
     )
     if request.method == 'POST':
-        usuario_form = CustomUserUpdateForm(request.POST, instance=usuario, prefix="usr", request=request)
+        usuario_form = CustomUserUpdateForm(request.POST, instance=usuario, prefix="usr", request=request, ocultar_nombre=True)
         estudiante_form = EstudianteForm(request.POST, request.FILES or None, instance=estudiante, prefix="est", request=request)
         caracterizacion_form = CaracterizacionEstudianteForm(request.POST, instance=caracterizacion, prefix="car")
         if usuario_form.is_valid() and estudiante_form.is_valid() and caracterizacion_form.is_valid():
-            usuario = usuario_form.save()
+            usuario = usuario_form.save(commit=False)
             estudiante = estudiante_form.save()
             caracterizacion = caracterizacion_form.save(commit=False)
             # La institución nunca se edita desde el form: se fija desde el estudiante.
             caracterizacion.institucion = estudiante.institucion
-            # Nombres SIMAT separados: se derivan del usuario (no se duplican).
-            caracterizacion.aplicar_nombres_desde(usuario)
+            # Nombres SIMAT (4 campos) = fuente única. El nombre mostrado y el
+            # login del usuario se COMPONEN a partir de ellos (no se duplican).
+            usuario.first_name = ' '.join(p for p in [
+                caracterizacion.primer_nombre, caracterizacion.segundo_nombre] if p).strip()
+            usuario.last_name = ' '.join(p for p in [
+                caracterizacion.primer_apellido, caracterizacion.segundo_apellido] if p).strip()
+            usuario.save()
             # Sede/jornada/grupo se DERIVAN del Grupo elegido (fuente única): así
             # la caracterización SIMAT y el estudiante quedan siempre coherentes.
             grupo_sel = getattr(estudiante, 'grupo', None)
@@ -1104,7 +1109,7 @@ def editar_estudiante(request, pk):
                 return redirect('gestion_academica:lista_grados_para_estudiantes')
 
     else:
-        usuario_form = CustomUserUpdateForm(instance=usuario, prefix="usr", request=request)
+        usuario_form = CustomUserUpdateForm(instance=usuario, prefix="usr", request=request, ocultar_nombre=True)
         estudiante_form = EstudianteForm(instance=estudiante, prefix="est", request=request)
         caracterizacion_form = CaracterizacionEstudianteForm(instance=caracterizacion, prefix="car")
 

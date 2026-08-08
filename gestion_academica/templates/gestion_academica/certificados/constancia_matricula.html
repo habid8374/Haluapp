@@ -116,7 +116,7 @@
         <p>
             Que el/la estudiante <strong>{{ estudiante.usuario.get_full_name|upper }}</strong>, identificado(a) con documento de identidad No. 
             <strong>{{ estudiante.documento_identidad }}</strong>, se encuentra legalmente matriculado(a) y cursando el grado 
-            <strong>{{ estudiante.grado_actual.nombre|upper }}</strong> de Educación Básica para el año lectivo 
+            <strong>{{ estudiante.grado_actual.nombre|upper }}{% if estudiante.grupo %} - GRUPO {{ estudiante.grupo.nombre }}{% endif %}</strong> de Educación Básica para el año lectivo
             <strong>{{ periodo_activo.año_escolar }}</strong> en esta Institución Educativa, según los planes y programas vigentes,
             contemplados en la Ley 115 de Educación Nacional y su Decreto Reglamentario 1290 de 2009.
         </p>

@@ -464,14 +464,16 @@ def descargar_plantilla_importacion(request):
     # Cada par (columna, texto de ayuda) va junto para no desalinearse.
     columnas = [
         # Obligatorias (las primeras 7)
-        ('nombres', 'Nombres completos'),
-        ('apellidos', 'Apellidos completos'),
+        ('primer_nombre', 'Primer nombre'),
+        ('primer_apellido', 'Primer apellido'),
         ('numero_documento', 'Documento de identidad'),
         ('fecha_nacimiento', 'DD/MM/AAAA o AAAA-MM-DD'),
         ('email_contacto', 'Correo electrónico'),
         ('grado_aspira', 'Selecciona (lista)'),
         ('paga_inscripcion', 'SI o NO'),
         # Datos básicos
+        ('segundo_nombre', 'Segundo nombre (opcional)'),
+        ('segundo_apellido', 'Segundo apellido (opcional)'),
         ('tipo_documento', 'Selecciona (lista)'),
         ('telefono_contacto', 'Teléfono'),
         ('sexo', 'Selecciona (lista)'),
@@ -575,8 +577,25 @@ def descargar_plantilla_importacion(request):
         con_codigo=False,
     )
 
+    def _lista_valores(nombre_hoja, valores):
+        """Devuelve una fórmula de validación por lista. Si la lista inline
+        superaría el tope de Excel (255 caracteres), la vuelca en una hoja
+        oculta y devuelve el rango — así el archivo nunca queda corrupto."""
+        vals = [str(v).strip() for v in valores if str(v).strip()]
+        if not vals:
+            return ''
+        inline = '"' + ",".join(vals) + '"'
+        if len(inline) <= 255:
+            return inline
+        hoja = wb.create_sheet(nombre_hoja)
+        hoja.append(["valor"])
+        for v in vals:
+            hoja.append([v])
+        hoja.sheet_state = "hidden"
+        return f"='{nombre_hoja}'!$A$2:$A${len(vals) + 1}"
+
     grados = Grado.objects.filter(institucion=institucion).order_by('orden')
-    ref_grado = ('"' + ",".join(g.nombre for g in grados) + '"') if grados.exists() else ''
+    ref_grado = _lista_valores("CAT_GRADO", [g.nombre for g in grados])
 
     # Grupos/secciones existentes en la institución (nombres). Siempre "01".
     from gestion_academica.models import Grupo
@@ -584,7 +603,7 @@ def descargar_plantilla_importacion(request):
         Grupo.objects.filter(institucion=institucion, activo=True)
         .values_list('nombre', flat=True)
     ) | {'01'})
-    ref_grupo = ('"' + ",".join(nombres_grupo) + '"') if nombres_grupo else ''
+    ref_grupo = _lista_valores("CAT_GRUPO", nombres_grupo)
 
     # TODAS las validaciones en un solo lugar, por NOMBRE de columna (robusto
     # ante cambios de orden). Fórmula = lista inline o rango de catálogo.

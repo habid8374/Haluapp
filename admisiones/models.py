@@ -440,6 +440,8 @@ class Aspirante(models.Model):
                 defaults={'institucion': estudiante.institucion},
             )
             campos = [
+                # Nombres SIMAT (4 campos) tal como se capturaron en la admisión.
+                'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
                 'pais_origen', 'zona_residencia', 'regimen_salud',
                 'discapacidad_categoria', 'capacidad_excepcional', 'grupo_etnico',
                 'estrato', 'sisben_grupo', 'sisben_puntaje',

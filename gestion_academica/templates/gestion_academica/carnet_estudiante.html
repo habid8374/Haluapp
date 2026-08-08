@@ -94,7 +94,7 @@
                 {{ estudiante.institucion.nombre|upper }}
             </div>
             <p class="carnet-nombre">{{ estudiante.usuario.get_full_name }}</p>
-            <p class="carnet-grado"><strong>Grado:</strong> {{ estudiante.grado_actual.nombre }}</p>
+            <p class="carnet-grado"><strong>Grado:</strong> {{ estudiante.grado_actual.nombre }}{% if estudiante.grupo %} · {{ estudiante.grupo.nombre }}{% endif %}</p>
             <p class="carnet-id"><strong>ID:</strong> {{ estudiante.documento_identidad }}</p>
             <div class="carnet-footer">
                 Carnet Estudiantil
