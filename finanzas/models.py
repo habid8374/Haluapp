@@ -225,6 +225,17 @@ class InstitucionEducativa(models.Model):
     def __str__(self):
         return self.nombre
 
+    def es_multisede(self):
+        """Disparador de features por sede: True si la institución tiene 2+ sedes
+        ACTIVAS. La UI usa esto para 'revelación progresiva': un colegio de una
+        sola sede NO ve controles de sede (usa la Principal por defecto); uno con
+        varias sedes SÍ ve los filtros/selectores de sede. Así el sistema se
+        adapta solo, sin ruido para la mayoría."""
+        try:
+            return self.sedes.filter(activa=True).count() > 1
+        except Exception:
+            return False
+
     def clean(self):
         super().clean()
         errs = {}

@@ -421,6 +421,13 @@ class Estudiante(models.Model):
     
     qr_identifier = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, verbose_name=_("Identificador Único para QR"))
 
+    # Sede a la que pertenece el estudiante (Opción A: atributo, no jerarquía).
+    # Para colegios de una sola sede se resuelve a la Sede Principal por defecto.
+    sede = models.ForeignKey(
+        'simat.Sede', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='estudiantes', verbose_name=_("Sede"),
+    )
+
     # ------------------------------------------------------------------
     # Estado financiero (usado por el bloqueo del portal — Fase C)
     # ------------------------------------------------------------------
