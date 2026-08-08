@@ -1098,9 +1098,21 @@ def simplificar_enunciado_ia(request, pregunta_pk):
         pk=pregunta_pk,
     )
     institucion = _institucion_de_pregunta(pregunta)
-    # Aislamiento por institución (salvo superusuario).
+    actividad = pregunta.cuestionario.actividad_calificable
+    # Aislamiento multi-institución + acceso real a la actividad (salvo superusuario):
+    # 1) mismo colegio; 2) que sea su curso (estudiante) o esté asignado (docente) o
+    #    sea personal de la institución. Evita fugas y gasto de créditos ajenos.
     if not request.user.is_superuser:
         if getattr(request.user, 'institucion_asociada_id', None) != getattr(institucion, 'pk', None):
+            return HttpResponseForbidden("No autorizado.")
+        tiene_acceso = False
+        if hasattr(request.user, 'estudiante') and estudiante_en_curso_actividad(request.user.estudiante, actividad):
+            tiene_acceso = True
+        elif hasattr(request.user, 'docente') and docente_asignado_a_actividad(request.user, actividad):
+            tiene_acceso = True
+        elif request.user.is_staff:
+            tiene_acceso = True
+        if not tiene_acceso:
             return HttpResponseForbidden("No autorizado.")
 
     if pregunta.enunciado_simple:
