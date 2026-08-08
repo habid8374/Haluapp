@@ -1047,11 +1047,13 @@ def editar_estudiante(request, pk):
         estudiante_form = EstudianteForm(request.POST, request.FILES or None, instance=estudiante, prefix="est", request=request)
         caracterizacion_form = CaracterizacionEstudianteForm(request.POST, instance=caracterizacion, prefix="car")
         if usuario_form.is_valid() and estudiante_form.is_valid() and caracterizacion_form.is_valid():
-            usuario_form.save()
+            usuario = usuario_form.save()
             estudiante_form.save()
             caracterizacion = caracterizacion_form.save(commit=False)
             # La institución nunca se edita desde el form: se fija desde el estudiante.
             caracterizacion.institucion = estudiante.institucion
+            # Nombres SIMAT separados: se derivan del usuario (no se duplican).
+            caracterizacion.aplicar_nombres_desde(usuario)
             caracterizacion.save()
 
             # --- CORRECCIÓN DE LA REDIRECCIÓN ---

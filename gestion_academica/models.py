@@ -678,6 +678,17 @@ class CaracterizacionEstudiante(models.Model):
     def __str__(self):
         return f"Caracterización de {self.estudiante}"
 
+    def aplicar_nombres_desde(self, usuario):
+        """Deriva primer/segundo nombre y apellido del nombre del usuario, para
+        no duplicar la captura (el nombre se ingresa una sola vez en el usuario).
+        SIMAT los exige separados; aquí se calculan automáticamente."""
+        pn = ((usuario.first_name if usuario else '') or '').split()
+        self.primer_nombre = (pn[0] if pn else '')[:60]
+        self.segundo_nombre = (' '.join(pn[1:]))[:60]
+        pa = ((usuario.last_name if usuario else '') or '').split()
+        self.primer_apellido = (pa[0] if pa else '')[:60]
+        self.segundo_apellido = (' '.join(pa[1:]))[:60]
+
 
 class Docente(models.Model):
     class ModalidadLiquidacion(models.TextChoices):

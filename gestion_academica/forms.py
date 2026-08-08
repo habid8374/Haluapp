@@ -310,7 +310,8 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
             'victima_conflicto', 'tipo_poblacion_victima',
             'srpa', 'apoyo_academico_especial',
             # ── SIMAT (espejo del Aspirante) ──
-            'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
+            # (primer/segundo nombre y apellido NO se capturan aquí: se derivan
+            #  del nombre del usuario para no duplicar "Datos de Usuario".)
             'nacionalidad', 'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
             'pais_nacimiento', 'departamento_nacimiento', 'municipio_nacimiento',
             'departamento_residencia', 'municipio_residencia', 'barrio', 'campesino',
@@ -353,7 +354,6 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
         self.helper.disable_csrf = True
         self.helper.layout = Layout(
             Fieldset(_("Identificación (SIMAT)"),
-                'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
                 'nacionalidad', 'lugar_expedicion_departamento', 'lugar_expedicion_municipio'),
             Fieldset(_("Nacimiento y residencia (DANE)"),
                 'pais_origen', 'pais_nacimiento', 'departamento_nacimiento', 'municipio_nacimiento',
