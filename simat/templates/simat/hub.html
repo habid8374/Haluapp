@@ -53,6 +53,23 @@
   <i class="bi bi-info-circle me-1"></i>{% trans "El SIMAT genera el reporte plano \"en CSV\" y lo entrega como archivo de texto (.txt): ese es el formato oficial para subir. El .csv es el mismo contenido (útil para abrir en Excel), y el Excel es para revisar antes de subir." %}
 </p>
 
+<div class="card shadow-sm mt-4">
+  <div class="card-body">
+    <h6 class="fw-bold mb-1"><i class="bi bi-upc-scan me-1"></i>{% trans "PER_ID del SIMAT (men_per_id)" %}</h6>
+    <p class="text-muted mb-3" style="font-size:.85rem;">{% trans "Descarga la plantilla con tus estudiantes, escribe el PER_ID que devuelve el SIMAT en la columna men_per_id y vuelve a subirla. El sistema lo asigna a cada estudiante (por documento)." %}</p>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <a href="{% url 'simat:plantilla_men_per_id' %}" class="btn btn-outline-primary">
+        <i class="bi bi-download me-1"></i>{% trans "Descargar plantilla men_per_id" %}
+      </a>
+      <form method="post" action="{% url 'simat:cargar_men_per_id' %}" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
+        {% csrf_token %}
+        <input type="file" name="archivo" accept=".xlsx" class="form-control" style="max-width:280px;" required>
+        <button type="submit" class="btn btn-success"><i class="bi bi-upload me-1"></i>{% trans "Subir y asignar" %}</button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <div class="alert alert-info mt-4" style="font-size:.85rem;">
   <i class="bi bi-info-circle me-1"></i>{% trans "El reporte incluye los datos que la plataforma ya tiene. Los campos codificados (municipios DANE, sede, etc.) se llenan a medida que se capturan en admisiones. Antes de subirlo al SIMAT, valida las columnas contra la plantilla oficial vigente de tu Secretaría de Educación." %}
 </div>

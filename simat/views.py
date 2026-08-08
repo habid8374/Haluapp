@@ -6,6 +6,8 @@ multi-institución: solo exporta la institución del usuario (el superusuario
 puede pasar ?institucion=<id>). Los campos que HALU aún no captura salen en
 blanco (se completan con la Fase 2 de captura).
 """
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -202,7 +204,7 @@ def _fila_oficial(asp, institucion, anio, contador):
         'dane_sede': _txt(sede.codigo_dane_sede) if sede else '',
         'consecutivo_sede': _txt(sede.consecutivo) if sede else '',
         'sede': _txt(sede.nombre) if sede else '',
-        'prestacion_servicio': '',
+        'prestacion_servicio': _txt(getattr(institucion, 'simat_prestacion_servicio', '')),
         'expedicion_departamento_id': _fk_cod(asp.lugar_expedicion_departamento),
         'expedicion_municipio_id': _fk_cod(asp.lugar_expedicion_municipio),
         'dir_departamento_id': _fk_cod(asp.departamento_residencia),
@@ -358,6 +360,118 @@ def exportar_reporte_simat_txt(request):
     resp['Content-Disposition'] = f'attachment; filename="reporte_simat_{anio}.txt"'
     _escribir_reporte_delimitado(resp, institucion, delimiter='\t')
     return resp
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  men_per_id (PER_ID del SIMAT) — carga masiva por Excel (ida y vuelta)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+def descargar_plantilla_men_per_id(request):
+    """Genera un Excel con los estudiantes matriculados (documento, nombres,
+    sede, grado, grupo) y una columna men_per_id para que el usuario la llene con
+    el PER_ID que devuelve el SIMAT y la vuelva a subir."""
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from admisiones.models import Aspirante
+
+    institucion = _institucion_de(request)
+    if institucion is None:
+        raise PermissionDenied("Sin institución asociada.")
+
+    aspirantes = (
+        Aspirante.objects
+        .filter(institucion=institucion, estado=Aspirante.EstadoAdmision.MATRICULADO)
+        .select_related('sede', 'grado_aspira', 'estudiante_creado', 'estudiante_creado__grupo')
+        .order_by('primer_apellido', 'primer_nombre', 'apellidos')
+    )
+    cols = ['documento', 'apellidos', 'nombres', 'sede', 'grado', 'grupo', 'men_per_id']
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "MEN_PER_ID"
+    ws.append(cols)
+    for i, cell in enumerate(ws[1], start=1):
+        cell.fill = PatternFill(start_color="0F3460", end_color="0F3460", fill_type="solid")
+        cell.font = Font(bold=True, color="FFFFFF", size=10)
+        cell.alignment = Alignment(horizontal='center')
+    for asp in aspirantes.iterator():
+        est = getattr(asp, 'estudiante_creado', None)
+        grupo = est.grupo.nombre if (est and getattr(est, 'grupo_id', None)) else _txt(asp.grupo)
+        apellidos = ' '.join(p for p in [asp.primer_apellido, asp.segundo_apellido] if p) or _txt(asp.apellidos)
+        nombres = ' '.join(p for p in [asp.primer_nombre, asp.segundo_nombre] if p) or _txt(asp.nombres)
+        ws.append([
+            _txt(asp.numero_documento), apellidos, nombres,
+            _txt(asp.sede.nombre) if asp.sede else '',
+            _txt(asp.grado_aspira.nombre) if asp.grado_aspira_id else '',
+            _txt(grupo), _txt(asp.simat_per_id),
+        ])
+    for col_cells in ws.columns:
+        w = max((len(str(c.value or '')) for c in col_cells), default=10)
+        ws.column_dimensions[col_cells[0].column_letter].width = min(max(w + 2, 12), 40)
+    ws.freeze_panes = "A2"
+    resp = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    resp['Content-Disposition'] = 'attachment; filename="plantilla_men_per_id.xlsx"'
+    wb.save(resp)
+    return resp
+
+
+@login_required
+def cargar_men_per_id(request):
+    """Recibe el Excel de plantilla_men_per_id con la columna men_per_id llena y
+    asigna el PER_ID a cada estudiante (cruzando por documento, en la institución)."""
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    institucion = _institucion_de(request)
+    if institucion is None:
+        raise PermissionDenied("Sin institución asociada.")
+    if request.method == 'POST' and request.FILES.get('archivo'):
+        from openpyxl import load_workbook
+        from admisiones.models import Aspirante
+        archivo = request.FILES['archivo']
+        if not archivo.name.lower().endswith('.xlsx'):
+            messages.error(request, _("El archivo debe ser un Excel (.xlsx)."))
+            return redirect('simat:hub')
+        try:
+            wb = load_workbook(archivo, read_only=True, data_only=True)
+            ws = wb.active
+            filas = ws.iter_rows(values_only=True)
+            encabezados = [str(h).strip().lower() if h is not None else '' for h in next(filas)]
+            if 'documento' not in encabezados or 'men_per_id' not in encabezados:
+                messages.error(request, _("El archivo debe tener las columnas 'documento' y 'men_per_id'."))
+                return redirect('simat:hub')
+            i_doc = encabezados.index('documento')
+            i_men = encabezados.index('men_per_id')
+            actualizados, sin_match = 0, 0
+            for fila in filas:
+                if fila is None or len(fila) <= max(i_doc, i_men):
+                    continue
+                doc = str(fila[i_doc]).strip() if fila[i_doc] is not None else ''
+                men = str(fila[i_men]).strip() if fila[i_men] is not None else ''
+                if not doc or not men:
+                    continue
+                asp = Aspirante.objects.filter(institucion=institucion, numero_documento=doc).first()
+                if not asp:
+                    sin_match += 1
+                    continue
+                asp.simat_per_id = men[:20]
+                asp.save(update_fields=['simat_per_id'])
+                est = getattr(asp, 'estudiante_creado', None)
+                if est is not None:
+                    car = getattr(est, 'caracterizacion', None)
+                    if car is not None:
+                        car.simat_per_id = men[:20]
+                        car.save(update_fields=['simat_per_id'])
+                actualizados += 1
+            msg = _("Se asignaron %(n)s PER_ID (men_per_id).") % {'n': actualizados}
+            if sin_match:
+                msg += _(" %(s)s documento(s) no coincidieron con ningún estudiante.") % {'s': sin_match}
+            messages.success(request, msg)
+        except Exception:
+            logging.getLogger(__name__).exception("Error cargando men_per_id (institución=%s)", getattr(institucion, 'pk', None))
+            messages.error(request, _("No se pudo leer el archivo. Verifica que sea el Excel de la plantilla."))
+    return redirect('simat:hub')
 
 
 @login_required

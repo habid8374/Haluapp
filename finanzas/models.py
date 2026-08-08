@@ -70,6 +70,11 @@ class InstitucionEducativa(models.Model):
         choices=[('OFICIAL', 'Oficial'), ('NO_OFICIAL', 'No oficial')],
         verbose_name="SIMAT · Sector",
     )
+    simat_prestacion_servicio = models.CharField(
+        max_length=2, blank=True, verbose_name="SIMAT · Prestación del servicio",
+        help_text="Código de prestación del servicio que asigna el MEN al establecimiento "
+                  "(según la Secretaría de Educación). Se usa en el reporte plano.",
+    )
     simat_consecutivo_sede_automatico = models.BooleanField(
         default=True, verbose_name="SIMAT · Numerar consecutivo de sedes automáticamente",
         help_text="Si está activo, al crear una sede el sistema le asigna el consecutivo "

@@ -63,7 +63,7 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
             'description': 'Datos oficiales para el reporte de matrícula SIMAT. '
                            'El código DANE de la institución se toma de "Información para Boletines". '
                            'Las sedes se administran en SIMAT › Sedes.',
-            'fields': ('simat_municipio_etc', 'simat_calendario', 'simat_sector', 'simat_consecutivo_sede_automatico'),
+            'fields': ('simat_municipio_etc', 'simat_calendario', 'simat_sector', 'simat_prestacion_servicio', 'simat_consecutivo_sede_automatico'),
         }),
         ('Configuración de Pagos', {
             'classes': ('collapse',),
