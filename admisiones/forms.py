@@ -26,6 +26,8 @@ class AspiranteForm(forms.ModelForm):
             if institucion:
                 self.fields['grado_aspira'].queryset = Grado.objects.filter(institucion=institucion)
                 self.fields['sede'].queryset = Sede.objects.filter(institucion=institucion, activa=True)
+                if not self.instance.pk:
+                    self.fields['sede'].initial = Sede.principal_de(institucion)
 
         # Las FK a catálogos SIMAT no son obligatorias
         for f in ['lugar_expedicion_departamento', 'lugar_expedicion_municipio',

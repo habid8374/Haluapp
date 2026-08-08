@@ -140,3 +140,29 @@ class Sede(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    @classmethod
+    def principal_de(cls, institucion):
+        """Devuelve la sede principal (o la primera activa) de la institución."""
+        if institucion is None:
+            return None
+        qs = cls.objects.filter(institucion=institucion, activa=True)
+        return qs.filter(es_principal=True).first() or qs.first()
+
+    @classmethod
+    def asegurar_principal(cls, institucion):
+        """Garantiza que la institución tenga una Sede Principal (la crea si no).
+        Idempotente: si ya hay sedes, no crea otra."""
+        if institucion is None:
+            return None
+        existente = cls.objects.filter(institucion=institucion).order_by('-es_principal').first()
+        if existente:
+            return existente
+        return cls.objects.create(
+            institucion=institucion,
+            nombre='Sede Principal',
+            codigo_dane_sede=(getattr(institucion, 'codigo_dane', '') or '')[:20],
+            zona='URBANA',
+            es_principal=True,
+            activa=True,
+        )

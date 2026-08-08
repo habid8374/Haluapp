@@ -7,4 +7,9 @@ app_name = 'simat'
 urlpatterns = [
     path('', views.hub_simat, name='hub'),
     path('reporte/exportar/', views.exportar_reporte_simat, name='exportar_reporte'),
+    # Sedes (institución-scoped)
+    path('sedes/', views.lista_sedes, name='lista_sedes'),
+    path('sedes/nueva/', views.crear_sede, name='crear_sede'),
+    path('sedes/<int:pk>/editar/', views.editar_sede, name='editar_sede'),
+    path('sedes/<int:pk>/eliminar/', views.eliminar_sede, name='eliminar_sede'),
 ]

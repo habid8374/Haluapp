@@ -347,6 +347,19 @@ class Aspirante(models.Model):
         #     para no borrar datos ya cargados manualmente.
         self._sincronizar_caracterizacion(estudiante_obj)
 
+        # 2.b.bis Si no se eligió sede, se asigna la Sede Principal de la institución.
+        if not self.sede_id:
+            try:
+                from simat.models import Sede
+                principal = Sede.principal_de(self.institucion) or Sede.asegurar_principal(self.institucion)
+                if principal:
+                    self.sede = principal
+                    self.save(update_fields=['sede'])
+            except Exception:
+                logging.getLogger(__name__).exception(
+                    "No se pudo asignar sede por defecto al aspirante %s", self.pk
+                )
+
         # 2.c Crea/vincula el acudiente (Familiar) desde los datos de la fila.
         try:
             self._sincronizar_acudiente(estudiante_obj)

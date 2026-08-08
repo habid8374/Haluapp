@@ -6,11 +6,13 @@ multi-institución: solo exporta la institución del usuario (el superusuario
 puede pasar ?institucion=<id>). Los campos que HALU aún no captura salen en
 blanco (se completan con la Fase 2 de captura).
 """
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 
 # Orden EXACTO de columnas del Reporte Plano del SIMAT.
@@ -191,3 +193,86 @@ def hub_simat(request):
         'matriculados': matriculados,
         'faltan_config': faltan_config,
     })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  CRUD de Sedes (institución-scoped)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+def lista_sedes(request):
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from .models import Sede
+    institucion = _institucion_de(request)
+    if institucion is None:
+        raise PermissionDenied("Sin institución asociada.")
+    # Garantiza al menos la Sede Principal (por si es una institución antigua).
+    Sede.asegurar_principal(institucion)
+    sedes = Sede.objects.filter(institucion=institucion).order_by('-es_principal', 'nombre')
+    return render(request, 'simat/sedes_lista.html', {
+        'titulo_pagina': _('Sedes'),
+        'institucion': institucion,
+        'sedes': sedes,
+    })
+
+
+@login_required
+def crear_sede(request):
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from .forms import SedeForm
+    institucion = _institucion_de(request)
+    if institucion is None:
+        raise PermissionDenied("Sin institución asociada.")
+    if request.method == 'POST':
+        form = SedeForm(request.POST)
+        if form.is_valid():
+            sede = form.save(commit=False)
+            sede.institucion = institucion
+            sede.save()
+            messages.success(request, _("Sede «%(n)s» creada.") % {'n': sede.nombre})
+            return redirect('simat:lista_sedes')
+    else:
+        form = SedeForm()
+    return render(request, 'simat/sede_form.html', {
+        'titulo_pagina': _('Nueva sede'), 'form': form, 'institucion': institucion,
+    })
+
+
+@login_required
+def editar_sede(request, pk):
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from .forms import SedeForm
+    from .models import Sede
+    institucion = _institucion_de(request)
+    sede = get_object_or_404(Sede, pk=pk, institucion=institucion)
+    if request.method == 'POST':
+        form = SedeForm(request.POST, instance=sede)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Sede «%(n)s» actualizada.") % {'n': sede.nombre})
+            return redirect('simat:lista_sedes')
+    else:
+        form = SedeForm(instance=sede)
+    return render(request, 'simat/sede_form.html', {
+        'titulo_pagina': _('Editar sede'), 'form': form, 'institucion': institucion, 'sede': sede,
+    })
+
+
+@login_required
+def eliminar_sede(request, pk):
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from .models import Sede
+    institucion = _institucion_de(request)
+    sede = get_object_or_404(Sede, pk=pk, institucion=institucion)
+    if request.method == 'POST':
+        if sede.es_principal:
+            messages.error(request, _("No puedes eliminar la Sede Principal."))
+        else:
+            nombre = sede.nombre
+            sede.delete()
+            messages.success(request, _("Sede «%(n)s» eliminada.") % {'n': nombre})
+    return redirect('simat:lista_sedes')

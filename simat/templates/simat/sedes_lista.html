@@ -1,0 +1,97 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{% trans "Sedes" %}{% endblock %}
+
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #0d3b66 0%, #1d4ed8 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem;">
+  <h2 style="color:#fff;"><i class="bi bi-buildings"></i> {% trans "Sedes de la institución" %}</h2>
+  <p style="color:#fff;">{% trans "Administra las sedes de tu colegio. La Sede Principal siempre existe; agrega sedes anexas si tu institución tiene varias (obligatorio para el reporte SIMAT)." %}</p>
+</div>
+
+<div class="d-flex justify-content-end mb-3">
+  <a href="{% url 'simat:crear_sede' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>{% trans "Nueva sede" %}</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% trans "Nombre" %}</th>
+            <th>{% trans "Código DANE" %}</th>
+            <th>{% trans "Consecutivo" %}</th>
+            <th>{% trans "Zona" %}</th>
+            <th>{% trans "Jornada" %}</th>
+            <th>{% trans "Estado" %}</th>
+            <th class="text-end">{% trans "Acciones" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for sede in sedes %}
+          <tr>
+            <td>
+              {{ sede.nombre }}
+              {% if sede.es_principal %}<span class="badge bg-primary ms-1"><i class="bi bi-star-fill me-1"></i>{% trans "Principal" %}</span>{% endif %}
+            </td>
+            <td>{{ sede.codigo_dane_sede|default:"—" }}</td>
+            <td>{{ sede.consecutivo|default:"—" }}</td>
+            <td>{{ sede.get_zona_display|default:"—" }}</td>
+            <td>{{ sede.get_jornada_principal_display|default:"—" }}</td>
+            <td>
+              {% if sede.activa %}<span class="badge bg-success">{% trans "Activa" %}</span>
+              {% else %}<span class="badge bg-secondary">{% trans "Inactiva" %}</span>{% endif %}
+            </td>
+            <td class="text-end">
+              <a href="{% url 'simat:editar_sede' sede.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil-fill"></i></a>
+              {% if not sede.es_principal %}
+              <button type="button" class="btn btn-sm btn-outline-danger"
+                      data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                      data-action="{% url 'simat:eliminar_sede' sede.pk %}"
+                      data-nombre="{{ sede.nombre }}"><i class="bi bi-trash-fill"></i></button>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-muted text-center py-4">{% trans "Aún no hay sedes." %}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-bold mb-1">{% trans "¿Eliminar esta sede?" %}</h5>
+        <p id="modal-eliminar-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Esta acción no se puede deshacer." %}</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="form-eliminar" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('[data-bs-target="#modalEliminar"]').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-eliminar').action = this.dataset.action;
+    document.getElementById('modal-eliminar-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
+{% endblock %}
