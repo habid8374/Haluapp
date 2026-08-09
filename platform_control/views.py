@@ -190,6 +190,40 @@ def dashboard(request):
 # Gestión de instituciones
 # ---------------------------------------------------------------------------
 
+@_superadmin_required
+def consumo_ia_global(request):
+    """Panel consolidado del consumo de IA de TODAS las instituciones (mes actual)."""
+    from finanzas.models import ConsumoIA
+    from django.utils import timezone
+    from decimal import Decimal
+    ahora = timezone.now()
+    anio = int(request.GET.get('anio') or ahora.year)
+    mes = int(request.GET.get('mes') or ahora.month)
+
+    filas = list(
+        ConsumoIA.objects
+        .filter(anio=anio, mes=mes)
+        .select_related('institucion')
+        .order_by('-costo_estimado_cop')
+    )
+    total_costo = sum((f.costo_estimado_cop for f in filas), Decimal('0'))
+    total_ops = sum((f.operaciones for f in filas), 0)
+    # Marca cuáles superaron su tope.
+    for f in filas:
+        tope = f.institucion.ia_tope_mensual_cop or 0
+        f.tope_cop = tope
+        f.supero = bool(tope and f.costo_estimado_cop >= tope)
+        f.pct = (float(f.costo_estimado_cop / tope * 100) if tope else None)
+
+    return render(request, "platform_control/consumo_ia.html", {
+        "filas": filas,
+        "anio": anio,
+        "mes": mes,
+        "total_costo": total_costo,
+        "total_ops": total_ops,
+    })
+
+
 @require_POST
 @_superadmin_required
 def toggle_institucion(request, pk):

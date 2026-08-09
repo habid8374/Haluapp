@@ -1,0 +1,64 @@
+{% extends "base_academico.html" %}
+{% load humanize %}
+{% block titulo %}Consumo de IA — Plataforma{% endblock %}
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:18px; padding:1.75rem 2rem; color:white; margin-bottom:1.5rem;">
+  <h2 style="color:#fff;"><i class="bi bi-robot"></i> Consumo de IA — todas las instituciones</h2>
+  <p style="color:#fff; margin-bottom:0;">Costo estimado de IA (Gemini + Claude) por institución. Mes {{ mes }}/{{ anio }}.</p>
+</div>
+
+<div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+  <a href="{% url 'platform_control:dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+  <form method="get" class="d-flex gap-2 align-items-center ms-auto">
+    <input type="number" name="anio" value="{{ anio }}" class="form-control form-control-sm" style="width:110px;" placeholder="Año">
+    <input type="number" name="mes" value="{{ mes }}" min="1" max="12" class="form-control form-control-sm" style="width:90px;" placeholder="Mes">
+    <button class="btn btn-primary btn-sm">Ver</button>
+  </form>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6"><div class="card shadow-sm h-100"><div class="card-body text-center">
+    <div class="display-6 fw-bold text-primary">${{ total_costo|floatformat:0|intcomma }}</div>
+    <div class="text-muted">Costo estimado total del mes (COP)</div>
+  </div></div></div>
+  <div class="col-md-6"><div class="card shadow-sm h-100"><div class="card-body text-center">
+    <div class="display-6 fw-bold text-secondary">{{ total_ops|intcomma }}</div>
+    <div class="text-muted">Operaciones de IA del mes</div>
+  </div></div></div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Institución</th><th class="text-end">Operaciones</th>
+            <th class="text-end">Tokens</th><th class="text-end">Costo (COP)</th>
+            <th class="text-end">Tope (COP)</th><th class="text-center">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for f in filas %}
+          <tr>
+            <td>{{ f.institucion.nombre }}</td>
+            <td class="text-end">{{ f.operaciones|intcomma }}</td>
+            <td class="text-end">{{ f.tokens_in|add:f.tokens_out|intcomma }}</td>
+            <td class="text-end fw-bold">${{ f.costo_estimado_cop|floatformat:0|intcomma }}</td>
+            <td class="text-end">{% if f.tope_cop %}${{ f.tope_cop|floatformat:0|intcomma }}{% else %}<span class="text-muted">Sin tope</span>{% endif %}</td>
+            <td class="text-center">
+              {% if f.supero %}<span class="badge bg-danger">Superó el tope</span>
+              {% elif f.pct and f.pct >= 80 %}<span class="badge bg-warning text-dark">Cerca del tope</span>
+              {% else %}<span class="badge bg-success">OK</span>{% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">Sin consumo de IA registrado este mes.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<p class="text-muted small mt-2"><i class="bi bi-info-circle me-1"></i>El costo es estimado (tokens × tarifa aproximada, TRM en <code>finanzas/ia.py</code>). El tope se ajusta por institución en su configuración o desde el panel "Consumo de IA" del colegio.</p>
+{% endblock %}

@@ -9,6 +9,7 @@ urlpatterns = [
     path("verificar-2fa/",                      views.verificar_2fa_superadmin,   name="verificar_2fa"),
     path("lock/",                               views.lock_view,                  name="lock"),
     path("institucion/<int:pk>/toggle/",        views.toggle_institucion,         name="toggle_institucion"),
+    path("consumo-ia/",                         views.consumo_ia_global,          name="consumo_ia"),
     path("soporte/",                            views.tickets_view,               name="tickets"),
     path("soporte/<str:ticket_id>/",            views.ticket_detail_view,         name="ticket_detail"),
     path("soporte/<str:ticket_id>/cerrar/",     views.cerrar_ticket_view,         name="cerrar_ticket"),
