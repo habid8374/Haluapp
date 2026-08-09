@@ -152,6 +152,17 @@ class InstitucionEducativa(models.Model):
         verbose_name="Claude API Key (Anthropic)",
         help_text="Clave de la API de Claude (Anthropic) para esta institución. Opcional: se usa como respaldo automático si Gemini falla.",
     )
+    # ---- Tope de consumo de IA (protección de costos) ----
+    ia_tope_mensual_cop = models.DecimalField(
+        max_digits=12, decimal_places=0, default=0,
+        verbose_name="Tope de IA mensual (COP)",
+        help_text="Costo estimado máximo de IA por mes para esta institución. 0 = sin tope.",
+    )
+    ia_bloquear_al_superar = models.BooleanField(
+        default=True,
+        verbose_name="Bloquear IA al superar el tope",
+        help_text="Si está activo, al alcanzar el tope se pausan las funciones de IA (aviso amable). Si no, solo se registra el consumo.",
+    )
     # ---- Brevo API (prioridad sobre SMTP) ----
     brevo_api_key = EncryptedCharField(
         blank=True,
@@ -1090,3 +1101,35 @@ class AuditoriaAccionPago(models.Model):
 
     def __str__(self):
         return f"{self.get_accion_display()} — Pago #{self.pago_id} ({self.fecha:%Y-%m-%d %H:%M})"
+
+
+class ConsumoIA(models.Model):
+    """Medidor de consumo de IA por institución y mes (Gemini + Claude).
+
+    Se acumula por cada llamada: operaciones, tokens y costo estimado (COP).
+    Sirve para el tope mensual y para el panel de consumo del superadmin.
+    """
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='consumos_ia', verbose_name="Institución",
+    )
+    anio = models.PositiveIntegerField(verbose_name="Año")
+    mes = models.PositiveSmallIntegerField(verbose_name="Mes")
+    operaciones = models.PositiveIntegerField(default=0, verbose_name="Operaciones de IA")
+    tokens_in = models.BigIntegerField(default=0, verbose_name="Tokens de entrada")
+    tokens_out = models.BigIntegerField(default=0, verbose_name="Tokens de salida")
+    costo_estimado_cop = models.DecimalField(
+        max_digits=14, decimal_places=2, default=0, verbose_name="Costo estimado (COP)",
+    )
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Consumo de IA"
+        verbose_name_plural = "Consumos de IA"
+        ordering = ['-anio', '-mes', 'institucion']
+        constraints = [
+            models.UniqueConstraint(fields=['institucion', 'anio', 'mes'], name='uniq_consumo_ia_inst_mes'),
+        ]
+
+    def __str__(self):
+        return f"IA {self.institucion} {self.anio}-{self.mes:02d}: ${self.costo_estimado_cop} COP"

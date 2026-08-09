@@ -935,6 +935,11 @@ class GenerarPreguntasIAView(APIView):
                     {'status': 'error', 'message': 'La institución no tiene configurada la API key de Google (Gemini).'},
                     status=500,
                 )
+            # Tope de IA: si la institución superó su límite del mes, no generamos.
+            from finanzas import ia as _ia_gate
+            _ok_ia, _msg_ia = _ia_gate.puede_usar_ia(cuestionario.institucion)
+            if not _ok_ia:
+                return JsonResponse({'status': 'error', 'message': _msg_ia}, status=200)
             data = request.data
             logger.debug("GenerarPreguntasIA datos keys=%s", list(data.keys()) if hasattr(data, "keys") else type(data))
 
@@ -957,6 +962,16 @@ class GenerarPreguntasIAView(APIView):
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type="application/json")
             )
+            # Registrar consumo de IA (tokens + costo) para el tope y el panel.
+            try:
+                _um = getattr(response, 'usage_metadata', None)
+                _ia_gate.registrar_uso(
+                    cuestionario.institucion, 'gemini-2.5-flash',
+                    getattr(_um, 'prompt_token_count', 0) or 0,
+                    getattr(_um, 'candidates_token_count', 0) or 0,
+                )
+            except Exception:
+                pass
 
             logger.debug("GenerarPreguntasIA respuesta IA longitud=%s", len(response.text or ""))
 
@@ -1031,6 +1046,10 @@ class SugerirCalificacionIAView(APIView):
                     {'status': 'error', 'message': 'La institución no tiene configurada la API key de Google (Gemini).'},
                     status=500,
                 )
+            from finanzas import ia as _ia_gate
+            _ok_ia, _msg_ia = _ia_gate.puede_usar_ia(institucion)
+            if not _ok_ia:
+                return JsonResponse({'status': 'error', 'message': _msg_ia}, status=200)
 
             # --- Construcción del Prompt ---
             prompt = f"""
@@ -1056,6 +1075,15 @@ class SugerirCalificacionIAView(APIView):
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type="application/json")
             )
+            try:
+                _um = getattr(response, 'usage_metadata', None)
+                _ia_gate.registrar_uso(
+                    institucion, 'gemini-2.5-flash',
+                    getattr(_um, 'prompt_token_count', 0) or 0,
+                    getattr(_um, 'candidates_token_count', 0) or 0,
+                )
+            except Exception:
+                pass
 
             json_text = response.text.strip().replace("```json", "").replace("```", "")
             sugerencia = json.loads(json_text)

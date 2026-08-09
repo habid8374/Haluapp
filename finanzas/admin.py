@@ -21,7 +21,8 @@ from .models import (
     AuditoriaExportacionContable,
     WebhookEventoMercadoPago,
     LlamadaMercadoPago,
-)   
+    ConsumoIA,
+)
 from gestion_academica.models import EscalaValorativa
 
 from gestion_academica.admin import EscalaValorativaInline 
@@ -93,6 +94,14 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
                 'google_calendar_embed_code',
                 'google_api_key',
                 'claude_api_key',
+            ),
+        }),
+        ('Inteligencia Artificial — Tope de consumo', {
+            'classes': ('collapse',),
+            'description': 'Protección de costos: límite mensual de IA (Gemini/Claude) para esta institución.',
+            'fields': (
+                'ia_tope_mensual_cop',
+                'ia_bloquear_al_superar',
             ),
         }),
         # --- FIN DEL NUEVO FIELDSET ---
@@ -331,3 +340,16 @@ class EjecucionHealthCheckAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
     def _duracion(self, obj):
         return f"{obj.duracion_segundos}s" if obj.duracion_segundos is not None else "—"
     _duracion.short_description = "Duración"
+
+
+@admin.register(ConsumoIA)
+class ConsumoIAAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    """Panel de consumo de IA por institución y mes (medidor del tope)."""
+    list_display = ('institucion', 'anio', 'mes', 'operaciones', 'tokens_in', 'tokens_out', 'costo_estimado_cop', 'actualizado')
+    list_filter = ('anio', 'mes', 'institucion')
+    search_fields = ('institucion__nombre',)
+    readonly_fields = ('institucion', 'anio', 'mes', 'operaciones', 'tokens_in', 'tokens_out', 'costo_estimado_cop', 'actualizado')
+    ordering = ('-anio', '-mes')
+
+    def has_add_permission(self, request):
+        return False
