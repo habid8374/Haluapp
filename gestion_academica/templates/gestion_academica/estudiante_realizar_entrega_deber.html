@@ -23,7 +23,20 @@
                 <dt class="col-sm-4 text-secondary">{% trans "Curso:" %}</dt>
                 <dd class="col-sm-8">{% blocktrans with materia=deber.curso.materia.nombre_materia grado=deber.curso.grado.nombre %}{{ materia }} del grado {{ grado }}{% endblocktrans %}</dd>
                 <dt class="col-sm-4 text-secondary">{% trans "Descripción:" %}</dt>
-                <dd class="col-sm-8">{{ deber.descripcion|linebreaksbr|default:sin_desc_default }}</dd>
+                <dd class="col-sm-8">
+                    {{ deber.descripcion|linebreaksbr|default:sin_desc_default }}
+                    {% if deber.descripcion %}
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary acc-lf-btn"
+                                data-url="{% url 'gestion_academica:simplificar_descripcion_deber' deber.pk %}"
+                                data-target="lf-deber-{{ deber.pk }}"
+                                {% if auto_lectura_facil %}data-auto="1"{% endif %}>
+                            <i class="bi bi-stars"></i> {% trans "Explícalo fácil" %}
+                        </button>
+                        <div id="lf-deber-{{ deber.pk }}" class="acc-lf-box alert alert-info py-2 mt-2 mb-0" style="display:none;white-space:pre-wrap;"></div>
+                    </div>
+                    {% endif %}
+                </dd>
                 <dt class="col-sm-4 text-secondary">{% trans "Fecha Límite de Entrega:" %}</dt>
                 <dd class="col-sm-8"><strong>{{ deber.fecha_entrega|date:"d F, Y" }}</strong></dd>
                 {% if deber.material_adjunto %}

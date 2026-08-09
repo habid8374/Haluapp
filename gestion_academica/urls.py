@@ -128,6 +128,8 @@ urlpatterns = [
     path('deberes/<int:pk>/editar/', views.DeberUpdateView.as_view(), name='editar_deber'),
     path('deberes/<int:pk>/eliminar/', views.DeberDeleteView.as_view(), name='eliminar_deber'),
     path('deberes/<int:deber_pk>/transcribir-audio/', views.generar_transcripcion_deber, name='generar_transcripcion_deber'),
+    path('deberes/<int:deber_pk>/simplificar/', views.simplificar_descripcion_deber, name='simplificar_descripcion_deber'),
+    path('boletin/observacion/<int:observacion_pk>/simplificar/', views.simplificar_observacion_boletin, name='simplificar_observacion_boletin'),
 
     # --- Gestión de Planes Curriculares ---
     path('planes-curriculares/', views.PlanCurricularListView.as_view(), name='lista_planes_curriculares'),

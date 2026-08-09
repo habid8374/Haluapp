@@ -1353,6 +1353,13 @@ class Deber(models.Model):
     curso = models.ForeignKey(Curso, on_delete=models.CASCADE, related_name='deberes', verbose_name=_("Curso al que pertenece el deber"))
     titulo = models.CharField(max_length=255, verbose_name=_("Título del Deber"))
     descripcion = models.TextField(blank=True, null=True, verbose_name=_("Descripción / Instrucciones"))
+    # Accesibilidad (lectura fácil): versión simplificada con IA de la descripción.
+    # Se calcula una vez y se cachea para reutilizarla con todos los estudiantes.
+    descripcion_simple = models.TextField(
+        blank=True, default='',
+        verbose_name=_("Descripción en lectura fácil (IA)"),
+        help_text=_("Versión simplificada de las instrucciones, generada con IA para apoyo a la lectura."),
+    )
     fecha_asignacion = models.DateField(verbose_name=_("Fecha de Asignación"), default=datetime.date.today)
     fecha_entrega = models.DateField(verbose_name=_("Fecha Límite de Entrega"))
     material_adjunto = models.FileField(upload_to='deberes_materiales/', blank=True, null=True, verbose_name=_("Material de Apoyo Adjunto (Opcional)"))
@@ -1965,6 +1972,12 @@ class ObservacionBoletin(models.Model):
     estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='observaciones_boletin')
     periodo = models.ForeignKey(PeriodoAcademico, on_delete=models.CASCADE, related_name='observaciones_recibidas')
     observacion = models.TextField(verbose_name=_("Observación para el Boletín"))
+    # Accesibilidad (lectura fácil): versión simplificada con IA de la observación.
+    observacion_simple = models.TextField(
+        blank=True, default='',
+        verbose_name=_("Observación en lectura fácil (IA)"),
+        help_text=_("Versión simplificada de la observación, generada con IA para apoyo a la lectura."),
+    )
     creado_por = models.ForeignKey('Docente', on_delete=models.SET_NULL, null=True)
     ultima_modificacion = models.DateTimeField(auto_now=True)
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE,)

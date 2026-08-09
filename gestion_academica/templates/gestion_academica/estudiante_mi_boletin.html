@@ -83,6 +83,24 @@
             {% endif %}
         </div>
     </div>
+
+    {% if observacion_boletin and observacion_boletin.observacion %}
+    <div class="card shadow-sm mt-3">
+        <div class="card-header">
+            <i class="bi bi-chat-left-text me-2"></i>{% trans "Observación del Boletín" %}
+        </div>
+        <div class="card-body">
+            <p style="white-space:pre-wrap;">{{ observacion_boletin.observacion }}</p>
+            <button type="button" class="btn btn-sm btn-outline-secondary acc-lf-btn"
+                    data-url="{% url 'gestion_academica:simplificar_observacion_boletin' observacion_boletin.pk %}"
+                    data-target="lf-obs-{{ observacion_boletin.pk }}"
+                    {% if auto_lectura_facil %}data-auto="1"{% endif %}>
+                <i class="bi bi-stars"></i> {% trans "Explícalo fácil" %}
+            </button>
+            <div id="lf-obs-{{ observacion_boletin.pk }}" class="acc-lf-box alert alert-info py-2 mt-2 mb-0" style="display:none;white-space:pre-wrap;"></div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 {% block extra_js %}

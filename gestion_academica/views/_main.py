@@ -2036,6 +2036,69 @@ def generar_transcripcion_deber(request, deber_pk):
     return JsonResponse({'ok': False, 'message': resultado}, status=200)
 
 
+@login_required
+@require_POST
+def simplificar_descripcion_deber(request, deber_pk):
+    """Devuelve las instrucciones del deber en 'lectura fácil'. Se calcula una vez
+    con IA y se cachea en el deber para reutilizarla con todos los estudiantes.
+    Scoped por institución/rol (get_filtered_queryset ve los deberes del usuario)."""
+    from finanzas import ia as _ia
+
+    deber = get_object_or_404(get_filtered_queryset(Deber, request.user), pk=deber_pk)
+    if not (deber.descripcion or '').strip():
+        return JsonResponse({'ok': False, 'message': _("Este deber no tiene descripción para simplificar.")}, status=200)
+    if deber.descripcion_simple:
+        return JsonResponse({'ok': True, 'texto': deber.descripcion_simple, 'cache': True})
+
+    ok, resultado = _ia.simplificar_texto(deber.institucion, deber.descripcion)
+    if ok:
+        deber.descripcion_simple = resultado
+        deber.save(update_fields=['descripcion_simple'])
+        return JsonResponse({'ok': True, 'texto': resultado, 'cache': False})
+    return JsonResponse({'ok': False, 'message': resultado}, status=200)
+
+
+@login_required
+@require_POST
+def simplificar_observacion_boletin(request, observacion_pk):
+    """Devuelve la observación del boletín en 'lectura fácil'. Cacheada en el
+    objeto. Acceso: el propio estudiante, su familiar vinculado, o personal del
+    colegio (mismo institución). Respeta el tope de IA por institución."""
+    from finanzas import ia as _ia
+
+    obj = get_object_or_404(
+        ObservacionBoletin.objects.select_related('estudiante', 'institucion'),
+        pk=observacion_pk,
+    )
+    user = request.user
+    if not user.is_superuser:
+        if getattr(user, 'institucion_asociada_id', None) != obj.institucion_id:
+            return HttpResponseForbidden("No autorizado.")
+        permitido = False
+        if hasattr(user, 'estudiante') and getattr(user.estudiante, 'pk', None) == obj.estudiante_id:
+            permitido = True
+        elif Familiar.objects.filter(usuario=user, estudiantes_asociados__pk=obj.estudiante_id).exists():
+            permitido = True
+        else:
+            rol = getattr(user, 'rol', '') or ''
+            if user.is_staff or rol in ('docente', 'coordinador', 'admin_institucion', 'rector'):
+                permitido = True
+        if not permitido:
+            return HttpResponseForbidden("No autorizado.")
+
+    if not (obj.observacion or '').strip():
+        return JsonResponse({'ok': False, 'message': _("No hay observación para simplificar.")}, status=200)
+    if obj.observacion_simple:
+        return JsonResponse({'ok': True, 'texto': obj.observacion_simple, 'cache': True})
+
+    ok, resultado = _ia.simplificar_texto(obj.institucion, obj.observacion)
+    if ok:
+        obj.observacion_simple = resultado
+        obj.save(update_fields=['observacion_simple'])
+        return JsonResponse({'ok': True, 'texto': resultado, 'cache': False})
+    return JsonResponse({'ok': False, 'message': resultado}, status=200)
+
+
 class DeberCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Deber
     form_class = DeberForm
@@ -2377,9 +2440,15 @@ def realizar_entrega_deber(request, deber_pk):
         titulo_formulario = _("Actualizar Entrega para: %(titulo)s") % {'titulo': deber.titulo}
     else:
         titulo_formulario = _("Realizar Entrega para: %(titulo)s") % {'titulo': deber.titulo}
+    try:
+        _perfil = estudiante_actual.perfil_accesibilidad
+    except Exception:
+        _perfil = None
+    auto_lectura_facil = bool(_perfil and _perfil.activo and (_perfil.enunciado_simplificado or _perfil.easy_read))
     context = {
         'form': form, 'deber': deber, 'entrega_existente': entrega_obj,
         'titulo_formulario': titulo_formulario,
+        'auto_lectura_facil': auto_lectura_facil,
     }
     return render(request, 'gestion_academica/estudiante_realizar_entrega_deber.html', context)
 
@@ -2810,11 +2879,22 @@ def mi_boletin_periodo_actual(request):
     
     promedio_general_periodo = total_puntos_ponderados_general / total_ihs_general if total_ihs_general > 0 else None
 
+    observacion_obj = (
+        ObservacionBoletin.objects.filter(estudiante=estudiante_actual, periodo=periodo_activo).first()
+        if periodo_activo else None
+    )
+    try:
+        _perfil = estudiante_actual.perfil_accesibilidad
+    except Exception:
+        _perfil = None
+    auto_lectura_facil = bool(_perfil and _perfil.activo and (_perfil.enunciado_simplificado or _perfil.easy_read))
     context = {
         'estudiante': estudiante_actual,
         'periodo_activo': periodo_activo,
         'cursos_con_detalle': cursos_con_detalle,
         'promedio_general_periodo': promedio_general_periodo,
+        'observacion_boletin': observacion_obj,
+        'auto_lectura_facil': auto_lectura_facil,
         'titulo_pagina': _('Resumen de Calificaciones')
     }
     return render(request, 'gestion_academica/estudiante_mi_boletin.html', context)
@@ -3474,12 +3554,17 @@ def familiar_ver_boletin_estudiante(request, estudiante_pk):
         if total_ihs_general > 0:
             promedio_general_periodo = total_puntos_ponderados_general / total_ihs_general
 
+    observacion_obj = (
+        ObservacionBoletin.objects.filter(estudiante=estudiante_seleccionado, periodo=periodo_activo).first()
+        if periodo_activo else None
+    )
     context = {
         'titulo_pagina': f"Boletín de {estudiante_seleccionado.usuario.get_full_name()}",
         'estudiante': estudiante_seleccionado,
         'periodo_activo': periodo_activo,
         'cursos_con_detalle': cursos_con_detalle,
         'promedio_general_periodo': promedio_general_periodo,
+        'observacion_boletin': observacion_obj,
         'es_vista_familiar': True,
     }
     return render(request, 'gestion_academica/estudiante_mi_boletin.html', context)

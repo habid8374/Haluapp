@@ -821,6 +821,46 @@
     })();
     </script>
     {% endif %}
+    {# Accesibilidad: "Explícalo fácil" reutilizable (lectura fácil con IA). #}
+    {# Cualquier botón .acc-lf-btn con data-url y data-target funciona en toda la app. #}
+    {% if user.is_authenticated %}
+    <script>
+      (function () {
+        var CSRF_LF = "{{ csrf_token }}";
+        function pedir(btn) {
+          var box = document.getElementById(btn.getAttribute('data-target'));
+          var original = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Simplificando…" %}';
+          if (box) {
+            box.style.display = 'block';
+            box.className = 'acc-lf-box alert alert-info py-2 mt-2 mb-0';
+            box.textContent = '{% trans "Preparando versión en lectura fácil…" %}';
+          }
+          fetch(btn.getAttribute('data-url'), {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF_LF, 'Content-Type': 'application/json' },
+            body: '{}'
+          }).then(function (r) { return r.json(); }).then(function (d) {
+            if (box) {
+              box.style.display = 'block';
+              box.className = 'acc-lf-box alert py-2 mt-2 mb-0 ' + (d.ok ? 'alert-info' : 'alert-warning');
+              box.textContent = d.ok ? d.texto : (d.message || '{% trans "No se pudo simplificar." %}');
+            }
+          }).catch(function () {
+            if (box) { box.style.display = 'block'; box.className = 'acc-lf-box alert alert-warning py-2 mt-2 mb-0'; box.textContent = '{% trans "No se pudo simplificar." %}'; }
+          }).finally(function () { btn.disabled = false; btn.innerHTML = original; });
+        }
+        document.addEventListener('click', function (e) {
+          var btn = e.target.closest('.acc-lf-btn');
+          if (btn) pedir(btn);
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('.acc-lf-btn[data-auto="1"]').forEach(function (b) { pedir(b); });
+        });
+      })();
+    </script>
+    {% endif %}
     {% block extra_js %}{% endblock %}
     {% include "partials/pwa_install.html" %}
 </body>

@@ -182,6 +182,24 @@ def generar_texto(institucion, prompt, json=False):
     return False, "La IA no está disponible en este momento (cuota/límite o error). Intenta más tarde."
 
 
+_PROMPT_LECTURA_FACIL = (
+    "Reescribe el siguiente texto escolar en 'lectura fácil' para una persona con "
+    "dificultades de lectura o comprensión. Usa frases cortas y palabras sencillas, "
+    "conserva EXACTAMENTE el significado y no agregues información nueva. Responde "
+    "solo con el texto reescrito, en español.\n\nTexto:\n\"\"\"{texto}\"\"\""
+)
+
+
+def simplificar_texto(institucion, texto):
+    """Reescribe un texto en 'lectura fácil' con IA (apoyo a la comprensión).
+    Aplica el tope de IA de la institución y registra el consumo. Devuelve
+    (ok, texto_o_mensaje). Punto único usado por cuestionarios, deberes y boletín."""
+    texto = (texto or '').strip()
+    if not texto:
+        return False, "No hay texto para simplificar."
+    return generar_texto(institucion, _PROMPT_LECTURA_FACIL.format(texto=texto))
+
+
 def generar_desde_imagen(institucion, data, mime, prompt):
     """Describe/analiza una imagen con Gemini (visión). Aplica tope y registra
     consumo. Devuelve (ok, texto_o_mensaje)."""
