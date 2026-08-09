@@ -138,6 +138,9 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 'imagen_url': p.imagen.url if p.imagen else None,
                 'imagen_path': p.imagen.name if p.imagen else None,
                 'imagen_alt': p.imagen_alt or '',
+                'audio_url': p.audio.url if p.audio else None,
+                'audio_path': p.audio.name if p.audio else None,
+                'audio_transcripcion': p.audio_transcripcion or '',
             }
             if puede_ver_respuestas:
                 pregunta_data['respuesta_correcta_abierta'] = p.respuesta_correcta_abierta
@@ -320,9 +323,14 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                     orden=pregunta_data['orden'],
                     retroalimentacion=pregunta_data.get('retroalimentacion'),
                     respuesta_correcta_abierta=pregunta_data.get('respuesta_correcta_abierta'),
-                    # La imagen se sube aparte y aquí solo se re-referencia su ruta
-                    # (no se vuelve a subir el archivo). Ver SubirImagenPreguntaView.
+                    # La imagen/audio se suben aparte y aquí solo se re-referencia su ruta
+                    # (no se vuelve a subir el archivo). Ver SubirImagenPreguntaView /
+                    # SubirAudioPreguntaView. La descripción (alt) y la transcripción se
+                    # conservan (carry-through) para no perderlas ni re-gastar IA al guardar.
                     imagen=(pregunta_data.get('imagen_path') or None),
+                    imagen_alt=(pregunta_data.get('imagen_alt') or ''),
+                    audio=(pregunta_data.get('audio_path') or None),
+                    audio_transcripcion=(pregunta_data.get('audio_transcripcion') or ''),
                 )
                 
                 # 4. Creamos las opciones para cada pregunta.
@@ -387,6 +395,33 @@ class SubirImagenPreguntaView(LoginRequiredMixin, View):
         import uuid
         from django.core.files.storage import default_storage
         nombre = f"cuestionarios/preguntas/{actividad_pk}/{uuid.uuid4().hex}.{ext}"
+        path = default_storage.save(nombre, archivo)
+        return JsonResponse({'path': path, 'url': default_storage.url(path)})
+
+
+class SubirAudioPreguntaView(LoginRequiredMixin, View):
+    """Sube el audio de apoyo de una pregunta y devuelve su ruta y URL. El editor
+    guarda esa ruta en el JSON del cuestionario (no reenvía el archivo)."""
+
+    def post(self, request, actividad_pk):
+        actividad = get_object_or_404(ActividadCalificable, pk=actividad_pk)
+        if not (request.user.is_superuser or (
+            hasattr(request.user, 'docente') and docente_asignado_a_actividad(request.user, actividad)
+        )):
+            return JsonResponse({'error': 'No autorizado.'}, status=403)
+
+        archivo = request.FILES.get('audio')
+        if not archivo:
+            return JsonResponse({'error': 'No se recibió ningún audio.'}, status=400)
+        if archivo.size > 20 * 1024 * 1024:
+            return JsonResponse({'error': 'El audio supera el tamaño máximo (20 MB).'}, status=400)
+        ext = (archivo.name.rsplit('.', 1)[-1] if '.' in archivo.name else '').lower()
+        if ext not in ('mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'webm', 'opus'):
+            return JsonResponse({'error': 'Formato no permitido. Usa MP3, WAV, OGG, M4A, AAC o WEBM.'}, status=400)
+
+        import uuid
+        from django.core.files.storage import default_storage
+        nombre = f"cuestionarios/preguntas/audio/{actividad_pk}/{uuid.uuid4().hex}.{ext}"
         path = default_storage.save(nombre, archivo)
         return JsonResponse({'path': path, 'url': default_storage.url(path)})
 
@@ -1211,4 +1246,54 @@ def generar_alt_cuestionario_ia(request, cuestionario_pk):
         'generadas': generadas,
         'fallidas': fallidas,
         'message': f'Descripciones generadas: {generadas}.' + (f' No se pudieron generar: {fallidas}.' if fallidas else ''),
+    })
+
+
+@login_required
+@require_POST
+def generar_transcripcion_cuestionario_ia(request, cuestionario_pk):
+    """Genera con IA la transcripción (subtítulo) de los audios del cuestionario
+    que aún no la tengan. Acción del docente/coordinador (un botón, sin comandos)."""
+    import mimetypes
+    from .ia_accesibilidad import _ia  # compuerta central (tope + medición)
+
+    cuestionario = get_object_or_404(
+        Cuestionario.objects.select_related('actividad_calificable__institucion'),
+        pk=cuestionario_pk,
+    )
+    actividad = cuestionario.actividad_calificable
+    if not (request.user.is_superuser or docente_asignado_a_actividad(request.user, actividad)):
+        return HttpResponseForbidden("No autorizado.")
+
+    institucion = getattr(actividad, 'institucion', None)
+    generadas, fallidas, ultimo_error = 0, 0, ''
+    for p in cuestionario.preguntas.all():
+        if not p.audio or p.audio_transcripcion:
+            continue
+        try:
+            with p.audio.open('rb') as fh:
+                data = fh.read()
+            mime = mimetypes.guess_type(p.audio.name)[0] or 'audio/mpeg'
+        except Exception:
+            fallidas += 1
+            ultimo_error = 'No se pudo leer el audio.'
+            continue
+        ok, resultado = _ia.transcribir_audio(institucion, data, mime)
+        if ok:
+            p.audio_transcripcion = resultado
+            p.save(update_fields=['audio_transcripcion'])
+            generadas += 1
+        else:
+            fallidas += 1
+            ultimo_error = resultado
+
+    if generadas == 0 and fallidas == 0:
+        return JsonResponse({'ok': True, 'message': 'No hay audios pendientes de transcribir.', 'generadas': 0})
+    if generadas == 0 and fallidas:
+        return JsonResponse({'ok': False, 'message': ultimo_error or 'No se pudo generar la transcripción.'}, status=200)
+    return JsonResponse({
+        'ok': True,
+        'generadas': generadas,
+        'fallidas': fallidas,
+        'message': f'Transcripciones generadas: {generadas}.' + (f' No se pudieron generar: {fallidas}.' if fallidas else ''),
     })

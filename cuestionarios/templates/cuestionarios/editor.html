@@ -333,6 +333,11 @@ textarea.eq-input { resize: vertical; }
               title="{% trans 'Genera con IA la descripción (alt) de las imágenes para lectores de pantalla' %}">
         <i class="bi bi-universal-access"></i> {% trans "Describir imágenes (IA)" %}
       </button>
+      <button type="button" class="eq-btn eq-btn-outline" id="btn-generar-transcripcion"
+              data-url="{% url 'cuestionarios:generar_transcripcion_cuestionario_ia' cuestionario.pk %}"
+              title="{% trans 'Genera con IA la transcripción (subtítulo) de los audios de las preguntas' %}">
+        <i class="bi bi-badge-cc"></i> {% trans "Transcribir audios (IA)" %}
+      </button>
       <button class="eq-btn eq-btn-outline" id="btn-vista-previa" type="button">
         <i class="bi bi-eye"></i> {% trans "Vista previa" %}
       </button>
@@ -618,6 +623,21 @@ document.addEventListener('DOMContentLoaded', function () {
               <input type="file" accept="image/*" class="input-imagen d-none">
             </label>
           </div>
+          <div class="pregunta-audio-block mb-2">
+            <input type="hidden" class="audio-path" value="${pregunta.audio_path || ''}">
+            <input type="hidden" class="imagen-alt-cache" value="${(pregunta.imagen_alt || '').replace(/"/g,'&quot;')}">
+            <input type="hidden" class="audio-transcripcion-cache" value="${(pregunta.audio_transcripcion || '').replace(/"/g,'&quot;')}">
+            <div class="audio-preview mb-1 ${pregunta.audio_url ? '' : 'd-none'}">
+              <audio controls preload="none" class="preg-audio" src="${pregunta.audio_url || ''}" style="max-width:100%;vertical-align:middle;"></audio>
+              <button type="button" class="btn btn-sm btn-outline-danger btn-quitar-audio ms-2 align-middle">
+                <i class="bi bi-x-lg"></i> {% trans "Quitar" %}
+              </button>
+            </div>
+            <label class="btn btn-sm btn-outline-secondary mb-0">
+              <i class="bi bi-mic me-1"></i>{% trans "Audio de apoyo (opcional)" %}
+              <input type="file" accept="audio/*" class="input-audio d-none">
+            </label>
+          </div>
           <div class="pregunta-meta">
             <div>
               <label>{% trans "Tipo de pregunta" %}</label>
@@ -894,6 +914,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 orden: idx,
                 respuesta_correcta_abierta: card.querySelector('.respuesta-correcta-abierta').value,
                 imagen_path: card.querySelector('.imagen-path')?.value || null,
+                // Se conservan (carry-through) para no perder ni re-gastar IA al guardar.
+                imagen_alt: card.querySelector('.imagen-alt-cache')?.value || '',
+                audio_path: card.querySelector('.audio-path')?.value || null,
+                audio_transcripcion: card.querySelector('.audio-transcripcion-cache')?.value || '',
                 opciones: []
             };
             if (!['texto_libre','completar'].includes(preg.tipo)) {
@@ -1256,6 +1280,71 @@ document.addEventListener('DOMContentLoaded', function () {
         card.querySelector('.imagen-preview').classList.add('d-none');
         card.dataset.armadoOpcion = '';
     });
+
+    /* ── Audio de apoyo de la pregunta ── */
+    const apiUrlAudio = `/cuestionarios/api/${actividadId}/subir-audio/`;
+    editorPreguntas.addEventListener('change', function (e) {
+        if (!e.target.classList.contains('input-audio')) return;
+        const input = e.target;
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const card = input.closest('.pregunta-card');
+        const label = input.closest('label');
+        const original = label ? label.innerHTML : '';
+        if (label) label.innerHTML = '<span class="spinner-border spinner-border-sm"></span> {% trans "Subiendo…" %}';
+        const fd = new FormData();
+        fd.append('audio', file);
+        fetch(apiUrlAudio, { method: 'POST', headers: { 'X-CSRFToken': csrfToken }, body: fd })
+            .then(r => r.json())
+            .then(res => {
+                if (res.path) {
+                    card.querySelector('.audio-path').value = res.path;
+                    // Audio nuevo → invalidar la transcripción cacheada anterior.
+                    const tcache = card.querySelector('.audio-transcripcion-cache');
+                    if (tcache) tcache.value = '';
+                    const prev = card.querySelector('.audio-preview');
+                    prev.querySelector('.preg-audio').src = res.url;
+                    prev.classList.remove('d-none');
+                } else {
+                    showNotification('{% trans "Error" %}', res.error || '{% trans "No se pudo subir el audio." %}', false);
+                }
+            })
+            .catch(() => showNotification('{% trans "Error" %}', '{% trans "No se pudo subir el audio." %}', false))
+            .finally(() => { if (label) label.innerHTML = original; input.value = ''; });
+    });
+    editorPreguntas.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-quitar-audio');
+        if (!btn) return;
+        const card = btn.closest('.pregunta-card');
+        card.querySelector('.audio-path').value = '';
+        const tcache = card.querySelector('.audio-transcripcion-cache');
+        if (tcache) tcache.value = '';
+        card.querySelector('.audio-preview').classList.add('d-none');
+    });
+
+    // ── Accesibilidad: generar transcripción (subtítulo) de audios con IA ──
+    const btnTranscribir = document.getElementById('btn-generar-transcripcion');
+    if (btnTranscribir) {
+        btnTranscribir.addEventListener('click', function () {
+            const url = btnTranscribir.dataset.url;
+            const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const original = btnTranscribir.innerHTML;
+            btnTranscribir.disabled = true;
+            btnTranscribir.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Transcribiendo…" %}';
+            fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' }, body: '{}' })
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    showNotification(
+                        d.ok ? '{% trans "Transcripción de audios" %}' : '{% trans "No se pudo" %}',
+                        d.message || '', !!d.ok
+                    );
+                })
+                .catch(function () {
+                    showNotification('{% trans "Error de red" %}', '{% trans "No se pudo conectar." %}', false);
+                })
+                .finally(function () { btnTranscribir.disabled = false; btnTranscribir.innerHTML = original; });
+        });
+    }
 
     // ── Accesibilidad (Ola 3): generar descripción (alt) de imágenes con IA ──
     const btnAlt = document.getElementById('btn-generar-alt');

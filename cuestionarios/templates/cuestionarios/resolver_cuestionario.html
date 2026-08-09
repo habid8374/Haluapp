@@ -367,6 +367,21 @@ document.addEventListener('DOMContentLoaded', function() {
             ? `<div class="mb-3 text-center"><img src="${esc(pregunta.imagen_url)}" alt="${esc(pregunta.imagen_alt || '')}" style="max-width:100%;max-height:320px;border-radius:8px;border:1px solid #e5e7eb;"></div>`
             : '';
 
+        // Audio de apoyo (accesibilidad auditiva) + su transcripción (subtítulo).
+        let audioHtml = '';
+        if (pregunta.audio_url) {
+            const transcripcion = pregunta.audio_transcripcion
+                ? `<details class="mt-1 mb-2">
+                       <summary style="cursor:pointer;font-size:.85rem;"><i class="bi bi-badge-cc me-1"></i>{% trans "Ver transcripción" %}</summary>
+                       <div class="p-2 bg-light rounded mt-1" style="white-space:pre-wrap;font-size:.9rem;">${esc(pregunta.audio_transcripcion)}</div>
+                   </details>`
+                : '';
+            audioHtml = `<div class="mb-3">
+                    <audio controls preload="none" class="w-100" src="${esc(pregunta.audio_url)}">{% trans "Tu navegador no puede reproducir el audio." %}</audio>
+                    ${transcripcion}
+                </div>`;
+        }
+
         // Se añade data-pregunta-tipo para facilitar la recolección de respuestas
         return `
             <div class="card mb-3" data-pregunta-id="${pregunta.id}" data-pregunta-tipo="${tipo}">
@@ -382,6 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>
                     <div class="acc-simple-text alert alert-info py-2 mb-3" data-for="${pregunta.id}" style="display:none;"></div>
                     ${imagenHtml}
+                    ${audioHtml}
                     <div class="opciones-container">
                         ${opcionesHtml}
                     </div>

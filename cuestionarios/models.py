@@ -111,6 +111,19 @@ class PreguntaCuestionario(models.Model):
         verbose_name="Descripción de la imagen (IA)",
         help_text="Texto alternativo de la imagen para lectores de pantalla, generado con IA.",
     )
+    # Accesibilidad auditiva: audio de apoyo de la pregunta y su transcripción
+    # (subtítulo) generada con IA. Se cachea para reutilizarla con todos los
+    # estudiantes (apoyo para sordos y para lectura acompañada).
+    audio = models.FileField(
+        upload_to='cuestionarios/preguntas/audio/%Y/%m/', null=True, blank=True,
+        verbose_name="Audio de apoyo de la pregunta",
+        help_text="Opcional: enunciado o explicación en voz. Se puede transcribir con IA.",
+    )
+    audio_transcripcion = models.TextField(
+        blank=True, default='',
+        verbose_name="Transcripción del audio (IA)",
+        help_text="Subtítulo del audio para estudiantes sordos o con dificultad auditiva.",
+    )
     creado_en = models.DateTimeField(auto_now_add=True)
     respuesta_correcta_abierta = models.TextField(
         blank=True,

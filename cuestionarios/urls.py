@@ -8,6 +8,7 @@ urlpatterns = [
     path('editor/<int:actividad_pk>/', views.EditorCuestionarioView.as_view(), name='editor_cuestionario'),
     path('api/<int:actividad_pk>/', views.CuestionarioAPIView.as_view(), name='api_cuestionario'),
     path('api/<int:actividad_pk>/subir-imagen/', views.SubirImagenPreguntaView.as_view(), name='subir_imagen_pregunta'),
+    path('api/<int:actividad_pk>/subir-audio/', views.SubirAudioPreguntaView.as_view(), name='subir_audio_pregunta'),
     path('toggle-activo/<int:cuestionario_id>/', views.ToggleCuestionarioActivoView.as_view(), name='toggle_activo'),
     path('resolver/<int:actividad_pk>/iniciar/', views.IniciarCuestionarioView.as_view(), name='iniciar_cuestionario'),
     path('resolver/intento/<int:intento_pk>/', views.ResolverCuestionarioView.as_view(), name='resolver_cuestionario'),
@@ -20,4 +21,5 @@ urlpatterns = [
     # Accesibilidad (Ola 3) — IA de apoyo
     path('api/pregunta/<int:pregunta_pk>/simplificar/', views.simplificar_enunciado_ia, name='simplificar_enunciado_ia'),
     path('api/cuestionario/<int:cuestionario_pk>/generar-alt/', views.generar_alt_cuestionario_ia, name='generar_alt_cuestionario_ia'),
+    path('api/cuestionario/<int:cuestionario_pk>/generar-transcripcion/', views.generar_transcripcion_cuestionario_ia, name='generar_transcripcion_cuestionario_ia'),
 ]
