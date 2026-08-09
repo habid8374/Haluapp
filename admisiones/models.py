@@ -59,7 +59,7 @@ class Aspirante(models.Model):
 
     # ── Campos del Observador del Estudiante ────────────────────────────────
     tipo_documento = models.CharField(
-        max_length=2, choices=TIPO_DOCUMENTO_CHOICES,
+        max_length=5, choices=TIPO_DOCUMENTO_CHOICES,
         blank=True, null=True, verbose_name="Tipo de Documento"
     )
     lugar_nacimiento = models.CharField(
@@ -239,7 +239,7 @@ class Aspirante(models.Model):
     ]
     acudiente_nombres = models.CharField(max_length=150, blank=True, verbose_name="Acudiente · Nombres")
     acudiente_apellidos = models.CharField(max_length=150, blank=True, verbose_name="Acudiente · Apellidos")
-    acudiente_tipo_documento = models.CharField(max_length=2, choices=TIPO_DOCUMENTO_CHOICES, blank=True, null=True, verbose_name="Acudiente · Tipo de documento")
+    acudiente_tipo_documento = models.CharField(max_length=5, choices=TIPO_DOCUMENTO_CHOICES, blank=True, null=True, verbose_name="Acudiente · Tipo de documento")
     acudiente_documento = models.CharField(max_length=20, blank=True, verbose_name="Acudiente · Documento")
     acudiente_parentesco = models.CharField(max_length=15, choices=PARENTESCO_CHOICES, blank=True, verbose_name="Acudiente · Parentesco")
     acudiente_email = models.EmailField(blank=True, verbose_name="Acudiente · Correo")

@@ -521,7 +521,7 @@ class Estudiante(models.Model):
 
     # ── Campos del Observador del Estudiante ────────────────────────────────
     tipo_documento = models.CharField(
-        max_length=2, choices=TIPO_DOCUMENTO_CHOICES,
+        max_length=5, choices=TIPO_DOCUMENTO_CHOICES,
         blank=True, null=True, verbose_name=_("Tipo de Documento")
     )
     lugar_nacimiento = models.CharField(
@@ -986,7 +986,7 @@ class Familiar(models.Model):
         max_length=20, blank=True, null=True, verbose_name=_("Número de Documento")
     )
     tipo_documento = models.CharField(
-        max_length=2, choices=TIPO_DOCUMENTO_CHOICES,
+        max_length=5, choices=TIPO_DOCUMENTO_CHOICES,
         blank=True, null=True, verbose_name=_("Tipo de Documento")
     )
     ocupacion = models.CharField(

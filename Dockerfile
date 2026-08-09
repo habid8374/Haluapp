@@ -44,6 +44,6 @@ ENV PORT=8080
 
 EXPOSE 8080
 
-RUN printf '#!/bin/sh\npython manage.py migrate --no-input\npython manage.py collectstatic --no-input\nexec daphne -b 0.0.0.0 -p ${PORT} proyecto_colegio.asgi:application\n' > /start.sh && chmod +x /start.sh
+RUN printf '#!/bin/sh\nset -e\npython manage.py migrate --no-input\npython manage.py collectstatic --no-input\nexec daphne -b 0.0.0.0 -p ${PORT} proyecto_colegio.asgi:application\n' > /start.sh && chmod +x /start.sh
 
 CMD ["/start.sh"]

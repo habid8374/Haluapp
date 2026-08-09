@@ -318,7 +318,9 @@ class ConceptoPagoForm(forms.ModelForm):
 class CuentaPorCobrarEstudianteForm(forms.ModelForm):
     # Asegúrate de que el queryset de concepto_pago se filtre por institución si es necesario
     concepto_pago = forms.ModelChoiceField(
-        queryset=_conceptos_pago_orden_por_nivel(ConceptoPago.objects.all()),
+        # El queryset real (ordenado y filtrado por institución) se asigna en
+        # __init__. Aquí va vacío para NO consultar la BD al importar el módulo.
+        queryset=ConceptoPago.objects.none(),
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_concepto_pago_selector'}),
         label="Concepto de Pago"
     )
