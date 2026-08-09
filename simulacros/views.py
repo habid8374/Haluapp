@@ -394,14 +394,16 @@ Reglas:
 """
 
     try:
-        from google import genai
         from finanzas.institucion_credentials import google_api_key as get_google_api_key
+        from finanzas import ia as _ia_gate
         institucion = getattr(request.user, 'institucion_asociada', None)
         _api_key = get_google_api_key(institucion) if institucion else None
         if not _api_key:
             return JsonResponse({'ok': False, 'error': 'La institución no tiene Google API Key configurada.'}, status=400)
-        _client = genai.Client(api_key=_api_key)
-        resp = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        try:
+            resp = _ia_gate.gemini_generate(institucion, 'gemini-2.5-flash', prompt)
+        except _ia_gate.IATopeSuperado as _e:
+            return JsonResponse({'ok': False, 'error': str(_e)}, status=200)
         raw = resp.text.strip()
 
         # Limpiar posible markdown

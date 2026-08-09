@@ -232,6 +232,7 @@ urlpatterns = [
     path('idioma/', views.cambiar_idioma, name='cambiar_idioma'),
     path('accesibilidad/guardar/', views.guardar_preferencias_accesibilidad, name='guardar_preferencias_accesibilidad'),
     path('accesibilidad/estudiante/<int:estudiante_pk>/', views.editar_perfil_accesibilidad, name='editar_perfil_accesibilidad'),
+    path('ia/consumo/', views.consumo_ia, name='consumo_ia'),
     path('ayuda-soporte/', views.ayuda_soporte_view, name='ayuda_soporte'),
     path('mi-boletin/', views.mi_boletin_periodo_actual, name='mi_boletin'),
     path('mi-boletin/imprimir/', views.boletin_imprimible, name='boletin_imprimible'),

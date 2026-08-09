@@ -36,6 +36,7 @@ from .models import (
 
 from finanzas.models import InstitucionEducativa
 from finanzas.institucion_credentials import google_api_key as get_inst_google_api_key
+from finanzas import ia as _ia_gate
 
 logger = logging.getLogger(__name__)
 
@@ -574,7 +575,7 @@ def generar_contenido_planeacion_task(self, planeacion_id):
         Asegúrate de que la lista "clases" contenga exactamente {planeacion.duracion_clases} objetos.
         """
 
-        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        response = _ia_gate.gemini_generate(planeacion.curso.institucion, 'gemini-2.5-flash', prompt)
 
         # Tu lógica de limpieza es excelente, la mantenemos
         raw_text = response.text.strip() if hasattr(response, "text") and response.text else ""
@@ -672,7 +673,7 @@ def analizar_propuesta_candidato_task(self, candidato_id):
         La respuesta debe ser solo el texto del análisis, sin títulos ni formato adicional.
         """
 
-        response = _client.models.generate_content(model='gemini-2.5-pro', contents=prompt)
+        response = _ia_gate.gemini_generate(candidato.eleccion.institucion, 'gemini-2.5-pro', prompt)
 
         if not response.parts:
             feedback = getattr(response, 'prompt_feedback', 'Razón desconocida.')
@@ -752,10 +753,9 @@ def analizar_comportamiento_task(user_id):
         """
 
         try:
-            response = _client_comportamiento.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-                config=types.GenerateContentConfig(response_mime_type="application/json")
+            response = _ia_gate.gemini_generate(
+                institucion, 'gemini-2.5-flash', prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json"),
             )
             json_text = response.text.strip().replace("```json", "").replace("```", "")
             analisis_data = json.loads(json_text)
@@ -845,8 +845,7 @@ def generar_propuesta_horario_task(periodo_pk, institucion_id, grado_pk): # <-- 
         if not api_key:
             return {'status': 'FAILURE', 'error': 'La institución no tiene configurada google_api_key (Gemini).'}
 
-        _client = genai.Client(api_key=api_key)
-        response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        response = _ia_gate.gemini_generate(institucion_obj, 'gemini-2.5-flash', prompt)
 
         json_text = response.text
         match = re.search(r'\[.*\]', json_text, re.DOTALL)
@@ -941,7 +940,7 @@ def analizar_plagio_tarea_task(entrega_id):
             ---
             """
             
-            response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+            response = _ia_gate.gemini_generate(entrega_actual.deber.institucion, 'gemini-2.5-flash', prompt)
             json_text = response.text.strip().replace("```json", "").replace("```", "")
             resultado = json.loads(json_text)
 
@@ -1193,7 +1192,7 @@ def sugerir_material_de_refuerzo_task(calificacion_id):
             "Genera un consejo corto en español (máximo 150 palabras) con 2 o 3 pasos de estudio concretos y accionables. "
             "El tono debe ser alentador, nunca regañes."
         )
-        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        response = _ia_gate.gemini_generate(institucion, 'gemini-2.5-flash', prompt)
         consejo_ia = _sanitize_ai(response.text)
     except Exception as e:
         logger.error("Error al generar consejo de IA (task) para calificación %s: %s", calificacion_id, e)
@@ -1304,8 +1303,8 @@ def analizar_observacion_convivencia_task(anotacion_id):
 
         Anotación: "{anotacion.descripcion}"
         """
-        response = client.models.generate_content(
-            model='gemini-2.5-flash', contents=prompt,
+        response = _ia_gate.gemini_generate(
+            anotacion.institucion, 'gemini-2.5-flash', prompt,
             config=types.GenerateContentConfig(response_mime_type="application/json"),
         )
         ai_data = json.loads(response.text)

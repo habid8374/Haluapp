@@ -59,6 +59,7 @@ from ..tasks import (
 )
 from finanzas.models import InstitucionEducativa
 from finanzas.institucion_credentials import google_api_key as institucion_google_api_key
+from finanzas import ia as _ia_gate
 from cuestionarios.models import IntentoCuestionario
 from ._main import get_filtered_queryset, link_callback
 
@@ -441,6 +442,9 @@ Orienta al acudiente sobre cómo usar la plataforma para hacer seguimiento a sus
         else:
             instrucciones_sistema = f"Eres HALU, el asistente virtual amigable de la plataforma escolar en '{institucion.nombre}'. Responde en español de forma amigable y ayuda al usuario a navegar la plataforma."
 
+        _ok_ia, _msg_ia = _ia_gate.puede_usar_ia(institucion)
+        if not _ok_ia:
+            return JsonResponse({'respuesta': _msg_ia}, status=200)
         _chat_config = types.GenerateContentConfig(tools=list(tools_disponibles.values())) if tools_disponibles else None
         chat = client.chats.create(model='gemini-2.5-pro', config=_chat_config, history=historial_previo)
 
@@ -449,6 +453,11 @@ Orienta al acudiente sobre cómo usar la plataforma para hacer seguimiento a sus
             mensaje_enviar = f"{instrucciones_sistema}\n\nPregunta del usuario: {pregunta}"
 
         response = chat.send_message(mensaje_enviar)
+        try:
+            _um = getattr(response, 'usage_metadata', None)
+            _ia_gate.registrar_uso(institucion, 'gemini-2.5-pro', getattr(_um,'prompt_token_count',0) or 0, getattr(_um,'candidates_token_count',0) or 0)
+        except Exception:
+            pass
 
         # Loop de herramientas — máx. 6 iteraciones para evitar bucles infinitos
         for _ in range(6):
@@ -1783,8 +1792,10 @@ class GenerarResumenEstudianteIAView(APIView):
                     {'status': 'error', 'message': 'La institución no tiene configurada la API key de Google (Gemini).'},
                     status=500,
                 )
-            _client = genai.Client(api_key=api_key)
-            response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+            try:
+                response = _ia_gate.gemini_generate(estudiante.institucion, 'gemini-2.5-flash', prompt)
+            except _ia_gate.IATopeSuperado as _e:
+                return Response({'status': 'error', 'message': str(_e)}, status=200)
 
             return Response({'status': 'success', 'resumen': response.text})
         except Exception as e:
@@ -1823,7 +1834,7 @@ def api_sugerir_nombre_idioma(request):
             f"Responde ÚNICAMENTE con el nombre traducido, sin explicaciones ni puntuación extra.\n\n"
             f"Materia en español: {nombre_es}"
         )
-        response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        response = _ia_gate.gemini_generate(institucion, 'gemini-2.5-flash', prompt)
         nombre_sugerido = response.text.strip().strip('"').strip("'")
         return JsonResponse({'nombre_sugerido': nombre_sugerido})
 
@@ -1865,7 +1876,7 @@ def api_sugerir_nombres_idioma_masivo(request):
             f"Responde ÚNICAMENTE en formato JSON: {{\"<pk>\": \"<nombre traducido>\", ...}}. Sin texto adicional.\n\n"
             f"Materias:\n{lista}"
         )
-        response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+        response = _ia_gate.gemini_generate(institucion, 'gemini-2.5-flash', prompt)
         texto = response.text.strip()
         # Limpiar posibles bloques de código markdown
         if texto.startswith('```'):

@@ -1,0 +1,98 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% load humanize %}
+{% block titulo %}{% trans "Consumo de IA" %}{% endblock %}
+
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius:18px; padding:2rem; color:white; margin-bottom:1.5rem;">
+  <h2 style="color:#fff;"><i class="bi bi-robot"></i> {% trans "Consumo de Inteligencia Artificial" %}</h2>
+  <p style="color:#fff;">{% trans "Revisa cuánto ha usado tu institución la IA este mes y ajusta el tope si lo necesitas." %}</p>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3"><i class="bi bi-speedometer2 me-1"></i>{% trans "Este mes" %}</h6>
+
+        {% if r.tope_cop and r.tope_cop > 0 %}
+          {% widthratio r.pct|default:0 1 1 as pct_int %}
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">{% trans "Usado" %}: <strong>${{ r.usado_cop|floatformat:0|intcomma }}</strong> COP</span>
+            <span class="text-muted">{% trans "Tope" %}: <strong>${{ r.tope_cop|floatformat:0|intcomma }}</strong> COP</span>
+          </div>
+          <div class="progress" style="height:18px;">
+            <div class="progress-bar {% if r.pct >= 100 %}bg-danger{% elif r.pct >= 80 %}bg-warning{% else %}bg-success{% endif %}"
+                 role="progressbar" style="width: {% if r.pct >= 100 %}100{% else %}{{ pct_int }}{% endif %}%;">
+              {{ pct_int }}%
+            </div>
+          </div>
+          <p class="text-muted small mt-2 mb-0">
+            {% if r.restante_cop and r.restante_cop > 0 %}
+              {% blocktrans with rest=r.restante_cop|floatformat:0|intcomma %}Te queda aproximadamente ${{ rest }} COP de IA este mes.{% endblocktrans %}
+            {% else %}
+              <span class="text-danger">{% trans "Se alcanzó el tope de IA de este mes." %}</span>
+            {% endif %}
+          </p>
+        {% else %}
+          <div class="alert alert-info mb-2"><i class="bi bi-infinity me-1"></i>{% trans "Sin tope configurado (uso ilimitado)." %}</div>
+          <p class="text-muted">{% trans "Usado este mes" %}: <strong>${{ r.usado_cop|floatformat:0|intcomma }}</strong> COP</p>
+        {% endif %}
+
+        <ul class="list-group list-group-flush mt-3">
+          <li class="list-group-item d-flex justify-content-between"><span>{% trans "Operaciones de IA" %}</span><strong>{{ r.operaciones|intcomma }}</strong></li>
+          <li class="list-group-item d-flex justify-content-between"><span>{% trans "Costo estimado del mes" %}</span><strong>${{ r.usado_cop|floatformat:0|intcomma }} COP</strong></li>
+        </ul>
+        <p class="text-muted small mt-2 mb-0"><i class="bi bi-info-circle me-1"></i>{% trans "El costo es estimado (tokens × tarifa aproximada). Sirve como referencia y para el tope." %}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3"><i class="bi bi-sliders me-1"></i>{% trans "Ajustar tope mensual" %}</h6>
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="ia_tope_mensual_cop">{% trans "Tope de IA por mes (COP)" %}</label>
+            <input type="number" min="0" step="1000" class="form-control" id="ia_tope_mensual_cop"
+                   name="ia_tope_mensual_cop" value="{{ r.tope_cop|floatformat:0 }}">
+            <div class="form-text">{% trans "0 = sin tope (ilimitado)." %}</div>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="ia_bloquear_al_superar" name="ia_bloquear_al_superar"
+                   {% if institucion.ia_bloquear_al_superar %}checked{% endif %}>
+            <label class="form-check-label" for="ia_bloquear_al_superar">{% trans "Pausar la IA al superar el tope" %}</label>
+          </div>
+          <button type="submit" class="btn btn-success w-100"><i class="bi bi-save-fill me-1"></i>{% trans "Guardar tope" %}</button>
+        </form>
+        <p class="text-muted small mt-3 mb-0">{% trans "Si desactivas la pausa, la IA sigue funcionando y solo se registra el consumo (recomendado dejarla activa para controlar costos)." %}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if historial %}
+<div class="card shadow-sm mt-3">
+  <div class="card-header bg-light fw-bold"><i class="bi bi-clock-history me-1"></i>{% trans "Historial (últimos meses)" %}</div>
+  <div class="table-responsive">
+    <table class="table mb-0 align-middle">
+      <thead class="table-light"><tr>
+        <th>{% trans "Año" %}</th><th>{% trans "Mes" %}</th><th>{% trans "Operaciones" %}</th>
+        <th>{% trans "Tokens" %}</th><th>{% trans "Costo estimado (COP)" %}</th>
+      </tr></thead>
+      <tbody>
+        {% for c in historial %}
+        <tr>
+          <td>{{ c.anio }}</td><td>{{ c.mes }}</td><td>{{ c.operaciones|intcomma }}</td>
+          <td>{{ c.tokens_in|add:c.tokens_out|intcomma }}</td>
+          <td>${{ c.costo_estimado_cop|floatformat:0|intcomma }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

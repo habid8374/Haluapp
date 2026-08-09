@@ -29,10 +29,16 @@ _MODELO_CLAUDE = 'claude-haiku-4-5-20251001'
 
 # Precio aproximado por 1M de tokens (USD). Ajustable si cambian las tarifas.
 _PRECIOS_USD = {
-    _MODELO_GEMINI: (0.30, 2.50),   # (entrada, salida)
-    _MODELO_CLAUDE: (1.00, 5.00),
+    _MODELO_GEMINI: (0.30, 2.50),          # gemini-2.5-flash (entrada, salida)
+    'gemini-2.0-flash': (0.10, 0.40),
+    'gemini-2.5-pro': (1.25, 10.00),
+    _MODELO_CLAUDE: (1.00, 5.00),          # claude haiku 4.5
 }
 _TRM_COP = Decimal('4000')  # TRM aproximada USD→COP (ajustable).
+
+
+class IATopeSuperado(Exception):
+    """Se lanza cuando la institución alcanzó su tope de IA del mes (bloqueo suave)."""
 
 
 def _mes_actual():
@@ -103,6 +109,31 @@ def resumen_mes(institucion):
         'usado_cop': usado, 'tope_cop': tope,
         'restante_cop': restante, 'pct': pct,
     }
+
+
+def gemini_generate(institucion, model, contents, config=None):
+    """Envoltura ÚNICA para llamar a Gemini con tope + medición.
+
+    - Revisa el tope: si se superó (y está el bloqueo), lanza `IATopeSuperado`.
+    - Llama a `generate_content` con el modelo/config dados.
+    - Registra el consumo (tokens + costo estimado).
+    - Devuelve el objeto `response` (para no cambiar el código que lee `.text`).
+
+    Úsala en TODOS los puntos que hoy hacen `genai.Client(...).models.generate_content(...)`.
+    """
+    ok, msg = puede_usar_ia(institucion)
+    if not ok:
+        raise IATopeSuperado(msg)
+    from google import genai
+    api_key = _google_api_key(institucion)
+    client = genai.Client(api_key=api_key)
+    resp = client.models.generate_content(model=model, contents=contents, config=config)
+    try:
+        tin, tout = _tokens_gemini(resp)
+        registrar_uso(institucion, model, tin, tout)
+    except Exception:
+        pass
+    return resp
 
 
 def generar_texto(institucion, prompt, json=False):

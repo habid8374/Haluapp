@@ -131,6 +131,7 @@ from finanzas.models import InstitucionEducativa
 from finanzas.models import ConceptoPago, CuentaPorCobrarEstudiante, PagoRegistrado 
 from finanzas.models import NOMBRES_MESES_ESPANOL, TipoConceptoPago, ConceptoPago
 from finanzas.institucion_credentials import google_api_key as institucion_google_api_key
+from finanzas import ia as _ia_gate
       
 
 from ..forms import (
@@ -13198,6 +13199,9 @@ def asistente_halu_api(request):
         else:
             instrucciones_sistema = f"Eres HALU, el asistente virtual amigable de la plataforma escolar en '{institucion.nombre}'."
         
+        _ok_ia, _msg_ia = _ia_gate.puede_usar_ia(institucion)
+        if not _ok_ia:
+            return JsonResponse({'respuesta': _msg_ia}, status=200)
         _chat_config = types.GenerateContentConfig(tools=list(tools_disponibles.values())) if tools_disponibles else None
         chat = client.chats.create(model='gemini-2.5-flash', config=_chat_config, history=historial_previo)
         
@@ -13207,6 +13211,11 @@ def asistente_halu_api(request):
             mensaje_enviar = f"{instrucciones_sistema}\n\nPregunta del usuario: {pregunta}"
             
         response = chat.send_message(mensaje_enviar)
+        try:
+            _um = getattr(response, 'usage_metadata', None)
+            _ia_gate.registrar_uso(institucion, 'gemini-2.5-flash', getattr(_um,'prompt_token_count',0) or 0, getattr(_um,'candidates_token_count',0) or 0)
+        except Exception:
+            pass
         
         # Verificación segura de Tool Calls para evitar IndexError o AttributeError
         part = response.candidates[0].content.parts[0] if response.candidates and response.candidates[0].content.parts else None
@@ -16198,8 +16207,10 @@ class GenerarResumenEstudianteIAView(APIView):
                     {'status': 'error', 'message': 'La institución no tiene configurada la API key de Google (Gemini).'},
                     status=500,
                 )
-            _client = genai.Client(api_key=api_key)
-            response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+            try:
+                response = _ia_gate.gemini_generate(estudiante.institucion, 'gemini-2.5-flash', prompt)
+            except _ia_gate.IATopeSuperado as _e:
+                return Response({'status': 'error', 'message': str(_e)}, status=200)
 
             return Response({'status': 'success', 'resumen': response.text})
         except Exception as e:
@@ -16389,8 +16400,10 @@ class GenerarCorreoAcudienteIAView(APIView):
                     {'status': 'error', 'message': 'La institución no tiene configurada la API key de Google (Gemini).'},
                     status=500,
                 )
-            _client = genai.Client(api_key=api_key)
-            response = _client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+            try:
+                response = _ia_gate.gemini_generate(estudiante.institucion, 'gemini-2.5-flash', prompt)
+            except _ia_gate.IATopeSuperado as _e:
+                return Response({'status': 'error', 'message': str(_e)}, status=200)
             return Response({'status': 'success', 'correo': response.text})
         except Exception as e:
             logger.exception("GenerarCorreoIA error: %s", e)

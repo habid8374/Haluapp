@@ -31,6 +31,7 @@ from .politica_datos import *
 from .eventos import *
 from .idioma import *
 from .accesibilidad import *
+from .ia_consumo import *
 
 # ── Vistas de Logros (Preescolar) ────────────────────────────────────────────
 # Estas vistas existen tanto en _main.py como en una versión legacy en ia.py.

@@ -1124,8 +1124,11 @@ Responde ÚNICAMENTE con JSON válido, sin markdown ni explicaciones:
 {{"bajo": "...", "basico": "...", "alto": "...", "superior": "..."}}"""
 
     try:
-        _client = genai.Client(api_key=api_key)
-        response = _client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
+        from finanzas import ia as _ia_gate
+        try:
+            response = _ia_gate.gemini_generate(institucion, 'gemini-2.0-flash', prompt)
+        except _ia_gate.IATopeSuperado as _e:
+            return JsonResponse({'error': str(_e)}, status=200)
         text = response.text.strip()
         if text.startswith('```'):
             text = text.split('```')[1]
@@ -1223,8 +1226,11 @@ Responde ÚNICAMENTE con JSON válido, sin markdown:
 El campo "indice" es 0-based. Usa solo los valores: "bajo", "basico", "alto", "superior"."""
 
     try:
-        _client = genai.Client(api_key=api_key)
-        response = _client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
+        from finanzas import ia as _ia_gate
+        try:
+            response = _ia_gate.gemini_generate(institucion, 'gemini-2.0-flash', prompt)
+        except _ia_gate.IATopeSuperado as _e:
+            return JsonResponse({'error': str(_e)}, status=200)
         text = response.text.strip()
         if text.startswith('```'):
             text = text.split('```')[1]
