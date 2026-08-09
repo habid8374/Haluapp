@@ -2099,6 +2099,16 @@ def simplificar_observacion_boletin(request, observacion_pk):
     return JsonResponse({'ok': False, 'message': resultado}, status=200)
 
 
+@login_required
+def centro_ayuda_docente(request):
+    """Centro de Ayuda del Docente: guía en la propia interfaz (sin comandos ni
+    conceptos técnicos) sobre las herramientas de accesibilidad e inclusión,
+    audios con subtítulos, lectura fácil y evaluaciones accesibles."""
+    return render(request, 'gestion_academica/ayuda_docente.html', {
+        'titulo_pagina': _("Centro de Ayuda del Docente"),
+    })
+
+
 class DeberCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Deber
     form_class = DeberForm

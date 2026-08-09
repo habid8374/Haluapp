@@ -130,6 +130,7 @@ urlpatterns = [
     path('deberes/<int:deber_pk>/transcribir-audio/', views.generar_transcripcion_deber, name='generar_transcripcion_deber'),
     path('deberes/<int:deber_pk>/simplificar/', views.simplificar_descripcion_deber, name='simplificar_descripcion_deber'),
     path('boletin/observacion/<int:observacion_pk>/simplificar/', views.simplificar_observacion_boletin, name='simplificar_observacion_boletin'),
+    path('ayuda/docente/', views.centro_ayuda_docente, name='centro_ayuda_docente'),
 
     # --- Gestión de Planes Curriculares ---
     path('planes-curriculares/', views.PlanCurricularListView.as_view(), name='lista_planes_curriculares'),

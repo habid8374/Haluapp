@@ -593,6 +593,12 @@
           <span id="nav-mensajes-badge" class="badge bg-danger ms-1" style="display:none"></span>
         </a>
       </li>
+      <li class="nav-item item-color-4">
+        <a class="nav-link {% if request.resolver_match.url_name == 'centro_ayuda_docente' %}active{% endif %}"
+           href="{% url 'gestion_academica:centro_ayuda_docente' %}">
+          <i class="bi bi-life-preserver"></i> {% trans "Centro de Ayuda" %}
+        </a>
+      </li>
       <li class="nav-item item-color-2">
         <a class="nav-link {% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}{% else %}collapsed{% endif %}" href="#gestionSubmenu"
            data-bs-toggle="collapse" role="button"
