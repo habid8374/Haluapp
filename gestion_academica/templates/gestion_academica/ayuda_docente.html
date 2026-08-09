@@ -4,14 +4,17 @@
 
 {% block extrastyles %}{{ block.super }}
 <style>
-  .ayuda-hero { background: linear-gradient(135deg, #059669 0%, #10b981 100%); border-radius:18px; padding:2rem; color:#fff; margin-bottom:1.5rem; }
-  .ayuda-paso { display:flex; gap:.75rem; margin-bottom:.75rem; }
-  .ayuda-paso .n { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:#10b981; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.85rem; }
-  .ayuda-paso .t { padding-top:2px; }
-  .ayuda-chip { display:inline-block; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:20px; padding:2px 10px; font-size:.78rem; font-weight:600; }
-  .ayuda-nota { background:#f0f9ff; border-left:4px solid #38bdf8; border-radius:8px; padding:.6rem .9rem; font-size:.88rem; color:#0c4a6e; }
+  .ayuda-hero { background: linear-gradient(135deg, #059669 0%, #10b981 100%); border-radius:18px; padding:2rem; color:#fff; margin-bottom:1.25rem; }
+  .ayuda-cat-title { font-weight:800; color:#065f46; margin:1.4rem 0 .6rem; display:flex; align-items:center; gap:.5rem; }
+  .ayuda-cat-title i { color:#10b981; }
+  .ayuda-paso { display:flex; gap:.7rem; margin-bottom:.6rem; }
+  .ayuda-paso .n { flex-shrink:0; width:26px; height:26px; border-radius:50%; background:#10b981; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; }
+  .ayuda-chip { display:inline-block; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:20px; padding:2px 10px; font-size:.76rem; font-weight:600; }
+  .ayuda-ruta { display:inline-block; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; border-radius:6px; padding:1px 8px; font-size:.78rem; font-weight:600; }
+  .ayuda-nota { background:#f0f9ff; border-left:4px solid #38bdf8; border-radius:8px; padding:.55rem .85rem; font-size:.86rem; color:#0c4a6e; margin-top:.5rem; }
   .accordion-button:not(.collapsed) { background:#ecfdf5; color:#065f46; }
-  .accordion-button i.head-ic { font-size:1.15rem; margin-right:.6rem; color:#10b981; }
+  .accordion-button i.head-ic { font-size:1.05rem; margin-right:.55rem; color:#10b981; }
+  .accordion-button { font-size:.95rem; }
   kbd.btn-demo { background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:1px 7px; color:#334155; font-weight:600; }
 </style>
 {% endblock %}
@@ -19,164 +22,266 @@
 {% block contenido %}
 <div class="ayuda-hero">
   <h2 style="color:#fff;"><i class="bi bi-life-preserver"></i> {% trans "Centro de Ayuda del Docente" %}</h2>
-  <p style="color:#fff;" class="mb-0">{% trans "Guía práctica de las herramientas de inclusión y accesibilidad: audios con subtítulos, lectura fácil y evaluaciones accesibles. Todo se hace con botones dentro de la plataforma." %}</p>
+  <p style="color:#fff;" class="mb-0">{% trans "Manual completo de tu portal: planeación, evaluación y calificación, recursos, inclusión y accesibilidad. Todo se hace con botones dentro de la plataforma." %}</p>
 </div>
 
-<div class="mb-3">
+<div class="mb-2">
   <div class="input-group">
     <span class="input-group-text"><i class="bi bi-search"></i></span>
-    <input type="text" id="ayuda-buscar" class="form-control" placeholder="{% trans 'Buscar en la ayuda (ej. audio, lectura fácil, tiempo extra)…' %}">
+    <input type="text" id="ayuda-buscar" class="form-control" placeholder="{% trans 'Buscar (ej. deber, notas, audio, simulacro, PIAR)…' %}">
+  </div>
+</div>
+<p class="text-muted small">{% trans "Consejo: la ruta en azul te dice dónde encontrar cada herramienta en el menú de la izquierda." %}</p>
+
+<!-- ══════════ INICIO ══════════ -->
+<div class="ayuda-cat-title"><i class="bi bi-house-door-fill"></i> {% trans "Inicio y comunicación" %}</div>
+<div class="accordion mb-2" id="accInicio">
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#g1"><i class="bi bi-grid-fill head-ic"></i>{% trans "Mi Panel Principal" %}</button></h2>
+    <div id="g1" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Panel de Docente › Mi Panel Principal" %}</span></p>
+      <p>{% trans "Es tu pantalla de inicio: resume tus cursos, tareas pendientes por calificar, avisos y accesos rápidos. Empieza siempre aquí." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#g2"><i class="bi bi-chat-dots-fill head-ic"></i>{% trans "Mensajes" %}</button></h2>
+    <div id="g2" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Panel de Docente › Mensajes" %}</span></p>
+      <p>{% trans "Mensajería interna con coordinación, colegas y familias. El número rojo indica mensajes sin leer." %}</p>
+    </div></div>
   </div>
 </div>
 
-<div class="accordion" id="ayudaAcc">
-
-  <!-- 1. Perfil de accesibilidad -->
+<!-- ══════════ PLANEACIÓN ══════════ -->
+<div class="ayuda-cat-title"><i class="bi bi-calendar-week-fill"></i> {% trans "Planeación de clases" %}</div>
+<div class="accordion mb-2" id="accPlan">
   <div class="accordion-item ayuda-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#a1">
-        <i class="bi bi-universal-access-circle head-ic"></i> {% trans "1. El Perfil de Accesibilidad del estudiante (la base)" %}
-      </button>
-    </h2>
-    <div id="a1" class="accordion-collapse collapse show" data-bs-parent="#ayudaAcc">
-      <div class="accordion-body">
-        <p>{% trans "Es lo que hace que los apoyos se apliquen SOLOS al estudiante, sin que él tenga que configurar nada. Tú, como docente, no lo creas, pero es útil saber que existe." %}</p>
-        <p><span class="ayuda-chip">{% trans "Lo configura: coordinador, rector u orientador" %}</span></p>
-        <div class="ayuda-paso"><div class="n">1</div><div class="t">{% trans "Se abre desde la ficha del estudiante o desde su PIAR." %}</div></div>
-        <div class="ayuda-paso"><div class="n">2</div><div class="t">{% trans "Si el estudiante tiene PIAR, el sistema sugiere apoyos según su condición (visual, auditiva, cognitiva…)." %}</div></div>
-        <div class="ayuda-paso"><div class="n">3</div><div class="t">{% trans "Define: tamaño de texto, alto contraste, lectura por voz, enunciados en lectura fácil y tiempo extra en evaluaciones." %}</div></div>
-        <div class="ayuda-nota"><i class="bi bi-info-circle me-1"></i>{% trans "Cuando un estudiante con este perfil abre un cuestionario o un deber, los apoyos se aplican automáticamente. Si ves un estudiante sin apoyos que crees que los necesita, avísale a coordinación u orientación." %}</div>
-      </div>
-    </div>
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#p1"><i class="bi bi-robot head-ic"></i>{% trans "Planeador de Clases (IA)" %}</button></h2>
+    <div id="p1" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Planeador de Clases (IA)" %}</span></p>
+      <p>{% trans "La IA te ayuda a redactar una clase: escribe el tema, el grado y los objetivos, y genera una propuesta que puedes editar y guardar." %}</p>
+    </div></div>
   </div>
-
-  <!-- 2. Audios en deberes -->
   <div class="accordion-item ayuda-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a2">
-        <i class="bi bi-mic-fill head-ic"></i> {% trans "2. Audio de apoyo con subtítulos en un deber" %}
-      </button>
-    </h2>
-    <div id="a2" class="accordion-collapse collapse" data-bs-parent="#ayudaAcc">
-      <div class="accordion-body">
-        <p>{% trans "Puedes grabar/subir una explicación hablada del deber. La plataforma genera el subtítulo con IA para estudiantes sordos o con dificultad auditiva (y ayuda a todos)." %}</p>
-        <div class="ayuda-paso"><div class="n">1</div><div class="t">{% blocktrans %}En <strong>Centro de Gestión › Gestionar Deberes</strong>, crea o edita un deber.{% endblocktrans %}</div></div>
-        <div class="ayuda-paso"><div class="n">2</div><div class="t">{% blocktrans %}En el campo <strong>«Audio de apoyo»</strong> sube tu archivo de voz (MP3, WAV, M4A…, hasta 20 MB) y guarda.{% endblocktrans %}</div></div>
-        <div class="ayuda-paso"><div class="n">3</div><div class="t">{% blocktrans %}Abre el <strong>detalle del deber</strong> y pulsa <kbd class="btn-demo">{% endblocktrans %}<i class="bi bi-magic"></i> {% trans "Generar transcripción con IA" %}</kbd>.</div></div>
-        <div class="ayuda-paso"><div class="n">4</div><div class="t">{% trans "Listo: el estudiante verá el reproductor y podrá desplegar la transcripción al abrir el deber." %}</div></div>
-        <div class="ayuda-nota"><i class="bi bi-lightbulb me-1"></i>{% trans "La transcripción se genera una sola vez y se reutiliza con todos los estudiantes." %}</div>
-      </div>
-    </div>
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#p2"><i class="bi bi-calendar-week-fill head-ic"></i>{% trans "Mis Planes Semanales" %}</button></h2>
+    <div id="p2" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Mis Planes Semanales" %}</span></p>
+      <p>{% trans "Registra lo que trabajarás cada semana. Flujo: Borrador → Enviado → Aprobado (o Con observaciones) por el coordinador. Un ítem del plan se puede convertir en Deber o en Evaluación con un clic." %}</p>
+    </div></div>
   </div>
-
-  <!-- 3. Audios en preguntas -->
   <div class="accordion-item ayuda-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a3">
-        <i class="bi bi-badge-cc head-ic"></i> {% trans "3. Audio con subtítulos en las preguntas de un cuestionario" %}
-      </button>
-    </h2>
-    <div id="a3" class="accordion-collapse collapse" data-bs-parent="#ayudaAcc">
-      <div class="accordion-body">
-        <div class="ayuda-paso"><div class="n">1</div><div class="t">{% blocktrans %}En <strong>Centro de Gestión › Evaluaciones</strong>, abre el editor del cuestionario.{% endblocktrans %}</div></div>
-        <div class="ayuda-paso"><div class="n">2</div><div class="t">{% blocktrans %}En cada pregunta usa <strong>«Audio de apoyo»</strong> para subir el audio de esa pregunta.{% endblocktrans %}</div></div>
-        <div class="ayuda-paso"><div class="n">3</div><div class="t">{% blocktrans %}Arriba, pulsa <kbd class="btn-demo">{% endblocktrans %}<i class="bi bi-badge-cc"></i> {% trans "Transcribir audios (IA)" %}</kbd> {% trans "para subtitular todos los audios de una vez." %}</div></div>
-        <div class="ayuda-paso"><div class="n">4</div><div class="t">{% trans "El estudiante verá el reproductor y la transcripción en cada pregunta mientras resuelve." %}</div></div>
-      </div>
-    </div>
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#p3"><i class="bi bi-calendar-week head-ic"></i>{% trans "Historial de Lecciones" %}</button></h2>
+    <div id="p3" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Historial de Lecciones" %}</span></p>
+      <p>{% trans "Consulta las lecciones que has dictado por curso, como registro de lo trabajado." %}</p>
+    </div></div>
   </div>
-
-  <!-- 4. Explícalo fácil -->
   <div class="accordion-item ayuda-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a4">
-        <i class="bi bi-stars head-ic"></i> {% trans "4. «Explícalo fácil» (lectura fácil con IA)" %}
-      </button>
-    </h2>
-    <div id="a4" class="accordion-collapse collapse" data-bs-parent="#ayudaAcc">
-      <div class="accordion-body">
-        <p>{% trans "Reescribe un texto en frases cortas y palabras sencillas, sin cambiar su significado. Es un botón que aparece para el estudiante en varias pantallas:" %}</p>
-        <ul>
-          <li>{% trans "En cada pregunta del cuestionario que resuelve." %}</li>
-          <li>{% trans "En la descripción/instrucciones del deber (pantalla de entrega)." %}</li>
-          <li>{% trans "En la observación de su boletín." %}</li>
-        </ul>
-        <div class="ayuda-nota"><i class="bi bi-info-circle me-1"></i>{% trans "Si el estudiante tiene el apoyo «lectura fácil» en su perfil, la versión sencilla aparece automáticamente. Tú no tienes que activarlo por estudiante." %}</div>
-      </div>
-    </div>
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#p4"><i class="bi bi-clock-history head-ic"></i>{% trans "Mi Disponibilidad" %}</button></h2>
+    <div id="p4" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Mi Disponibilidad" %}</span></p>
+      <p>{% trans "Indica tus horas libres para que coordinación pueda agendar reuniones o citas contigo." %}</p>
+    </div></div>
   </div>
-
-  <!-- 5. Evaluaciones accesibles -->
-  <div class="accordion-item ayuda-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a5">
-        <i class="bi bi-check2-square head-ic"></i> {% trans "5. Evaluaciones accesibles (imágenes, tiempo, modo lista)" %}
-      </button>
-    </h2>
-    <div id="a5" class="accordion-collapse collapse" data-bs-parent="#ayudaAcc">
-      <div class="accordion-body">
-        <div class="ayuda-paso"><div class="n"><i class="bi bi-image"></i></div><div class="t">{% blocktrans %}<strong>Describir imágenes:</strong> en el editor del cuestionario, pulsa <kbd class="btn-demo">Describir imágenes (IA)</kbd> para que la IA genere el texto alternativo de las imágenes (lo leen los lectores de pantalla).{% endblocktrans %}</div></div>
-        <div class="ayuda-paso"><div class="n"><i class="bi bi-hourglass"></i></div><div class="t">{% trans "Tiempo extra: si el estudiante tiene ese apoyo en su perfil, el temporizador del cuestionario se amplía solo para él. No debes hacer nada." %}</div></div>
-        <div class="ayuda-paso"><div class="n"><i class="bi bi-list-check"></i></div><div class="t">{% trans "Modo accesible (lista): las preguntas de «etiquetar imagen» se pueden responder con desplegables, sin necesidad de ver ni tocar la imagen. El estudiante lo activa con un botón (o se abre solo si usa lectura por voz)." %}</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 6. Leer en voz alta -->
-  <div class="accordion-item ayuda-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a6">
-        <i class="bi bi-volume-up-fill head-ic"></i> {% trans "6. Leer en voz alta y ajustes de pantalla" %}
-      </button>
-    </h2>
-    <div id="a6" class="accordion-collapse collapse" data-bs-parent="#ayudaAcc">
-      <div class="accordion-body">
-        <p>{% blocktrans %}En la barra superior hay un botón de <strong>accesibilidad</strong>. Abre un panel donde cualquier usuario (incluido tú) puede: agrandar el texto, activar alto contraste, fuente legible, más espaciado, y <strong>leer la página o el texto seleccionado en voz alta</strong>. Cada quien guarda sus propios ajustes.{% endblocktrans %}</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- 7. Sobre la IA -->
-  <div class="accordion-item ayuda-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a7">
-        <i class="bi bi-robot head-ic"></i> {% trans "7. Sobre la IA y sus límites" %}
-      </button>
-    </h2>
-    <div id="a7" class="accordion-collapse collapse" data-bs-parent="#ayudaAcc">
-      <div class="accordion-body">
-        <p>{% trans "Las transcripciones y la lectura fácil usan Inteligencia Artificial. Cada institución tiene su propia cuenta y un tope de gasto mensual." %}</p>
-        <ul>
-          <li>{% trans "Si ves un aviso de que la IA no está disponible o se alcanzó el tope del mes, no es un error tuyo: la institución llegó a su límite o no tiene la IA configurada." %}</li>
-          <li>{% trans "En ese caso, coméntalo con coordinación o con el administrador de tu institución." %}</li>
-          <li>{% trans "Como cada transcripción/simplificación se guarda, no se vuelve a gastar al reutilizarla." %}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- 8. Buenas prácticas -->
-  <div class="accordion-item ayuda-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a8">
-        <i class="bi bi-heart head-ic"></i> {% trans "8. Buenas prácticas de inclusión" %}
-      </button>
-    </h2>
-    <div id="a8" class="accordion-collapse collapse" data-bs-parent="#ayudaAcc">
-      <div class="accordion-body">
-        <ul>
-          <li>{% trans "Al subir imágenes a una pregunta, genera su descripción con IA para que sean accesibles." %}</li>
-          <li>{% trans "Si grabas audios, genera siempre la transcripción antes de publicar." %}</li>
-          <li>{% trans "Revisa que los textos generados por IA sean correctos: son un apoyo, no reemplazan tu criterio." %}</li>
-          <li>{% trans "Estos apoyos ayudan al estudiante; no sustituyen a los docentes de apoyo ni a los profesionales de orientación." %}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
 </div>
 
-<div id="ayuda-sin-resultados" class="alert alert-warning mt-3" style="display:none;">
+<!-- ══════════ EVALUACIÓN Y CALIFICACIÓN ══════════ -->
+<div class="ayuda-cat-title"><i class="bi bi-pencil-square"></i> {% trans "Evaluación y calificación" %}</div>
+<div class="accordion mb-2" id="accEval">
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#e1"><i class="bi bi-tags-fill head-ic"></i>{% trans "Categorías de Actividad" %}</button></h2>
+    <div id="e1" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Categorías de Actividad" %}</span></p>
+      <p>{% trans "Define categorías (Saber Ser, Saber Hacer, etc.) y su porcentaje. Cada evaluación o deber usa una categoría; eso determina cuánto pesa la nota en el boletín. Sin categoría, la nota no cuenta." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#e2"><i class="bi bi-patch-question-fill head-ic"></i>{% trans "Evaluaciones (cuestionarios)" %}</button></h2>
+    <div id="e2" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Evaluaciones" %}</span></p>
+      <div class="ayuda-paso"><div class="n">1</div><div>{% trans "Crea una actividad evaluable y abre su editor de cuestionario." %}</div></div>
+      <div class="ayuda-paso"><div class="n">2</div><div>{% trans "Agrega preguntas de muchos tipos: opción única/múltiple, verdadero/falso, texto libre, emparejar, completar, clasificar, etiquetar imagen, zonas activas, ordenar, mapa conceptual y respuesta numérica." %}</div></div>
+      <div class="ayuda-paso"><div class="n">3</div><div>{% blocktrans %}Puedes usar <kbd class="btn-demo">Generar con IA</kbd> para crear preguntas a partir de un tema, y agregar imágenes o audios de apoyo por pregunta.{% endblocktrans %}</div></div>
+      <div class="ayuda-paso"><div class="n">4</div><div>{% trans "Define tiempo límite e intentos permitidos. Al finalizar, la nota se registra sola en el libro de notas." %}</div></div>
+      <div class="ayuda-nota"><i class="bi bi-universal-access me-1"></i>{% trans "Accesibilidad: mira la sección «Inclusión y accesibilidad» para audios con subtítulos, lectura fácil y describir imágenes." %}</div>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#e3"><i class="bi bi-journal-check head-ic"></i>{% trans "Gestionar Deberes / Tareas" %}</button></h2>
+    <div id="e3" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Gestionar Deberes" %}</span></p>
+      <p>{% trans "Crea tareas con título, instrucciones, fecha límite, categoría y material adjunto (y, opcionalmente, un audio de apoyo). Los estudiantes entregan desde su portal." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#e4"><i class="bi bi-pencil-square head-ic"></i>{% trans "Entregas por Calificar" %}</button></h2>
+    <div id="e4" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Entregas por Calificar" %}</span></p>
+      <p>{% trans "Lista de entregas pendientes de nota. Ábrelas, revisa el archivo del estudiante, asigna la calificación y deja comentarios. En preguntas abiertas, la IA puede sugerirte una nota." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#e5"><i class="bi bi-archive-fill head-ic"></i>{% trans "Historial de Entregas" %}</button></h2>
+    <div id="e5" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Historial de Entregas" %}</span></p>
+      <p>{% trans "Consulta todas las entregas ya recibidas y calificadas, con su estado y notas." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#e6"><i class="bi bi-journal-text head-ic"></i>{% trans "Libro de Notas" %}</button></h2>
+    <div id="e6" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Libro de Notas" %}</span></p>
+      <p>{% trans "Selecciona el curso y registra o ajusta las calificaciones de tus estudiantes por actividad y período. Es la base del boletín." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#e7"><i class="bi bi-card-list head-ic"></i>{% trans "Gestionar Descriptores" %}</button></h2>
+    <div id="e7" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Gestionar Descriptores" %}</span></p>
+      <p>{% trans "Administra los descriptores de logro/indicadores que se usan en la evaluación y en el boletín." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#e8"><i class="bi bi-graph-up-arrow head-ic"></i>{% trans "Reporte Nota Mínima y Reporte Global de Riesgo" %}</button></h2>
+    <div id="e8" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Reporte Nota Mínima / Reporte Global de Riesgo" %}</span></p>
+      <p>{% trans "Identifican estudiantes con desempeño bajo o en riesgo, para que puedas intervenir a tiempo. Elige el curso y revisa el listado." %}</p>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════ SIMULACROS E INCLUSIÓN ══════════ -->
+<div class="ayuda-cat-title"><i class="bi bi-mortarboard-fill"></i> {% trans "Simulacros e inclusión (PIAR)" %}</div>
+<div class="accordion mb-2" id="accSim">
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#s1"><i class="bi bi-journal-check head-ic"></i>{% trans "Simulacros Saber" %}</button></h2>
+    <div id="s1" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Simulacros Saber" %}</span></p>
+      <p>{% trans "Arma pruebas tipo ICFES desde un banco de preguntas (público o propio), publícalas para tus estudiantes y revisa los resultados. También puedes generar preguntas con IA e importarlas desde Excel." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#s2"><i class="bi bi-person-hearts head-ic"></i>{% trans "PIARs / Inclusión" %}</button></h2>
+    <div id="s2" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › PIARs / Inclusión" %}</span></p>
+      <p>{% trans "Plan Individual de Ajustes Razonables (Decreto 1421). Consulta el PIAR de un estudiante y registra los ajustes por materia y período, marcando si se alcanzaron. La creación del PIAR la hace coordinación/orientación." %}</p>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════ SEGUIMIENTO Y CONVIVENCIA ══════════ -->
+<div class="ayuda-cat-title"><i class="bi bi-clipboard2-check-fill"></i> {% trans "Seguimiento y convivencia" %}</div>
+<div class="accordion mb-2" id="accSeg">
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#c1"><i class="bi bi-eye head-ic"></i>{% trans "Observador del estudiante" %}</button></h2>
+    <div id="c1" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Observador" %}</span></p>
+      <p>{% trans "Registra anotaciones de convivencia por estudiante. El sistema ayuda a clasificar la situación (tipo I, II o III, Ley 1620) y avisa a coordinación cuando corresponde." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#c2"><i class="bi bi-award head-ic"></i>{% trans "Menciones y Honores" %}</button></h2>
+    <div id="c2" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Menciones y Honores" %}</span></p>
+      <p>{% trans "Reconoce logros de tus estudiantes con menciones que quedan registradas en su historial." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#c3"><i class="bi bi-graph-up-arrow head-ic"></i>{% trans "Mi Evaluación (desempeño docente)" %}</button></h2>
+    <div id="c3" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Mi Evaluación" %}</span></p>
+      <p>{% trans "Consulta tu propio proceso de evaluación de desempeño dentro de la institución." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#c4"><i class="bi bi-people-fill head-ic"></i>{% trans "Asistir en Otro Curso" %}</button></h2>
+    <div id="c4" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Panel de Docente › Asistir en Otro Curso" %}</span></p>
+      <p>{% trans "Te permite tomar asistencia en un curso que no es el tuyo (por ejemplo, cuando reemplazas a un colega)." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#c5"><i class="bi bi-folder-plus head-ic"></i>{% trans "Materiales de Apoyo" %}</button></h2>
+    <div id="c5" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Centro de Gestión › Materiales de Apoyo" %}</span></p>
+      <p>{% trans "Sube y comparte materiales (documentos, enlaces) para tus estudiantes." %}</p>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════ RECURSOS INTERACTIVOS ══════════ -->
+<div class="ayuda-cat-title"><i class="bi bi-controller"></i> {% trans "Recursos interactivos" %}</div>
+<div class="accordion mb-2" id="accRec">
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#r1"><i class="bi bi-controller head-ic"></i>{% trans "Juegos y actividades para practicar" %}</button></h2>
+    <div id="r1" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-ruta">{% trans "Panel de Docente › Recursos Interactivos" %}</span></p>
+      <p>{% trans "Crea actividades lúdicas para reforzar temas:" %}</p>
+      <ul>
+        <li>{% trans "Crucigramas, Sopas de Letras, Juegos de Memoria y Flash Cards." %}</li>
+        <li>{% trans "Quiz de Audio, Ordenar Secuencias, Trazado de Letras y Rompecabezas." %}</li>
+        <li>{% trans "Galería 3D y Actividades 3D para contenidos interactivos." %}</li>
+      </ul>
+      <p>{% trans "En cada uno: crea el recurso, complétalo y compártelo con tus estudiantes." %}</p>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══════════ INCLUSIÓN Y ACCESIBILIDAD ══════════ -->
+<div class="ayuda-cat-title"><i class="bi bi-universal-access-circle"></i> {% trans "Inclusión y accesibilidad" %}</div>
+<div class="accordion mb-2" id="accAcc">
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#i1"><i class="bi bi-universal-access head-ic"></i>{% trans "El Perfil de Accesibilidad (la base)" %}</button></h2>
+    <div id="i1" class="accordion-collapse collapse"><div class="accordion-body">
+      <p><span class="ayuda-chip">{% trans "Lo configura: coordinador, rector u orientador" %}</span></p>
+      <p>{% trans "Hace que los apoyos se apliquen SOLOS al estudiante (tamaño de texto, alto contraste, lectura por voz, lectura fácil, tiempo extra). Tú no lo creas, pero es bueno saber que existe: cuando un estudiante con perfil abre un cuestionario o deber, sus apoyos ya están activos." %}</p>
+      <div class="ayuda-nota"><i class="bi bi-info-circle me-1"></i>{% trans "Si crees que un estudiante necesita apoyos y no los tiene, avísale a coordinación u orientación." %}</div>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#i2"><i class="bi bi-mic-fill head-ic"></i>{% trans "Audio con subtítulos en un deber" %}</button></h2>
+    <div id="i2" class="accordion-collapse collapse"><div class="accordion-body">
+      <div class="ayuda-paso"><div class="n">1</div><div>{% blocktrans %}En <strong>Gestionar Deberes</strong>, crea o edita un deber y sube tu archivo en <strong>«Audio de apoyo»</strong> (hasta 20 MB).{% endblocktrans %}</div></div>
+      <div class="ayuda-paso"><div class="n">2</div><div>{% blocktrans %}Abre el <strong>detalle del deber</strong> y pulsa <kbd class="btn-demo">{% endblocktrans %}<i class="bi bi-magic"></i> {% trans "Generar transcripción con IA" %}</kbd>.</div></div>
+      <div class="ayuda-paso"><div class="n">3</div><div>{% trans "El estudiante verá el reproductor y podrá leer la transcripción (subtítulo)." %}</div></div>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#i3"><i class="bi bi-badge-cc head-ic"></i>{% trans "Audio con subtítulos en las preguntas" %}</button></h2>
+    <div id="i3" class="accordion-collapse collapse"><div class="accordion-body">
+      <div class="ayuda-paso"><div class="n">1</div><div>{% blocktrans %}En el editor del cuestionario, sube el audio de una pregunta con <strong>«Audio de apoyo»</strong>.{% endblocktrans %}</div></div>
+      <div class="ayuda-paso"><div class="n">2</div><div>{% blocktrans %}Arriba pulsa <kbd class="btn-demo">{% endblocktrans %}<i class="bi bi-badge-cc"></i> {% trans "Transcribir audios (IA)" %}</kbd> {% trans "para subtitular todos de una vez." %}</div></div>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#i4"><i class="bi bi-stars head-ic"></i>{% trans "«Explícalo fácil» (lectura fácil)" %}</button></h2>
+    <div id="i4" class="accordion-collapse collapse"><div class="accordion-body">
+      <p>{% trans "Reescribe un texto en frases cortas y sencillas sin cambiar su significado. Aparece como botón para el estudiante en: cada pregunta del cuestionario, la descripción del deber, y la observación del boletín. Si su perfil pide lectura fácil, se aplica automáticamente." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#i5"><i class="bi bi-check2-square head-ic"></i>{% trans "Evaluaciones accesibles (imágenes, tiempo, modo lista)" %}</button></h2>
+    <div id="i5" class="accordion-collapse collapse"><div class="accordion-body">
+      <div class="ayuda-paso"><div class="n"><i class="bi bi-image"></i></div><div>{% blocktrans %}<strong>Describir imágenes:</strong> en el editor, pulsa <kbd class="btn-demo">Describir imágenes (IA)</kbd> para generar el texto que leen los lectores de pantalla.{% endblocktrans %}</div></div>
+      <div class="ayuda-paso"><div class="n"><i class="bi bi-hourglass"></i></div><div>{% trans "Tiempo extra: si el perfil del estudiante lo pide, su temporizador se amplía solo." %}</div></div>
+      <div class="ayuda-paso"><div class="n"><i class="bi bi-list-check"></i></div><div>{% trans "Modo accesible (lista): las preguntas de «etiquetar imagen» se responden con desplegables, sin ver ni tocar la imagen." %}</div></div>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#i6"><i class="bi bi-volume-up-fill head-ic"></i>{% trans "Leer en voz alta y ajustes de pantalla" %}</button></h2>
+    <div id="i6" class="accordion-collapse collapse"><div class="accordion-body">
+      <p>{% trans "El botón de accesibilidad en la barra superior abre un panel para agrandar texto, alto contraste, fuente legible, más espaciado y leer la página o la selección en voz alta. Cada usuario guarda sus ajustes." %}</p>
+    </div></div>
+  </div>
+  <div class="accordion-item ayuda-item">
+    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#i7"><i class="bi bi-robot head-ic"></i>{% trans "Sobre la IA y su tope" %}</button></h2>
+    <div id="i7" class="accordion-collapse collapse"><div class="accordion-body">
+      <p>{% trans "Las transcripciones y la lectura fácil usan IA. Cada institución tiene su cuenta y un tope mensual. Si ves un aviso de que la IA no está disponible o se alcanzó el tope, no es un error tuyo: coméntalo con coordinación o el administrador. Como cada resultado se guarda, no se vuelve a gastar al reutilizarlo." %}</p>
+    </div></div>
+  </div>
+</div>
+
+<div id="ayuda-sin-resultados" class="alert alert-warning mt-2" style="display:none;">
   <i class="bi bi-search me-1"></i>{% trans "No se encontraron temas con esa búsqueda." %}
 </div>
 {% endblock %}
@@ -186,6 +291,7 @@
 (function () {
   var input = document.getElementById('ayuda-buscar');
   var items = Array.prototype.slice.call(document.querySelectorAll('.ayuda-item'));
+  var titulos = Array.prototype.slice.call(document.querySelectorAll('.ayuda-cat-title'));
   var vacio = document.getElementById('ayuda-sin-resultados');
   if (!input) return;
   input.addEventListener('input', function () {
@@ -195,9 +301,15 @@
       var match = !q || it.textContent.toLowerCase().indexOf(q) !== -1;
       it.style.display = match ? '' : 'none';
       if (match) visibles++;
-      // Al buscar, abre las coincidencias para ver el contenido.
       var col = it.querySelector('.accordion-collapse');
       if (col && q) { match ? col.classList.add('show') : col.classList.remove('show'); }
+    });
+    // Oculta el título de una categoría si ninguno de sus ítems quedó visible.
+    titulos.forEach(function (t) {
+      var acc = t.nextElementSibling;
+      if (!acc) return;
+      var algun = acc.querySelectorAll('.ayuda-item:not([style*="display: none"])').length;
+      t.style.display = (q && algun === 0) ? 'none' : '';
     });
     if (vacio) vacio.style.display = visibles === 0 ? '' : 'none';
   });
