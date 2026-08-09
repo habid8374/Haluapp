@@ -65,6 +65,8 @@
          data-tiempo-limite="{{ tiempo_limite_efectivo|default:cuestionario.tiempo_limite }}"
          data-submit-url="{% url 'cuestionarios:resolver_api' intento.pk %}"
          data-api-url="{% url 'cuestionarios:api_cuestionario' cuestionario.actividad_calificable.pk %}"
+         data-auto-simplificar="{% if auto_simplificar %}1{% else %}0{% endif %}"
+         data-auto-modo-accesible="{% if auto_modo_accesible %}1{% else %}0{% endif %}"
          data-csrf-token="{{ csrf_token }}">
 
         <div class="text-center">
@@ -83,29 +85,41 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const app = document.getElementById('cuestionario-app');
-    const { 
-        intentoId, 
-        actividadId, 
-        tiempoLimite, 
-        submitUrl, 
-        apiUrl, 
-        csrfToken 
+    const {
+        intentoId,
+        actividadId,
+        tiempoLimite,
+        submitUrl,
+        apiUrl,
+        autoSimplificar,
+        autoModoAccesible,
+        csrfToken
     } = app.dataset;
+    const AUTO_SIMPLIFICAR = autoSimplificar === '1';
+    const AUTO_MODO_ACCESIBLE = autoModoAccesible === '1';
 
     let cuestionarioData = {};
     let timerInterval;
 
     // ── Accesibilidad (Ola 3): "Explícalo fácil" (simplificar enunciado con IA) ──
     const SIMPLIFY_URL = "{% url 'cuestionarios:simplificar_enunciado_ia' 0 %}";
-    app.addEventListener('click', function (ev) {
-        const btn = ev.target.closest('.acc-simplify-btn');
-        if (!btn) return;
-        const pid = btn.getAttribute('data-pregunta-id');
+
+    // Simplifica el enunciado de UNA pregunta y muestra el resultado. Reutilizable
+    // desde el botón manual y desde la aplicación automática del perfil.
+    function simplificarPregunta(pid, btn) {
         const box = app.querySelector('.acc-simple-text[data-for="' + pid + '"]');
-        const original = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Simplificando…" %}';
-        fetch(SIMPLIFY_URL.replace('/0/', '/' + pid + '/'), {
+        let original = '';
+        if (btn) {
+            original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Simplificando…" %}';
+        }
+        if (box) {
+            box.style.display = 'block';
+            box.className = 'acc-simple-text py-2 mb-3 alert alert-info';
+            box.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Preparando versión en lectura fácil…" %}';
+        }
+        return fetch(SIMPLIFY_URL.replace('/0/', '/' + pid + '/'), {
             method: 'POST',
             headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
             body: '{}'
@@ -117,9 +131,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }).catch(function () {
             if (box) { box.style.display = 'block'; box.className = 'acc-simple-text py-2 mb-3 alert alert-warning'; box.textContent = '{% trans "No se pudo simplificar." %}'; }
         }).finally(function () {
-            btn.disabled = false; btn.innerHTML = original;
+            if (btn) { btn.disabled = false; btn.innerHTML = original; }
         });
+    }
+
+    app.addEventListener('click', function (ev) {
+        const btn = ev.target.closest('.acc-simplify-btn');
+        if (!btn) return;
+        simplificarPregunta(btn.getAttribute('data-pregunta-id'), btn);
     });
+
+    // Auto-aplicar la lectura fácil a TODAS las preguntas si el perfil del
+    // estudiante lo pide (se lanzan en secuencia para no saturar la IA).
+    function aplicarSimplificacionAutomatica() {
+        if (!AUTO_SIMPLIFICAR) return;
+        const btns = Array.prototype.slice.call(app.querySelectorAll('.acc-simplify-btn'));
+        (function siguiente(i) {
+            if (i >= btns.length) return;
+            const pid = btns[i].getAttribute('data-pregunta-id');
+            simplificarPregunta(pid, null).then(function () { siguiente(i + 1); });
+        })(0);
+    }
 
     // Escapa contenido controlado por docente/IA antes de inyectarlo en innerHTML
     // (previene XSS almacenado vía enunciado/opciones).
@@ -218,17 +250,45 @@ document.addEventListener('DOMContentLoaded', function() {
             const imgSrc = pregunta.imagen_url
                 ? `<img src="${esc(pregunta.imagen_url)}" alt="${esc(pregunta.imagen_alt || '')}" class="etiq-img">`
                 : `<div class="alert alert-warning mb-0">{% trans "Esta pregunta no tiene imagen." %}</div>`;
+            // Modo accesible (lista): permite responder SIN necesidad de ver o tocar
+            // la imagen. Cada marcador se numera y se resuelve con un desplegable.
+            // Produce la misma respuesta {orden: etiqueta} que el modo visual.
+            const optsEtiq = ['<option value="">{% trans "Selecciona una etiqueta…" %}</option>']
+                .concat(etiquetas.map(t => `<option value="${esc(t)}">${esc(t)}</option>`)).join('');
+            const listaHtml = marcadores.map((m, i) => `
+                <div class="row align-items-center mb-2 etiq-lista-fila">
+                    <div class="col-4 col-sm-3">
+                        <span class="etiq-marker-num">${i + 1}</span>
+                        <span class="ms-1" style="font-size:.85rem;">{% trans "Marcador" %} ${i + 1}</span>
+                    </div>
+                    <div class="col-8 col-sm-9">
+                        <select class="form-select form-select-sm etiq-lista-select" data-orden="${esc(m.orden)}">${optsEtiq}</select>
+                    </div>
+                </div>`).join('');
             opcionesHtml = `
-                <p class="text-muted mb-2" style="font-size:.85rem;">
-                    <i class="bi bi-hand-index"></i> {% trans "Toca una etiqueta y luego el número donde va sobre la imagen." %}
-                </p>
-                <div class="etiq-wrap">
-                    ${imgSrc}
-                    ${dropsHtml}
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary acc-etiq-toggle">
+                        <i class="bi bi-universal-access"></i> {% trans "Modo accesible (lista)" %}
+                    </button>
                 </div>
-                <div class="etiq-bank">
-                    <div class="clasif-zone-label">{% trans "Etiquetas" %}</div>
-                    <div class="etiq-bank-chips">${chipsHtml}</div>
+                <div class="etiq-modo-visual">
+                    <p class="text-muted mb-2" style="font-size:.85rem;">
+                        <i class="bi bi-hand-index"></i> {% trans "Toca una etiqueta y luego el número donde va sobre la imagen." %}
+                    </p>
+                    <div class="etiq-wrap">
+                        ${imgSrc}
+                        ${dropsHtml}
+                    </div>
+                    <div class="etiq-bank">
+                        <div class="clasif-zone-label">{% trans "Etiquetas" %}</div>
+                        <div class="etiq-bank-chips">${chipsHtml}</div>
+                    </div>
+                </div>
+                <div class="etiq-modo-lista" style="display:none;">
+                    <p class="text-muted mb-2" style="font-size:.85rem;">
+                        <i class="bi bi-list-check"></i> {% trans "Elige la etiqueta que corresponde a cada marcador." %}
+                    </p>
+                    ${listaHtml}
                 </div>
             `;
         }
@@ -332,12 +392,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderizarCuestionario() {
         const preguntasHtml = cuestionarioData.preguntas.map(renderizarPregunta).join('');
+        const avisoAcc = AUTO_SIMPLIFICAR
+            ? `<div class="alert alert-info d-flex align-items-center gap-2 py-2 mb-3">
+                   <i class="bi bi-universal-access-circle fs-5"></i>
+                   <span>{% trans "Se están preparando las preguntas en lectura fácil según tu perfil de apoyo." %}</span>
+               </div>`
+            : '';
         app.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3>${esc(cuestionarioData.titulo)}</h3>
                 <div id="timer" class="badge bg-danger fs-5 p-2"></div>
             </div>
             <p>${esc(cuestionarioData.descripcion || '')}</p>
+            ${avisoAcc}
             <hr>
             <div id="preguntas-list">
                 ${preguntasHtml}
@@ -355,6 +422,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.getElementById('finalizar-btn').addEventListener('click', finalizarIntento);
         initMapasResolver();
+        aplicarSimplificacionAutomatica();
+        // Abrir "etiquetar" en su modo accesible (lista) si el perfil lo pide.
+        if (AUTO_MODO_ACCESIBLE) {
+            app.querySelectorAll('.card[data-pregunta-tipo="etiquetar"] .acc-etiq-toggle')
+               .forEach(function (b) { b.click(); });
+        }
     }
 
     /* ── Mapa conceptual (estudiante): dibujar nodos en círculo ── */
@@ -482,10 +555,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 case 'etiquetar': {
                     const mapa = {};
-                    preguntaCard.querySelectorAll('.etiq-marker-drop').forEach(drop => {
-                        const chip = drop.querySelector('.etiq-chip');
-                        if (chip) mapa[drop.dataset.orden] = chip.dataset.texto;
-                    });
+                    if (preguntaCard.classList.contains('acc-lista-activa')) {
+                        // Modo accesible (lista): se lee de los desplegables.
+                        preguntaCard.querySelectorAll('.etiq-lista-select').forEach(sel => {
+                            if (sel.value) mapa[sel.dataset.orden] = sel.value;
+                        });
+                    } else {
+                        preguntaCard.querySelectorAll('.etiq-marker-drop').forEach(drop => {
+                            const chip = drop.querySelector('.etiq-chip');
+                            if (chip) mapa[drop.dataset.orden] = chip.dataset.texto;
+                        });
+                    }
                     if (Object.keys(mapa).length) {
                         respuestas[preguntaId] = { tipo, respuesta_etiquetar: mapa };
                     }
@@ -589,6 +669,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const card = drop.closest('.card');
             const sel = card && card.querySelector('.clasif-chip.selected');
             if (sel) { drop.appendChild(sel); sel.classList.remove('selected'); }
+        }
+
+        // ── Etiquetar: alternar entre modo visual (imagen) y modo accesible (lista) ──
+        const etiqToggle = e.target.closest('.acc-etiq-toggle');
+        if (etiqToggle) {
+            const card = etiqToggle.closest('.card');
+            const visual = card.querySelector('.etiq-modo-visual');
+            const lista = card.querySelector('.etiq-modo-lista');
+            const activarLista = card.classList.toggle('acc-lista-activa');
+            if (visual) visual.style.display = activarLista ? 'none' : '';
+            if (lista) lista.style.display = activarLista ? '' : 'none';
+            etiqToggle.innerHTML = activarLista
+                ? '<i class="bi bi-image"></i> {% trans "Modo visual (imagen)" %}'
+                : '<i class="bi bi-universal-access"></i> {% trans "Modo accesible (lista)" %}';
+            return;
         }
 
         // ── Etiquetar: tocar etiqueta y luego el marcador (nº) sobre la imagen ──

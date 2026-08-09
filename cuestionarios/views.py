@@ -546,10 +546,24 @@ class ResolverCuestionarioView(LoginRequiredMixin, View):
             perfil = None
         if tiempo_limite and perfil and perfil.activo and perfil.tiempo_extra_pct:
             tiempo_limite_efectivo = int(round(tiempo_limite * (1 + perfil.tiempo_extra_pct / 100.0)))
+        # Auto-simplificar enunciados (Ola 2 → Ola 3): si el perfil del estudiante
+        # pide "enunciados simplificados" (o "lectura fácil"), la versión en lectura
+        # fácil se muestra sola, sin que el estudiante tenga que pulsar el botón.
+        # Reutiliza el enunciado_simple cacheado en cada pregunta (no gasta créditos
+        # de más). El botón manual sigue disponible para todos.
+        auto_simplificar = bool(
+            perfil and perfil.activo and (perfil.enunciado_simplificado or perfil.easy_read)
+        )
+        # Si el estudiante usa lectura por voz (lector de pantalla), las preguntas
+        # basadas en imagen (etiquetar) se abren directamente en su modo accesible
+        # de lista, que se puede responder sin ver ni tocar la imagen.
+        auto_modo_accesible = bool(perfil and perfil.activo and perfil.tts_default)
         context = {
             'intento': intento,
             'cuestionario': intento.cuestionario,
             'tiempo_limite_efectivo': tiempo_limite_efectivo,
+            'auto_simplificar': auto_simplificar,
+            'auto_modo_accesible': auto_modo_accesible,
             'titulo_pagina': _("Resolviendo: %(intento_cuestionario)s") % {'intento_cuestionario': intento.cuestionario.titulo}
         }
         return render(request, 'cuestionarios/resolver_cuestionario.html', context)
