@@ -2001,6 +2001,41 @@ class DeberDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
         context['titulo_pagina'] = _("Detalle del Deber: %(self_object_titulo)s") % {'self_object_titulo': self.object.titulo}
         return context
 
+
+@login_required
+@require_POST
+@permission_required('gestion_academica.change_deber', raise_exception=True)
+def generar_transcripcion_deber(request, deber_pk):
+    """Genera con IA la transcripción (subtítulo) del audio de apoyo de un deber.
+    Acción del docente/coordinador (un botón, sin comandos). Se cachea en el deber
+    para reutilizarla con todos los estudiantes. Institución-scoped y con tope de IA.
+    """
+    import mimetypes
+    from finanzas import ia as _ia
+
+    deber = get_object_or_404(
+        get_filtered_queryset(Deber, request.user), pk=deber_pk
+    )
+    if not deber.audio:
+        return JsonResponse({'ok': False, 'message': _("Este deber no tiene un audio adjunto.")}, status=200)
+    if deber.audio_transcripcion:
+        return JsonResponse({'ok': True, 'texto': deber.audio_transcripcion, 'cache': True})
+
+    try:
+        with deber.audio.open('rb') as fh:
+            data = fh.read()
+        mime = mimetypes.guess_type(deber.audio.name)[0] or 'audio/mpeg'
+    except Exception:
+        return JsonResponse({'ok': False, 'message': _("No se pudo leer el audio.")}, status=200)
+
+    ok, resultado = _ia.transcribir_audio(deber.institucion, data, mime)
+    if ok:
+        deber.audio_transcripcion = resultado
+        deber.save(update_fields=['audio_transcripcion'])
+        return JsonResponse({'ok': True, 'texto': resultado, 'cache': False})
+    return JsonResponse({'ok': False, 'message': resultado}, status=200)
+
+
 class DeberCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Deber
     form_class = DeberForm

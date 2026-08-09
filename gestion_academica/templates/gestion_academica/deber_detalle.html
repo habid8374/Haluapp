@@ -45,6 +45,25 @@
                 {% endif %}
                 {% endcomment %}
             </dl>
+
+            {% if deber.audio %}
+            <hr>
+            <h5 class="card-title text-primary mb-3"><i class="bi bi-mic-fill me-2"></i> {% trans "Audio de apoyo (accesibilidad)" %}</h5>
+            <audio controls preload="none" class="w-100 mb-3" src="{{ deber.audio.url }}">
+                {% trans "Tu navegador no puede reproducir el audio." %}
+            </audio>
+            <div class="mb-2">
+                <label class="fw-bold d-block mb-1"><i class="bi bi-badge-cc me-1"></i>{% trans "Transcripción (subtítulo)" %}</label>
+                <div id="deber-transcripcion" class="p-3 bg-light rounded {% if not deber.audio_transcripcion %}d-none{% endif %}" style="white-space:pre-wrap;">{{ deber.audio_transcripcion }}</div>
+                {% if not deber.audio_transcripcion %}
+                <p class="text-muted small mb-2" id="deber-transcripcion-vacia">{% trans "Aún no hay transcripción. Genérala con IA para que los estudiantes sordos o con dificultad auditiva puedan leerla." %}</p>
+                <button type="button" id="btn-transcribir-deber" class="btn btn-outline-primary btn-sm"
+                        data-url="{% url 'gestion_academica:generar_transcripcion_deber' deber.pk %}">
+                    <i class="bi bi-magic"></i> {% trans "Generar transcripción con IA" %}
+                </button>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
         <div class="card-footer text-end">
             {% if perms.gestion_academica.change_deber %}
@@ -66,3 +85,34 @@
     {% endif %}
 </div>
 {% endblock contenido %}
+{% block extra_js %}{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('btn-transcribir-deber');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        var caja = document.getElementById('deber-transcripcion');
+        var vacia = document.getElementById('deber-transcripcion-vacia');
+        var original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Transcribiendo…" %}';
+        fetch(btn.dataset.url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            body: '{}'
+        }).then(function (r) { return r.json(); }).then(function (d) {
+            if (d.ok) {
+                if (caja) { caja.textContent = d.texto; caja.classList.remove('d-none'); }
+                if (vacia) vacia.remove();
+                btn.remove();
+            } else {
+                btn.disabled = false; btn.innerHTML = original;
+                if (caja) { caja.textContent = d.message || '{% trans "No se pudo transcribir." %}'; caja.classList.remove('d-none'); caja.classList.add('text-danger'); }
+            }
+        }).catch(function () {
+            btn.disabled = false; btn.innerHTML = original;
+        });
+    });
+});
+</script>
+{% endblock %}

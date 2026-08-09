@@ -790,7 +790,7 @@ class CalificacionForm(forms.ModelForm):
 class DeberForm(forms.ModelForm):
     class Meta:
         model = Deber
-        fields = ['curso', 'titulo', 'descripcion', 'tipo_actividad', 'fecha_asignacion', 'fecha_entrega', 'material_adjunto', 'institucion']
+        fields = ['curso', 'titulo', 'descripcion', 'tipo_actividad', 'fecha_asignacion', 'fecha_entrega', 'material_adjunto', 'audio', 'institucion']
         widgets = {
             'curso': forms.Select(attrs={'class': 'form-control'}),
             'titulo': forms.TextInput(attrs={'class': 'form-control'}),
@@ -799,6 +799,7 @@ class DeberForm(forms.ModelForm):
             'fecha_asignacion': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'fecha_entrega': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'material_adjunto': forms.FileInput(attrs={'class': 'form-control'}),
+            'audio': forms.FileInput(attrs={'class': 'form-control', 'accept': 'audio/*'}),
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
@@ -809,6 +810,7 @@ class DeberForm(forms.ModelForm):
             'fecha_asignacion': _('Fecha de Asignación'),
             'fecha_entrega': _('Fecha Límite de Entrega'),
             'material_adjunto': _('Material de Apoyo Adjunto'),
+            'audio': _('Audio de apoyo (opcional)'),
             'institucion': _('Institución'),
         }
         help_texts = {
@@ -839,6 +841,18 @@ class DeberForm(forms.ModelForm):
             if self.instance and self.instance.pk and self.instance.institucion:
                 self.fields['curso'].queryset = Curso.objects.filter(institucion=self.instance.institucion)
                 self.fields['tipo_actividad'].queryset = TipoActividad.objects.filter(institucion=self.instance.institucion).order_by('nombre')
+
+    def clean_audio(self):
+        audio = self.cleaned_data.get('audio')
+        # Solo validamos cuando se sube un archivo nuevo (no un FieldFile ya guardado).
+        if audio and hasattr(audio, 'content_type'):
+            if audio.size > 20 * 1024 * 1024:
+                raise forms.ValidationError(_("El audio supera el tamaño máximo (20 MB)."))
+            nombre = (getattr(audio, 'name', '') or '').lower()
+            ext = nombre.rsplit('.', 1)[-1] if '.' in nombre else ''
+            if ext not in ('mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'webm', 'opus'):
+                raise forms.ValidationError(_("Formato de audio no permitido. Usa MP3, WAV, OGG, M4A, AAC o WEBM."))
+        return audio
 
 
 class EntregaDeberForm(forms.ModelForm):

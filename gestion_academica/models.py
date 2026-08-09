@@ -1356,6 +1356,19 @@ class Deber(models.Model):
     fecha_asignacion = models.DateField(verbose_name=_("Fecha de Asignación"), default=datetime.date.today)
     fecha_entrega = models.DateField(verbose_name=_("Fecha Límite de Entrega"))
     material_adjunto = models.FileField(upload_to='deberes_materiales/', blank=True, null=True, verbose_name=_("Material de Apoyo Adjunto (Opcional)"))
+    # Accesibilidad auditiva: el docente puede adjuntar una explicación en audio.
+    # La transcripción (subtítulo) se genera con IA y se cachea para reutilizarla
+    # con todos los estudiantes (apoyo para sordos y para lectura acompañada).
+    audio = models.FileField(
+        upload_to='deberes_audio/%Y/%m/', blank=True, null=True,
+        verbose_name=_("Audio de apoyo (explicación hablada, opcional)"),
+        help_text=_("Explicación en voz para el deber. Se puede transcribir con IA como subtítulo."),
+    )
+    audio_transcripcion = models.TextField(
+        blank=True, default='',
+        verbose_name=_("Transcripción del audio (IA)"),
+        help_text=_("Subtítulo del audio para estudiantes sordos o con dificultad auditiva."),
+    )
     # Categoría de evaluación (Saber Ser, Saber Hacer, …). Determina el
     # porcentaje con el que la nota del deber pondera en el boletín. Nullable
     # por compatibilidad con deberes antiguos; el formulario lo exige.

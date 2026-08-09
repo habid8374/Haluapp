@@ -37,6 +37,20 @@
                     <dt class="col-sm-4 text-secondary">{% trans "Material de Apoyo:" %}</dt>
                     <dd class="col-sm-8">{% trans "No disponible." %}</dd>
                 {% endif %}
+                {% if deber.audio %}
+                    <dt class="col-sm-4 text-secondary">{% trans "Audio de apoyo:" %}</dt>
+                    <dd class="col-sm-8">
+                        <audio controls preload="none" class="w-100" src="{{ deber.audio.url }}">
+                            {% trans "Tu navegador no puede reproducir el audio." %}
+                        </audio>
+                        {% if deber.audio_transcripcion %}
+                        <details class="mt-2">
+                            <summary class="fw-bold" style="cursor:pointer;"><i class="bi bi-badge-cc me-1"></i>{% trans "Ver transcripción (subtítulo)" %}</summary>
+                            <div class="p-3 bg-light rounded mt-2" style="white-space:pre-wrap;">{{ deber.audio_transcripcion }}</div>
+                        </details>
+                        {% endif %}
+                    </dd>
+                {% endif %}
             </dl>
         </div>
     </div>

@@ -208,3 +208,46 @@ def generar_desde_imagen(institucion, data, mime, prompt):
     except Exception as exc:
         logger.warning("IA Gemini (imagen) falló: %s", exc)
         return False, "La IA no está disponible en este momento (cuota/límite o error)."
+
+
+_PROMPT_TRANSCRIBIR = (
+    "Transcribe fielmente el audio a texto en español, como subtítulo para un "
+    "estudiante sordo o con dificultad auditiva. Escribe solo la transcripción, "
+    "sin comentarios, marcas de tiempo ni interpretación. Conserva el sentido y "
+    "la puntuación natural."
+)
+
+
+def transcribir_audio(institucion, data, mime, prompt=None):
+    """Transcribe un audio a texto con Gemini (subtítulos/accesibilidad auditiva).
+    Aplica el tope de IA y registra el consumo. Devuelve (ok, texto_o_mensaje).
+
+    `data` son los bytes del audio; `mime` su tipo (audio/mpeg, audio/ogg, …).
+    Usa exclusivamente la credencial Gemini de LA institución (regla multi-tenant).
+    """
+    ok, msg = puede_usar_ia(institucion)
+    if not ok:
+        return False, msg
+    gkey = _google_api_key(institucion)
+    if not gkey:
+        return False, "Para transcribir audio se necesita la API de Google (Gemini) de la institución."
+    try:
+        from google import genai
+        from google.genai import types
+        client = genai.Client(api_key=gkey)
+        resp = client.models.generate_content(
+            model=_MODELO_GEMINI,
+            contents=[
+                types.Part.from_bytes(data=data, mime_type=mime),
+                prompt or _PROMPT_TRANSCRIBIR,
+            ],
+        )
+        tin, tout = _tokens_gemini(resp)
+        registrar_uso(institucion, _MODELO_GEMINI, tin, tout)
+        txt = (resp.text or '').strip()
+        if txt:
+            return True, txt
+        return False, "La IA no devolvió una transcripción."
+    except Exception as exc:
+        logger.warning("IA Gemini (audio) falló: %s", exc)
+        return False, "La IA no está disponible en este momento (cuota/límite o error)."
