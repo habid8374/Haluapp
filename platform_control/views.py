@@ -363,6 +363,63 @@ def mantenimiento_detalle(request, pk):
 
 
 @_superadmin_required
+def mantenimiento_descargar(request, pk, formato):
+    """Descarga el log del diagnóstico en .txt o .json."""
+    from django.http import HttpResponse
+    from finanzas.models import EjecucionHealthCheck
+    import json as _json
+
+    ejecucion = get_object_or_404(EjecucionHealthCheck, pk=pk)
+    eventos = ejecucion.eventos or []
+    base = f"diagnostico_{ejecucion.pk}"
+
+    if formato == 'json':
+        data = {
+            "id": ejecucion.pk,
+            "estado": ejecucion.estado,
+            "iniciado_por": getattr(ejecucion.iniciado_por, 'email', '') or str(ejecucion.iniciado_por or ''),
+            "institucion_filtro": getattr(ejecucion.institucion_filtro, 'nombre', None),
+            "iniciado_at": ejecucion.iniciado_at.isoformat() if ejecucion.iniciado_at else None,
+            "terminado_at": ejecucion.terminado_at.isoformat() if ejecucion.terminado_at else None,
+            "duracion_segundos": ejecucion.duracion_segundos,
+            "errores_count": ejecucion.errores_count,
+            "warnings_count": ejecucion.warnings_count,
+            "pasos_completados": ejecucion.pasos_completados,
+            "error_excepcion": ejecucion.error_excepcion,
+            "eventos": eventos,
+        }
+        resp = HttpResponse(
+            _json.dumps(data, ensure_ascii=False, indent=2),
+            content_type='application/json; charset=utf-8',
+        )
+        resp['Content-Disposition'] = f'attachment; filename="{base}.json"'
+        return resp
+
+    # .txt (por defecto) — reproduce el log tal como se ve en pantalla
+    lineas = [
+        f"Diagnóstico #{ejecucion.pk}",
+        f"Estado: {ejecucion.get_estado_display()}",
+        f"Iniciado: {ejecucion.iniciado_at:%Y-%m-%d %H:%M:%S}" if ejecucion.iniciado_at else "Iniciado: —",
+        f"Por: {getattr(ejecucion.iniciado_por, 'email', '') or ejecucion.iniciado_por or '—'}",
+        f"Errores: {ejecucion.errores_count} · Advertencias: {ejecucion.warnings_count} · Pasos: {ejecucion.pasos_completados}/8",
+        "=" * 60,
+        "",
+    ]
+    for ev in eventos:
+        nivel = (ev.get('nivel') or '').upper()
+        if nivel == 'INFO' and ev.get('paso'):
+            lineas.append(f"[{ev.get('paso')}] {ev.get('titulo', '')}")
+        else:
+            pref = {'OK': '  [OK]   ', 'WARN': '  [WARN] ', 'ERR': '  [ERR]  '}.get(nivel, '        ')
+            lineas.append(f"{pref}{ev.get('mensaje', '')}")
+    if ejecucion.error_excepcion:
+        lineas += ["", "EXCEPCIÓN:", ejecucion.error_excepcion]
+    resp = HttpResponse("\n".join(lineas), content_type='text/plain; charset=utf-8')
+    resp['Content-Disposition'] = f'attachment; filename="{base}.txt"'
+    return resp
+
+
+@_superadmin_required
 def mantenimiento_estado_api(request, pk):
     from finanzas.models import EjecucionHealthCheck
 
