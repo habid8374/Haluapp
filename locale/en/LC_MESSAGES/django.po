@@ -3,31 +3,63 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Halu Plataforma Escolar\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-06 12:40-0500\n"
+"POT-Creation-Date: 2026-08-09 14:54-0500\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "Primer nombre"
+msgstr "First name"
+
+msgid "Segundo nombre"
+msgstr "Middle name"
+
+msgid "Primer apellido"
+msgstr "First surname"
+
+msgid "Segundo apellido"
+msgstr "Second surname"
+
+msgid "1. Datos del estudiante"
+msgstr "1. Student data"
+
+msgid "2. Contacto"
+msgstr "2. Contact"
+
+msgid "3. Matrícula"
+msgstr "3. Enrollment"
+
+msgid "4. Nacimiento y residencia"
+msgstr "4. Birth and residence"
+
+msgid "5. Salud y discapacidad"
+msgstr "5. Health and disability"
+
+msgid "6. Pertenencia étnica"
+msgstr "6. Ethnic identity"
+
+msgid "7. Caracterización socio-económica (SIMPADE)"
+msgstr "7. Socio-economic profile (SIMPADE)"
+
+msgid "8. Matrícula SIMAT (reporte oficial)"
+msgstr "8. SIMAT enrollment (official report)"
+
+msgid "9. Acudiente / Familiar"
+msgstr "9. Guardian / Family member"
+
 msgid "¿Generar cobro de inscripción para este aspirante?"
 msgstr "Generate an enrollment charge for this applicant?"
 
-msgid "EPS / Entidad de Salud"
-msgstr "Health provider (EPS)"
-
 msgid "Grupo Sanguíneo"
 msgstr "Blood type"
-
-msgid "Lugar de Nacimiento"
-msgstr "Place of birth"
 
 msgid ""
 "Marque esta casilla si debe crearse una cuenta por cobrar para la "
 "inscripción."
 msgstr ""
-"Check this box if an account receivable should be created for the "
-"enrollment."
+"Check this box if an account receivable should be created for the enrollment."
 
 msgid ""
 "Opcional. Describe brevemente si el aspirante tiene alguna condición de "
@@ -48,6 +80,11 @@ msgid ""
 msgstr ""
 "Recommended on the first upload: it validates the file and shows errors row "
 "by row without creating applicants."
+
+msgid ""
+"No se pudo generar la plantilla de Excel en este momento. Vuelve a "
+"intentarlo; si el problema persiste, avísale al soporte."
+msgstr "The Excel template could not be generated right now. Please try again; if the problem persists, contact support."
 
 msgid "Publicado"
 msgstr "Published"
@@ -88,7 +125,6 @@ msgstr ""
 "rebuilt and may change for students who have not yet solved it (grades "
 "already recorded are kept)."
 
-#| msgid "0 = sin límite"
 msgid "sin límite"
 msgstr "no limit"
 
@@ -138,8 +174,7 @@ msgstr "Close the crossword?"
 
 msgid ""
 "Los estudiantes ya no podrán resolverlo. Las notas registradas se conservan."
-msgstr ""
-"Students will no longer be able to solve it. Recorded grades are kept."
+msgstr "Students will no longer be able to solve it. Recorded grades are kept."
 
 msgid "Cancelar"
 msgstr "Cancel"
@@ -191,8 +226,7 @@ msgstr "Attempts will also be deleted. This action cannot be undone."
 
 msgid ""
 "Escribe cada palabra con su pista. La cuadrícula se arma sola al publicar."
-msgstr ""
-"Type each word with its clue. The grid builds itself when you publish."
+msgstr "Type each word with its clue. The grid builds itself when you publish."
 
 msgid "Ej. Repaso de célula"
 msgstr "E.g. Cell review"
@@ -224,16 +258,16 @@ msgid ""
 "muestra al estudiante junto a la pista (ideal para primaria). Máximo 2 MB."
 msgstr ""
 "Use single words (no spaces), 2 letters or more. The more letters they "
-"share, the better they cross. The <b>image is optional</b>: it shows next to"
-" the clue for the student (ideal for elementary). Maximum 2 MB."
+"share, the better they cross. The <b>image is optional</b>: it shows next to "
+"the clue for the student (ideal for elementary). Maximum 2 MB."
 
 msgid "Guardar crucigrama"
 msgstr "Save crossword"
 
 msgid ""
-"Crea crucigramas escribiendo solo las palabras y sus pistas; el sistema arma"
-" la cuadrícula solo. Los estudiantes lo resuelven en pantalla y la nota "
-"llega al libro de notas."
+"Crea crucigramas escribiendo solo las palabras y sus pistas; el sistema arma "
+"la cuadrícula solo. Los estudiantes lo resuelven en pantalla y la nota llega "
+"al libro de notas."
 msgstr ""
 "Create crossword puzzles by just typing the words and their clues; the "
 "system builds the grid for you. Students solve it on screen and the grade "
@@ -258,8 +292,8 @@ msgid "Aún no has creado crucigramas. ¡Crea el primero!"
 msgstr "You haven't created any crossword puzzles yet. Create the first one!"
 
 msgid ""
-"Resuelve los crucigramas de tus materias. ¡Se corrigen solos y la nota queda"
-" registrada!"
+"Resuelve los crucigramas de tus materias. ¡Se corrigen solos y la nota queda "
+"registrada!"
 msgstr ""
 "Solve the crosswords for your subjects. They grade themselves and the score "
 "is recorded!"
@@ -292,8 +326,8 @@ msgstr ""
 "appear here."
 
 msgid ""
-"Completa la cuadrícula usando las pistas. Cuando termines, envía para ver tu"
-" nota."
+"Completa la cuadrícula usando las pistas. Cuando termines, envía para ver tu "
+"nota."
 msgstr ""
 "Fill in the grid using the clues. When you finish, submit to see your score."
 
@@ -411,13 +445,9 @@ msgstr "Result: %(cruc_titulo)s"
 msgid "Mis Cuestionarios"
 msgstr "My Quizzes"
 
-#| msgid ""
-#| "Desde aquí puedes gestionar las preguntas de tus actividades evaluativas. "
-#| "Primero crea una actividad y luego edita su cuestionario."
 msgid "Primero crea una actividad y luego edita su cuestionario."
 msgstr "First create an activity and then edit its questionnaire."
 
-#| msgid "Nueva Actividad"
 msgid "Crear Nueva Actividad"
 msgstr "Create New Activity"
 
@@ -430,7 +460,6 @@ msgstr "Questions"
 msgid "Editar"
 msgstr "Edit"
 
-#| msgid "3 preguntas"
 msgid "pregunta(s)"
 msgstr "question(s)"
 
@@ -505,12 +534,25 @@ msgstr "Add question"
 msgid "Vista Previa"
 msgstr "Preview"
 
-#| msgid "Ir a Evaluaciones"
 msgid "Volver a Evaluaciones"
 msgstr "Back to Assessments"
 
 msgid "Generar con IA"
 msgstr "Generate with AI"
+
+msgid ""
+"Genera con IA la descripción (alt) de las imágenes para lectores de pantalla"
+msgstr "Use AI to generate the image description (alt text) for screen readers"
+
+msgid "Describir imágenes (IA)"
+msgstr "Describe images (AI)"
+
+msgid ""
+"Genera con IA la transcripción (subtítulo) de los audios de las preguntas"
+msgstr "Use AI to generate the transcription (subtitle) of the question audios"
+
+msgid "Transcribir audios (IA)"
+msgstr "Transcribe audios (AI)"
 
 msgid "Vista previa"
 msgstr "Preview"
@@ -548,15 +590,12 @@ msgstr "Generate questions"
 msgid "Etiqueta"
 msgstr "Label"
 
-#| msgid "Publicar"
 msgid "Ubicar"
 msgstr "Place"
 
-#| msgid "Publicar"
 msgid "sin ubicar"
 msgstr "not placed"
 
-#| msgid "Texto de la pregunta (opcional)"
 msgid "Nombre de la zona (opcional)"
 msgstr "Area name (optional)"
 
@@ -566,15 +605,21 @@ msgstr "Radius"
 msgid "Paso o evento (en el orden correcto)"
 msgstr "Step or event (in the correct order)"
 
-#| msgid "Subido por"
 msgid "Subir"
 msgstr "Move up"
 
-#| msgid "Baja"
 msgid "Bajar"
 msgstr "Move down"
 
-#| msgid "Emparejamiento"
+msgid "Valor correcto"
+msgstr "Correct value"
+
+msgid "Tolerancia"
+msgstr "Tolerance"
+
+msgid "Concepto"
+msgstr "Item"
+
 msgid "Elemento"
 msgstr "Item"
 
@@ -587,7 +632,6 @@ msgstr "Category"
 msgid "Elemento B"
 msgstr "Item B"
 
-#| msgid "Tipo de acción"
 msgid "Texto de la opción"
 msgstr "Option text"
 
@@ -616,8 +660,8 @@ msgid ""
 "sobre la imagen. Ajusta el radio de cada zona. El estudiante deberá hacer "
 "clic dentro de la zona correcta."
 msgstr ""
-"Upload an image and define the correct areas: click «Place» and click on the"
-" image. Adjust the radius of each area. The student must click inside the "
+"Upload an image and define the correct areas: click «Place» and click on the "
+"image. Adjust the radius of each area. The student must click inside the "
 "correct area."
 
 msgid ""
@@ -627,13 +671,74 @@ msgstr ""
 "Type the steps or events IN THE CORRECT ORDER (use the arrows to reorder). "
 "The student will see them shuffled and must put them in order."
 
-#| msgid "quitar"
+msgid ""
+"Escribe los conceptos (uno por fila). Luego, en el mapa de abajo, toca un "
+"concepto y después otro para conectarlos: esas serán las relaciones "
+"correctas. El estudiante verá los conceptos sin conexiones y deberá "
+"relacionarlos."
+msgstr ""
+"Write the concepts (one per row). Then, on the map below, tap one concept "
+"and then another to connect them: those will be the correct relationships. "
+"The student will see the concepts without connections and must relate them."
+
+msgid ""
+"Opción única: escribe las opciones y marca con el círculo la ÚNICA respuesta "
+"correcta. El estudiante podrá elegir solo una."
+msgstr ""
+"Single choice: write the options and mark the ONLY correct answer with the "
+"radio button. The student can pick just one."
+
+msgid ""
+"Selección múltiple: marca con las casillas TODAS las respuestas correctas "
+"(pueden ser varias). El estudiante deberá seleccionarlas todas para acertar."
+msgstr ""
+"Multiple selection: use the checkboxes to mark ALL correct answers (there "
+"can be several). The student must select them all to be correct."
+
+msgid ""
+"Verdadero / Falso: deja marcada como correcta la opción que corresponda "
+"(Verdadero o Falso)."
+msgstr ""
+"True / False: leave the matching option (True or False) marked as correct."
+
+msgid ""
+"Texto libre: el estudiante responde por escrito. Escribe abajo la rúbrica o "
+"respuesta ideal para orientar la corrección (incluida la de la IA)."
+msgstr ""
+"Free text: the student answers in writing. Write the rubric or ideal answer "
+"below to guide grading (including AI grading)."
+
+msgid ""
+"Emparejamiento: escribe cada par (Elemento A y su Elemento B "
+"correspondiente). El estudiante deberá unir cada elemento con su pareja."
+msgstr ""
+"Matching: write each pair (Item A and its corresponding Item B). The student "
+"must connect each item with its match."
+
+msgid ""
+"Clasificar: escribe cada elemento y la categoría a la que pertenece. El "
+"estudiante deberá arrastrar cada elemento a su categoría correcta."
+msgstr ""
+"Classify: write each item and the category it belongs to. The student must "
+"drag each item to its correct category."
+
+msgid ""
+"Respuesta numérica: escribe el valor correcto y una tolerancia (±). El "
+"estudiante escribirá un número y acertará si queda dentro del rango. Puedes "
+"agregar varios valores válidos (ej. una fracción y su decimal)."
+msgstr ""
+"Numeric answer: write the correct value and a tolerance (±). The student "
+"enters a number and is correct if it falls within the range. You can add "
+"several valid values (e.g. a fraction and its decimal)."
+
 msgid "Quitar"
 msgstr "Remove"
 
-#| msgid "Imagen (opcional)"
 msgid "Imagen / gráfico (opcional)"
 msgstr "Image / graphic (optional)"
+
+msgid "Audio de apoyo (opcional)"
+msgstr "Support audio (optional)"
 
 msgid "Tipo de pregunta"
 msgstr "Question type"
@@ -647,15 +752,12 @@ msgstr "Free text"
 msgid "Emparejamiento"
 msgstr "Matching"
 
-#| msgid "Completaron"
 msgid "Completar espacios"
 msgstr "Fill in the blanks"
 
-#| msgid "Calificar ahora"
 msgid "Clasificar en categorías"
 msgstr "Classify into categories"
 
-#| msgid "quitar imagen"
 msgid "Etiquetar imagen (esquema)"
 msgstr "Label image (diagram)"
 
@@ -664,6 +766,12 @@ msgstr "Active areas (click on the image)"
 
 msgid "Ordenar / Línea de tiempo"
 msgstr "Ordering / Timeline"
+
+msgid "Mapa conceptual (relacionar)"
+msgstr "Concept map (relate)"
+
+msgid "Respuesta numérica (con tolerancia)"
+msgstr "Numeric answer (with tolerance)"
 
 msgid "Puntaje"
 msgstr "Score"
@@ -676,6 +784,9 @@ msgstr "Describe the ideal answer here…"
 
 msgid "Agregar opción"
 msgstr "Add option"
+
+msgid "Mapa de relaciones (toca dos conceptos para conectarlos)"
+msgstr "Relationship map (tap two concepts to connect them)"
 
 msgid "Guardando…"
 msgstr "Saving…"
@@ -719,7 +830,6 @@ msgstr "Error generating"
 msgid "No se pudo conectar con el generador IA."
 msgstr "Could not connect to the AI generator."
 
-#| msgid "quitar imagen"
 msgid "Falta la imagen"
 msgstr "Image missing"
 
@@ -732,7 +842,6 @@ msgstr "True"
 msgid "Falso"
 msgstr "False"
 
-#| msgid "Guardando…"
 msgid "Subiendo…"
 msgstr "Uploading…"
 
@@ -741,6 +850,27 @@ msgstr "Error"
 
 msgid "No se pudo subir la imagen."
 msgstr "The image could not be uploaded."
+
+msgid "No se pudo subir el audio."
+msgstr "The audio could not be uploaded."
+
+msgid "Transcribiendo…"
+msgstr "Transcribing…"
+
+msgid "Transcripción de audios"
+msgstr "Audio transcription"
+
+msgid "No se pudo"
+msgstr "Could not be done"
+
+msgid "No se pudo conectar."
+msgstr "Could not connect."
+
+msgid "Describiendo…"
+msgstr "Describing…"
+
+msgid "Descripciones de imágenes"
+msgstr "Image descriptions"
 
 msgid "Lee cada pregunta cuidadosamente antes de responder."
 msgstr "Read each question carefully before answering."
@@ -761,22 +891,38 @@ msgstr "Start Attempt"
 msgid "Cargando cuestionario..."
 msgstr "Loading quiz..."
 
+msgid "Simplificando…"
+msgstr "Simplifying…"
+
+msgid "Preparando versión en lectura fácil…"
+msgstr "Preparing easy-read version…"
+
+msgid "No se pudo simplificar."
+msgstr "Could not simplify."
+
 msgid "Escribe tu respuesta aquí…"
 msgstr "Type your answer here…"
 
-#| msgid "Selecciona…"
 msgid "Selecciona una opción…"
 msgstr "Select an option…"
 
 msgid "Toca un elemento y luego la categoría donde va."
 msgstr "Tap an item and then the category where it belongs."
 
-#| msgid "Documentos"
 msgid "Elementos"
 msgstr "Items"
 
 msgid "Esta pregunta no tiene imagen."
 msgstr "This question has no image."
+
+msgid "Selecciona una etiqueta…"
+msgstr "Select a label…"
+
+msgid "Marcador"
+msgstr "Marker"
+
+msgid "Modo accesible (lista)"
+msgstr "Accessible mode (list)"
 
 msgid "Toca una etiqueta y luego el número donde va sobre la imagen."
 msgstr "Tap a label and then the number where it goes on the image."
@@ -784,29 +930,55 @@ msgstr "Tap a label and then the number where it goes on the image."
 msgid "Etiquetas"
 msgstr "Labels"
 
+msgid "Elige la etiqueta que corresponde a cada marcador."
+msgstr "Choose the label that matches each marker."
+
 msgid ""
 "Haz clic sobre la(s) zona(s) correcta(s) de la imagen. Toca un punto para "
 "quitarlo."
 msgstr "Click on the correct area(s) of the image. Tap a point to remove it."
 
-#| msgid "Silenciar"
 msgid "Reiniciar"
 msgstr "Reset"
 
 msgid "Ordena los elementos con las flechas (arriba = primero)."
 msgstr "Order the items with the arrows (top = first)."
 
+msgid ""
+"Toca un concepto y luego otro para relacionarlos. Toca la conexión de nuevo "
+"para quitarla."
+msgstr ""
+"Tap one concept and then another to relate them. Tap the connection again to "
+"remove it."
+
+msgid "Escribe tu respuesta numérica"
+msgstr "Enter your numeric answer"
+
+msgid "Escribe solo el número (puedes usar decimales)."
+msgstr "Enter only the number (decimals allowed)."
+
+msgid "Ver transcripción"
+msgstr "View transcription"
+
+msgid "Tu navegador no puede reproducir el audio."
+msgstr "Your browser cannot play the audio."
+
 msgid "pts"
 msgstr "pts"
+
+msgid "Explícalo fácil"
+msgstr "Explain it simply"
+
+msgid ""
+"Se están preparando las preguntas en lectura fácil según tu perfil de apoyo."
+msgstr "The questions are being prepared in easy-read format according to your support profile."
 
 msgid "Finalizar Intento"
 msgstr "Finish Attempt"
 
-#| msgid "0 = sin límite"
 msgid "Sin límite"
 msgstr "No limit"
 
-#| msgid "Calificada"
 msgid "Calificando…"
 msgstr "Grading…"
 
@@ -819,17 +991,17 @@ msgstr "Your score:"
 msgid "Volver al Dashboard"
 msgstr "Back to Dashboard"
 
-#| msgid "Error de red"
 msgid "Error de Conexión"
 msgstr "Connection Error"
 
-#| msgid "No se pudo conectar. Revisa tu conexión."
 msgid ""
 "No se pudo finalizar el intento. Por favor, revisa tu conexión a internet."
 msgstr ""
 "The attempt could not be submitted. Please check your internet connection."
 
-#| msgid "Editor de cuestionario"
+msgid "Modo visual (imagen)"
+msgstr "Visual mode (image)"
+
 msgid "No se pudo cargar el cuestionario."
 msgstr "The questionnaire could not be loaded."
 
@@ -850,8 +1022,8 @@ msgid "Acciones Administrativas"
 msgstr "Administrative Actions"
 
 msgid ""
-"Si el estudiante necesita otra oportunidad por un motivo justificado, puedes"
-" habilitar un intento adicional."
+"Si el estudiante necesita otra oportunidad por un motivo justificado, puedes "
+"habilitar un intento adicional."
 msgstr ""
 "If the student needs another chance for a valid reason, you can grant an "
 "extra attempt."
@@ -868,7 +1040,6 @@ msgstr "Score:"
 msgid "Respuesta del Estudiante:"
 msgstr "Student's Answer:"
 
-#| msgid "¡Sin estudiantes en riesgo!"
 msgid "El estudiante no respondió."
 msgstr "The student did not answer."
 
@@ -947,8 +1118,8 @@ msgid ""
 "El intento de '%(estudiante_nombre)s' en el cuestionario "
 "'%(cuestionario_titulo)s' ha sido eliminado exitosamente."
 msgstr ""
-"The attempt by '%(estudiante_nombre)s' on the quiz '%(cuestionario_titulo)s'"
-" has been deleted successfully."
+"The attempt by '%(estudiante_nombre)s' on the quiz '%(cuestionario_titulo)s' "
+"has been deleted successfully."
 
 msgid ""
 "Resultado de las evaluaciones que las familias hicieron sobre tu desempeño "
@@ -988,15 +1159,14 @@ msgid "El módulo de Finanzas no está habilitado para tu institución."
 msgstr "The Finance module is not enabled for your institution."
 
 msgid ""
-"Si consideras que deberías tener acceso, comunícate con el administrador del"
-" software."
+"Si consideras que deberías tener acceso, comunícate con el administrador del "
+"software."
 msgstr ""
 "If you believe you should have access, contact the software administrator."
 
 #, python-format
 msgid ""
-"Estado de cuenta de <strong>%(n)s</strong> (pagos en línea con Mercado "
-"Pago)."
+"Estado de cuenta de <strong>%(n)s</strong> (pagos en línea con Mercado Pago)."
 msgstr ""
 "Account statement for <strong>%(n)s</strong> (online payments with Mercado "
 "Pago)."
@@ -1022,8 +1192,8 @@ msgid ""
 "son reales. Para completar un pago de prueba usa las siguientes tarjetas de "
 "test:"
 msgstr ""
-"The system is using Mercado Pago test credentials. Payments are not real. To"
-" complete a test payment use the following test cards:"
+"The system is using Mercado Pago test credentials. Payments are not real. To "
+"complete a test payment use the following test cards:"
 
 msgid "CVV:"
 msgstr "CVV:"
@@ -1048,9 +1218,6 @@ msgstr "Account details"
 
 msgid "Saldo pendiente (filtro actual):"
 msgstr "Outstanding balance (current filter):"
-
-msgid "Concepto"
-msgstr "Item"
 
 msgid "Monto asignado"
 msgstr "Assigned amount"
@@ -1187,8 +1354,8 @@ msgid "Continuar"
 msgstr "Continue"
 
 msgid ""
-"No tienes flash cards por ahora. Cuando tu profe publique un mazo, aparecerá"
-" aquí."
+"No tienes flash cards por ahora. Cuando tu profe publique un mazo, aparecerá "
+"aquí."
 msgstr ""
 "You have no flash cards right now. When your teacher publishes a deck, it "
 "will appear here."
@@ -1323,6 +1490,12 @@ msgstr "Sex"
 msgid "Tipo de Documento"
 msgstr "Document type"
 
+msgid "Lugar de Nacimiento"
+msgstr "Place of birth"
+
+msgid "EPS / Entidad de Salud"
+msgstr "Health provider (EPS)"
+
 msgid "Discapacidad (si aplica)"
 msgstr "Disability (if applicable)"
 
@@ -1334,6 +1507,27 @@ msgstr "Municipality/City"
 
 msgid "Departamento"
 msgstr "Department / State"
+
+msgid "Tu institución no cobra este concepto; puede quedar en 0."
+msgstr "Your institution does not charge this item; it can stay at 0."
+
+msgid "Nombre completo (SIMAT)"
+msgstr "Full name (SIMAT)"
+
+msgid "Identificación (SIMAT)"
+msgstr "Identification (SIMAT)"
+
+msgid "Nacimiento y residencia (DANE)"
+msgstr "Birth and residence (DANE)"
+
+msgid "Salud y grupos"
+msgstr "Health and groups"
+
+msgid "Socio-económico (SIMPADE)"
+msgstr "Socio-economic (SIMPADE)"
+
+msgid "Matrícula (SIMAT oficial)"
+msgstr "Enrollment (official SIMAT)"
 
 msgid "Código de Docente"
 msgstr "Teacher code"
@@ -1376,8 +1570,7 @@ msgstr ""
 "\"Mathematics\" for Primary and another for Secondary."
 
 msgid ""
-"El nivel de escolaridad debe pertenecer a la misma institución de la "
-"materia."
+"El nivel de escolaridad debe pertenecer a la misma institución de la materia."
 msgstr "The school level must belong to the same institution as the subject."
 
 msgid "Nombre del Periodo"
@@ -1464,11 +1657,17 @@ msgid "Material de Apoyo Adjunto"
 msgstr "Attached supporting material"
 
 msgid ""
-"Determina con qué porcentaje pondera esta nota en el boletín. Es obligatoria"
-" para que la nota cuente."
+"Determina con qué porcentaje pondera esta nota en el boletín. Es obligatoria "
+"para que la nota cuente."
 msgstr ""
 "Determines the percentage weight of this grade in the report card. It is "
 "required for the grade to count."
+
+msgid "El audio supera el tamaño máximo (20 MB)."
+msgstr "The audio exceeds the maximum size (20 MB)."
+
+msgid "Formato de audio no permitido. Usa MP3, WAV, OGG, M4A, AAC o WEBM."
+msgstr "Audio format not allowed. Use MP3, WAV, OGG, M4A, AAC or WEBM."
 
 msgid "Archivo Adjunto del Estudiante"
 msgstr "Student's attached file"
@@ -1557,7 +1756,6 @@ msgstr "Academic term of application"
 msgid "Grado (opcional — deja en blanco para aplicar a todos)"
 msgstr "Grade (optional — leave blank to apply to all)"
 
-#| msgid "Dimensión de Desarrollo (Preescolar)"
 msgid "Dimensión (opcional — solo preescolar)"
 msgstr "Dimension (optional — preschool only)"
 
@@ -1624,30 +1822,24 @@ msgstr "Available until"
 msgid "La hora de fin debe ser posterior a la hora de inicio."
 msgstr "The end time must be later than the start time."
 
-#| msgid "Fecha de aceptación"
 msgid "Fecha de la atención"
 msgstr "Session date"
 
 msgid "Motivo"
 msgstr "Reason"
 
-#| msgid "Devuelto con observaciones"
 msgid "Relato / observaciones (confidencial)"
 msgstr "Account / notes (confidential)"
 
-#| msgid "Acuerdos y Compromisos"
 msgid "Acuerdos y recomendaciones"
 msgstr "Agreements and recommendations"
 
-#| msgid "Remisión a profesional externo"
 msgid "Remisión a entidad externa"
 msgstr "Referral to an external entity"
 
-#| msgid "En seguimiento"
 msgid "Requiere seguimiento"
 msgstr "Requires follow-up"
 
-#| msgid "Próximamente"
 msgid "Próxima cita / seguimiento"
 msgstr "Next appointment / follow-up"
 
@@ -1753,8 +1945,12 @@ msgstr "Which teaching methodology do you prefer to use?"
 msgid "¿En cuántas clases quieres desarrollar este tema?"
 msgstr "In how many classes do you want to develop this topic?"
 
-msgid "Ej: \"El Sistema Solar\", \"Introducción a las Fracciones\", \"El Renacimiento\"."
-msgstr "E.g.: \"The Solar System\", \"Introduction to Fractions\", \"The Renaissance\"."
+msgid ""
+"Ej: \"El Sistema Solar\", \"Introducción a las Fracciones\", \"El "
+"Renacimiento\"."
+msgstr ""
+"E.g.: \"The Solar System\", \"Introduction to Fractions\", \"The "
+"Renaissance\"."
 
 msgid "La IA generará un plan detallado para este número de clases."
 msgstr "The AI will generate a detailed plan for this number of classes."
@@ -1788,8 +1984,7 @@ msgstr "Active account?"
 
 msgid ""
 "Desmarca esta casilla para desactivar la cuenta del usuario sin eliminarla."
-msgstr ""
-"Uncheck this box to deactivate the user's account without deleting it."
+msgstr "Uncheck this box to deactivate the user's account without deleting it."
 
 msgid "Nueva Contraseña"
 msgstr "New password"
@@ -1824,6 +2019,18 @@ msgstr "Passport"
 msgid "Cédula de Extranjería"
 msgstr "Foreigner ID (CE)"
 
+msgid "NES — Número establecido por la Secretaría"
+msgstr "NES — Number issued by the Education Office"
+
+msgid "PEP — Permiso Especial de Permanencia"
+msgstr "PEP — Special Stay Permit"
+
+msgid "Visa"
+msgstr "Visa"
+
+msgid "TMF — Tarjeta de Movilidad Fronteriza"
+msgstr "TMF — Border Mobility Card"
+
 msgid "Otro"
 msgstr "Other"
 
@@ -1842,7 +2049,6 @@ msgstr "B-"
 msgid "AB+"
 msgstr "AB+"
 
-#| msgid "AB+"
 msgid "AB-"
 msgstr "AB-"
 
@@ -1866,6 +2072,9 @@ msgstr "Synced Google Calendar ID"
 
 msgid "Foto de Perfil"
 msgstr "Profile photo"
+
+msgid "Preferencias de accesibilidad"
+msgstr "Accessibility preferences"
 
 msgid "Aceptó la Política de Tratamiento de Datos"
 msgstr "Accepted the Data Processing Policy"
@@ -1918,8 +2127,173 @@ msgstr "Qualitative (Achievements and descriptive)"
 msgid "Tipo de Evaluación Predominante"
 msgstr "Predominant evaluation type"
 
+msgid "Primera Infancia (-3)"
+msgstr "Early Childhood (-3)"
+
+msgid "Pre-Jardín (-2)"
+msgstr "Pre-Kindergarten (-2)"
+
+msgid "Jardín / Kínder (-1)"
+msgstr "Kindergarten (-1)"
+
+msgid "Transición / Grado 0"
+msgstr "Transition / Grade 0"
+
+msgid "Primero"
+msgstr "First grade"
+
+msgid "Segundo"
+msgstr "Second grade"
+
+msgid "Tercero"
+msgstr "Third grade"
+
+msgid "Cuarto"
+msgstr "Fourth grade"
+
+msgid "Quinto"
+msgstr "Fifth grade"
+
+msgid "Sexto"
+msgstr "Sixth grade"
+
+msgid "Séptimo"
+msgstr "Seventh grade"
+
+msgid "Octavo"
+msgstr "Eighth grade"
+
+msgid "Noveno"
+msgstr "Ninth grade"
+
+msgid "Décimo"
+msgstr "Tenth grade"
+
+msgid "Once"
+msgstr "Eleventh grade"
+
+msgid "Doce (Normal Superior)"
+msgstr "Twelfth (Teacher Training)"
+
+msgid "Trece (Normal Superior)"
+msgstr "Thirteenth (Teacher Training)"
+
+msgid "CLEI 1 (adultos)"
+msgstr "CLEI 1 (adults)"
+
+msgid "CLEI 2 (adultos)"
+msgstr "CLEI 2 (adults)"
+
+msgid "CLEI 3 (adultos)"
+msgstr "CLEI 3 (adults)"
+
+msgid "CLEI 4 (adultos)"
+msgstr "CLEI 4 (adults)"
+
+msgid "CLEI 5 (adultos)"
+msgstr "CLEI 5 (adults)"
+
+msgid "ID de grado SIMAT (MEN)"
+msgstr "SIMAT grade ID (MEN)"
+
+msgid "Código oficial del grado en el SIMAT, para el reporte de matrícula."
+msgstr "Official grade code in SIMAT, for the enrollment report."
+
 msgid "Grados"
 msgstr "Grades"
+
+msgid "Mañana"
+msgstr "Morning"
+
+msgid "Tarde"
+msgstr "Afternoon"
+
+msgid "Noche"
+msgstr "Evening"
+
+msgid "Única"
+msgstr "Single shift"
+
+msgid "Completa"
+msgstr "Full day"
+
+msgid "Fin de semana"
+msgstr "Weekend"
+
+msgid "Sede"
+msgstr "Campus"
+
+msgid "Jornada"
+msgstr "Shift"
+
+msgid "Nombre del grupo"
+msgstr "Group name"
+
+msgid "Código o letra de la sección, ej. 01, 02, A, B."
+msgstr "Section code or letter, e.g. 01, 02, A, B."
+
+msgid "Grupo"
+msgstr "Group"
+
+msgid "Grupos"
+msgstr "Groups"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Grande"
+msgstr "Large"
+
+msgid "Muy grande"
+msgstr "Very large"
+
+msgid "Perfil activo"
+msgstr "Active profile"
+
+msgid "Tamaño de texto"
+msgstr "Text size"
+
+msgid "Alto contraste"
+msgstr "High contrast"
+
+msgid "Fuente legible"
+msgstr "Readable font"
+
+msgid "Más espaciado"
+msgstr "More spacing"
+
+msgid "Reducir animaciones"
+msgstr "Reduce animations"
+
+msgid "Lectura fácil"
+msgstr "Easy read"
+
+msgid "Lectura por voz destacada"
+msgstr "Highlighted read-aloud"
+
+msgid "Tiempo extra en evaluaciones (%)"
+msgstr "Extra time on assessments (%)"
+
+msgid ""
+"Porcentaje adicional de tiempo en cuestionarios con temporizador (ej. 25, "
+"50)."
+msgstr "Additional time percentage on timed quizzes (e.g. 25, 50)."
+
+msgid "Enunciados simplificados"
+msgstr "Simplified prompts"
+
+msgid ""
+"Prepara la simplificación de enunciados con IA (se aplicará progresivamente)."
+msgstr "Prepares AI simplification of prompts (applied progressively)."
+
+msgid "Notas del apoyo"
+msgstr "Support notes"
+
+msgid "Perfil de accesibilidad"
+msgstr "Accessibility profile"
+
+msgid "Perfiles de accesibilidad"
+msgstr "Accessibility profiles"
 
 msgid "Materias Incluidas en esta Dimensión"
 msgstr "Subjects included in this dimension"
@@ -1984,6 +2358,9 @@ msgstr "Address"
 msgid "Grado Actual"
 msgstr "Current grade"
 
+msgid "Grupo/Sección"
+msgstr "Group/Section"
+
 msgid "Acudiente responsable (facturación)"
 msgstr "Responsible guardian (billing)"
 
@@ -1999,18 +2376,15 @@ msgstr "Discounts or scholarships applied"
 msgid "Estudiante Activo"
 msgstr "Active student"
 
-#| msgid "Acceso denegado."
 msgid "Acceso bloqueado"
 msgstr "Access blocked"
 
 msgid "Motivo del bloqueo"
 msgstr "Reason for blocking"
 
-#| msgid "Fecha de Corte"
 msgid "Fecha de bloqueo"
 msgstr "Block date"
 
-#| msgid "Bloqueado"
 msgid "Bloqueado por"
 msgstr "Blocked by"
 
@@ -2188,6 +2562,129 @@ msgstr "Adolescent Criminal Responsibility System (SRPA)?"
 msgid "¿Requiere apoyo académico especial?"
 msgstr "Requires special academic support?"
 
+msgid "Expedición documento · Departamento"
+msgstr "Document issuance · Department"
+
+msgid "Expedición documento · Municipio"
+msgstr "Document issuance · Municipality"
+
+msgid "Nacionalidad"
+msgstr "Nationality"
+
+msgid "País de nacimiento"
+msgstr "Country of birth"
+
+msgid "Nacimiento · Departamento"
+msgstr "Birth · Department"
+
+msgid "Nacimiento · Municipio"
+msgstr "Birth · Municipality"
+
+msgid "Residencia · Departamento"
+msgstr "Residence · Department"
+
+msgid "Residencia · Municipio"
+msgstr "Residence · Municipality"
+
+msgid "Barrio"
+msgstr "Neighborhood"
+
+msgid "¿Población campesina?"
+msgstr "Rural (peasant) population?"
+
+msgid "Etnia (código SIMAT)"
+msgstr "Ethnicity (SIMAT code)"
+
+msgid "Resguardo indígena"
+msgstr "Indigenous reservation"
+
+msgid "EPS (código SIMAT)"
+msgstr "Health provider EPS (SIMAT code)"
+
+msgid "Grupo/Curso"
+msgstr "Group/Class"
+
+msgid "Modelo/Metodología educativa"
+msgstr "Educational model/methodology"
+
+msgid "Fuente de recursos"
+msgstr "Resource source"
+
+msgid "Internado"
+msgstr "Boarding"
+
+msgid "¿Matrícula contratada?"
+msgstr "Contracted enrollment?"
+
+msgid "¿Repitente?"
+msgstr "Repeating student?"
+
+msgid "Situación académica año anterior"
+msgstr "Academic status previous year"
+
+msgid "SIMAT · PER_ID"
+msgstr "SIMAT · PER_ID"
+
+msgid "SIMAT · NUI"
+msgstr "SIMAT · NUI"
+
+msgid "SISBÉN (grupo SIMAT)"
+msgstr "SISBEN (SIMAT group)"
+
+msgid "Carácter"
+msgstr "Character"
+
+msgid "Especialidad (media)"
+msgstr "Specialty (upper secondary)"
+
+msgid "Metodología/Modelo educativo"
+msgstr "Methodology/Educational model"
+
+msgid "Condición del alumno año anterior"
+msgstr "Student status previous year"
+
+msgid "Valoración período 1"
+msgstr "Assessment term 1"
+
+msgid "Valoración período 2"
+msgstr "Assessment term 2"
+
+msgid "¿Subsidiado?"
+msgstr "Subsidized?"
+
+msgid "¿Nuevo en la institución?"
+msgstr "New at the institution?"
+
+msgid "¿Proviene del sector privado?"
+msgstr "Comes from the private sector?"
+
+msgid "¿Proviene de otro municipio?"
+msgstr "Comes from another municipality?"
+
+msgid "¿Madre cabeza de familia?"
+msgstr "Female head of household?"
+
+msgid "¿Hijo de madre cabeza de familia?"
+msgstr "Child of a female head of household?"
+
+msgid "¿Beneficiario veterano fuerza pública?"
+msgstr "Public-force veteran beneficiary?"
+
+msgid "¿Beneficiario héroe de la nación?"
+msgstr "Hero of the nation beneficiary?"
+
+msgid "Número de convenio"
+msgstr "Agreement number"
+
+msgid "Institución de bienestar (ICBF)"
+msgstr "Welfare institution (ICBF)"
+
+msgid "Depto. expulsor (víctima)"
+msgstr "Expelling department (victim)"
+
+msgid "Municipio expulsor (víctima)"
+msgstr "Expelling municipality (victim)"
+
 msgid "Caracterización de estudiante"
 msgstr "Student profile"
 
@@ -2364,6 +2861,19 @@ msgstr "Course the assignment belongs to"
 
 msgid "Material de Apoyo Adjunto (Opcional)"
 msgstr "Attached supporting material (Optional)"
+
+msgid "Audio de apoyo (explicación hablada, opcional)"
+msgstr "Support audio (spoken explanation, optional)"
+
+msgid ""
+"Explicación en voz para el deber. Se puede transcribir con IA como subtítulo."
+msgstr "Spoken explanation for the assignment. It can be transcribed with AI as a subtitle."
+
+msgid "Transcripción del audio (IA)"
+msgstr "Audio transcription (AI)"
+
+msgid "Subtítulo del audio para estudiantes sordos o con dificultad auditiva."
+msgstr "Audio subtitle for deaf or hard-of-hearing students."
 
 msgid "Categoría de la actividad"
 msgstr "Activity category"
@@ -2731,11 +3241,9 @@ msgstr "Meeting appointment"
 msgid "Citas de Reuniones"
 msgstr "Meeting appointments"
 
-#| msgid "Disponibilidad de Docente"
 msgid "Disponibilidad de Orientador"
 msgstr "Counselor Availability"
 
-#| msgid "Disponibilidades de Docentes"
 msgid "Disponibilidades de Orientadores"
 msgstr "Counselor Availabilities"
 
@@ -2745,19 +3253,15 @@ msgstr "Being rescheduled"
 msgid "Solicitada por la familia"
 msgstr "Requested by the family"
 
-#| msgid "Enviado al Coordinador"
 msgid "Citada por el orientador"
 msgstr "Scheduled by the counselor"
 
-#| msgid "Familiar"
 msgid "Familia"
 msgstr "Family"
 
-#| msgid "Rector(a)"
 msgid "Orientador(a)"
 msgstr "Counselor"
 
-#| msgid "Tipo de acción"
 msgid "Motivo de cancelación"
 msgstr "Cancellation reason"
 
@@ -2767,54 +3271,42 @@ msgstr "New proposed time"
 msgid "Propuesta hecha por"
 msgstr "Proposal made by"
 
-#| msgid "Cita de Reunión"
 msgid "Cita de Orientación"
 msgstr "Counseling Appointment"
 
-#| msgid "Cita de Reunión"
 msgid "Citas de Orientación"
 msgstr "Counseling Appointments"
 
 msgid "Acompañamiento emocional"
 msgstr "Emotional support"
 
-#| msgid "Convivencia Escolar"
 msgid "Convivencia / comportamiento"
 msgstr "Coexistence / behavior"
 
-#| msgid "Situación Tipo I"
 msgid "Situación familiar"
 msgstr "Family situation"
 
-#| msgid "Plataforma académica"
 msgid "Dificultad académica"
 msgstr "Academic difficulty"
 
-#| msgid "Riesgo Global"
 msgid "Riesgo psicosocial"
 msgstr "Psychosocial risk"
 
-#| msgid "PIARs / Inclusión"
 msgid "Seguimiento PIAR / inclusión"
 msgstr "PIAR follow-up / inclusion"
 
-#| msgid "Dirección (Opcional)"
 msgid "Orientación vocacional"
 msgstr "Vocational guidance"
 
-#| msgid "Tipo de Mención"
 msgid "Motivo de la atención"
 msgstr "Reason for the session"
 
-#| msgid "Remisión a profesional externo"
 msgid "Remisión / entidad externa"
 msgstr "Referral / external entity"
 
-#| msgid "Seguimiento periódico"
 msgid "Seguimiento de Orientación"
 msgstr "Counseling Follow-up"
 
-#| msgid "Seguimiento periódico"
 msgid "Seguimientos de Orientación"
 msgstr "Counseling Follow-ups"
 
@@ -3582,8 +4074,8 @@ msgid "Curso:"
 msgstr "Course:"
 
 msgid ""
-"Esta acción es **irreversible** y no se podrá recuperar la actividad una vez"
-" eliminada."
+"Esta acción es **irreversible** y no se podrá recuperar la actividad una vez "
+"eliminada."
 msgstr ""
 "This action is **irreversible** and the activity cannot be recovered once "
 "deleted."
@@ -3672,7 +4164,6 @@ msgstr "Interpretation of the grading scale:"
 msgid "Director(a) de Grupo"
 msgstr "Homeroom Teacher"
 
-#| msgid "Nombre del Corte"
 msgid "[Nombre del Rector(a)]"
 msgstr "[Principal's Name]"
 
@@ -3687,8 +4178,8 @@ msgstr "Your report card is not available yet"
 
 #, python-format
 msgid ""
-"El boletín del <strong>%(periodo)s</strong> todavía no ha sido publicado por"
-" tu institución."
+"El boletín del <strong>%(periodo)s</strong> todavía no ha sido publicado por "
+"tu institución."
 msgstr ""
 "The <strong>%(periodo)s</strong> report card has not been published by your "
 "school yet."
@@ -3800,13 +4291,12 @@ msgstr ""
 msgid "Gestionar Descriptores"
 msgstr "Manage Descriptors"
 
-#| msgid "Ir a Evaluaciones"
 msgid "Evaluaciones"
 msgstr "Assessments"
 
 msgid ""
-"Crea la evaluación con su categoría y arma su cuestionario (opción múltiple,"
-" V/F, abiertas) con o sin IA, en un solo lugar."
+"Crea la evaluación con su categoría y arma su cuestionario (opción múltiple, "
+"V/F, abiertas) con o sin IA, en un solo lugar."
 msgstr ""
 "Create the assessment with its category and build its questionnaire "
 "(multiple choice, T/F, open-ended) with or without AI, all in one place."
@@ -3852,8 +4342,8 @@ msgid "Gestionar Horarios"
 msgstr "Manage Schedules"
 
 msgid ""
-"Revisa y aprueba o rechaza el motivo (médico u otro) que un estudiante subió"
-" para justificar sus faltas."
+"Revisa y aprueba o rechaza el motivo (médico u otro) que un estudiante subió "
+"para justificar sus faltas."
 msgstr ""
 "Review and approve or reject the reason (medical or other) a student "
 "submitted to justify their absences."
@@ -3931,6 +4421,88 @@ msgstr ""
 msgid "Ver Todos los Reportes"
 msgstr "View All Reports"
 
+msgid "Consumo de IA"
+msgstr "AI usage"
+
+msgid "Consumo de Inteligencia Artificial"
+msgstr "Artificial Intelligence usage"
+
+msgid ""
+"Revisa cuánto ha usado tu institución la IA este mes y ajusta el tope si lo "
+"necesitas."
+msgstr "Review how much your institution has used AI this month and adjust the limit if needed."
+
+msgid "Este mes"
+msgstr "This month"
+
+msgid "Usado"
+msgstr "Used"
+
+msgid "Tope"
+msgstr "Limit"
+
+#, python-format
+msgid "Te queda aproximadamente $%(rest)s COP de IA este mes."
+msgstr "You have approximately $%(rest)s COP of AI left this month."
+
+msgid "Se alcanzó el tope de IA de este mes."
+msgstr "This month's AI limit has been reached."
+
+msgid "Sin tope configurado (uso ilimitado)."
+msgstr "No limit configured (unlimited use)."
+
+msgid "Usado este mes"
+msgstr "Used this month"
+
+msgid "Operaciones de IA"
+msgstr "AI operations"
+
+msgid "Costo estimado del mes"
+msgstr "Estimated cost of the month"
+
+msgid ""
+"El costo es estimado (tokens × tarifa aproximada). Sirve como referencia y "
+"para el tope."
+msgstr "The cost is estimated (tokens × approximate rate). It serves as a reference and for the limit."
+
+msgid "Ajustar tope mensual"
+msgstr "Adjust monthly limit"
+
+msgid "Tope de IA por mes (COP)"
+msgstr "AI limit per month (COP)"
+
+msgid "0 = sin tope (ilimitado)."
+msgstr "0 = no limit (unlimited)."
+
+msgid "Pausar la IA al superar el tope"
+msgstr "Pause AI when the limit is exceeded"
+
+msgid "Guardar tope"
+msgstr "Save limit"
+
+msgid ""
+"Si desactivas la pausa, la IA sigue funcionando y solo se registra el "
+"consumo (recomendado dejarla activa para controlar costos)."
+msgstr "If you turn off the pause, AI keeps working and only usage is recorded (keeping it active is recommended to control costs)."
+
+msgid "Historial (últimos meses)"
+msgstr "History (recent months)"
+
+msgid "Año"
+msgstr "Year"
+
+msgid "Mes"
+msgstr "Month"
+
+msgid "Operaciones"
+msgstr "Operations"
+
+msgid "Tokens"
+msgstr "Tokens"
+
+msgid "Costo estimado (COP)"
+msgstr "Estimated cost (COP)"
+
 msgid "Panel de Docente"
 msgstr "Teacher Panel"
 
@@ -4006,7 +4578,6 @@ msgstr "Submissions received"
 msgid "Revisar"
 msgstr "Review"
 
-#| msgid "Mi Evaluación Docente"
 msgid "Mis Evaluaciones Recientes"
 msgstr "My Recent Assessments"
 
@@ -4115,7 +4686,6 @@ msgid "Malla Curricular %(año_malla)s"
 msgstr "Curriculum Map %(año_malla)s"
 
 #, python-format
-#| msgid "%(counter)s contenido"
 msgid "%(counter)s contenido"
 msgid_plural "%(counter)s contenidos"
 msgstr[0] "%(counter)s content item"
@@ -4171,9 +4741,6 @@ msgstr "My Student Dashboard"
 msgid "Tu acceso está temporalmente restringido"
 msgstr "Your access is temporarily restricted"
 
-#| msgid ""
-#| "Por favor comunícate con la secretaría o administración de tu institución "
-#| "para regularizar tu situación."
 msgid ""
 "Puedes seguir usando el portal, pero algunas secciones están ocultas. "
 "Comunícate con la secretaría o administración de tu institución para "
@@ -4251,12 +4818,11 @@ msgid "Tu portal académico está bloqueado"
 msgstr "Your academic portal is locked"
 
 msgid ""
-"Hemos detectado pagos vencidos. Mientras existan, <strong>no podrás "
-"acceder</strong> a deberes, calificaciones, lecciones, boletín ni el aula "
-"virtual."
+"Hemos detectado pagos vencidos. Mientras existan, <strong>no podrás acceder</"
+"strong> a deberes, calificaciones, lecciones, boletín ni el aula virtual."
 msgstr ""
-"We detected overdue payments. While they exist, <strong>you will not be able"
-" to access</strong> homework, grades, lessons, the report card, or the "
+"We detected overdue payments. While they exist, <strong>you will not be able "
+"to access</strong> homework, grades, lessons, the report card, or the "
 "virtual classroom."
 
 msgid "Cuentas vencidas"
@@ -4393,7 +4959,6 @@ msgstr "Read More"
 msgid "No hay noticias recientes para mostrar."
 msgstr "There are no recent news to show."
 
-#| msgid "Panel de Docente"
 msgid "Panel del Orientador"
 msgstr "Counselor Panel"
 
@@ -4404,23 +4969,18 @@ msgstr "Welcome, %(n)s."
 msgid "Convivencia, bienestar y acompañamiento psicosocial."
 msgstr "Coexistence, well-being and psychosocial support."
 
-#| msgid "Casos de Convivencia"
 msgid "Casos de convivencia abiertos"
 msgstr "Open coexistence cases"
 
-#| msgid "Anotaciones en Observador"
 msgid "Anotaciones por revisar"
 msgstr "Notes to review"
 
-#| msgid "Ausentes"
 msgid "PIARs vigentes"
 msgstr "Active PIARs"
 
-#| msgid "Acciones Rápidas"
 msgid "Accesos rápidos"
 msgstr "Quick access"
 
-#| msgid "Ver Alertas"
 msgid "Bienestar / Alertas"
 msgstr "Well-being / Alerts"
 
@@ -4430,15 +4990,12 @@ msgstr "Individual Learning Plans / Inclusion"
 msgid "Reporte de Riesgo (IA)"
 msgstr "Risk report (AI)"
 
-#| msgid "Citas con Familias — Hoy"
 msgid "Citas con Familias"
 msgstr "Appointments with Families"
 
-#| msgid "Mis Horarios de Atención Actuales"
 msgid "Mi Horario de Atención"
 msgstr "My Office Hours"
 
-#| msgid "Avisar a familiares"
 msgid "Citar a una Familia"
 msgstr "Summon a Family"
 
@@ -4448,7 +5005,6 @@ msgstr "Messages"
 msgid "Próximas citas con familias"
 msgstr "Upcoming appointments with families"
 
-#| msgid "Casos de Convivencia"
 msgid "Casos de convivencia por atender"
 msgstr "Coexistence cases to address"
 
@@ -4458,15 +5014,12 @@ msgstr "Case"
 msgid "No hay casos abiertos. 🎉"
 msgstr "No open cases. 🎉"
 
-#| msgid "Observaciones de quien revisa"
 msgid "Observador — por revisar"
 msgstr "Behavior record — to review"
 
-#| msgid "No hay cuestionarios pendientes de revisión manual."
 msgid "Sin anotaciones pendientes de revisión."
 msgstr "No notes pending review."
 
-#| msgid "Ver todos"
 msgid "Ver todo"
 msgstr "View all"
 
@@ -4530,13 +5083,13 @@ msgstr "This assignment has an attached file:"
 
 #, python-format
 msgid ""
-"**¡Importante!** Este deber ya tiene **%(counter)s entrega** de estudiantes."
-" Eliminarlo también **borrará permanentemente** estas entregas y cualquier "
+"**¡Importante!** Este deber ya tiene **%(counter)s entrega** de estudiantes. "
+"Eliminarlo también **borrará permanentemente** estas entregas y cualquier "
 "archivo adjunto por los estudiantes."
 msgid_plural ""
 "**¡Importante!** Este deber ya tiene **%(counter)s entregas** de "
-"estudiantes. Eliminarlo también **borrará permanentemente** estas entregas y"
-" cualquier archivo adjunto por los estudiantes."
+"estudiantes. Eliminarlo también **borrará permanentemente** estas entregas y "
+"cualquier archivo adjunto por los estudiantes."
 msgstr[0] ""
 "**Important!** This assignment already has **%(counter)s submission** from "
 "students. Deleting it will also **permanently erase** these submissions and "
@@ -4586,6 +5139,20 @@ msgstr "Download"
 msgid "No adjuntado"
 msgstr "Not attached"
 
+msgid "Audio de apoyo (accesibilidad)"
+msgstr "Support audio (accessibility)"
+
+msgid "Transcripción (subtítulo)"
+msgstr "Transcription (subtitle)"
+
+msgid ""
+"Aún no hay transcripción. Genérala con IA para que los estudiantes sordos o "
+"con dificultad auditiva puedan leerla."
+msgstr "There is no transcription yet. Generate it with AI so deaf or hard-of-hearing students can read it."
+
+msgid "Generar transcripción con IA"
+msgstr "Generate transcription with AI"
+
 msgid "Editar Deber"
 msgstr "Edit Assignment"
 
@@ -4594,6 +5161,9 @@ msgstr "Delete Assignment"
 
 msgid "No se encontró la información del deber."
 msgstr "The assignment information was not found."
+
+msgid "No se pudo transcribir."
+msgstr "Could not transcribe."
 
 msgid "Guardar Deber"
 msgstr "Save Assignment"
@@ -4632,8 +5202,7 @@ msgid "Ver Detalles"
 msgstr "View Details"
 
 msgid "No hay deberes o tareas registradas. ¡Puedes crear la primera!"
-msgstr ""
-"There are no assignments registered yet. You can create the first one!"
+msgstr "There are no assignments registered yet. You can create the first one!"
 
 msgid "Materia:"
 msgstr "Subject:"
@@ -4646,11 +5215,10 @@ msgstr "Confirm Deletion"
 
 #, python-format
 msgid ""
-"¿Estás seguro de que deseas eliminar la actividad "
-"\"<strong>%(titulo)s</strong>\"?"
+"¿Estás seguro de que deseas eliminar la actividad \"<strong>%(titulo)s</"
+"strong>\"?"
 msgstr ""
-"Are you sure you want to delete the activity "
-"\"<strong>%(titulo)s</strong>\"?"
+"Are you sure you want to delete the activity \"<strong>%(titulo)s</strong>\"?"
 
 msgid "Sí, Eliminar"
 msgstr "Yes, Delete"
@@ -4671,16 +5239,15 @@ msgstr "Save Activity"
 msgid "Mis Actividades Evaluativas"
 msgstr "My Graded Activities"
 
-#| msgid "Mi Evaluación"
 msgid "Mis Evaluaciones"
 msgstr "My Assessments"
 
 msgid ""
-"Crea la evaluación con su categoría y arma su cuestionario (con o sin IA) en"
-" un solo lugar."
+"Crea la evaluación con su categoría y arma su cuestionario (con o sin IA) en "
+"un solo lugar."
 msgstr ""
-"Create the assessment with its category and build its questionnaire (with or"
-" without AI) all in one place."
+"Create the assessment with its category and build its questionnaire (with or "
+"without AI) all in one place."
 
 msgid "Nueva Actividad"
 msgstr "New Activity"
@@ -4721,8 +5288,8 @@ msgid ""
 "¿Estás seguro de que deseas eliminar el descriptor: "
 "\"<strong>%(descripcion)s</strong>\"?"
 msgstr ""
-"Are you sure you want to delete the descriptor: "
-"\"<strong>%(descripcion)s</strong>\"?"
+"Are you sure you want to delete the descriptor: \"<strong>%(descripcion)s</"
+"strong>\"?"
 
 msgid "Formulario de Descriptor"
 msgstr "Descriptor Form"
@@ -4750,10 +5317,8 @@ msgid "Gestión por Plantilla (Carga Masiva)"
 msgstr "Manage via Template (Bulk Upload)"
 
 msgid ""
-"Ahorra tiempo creando todos tus descriptores a la vez desde un archivo "
-"Excel."
-msgstr ""
-"Save time by creating all your descriptors at once from an Excel file."
+"Ahorra tiempo creando todos tus descriptores a la vez desde un archivo Excel."
+msgstr "Save time by creating all your descriptors at once from an Excel file."
 
 msgid "Paso 1: Descargar"
 msgstr "Step 1: Download"
@@ -4762,8 +5327,8 @@ msgid ""
 "Obtén la plantilla personalizada. Contendrá solo las materias que tienes "
 "asignadas."
 msgstr ""
-"Get the personalized template. It will only contain the subjects assigned to"
-" you."
+"Get the personalized template. It will only contain the subjects assigned to "
+"you."
 
 msgid "Descargar Plantilla"
 msgstr "Download Template"
@@ -4787,13 +5352,13 @@ msgid "Banco de Logros de mis Materias y Grados"
 msgstr "Achievement Bank for My Subjects and Grades"
 
 msgid ""
-"Incluye los descriptores ya creados por ti o por otros docentes/coordinación"
-" para las materias y grados que tienes asignados. Si no quieres usar alguno,"
-" crea el tuyo propio con los botones de arriba."
+"Incluye los descriptores ya creados por ti o por otros docentes/coordinación "
+"para las materias y grados que tienes asignados. Si no quieres usar alguno, "
+"crea el tuyo propio con los botones de arriba."
 msgstr ""
-"Includes descriptors already created by you or by other "
-"teachers/coordination for the subjects and grades you're assigned. If you "
-"don't want to use one, create your own with the buttons above."
+"Includes descriptors already created by you or by other teachers/"
+"coordination for the subjects and grades you're assigned. If you don't want "
+"to use one, create your own with the buttons above."
 
 msgid "Periodo"
 msgstr "Period"
@@ -4809,10 +5374,12 @@ msgstr "Use as a starting point"
 
 msgid ""
 "Aún no hay descriptores para tus materias y grados. <br>\n"
-"                            Usa el botón \"Crear uno por uno\" o la plantilla de carga masiva para empezar."
+"                            Usa el botón \"Crear uno por uno\" o la "
+"plantilla de carga masiva para empezar."
 msgstr ""
 "There are no descriptors yet for your subjects and grades. <br>\n"
-"                            Use the \"Create one by one\" button or the bulk upload template to get started."
+"                            Use the \"Create one by one\" button or the bulk "
+"upload template to get started."
 
 msgid "Sí"
 msgstr "Yes"
@@ -4830,8 +5397,7 @@ msgid "Informes y Análisis Docente"
 msgstr "Teacher Reports and Analysis"
 
 msgid ""
-"Toma decisiones basadas en datos: rendimiento, asistencia, convivencia y "
-"más."
+"Toma decisiones basadas en datos: rendimiento, asistencia, convivencia y más."
 msgstr ""
 "Make data-driven decisions: performance, attendance, behavior, and more."
 
@@ -4842,8 +5408,7 @@ msgstr "You are a Homeroom Teacher — %(grado)s."
 msgid "Eres Director de Grupo."
 msgstr "You are a Homeroom Teacher."
 
-msgid ""
-"Tienes acceso a reportes adicionales de seguimiento integral del grupo."
+msgid "Tienes acceso a reportes adicionales de seguimiento integral del grupo."
 msgstr ""
 "You have access to additional reports for comprehensive tracking of the "
 "group."
@@ -4881,11 +5446,11 @@ msgid "Consolidado por Materia"
 msgstr "Summary by Subject"
 
 msgid ""
-"Vista consolidada de promedios y resultados por materia, actividad y periodo"
-" académico."
+"Vista consolidada de promedios y resultados por materia, actividad y periodo "
+"académico."
 msgstr ""
-"Consolidated view of averages and results by subject, activity, and academic"
-" period."
+"Consolidated view of averages and results by subject, activity, and academic "
+"period."
 
 msgid "Ver Consolidado"
 msgstr "View Summary"
@@ -4909,8 +5474,8 @@ msgid "Promedio por Materia"
 msgstr "Average by Subject"
 
 msgid ""
-"Compara los promedios de tus materias entre periodos y detecta tendencias de"
-" rendimiento."
+"Compara los promedios de tus materias entre periodos y detecta tendencias de "
+"rendimiento."
 msgstr ""
 "Compare your subject averages across periods and detect performance trends."
 
@@ -5031,11 +5596,15 @@ msgid "Reportes de Director de Grupo"
 msgstr "Homeroom Teacher Reports"
 
 msgid ""
-"Estos reportes están disponibles únicamente para docentes asignados como <strong>Director de Grupo</strong>\n"
-"    en el periodo académico activo. Contacta a coordinación si crees que esto es un error."
+"Estos reportes están disponibles únicamente para docentes asignados como "
+"<strong>Director de Grupo</strong>\n"
+"    en el periodo académico activo. Contacta a coordinación si crees que "
+"esto es un error."
 msgstr ""
-"These reports are only available to teachers assigned as <strong>Homeroom Teacher</strong>\n"
-"    in the active academic period. Contact coordination if you think this is an error."
+"These reports are only available to teachers assigned as <strong>Homeroom "
+"Teacher</strong>\n"
+"    in the active academic period. Contact coordination if you think this is "
+"an error."
 
 msgid "Período Actual"
 msgstr "Current Term"
@@ -5054,11 +5623,10 @@ msgstr "There are no teachers registered."
 
 #, python-format
 msgid ""
-"¿Estás seguro de que deseas eliminar el material "
-"\"<strong>%(nombre)s</strong>\"?"
+"¿Estás seguro de que deseas eliminar el material \"<strong>%(nombre)s</"
+"strong>\"?"
 msgstr ""
-"Are you sure you want to delete the material "
-"\"<strong>%(nombre)s</strong>\"?"
+"Are you sure you want to delete the material \"<strong>%(nombre)s</strong>\"?"
 
 msgid "Recursos Didácticos"
 msgstr "Teaching Resources"
@@ -5101,11 +5669,11 @@ msgstr "Upload first material"
 
 #, python-format
 msgid ""
-"¿Estás seguro de que deseas eliminar la mención "
-"\"<strong>%(tipo)s</strong>\" otorgada a <strong>%(estudiante)s</strong>?"
+"¿Estás seguro de que deseas eliminar la mención \"<strong>%(tipo)s</"
+"strong>\" otorgada a <strong>%(estudiante)s</strong>?"
 msgstr ""
-"Are you sure you want to delete the recognition "
-"\"<strong>%(tipo)s</strong>\" awarded to <strong>%(estudiante)s</strong>?"
+"Are you sure you want to delete the recognition \"<strong>%(tipo)s</"
+"strong>\" awarded to <strong>%(estudiante)s</strong>?"
 
 msgid "Formulario de Mención"
 msgstr "Recognition Form"
@@ -5166,8 +5734,6 @@ msgstr ""
 "unassigned."
 
 #, python-format
-#| msgid ""
-#| "Define una categoría (Ej: Tareas) y su peso en la nota final (Ej: 20%)."
 msgid ""
 "Define una categoría (Ej: Tareas) y su peso en la nota final (Ej: 20%%)."
 msgstr ""
@@ -5215,28 +5781,20 @@ msgid "¡Atención!"
 msgstr "Attention!"
 
 #, python-format
-#| msgid ""
-#| "La suma de los porcentajes configurados es "
-#| "<strong>%(total_porcentaje)s%</strong>, superando el 100%. El coordinador "
-#| "debe corregir estos valores."
 msgid ""
-"La suma de los porcentajes configurados es "
-"<strong>%(total_porcentaje)s%%</strong>, superando el 100%%. El coordinador "
-"debe corregir estos valores."
+"La suma de los porcentajes configurados es <strong>%(total_porcentaje)s%%</"
+"strong>, superando el 100%%. El coordinador debe corregir estos valores."
 msgstr ""
-"The sum of the configured percentages is "
-"<strong>%(total_porcentaje)s%%</strong>, exceeding 100%%. The coordinator "
-"must correct these values."
+"The sum of the configured percentages is <strong>%(total_porcentaje)s%%</"
+"strong>, exceeding 100%%. The coordinator must correct these values."
 
 #, python-format
-#| msgid "Peso&nbsp;(%)"
 msgid "Peso&nbsp;(%%)"
 msgstr "Weight&nbsp;(%%)"
 
 msgid "Orden"
 msgstr "Order"
 
-#| msgid "Sin descripción."
 msgid "Sin descripción"
 msgstr "No description"
 
@@ -5250,12 +5808,12 @@ msgid ""
 "El coordinador académico debe crear las categorías antes de asignarlas a "
 "actividades."
 msgstr ""
-"The academic coordinator must create the categories before assigning them to"
-" activities."
+"The academic coordinator must create the categories before assigning them to "
+"activities."
 
 msgid ""
-"Puedes corregir el tipo, ampliar la descripción o cambiar la clase asociada."
-" Editar no vuelve a ejecutar el análisis de convivencia."
+"Puedes corregir el tipo, ampliar la descripción o cambiar la clase asociada. "
+"Editar no vuelve a ejecutar el análisis de convivencia."
 msgstr ""
 "You can correct the type, expand the description or change the associated "
 "class. Editing does not re-run the coexistence analysis."
@@ -5275,8 +5833,49 @@ msgstr "Current Grade:"
 msgid "Estudiante Inactivo"
 msgstr "Inactive Student"
 
+msgid "Grupo/Sección:"
+msgstr "Group/Section:"
+
 msgid "Fecha de Nacimiento:"
 msgstr "Date of Birth:"
+
+msgid "Accesibilidad"
+msgstr "Accessibility"
+
+msgid "Acudientes / Familiares"
+msgstr "Guardians / Family members"
+
+msgid "Nombre"
+msgstr "Name"
+
+msgid "Parentesco"
+msgstr "Relationship"
+
+msgid "Documento"
+msgstr "Document"
+
+msgid "Teléfono"
+msgstr "Phone"
+
+msgid "Correo"
+msgstr "Email"
+
+msgid "Rol"
+msgstr "Role"
+
+msgid "Responsable"
+msgstr "Responsible"
+
+msgid "Adicional"
+msgstr "Additional"
+
+msgid ""
+"El acudiente marcado como «Responsable» es el titular de la matrícula y de "
+"la facturación electrónica."
+msgstr "The guardian marked as “Responsible” is the holder of the enrollment and the electronic invoicing."
+
+msgid "Este estudiante aún no tiene acudientes registrados."
+msgstr "This student has no guardians registered yet."
 
 msgid "Este estudiante aún no tiene caracterización registrada."
 msgstr "This student does not have a profile recorded yet."
@@ -5301,8 +5900,7 @@ msgid "Detalle de Calificaciones"
 msgstr "Grade Details"
 
 #, python-format
-msgid ""
-"Curso: <strong>%(materia)s</strong> - Grado: <strong>%(grado)s</strong>"
+msgid "Curso: <strong>%(materia)s</strong> - Grado: <strong>%(grado)s</strong>"
 msgstr ""
 "Course: <strong>%(materia)s</strong> - Grade: <strong>%(grado)s</strong>"
 
@@ -5320,7 +5918,6 @@ msgid "Fecha Publicación"
 msgstr "Published Date"
 
 #, python-format
-#| msgid "Porcentaje (%)"
 msgid "Porcentaje (%%)"
 msgstr "Percentage (%%)"
 
@@ -5340,8 +5937,7 @@ msgstr "Your final grade for this course is: %(nota)s"
 msgid ""
 "Aún no hay actividades calificables o calificaciones registradas para este "
 "curso."
-msgstr ""
-"There are no graded activities or grades recorded for this course yet."
+msgstr "There are no graded activities or grades recorded for this course yet."
 
 #, python-format
 msgid "Resumen de Calificaciones - %(periodo)s"
@@ -5418,15 +6014,13 @@ msgstr "My Assigned Homework / Tasks"
 #, python-format
 msgid ""
 "Mostrando deberes para el periodo: <strong>%(nombre)s (%(anio)s)</strong>."
-msgstr ""
-"Showing homework for the term: <strong>%(nombre)s (%(anio)s)</strong>."
+msgstr "Showing homework for the term: <strong>%(nombre)s (%(anio)s)</strong>."
 
 msgid ""
 "No hay un periodo académico activo definido para tu institución. No se "
 "pueden mostrar deberes."
 msgstr ""
-"No active academic term is defined for your school. Homework cannot be "
-"shown."
+"No active academic term is defined for your school. Homework cannot be shown."
 
 msgid "Fecha Límite:"
 msgstr "Due Date:"
@@ -5475,22 +6069,18 @@ msgstr "Review comments"
 msgid "Ver archivo"
 msgstr "View file"
 
-#| msgid "Vista Previa"
 msgid "Ya revisada"
 msgstr "Already reviewed"
 
 msgid "Aún no has enviado ninguna justificación de inasistencia."
 msgstr "You have not submitted any absence justification yet."
 
-#| msgid "Eliminar notificación"
 msgid "¿Eliminar esta justificación?"
 msgstr "Delete this justification?"
 
 msgid "Rango:"
 msgstr "Range:"
 
-#| msgid ""
-#| "Se eliminarán también los intentos. Esta acción no se puede deshacer."
 msgid ""
 "Solo puedes eliminarla mientras esté pendiente. Esta acción no se puede "
 "deshacer."
@@ -5518,6 +6108,12 @@ msgstr "Download Material"
 
 msgid "No disponible."
 msgstr "Not available."
+
+msgid "Audio de apoyo:"
+msgstr "Support audio:"
+
+msgid "Ver transcripción (subtítulo)"
+msgstr "View transcription (subtitle)"
 
 msgid "¡Fecha Límite Excedida!"
 msgstr "Deadline Exceeded!"
@@ -5587,26 +6183,21 @@ msgstr "Which of your children is the appointment for?"
 msgid "Ej.: acompañamiento emocional, convivencia, seguimiento PIAR…"
 msgstr "E.g.: emotional support, coexistence, PIAR follow-up…"
 
-#| msgid "Selecciona un periodo..."
 msgid "Selecciona un horario disponible:"
 msgstr "Select an available time:"
 
-#| msgid "Este estudiante aún no tiene caracterización registrada."
 msgid "Este profesional aún no tiene horarios de atención configurados."
 msgstr "This professional has not set up office hours yet."
 
 msgid "Solicitar Cita"
 msgstr "Request Appointment"
 
-#| msgid "Editar Simulacro"
 msgid "Editar Familiar"
 msgstr "Edit Family Member"
 
-#| msgid "Día de la Semana"
 msgid "Datos de la cuenta"
 msgstr "Account details"
 
-#| msgid "Correo Electrónico"
 msgid "Correo electrónico"
 msgstr "Email"
 
@@ -5616,32 +6207,18 @@ msgstr "User (not editable)"
 msgid "Perfil del familiar"
 msgstr "Family member profile"
 
-#| msgid "Presentes"
-msgid "Parentesco"
-msgstr "Relationship"
-
-#| msgid "Teléfono de Contacto"
-msgid "Teléfono"
-msgstr "Phone"
-
-#| msgid "Estudiante(s) Asociado(s)"
 msgid "Estudiante(s) asociado(s)"
 msgstr "Associated student(s)"
 
 msgid "Mantén Ctrl (o Cmd) para seleccionar varios."
 msgstr "Hold Ctrl (or Cmd) to select several."
 
-#| msgid "Eliminar actividad"
 msgid "Eliminar familiar"
 msgstr "Delete family member"
 
-#| msgid "¿Eliminar este simulacro?"
 msgid "¿Eliminar este familiar?"
 msgstr "Delete this family member?"
 
-#| msgid ""
-#| "Se eliminarán también todos los ajustes asociados. Esta acción no se puede "
-#| "deshacer."
 msgid ""
 "Se eliminará su cuenta de acceso. Los estudiantes NO se borran, solo se "
 "desvinculan. Esta acción no se puede deshacer."
@@ -5650,13 +6227,11 @@ msgstr ""
 "unlinked. This action cannot be undone."
 
 msgid "No hay docentes disponibles para agendar citas en este momento."
-msgstr ""
-"There are no teachers available to schedule appointments at this time."
+msgstr "There are no teachers available to schedule appointments at this time."
 
 msgid "Elige al profesional de orientación escolar con quien deseas reunirte."
 msgstr "Choose the school counselor you wish to meet with."
 
-#| msgid "Convivencia Escolar"
 msgid "Orientación Escolar"
 msgstr "School Counseling"
 
@@ -5665,11 +6240,9 @@ msgid ""
 msgstr ""
 "Your institution does not yet have school counseling available to schedule."
 
-#| msgid "Sistema de Gestión Escolar"
 msgid "Ficha de Orientación Escolar"
 msgstr "School Counseling Record"
 
-#| msgid "Imprimir malla"
 msgid "Imprimir ficha"
 msgstr "Print record"
 
@@ -5677,32 +6250,27 @@ msgid ""
 "Documento confidencial (Ley 1581 de 2012 · habeas data). Acceso restringido "
 "a orientación escolar y rectoría."
 msgstr ""
-"Confidential document (Law 1581 of 2012 · habeas data). Access restricted to"
-" school counseling and the principal's office."
+"Confidential document (Law 1581 of 2012 · habeas data). Access restricted to "
+"school counseling and the principal's office."
 
 msgid "Registrar atención / seguimiento"
 msgstr "Record session / follow-up"
 
-#| msgid "Guardar en el banco"
 msgid "Guardar en la ficha"
 msgstr "Save to the record"
 
-#| msgid "Historial de entregas"
 msgid "Historial de seguimientos"
 msgstr "Follow-up history"
 
 msgid "Acuerdos:"
 msgstr "Agreements:"
 
-#| msgid "Supervisión"
 msgid "Remisión:"
 msgstr "Referral:"
 
-#| msgid "Aún no hay votos emitidos por grado."
 msgid "Aún no hay seguimientos registrados."
 msgstr "No follow-ups recorded yet."
 
-#| msgid "Cita de Reunión"
 msgid "Citas de orientación"
 msgstr "Counseling appointments"
 
@@ -5712,21 +6280,16 @@ msgstr "Subject"
 msgid "Acta"
 msgstr "Minutes"
 
-#| msgid "Sin anotaciones registradas"
 msgid "Sin citas registradas."
 msgstr "No appointments recorded."
 
 msgid "Bloqueos de Estudiantes"
 msgstr "Student Access Blocks"
 
-#| msgid ""
-#| "Bloquea o restaura el acceso de un estudiante al portal (por ejemplo, por no"
-#| " pago). El estudiante podrá iniciar sesión pero verá una pantalla de acceso "
-#| "suspendido."
 msgid ""
-"Bloquea o restaura el acceso de un estudiante al portal (por ejemplo, por no"
-" pago). El estudiante podrá iniciar sesión y usar el portal, pero no verá "
-"las secciones que elijas más abajo (por defecto: notas, progreso y boletín)."
+"Bloquea o restaura el acceso de un estudiante al portal (por ejemplo, por no "
+"pago). El estudiante podrá iniciar sesión y usar el portal, pero no verá las "
+"secciones que elijas más abajo (por defecto: notas, progreso y boletín)."
 msgstr ""
 "Block or restore a student's access to the portal (for example, for non-"
 "payment). The student will be able to log in and use the portal, but will "
@@ -5739,7 +6302,6 @@ msgid_plural "%(n)s estudiantes bloqueados actualmente"
 msgstr[0] "%(n)s student currently blocked"
 msgstr[1] "%(n)s students currently blocked"
 
-#| msgid "¿Qué debe hacer el estudiante?"
 msgid "¿Qué se le bloquea al estudiante suspendido?"
 msgstr "What is blocked for the suspended student?"
 
@@ -5754,7 +6316,6 @@ msgstr ""
 "viewing and submitting their homework). Applies to all blocked students in "
 "your institution."
 
-#| msgid "Guardar Anotación"
 msgid "Guardar configuración"
 msgstr "Save settings"
 
@@ -5813,18 +6374,15 @@ msgstr "Yes, restore"
 msgid "Actualiza el estado, registra observaciones y acuerdos de la reunión."
 msgstr "Update the status, record notes and agreements from the meeting."
 
-#| msgid "Citar acudiente"
 msgid "Familia / Acudiente"
 msgstr "Family / Guardian"
 
-#| msgid "Fecha y Hora"
 msgid "Fecha y hora"
 msgstr "Date and time"
 
 msgid "Origen"
 msgstr "Origin"
 
-#| msgid "Tipo de acción"
 msgid "Motivo de cancelación:"
 msgstr "Cancellation reason:"
 
@@ -5840,14 +6398,12 @@ msgstr "I can: accept this time"
 msgid "Propusiste"
 msgstr "You proposed"
 
-#| msgid "Describe la respuesta ideal aquí…"
 msgid "esperando la respuesta de la familia."
 msgstr "waiting for the family's response."
 
 msgid "Proponer otro horario a la familia"
 msgstr "Propose another time to the family"
 
-#| msgid "Enviar respuestas"
 msgid "Enviar propuesta"
 msgstr "Send proposal"
 
@@ -5858,7 +6414,6 @@ msgstr ""
 "When you accept or propose a time, the family is notified through the "
 "platform and by email."
 
-#| msgid "Imprimir malla"
 msgid "Imprimir acta"
 msgstr "Print minutes"
 
@@ -5897,16 +6452,12 @@ msgstr "Block:"
 msgid "Esta acción no se puede deshacer."
 msgstr "This action cannot be undone."
 
-#| msgid ""
-#| "Define los días y horas de la semana en los que estarás disponible para "
-#| "atender a los acudientes. Estos horarios serán visibles para que ellos "
-#| "puedan solicitar una cita."
 msgid ""
 "Define los días y horas en que atenderás a las familias. Estos horarios "
 "serán visibles para que ellas puedan solicitar una cita."
 msgstr ""
-"Define the days and times when you will attend to families. These times will"
-" be visible so that they can request an appointment."
+"Define the days and times when you will attend to families. These times will "
+"be visible so that they can request an appointment."
 
 msgid "No hay elecciones creadas aún."
 msgstr "No elections created yet."
@@ -5968,8 +6519,8 @@ msgstr "Generate Draft with AI"
 
 #, python-format
 msgid ""
-"Selecciona un estudiante para añadir o editar su observación para el boletín"
-" del periodo <strong>%(periodo_nombre)s</strong>."
+"Selecciona un estudiante para añadir o editar su observación para el boletín "
+"del periodo <strong>%(periodo_nombre)s</strong>."
 msgstr ""
 "Select a student to add or edit their report card note for the "
 "<strong>%(periodo_nombre)s</strong> period."
@@ -5997,15 +6548,12 @@ msgid "Calificada"
 msgstr "Graded"
 
 #, python-format
-#| msgid "Posible plagio detectado: %(pct)s% de similitud"
 msgid "Posible plagio detectado: %(similitud)s%% de similitud"
 msgstr "Possible plagiarism detected: %(similitud)s%% similarity"
 
-#| msgid "Ver archivo"
 msgid "Ver archivo entregado"
 msgstr "View submitted file"
 
-#| msgid "Realizar Entrega"
 msgid "Ver y calificar entrega"
 msgstr "View and grade submission"
 
@@ -6052,19 +6600,16 @@ msgstr "Warnings"
 msgid "Historial de Anotaciones"
 msgstr "Entry History"
 
-#| msgid "Llamado de Atención"
 msgid "Llamados de Atención"
 msgstr "Warnings"
 
-#| msgid "Otra"
 msgid "Otras"
 msgstr "Others"
 
 msgid "Sin anotaciones registradas"
 msgstr "No entries recorded"
 
-msgid ""
-"Usa el formulario para registrar la primera anotación en el observador."
+msgid "Usa el formulario para registrar la primera anotación en el observador."
 msgstr "Use the form to record the first entry in the behavior record."
 
 msgid "Registrar Nueva Anotación"
@@ -6074,13 +6619,19 @@ msgid "Guardar Anotación"
 msgstr "Save Entry"
 
 msgid ""
-"<strong>Marco Legal:</strong> Las anotaciones se registran de forma permanente en cumplimiento\n"
-"            del <strong>Decreto 1860/1994</strong>, la <strong>Ley 1620/2013</strong> (Convivencia Escolar)\n"
-"            y el <strong>Decreto 1965/2013</strong>. HALU Sentinel analiza automáticamente cada registro."
+"<strong>Marco Legal:</strong> Las anotaciones se registran de forma "
+"permanente en cumplimiento\n"
+"            del <strong>Decreto 1860/1994</strong>, la <strong>Ley "
+"1620/2013</strong> (Convivencia Escolar)\n"
+"            y el <strong>Decreto 1965/2013</strong>. HALU Sentinel analiza "
+"automáticamente cada registro."
 msgstr ""
-"<strong>Legal framework:</strong> Entries are recorded permanently in compliance\n"
-"            with <strong>Decree 1860/1994</strong>, <strong>Law 1620/2013</strong> (School Coexistence)\n"
-"            and <strong>Decree 1965/2013</strong>. HALU Sentinel automatically analyzes every entry."
+"<strong>Legal framework:</strong> Entries are recorded permanently in "
+"compliance\n"
+"            with <strong>Decree 1860/1994</strong>, <strong>Law 1620/2013</"
+"strong> (School Coexistence)\n"
+"            and <strong>Decree 1965/2013</strong>. HALU Sentinel "
+"automatically analyzes every entry."
 
 msgid "Volver al plan"
 msgstr "Back to plan"
@@ -6143,19 +6694,15 @@ msgstr ""
 msgid "Enviar Justificación"
 msgstr "Submit Justification"
 
-#| msgid "Citar acudiente"
 msgid "Familiares / Acudientes"
 msgstr "Family Members / Guardians"
 
-#| msgid "No tienes cursos asignados en esta institución."
 msgid "Directorio de familiares registrados en tu institución."
 msgstr "Directory of family members registered in your institution."
 
-#| msgid "Avisar a familiares"
 msgid "Registrar Familiar"
 msgstr "Register Family Member"
 
-#| msgid "Descargar archivo"
 msgid "Cargar masivo"
 msgstr "Bulk upload"
 
@@ -6163,37 +6710,29 @@ msgid "Nombre del familiar, documento, teléfono o estudiante…"
 msgstr "Family member name, ID, phone or student…"
 
 #, python-format
-#| msgid "%(n)s palabras"
 msgid "%(n)s familiar"
 msgid_plural "%(n)s familiares"
 msgstr[0] "%(n)s family member"
 msgstr[1] "%(n)s family members"
 
-#| msgid "Sin grado asignado"
 msgid "Sin grado / sin estudiante"
 msgstr "No grade / no student"
 
-#| msgid "Contributivo"
 msgid "Contacto"
 msgstr "Contact"
 
-#| msgid "Estudiantes"
 msgid "Estudiante(s)"
 msgstr "Student(s)"
 
-#| msgid "Estudiantes"
 msgid "Sin estudiantes"
 msgstr "No students"
 
-#| msgid "No se encontraron estudiantes en este grado."
 msgid "No se encontraron familiares con ese criterio."
 msgstr "No family members were found with that criterion."
 
-#| msgid "No hay actividades registradas."
 msgid "Aún no hay familiares registrados."
 msgstr "No family members registered yet."
 
-#| msgid "Crear primer simulacro"
 msgid "Registrar el primer familiar"
 msgstr "Register the first family member"
 
@@ -6216,8 +6755,8 @@ msgstr "Term (Opt.)"
 
 #, python-format
 msgid ""
-"Mostrando tus registros de asistencia para el periodo: "
-"<strong>%(nombre)s</strong>"
+"Mostrando tus registros de asistencia para el periodo: <strong>%(nombre)s</"
+"strong>"
 msgstr ""
 "Showing your attendance records for the term: <strong>%(nombre)s</strong>"
 
@@ -6248,8 +6787,110 @@ msgstr "Remove photo"
 msgid "Detalles del Perfil"
 msgstr "Profile Details"
 
+msgid "Datos personales"
+msgstr "Personal data"
+
+msgid "Tipo de documento:"
+msgstr "Document type:"
+
 msgid "Documento:"
 msgstr "Document:"
+
+msgid "Fecha de nacimiento:"
+msgstr "Date of birth:"
+
+msgid "Sexo:"
+msgstr "Sex:"
+
+msgid "Lugar de nacimiento:"
+msgstr "Place of birth:"
+
+msgid "Grupo sanguíneo:"
+msgstr "Blood type:"
+
+msgid "EPS:"
+msgstr "Health provider (EPS):"
+
+msgid "Discapacidad:"
+msgstr "Disability:"
+
+msgid "Datos académicos"
+msgstr "Academic data"
+
+msgid "Sede:"
+msgstr "Campus:"
+
+msgid "Jornada:"
+msgstr "Shift:"
+
+msgid "Colegio de procedencia:"
+msgstr "Previous school:"
+
+msgid "Ubicación"
+msgstr "Location"
+
+msgid "Dirección:"
+msgstr "Address:"
+
+msgid "Municipio/Ciudad:"
+msgstr "Municipality/City:"
+
+msgid "Departamento:"
+msgstr "Department:"
+
+msgid "Caracterización (SIMAT/SIMPADE)"
+msgstr "Profile (SIMAT/SIMPADE)"
+
+msgid "Estrato:"
+msgstr "Stratum:"
+
+msgid "Régimen de salud:"
+msgstr "Health scheme:"
+
+msgid "Grupo étnico:"
+msgstr "Ethnic group:"
+
+msgid "Categoría de discapacidad:"
+msgstr "Disability category:"
+
+msgid "Grupo SISBÉN (IV):"
+msgstr "SISBEN group (IV):"
+
+msgid "SISBÉN (SIMAT):"
+msgstr "SISBEN (SIMAT):"
+
+msgid "Carácter:"
+msgstr "Character:"
+
+msgid "Metodología:"
+msgstr "Methodology:"
+
+msgid "Situación año anterior:"
+msgstr "Status previous year:"
+
+msgid "Fuente de recursos:"
+msgstr "Resource source:"
+
+msgid "Internado:"
+msgstr "Boarding:"
+
+msgid "Subsidiado:"
+msgstr "Subsidized:"
+
+msgid "Acudientes"
+msgstr "Guardians"
+
+msgid "No hay acudientes registrados."
+msgstr "No guardians registered."
+
+msgid "Apoyos de accesibilidad activos"
+msgstr "Active accessibility supports"
+
+msgid "Tiempo extra en evaluaciones"
+msgstr "Extra time on assessments"
+
+msgid "Financiero"
+msgstr "Financial"
 
 msgid "Saldo Pendiente:"
 msgstr "Outstanding Balance:"
@@ -6303,8 +6944,8 @@ msgid "Aceptaste la versión <strong>%(v)s</strong> el %(f)s."
 msgstr "You accepted version <strong>%(v)s</strong> on %(f)s."
 
 msgid ""
-"Este registro queda guardado como evidencia (fecha, versión e identificación"
-" del dispositivo desde el que aceptaste)."
+"Este registro queda guardado como evidencia (fecha, versión e identificación "
+"del dispositivo desde el que aceptaste)."
 msgstr ""
 "This record is kept as evidence (date, version, and identification of the "
 "device you accepted from)."
@@ -6341,8 +6982,8 @@ msgid ""
 "Podrás ver la evolución de tus notas cuando tengas calificaciones "
 "registradas en al menos un periodo académico."
 msgstr ""
-"You will be able to see how your grades evolve once you have grades recorded"
-" in at least one academic term."
+"You will be able to see how your grades evolve once you have grades recorded "
+"in at least one academic term."
 
 msgid "Evolución del año lectivo"
 msgstr "School-year progress"
@@ -6378,11 +7019,9 @@ msgstr "Overall average by term"
 msgid "Puesto %(puesto)s/%(total)s"
 msgstr "Rank %(puesto)s/%(total)s"
 
-#| msgid "Reportes por Materia"
 msgid "Notas por materia"
 msgstr "Grades by subject"
 
-#| msgid "Promedio General del Grado"
 msgid "(promedio del año)"
 msgstr "(year average)"
 
@@ -6533,62 +7172,50 @@ msgid ""
 "Convoca a una familia a una reunión de orientación. Se le notificará "
 "automáticamente."
 msgstr ""
-"Summon a family to a counseling meeting. They will be notified "
-"automatically."
+"Summon a family to a counseling meeting. They will be notified automatically."
 
 msgid "— Selecciona un estudiante —"
 msgstr "— Select a student —"
 
-#| msgid "— Selecciona un estudiante —"
 msgid "Primero selecciona un estudiante…"
 msgstr "First select a student…"
 
 msgid "Se listarán los acudientes vinculados al estudiante."
 msgstr "The guardians linked to the student will be listed."
 
-#| msgid "Modo de la actividad"
 msgid "Motivo de la convocatoria"
 msgstr "Reason for the summons"
 
-#| msgid "Revisar y Calificar"
 msgid "Citar y notificar"
 msgstr "Summon and notify"
 
-#| msgid "Cargando fecha…"
 msgid "Cargando…"
 msgstr "Loading…"
 
-#| msgid "Este estudiante no tiene anotaciones en el observador."
 msgid "Este estudiante no tiene acudientes vinculados."
 msgstr "This student has no linked guardians."
 
 msgid "Pídele a la secretaría vincular un acudiente."
 msgstr "Ask the front office to link a guardian."
 
-#| msgid "— Selecciona un estudiante —"
 msgid "— Selecciona un acudiente —"
 msgstr "— Select a guardian —"
 
-#| msgid "Selecciona una categoría"
 msgid "Selecciona a quién deseas citar."
 msgstr "Select who you want to summon."
 
-#| msgid "No se encontraron estudiantes."
 msgid "No se pudieron cargar los acudientes."
 msgstr "The guardians could not be loaded."
 
 msgid "Reuniones solicitadas por las familias y las que tú has citado."
 msgstr "Meetings requested by families and those you have scheduled."
 
-#| msgid "Editar actividad"
 msgid "Citas activas"
 msgstr "Active appointments"
 
-#| msgid "No tienes acceso a esta actividad."
 msgid "No tienes citas activas."
 msgstr "You have no active appointments."
 
-#| msgid "Historial de entregas"
 msgid "Historial reciente"
 msgstr "Recent history"
 
@@ -6618,11 +7245,54 @@ msgid "Rector(a)"
 msgstr "Principal"
 
 msgid ""
-"Se incluyen los periodos con calificaciones registradas. Niveles: Superior ·"
-" Alto · Básico · Bajo."
+"Se incluyen los periodos con calificaciones registradas. Niveles: Superior · "
+"Alto · Básico · Bajo."
 msgstr ""
 "Terms with recorded grades are included. Levels: Superior · High · Basic · "
 "Low."
+
+msgid "Perfil de Accesibilidad"
+msgstr "Accessibility Profile"
+
+#, python-format
+msgid "Apoyos que la plataforma aplicará automáticamente para %(est)s."
+msgstr "Supports the platform will automatically apply for %(est)s."
+
+#, python-format
+msgid ""
+"Precargamos sugerencias según la condición del PIAR (%(c)s). Revísalas y "
+"ajústalas antes de guardar."
+msgstr "We preloaded suggestions based on the PIAR condition (%(c)s). Review and adjust them before saving."
+
+msgid ""
+"Información sensible: estos apoyos están ligados a la condición del "
+"estudiante (Ley 1581/2012). Se aplican para ayudarle; no reemplazan a los "
+"docentes de apoyo ni a los profesionales."
+msgstr "Sensitive information: these supports are linked to the student's condition (Law 1581/2012). They are applied to help; they do not replace support teachers or professionals."
+
+msgid "Si se desactiva, la plataforma no aplicará estos apoyos."
+msgstr "If disabled, the platform will not apply these supports."
+
+msgid "Presentación"
+msgstr "Presentation"
+
+msgid "Destacar lectura por voz"
+msgstr "Highlight read-aloud"
+
+#, python-format
+msgid "Tiempo extra (%%)"
+msgstr "Extra time (%%)"
+
+msgid ""
+"Se suma al temporizador de los cuestionarios. Ej: 50 = mitad de tiempo "
+"adicional."
+msgstr "Added to the quiz timer. E.g. 50 = half the time added."
+
+msgid "Enunciados simplificados (IA, progresivo)"
+msgstr "Simplified prompts (AI, progressive)"
+
+msgid "Guardar apoyos"
+msgstr "Save supports"
 
 #, python-format
 msgid "Plan Semanal · %(label)s"
@@ -6644,8 +7314,8 @@ msgid ""
 "Este plan está bloqueado para edición hasta que el coordinador lo apruebe o "
 "devuelva con observaciones."
 msgstr ""
-"This plan is locked for editing until the coordinator approves it or returns"
-" it with feedback."
+"This plan is locked for editing until the coordinator approves it or returns "
+"it with feedback."
 
 msgid "Correcciones requeridas — plan editable"
 msgstr "Corrections needed — plan is editable"
@@ -6796,11 +7466,11 @@ msgid "Crear Nueva Planeación"
 msgstr "Create New Lesson Plan"
 
 msgid ""
-"Define los parámetros básicos y la IA generará una planeación detallada para"
-" ti."
+"Define los parámetros básicos y la IA generará una planeación detallada para "
+"ti."
 msgstr ""
-"Set the basic parameters and the AI will generate a detailed lesson plan for"
-" you."
+"Set the basic parameters and the AI will generate a detailed lesson plan for "
+"you."
 
 msgid "Guardar y Continuar"
 msgstr "Save and Continue"
@@ -6892,19 +7562,16 @@ msgstr ""
 msgid "Sí, estoy seguro"
 msgstr "Yes, I'm sure"
 
-#| msgid "Familiar"
 msgid "Portal Familiar"
 msgstr "Family Portal"
 
 #, python-format
-#| msgid "Bienvenido(a), %(n)s."
 msgid "¡Bienvenido/a, %(n)s! 👪"
 msgstr "Welcome, %(n)s! 👪"
 
 msgid ""
 "Tu espacio para hacer seguimiento académico y comunicarte con el colegio."
-msgstr ""
-"Your space to track academic progress and communicate with the school."
+msgstr "Your space to track academic progress and communicate with the school."
 
 msgid ""
 "Desde aquí puedes ver las calificaciones, boletines, deberes y agendar "
@@ -6913,14 +7580,12 @@ msgstr ""
 "From here you can view grades, report cards, homework and schedule meetings "
 "with your children's teachers."
 
-#| msgid "Sistema de Gestión Escolar"
 msgid "Citas de Orientación Escolar"
 msgstr "School Counseling Appointments"
 
 msgid "Te citaron: confirma tu asistencia"
 msgstr "You have been summoned: confirm your attendance"
 
-#| msgid "Pendientes de confirmación"
 msgid "Pendiente: espera confirmación de Orientación"
 msgstr "Pending: awaiting confirmation from Counseling"
 
@@ -6930,7 +7595,6 @@ msgstr "Counseling proposes:"
 msgid "esperando respuesta de Orientación."
 msgstr "waiting for a response from Counseling."
 
-#| msgid "Gestionar Horarios"
 msgid "Aceptar horario"
 msgstr "Accept time"
 
@@ -6943,44 +7607,32 @@ msgid_plural "%(n)s compromisos en 14 días"
 msgstr[0] "%(n)s commitment in 14 days"
 msgstr[1] "%(n)s commitments in 14 days"
 
-#| msgid "Pagos y estado de cuenta"
 msgid "Revisar estado de cuenta"
 msgstr "Review account statement"
 
-#| msgid "Cartera al día"
 msgid "Pagos al día"
 msgstr "Payments up to date"
 
-#| msgid "Mi Boletín"
 msgid "Boletín"
 msgstr "Report card"
 
-#| msgid "Deber"
 msgid "Deberes"
 msgstr "Homework"
 
-#| msgid "En línea"
 msgid "Pagos en línea"
 msgstr "Online payments"
 
-#| msgid "Cita de Reunión"
 msgid "Agendar Reunión"
 msgstr "Schedule Meeting"
 
-#| msgid "Nuevo Mensaje"
 msgid "Enviar Mensaje"
 msgstr "Send Message"
 
-#| msgid "No tienes estudiantes asociados."
 msgid "No tienes estudiantes asociados"
 msgstr "You have no associated students"
 
-#| msgid ""
-#| "Comunícate con la secretaría o administración de tu institución para "
-#| "regularizar tu situación."
 msgid ""
-"Comunícate con la secretaría del colegio para vincular tus hijos a tu "
-"cuenta."
+"Comunícate con la secretaría del colegio para vincular tus hijos a tu cuenta."
 msgstr ""
 "Contact the school's front office to link your children to your account."
 
@@ -6993,7 +7645,6 @@ msgstr "New day and time"
 msgid "¿Cancelar esta cita de orientación?"
 msgstr "Cancel this counseling appointment?"
 
-#| msgid "Materia (opcional)"
 msgid "Motivo (opcional)"
 msgstr "Reason (optional)"
 
@@ -7003,7 +7654,6 @@ msgstr "Tell Counseling why you won't be able to attend (optional)."
 msgid "Se notificará a Orientación Escolar."
 msgstr "School Counseling will be notified."
 
-#| msgid "Sí, cerrar"
 msgid "Sí, cancelar cita"
 msgstr "Yes, cancel appointment"
 
@@ -7073,8 +7723,8 @@ msgid ""
 "Aún no se ha ejecutado el análisis de riesgo para esta institución. El "
 "coordinador puede generarlo desde su panel."
 msgstr ""
-"The risk analysis has not been run for this institution yet. The coordinator"
-" can generate it from their dashboard."
+"The risk analysis has not been run for this institution yet. The coordinator "
+"can generate it from their dashboard."
 
 msgid "HALU Sentinel · Global"
 msgstr "HALU Sentinel · Global"
@@ -7117,14 +7767,15 @@ msgstr "Generate"
 
 #, python-format
 msgid ""
-"El \"Cuadro de Honor\" no aplica para grados con evaluación cualitativa como"
-" '%(grado)s'."
+"El \"Cuadro de Honor\" no aplica para grados con evaluación cualitativa como "
+"'%(grado)s'."
 msgstr ""
-"The \"Honor Roll\" does not apply to grades with qualitative assessment such"
-" as '%(grado)s'."
+"The \"Honor Roll\" does not apply to grades with qualitative assessment such "
+"as '%(grado)s'."
 
 #, python-format
-msgid "Mostrando ranking para: <strong class=\"text-primary\">%(grado)s</strong>"
+msgid ""
+"Mostrando ranking para: <strong class=\"text-primary\">%(grado)s</strong>"
 msgstr "Showing ranking for: <strong class=\"text-primary\">%(grado)s</strong>"
 
 msgid "Distribución de Promedios"
@@ -7143,7 +7794,8 @@ msgid "Consultar"
 msgstr "Search"
 
 #, python-format
-msgid "Resultados para el día: <strong class=\"text-primary\">%(fecha)s</strong>"
+msgid ""
+"Resultados para el día: <strong class=\"text-primary\">%(fecha)s</strong>"
 msgstr "Results for: <strong class=\"text-primary\">%(fecha)s</strong>"
 
 msgid "Total Estudiantes"
@@ -7274,8 +7926,8 @@ msgstr "Select a Subject"
 
 #, python-format
 msgid ""
-"Mostrando rendimiento de <strong class=\"text-primary\">%(materia)s</strong>"
-" | Periodo: <strong class=\"text-primary\">%(periodo)s</strong>"
+"Mostrando rendimiento de <strong class=\"text-primary\">%(materia)s</strong> "
+"| Periodo: <strong class=\"text-primary\">%(periodo)s</strong>"
 msgstr ""
 "Showing performance for <strong class=\"text-primary\">%(materia)s</strong> "
 "| Period: <strong class=\"text-primary\">%(periodo)s</strong>"
@@ -7291,12 +7943,11 @@ msgstr "Comparison Chart by Grade"
 
 #, python-format
 msgid ""
-"Mostrando rendimiento para: <strong class=\"text-"
-"primary\">%(grado)s</strong> | Periodo: <strong class=\"text-"
-"primary\">%(periodo)s</strong>"
+"Mostrando rendimiento para: <strong class=\"text-primary\">%(grado)s</"
+"strong> | Periodo: <strong class=\"text-primary\">%(periodo)s</strong>"
 msgstr ""
-"Showing performance for: <strong class=\"text-primary\">%(grado)s</strong> |"
-" Period: <strong class=\"text-primary\">%(periodo)s</strong>"
+"Showing performance for: <strong class=\"text-primary\">%(grado)s</strong> | "
+"Period: <strong class=\"text-primary\">%(periodo)s</strong>"
 
 msgid "Tabla de Promedios por Materia"
 msgstr "Subject Averages Table"
@@ -7323,8 +7974,8 @@ msgid ""
 "No se han registrado evaluaciones de logros para este grado en el periodo "
 "seleccionado."
 msgstr ""
-"No achievement assessments have been recorded for this grade in the selected"
-" period."
+"No achievement assessments have been recorded for this grade in the selected "
+"period."
 
 msgid "Distribución de Logros del Grado"
 msgstr "Grade's Achievement Distribution"
@@ -7381,8 +8032,7 @@ msgstr "Gradebook by Course"
 
 msgid ""
 "Supervisión de notas y vista anual de todos los cursos de la institución"
-msgstr ""
-"Supervision of grades and annual view of all the institution's courses"
+msgstr "Supervision of grades and annual view of all the institution's courses"
 
 msgid "Período académico:"
 msgstr "Academic period:"
@@ -7393,11 +8043,11 @@ msgstr "%(nombre)s (%(anio)s)"
 
 msgid ""
 "<strong>Modo supervisión:</strong> Puedes consultar el libro de notas y la "
-"Vista Anual de cualquier curso. Las notas solo pueden ser modificadas por el"
-" docente asignado."
+"Vista Anual de cualquier curso. Las notas solo pueden ser modificadas por el "
+"docente asignado."
 msgstr ""
-"<strong>Supervision mode:</strong> You can view the gradebook and the Annual"
-" View of any course. Grades can only be changed by the assigned teacher."
+"<strong>Supervision mode:</strong> You can view the gradebook and the Annual "
+"View of any course. Grades can only be changed by the assigned teacher."
 
 msgid "Ver Notas"
 msgstr "View Grades"
@@ -7439,15 +8089,12 @@ msgstr "Step 2: Generate the certificate for a student of"
 msgid "No se encontraron estudiantes en este grado."
 msgstr "No students were found in this grade."
 
-#| msgid "Seleccionar Estudiante para Observador"
 msgid "Selecciona un estudiante para ver o registrar su observador."
 msgstr "Select a student to view or record their behavior record."
 
-#| msgid "Avisar a estudiantes"
 msgid "Buscar estudiante…"
 msgstr "Search student…"
 
-#| msgid "No tienes un perfil de estudiante en esta institución."
 msgid "No hay estudiantes en tu institución."
 msgstr "There are no students in your institution."
 
@@ -7493,7 +8140,6 @@ msgid "Alerta IA"
 msgstr "AI Alert"
 
 #, python-format
-#| msgid "Posible plagio detectado: %(pct)s% de similitud"
 msgid "Posible plagio detectado: %(pct)s%% de similitud"
 msgstr "Possible plagiarism detected: %(pct)s%% similarity"
 
@@ -7528,12 +8174,9 @@ msgid "Sign In Via"
 msgstr "Sign In Via"
 
 #, python-format
-#| msgid ""
-#| "¿Estás seguro de que deseas eliminar la mención "
-#| "\"<strong>%(tipo)s</strong>\" otorgada a <strong>%(estudiante)s</strong>?"
 msgid ""
-"Estás a punto de iniciar sesión en <strong>HALU</strong> usando tu cuenta de"
-" <strong>%(provider)s</strong>."
+"Estás a punto de iniciar sesión en <strong>HALU</strong> usando tu cuenta de "
+"<strong>%(provider)s</strong>."
 msgstr ""
 "You are about to sign in to <strong>HALU</strong> using your "
 "<strong>%(provider)s</strong> account."
@@ -7557,6 +8200,12 @@ msgstr "List of Assignments"
 #, python-format
 msgid "Detalle del Deber: %(self_object_titulo)s"
 msgstr "Assignment Detail: %(self_object_titulo)s"
+
+msgid "Este deber no tiene un audio adjunto."
+msgstr "This assignment has no attached audio."
+
+msgid "No se pudo leer el audio."
+msgstr "The audio could not be read."
 
 #, python-format
 msgid "Deber '%(deber_titulo)s' creado exitosamente."
@@ -7588,15 +8237,14 @@ msgstr "My Grades in: %(materia)s"
 
 msgid ""
 "Aún no estás asignado a un grado, por lo que no tienes deberes asignados."
-msgstr ""
-"You are not assigned to a grade yet, so you have no assigned homework."
+msgstr "You are not assigned to a grade yet, so you have no assigned homework."
 
 msgid "Mis Deberes"
 msgstr "My Homework"
 
 msgid ""
-"No hay un periodo académico activo para tu institución. No se pueden mostrar"
-" deberes."
+"No hay un periodo académico activo para tu institución. No se pueden mostrar "
+"deberes."
 msgstr ""
 "There is no active academic term for your school. Homework cannot be shown."
 
@@ -7692,8 +8340,8 @@ msgstr "The file is missing required columns: %(required_cols)s."
 
 #, python-format
 msgid ""
-"Fila %(index_2)s: La materia con código '%(row_codigo_asignatur)s' no existe"
-" en tu institución."
+"Fila %(index_2)s: La materia con código '%(row_codigo_asignatur)s' no existe "
+"en tu institución."
 msgstr ""
 "Row %(index_2)s: The subject with code '%(row_codigo_asignatur)s' does not "
 "exist in your institution."
@@ -7749,11 +8397,9 @@ msgstr ""
 "Only the person who recorded it or coordination/counseling can edit this "
 "note."
 
-#| msgid "La calificación ha sido actualizada correctamente."
 msgid "Anotación actualizada correctamente."
 msgstr "Note updated successfully."
 
-#| msgid "Anotación en Observador"
 msgid "Editar anotación del observador"
 msgstr "Edit behavior record note"
 
@@ -7791,11 +8437,9 @@ msgstr ""
 msgid "Actividades Pendientes por Calificar"
 msgstr "Activities Pending Grading"
 
-#| msgid "No tienes permiso para ver este reporte."
 msgid "No tienes permiso para descargar esta plantilla."
 msgstr "You don't have permission to download this template."
 
-#| msgid "Institución Asociada"
 msgid "Tu usuario no tiene institución asociada."
 msgstr "Your user has no associated institution."
 
@@ -7821,7 +8465,6 @@ msgstr "There was an error in the form. Please check the details."
 msgid "Gestionar mi Disponibilidad para Reuniones"
 msgstr "Manage My Availability for Meetings"
 
-#| msgid "Acceso denegado. Esta sección es solo para docentes."
 msgid "Acceso denegado. Esta sección es solo para orientación escolar."
 msgstr "Access denied. This section is only for school counseling."
 
@@ -7831,31 +8474,25 @@ msgstr "Your account is not associated with any institution."
 msgid "Ya tienes un bloque que empieza a esa hora ese día."
 msgstr "You already have a block that starts at that time on that day."
 
-#| msgid "Mis Horarios de Atención Actuales"
 msgid "Mi Horario de Atención a Familias"
 msgstr "My Office Hours for Families"
 
-#| msgid "Intentos permitidos"
 msgid "Acción no permitida."
 msgstr "Action not allowed."
 
-#| msgid "Nuevo bloque de disponibilidad añadido correctamente."
 msgid "El bloque de disponibilidad ha sido eliminado."
 msgstr "The availability block has been deleted."
 
-#| msgid "Acceso denegado. Esta sección es solo para docentes."
 msgid "Acceso denegado. Esta sección es solo para familiares."
 msgstr "Access denied. This section is only for family members."
 
-#| msgid "Sistema de Gestión Escolar"
 msgid "Agendar con Orientación Escolar"
 msgstr "Schedule with School Counseling"
 
 msgid "Por favor, completa todos los campos del formulario."
 msgstr "Please complete all fields in the form."
 
-msgid ""
-"Lo sentimos, ese horario acaba de ser reservado. Por favor, elige otro."
+msgid "Lo sentimos, ese horario acaba de ser reservado. Por favor, elige otro."
 msgstr "Sorry, that time slot has just been booked. Please choose another."
 
 #, python-format
@@ -7869,7 +8506,6 @@ msgid "Nueva solicitud de cita"
 msgstr "New appointment request"
 
 #, python-format
-#| msgid "¡Hola, %(nombre)s! 👋"
 msgid "Hola %(nombre)s,"
 msgstr "Hi %(nombre)s,"
 
@@ -7880,21 +8516,17 @@ msgstr ""
 "<p>A family has requested a counseling appointment. Sign in to the platform "
 "to confirm or reschedule it.</p>"
 
-#| msgid "Publicado por"
 msgid "Solicitada por"
 msgstr "Requested by"
 
 #, python-format
-#| msgid "Actividad creada exitosamente."
 msgid "Cita con %(nombre)s solicitada exitosamente."
 msgstr "Appointment with %(nombre)s requested successfully."
 
 #, python-format
-#| msgid "Chat con %(nombre)s"
 msgid "Agendar Cita con %(nombre)s"
 msgstr "Schedule Appointment with %(nombre)s"
 
-#| msgid "Citas con Familias — Hoy"
 msgid "Mis Citas con Familias"
 msgstr "My Appointments with Families"
 
@@ -7905,30 +8537,25 @@ msgstr "Agreements"
 msgid "Tu cita de orientación del %(fecha)s fue actualizada: %(estado)s."
 msgstr "Your counseling appointment on %(fecha)s was updated: %(estado)s."
 
-#| msgid "Descripción de la Anotación"
 msgid "Actualización de tu cita de orientación"
 msgstr "Update to your counseling appointment"
 
-#| msgid "Calificación del Docente"
 msgid "Actualización de cita"
 msgstr "Appointment update"
 
 msgid ""
-"<p>Tu cita de orientación ha sido actualizada. Estos son los datos "
-"vigentes:</p>"
+"<p>Tu cita de orientación ha sido actualizada. Estos son los datos vigentes:"
+"</p>"
 msgstr ""
 "<p>Your counseling appointment has been updated. These are the current "
 "details:</p>"
 
-#| msgid "La calificación ha sido actualizada correctamente."
 msgid "La información de la cita ha sido actualizada."
 msgstr "The appointment information has been updated."
 
-#| msgid "Gestionar Categorías de Calificación"
 msgid "Gestionar Cita de Orientación"
 msgstr "Manage Counseling Appointment"
 
-#| msgid "Esta acción no se puede deshacer."
 msgid "Esta cita ya no se puede modificar."
 msgstr "This appointment can no longer be modified."
 
@@ -7951,11 +8578,11 @@ msgid "Horario confirmado"
 msgstr "Time confirmed"
 
 msgid ""
-"<p>Orientación aceptó el horario que propusiste. ¡La cita quedó "
-"confirmada!</p>"
+"<p>Orientación aceptó el horario que propusiste. ¡La cita quedó confirmada!</"
+"p>"
 msgstr ""
-"<p>Counseling accepted the time you proposed. The appointment is "
-"confirmed!</p>"
+"<p>Counseling accepted the time you proposed. The appointment is confirmed!</"
+"p>"
 
 msgid "Aceptaste el horario. La cita quedó confirmada."
 msgstr "You accepted the time. The appointment is confirmed."
@@ -7974,16 +8601,15 @@ msgstr "Counseling proposes rescheduling the appointment to %(fecha)s."
 msgid "Orientación propuso un nuevo horario"
 msgstr "Counseling proposed a new time"
 
-#| msgid "Bloques de Horario"
 msgid "Propuesta de nuevo horario"
 msgstr "New time proposal"
 
 msgid ""
-"<p>Orientación propone un nuevo horario para la cita. Ingresa al portal para"
-" <strong>aceptarlo</strong> o <strong>proponer otro</strong>.</p>"
+"<p>Orientación propone un nuevo horario para la cita. Ingresa al portal para "
+"<strong>aceptarlo</strong> o <strong>proponer otro</strong>.</p>"
 msgstr ""
-"<p>Counseling proposes a new time for the appointment. Sign in to the portal"
-" to <strong>accept it</strong> or <strong>propose another</strong>.</p>"
+"<p>Counseling proposes a new time for the appointment. Sign in to the portal "
+"to <strong>accept it</strong> or <strong>propose another</strong>.</p>"
 
 msgid "Horario propuesto"
 msgstr "Proposed time"
@@ -7991,7 +8617,6 @@ msgstr "Proposed time"
 msgid "Propuesta enviada a la familia."
 msgstr "Proposal sent to the family."
 
-#| msgid "Fecha inválida."
 msgid "Acción no válida."
 msgstr "Invalid action."
 
@@ -8008,17 +8633,15 @@ msgstr "Appointment confirmed by the family"
 msgid "<p>La familia confirmó su asistencia a la cita.</p>"
 msgstr "<p>The family confirmed their attendance at the appointment.</p>"
 
-#| msgid "Configuración de Cuenta"
 msgid "Confirmación de tu cita de orientación"
 msgstr "Confirmation of your counseling appointment"
 
-#| msgid "Confirmada"
 msgid "¡Cita confirmada!"
 msgstr "Appointment confirmed!"
 
 msgid ""
-"<p>Tu cita de orientación quedó <strong>confirmada</strong>. Te esperamos en"
-" la fecha y hora indicadas. Si necesitas cambiarla, puedes reprogramarla o "
+"<p>Tu cita de orientación quedó <strong>confirmada</strong>. Te esperamos en "
+"la fecha y hora indicadas. Si necesitas cambiarla, puedes reprogramarla o "
 "cancelarla desde el portal de familias.</p>"
 msgstr ""
 "<p>Your counseling appointment is <strong>confirmed</strong>. We look "
@@ -8063,9 +8686,9 @@ msgid ""
 "ese horario si te sirve, o <strong>proponer otro</strong> desde la "
 "plataforma.</p>"
 msgstr ""
-"<p>The family proposes rescheduling the appointment. You can "
-"<strong>accept</strong> that time if it works for you, or <strong>propose "
-"another</strong> from the platform.</p>"
+"<p>The family proposes rescheduling the appointment. You can <strong>accept</"
+"strong> that time if it works for you, or <strong>propose another</strong> "
+"from the platform.</p>"
 
 msgid "Propuesta enviada. Orientación revisará si puede en ese horario."
 msgstr "Proposal sent. Counseling will check whether it can make that time."
@@ -8087,17 +8710,15 @@ msgid "Horario acordado"
 msgstr "Agreed time"
 
 msgid ""
-"<p>La familia aceptó el horario que propusiste. La cita quedó "
-"confirmada.</p>"
+"<p>La familia aceptó el horario que propusiste. La cita quedó confirmada.</p>"
 msgstr ""
-"<p>The family accepted the time you proposed. The appointment is "
-"confirmed.</p>"
+"<p>The family accepted the time you proposed. The appointment is confirmed.</"
+"p>"
 
 #, python-format
 msgid "¡Cita confirmada para el %(fecha)s!"
 msgstr "Appointment confirmed for %(fecha)s!"
 
-#| msgid "La fecha de entrega es obligatoria."
 msgid "La fecha de la cita debe ser futura."
 msgstr "The appointment date must be in the future."
 
@@ -8116,15 +8737,14 @@ msgstr ""
 msgid "Has sido citado(a) por Orientación Escolar"
 msgstr "You have been summoned by School Counseling"
 
-#| msgid "Sistema de Gestión Escolar"
 msgid "Cita de Orientación Escolar"
 msgstr "School Counseling Appointment"
 
 msgid ""
 "<p>El área de Orientación Escolar te ha convocado a una reunión. Puedes "
 "<strong>confirmar</strong> tu asistencia o, si no puedes asistir, "
-"<strong>cancelar indicando el motivo</strong> desde el portal de "
-"familias.</p>"
+"<strong>cancelar indicando el motivo</strong> desde el portal de familias.</"
+"p>"
 msgstr ""
 "<p>The School Counseling area has summoned you to a meeting. You can "
 "<strong>confirm</strong> your attendance or, if you cannot attend, "
@@ -8134,11 +8754,9 @@ msgstr ""
 msgid "Has citado a la familia de %(est)s para el %(fecha)s."
 msgstr "You have summoned %(est)s's family for %(fecha)s."
 
-#| msgid "Acceso denegado. Esta sección es solo para docentes."
 msgid "Acceso denegado. Sección confidencial de orientación escolar."
 msgstr "Access denied. Confidential school counseling section."
 
-#| msgid "Sistema de Gestión Escolar"
 msgid "Fichas de Orientación Escolar"
 msgstr "School Counseling Records"
 
@@ -8149,20 +8767,15 @@ msgid "Seguimiento registrado en la ficha del estudiante."
 msgstr "Follow-up recorded in the student's record."
 
 #, python-format
-#| msgid "Fecha de Creación"
 msgid "Ficha de Orientación — %(est)s"
 msgstr "Counseling Record — %(est)s"
 
-#| msgid "Acceso denegado."
 msgid "Acceso denegado a esta acta."
 msgstr "Access denied to these minutes."
 
-#| msgid "No tienes permiso para editar ajustes."
 msgid "No tienes permiso para importar descriptores."
 msgstr "You don't have permission to import descriptors."
 
-#| msgid ""
-#| "El archivo no tiene las columnas requeridas: %(required_cols)s."
 msgid ""
 "El archivo no tiene las columnas requeridas: ASIGNATURA, PERIODO, "
 "TEXTO_DESCRIPTOR."
@@ -8171,8 +8784,6 @@ msgstr ""
 "TEXTO_DESCRIPTOR."
 
 #, python-format
-#| msgid ""
-#| "Fila %(index_2)s: El periodo '%(periodo_str)s' no existe en tu institución."
 msgid ""
 "Fila %(n)s: El grado '%(g)s' no existe en tu institución; el descriptor se "
 "creó sin grado."
@@ -8189,14 +8800,10 @@ msgstr ""
 "or use the name with the level, e.g. 'Mathematics (Primary)'."
 
 #, python-format
-#| msgid ""
-#| "Fila %(index_2)s: El periodo '%(periodo_str)s' no existe en tu institución."
 msgid "Fila %(n)s: La asignatura '%(c)s' no existe en tu institución."
 msgstr "Row %(n)s: The subject '%(c)s' does not exist in your institution."
 
 #, python-format
-#| msgid ""
-#| "Fila %(index_2)s: El periodo '%(periodo_str)s' no existe en tu institución."
 msgid "Fila %(n)s: El periodo '%(p)s' no existe en tu institución."
 msgstr "Row %(n)s: The period '%(p)s' does not exist in your institution."
 
@@ -8209,9 +8816,6 @@ msgstr ""
 "descriptor was created without a dimension."
 
 #, python-format
-#| msgid ""
-#| "Fila %(index_2)s: Ocurrió un error inesperado al procesar esta fila. Error: "
-#| "%(e)s"
 msgid ""
 "Fila %(n)s: Ocurrió un error inesperado al procesar esta fila. Error: %(e)s"
 msgstr ""
@@ -8219,10 +8823,15 @@ msgstr ""
 "%(e)s"
 
 #, python-format
-#| msgid ""
-#| "¡Éxito! Se han importado %(logros_creados_con_e)s descriptores."
 msgid "¡Éxito! Se han importado %(n)s descriptores."
 msgstr "Success! %(n)s descriptors have been imported."
+
+msgid "Perfil de accesibilidad actualizado."
+msgstr "Accessibility profile updated."
+
+#, python-format
+msgid "Accesibilidad de %(est)s"
+msgstr "Accessibility for %(est)s"
 
 msgid ""
 "La generación de la planeación ha comenzado. La página se actualizará "
@@ -8252,6 +8861,12 @@ msgstr "This lesson plan was not actively being generated."
 
 msgid "Historial de Entregas y Evaluaciones"
 msgstr "Submission and Assessment History"
+
+msgid "Tope de IA actualizado."
+msgstr "AI limit updated."
+
+msgid "El tope debe ser un número válido en pesos."
+msgstr "The limit must be a valid number in pesos."
 
 msgid "Solo los docentes pueden acceder a los planes semanales."
 msgstr "Only teachers can access weekly plans."
@@ -8378,9 +8993,6 @@ msgid "¿Cómo se califica?"
 msgstr "How is it graded?"
 
 #, python-format
-#| msgid ""
-#| "«Completar» es ideal para preescolar. «Por eficiencia»: terminar garantiza "
-#| "el 60% y el resto depende de usar pocos intentos."
 msgid ""
 "«Completar» es ideal para preescolar. «Por eficiencia»: terminar garantiza "
 "el 60%% y el resto depende de usar pocos intentos."
@@ -8398,9 +9010,9 @@ msgid "Agregar pareja"
 msgstr "Add pair"
 
 msgid ""
-"Cada tarjeta necesita <b>imagen o texto</b>. El audio es opcional: pulsa "
-"<b>🎙 Grabar</b>, habla, y pulsa <b>Detener</b> — sonará cuando el niño "
-"voltee esa tarjeta. Imágenes hasta 2 MB."
+"Cada tarjeta necesita <b>imagen o texto</b>. El audio es opcional: pulsa <b>"
+"🎙 Grabar</b>, habla, y pulsa <b>Detener</b> — sonará cuando el niño voltee "
+"esa tarjeta. Imágenes hasta 2 MB."
 msgstr ""
 "Each card needs <b>an image or text</b>. Audio is optional: press <b>🎙 "
 "Record</b>, speak, then press <b>Stop</b> — it will play when the child "
@@ -8485,8 +9097,8 @@ msgstr "Play"
 msgid ""
 "No tienes juegos por ahora. Cuando tu profe publique uno, aparecerá aquí."
 msgstr ""
-"You have no games right now. When your teacher publishes one, it will appear"
-" here."
+"You have no games right now. When your teacher publishes one, it will appear "
+"here."
 
 msgid "¡Juego completado!"
 msgstr "Game completed!"
@@ -8616,7 +9228,6 @@ msgstr "Delete history"
 msgid "%(tiempo)s atrás"
 msgstr "%(tiempo)s ago"
 
-#| msgid "Opciones de la notificación"
 msgid "Opciones de la conversación"
 msgstr "Conversation options"
 
@@ -8686,8 +9297,8 @@ msgid ""
 "Ocurre cuando el colegio aún no ha asignado docentes a los cursos de tu "
 "nivel."
 msgstr ""
-"This happens when the school has not yet assigned teachers to the courses at"
-" your level."
+"This happens when the school has not yet assigned teachers to the courses at "
+"your level."
 
 msgid "Consulta con la coordinación."
 msgstr "Check with the coordination office."
@@ -8787,7 +9398,6 @@ msgstr ""
 msgid "No tienes permiso para acceder a los PIARs."
 msgstr "You don't have permission to access Individual Learning Plans."
 
-#| msgid "No tienes permiso para ver este PIAR."
 msgid "No tienes permiso para crear PIARs."
 msgstr "You don't have permission to create PIARs."
 
@@ -8894,8 +9504,8 @@ msgid ""
 "Escucha y elige: el niño oye un audio y toca la imagen correcta. Se corrige "
 "solo y la nota llega al libro de notas."
 msgstr ""
-"Listen and choose: the child hears an audio clip and taps the correct image."
-" It grades itself and the score goes to the gradebook."
+"Listen and choose: the child hears an audio clip and taps the correct image. "
+"It grades itself and the score goes to the gradebook."
 
 msgid "Nuevo quiz"
 msgstr "New quiz"
@@ -8919,8 +9529,8 @@ msgstr "Start"
 msgid ""
 "No tienes quices por ahora. Cuando tu profe publique uno, aparecerá aquí."
 msgstr ""
-"You have no quizzes for now. When your teacher publishes one, it will appear"
-" here."
+"You have no quizzes for now. When your teacher publishes one, it will appear "
+"here."
 
 msgid "Escucha el audio y toca la imagen correcta."
 msgstr "Listen to the audio and tap the correct image."
@@ -8958,8 +9568,8 @@ msgid ""
 "La pregunta está incompleta (audio + al menos 2 opciones y marca la "
 "correcta)."
 msgstr ""
-"The question is incomplete (audio + at least 2 options, with the correct one"
-" marked)."
+"The question is incomplete (audio + at least 2 options, with the correct one "
+"marked)."
 
 #, python-format
 msgid "Máximo %(max_preguntas)s preguntas por quiz."
@@ -9017,8 +9627,8 @@ msgid "Selecciona una categoría"
 msgstr "Select a category"
 
 msgid ""
-"No hay categorías configuradas. Crea una en <strong>Tipos de "
-"Actividad</strong> primero."
+"No hay categorías configuradas. Crea una en <strong>Tipos de Actividad</"
+"strong> primero."
 msgstr ""
 "No categories configured. Create one in <strong>Activity Types</strong> "
 "first."
@@ -9027,11 +9637,15 @@ msgid "Modo de la actividad"
 msgstr "Activity mode"
 
 msgid ""
-"<strong>Galería</strong>: el docente proyecta y explora los órganos en clase ·\n"
-"          <strong>Studio</strong>: el estudiante ubica los 13 órganos y se autocalifica al completarlos."
+"<strong>Galería</strong>: el docente proyecta y explora los órganos en clase "
+"·\n"
+"          <strong>Studio</strong>: el estudiante ubica los 13 órganos y se "
+"autocalifica al completarlos."
 msgstr ""
-"<strong>Gallery</strong>: the teacher projects and explores the organs in class ·\n"
-"          <strong>Studio</strong>: the student places the 13 organs and is graded automatically upon completion."
+"<strong>Gallery</strong>: the teacher projects and explores the organs in "
+"class ·\n"
+"          <strong>Studio</strong>: the student places the 13 organs and is "
+"graded automatically upon completion."
 
 msgid "Nota máxima que puede obtener el estudiante al completar la actividad."
 msgstr "Maximum grade a student can earn upon completing the activity."
@@ -9049,7 +9663,6 @@ msgid "Actividades del Cuerpo Humano 3D asignadas a tus cursos"
 msgstr "3D Human Body activities assigned to your courses"
 
 #, python-format
-#| msgid "%(counter)s actividad"
 msgid "%(counter)s actividad"
 msgid_plural "%(counter)s actividades"
 msgstr[0] "%(counter)s activity"
@@ -9202,8 +9815,8 @@ msgid ""
 "Máximo 2 MB. Funciona mejor con fotos cuadradas o apaisadas, sin detalles "
 "muy pequeños."
 msgstr ""
-"Maximum 2 MB. Works best with square or landscape photos, without very small"
-" details."
+"Maximum 2 MB. Works best with square or landscape photos, without very small "
+"details."
 
 msgid "Dificultad"
 msgstr "Difficulty"
@@ -9212,11 +9825,11 @@ msgid "Guardar rompecabezas"
 msgstr "Save puzzle"
 
 msgid ""
-"Sube una imagen, elige la dificultad y el sistema arma el rompecabezas solo."
-" Los estudiantes lo resuelven en pantalla y la nota llega al libro de notas."
+"Sube una imagen, elige la dificultad y el sistema arma el rompecabezas solo. "
+"Los estudiantes lo resuelven en pantalla y la nota llega al libro de notas."
 msgstr ""
-"Upload an image, choose the difficulty, and the system builds the puzzle for"
-" you. Students solve it on screen and the grade goes straight to the "
+"Upload an image, choose the difficulty, and the system builds the puzzle for "
+"you. Students solve it on screen and the grade goes straight to the "
 "gradebook."
 
 msgid "Nuevo rompecabezas"
@@ -9232,8 +9845,8 @@ msgid ""
 "Arma la imagen intercambiando las piezas. ¡Se corrige solo y la nota queda "
 "registrada!"
 msgstr ""
-"Assemble the image by swapping the pieces. It grades itself and the score is"
-" recorded!"
+"Assemble the image by swapping the pieces. It grades itself and the score is "
+"recorded!"
 
 msgid "piezas"
 msgstr "pieces"
@@ -9248,15 +9861,15 @@ msgid ""
 "No tienes rompecabezas por ahora. Cuando tu profe publique uno, aparecerá "
 "aquí."
 msgstr ""
-"You have no puzzles for now. When your teacher publishes one, it will appear"
-" here."
+"You have no puzzles for now. When your teacher publishes one, it will appear "
+"here."
 
 msgid ""
 "Toca una pieza y luego otra para intercambiarlas, hasta armar la imagen "
 "completa."
 msgstr ""
-"Tap one piece and then another to swap them, until you assemble the complete"
-" image."
+"Tap one piece and then another to swap them, until you assemble the complete "
+"image."
 
 msgid "¡Resuelto! Enviando tu resultado…"
 msgstr "Solved! Sending your result…"
@@ -9321,8 +9934,7 @@ msgid "Ordenar"
 msgstr "Arrange"
 
 msgid ""
-"No tienes secuencias por ahora. Cuando tu profe publique una, aparecerá "
-"aquí."
+"No tienes secuencias por ahora. Cuando tu profe publique una, aparecerá aquí."
 msgstr ""
 "You have no sequences for now. When your teacher publishes one, it will "
 "appear here."
@@ -9344,6 +9956,415 @@ msgstr "Keep arranging"
 
 msgid "En su lugar"
 msgstr "In place"
+
+msgid "Ej: Sede Principal, Sede San José…"
+msgstr "E.g. Main Campus, San José Campus…"
+
+msgid "Código DANE de 12 dígitos"
+msgstr "12-digit DANE code"
+
+msgid "Nombre de la sede"
+msgstr "Campus name"
+
+msgid "Código DANE de la sede"
+msgstr "Campus DANE code"
+
+msgid "Consecutivo (SIMAT)"
+msgstr "Sequence number (SIMAT)"
+
+msgid "Zona"
+msgstr "Zone"
+
+msgid "Jornada principal"
+msgstr "Main shift"
+
+msgid "¿Sede principal?"
+msgstr "Main campus?"
+
+msgid "Activa"
+msgstr "Active"
+
+msgid "Ej: 01, 02, A, B…"
+msgstr "E.g. 01, 02, A, B…"
+
+msgid "Código oficial"
+msgstr "Official code"
+
+msgid "Habilitado"
+msgstr "Enabled"
+
+msgid "Código DANE"
+msgstr "DANE code"
+
+msgid "Departamento (DANE)"
+msgstr "Department (DANE)"
+
+msgid "Departamentos (DANE)"
+msgstr "Departments (DANE)"
+
+msgid "Municipio (DANE)"
+msgstr "Municipality (DANE)"
+
+msgid "Municipios (DANE)"
+msgstr "Municipalities (DANE)"
+
+msgid "Etnia (SIMAT)"
+msgstr "Ethnicity (SIMAT)"
+
+msgid "Etnias (SIMAT)"
+msgstr "Ethnicities (SIMAT)"
+
+msgid "Resguardo (SIMAT)"
+msgstr "Reservation (SIMAT)"
+
+msgid "Resguardos (SIMAT)"
+msgstr "Reservations (SIMAT)"
+
+msgid "EPS (SIMAT)"
+msgstr "Health provider EPS (SIMAT)"
+
+msgid "Caja de Compensación (SIMAT)"
+msgstr "Compensation Fund (SIMAT)"
+
+msgid "Cajas de Compensación (SIMAT)"
+msgstr "Compensation Funds (SIMAT)"
+
+msgid "Código DANE de 12 dígitos asignado por el MEN a la sede."
+msgstr "12-digit DANE code assigned by the MEN to the campus."
+
+msgid "Consecutivo de la sede"
+msgstr "Campus sequence number"
+
+msgid "Consecutivo de sede que exige el SIMAT."
+msgstr "Campus sequence number required by SIMAT."
+
+msgid "Sedes"
+msgstr "Campuses"
+
+msgid ""
+"Un grupo agrupa estudiantes dentro de un grado (ej. 1001, 1002). El nombre "
+"del grupo es el que exige el reporte SIMAT."
+msgstr "A group gathers students within a grade (e.g. 1001, 1002). The group name is the one required by the SIMAT report."
+
+msgid "Grupos y secciones"
+msgstr "Groups and sections"
+
+msgid ""
+"Organiza cada grado en grupos o secciones (01, 02, A, B…). Todo grado tiene "
+"al menos un grupo «01». El grupo se usa en el reporte SIMAT y para asignar "
+"estudiantes."
+msgstr "Organize each grade into groups or sections (01, 02, A, B…). Every grade has at least one “01” group. The group is used in the SIMAT report and to assign students."
+
+msgid "Nuevo grupo"
+msgstr "New group"
+
+msgid "Inactivo"
+msgstr "Inactive"
+
+msgid "Aún no hay grupos."
+msgstr "There are no groups yet."
+
+msgid "¿Eliminar este grupo?"
+msgstr "Delete this group?"
+
+msgid "Reporte SIMAT"
+msgstr "SIMAT report"
+
+msgid "Reporte de Matrícula SIMAT"
+msgstr "SIMAT Enrollment Report"
+
+msgid ""
+"Exporta la matrícula de tu institución en el formato del reporte plano del "
+"SIMAT (Ministerio de Educación)."
+msgstr "Export your institution's enrollment in the SIMAT flat-file report format (Ministry of Education)."
+
+msgid "Tu usuario no tiene una institución asociada."
+msgstr "Your user has no associated institution."
+
+msgid "Estudiantes matriculados a exportar"
+msgstr "Enrolled students to export"
+
+msgid "Configuración SIMAT de la institución"
+msgstr "Institution SIMAT settings"
+
+msgid "Faltan datos para un reporte completo:"
+msgstr "Some data is missing for a complete report:"
+
+msgid ""
+"Complétalos en Configuración de la institución y en Sedes (panel de "
+"administración)."
+msgstr "Complete them in Institution Settings and in Campuses (administration panel)."
+
+msgid "Configuración completa."
+msgstr "Configuration complete."
+
+msgid "Validar antes de exportar"
+msgstr "Validate before exporting"
+
+msgid "Reporte plano (.txt oficial)"
+msgstr "Flat-file report (official .txt)"
+
+msgid "Reporte plano (.csv)"
+msgstr "Flat-file report (.csv)"
+
+msgid "Excel (revisión)"
+msgstr "Excel (review)"
+
+msgid "El SIMAT genera el reporte plano \\"
+msgstr "SIMAT generates the flat-file report \\"
+
+msgid "PER_ID del SIMAT (men_per_id)"
+msgstr "SIMAT PER_ID (men_per_id)"
+
+msgid ""
+"Descarga la plantilla con tus estudiantes, escribe el PER_ID que devuelve el "
+"SIMAT en la columna men_per_id y vuelve a subirla. El sistema lo asigna a "
+"cada estudiante (por documento)."
+msgstr "Download the template with your students, enter the PER_ID that SIMAT returns in the men_per_id column and upload it again. The system assigns it to each student (by document)."
+
+msgid "Descargar plantilla men_per_id"
+msgstr "Download men_per_id template"
+
+msgid "Subir y asignar"
+msgstr "Upload and assign"
+
+msgid ""
+"El reporte incluye los datos que la plataforma ya tiene. Los campos "
+"codificados (municipios DANE, sede, etc.) se llenan a medida que se capturan "
+"en admisiones. Antes de subirlo al SIMAT, valida las columnas contra la "
+"plantilla oficial vigente de tu Secretaría de Educación."
+msgstr "The report includes the data the platform already has. Coded fields (DANE municipalities, campus, etc.) are filled in as they are captured in admissions. Before uploading it to SIMAT, validate the columns against the current official template from your Education Office."
+
+msgid ""
+"Los datos de código DANE, consecutivo y zona se usan en el reporte SIMAT."
+msgstr "The DANE code, sequence number and zone data are used in the SIMAT report."
+
+msgid "Sedes de la institución"
+msgstr "Institution campuses"
+
+msgid ""
+"Administra las sedes de tu colegio. La Sede Principal siempre existe; agrega "
+"sedes anexas si tu institución tiene varias (obligatorio para el reporte "
+"SIMAT)."
+msgstr "Manage your school's campuses. The Main Campus always exists; add annex campuses if your institution has several (required for the SIMAT report)."
+
+msgid "Nueva sede"
+msgstr "New campus"
+
+msgid "Consecutivo"
+msgstr "Sequence number"
+
+msgid "Principal"
+msgstr "Main"
+
+msgid "Inactiva"
+msgstr "Inactive"
+
+msgid "Aún no hay sedes."
+msgstr "There are no campuses yet."
+
+msgid "¿Eliminar esta sede?"
+msgstr "Delete this campus?"
+
+msgid "Validación SIMAT"
+msgstr "SIMAT validation"
+
+msgid "Validación de calidad SIMAT"
+msgstr "SIMAT quality validation"
+
+#, python-format
+msgid ""
+"Revisamos %(n)s estudiantes matriculados con las reglas de auditoría del "
+"MEN, antes de exportar."
+msgstr "We reviewed %(n)s enrolled students against the MEN audit rules, before exporting."
+
+msgid "¡Todo en orden!"
+msgstr "All good!"
+
+msgid "No se encontraron inconsistencias. Ya puedes exportar el reporte SIMAT."
+msgstr "No inconsistencies were found. You can now export the SIMAT report."
+
+msgid "Exportar reporte plano (.txt)"
+msgstr "Export flat-file report (.txt)"
+
+msgid "Errores (corregir)"
+msgstr "Errors (to fix)"
+
+msgid "Advertencias (revisar)"
+msgstr "Warnings (to review)"
+
+msgid "Config. del colegio"
+msgstr "School settings"
+
+msgid "Configuración del establecimiento"
+msgstr "Establishment settings"
+
+msgid "Errores — deben corregirse antes de subir al SIMAT"
+msgstr "Errors — must be fixed before uploading to SIMAT"
+
+msgid "Advertencias — revisa (pueden tener justificación)"
+msgstr "Warnings — review (they may be justified)"
+
+msgid ""
+"Los errores impiden un reporte limpio; corrígelos en la ficha del estudiante "
+"o en la configuración. Las advertencias pueden ser válidas (p. ej. extraedad "
+"justificada). Puedes exportar de todos modos, pero revisa primero."
+msgstr "Errors prevent a clean report; fix them in the student record or in the settings. Warnings may be valid (e.g. justified over-age). You can export anyway, but review first."
+
+msgid "El archivo debe ser un Excel (.xlsx)."
+msgstr "The file must be an Excel (.xlsx)."
+
+msgid "El archivo debe tener las columnas 'documento' y 'men_per_id'."
+msgstr "The file must have the 'documento' and 'men_per_id' columns."
+
+#, python-format
+msgid "Se asignaron %(n)s PER_ID (men_per_id)."
+msgstr "%(n)s PER_ID (men_per_id) were assigned."
+
+#, python-format
+msgid " %(s)s documento(s) no coincidieron con ningún estudiante."
+msgstr " %(s)s document(s) did not match any student."
+
+msgid "No se pudo leer el archivo. Verifica que sea el Excel de la plantilla."
+msgstr "The file could not be read. Make sure it is the template Excel."
+
+msgid "Falta el Código DANE de la institución."
+msgstr "The institution DANE code is missing."
+
+msgid "Falta el municipio (ETC) del SIMAT."
+msgstr "The SIMAT municipality (ETC) is missing."
+
+msgid "Falta el calendario (A/B)."
+msgstr "The calendar (A/B) is missing."
+
+msgid "Falta el sector (oficial/no oficial)."
+msgstr "The sector (public/private) is missing."
+
+msgid "No hay sedes activas."
+msgstr "There are no active campuses."
+
+#, python-format
+msgid "La sede «%(n)s» no tiene Código DANE de sede."
+msgstr "Campus “%(n)s” has no campus DANE code."
+
+#, python-format
+msgid "La sede «%(n)s» no tiene consecutivo."
+msgstr "Campus “%(n)s” has no sequence number."
+
+msgid "Regla 1 · Documento"
+msgstr "Rule 1 · Document"
+
+#, python-format
+msgid "%(e)s no tiene número de documento."
+msgstr "%(e)s has no document number."
+
+msgid "Regla 1 · Duplicado"
+msgstr "Rule 1 · Duplicate"
+
+#, python-format
+msgid "Documento repetido: %(e)s."
+msgstr "Repeated document: %(e)s."
+
+msgid "Identificación"
+msgstr "Identification"
+
+#, python-format
+msgid "%(e)s no tiene tipo de documento."
+msgstr "%(e)s has no document type."
+
+msgid "Regla 1.2 · PER_ID"
+msgstr "Rule 1.2 · PER_ID"
+
+#, python-format
+msgid "PER_ID repetido (%(p)s): %(e)s."
+msgstr "Repeated PER_ID (%(p)s): %(e)s."
+
+msgid "Género"
+msgstr "Gender"
+
+#, python-format
+msgid "%(e)s: el género debe ser Femenino o Masculino."
+msgstr "%(e)s: gender must be Female or Male."
+
+msgid "Fecha de nacimiento"
+msgstr "Date of birth"
+
+#, python-format
+msgid "%(e)s no tiene fecha de nacimiento."
+msgstr "%(e)s has no date of birth."
+
+msgid "Regla 2 · Grado"
+msgstr "Rule 2 · Grade"
+
+#, python-format
+msgid "%(e)s no tiene grado."
+msgstr "%(e)s has no grade."
+
+#, python-format
+msgid "El grado «%(g)s» no tiene ID SIMAT asignado."
+msgstr "Grade “%(g)s” has no SIMAT ID assigned."
+
+#, python-format
+msgid "%(e)s no tiene jornada."
+msgstr "%(e)s has no shift."
+
+msgid "Regla 3 · Edad"
+msgstr "Rule 3 · Age"
+
+#, python-format
+msgid "%(e)s: edad %(a)s años parece baja para el grado (esperado ~%(x)s)."
+msgstr "%(e)s: age %(a)s years seems low for the grade (expected ~%(x)s)."
+
+#, python-format
+msgid "%(e)s: extraedad (%(a)s años; esperado ~%(x)s)."
+msgstr "%(e)s: over-age (%(a)s years; expected ~%(x)s)."
+
+msgid "Regla 4 · Residencia"
+msgstr "Rule 4 · Residence"
+
+#, python-format
+msgid ""
+"%(e)s reside en otro departamento (%(d)s) distinto al de la institución."
+msgstr "%(e)s resides in a different department (%(d)s) than the institution."
+
+#, python-format
+msgid "Sede «%(n)s» creada."
+msgstr "Campus “%(n)s” created."
+
+#, python-format
+msgid "Sede «%(n)s» actualizada."
+msgstr "Campus “%(n)s” updated."
+
+msgid "Editar sede"
+msgstr "Edit campus"
+
+msgid "No puedes eliminar la Sede Principal."
+msgstr "You cannot delete the Main Campus."
+
+#, python-format
+msgid "Sede «%(n)s» eliminada."
+msgstr "Campus “%(n)s” deleted."
+
+#, python-format
+msgid "Grupo «%(n)s» creado."
+msgstr "Group “%(n)s” created."
+
+#, python-format
+msgid "Grupo «%(n)s» actualizado."
+msgstr "Group “%(n)s” updated."
+
+msgid "Editar grupo"
+msgstr "Edit group"
+
+#, python-format
+msgid ""
+"No puedes eliminar «%(n)s»: tiene estudiantes asignados. Muévelos a otro "
+"grupo primero."
+msgstr "You cannot delete “%(n)s”: it has students assigned. Move them to another group first."
+
+#, python-format
+msgid "Grupo «%(n)s» eliminado."
+msgstr "Group “%(n)s” deleted."
 
 msgid "Banco de Preguntas Saber"
 msgstr "Saber Question Bank"
@@ -9647,6 +10668,9 @@ msgstr "Found"
 msgid "Volver a mis sopas"
 msgstr "Back to my word searches"
 
+msgid "Saltar al contenido"
+msgstr "Skip to content"
+
 msgid "Saltar"
 msgstr "Skip"
 
@@ -9659,11 +10683,31 @@ msgstr "Mute"
 msgid "Plataforma académica"
 msgstr "Academic platform"
 
+msgid ""
+"Ajusta cómo ves y escuchas la plataforma. Tus preferencias se guardan y te "
+"acompañan en cualquier dispositivo."
+msgstr "Adjust how you see and hear the platform. Your preferences are saved and follow you on any device."
+
+msgid "Tamaño del texto"
+msgstr "Text size"
+
+msgid "Lectura por voz"
+msgstr "Read aloud"
+
+msgid "Leer esta página"
+msgstr "Read this page"
+
+msgid "Leer lo seleccionado"
+msgstr "Read selection"
+
+msgid "Tu navegador no permite la lectura por voz."
+msgstr "Your browser does not support read-aloud."
+
+msgid "Restablecer todo"
+msgstr "Reset all"
+
 msgid "Gestión Académica"
 msgstr "Academic Management"
-
-msgid "Principal"
-msgstr "Main"
 
 msgid "Ingreso con huella o rostro"
 msgstr "Sign in with fingerprint or face"
@@ -9680,7 +10724,6 @@ msgstr "My Calendar"
 msgid "Mi Asistencia"
 msgstr "My Attendance"
 
-#| msgid "Revisar Justificaciones"
 msgid "Mis Justificaciones"
 msgstr "My Justifications"
 
@@ -9744,15 +10787,12 @@ msgstr "3D Activities"
 msgid "Asistir en Otro Curso"
 msgstr "Cover Another Course"
 
-#| msgid "Convivencia Escolar"
 msgid "Convivencia y Bienestar"
 msgstr "Coexistence and Well-being"
 
-#| msgid "Observador del Estudiante"
 msgid "Observador de Estudiantes"
 msgstr "Student Behavior Record"
 
-#| msgid "Fecha de Creación"
 msgid "Fichas de Orientación"
 msgstr "Counseling Records"
 
@@ -9816,7 +10856,6 @@ msgstr "Admissions dashboard"
 msgid "Aspirantes"
 msgstr "Applicants"
 
-#| msgid "Importar Aspirantes"
 msgid "Registrar Aspirante"
 msgstr "Register Applicant"
 
@@ -9829,18 +10868,15 @@ msgstr "Documents"
 msgid "Importar Aspirantes"
 msgstr "Import applicants"
 
-#| msgid "Editar Material"
 msgid "Exportar Matriculados"
 msgstr "Export Enrolled Students"
 
-#| msgid "Calificación"
 msgid "Comunicación"
 msgstr "Communication"
 
 msgid "Ir a Módulos"
 msgstr "Go to Modules"
 
-#| msgid "Período Académico"
 msgid "Módulo Académico"
 msgstr "Academic Module"
 
@@ -9898,8 +10934,7 @@ msgid ""
 "Escribe cada letra o palabra a trazar. El niño la repasará sobre una guía "
 "gris."
 msgstr ""
-"Type each letter or word to trace. The child will trace it over a gray "
-"guide."
+"Type each letter or word to trace. The child will trace it over a gray guide."
 
 msgid "Ej. Las vocales"
 msgstr "E.g. The vowels"
@@ -9933,11 +10968,11 @@ msgid "Letras / palabras (máximo 20)"
 msgstr "Letters / words (maximum 20)"
 
 msgid ""
-"Ej. «A», «e», «5», «mamá». Audio de guía opcional (🎙): sonará cuando el niño"
-" abra esa letra."
+"Ej. «A», «e», «5», «mamá». Audio de guía opcional (🎙): sonará cuando el niño "
+"abra esa letra."
 msgstr ""
-"E.g. \"A\", \"e\", \"5\", \"mom\". Guide audio is optional (🎙): it will play"
-" when the child opens that letter."
+"E.g. \"A\", \"e\", \"5\", \"mom\". Guide audio is optional (🎙): it will play "
+"when the child opens that letter."
 
 msgid "Guardar tablero"
 msgstr "Save board"
@@ -9968,8 +11003,8 @@ msgid ""
 "Repasa cada letra con tu dedo sobre la guía. ¡Cuando termines todas queda "
 "listo!"
 msgstr ""
-"Trace each letter with your finger over the guide. When you finish them all,"
-" it's done!"
+"Trace each letter with your finger over the guide. When you finish them all, "
+"it's done!"
 
 msgid "¡Terminado!"
 msgstr "Finished!"
@@ -10051,203 +11086,3 @@ msgstr "Results: %(tablero_titulo)s"
 #, python-format
 msgid "Resultado: %(tablero_titulo)s"
 msgstr "Result: %(tablero_titulo)s"
-
-#~ msgid ""
-#~ "Aún no has creado ningún descriptor. <br>\n"
-#~ "                            Usa el botón \"Crear uno por uno\" o la plantilla de carga masiva para empezar."
-#~ msgstr ""
-#~ "You haven't created any descriptors yet. <br>\n"
-#~ "                            Use the \"Create one by one\" button or the bulk upload template to get started."
-
-#~ msgid "Buscar por nombre o materia…"
-#~ msgstr "Search by name or subject…"
-
-#~ msgid "Conexiones de Cuenta"
-#~ msgstr "Account Connections"
-
-#~ msgid ""
-#~ "Crea cuestionarios y evaluaciones de opción múltiple, V/F y preguntas "
-#~ "abiertas usando inteligencia artificial."
-#~ msgstr ""
-#~ "Create quizzes and multiple-choice, true/false, and open-ended assessments "
-#~ "using artificial intelligence."
-
-#~ msgid "Crear Nueva Actividad/Cuestionario"
-#~ msgstr "Create New Activity/Quiz"
-
-#~ msgid "Definir Actividades"
-#~ msgstr "Define Activities"
-
-#~ msgid "Domingo"
-#~ msgstr "Sunday"
-
-#~ msgid "Evaluaciones con IA"
-#~ msgstr "AI Assessments"
-
-#~ msgid "Gestiona las actividades y cuestionarios de tus cursos"
-#~ msgstr "Manage the activities and quizzes for your courses"
-
-#~ msgid "Gestionar preguntas"
-#~ msgstr "Manage questions"
-
-#~ msgid "Informe de Progreso Académico · Año lectivo %(anio)s"
-#~ msgstr "Academic Progress Report · School year %(anio)s"
-
-#~ msgid "Listado Actual"
-#~ msgstr "Current List"
-
-#~ msgid "Mis Cuestionarios Recientes"
-#~ msgstr "My Recent Quizzes"
-
-#~ msgid "No tienes alumnos asignados en este momento."
-#~ msgstr "You have no students assigned at this time."
-
-#~ msgid "Nº de Preguntas"
-#~ msgstr "No. of Questions"
-
-#~ msgid ""
-#~ "Podrás ver la evolución de tus notas cuando tu institución cierre y publique"
-#~ " al menos un periodo académico."
-#~ msgstr ""
-#~ "You will be able to see how your grades evolve once your school closes and "
-#~ "publishes at least one academic term."
-
-#~ msgid "Solo coordinadores pueden crear PIARs."
-#~ msgstr "Only coordinators can create Individual Learning Plans."
-
-#~ msgid ""
-#~ "Solo se incluyen los periodos cuyos boletines ya fueron publicados por tu "
-#~ "institución. Niveles: Superior (verde), Alto (azul), Básico (naranja), Bajo "
-#~ "(rojo)."
-#~ msgstr ""
-#~ "Only terms whose report cards have already been published by your school are"
-#~ " included. Levels: Superior (green), High (blue), Basic (orange), Low (red)."
-
-#~ msgid ""
-#~ "Solo se incluyen los periodos cuyos boletines ya fueron publicados. Niveles:"
-#~ " Superior · Alto · Básico · Bajo."
-#~ msgstr ""
-#~ "Only terms whose report cards have already been published are included. "
-#~ "Levels: Superior · High · Basic · Low."
-
-#~ msgid "Sábado"
-#~ msgstr "Saturday"
-
-#~ msgid "Volver a la lista"
-#~ msgstr "Back to list"
-
-#~ msgid "%(counter)s actividades"
-#~ msgstr "%(counter)s activities"
-
-#~ msgid "%(counter)s contenidos"
-#~ msgstr "%(counter)s items"
-
-#~ msgid "Secretaría"
-#~ msgstr "Front office"
-
-#~ msgid "Motivo (opcional, lo verá el estudiante)"
-#~ msgstr "Reason (optional, the student will see it)"
-
-#~ msgid "Ej: Pago pendiente del mes"
-#~ msgstr "E.g.: Payment pending for the month"
-
-#~ msgid "Acceso restringido"
-#~ msgstr "Restricted access"
-
-#~ msgid "Portal deshabilitado"
-#~ msgstr "Portal disabled"
-
-#~ msgid ""
-#~ "No puedes ver notas, deberes, horario ni actividades mientras tu acceso esté"
-#~ " restringido. Se habilitará de nuevo cuando la institución lo autorice."
-#~ msgstr ""
-#~ "You cannot see grades, homework, schedule or activities while your access is"
-#~ " restricted. It will be enabled again when the institution authorizes it."
-
-msgid "Mapa conceptual (relacionar)"
-msgstr "Concept map (relate)"
-
-msgid "Mapa de relaciones (toca dos conceptos para conectarlos)"
-msgstr "Relationship map (tap two concepts to connect them)"
-
-msgid ""
-"Escribe los conceptos (uno por fila). Luego, en el mapa de abajo, toca un "
-"concepto y después otro para conectarlos: esas serán las relaciones "
-"correctas. El estudiante verá los conceptos sin conexiones y deberá "
-"relacionarlos."
-msgstr ""
-"Write the concepts (one per row). Then, on the map below, tap one concept and "
-"then another to connect them: those will be the correct relationships. The "
-"student will see the concepts without connections and must relate them."
-
-msgid ""
-"Toca un concepto y luego otro para relacionarlos. Toca la conexión de nuevo "
-"para quitarla."
-msgstr ""
-"Tap one concept and then another to relate them. Tap the connection again to "
-"remove it."
-
-msgid ""
-"Opción única: escribe las opciones y marca con el círculo la ÚNICA respuesta "
-"correcta. El estudiante podrá elegir solo una."
-msgstr ""
-"Single choice: write the options and mark the ONLY correct answer with the "
-"radio button. The student can pick just one."
-
-msgid ""
-"Selección múltiple: marca con las casillas TODAS las respuestas correctas "
-"(pueden ser varias). El estudiante deberá seleccionarlas todas para acertar."
-msgstr ""
-"Multiple selection: use the checkboxes to mark ALL correct answers (there can "
-"be several). The student must select them all to be correct."
-
-msgid ""
-"Verdadero / Falso: deja marcada como correcta la opción que corresponda "
-"(Verdadero o Falso)."
-msgstr ""
-"True / False: leave the matching option (True or False) marked as correct."
-
-msgid ""
-"Texto libre: el estudiante responde por escrito. Escribe abajo la rúbrica o "
-"respuesta ideal para orientar la corrección (incluida la de la IA)."
-msgstr ""
-"Free text: the student answers in writing. Write the rubric or ideal answer "
-"below to guide grading (including AI grading)."
-
-msgid ""
-"Emparejamiento: escribe cada par (Elemento A y su Elemento B correspondiente). "
-"El estudiante deberá unir cada elemento con su pareja."
-msgstr ""
-"Matching: write each pair (Item A and its corresponding Item B). The student "
-"must connect each item with its match."
-
-msgid ""
-"Clasificar: escribe cada elemento y la categoría a la que pertenece. El "
-"estudiante deberá arrastrar cada elemento a su categoría correcta."
-msgstr ""
-"Classify: write each item and the category it belongs to. The student must "
-"drag each item to its correct category."
-
-msgid "Valor correcto"
-msgstr "Correct value"
-
-msgid "Tolerancia"
-msgstr "Tolerance"
-
-msgid "Respuesta numérica (con tolerancia)"
-msgstr "Numeric answer (with tolerance)"
-
-msgid "Escribe tu respuesta numérica"
-msgstr "Enter your numeric answer"
-
-msgid "Escribe solo el número (puedes usar decimales)."
-msgstr "Enter only the number (decimals allowed)."
-
-msgid ""
-"Respuesta numérica: escribe el valor correcto y una tolerancia (±). El "
-"estudiante escribirá un número y acertará si queda dentro del rango. Puedes "
-"agregar varios valores válidos (ej. una fracción y su decimal)."
-msgstr ""
-"Numeric answer: write the correct value and a tolerance (±). The student "
-"enters a number and is correct if it falls within the range. You can add "
-"several valid values (e.g. a fraction and its decimal)."
