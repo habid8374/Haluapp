@@ -9,6 +9,7 @@ urlpatterns = [
     path('reporte/exportar/', views.exportar_reporte_simat, name='exportar_reporte'),
     path('reporte/exportar/csv/', views.exportar_reporte_simat_csv, name='exportar_reporte_csv'),
     path('reporte/exportar/txt/', views.exportar_reporte_simat_txt, name='exportar_reporte_txt'),
+    path('reporte/exportar/anexo6a/', views.exportar_anexo6a_txt, name='exportar_anexo6a'),
     path('reporte/men-per-id/plantilla/', views.descargar_plantilla_men_per_id, name='plantilla_men_per_id'),
     path('reporte/men-per-id/cargar/', views.cargar_men_per_id, name='cargar_men_per_id'),
     path('reporte/validar/', views.validar_simat, name='validar_simat'),

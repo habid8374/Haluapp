@@ -44,8 +44,11 @@
   </a>
 </div>
 <div class="mt-2 d-flex flex-wrap gap-2">
+  <a href="{% url 'simat:exportar_anexo6a' %}" class="btn btn-success btn-lg">
+    <i class="bi bi-file-earmark-text me-1"></i>{% trans "Anexo 6A (.txt · matrícula)" %}
+  </a>
   <a href="{% url 'simat:exportar_reporte_txt' %}" class="btn btn-primary btn-lg">
-    <i class="bi bi-file-earmark-text me-1"></i>{% trans "Reporte plano (.txt oficial)" %}
+    <i class="bi bi-file-earmark-text me-1"></i>{% trans "Reporte plano (.txt)" %}
   </a>
   <a href="{% url 'simat:exportar_reporte_csv' %}" class="btn btn-outline-primary btn-lg">
     <i class="bi bi-filetype-csv me-1"></i>{% trans "Reporte plano (.csv)" %}
@@ -54,6 +57,9 @@
     <i class="bi bi-file-earmark-excel me-1"></i>{% trans "Excel (revisión)" %}
   </a>
 </div>
+<p class="text-muted mt-2 mb-0" style="font-size:.82rem;">
+  <i class="bi bi-stars me-1"></i>{% trans "El «Anexo 6A» es el archivo plano de matrícula de 40 columnas separadas por «|», sin encabezado, con nombres en mayúsculas sin tildes y fechas DD/MM/AAAA — el formato base nacional para subir al SIMAT. Valida siempre contra la plantilla vigente de tu Secretaría antes de subir." %}
+</p>
 <p class="text-muted mt-2" style="font-size:.82rem;">
   <i class="bi bi-info-circle me-1"></i>{% trans "El SIMAT genera el reporte plano \"en CSV\" y lo entrega como archivo de texto (.txt): ese es el formato oficial para subir. El .csv es el mismo contenido (útil para abrir en Excel), y el Excel es para revisar antes de subir." %}
 </p>

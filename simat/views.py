@@ -255,6 +255,148 @@ def _fila_oficial(asp, institucion, anio, contador):
     }
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+#  ANEXO 6A — Archivo plano de MATRÍCULA (40 columnas, delimitado por «|»)
+#  Orden y formato según la estructura nacional estándar (base inamovible):
+#  sin fila de encabezados, una línea por estudiante, UTF-8, valores saneados.
+#  El orden sigue el desglose/ejemplo oficial (la FECHA va en la col. 12, la
+#  DIRECCIÓN en la 16). Los códigos que la plataforma aún no captura salen vacíos.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _san(texto):
+    """Sanitiza texto libre para el plano: MAYÚSCULAS, sin tildes, Ñ→N, sin
+    saltos de línea/tabs/delimitadores/comas. Todo en una sola línea."""
+    import unicodedata
+    s = '' if texto is None else str(texto)
+    # Descompone y elimina marcas diacríticas (tildes); la ñ → n.
+    s = unicodedata.normalize('NFKD', s)
+    s = ''.join(c for c in s if not unicodedata.combining(c))
+    s = s.upper()
+    for ch in ('\n', '\r', '\t', '|', ';', ','):
+        s = s.replace(ch, ' ')
+    return ' '.join(s.split()).strip()
+
+
+def _dmy(fecha):
+    """date → DD/MM/YYYY (formato de fecha del Anexo 6A)."""
+    return fecha.strftime('%d/%m/%Y') if fecha else ''
+
+
+def _bin(valor):
+    """Cualquier verdad → '1', si no '0' (booleanos numéricos del Anexo 6A)."""
+    if isinstance(valor, str):
+        return '1' if valor.strip().upper() in ('1', 'S', 'SI', 'SÍ', 'TRUE', 'X') else '0'
+    return '1' if valor else '0'
+
+
+def _depto2(dep_obj):
+    """Código DANE de departamento a 2 dígitos (relleno de ceros)."""
+    cod = (dep_obj.codigo if dep_obj else '') or ''
+    return cod.zfill(2) if cod.isdigit() else cod
+
+
+def _mpio3(mpio_obj):
+    """Código DANE de municipio a 3 dígitos (los últimos 3 del código DANE)."""
+    cod = (mpio_obj.codigo if mpio_obj else '') or ''
+    if cod.isdigit():
+        return cod[-3:].zfill(3)   # DANE municipio suele venir como 5 díg. (depto+mpio)
+    return cod
+
+
+def _fila_anexo6a(asp, institucion):
+    """Lista ORDENADA de las 40 columnas del Anexo 6A para un aspirante matriculado.
+    Reusa los mismos datos codificados que el reporte oficial."""
+    sede = asp.sede
+    grado = asp.grado_aspira
+    est = getattr(asp, 'estudiante_creado', None)
+    if est is not None and getattr(est, 'grupo_id', None):
+        grupo_nombre = est.grupo.nombre
+    else:
+        grupo_nombre = asp.grupo
+    # Inclusión: evitar nulos (99 = No Aplica) según la norma.
+    victima = _cod(_VICTIMA_SIMAT, asp.tipo_poblacion_victima) if asp.victima_conflicto else '99'
+    discap = _cod(_DISCAP_SIMAT, asp.discapacidad_categoria) or '99'
+    capac = _cod(_CAPACID_SIMAT, getattr(asp, 'capacidad_excepcional', '')) or '99'
+    etnia = asp.etnia_simat.codigo if asp.etnia_simat_id else '0'
+    resguardo = (asp.resguardo.codigo if asp.resguardo_id else '') or '0'
+    veterano_heroe = _bin(getattr(asp, 'beneficiario_veterano', False)) == '1' \
+        or _bin(getattr(asp, 'beneficiario_heroe', False)) == '1'
+    grado_id = _txt(getattr(grado, 'simat_grado_id', '') if grado else '')
+    return [
+        _txt(institucion.codigo_dane),                                   # 1  DANE_ESTABLECIMIENTO
+        _txt(sede.codigo_dane_sede) if sede else '',                     # 2  DANE_SEDE
+        _txt(sede.consecutivo) if sede else '1',                         # 3  CONSECUTIVO_SEDE
+        _cod(_TIPODOC_SIMAT, asp.tipo_documento),                        # 4  TIPO_DOCUMENTO
+        _txt(asp.numero_documento),                                      # 5  NUMERO_DOCUMENTO
+        _depto2(asp.lugar_expedicion_departamento),                      # 6  EXPEDICION_DEPTO
+        _mpio3(asp.lugar_expedicion_municipio),                          # 7  EXPEDICION_MUNICIPIO
+        _san(asp.primer_nombre),                                         # 8  PRIMER_NOMBRE
+        _san(asp.segundo_nombre),                                        # 9  SEGUNDO_NOMBRE
+        _san(asp.primer_apellido),                                       # 10 PRIMER_APELLIDO
+        _san(asp.segundo_apellido),                                      # 11 SEGUNDO_APELLIDO
+        _dmy(asp.fecha_nacimiento),                                      # 12 FECHA_NACIMIENTO
+        _depto2(asp.departamento_nacimiento),                            # 13 NACIMIENTO_DEPTO
+        _mpio3(asp.municipio_nacimiento),                                # 14 NACIMIENTO_MUNICIPIO
+        _cod(_GENERO_SIMAT, asp.sexo),                                   # 15 GENERO
+        _san(asp.direccion),                                             # 16 DIRECCION_RESIDENCIA
+        _txt(asp.telefono_contacto),                                     # 17 TELEFONO
+        ('' if (asp.estrato in (None, '')) else _txt(asp.estrato)),      # 18 ESTRATO (0-6)
+        _txt(asp.sisben_simat or asp.sisben_grupo),                      # 19 SISBEN
+        _cod(_JORNADA_SIMAT, asp.jornada),                               # 20 JORNADA
+        _txt(asp.caracter),                                              # 21 CARACTER
+        _txt(asp.especialidad),                                          # 22 ESPECIALIDAD
+        grado_id,                                                        # 23 GRADO
+        _txt(grupo_nombre),                                              # 24 GRUPO
+        _txt(asp.metodologia),                                           # 25 METODOLOGIA
+        _bin(asp.repitente),                                             # 26 REPITENTE
+        _bin(getattr(asp, 'es_nuevo', '')),                             # 27 NUEVO
+        _bin(asp.subsidiado),                                            # 28 SUBSIDIADO
+        victima,                                                         # 29 TIPO_VICTIMA
+        discap,                                                          # 30 DISCAPACIDAD
+        capac,                                                           # 31 CAPACIDAD_EXCEPCIONAL
+        etnia,                                                           # 32 ETNIA
+        resguardo,                                                       # 33 RESGUARDO
+        _bin(asp.srpa),                                                  # 34 SIST_RESPONSABILIDAD_PENAL
+        _bin(asp.apoyo_academico_especial),                             # 35 APOYO_ACADEMICO_ESPECIAL
+        _txt(asp.pais_origen or '170'),                                 # 36 PAIS_ORIGEN (170=Colombia)
+        '99',                                                            # 37 TRASTORNO (no capturado → 99)
+        _bin(asp.campesino),                                             # 38 POBLACION_CAMPESINA
+        _bin(getattr(asp, 'hijo_madre_cabeza_familia', False)),         # 39 HIJO_MADRE_CABEZA_FAMILIA
+        '1' if veterano_heroe else '0',                                 # 40 VETERANO_HEROE_FUERZA_PUBLICA
+    ]
+
+
+@login_required
+def exportar_anexo6a_txt(request):
+    """Descarga el Anexo 6A de matrícula: texto plano, 40 columnas separadas por
+    «|», sin encabezado, UTF-8. Solo estudiantes MATRICULADOS de la institución."""
+    if not _puede_gestionar(request.user):
+        raise PermissionDenied
+    from admisiones.models import Aspirante
+
+    institucion = _institucion_de(request)
+    if institucion is None:
+        raise PermissionDenied("Sin institución asociada.")
+
+    aspirantes = (
+        Aspirante.objects
+        .filter(institucion=institucion, estado=Aspirante.EstadoAdmision.MATRICULADO)
+        .select_related('sede', 'grado_aspira', 'etnia_simat', 'resguardo',
+                        'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
+                        'departamento_nacimiento', 'municipio_nacimiento',
+                        'estudiante_creado', 'estudiante_creado__grupo')
+        .order_by('primer_apellido', 'primer_nombre')
+    )
+
+    resp = HttpResponse(content_type='text/plain; charset=utf-8')
+    resp['Content-Disposition'] = f'attachment; filename="Anexo6A_{institucion.codigo_dane or "matricula"}.txt"'
+    lineas = []
+    for asp in aspirantes.iterator():
+        lineas.append('|'.join(_fila_anexo6a(asp, institucion)))
+    resp.write('\r\n'.join(lineas))
+    return resp
+
+
 @login_required
 def exportar_reporte_simat(request):
     """Descarga el Reporte Plano SIMAT (.xlsx) de los matriculados."""
