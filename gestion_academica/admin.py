@@ -9,6 +9,7 @@ from import_export.admin import ImportExportModelAdmin
 from django.db.models import Q
 from django.urls import path
 from django.shortcuts import redirect
+from django.utils.html import format_html
 
 # Importa los modelos desde tu aplicación gestion_academica
 from .models import (
@@ -70,9 +71,61 @@ class UsuarioAdmin(InstitucionScopedAdminMixin, BaseUserAdmin):
     )
     # --- FIN DE LA CORRECCIÓN CLAVE ---
 
-    # Tus configuraciones de list_display y list_filter se mantienen igual
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'rol', 'acepto_tratamiento_datos')
-    list_filter = BaseUserAdmin.list_filter + ('rol', 'institucion_asociada', 'acepto_tratamiento_datos')
+    # ── (A) Columnas legibles · (B) búsqueda/filtros · (D) rendimiento ──
+    list_display = ('username', 'nombre_completo', 'email', 'rol_badge', 'activo_icon', 'ultimo_acceso')
+    list_display_links = ('username', 'nombre_completo')
+    list_filter = BaseUserAdmin.list_filter + (
+        'rol', 'institucion_asociada', 'acepto_tratamiento_datos',
+        ('last_login', admin.DateFieldListFilter),
+    )
+    # Buscar también por documento del perfil (estudiante/docente/familiar).
+    search_fields = (
+        'username', 'email', 'first_name', 'last_name',
+        'estudiante__documento_identidad', 'docente__documento_identidad', 'familiar__documento_identidad',
+    )
+    date_hierarchy = 'date_joined'
+    # (D) Rendimiento: evita N+1 por institución y no cuenta el total completo.
+    list_select_related = ('institucion_asociada',)
+    list_per_page = 30
+    show_full_result_count = False
+
+    # Paleta de color por rol (chip legible de un vistazo).
+    _ROL_COLORES = {
+        'docente': '#1d4ed8', 'estudiante': '#16a34a', 'familiar': '#6b7280',
+        'coordinador': '#7c3aed', 'rector': '#ea580c', 'admin_institucion': '#ea580c',
+        'administrador': '#ea580c', 'psicologo': '#0e7490', 'secretaria': '#0d9488',
+    }
+
+    @admin.display(description='Nombre completo', ordering='first_name')
+    def nombre_completo(self, obj):
+        return obj.get_full_name() or obj.username
+
+    @admin.display(description='Rol', ordering='rol')
+    def rol_badge(self, obj):
+        color = self._ROL_COLORES.get(obj.rol, '#334155')
+        return format_html(
+            '<span style="background:{};color:#fff;padding:2px 9px;border-radius:11px;'
+            'font-size:11px;font-weight:600;white-space:nowrap;">{}</span>',
+            color, obj.get_rol_display(),
+        )
+
+    @admin.display(description='Activo', boolean=True, ordering='is_active')
+    def activo_icon(self, obj):
+        return obj.is_active
+
+    @admin.display(description='Último acceso', ordering='last_login')
+    def ultimo_acceso(self, obj):
+        if not obj.last_login:
+            return format_html('<span style="color:#9ca3af;">Nunca</span>')
+        return obj.last_login.strftime('%d/%m/%Y %H:%M')
+
+    def get_list_display(self, request):
+        """El superusuario ve además institución y si es staff."""
+        base = list(self.list_display)
+        if request.user.is_superuser:
+            base.insert(3, 'institucion_asociada')
+            base.append('is_staff')
+        return base
 
     def get_queryset(self, request):
         """Además del filtro por institución del mixin, un usuario staff
