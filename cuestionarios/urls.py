@@ -21,5 +21,6 @@ urlpatterns = [
     # Accesibilidad (Ola 3) — IA de apoyo
     path('api/pregunta/<int:pregunta_pk>/simplificar/', views.simplificar_enunciado_ia, name='simplificar_enunciado_ia'),
     path('api/cuestionario/<int:cuestionario_pk>/generar-alt/', views.generar_alt_cuestionario_ia, name='generar_alt_cuestionario_ia'),
+    path('api/cuestionario/<int:cuestionario_pk>/generar-audiodescripcion/', views.generar_audiodescripcion_cuestionario_ia, name='generar_audiodescripcion_cuestionario_ia'),
     path('api/cuestionario/<int:cuestionario_pk>/generar-transcripcion/', views.generar_transcripcion_cuestionario_ia, name='generar_transcripcion_cuestionario_ia'),
 ]

@@ -333,6 +333,11 @@ textarea.eq-input { resize: vertical; }
               title="{% trans 'Genera con IA la descripción (alt) de las imágenes para lectores de pantalla' %}">
         <i class="bi bi-universal-access"></i> {% trans "Describir imágenes (IA)" %}
       </button>
+      <button type="button" class="eq-btn eq-btn-outline" id="btn-generar-audiodescripcion"
+              data-url="{% url 'cuestionarios:generar_audiodescripcion_cuestionario_ia' cuestionario.pk %}"
+              title="{% trans 'Genera con IA una audio-descripción detallada de las imágenes, para estudiantes que no las ven' %}">
+        <i class="bi bi-headphones"></i> {% trans "Audio-describir imágenes (IA)" %}
+      </button>
       <button type="button" class="eq-btn eq-btn-outline" id="btn-generar-transcripcion"
               data-url="{% url 'cuestionarios:generar_transcripcion_cuestionario_ia' cuestionario.pk %}"
               title="{% trans 'Genera con IA la transcripción (subtítulo) de los audios de las preguntas' %}">
@@ -626,6 +631,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div class="pregunta-audio-block mb-2">
             <input type="hidden" class="audio-path" value="${pregunta.audio_path || ''}">
             <input type="hidden" class="imagen-alt-cache" value="${(pregunta.imagen_alt || '').replace(/"/g,'&quot;')}">
+            <input type="hidden" class="imagen-descripcion-cache" value="${(pregunta.imagen_descripcion || '').replace(/"/g,'&quot;')}">
             <input type="hidden" class="audio-transcripcion-cache" value="${(pregunta.audio_transcripcion || '').replace(/"/g,'&quot;')}">
             <div class="audio-preview mb-1 ${pregunta.audio_url ? '' : 'd-none'}">
               <audio controls preload="none" class="preg-audio" src="${pregunta.audio_url || ''}" style="max-width:100%;vertical-align:middle;"></audio>
@@ -916,6 +922,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 imagen_path: card.querySelector('.imagen-path')?.value || null,
                 // Se conservan (carry-through) para no perder ni re-gastar IA al guardar.
                 imagen_alt: card.querySelector('.imagen-alt-cache')?.value || '',
+                imagen_descripcion: card.querySelector('.imagen-descripcion-cache')?.value || '',
                 audio_path: card.querySelector('.audio-path')?.value || null,
                 audio_transcripcion: card.querySelector('.audio-transcripcion-cache')?.value || '',
                 opciones: []
@@ -1253,6 +1260,11 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(res => {
                 if (res.path) {
                     card.querySelector('.imagen-path').value = res.path;
+                    // Imagen nueva → invalidar descripciones (alt/audio-descripción) anteriores.
+                    var _altc = card.querySelector('.imagen-alt-cache');
+                    if (_altc) _altc.value = '';
+                    var _desc = card.querySelector('.imagen-descripcion-cache');
+                    if (_desc) _desc.value = '';
                     const prev = card.querySelector('.imagen-preview');
                     const imgEl = prev.querySelector('.preg-img');
                     imgEl.src = res.url;
@@ -1321,6 +1333,30 @@ document.addEventListener('DOMContentLoaded', function () {
         if (tcache) tcache.value = '';
         card.querySelector('.audio-preview').classList.add('d-none');
     });
+
+    // ── Accesibilidad: generar audio-descripción detallada de imágenes con IA ──
+    const btnAudiodesc = document.getElementById('btn-generar-audiodescripcion');
+    if (btnAudiodesc) {
+        btnAudiodesc.addEventListener('click', function () {
+            const url = btnAudiodesc.dataset.url;
+            const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const original = btnAudiodesc.innerHTML;
+            btnAudiodesc.disabled = true;
+            btnAudiodesc.innerHTML = '<i class="bi bi-hourglass-split"></i> {% trans "Describiendo…" %}';
+            fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' }, body: '{}' })
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    showNotification(
+                        d.ok ? '{% trans "Audio-descripción de imágenes" %}' : '{% trans "No se pudo" %}',
+                        d.message || '', !!d.ok
+                    );
+                })
+                .catch(function () {
+                    showNotification('{% trans "Error de red" %}', '{% trans "No se pudo conectar." %}', false);
+                })
+                .finally(function () { btnAudiodesc.disabled = false; btnAudiodesc.innerHTML = original; });
+        });
+    }
 
     // ── Accesibilidad: generar transcripción (subtítulo) de audios con IA ──
     const btnTranscribir = document.getElementById('btn-generar-transcripcion');

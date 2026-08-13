@@ -138,6 +138,7 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                 'imagen_url': p.imagen.url if p.imagen else None,
                 'imagen_path': p.imagen.name if p.imagen else None,
                 'imagen_alt': p.imagen_alt or '',
+                'imagen_descripcion': p.imagen_descripcion or '',
                 'audio_url': p.audio.url if p.audio else None,
                 'audio_path': p.audio.name if p.audio else None,
                 'audio_transcripcion': p.audio_transcripcion or '',
@@ -329,6 +330,7 @@ class CuestionarioAPIView(LoginRequiredMixin, View):
                     # conservan (carry-through) para no perderlas ni re-gastar IA al guardar.
                     imagen=(pregunta_data.get('imagen_path') or None),
                     imagen_alt=(pregunta_data.get('imagen_alt') or ''),
+                    imagen_descripcion=(pregunta_data.get('imagen_descripcion') or ''),
                     audio=(pregunta_data.get('audio_path') or None),
                     audio_transcripcion=(pregunta_data.get('audio_transcripcion') or ''),
                 )
@@ -1155,7 +1157,7 @@ class SugerirCalificacionIAView(APIView):
 # ═══════════════════════════════════════════════════════════════════════════════
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from .ia_accesibilidad import simplificar_texto, describir_imagen
+from .ia_accesibilidad import simplificar_texto, describir_imagen, describir_imagen_detallada
 
 
 def _institucion_de_pregunta(pregunta):
@@ -1246,6 +1248,46 @@ def generar_alt_cuestionario_ia(request, cuestionario_pk):
         'generadas': generadas,
         'fallidas': fallidas,
         'message': f'Descripciones generadas: {generadas}.' + (f' No se pudieron generar: {fallidas}.' if fallidas else ''),
+    })
+
+
+@login_required
+@require_POST
+def generar_audiodescripcion_cuestionario_ia(request, cuestionario_pk):
+    """Genera con IA la AUDIO-DESCRIPCIÓN detallada de las imágenes del
+    cuestionario que aún no la tengan (para estudiantes que no ven la imagen).
+    Acción del docente/coordinador (un botón, sin comandos)."""
+    cuestionario = get_object_or_404(
+        Cuestionario.objects.select_related('actividad_calificable__institucion'),
+        pk=cuestionario_pk,
+    )
+    actividad = cuestionario.actividad_calificable
+    if not (request.user.is_superuser or docente_asignado_a_actividad(request.user, actividad)):
+        return HttpResponseForbidden("No autorizado.")
+
+    institucion = getattr(actividad, 'institucion', None)
+    generadas, fallidas, ultimo_error = 0, 0, ''
+    for p in cuestionario.preguntas.all():
+        if not p.imagen or p.imagen_descripcion:
+            continue
+        ok, resultado = describir_imagen_detallada(institucion, p.imagen)
+        if ok:
+            p.imagen_descripcion = resultado
+            p.save(update_fields=['imagen_descripcion'])
+            generadas += 1
+        else:
+            fallidas += 1
+            ultimo_error = resultado
+
+    if generadas == 0 and fallidas == 0:
+        return JsonResponse({'ok': True, 'message': 'No hay imágenes pendientes de audio-describir.', 'generadas': 0})
+    if generadas == 0 and fallidas:
+        return JsonResponse({'ok': False, 'message': ultimo_error or 'No se pudo generar la audio-descripción.'}, status=200)
+    return JsonResponse({
+        'ok': True,
+        'generadas': generadas,
+        'fallidas': fallidas,
+        'message': f'Audio-descripciones generadas: {generadas}.' + (f' No se pudieron generar: {fallidas}.' if fallidas else ''),
     })
 
 

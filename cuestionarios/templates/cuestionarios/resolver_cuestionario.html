@@ -367,6 +367,14 @@ document.addEventListener('DOMContentLoaded', function() {
             ? `<div class="mb-3 text-center"><img src="${esc(pregunta.imagen_url)}" alt="${esc(pregunta.imagen_alt || '')}" style="max-width:100%;max-height:320px;border-radius:8px;border:1px solid #e5e7eb;"></div>`
             : '';
 
+        // Audio-descripción detallada de la imagen (para quien no la ve).
+        const descImgHtml = pregunta.imagen_descripcion
+            ? `<details class="mb-3">
+                   <summary style="cursor:pointer;font-size:.85rem;"><i class="bi bi-headphones me-1"></i>{% trans "Audio-descripción de la imagen" %}</summary>
+                   <div class="p-2 bg-light rounded mt-1" style="white-space:pre-wrap;font-size:.9rem;">${esc(pregunta.imagen_descripcion)}</div>
+               </details>`
+            : '';
+
         // Audio de apoyo (accesibilidad auditiva) + su transcripción (subtítulo).
         let audioHtml = '';
         if (pregunta.audio_url) {
@@ -397,6 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>
                     <div class="acc-simple-text alert alert-info py-2 mb-3" data-for="${pregunta.id}" style="display:none;"></div>
                     ${imagenHtml}
+                    ${descImgHtml}
                     ${audioHtml}
                     <div class="opciones-container">
                         ${opcionesHtml}

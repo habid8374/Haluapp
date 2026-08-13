@@ -28,6 +28,15 @@ _PROMPT_ALT = (
     "español. No interpretes cuál es la respuesta correcta. Responde solo con la "
     "descripción."
 )
+_PROMPT_DESCRIPCION_LARGA = (
+    "Haz una AUDIO-DESCRIPCIÓN detallada de esta imagen o gráfico para un "
+    "estudiante que NO puede verla, de modo que entienda todo lo que muestra y "
+    "pueda responder la pregunta. Describe con claridad y en orden: qué tipo de "
+    "elemento es (foto, esquema, gráfico de barras, mapa, tabla…), los datos, "
+    "ejes, etiquetas, cantidades, relaciones y todo detalle relevante. Usa "
+    "lenguaje sencillo, en español. NO digas cuál es la respuesta correcta ni la "
+    "resuelvas. Responde solo con la descripción."
+)
 
 
 def simplificar_texto(institucion, texto):
@@ -37,15 +46,34 @@ def simplificar_texto(institucion, texto):
     return _ia.generar_texto(institucion, _PROMPT_SIMPLE.format(texto=texto))
 
 
+def _leer_imagen(imagen):
+    with imagen.open('rb') as fh:
+        data = fh.read()
+    mime = mimetypes.guess_type(imagen.name)[0] or 'image/jpeg'
+    return data, mime
+
+
 def describir_imagen(institucion, imagen):
-    """`imagen` es un FieldFile (pregunta.imagen). Devuelve (ok, alt)."""
+    """`imagen` es un FieldFile (pregunta.imagen). Devuelve (ok, alt) — texto
+    alternativo breve para lectores de pantalla."""
     if not imagen:
         return (False, "La pregunta no tiene imagen.")
     try:
-        with imagen.open('rb') as fh:
-            data = fh.read()
-        mime = mimetypes.guess_type(imagen.name)[0] or 'image/jpeg'
+        data, mime = _leer_imagen(imagen)
     except Exception as exc:
         logger.warning("No se pudo leer la imagen: %s", exc)
         return (False, "No se pudo leer la imagen.")
     return _ia.generar_desde_imagen(institucion, data, mime, _PROMPT_ALT)
+
+
+def describir_imagen_detallada(institucion, imagen):
+    """Audio-descripción DETALLADA de la imagen (para un estudiante que no la ve).
+    Más larga que el alt. Devuelve (ok, descripcion)."""
+    if not imagen:
+        return (False, "La pregunta no tiene imagen.")
+    try:
+        data, mime = _leer_imagen(imagen)
+    except Exception as exc:
+        logger.warning("No se pudo leer la imagen: %s", exc)
+        return (False, "No se pudo leer la imagen.")
+    return _ia.generar_desde_imagen(institucion, data, mime, _PROMPT_DESCRIPCION_LARGA)

@@ -111,6 +111,11 @@ class PreguntaCuestionario(models.Model):
         verbose_name="Descripción de la imagen (IA)",
         help_text="Texto alternativo de la imagen para lectores de pantalla, generado con IA.",
     )
+    imagen_descripcion = models.TextField(
+        blank=True, default='',
+        verbose_name="Audio-descripción de la imagen (IA)",
+        help_text="Descripción detallada del gráfico/imagen para estudiantes que no la ven; se puede escuchar con lectura por voz.",
+    )
     # Accesibilidad auditiva: audio de apoyo de la pregunta y su transcripción
     # (subtítulo) generada con IA. Se cachea para reutilizarla con todos los
     # estudiantes (apoyo para sordos y para lectura acompañada).
