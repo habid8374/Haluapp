@@ -2864,6 +2864,12 @@ def mi_boletin_periodo_actual(request):
 
     periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=estudiante_actual.institucion).first()
 
+    # El boletín SOLO se muestra cuando el coordinador lo publica (igual que el
+    # botón del dashboard y la vista del familiar). Si no está publicado y el
+    # usuario no puede previsualizar, mostramos la pantalla "no disponible".
+    if periodo_activo and not periodo_activo.boletines_publicados and not _puede_previsualizar_boletin_sin_publicar(request.user):
+        return render(request, 'gestion_academica/boletin_no_disponible.html', {'periodo': periodo_activo}, status=200)
+
     cursos_con_detalle = []
     total_puntos_ponderados_general = Decimal('0.0')
     total_ihs_general = 0
