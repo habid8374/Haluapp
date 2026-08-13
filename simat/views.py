@@ -108,6 +108,7 @@ def _puede_gestionar(user):
 
 def _fila_aspirante(asp, institucion, anio, contador):
     """Arma el dict de una fila del reporte a partir de un Aspirante matriculado."""
+    asp = _datos_simat(asp)  # prioriza la caracterización del estudiante
     sede = asp.sede
     grado = asp.grado_aspira
     # Etnia: código oficial SIMAT (no la etiqueta). Sin etnia → '0' (NO APLICA).
@@ -205,9 +206,125 @@ def _fk_cod(obj):
     return obj.codigo if obj else ''
 
 
+def _dane_sede(asp, institucion):
+    """DANE de la sede (12 dígitos). Si la sede no tiene código propio —caso de
+    los colegios de ÚNICA sede— se repite el DANE del establecimiento, tal como
+    exige el SIMAT; así la columna 2 nunca queda vacía."""
+    sede = getattr(asp, 'sede', None)
+    propio = (getattr(sede, 'codigo_dane_sede', '') or '').strip() if sede else ''
+    return propio or (institucion.codigo_dane or '')
+
+
+def _lugar_con_respaldo(dep_obj, mun_obj, asp, institucion):
+    """Mejor par (codigo_departamento, codigo_municipio) para un lugar territorial
+    (nacimiento o expedición) sin dejar la columna vacía. Prioridad:
+      1) el lugar propio del estudiante (si está capturado);
+      2) su municipio de RESIDENCIA (dato real capturado en la admisión);
+      3) el municipio de la institución (ETC), como respaldo final.
+    El MEN rechaza estas columnas si van vacías, por eso siempre se entrega el
+    mejor dato disponible (la validación avisa cuando se usó un respaldo)."""
+    if dep_obj and mun_obj:
+        return (dep_obj.codigo or ''), (mun_obj.codigo or '')
+    dep_r = getattr(asp, 'departamento_residencia', None)
+    mun_r = getattr(asp, 'municipio_residencia', None)
+    if dep_r and mun_r:
+        return (dep_r.codigo or ''), (mun_r.codigo or '')
+    etc = institucion.simat_municipio_etc if getattr(institucion, 'simat_municipio_etc_id', None) else None
+    if etc:
+        cod = _solo_digitos(etc.codigo)
+        if len(cod) >= 5:
+            return cod[:2], cod
+        if len(cod) >= 2:
+            return cod[:2], ''
+    return '', ''
+
+
+def _fmt_depto2(cod):
+    """Código DANE de departamento a 2 dígitos, a partir de un string de código."""
+    cod = cod or ''
+    return cod.zfill(2) if cod.isdigit() else cod
+
+
+def _fmt_mpio3(cod):
+    """Código DANE de municipio a 3 dígitos (últimos 3), desde un string."""
+    cod = cod or ''
+    return cod[-3:].zfill(3) if cod.isdigit() else cod
+
+
+class _DatosSimat:
+    """Vista unificada de los datos SIMAT de un estudiante matriculado.
+
+    PREFIERE la «Caracterización del estudiante» —lo que el operador ve y edita
+    en la ficha del estudiante DESPUÉS de matricular (nacimiento, expedición,
+    estrato, jornada, grupo, etc.)— y cae al «Aspirante» (captura de admisión)
+    cuando la caracterización no tiene ese dato.
+
+    Antes el reporte leía SOLO del Aspirante, por eso salían vacías columnas
+    (lugar de nacimiento, expedición, estrato…) que sí estaban diligenciadas en
+    la ficha del estudiante. Este proxy hace que el archivo refleje siempre lo
+    que se ve en la ficha.
+
+    Reglas de «presente» por tipo de campo:
+      • FK  → se usa la de la caracterización si su *_id no es None.
+      • texto → se usa si no está vacío.
+      • booleano → SIEMPRE se toma del aspirante (su default False es ambiguo).
+    """
+
+    def __init__(self, aspirante, caracterizacion):
+        self._asp = aspirante
+        self._car = caracterizacion
+
+    def __getattr__(self, name):
+        car = self._car
+        if car is not None:
+            fk_id = name + '_id'
+            if hasattr(car, fk_id):
+                if getattr(car, fk_id) is not None:
+                    return getattr(car, name)
+            elif hasattr(car, name):
+                val = getattr(car, name)
+                if not isinstance(val, bool) and val is not None and \
+                        (not isinstance(val, str) or val.strip() != ''):
+                    return val
+        return getattr(self._asp, name)
+
+
+def _datos_simat(asp):
+    """Envuelve un Aspirante para que sus datos SIMAT reflejen primero la
+    caracterización del estudiante matriculado (ver _DatosSimat)."""
+    est = getattr(asp, 'estudiante_creado', None)
+    car = None
+    if est is not None:
+        try:
+            car = est.caracterizacion
+        except Exception:
+            car = None
+    return _DatosSimat(asp, car)
+
+
+# Relaciones a precargar (select_related) para que el proxy _DatosSimat lea la
+# caracterización del estudiante y sus FK sin disparar una consulta por fila.
+_CARACT_REL = (
+    'estudiante_creado__caracterizacion',
+    'estudiante_creado__caracterizacion__lugar_expedicion_departamento',
+    'estudiante_creado__caracterizacion__lugar_expedicion_municipio',
+    'estudiante_creado__caracterizacion__departamento_nacimiento',
+    'estudiante_creado__caracterizacion__municipio_nacimiento',
+    'estudiante_creado__caracterizacion__departamento_residencia',
+    'estudiante_creado__caracterizacion__municipio_residencia',
+    'estudiante_creado__caracterizacion__sede',
+    'estudiante_creado__caracterizacion__etnia_simat',
+    'estudiante_creado__caracterizacion__resguardo',
+    'estudiante_creado__caracterizacion__eps_simat',
+    'estudiante_creado__caracterizacion__expulsor_departamento',
+    'estudiante_creado__caracterizacion__expulsor_municipio',
+)
+
+
 def _fila_oficial(asp, institucion, anio, contador):
     """Fila con los nombres/orden EXACTOS del reporte plano del SIMAT. Los campos
     que HALU aún no captura salen vacíos (ver auditoría)."""
+    asp = _datos_simat(asp)  # prioriza la caracterización del estudiante
     sede = asp.sede
     est = getattr(asp, 'estudiante_creado', None)
     if est is not None and getattr(est, 'grupo_id', None):
@@ -216,23 +333,25 @@ def _fila_oficial(asp, institucion, anio, contador):
         grupo_nombre = asp.grupo
     etc = institucion.simat_municipio_etc.codigo if institucion.simat_municipio_etc_id else ''
     tipo_victima = _cod(_VICTIMA_SIMAT, asp.tipo_poblacion_victima) if asp.victima_conflicto else '99'
+    exp_dep, exp_mun = _lugar_con_respaldo(asp.lugar_expedicion_departamento, asp.lugar_expedicion_municipio, asp, institucion)
+    nac_dep, nac_mun = _lugar_con_respaldo(asp.departamento_nacimiento, asp.municipio_nacimiento, asp, institucion)
     return {
         'simat_anexo_id': '',
         'anio': anio,
         'municipio_id': _txt(etc),
         'dane': _txt(institucion.codigo_dane),
-        'dane_sede': _txt(sede.codigo_dane_sede) if sede else '',
-        'consecutivo_sede': _txt(sede.consecutivo) if sede else '',
+        'dane_sede': _txt(_dane_sede(asp, institucion)),
+        'consecutivo_sede': _txt(sede.consecutivo) if sede else '1',
         'sede': _txt(sede.nombre) if sede else '',
         'prestacion_servicio': _txt(getattr(institucion, 'simat_prestacion_servicio', '')),
-        'expedicion_departamento_id': _fk_cod(asp.lugar_expedicion_departamento),
-        'expedicion_municipio_id': _fk_cod(asp.lugar_expedicion_municipio),
+        'expedicion_departamento_id': _txt(exp_dep),
+        'expedicion_municipio_id': _txt(exp_mun),
         'dir_departamento_id': _fk_cod(asp.departamento_residencia),
         'dir_municipio_id': _fk_cod(asp.municipio_residencia),
         'estrato_id': (_txt(asp.estrato) if asp.estrato and asp.estrato != '0' else ''),
         'sisben': _txt(asp.sisben_simat),
-        'nacimiento_departamento_id': _fk_cod(asp.departamento_nacimiento),
-        'nacimiento_municipio_id': _fk_cod(asp.municipio_nacimiento),
+        'nacimiento_departamento_id': _txt(nac_dep),
+        'nacimiento_municipio_id': _txt(nac_mun),
         'genero_id': _cod(_GENERO_SIMAT, asp.sexo),
         'tipo_victima_id': tipo_victima,
         'expulsor_departamento_id': _fk_cod(asp.expulsor_departamento),
@@ -326,6 +445,7 @@ def _mpio3(mpio_obj):
 def _fila_anexo6a(asp, institucion):
     """Lista ORDENADA de las 40 columnas del Anexo 6A para un aspirante matriculado.
     Reusa los mismos datos codificados que el reporte oficial."""
+    asp = _datos_simat(asp)  # prioriza la caracterización del estudiante
     sede = asp.sede
     grado = asp.grado_aspira
     est = getattr(asp, 'estudiante_creado', None)
@@ -342,21 +462,24 @@ def _fila_anexo6a(asp, institucion):
     veterano_heroe = _bin(getattr(asp, 'beneficiario_veterano', False)) == '1' \
         or _bin(getattr(asp, 'beneficiario_heroe', False)) == '1'
     grado_id = _txt(getattr(grado, 'simat_grado_id', '') if grado else '')
+    # DIVIPOLA con respaldo (nunca vacío): lugar propio → residencia → institución.
+    exp_dep, exp_mun = _lugar_con_respaldo(asp.lugar_expedicion_departamento, asp.lugar_expedicion_municipio, asp, institucion)
+    nac_dep, nac_mun = _lugar_con_respaldo(asp.departamento_nacimiento, asp.municipio_nacimiento, asp, institucion)
     return [
         _txt(institucion.codigo_dane),                                   # 1  DANE_ESTABLECIMIENTO
-        _txt(sede.codigo_dane_sede) if sede else '',                     # 2  DANE_SEDE
-        _txt(sede.consecutivo) if sede else '1',                         # 3  CONSECUTIVO_SEDE
+        _txt(_dane_sede(asp, institucion)),                              # 2  DANE_SEDE
+        _txt(sede.consecutivo) if sede and sede.consecutivo else '1',    # 3  CONSECUTIVO_SEDE
         _cod(_TIPODOC_SIMAT, asp.tipo_documento),                        # 4  TIPO_DOCUMENTO
         _txt(asp.numero_documento),                                      # 5  NUMERO_DOCUMENTO
-        _depto2(asp.lugar_expedicion_departamento),                      # 6  EXPEDICION_DEPTO
-        _mpio3(asp.lugar_expedicion_municipio),                          # 7  EXPEDICION_MUNICIPIO
+        _fmt_depto2(exp_dep),                                            # 6  EXPEDICION_DEPTO
+        _fmt_mpio3(exp_mun),                                             # 7  EXPEDICION_MUNICIPIO
         _san(asp.primer_nombre),                                         # 8  PRIMER_NOMBRE
         _san(asp.segundo_nombre),                                        # 9  SEGUNDO_NOMBRE
         _san(asp.primer_apellido),                                       # 10 PRIMER_APELLIDO
         _san(asp.segundo_apellido),                                      # 11 SEGUNDO_APELLIDO
         _dmy(asp.fecha_nacimiento),                                      # 12 FECHA_NACIMIENTO
-        _depto2(asp.departamento_nacimiento),                            # 13 NACIMIENTO_DEPTO
-        _mpio3(asp.municipio_nacimiento),                                # 14 NACIMIENTO_MUNICIPIO
+        _fmt_depto2(nac_dep),                                            # 13 NACIMIENTO_DEPTO
+        _fmt_mpio3(nac_mun),                                             # 14 NACIMIENTO_MUNICIPIO
         _cod(_GENERO_SIMAT, asp.sexo),                                   # 15 GENERO
         _san(asp.direccion),                                             # 16 DIRECCION_RESIDENCIA
         _txt(asp.telefono_contacto),                                     # 17 TELEFONO
@@ -404,7 +527,8 @@ def exportar_anexo6a_txt(request):
         .select_related('sede', 'grado_aspira', 'etnia_simat', 'resguardo',
                         'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
                         'departamento_nacimiento', 'municipio_nacimiento',
-                        'estudiante_creado', 'estudiante_creado__grupo')
+                        'departamento_residencia', 'municipio_residencia',
+                        'estudiante_creado', 'estudiante_creado__grupo', *_CARACT_REL)
         .order_by('primer_apellido', 'primer_nombre')
     )
 
@@ -435,7 +559,7 @@ def exportar_reporte_simat(request):
         Aspirante.objects
         .filter(institucion=institucion, estado=Aspirante.EstadoAdmision.MATRICULADO)
         .select_related('sede', 'grado_aspira', 'etnia_simat', 'eps_simat',
-                        'estudiante_creado', 'estudiante_creado__grupo')
+                        'estudiante_creado', 'estudiante_creado__grupo', *_CARACT_REL)
         .order_by('primer_apellido', 'primer_nombre', 'apellidos')
     )
 
@@ -480,7 +604,7 @@ def _escribir_reporte_delimitado(resp, institucion, delimiter=','):
             'departamento_residencia', 'municipio_residencia',
             'departamento_nacimiento', 'municipio_nacimiento',
             'lugar_expedicion_departamento', 'lugar_expedicion_municipio',
-            'expulsor_departamento', 'expulsor_municipio',
+            'expulsor_departamento', 'expulsor_municipio', *_CARACT_REL,
         )
         .order_by('primer_apellido', 'primer_nombre', 'apellidos')
     )
@@ -670,14 +794,18 @@ def _validar_matricula_simat(institucion, anio):
     sedes = list(institucion.sedes.filter(activa=True))
     if not sedes:
         config.append(_("No hay sedes activas."))
+    unica_sede = len(sedes) == 1
     for s in sedes:
         if not (s.codigo_dane_sede or '').strip():
-            config.append(_("La sede «%(n)s» no tiene Código DANE de sede.") % {'n': s.nombre})
+            # En colegios de ÚNICA sede, el reporte repite el DANE del
+            # establecimiento; solo se exige DANE propio cuando hay varias sedes.
+            if not unica_sede:
+                config.append(_("La sede «%(n)s» no tiene Código DANE de sede.") % {'n': s.nombre})
         else:
             _ds = _solo_digitos(s.codigo_dane_sede)
             if len(_ds) != 12:
                 config.append(_("El Código DANE de la sede «%(n)s» debe tener 12 dígitos (actualmente tiene %(d)s). Corrígelo en Configuración › Sedes.") % {'n': s.nombre, 'd': len(_ds)})
-        if not (s.consecutivo or '').strip():
+        if not (s.consecutivo or '').strip() and not unica_sede:
             config.append(_("La sede «%(n)s» no tiene consecutivo.") % {'n': s.nombre})
 
     # Departamento de la institución (para la Regla 4) = 2 primeros dígitos del ETC.
@@ -689,7 +817,7 @@ def _validar_matricula_simat(institucion, anio):
         Aspirante.objects
         .filter(institucion=institucion, estado=Aspirante.EstadoAdmision.MATRICULADO)
         .select_related('sede', 'grado_aspira', 'municipio_residencia', 'departamento_residencia',
-                        'estudiante_creado', 'estudiante_creado__grupo')
+                        'estudiante_creado', 'estudiante_creado__grupo', *_CARACT_REL)
     )
 
     # Índices para duplicados (Regla 1 y 1.2).
@@ -708,6 +836,9 @@ def _validar_matricula_simat(institucion, anio):
 
     for a in aspirantes:
         nom = _nombre(a)
+        # Datos SIMAT reflejando la ficha del estudiante (caracterización) y no
+        # solo la captura de admisión.
+        d = _datos_simat(a)
         # Regla 1 — documento faltante o duplicado
         if not (a.numero_documento or '').strip():
             errores.append((_("Regla 1 · Documento"), _("%(e)s no tiene número de documento.") % {'e': nom}))
@@ -734,19 +865,21 @@ def _validar_matricula_simat(institucion, anio):
         # Jornada — obligatoria; el MEN rechaza el registro si va vacía. Se
         # valida la jornada EFECTIVA: si el estudiante no tiene una propia,
         # hereda la «Jornada principal» de su sede.
-        if not _jornada_efectiva(a):
+        if not _jornada_efectiva(d):
             errores.append((_("Jornada"), _("%(e)s no tiene jornada. Asígnala en la ficha del estudiante o define la «Jornada principal» de su sede (Configuración › Sedes).") % {'e': nom}))
         # Estrato — obligatorio (0 a 6) para el reporte.
-        if a.estrato in (None, ''):
-            errores.append((_("Estrato"), _("%(e)s no tiene estrato socioeconómico (0 a 6).") % {'e': nom}))
+        if d.estrato in (None, ''):
+            errores.append((_("Estrato"), _("%(e)s no tiene estrato socioeconómico (0 a 6). Complétalo en la ficha del estudiante.") % {'e': nom}))
         # DIVIPOLA de nacimiento y de expedición del documento — obligatorios
-        # para estudiantes de nacionalidad colombiana (país 170).
-        es_colombiano = (a.pais_origen or '170') == '170'
+        # para estudiantes de nacionalidad colombiana (país 170). Se usan los
+        # datos de la ficha; si faltan, el reporte cae a la residencia o al
+        # municipio de la institución (por eso aquí solo es advertencia).
+        es_colombiano = (d.pais_origen or '170') == '170'
         if es_colombiano:
-            if not (a.departamento_nacimiento_id and a.municipio_nacimiento_id):
-                errores.append((_("Lugar de nacimiento"), _("%(e)s no tiene departamento/municipio de nacimiento (DANE).") % {'e': nom}))
-            if not (a.lugar_expedicion_departamento_id and a.lugar_expedicion_municipio_id):
-                errores.append((_("Lugar de expedición"), _("%(e)s no tiene departamento/municipio de expedición del documento (DANE).") % {'e': nom}))
+            if not (d.departamento_nacimiento_id and d.municipio_nacimiento_id):
+                advertencias.append((_("Lugar de nacimiento"), _("%(e)s no tiene departamento/municipio de nacimiento; en el reporte se usará su residencia o el municipio de la institución. Complétalo en la ficha del estudiante.") % {'e': nom}))
+            if not (d.lugar_expedicion_departamento_id and d.lugar_expedicion_municipio_id):
+                advertencias.append((_("Lugar de expedición"), _("%(e)s no tiene departamento/municipio de expedición del documento; en el reporte se usará su residencia o el municipio de la institución.") % {'e': nom}))
         # Regla 3 — edad atípica para el grado
         if a.fecha_nacimiento and gid in _EDAD_ESPERADA:
             edad = anio - a.fecha_nacimiento.year
