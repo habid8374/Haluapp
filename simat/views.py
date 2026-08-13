@@ -78,18 +78,47 @@ def _solo_digitos(valor):
     return ''.join(ch for ch in (valor or '') if ch.isdigit())
 
 
+def _grupo_de(asp):
+    """Grupo/sección (modelo Grupo) asignado al estudiante matriculado, o None.
+
+    El SIMAT deriva sede + jornada + grupo del GRUPO al que se asigna el
+    estudiante; ese es el dato real que fija el operador. Es la fuente primaria."""
+    est = getattr(asp, 'estudiante_creado', None)
+    if est is not None and getattr(est, 'grupo_id', None):
+        return est.grupo
+    return None
+
+
+def _sede_efectiva(asp):
+    """Sede del estudiante para el reporte SIMAT.
+
+    Prioriza la sede del GRUPO/sección asignado (de donde el SIMAT deriva la
+    sede), y si no, la de la ficha/aspirante. Devuelve la Sede o None. No
+    inventa: si el estudiante no tiene grupo ni sede, es None y la validación
+    lo marca para asignarlo a mano."""
+    grupo = _grupo_de(asp)
+    if grupo is not None and getattr(grupo, 'sede_id', None):
+        return grupo.sede
+    return getattr(asp, 'sede', None)
+
+
 def _jornada_efectiva(asp):
     """Jornada del estudiante para el reporte SIMAT (código de choice o '').
 
-    Si el estudiante no tiene jornada propia, HEREDA la «Jornada principal»
-    configurada en su sede. Así basta con fijar la jornada una sola vez en la
-    sede (Configuración › Sedes) y aplica a todos sus estudiantes, sin tener
-    que asignarla estudiante por estudiante.
+    Orden de resolución (todo dato real que fija el colegio, no inventado):
+      1) la jornada del GRUPO/sección asignado (fuente primaria del SIMAT);
+      2) la jornada propia de la ficha/aspirante;
+      3) la «Jornada principal» de la sede efectiva.
+    Si nada de eso existe, devuelve '' y la validación lo marca.
     """
+    grupo = _grupo_de(asp)
+    jg = (getattr(grupo, 'jornada', '') or '').strip() if grupo is not None else ''
+    if jg:
+        return jg
     propia = (getattr(asp, 'jornada', '') or '').strip()
     if propia:
         return propia
-    sede = getattr(asp, 'sede', None)
+    sede = _sede_efectiva(asp)
     return (getattr(sede, 'jornada_principal', '') or '').strip() if sede else ''
 
 
@@ -109,7 +138,7 @@ def _puede_gestionar(user):
 def _fila_aspirante(asp, institucion, anio, contador):
     """Arma el dict de una fila del reporte a partir de un Aspirante matriculado."""
     asp = _datos_simat(asp)  # prioriza la caracterización del estudiante
-    sede = asp.sede
+    sede = _sede_efectiva(asp)
     grado = asp.grado_aspira
     # Etnia: código oficial SIMAT (no la etiqueta). Sin etnia → '0' (NO APLICA).
     etnia = asp.etnia_simat.codigo if asp.etnia_simat_id else '0'
@@ -312,6 +341,7 @@ def _datos_simat(asp):
 # Relaciones a precargar (select_related) para que el proxy _DatosSimat lea la
 # caracterización del estudiante y sus FK sin disparar una consulta por fila.
 _CARACT_REL = (
+    'estudiante_creado__grupo__sede',
     'estudiante_creado__caracterizacion',
     'estudiante_creado__caracterizacion__lugar_expedicion_departamento',
     'estudiante_creado__caracterizacion__lugar_expedicion_municipio',
@@ -332,7 +362,7 @@ def _fila_oficial(asp, institucion, anio, contador):
     """Fila con los nombres/orden EXACTOS del reporte plano del SIMAT. Los campos
     que HALU aún no captura salen vacíos (ver auditoría)."""
     asp = _datos_simat(asp)  # prioriza la caracterización del estudiante
-    sede = asp.sede
+    sede = _sede_efectiva(asp)
     est = getattr(asp, 'estudiante_creado', None)
     if est is not None and getattr(est, 'grupo_id', None):
         grupo_nombre = est.grupo.nombre
@@ -451,7 +481,7 @@ def _fila_anexo6a(asp, institucion):
     """Lista ORDENADA de las 40 columnas del Anexo 6A para un aspirante matriculado.
     Reusa los mismos datos codificados que el reporte oficial."""
     asp = _datos_simat(asp)  # prioriza la caracterización del estudiante
-    sede = asp.sede
+    sede = _sede_efectiva(asp)
     grado = asp.grado_aspira
     est = getattr(asp, 'estudiante_creado', None)
     if est is not None and getattr(est, 'grupo_id', None):
@@ -860,20 +890,28 @@ def _validar_matricula_simat(institucion, anio):
             errores.append((_("Regla 2 · Grado"), _("%(e)s no tiene grado.") % {'e': nom}))
         elif not gid:
             errores.append((_("Regla 2 · Grado"), _("El grado «%(g)s» no tiene ID SIMAT asignado.") % {'g': a.grado_aspira.nombre}))
+        # Sede (columna 2, DANE de sede) — obligatoria. La sede se deriva del
+        # GRUPO/sección del estudiante; si no tiene grupo ni sede, la columna
+        # queda vacía y el MEN la rechaza.
+        sede_est = _sede_efectiva(d)
+        if sede_est is None:
+            errores.append((_("Sede"), _("%(e)s no tiene sede asignada; por eso el DANE de sede sale vacío. Asígnale un Grupo/sección con sede en la ficha del estudiante.") % {'e': nom}))
+        else:
+            _dse = _solo_digitos(getattr(sede_est, 'codigo_dane_sede', ''))
+            if len(_dse) != 12:
+                errores.append((_("DANE de sede"), _("La sede de %(e)s no tiene Código DANE de 12 dígitos. Corrígelo en Configuración › Sedes.") % {'e': nom}))
         # Jornada — obligatoria; el MEN rechaza el registro si va vacía. Se
-        # valida la jornada EFECTIVA: si el estudiante no tiene una propia,
-        # hereda la «Jornada principal» de su sede.
+        # valida la jornada EFECTIVA (grupo → ficha → jornada principal de la sede).
         if not _jornada_efectiva(d):
-            errores.append((_("Jornada"), _("%(e)s no tiene jornada. Asígnala en la ficha del estudiante o define la «Jornada principal» de su sede (Configuración › Sedes).") % {'e': nom}))
+            errores.append((_("Jornada"), _("%(e)s no tiene jornada. Se define con su Grupo/sección, o con la «Jornada principal» de su sede (Configuración › Sedes).") % {'e': nom}))
         # Estrato — obligatorio (0 a 6) para el reporte.
         if d.estrato in (None, ''):
             errores.append((_("Estrato"), _("%(e)s no tiene estrato socioeconómico (0 a 6). Complétalo en la ficha del estudiante.") % {'e': nom}))
-        # Grupo/curso — obligatorio. Se toma del grupo estructurado o del texto
-        # de la ficha; si ambos faltan, hay que asignarlo a mano.
+        # Grupo/curso — obligatorio (de él se derivan sede y jornada).
         _est = getattr(a, 'estudiante_creado', None)
         _grupo = (getattr(_est, 'grupo_id', None) and _est.grupo.nombre) or (d.grupo or '').strip()
         if not _grupo:
-            errores.append((_("Grupo"), _("%(e)s no tiene grupo/curso asignado. Asígnalo en la ficha del estudiante.") % {'e': nom}))
+            errores.append((_("Grupo"), _("%(e)s no tiene grupo/curso asignado (de él se toman la sede y la jornada). Asígnalo en la ficha del estudiante.") % {'e': nom}))
         # País de origen — el SIMAT exige el CÓDIGO DANE, no el nombre. Si el
         # país escrito no se reconoce, no se puede codificar → corregir a mano.
         if _pais_cod(d.pais_origen) == '':
