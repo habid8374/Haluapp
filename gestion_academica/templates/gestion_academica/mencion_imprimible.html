@@ -8,16 +8,15 @@
         @page { size: letter landscape; margin: 0.9cm; }
         body { font-family: {% if es_preescolar %}"Trebuchet MS","Verdana",sans-serif{% else %}"Georgia","Times New Roman",serif{% endif %}; color: #1f2937; margin: 0; padding: 0; }
 
-        /* Paleta según nivel: formal (azul+dorado) / preescolar (verde+naranja) */
+        /* Paleta por nivel: formal (azul+dorado) / preescolar (verde+naranja) */
         .frame-out { width: 100%; border: 7px double {% if es_preescolar %}#16a34a{% else %}#b8860b{% endif %};
                      background-color: {% if es_preescolar %}#fffdf3{% else %}#fbf8f0{% endif %}; }
-        .content   { padding: 16px 40px; text-align: center; }
+        .content   { padding: 16px 44px; text-align: center; }
 
-        .head td   { vertical-align: middle; text-align: center; }
-        .school    { font-size: 19pt; font-weight: bold; color: #0d2a4d; letter-spacing: .5px; margin: 4px 0 0 0; }
-        .platform  { font-size: 8.5pt; color: #6b7280; letter-spacing: 2px; text-transform: uppercase; margin: 2px 0 0 0; }
+        .school    { font-size: 19pt; font-weight: bold; color: #0d2a4d; letter-spacing: .5px; margin: 6px 0 0 0; }
+        .platform  { font-size: 8.5pt; color: #6b7280; letter-spacing: 2px; text-transform: uppercase; margin: 3px 0 0 0; }
+        .rule      { color: {% if es_preescolar %}#ea580c{% else %}#b8860b{% endif %}; font-size: 12pt; letter-spacing: 8px; margin: 8px 0 2px 0; }
 
-        .rule      { color: {% if es_preescolar %}#ea580c{% else %}#b8860b{% endif %}; font-size: 12pt; letter-spacing: 8px; margin: 6px 0 2px 0; }
         .eyebrow   { font-size: {% if es_preescolar %}13pt{% else %}10.5pt{% endif %}; color: {% if es_preescolar %}#ea580c{% else %}#4b5563{% endif %};
                      letter-spacing: 2px; text-transform: uppercase; font-weight: {% if es_preescolar %}bold{% else %}normal{% endif %}; margin: 6px 0 0 0; }
         .title     { font-size: 30pt; font-weight: bold; color: {% if es_preescolar %}#ea580c{% else %}#b8860b{% endif %}; letter-spacing: 3px; margin: 2px 0 4px 0; }
@@ -32,26 +31,17 @@
         .sign-line { border-top: 1.2px solid #374151; }
         .sign-role { font-size: 9.5pt; color: #374151; }
         .sign-name { font-size: 10pt; font-weight: bold; color: #0d2a4d; }
-        .place     { font-size: 9.5pt; font-style: italic; color: #4b5563; margin: 10px 0 0 0; text-align: center; }
+        .place     { font-size: 9.5pt; font-style: italic; color: #4b5563; margin: 8px 0 0 0; text-align: center; }
     </style>
 </head>
 <body>
 <table class="frame-out" cellpadding="0" cellspacing="0"><tr><td class="content">
 
-    <!-- Encabezado: escudo de Colombia · logo del colegio · escarapela de honor -->
-    <table class="head" width="100%" cellpadding="0" cellspacing="0"><tr>
-      <td width="22%">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Coat_of_arms_of_Colombia.svg/480px-Coat_of_arms_of_Colombia.svg.png" style="height: 62px;" alt="Escudo de Colombia">
-      </td>
-      <td width="56%">
-        {% if mencion.institucion.logo %}<img src="{{ mencion.institucion.logo.url }}" style="height: 46px;" alt="{{ mencion.institucion.nombre }}"><br>{% endif %}
-        <div class="school">{{ mencion.institucion.nombre }}</div>
-        <div class="platform">{% if mencion.institucion.ciudad_departamento %}{{ mencion.institucion.ciudad_departamento }} &middot; {% endif %}Rep&uacute;blica de Colombia</div>
-      </td>
-      <td width="22%">
-        <img src="{% static 'img/rosette_honor.png' %}" style="height: 84px;" alt="Mención de Honor">
-      </td>
-    </tr></table>
+    <!-- Encabezado centrado y simétrico: escudo · logo · nombre -->
+    {% if escudo_url %}<img src="{{ escudo_url }}" style="height: 60px;" alt="Escudo de Colombia"><br>{% endif %}
+    {% if mencion.institucion.logo %}<img src="{{ mencion.institucion.logo.url }}" style="height: 46px;" alt="{{ mencion.institucion.nombre }}"><br>{% endif %}
+    <div class="school">{{ mencion.institucion.nombre }}</div>
+    <div class="platform">{% if mencion.institucion.ciudad_departamento %}{{ mencion.institucion.ciudad_departamento }} &middot; {% endif %}Rep&uacute;blica de Colombia</div>
 
     <div class="rule">&#9670; &#9670; &#9670;</div>
 
@@ -69,15 +59,15 @@
       <div class="desc">&ldquo;{{ mencion.descripcion }}&rdquo;</div>
     {% endif %}
 
-    <!-- Firmas + estrella -->
-    <table class="sign" width="86%" align="center" cellpadding="0" cellspacing="0" style="margin: 22px auto 0 auto;"><tr>
-      <td width="42%">
+    <!-- Firmas con la escarapela de honor como sello central -->
+    <table class="sign" width="90%" align="center" cellpadding="0" cellspacing="0" style="margin: 18px auto 0 auto;"><tr>
+      <td width="38%">
         <div class="sign-line"></div>
         <div class="sign-name">&nbsp;</div>
         <div class="sign-role">Rector(a)</div>
       </td>
-      <td width="16%"><span style="color:{% if es_preescolar %}#ea580c{% else %}#b8860b{% endif %};font-size:24pt;">&#9733;</span></td>
-      <td width="42%">
+      <td width="24%"><img src="{% static 'img/rosette_honor.png' %}" style="height: 92px;" alt="Menci&oacute;n de Honor"></td>
+      <td width="38%">
         <div class="sign-line"></div>
         {% if mencion.otorgado_por %}
           <div class="sign-name">{{ mencion.otorgado_por.usuario.get_full_name|default:mencion.otorgado_por.usuario.username }}</div>

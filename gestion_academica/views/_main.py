@@ -6446,10 +6446,23 @@ def generar_mencion_pdf(request, mencion_pk):
         'preescolar', 'prescolar', 'inicial', 'transic', 'jardin', 'jardín', 'kinder', 'kínder', 'parvulo', 'párvulo'
     ))
 
+    # Escudo de Colombia: se muestra SOLO si existe el archivo local
+    # static/img/escudo_colombia.png (embebido, no por URL externa que el motor
+    # de PDF no descarga). En cuanto se suba ese archivo, aparece sin tocar código.
+    escudo_url = ''
+    try:
+        from django.contrib.staticfiles import finders
+        from django.templatetags.static import static as _static
+        if finders.find('img/escudo_colombia.png'):
+            escudo_url = _static('img/escudo_colombia.png')
+    except Exception:
+        escudo_url = ''
+
     context = {
         'mencion': mencion,
         'institucion': mencion.institucion,
         'es_preescolar': es_preescolar,
+        'escudo_url': escudo_url,
     }
 
     template_path = 'gestion_academica/mencion_imprimible.html'
