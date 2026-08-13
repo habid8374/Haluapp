@@ -968,34 +968,44 @@ class MencionReconocimientoForm(forms.ModelForm):
             import datetime as _dt
             self.fields['fecha_otorgamiento'].initial = _dt.date.today()
 
-        # Si no hay un request, o el usuario no es un docente, no hacemos nada especial
-        if not request or not hasattr(request.user, 'docente'):
+        # Sin request no podemos acotar; el superusuario ve todo (multi-tenant).
+        if not request:
+            return
+        self.fields['curso'].required = False
+        user = request.user
+        if user.is_superuser:
             return
 
-        docente = request.user.docente
-        institucion = request.user.institucion_asociada
-        periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=institucion).first()
+        # BLINDAJE MULTI-INSTITUCIÓN: cualquier usuario (coordinador, docente, etc.)
+        # solo puede elegir estudiantes/cursos/períodos de SU institución. Antes,
+        # un usuario NO docente (p. ej. coordinador) veía estudiantes de todos los
+        # colegios porque el filtro solo se aplicaba a docentes.
+        institucion = getattr(user, 'institucion_asociada', None)
+        if institucion is None:
+            self.fields['estudiante'].queryset = Estudiante.objects.none()
+            self.fields['curso'].queryset = Curso.objects.none()
+            self.fields['periodo'].queryset = PeriodoAcademico.objects.none()
+            return
 
+        # Base: todo lo de la propia institución.
+        self.fields['estudiante'].queryset = Estudiante.objects.filter(institucion=institucion)
+        self.fields['curso'].queryset = Curso.objects.filter(institucion=institucion)
+        self.fields['periodo'].queryset = PeriodoAcademico.objects.filter(institucion=institucion)
+
+        periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=institucion).first()
         if periodo_activo:
-            # 2. Lógica CLAVE: Filtramos los cursos para mostrar solo los del docente
+            self.fields['periodo'].initial = periodo_activo
+
+        # Si además es docente, se restringe a SUS cursos/grados del período activo.
+        if hasattr(user, 'docente') and periodo_activo:
+            docente = user.docente
             cursos_docente = Curso.objects.filter(docentes_asignados=docente, periodo_academico=periodo_activo)
             self.fields['curso'].queryset = cursos_docente
-            
-            # 3. Filtramos los estudiantes para mostrar solo los de los cursos del docente
             grados_docente_ids = cursos_docente.values_list('grado_id', flat=True).distinct()
-            self.fields['estudiante'].queryset = Estudiante.objects.filter(grado_actual_id__in=grados_docente_ids, institucion=institucion)
-
-            # 4. Filtramos y seleccionamos por defecto el periodo activo
+            self.fields['estudiante'].queryset = Estudiante.objects.filter(
+                grado_actual_id__in=grados_docente_ids, institucion=institucion
+            )
             self.fields['periodo'].queryset = PeriodoAcademico.objects.filter(pk=periodo_activo.pk)
-            self.fields['periodo'].initial = periodo_activo
-        else:
-            # Si no hay periodo activo, no mostramos opciones para evitar errores
-            self.fields['curso'].queryset = Curso.objects.none()
-            self.fields['estudiante'].queryset = Estudiante.objects.none()
-            self.fields['periodo'].queryset = PeriodoAcademico.objects.none()
-        
-        # Hacemos que el campo curso sea opcional
-        self.fields['curso'].required = False
 
 
 class ArchivoPlanAcademicoForm(forms.ModelForm):
