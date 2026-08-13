@@ -73,6 +73,26 @@ def _cod(mapa, valor):
     return mapa.get(valor or '', '')
 
 
+def _solo_digitos(valor):
+    """Solo los dígitos de un texto (para validar longitudes de códigos DANE)."""
+    return ''.join(ch for ch in (valor or '') if ch.isdigit())
+
+
+def _jornada_efectiva(asp):
+    """Jornada del estudiante para el reporte SIMAT (código de choice o '').
+
+    Si el estudiante no tiene jornada propia, HEREDA la «Jornada principal»
+    configurada en su sede. Así basta con fijar la jornada una sola vez en la
+    sede (Configuración › Sedes) y aplica a todos sus estudiantes, sin tener
+    que asignarla estudiante por estudiante.
+    """
+    propia = (getattr(asp, 'jornada', '') or '').strip()
+    if propia:
+        return propia
+    sede = getattr(asp, 'sede', None)
+    return (getattr(sede, 'jornada_principal', '') or '').strip() if sede else ''
+
+
 def _institucion_de(request):
     """Institución objetivo: la del usuario; superusuario puede pasar ?institucion=."""
     from finanzas.models import InstitucionEducativa
@@ -115,7 +135,7 @@ def _fila_aspirante(asp, institucion, anio, contador):
         'CODIGO_DANE_SEDE': _txt(sede.codigo_dane_sede) if sede else '',
         'CONSECUTIVO': _txt(sede.consecutivo) if sede else '',
         'ZONA_SEDE': _cod(_ZONA_SIMAT, sede.zona) if sede else '',
-        'JORNADA': _cod(_JORNADA_SIMAT, asp.jornada),
+        'JORNADA': _cod(_JORNADA_SIMAT, _jornada_efectiva(asp)),
         'GRADO_COD': _txt(grado.nombre) if grado else '',
         'GRUPO': _txt(grupo_nombre),
         'RENOMBRE': '',
@@ -224,7 +244,7 @@ def _fila_oficial(asp, institucion, anio, contador):
         'etnia_id': asp.etnia_simat.codigo if asp.etnia_simat_id else '0',
         'resguardo_id': _fk_cod(asp.resguardo),
         'institucion_bienestar': _txt(asp.institucion_bienestar),
-        'jornada_id': _cod(_JORNADA_SIMAT, asp.jornada),
+        'jornada_id': _cod(_JORNADA_SIMAT, _jornada_efectiva(asp)),
         'caracter_id': _txt(asp.caracter),
         'especialidad_id': _txt(asp.especialidad),
         'grado_id': _txt(getattr(asp.grado_aspira, 'simat_grado_id', '') if asp.grado_aspira_id else ''),
@@ -342,7 +362,7 @@ def _fila_anexo6a(asp, institucion):
         _txt(asp.telefono_contacto),                                     # 17 TELEFONO
         ('' if (asp.estrato in (None, '')) else _txt(asp.estrato)),      # 18 ESTRATO (0-6)
         _txt(asp.sisben_simat or asp.sisben_grupo),                      # 19 SISBEN
-        _cod(_JORNADA_SIMAT, asp.jornada),                               # 20 JORNADA
+        _cod(_JORNADA_SIMAT, _jornada_efectiva(asp)),                    # 20 JORNADA
         _txt(asp.caracter),                                              # 21 CARACTER
         _txt(asp.especialidad),                                          # 22 ESPECIALIDAD
         grado_id,                                                        # 23 GRADO
@@ -637,6 +657,10 @@ def _validar_matricula_simat(institucion, anio):
     # ── Configuración del establecimiento ──
     if not (institucion.codigo_dane or '').strip():
         config.append(_("Falta el Código DANE de la institución."))
+    else:
+        _d = _solo_digitos(institucion.codigo_dane)
+        if len(_d) != 12:
+            config.append(_("El Código DANE de la institución debe tener 12 dígitos (actualmente tiene %(n)s). Corrígelo en la configuración de la institución.") % {'n': len(_d)})
     if not institucion.simat_municipio_etc_id:
         config.append(_("Falta el municipio (ETC) del SIMAT."))
     if not (institucion.simat_calendario or '').strip():
@@ -649,6 +673,10 @@ def _validar_matricula_simat(institucion, anio):
     for s in sedes:
         if not (s.codigo_dane_sede or '').strip():
             config.append(_("La sede «%(n)s» no tiene Código DANE de sede.") % {'n': s.nombre})
+        else:
+            _ds = _solo_digitos(s.codigo_dane_sede)
+            if len(_ds) != 12:
+                config.append(_("El Código DANE de la sede «%(n)s» debe tener 12 dígitos (actualmente tiene %(d)s). Corrígelo en Configuración › Sedes.") % {'n': s.nombre, 'd': len(_ds)})
         if not (s.consecutivo or '').strip():
             config.append(_("La sede «%(n)s» no tiene consecutivo.") % {'n': s.nombre})
 
@@ -660,7 +688,7 @@ def _validar_matricula_simat(institucion, anio):
     aspirantes = list(
         Aspirante.objects
         .filter(institucion=institucion, estado=Aspirante.EstadoAdmision.MATRICULADO)
-        .select_related('grado_aspira', 'municipio_residencia', 'departamento_residencia',
+        .select_related('sede', 'grado_aspira', 'municipio_residencia', 'departamento_residencia',
                         'estudiante_creado', 'estudiante_creado__grupo')
     )
 
@@ -703,9 +731,22 @@ def _validar_matricula_simat(institucion, anio):
             errores.append((_("Regla 2 · Grado"), _("%(e)s no tiene grado.") % {'e': nom}))
         elif not gid:
             errores.append((_("Regla 2 · Grado"), _("El grado «%(g)s» no tiene ID SIMAT asignado.") % {'g': a.grado_aspira.nombre}))
-        # Jornada / grupo
-        if not (a.jornada or '').strip():
-            advertencias.append((_("Jornada"), _("%(e)s no tiene jornada.") % {'e': nom}))
+        # Jornada — obligatoria; el MEN rechaza el registro si va vacía. Se
+        # valida la jornada EFECTIVA: si el estudiante no tiene una propia,
+        # hereda la «Jornada principal» de su sede.
+        if not _jornada_efectiva(a):
+            errores.append((_("Jornada"), _("%(e)s no tiene jornada. Asígnala en la ficha del estudiante o define la «Jornada principal» de su sede (Configuración › Sedes).") % {'e': nom}))
+        # Estrato — obligatorio (0 a 6) para el reporte.
+        if a.estrato in (None, ''):
+            errores.append((_("Estrato"), _("%(e)s no tiene estrato socioeconómico (0 a 6).") % {'e': nom}))
+        # DIVIPOLA de nacimiento y de expedición del documento — obligatorios
+        # para estudiantes de nacionalidad colombiana (país 170).
+        es_colombiano = (a.pais_origen or '170') == '170'
+        if es_colombiano:
+            if not (a.departamento_nacimiento_id and a.municipio_nacimiento_id):
+                errores.append((_("Lugar de nacimiento"), _("%(e)s no tiene departamento/municipio de nacimiento (DANE).") % {'e': nom}))
+            if not (a.lugar_expedicion_departamento_id and a.lugar_expedicion_municipio_id):
+                errores.append((_("Lugar de expedición"), _("%(e)s no tiene departamento/municipio de expedición del documento (DANE).") % {'e': nom}))
         # Regla 3 — edad atípica para el grado
         if a.fecha_nacimiento and gid in _EDAD_ESPERADA:
             edad = anio - a.fecha_nacimiento.year
