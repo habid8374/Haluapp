@@ -206,49 +206,56 @@ def _fk_cod(obj):
     return obj.codigo if obj else ''
 
 
-def _dane_sede(asp, institucion):
-    """DANE de la sede (12 dígitos). Si la sede no tiene código propio —caso de
-    los colegios de ÚNICA sede— se repite el DANE del establecimiento, tal como
-    exige el SIMAT; así la columna 2 nunca queda vacía."""
-    sede = getattr(asp, 'sede', None)
-    propio = (getattr(sede, 'codigo_dane_sede', '') or '').strip() if sede else ''
-    return propio or (institucion.codigo_dane or '')
+# Códigos de país del SIMAT = ISO 3166-1 numérico (el MEN exige el CÓDIGO, no el
+# nombre). Confirmado con la tabla oficial: Argentina 032, Bolivia 068,
+# Brasil 076, Canadá 124, Colombia 170, Ecuador 218, Estados Unidos 840,
+# México 484, Panamá 591, Paraguay 600, Perú 604, Uruguay 858, Venezuela 862.
+# Se añaden otros orígenes frecuentes con su mismo código ISO. NO se inventa:
+# solo se traduce el país real de la ficha a su código.
+_PAIS_SIMAT = {
+    'ARGENTINA': '032',
+    'BOLIVIA': '068',
+    'BRASIL': '076',
+    'CANADA': '124',
+    'COLOMBIA': '170',
+    'ECUADOR': '218',
+    'ESTADOS UNIDOS': '840', 'USA': '840', 'EEUU': '840', 'EE UU': '840',
+    'MEXICO': '484',
+    'PANAMA': '591',
+    'PARAGUAY': '600',
+    'PERU': '604',
+    'URUGUAY': '858',
+    'VENEZUELA': '862',
+    # Otros orígenes frecuentes (mismo estándar ISO 3166-1 numérico):
+    'ESPANA': '724',
+    'CHILE': '152',
+    'CUBA': '192',
+    'HAITI': '332',
+    'REPUBLICA DOMINICANA': '214',
+    'NICARAGUA': '558',
+    'COSTA RICA': '188',
+    'GUATEMALA': '320',
+    'HONDURAS': '340',
+    'EL SALVADOR': '222',
+}
 
 
-def _lugar_con_respaldo(dep_obj, mun_obj, asp, institucion):
-    """Mejor par (codigo_departamento, codigo_municipio) para un lugar territorial
-    (nacimiento o expedición) sin dejar la columna vacía. Prioridad:
-      1) el lugar propio del estudiante (si está capturado);
-      2) su municipio de RESIDENCIA (dato real capturado en la admisión);
-      3) el municipio de la institución (ETC), como respaldo final.
-    El MEN rechaza estas columnas si van vacías, por eso siempre se entrega el
-    mejor dato disponible (la validación avisa cuando se usó un respaldo)."""
-    if dep_obj and mun_obj:
-        return (dep_obj.codigo or ''), (mun_obj.codigo or '')
-    dep_r = getattr(asp, 'departamento_residencia', None)
-    mun_r = getattr(asp, 'municipio_residencia', None)
-    if dep_r and mun_r:
-        return (dep_r.codigo or ''), (mun_r.codigo or '')
-    etc = institucion.simat_municipio_etc if getattr(institucion, 'simat_municipio_etc_id', None) else None
-    if etc:
-        cod = _solo_digitos(etc.codigo)
-        if len(cod) >= 5:
-            return cod[:2], cod
-        if len(cod) >= 2:
-            return cod[:2], ''
-    return '', ''
+def _pais_cod(valor):
+    """Traduce el país (texto de la ficha) al código DANE que exige el SIMAT.
 
-
-def _fmt_depto2(cod):
-    """Código DANE de departamento a 2 dígitos, a partir de un string de código."""
-    cod = cod or ''
-    return cod.zfill(2) if cod.isdigit() else cod
-
-
-def _fmt_mpio3(cod):
-    """Código DANE de municipio a 3 dígitos (últimos 3), desde un string."""
-    cod = cod or ''
-    return cod[-3:].zfill(3) if cod.isdigit() else cod
+    - Vacío → '170' (Colombia; la ficha indica «dejar en blanco si es Colombia»).
+    - Ya numérico → se respeta tal cual.
+    - Nombre conocido → su código DANE.
+    - Nombre no reconocido → '' (la validación lo marca para corregir a mano).
+    No inventa: solo convierte el dato real a su código."""
+    import unicodedata
+    s = (valor or '').strip()
+    if not s:
+        return '170'
+    if s.isdigit():
+        return s
+    norm = ''.join(c for c in unicodedata.normalize('NFKD', s) if not unicodedata.combining(c)).upper().strip()
+    return _PAIS_SIMAT.get(norm, '')
 
 
 class _DatosSimat:
@@ -333,25 +340,23 @@ def _fila_oficial(asp, institucion, anio, contador):
         grupo_nombre = asp.grupo
     etc = institucion.simat_municipio_etc.codigo if institucion.simat_municipio_etc_id else ''
     tipo_victima = _cod(_VICTIMA_SIMAT, asp.tipo_poblacion_victima) if asp.victima_conflicto else '99'
-    exp_dep, exp_mun = _lugar_con_respaldo(asp.lugar_expedicion_departamento, asp.lugar_expedicion_municipio, asp, institucion)
-    nac_dep, nac_mun = _lugar_con_respaldo(asp.departamento_nacimiento, asp.municipio_nacimiento, asp, institucion)
     return {
         'simat_anexo_id': '',
         'anio': anio,
         'municipio_id': _txt(etc),
         'dane': _txt(institucion.codigo_dane),
-        'dane_sede': _txt(_dane_sede(asp, institucion)),
-        'consecutivo_sede': _txt(sede.consecutivo) if sede else '1',
+        'dane_sede': _txt(sede.codigo_dane_sede) if sede else '',
+        'consecutivo_sede': _txt(sede.consecutivo) if sede else '',
         'sede': _txt(sede.nombre) if sede else '',
         'prestacion_servicio': _txt(getattr(institucion, 'simat_prestacion_servicio', '')),
-        'expedicion_departamento_id': _txt(exp_dep),
-        'expedicion_municipio_id': _txt(exp_mun),
+        'expedicion_departamento_id': _fk_cod(asp.lugar_expedicion_departamento),
+        'expedicion_municipio_id': _fk_cod(asp.lugar_expedicion_municipio),
         'dir_departamento_id': _fk_cod(asp.departamento_residencia),
         'dir_municipio_id': _fk_cod(asp.municipio_residencia),
         'estrato_id': (_txt(asp.estrato) if asp.estrato and asp.estrato != '0' else ''),
-        'sisben': _txt(asp.sisben_simat),
-        'nacimiento_departamento_id': _txt(nac_dep),
-        'nacimiento_municipio_id': _txt(nac_mun),
+        'sisben': _txt(asp.sisben_simat).upper(),
+        'nacimiento_departamento_id': _fk_cod(asp.departamento_nacimiento),
+        'nacimiento_municipio_id': _fk_cod(asp.municipio_nacimiento),
         'genero_id': _cod(_GENERO_SIMAT, asp.sexo),
         'tipo_victima_id': tipo_victima,
         'expulsor_departamento_id': _fk_cod(asp.expulsor_departamento),
@@ -387,7 +392,7 @@ def _fila_oficial(asp, institucion, anio, contador):
         'men_per_id': _txt(asp.simat_per_id),
         'apoyo_acad_esp': _si_no(asp.apoyo_academico_especial),
         'sist_resp_penal': _si_no(asp.srpa),
-        'pais_origen': _txt(asp.pais_origen),
+        'pais_origen': _pais_cod(asp.pais_origen),
         'trastorno_id': '',
         'fecha_anexo': '',
         'tipo_anexo_id': '',
@@ -462,29 +467,26 @@ def _fila_anexo6a(asp, institucion):
     veterano_heroe = _bin(getattr(asp, 'beneficiario_veterano', False)) == '1' \
         or _bin(getattr(asp, 'beneficiario_heroe', False)) == '1'
     grado_id = _txt(getattr(grado, 'simat_grado_id', '') if grado else '')
-    # DIVIPOLA con respaldo (nunca vacío): lugar propio → residencia → institución.
-    exp_dep, exp_mun = _lugar_con_respaldo(asp.lugar_expedicion_departamento, asp.lugar_expedicion_municipio, asp, institucion)
-    nac_dep, nac_mun = _lugar_con_respaldo(asp.departamento_nacimiento, asp.municipio_nacimiento, asp, institucion)
     return [
         _txt(institucion.codigo_dane),                                   # 1  DANE_ESTABLECIMIENTO
-        _txt(_dane_sede(asp, institucion)),                              # 2  DANE_SEDE
-        _txt(sede.consecutivo) if sede and sede.consecutivo else '1',    # 3  CONSECUTIVO_SEDE
+        _txt(sede.codigo_dane_sede) if sede else '',                     # 2  DANE_SEDE
+        _txt(sede.consecutivo) if sede else '1',                         # 3  CONSECUTIVO_SEDE
         _cod(_TIPODOC_SIMAT, asp.tipo_documento),                        # 4  TIPO_DOCUMENTO
         _txt(asp.numero_documento),                                      # 5  NUMERO_DOCUMENTO
-        _fmt_depto2(exp_dep),                                            # 6  EXPEDICION_DEPTO
-        _fmt_mpio3(exp_mun),                                             # 7  EXPEDICION_MUNICIPIO
+        _depto2(asp.lugar_expedicion_departamento),                      # 6  EXPEDICION_DEPTO
+        _mpio3(asp.lugar_expedicion_municipio),                          # 7  EXPEDICION_MUNICIPIO
         _san(asp.primer_nombre),                                         # 8  PRIMER_NOMBRE
         _san(asp.segundo_nombre),                                        # 9  SEGUNDO_NOMBRE
         _san(asp.primer_apellido),                                       # 10 PRIMER_APELLIDO
         _san(asp.segundo_apellido),                                      # 11 SEGUNDO_APELLIDO
         _dmy(asp.fecha_nacimiento),                                      # 12 FECHA_NACIMIENTO
-        _fmt_depto2(nac_dep),                                            # 13 NACIMIENTO_DEPTO
-        _fmt_mpio3(nac_mun),                                             # 14 NACIMIENTO_MUNICIPIO
+        _depto2(asp.departamento_nacimiento),                            # 13 NACIMIENTO_DEPTO
+        _mpio3(asp.municipio_nacimiento),                                # 14 NACIMIENTO_MUNICIPIO
         _cod(_GENERO_SIMAT, asp.sexo),                                   # 15 GENERO
         _san(asp.direccion),                                             # 16 DIRECCION_RESIDENCIA
         _txt(asp.telefono_contacto),                                     # 17 TELEFONO
         ('' if (asp.estrato in (None, '')) else _txt(asp.estrato)),      # 18 ESTRATO (0-6)
-        _txt(asp.sisben_simat or asp.sisben_grupo),                      # 19 SISBEN
+        _txt(asp.sisben_simat or asp.sisben_grupo).upper(),              # 19 SISBEN (en mayúsculas)
         _cod(_JORNADA_SIMAT, _jornada_efectiva(asp)),                    # 20 JORNADA
         _txt(asp.caracter),                                              # 21 CARACTER
         _txt(asp.especialidad),                                          # 22 ESPECIALIDAD
@@ -501,7 +503,7 @@ def _fila_anexo6a(asp, institucion):
         resguardo,                                                       # 33 RESGUARDO
         _bin(asp.srpa),                                                  # 34 SIST_RESPONSABILIDAD_PENAL
         _bin(asp.apoyo_academico_especial),                             # 35 APOYO_ACADEMICO_ESPECIAL
-        _txt(asp.pais_origen or '170'),                                 # 36 PAIS_ORIGEN (170=Colombia)
+        _pais_cod(asp.pais_origen),                                     # 36 PAIS_ORIGEN (código DANE; 170=Colombia)
         '99',                                                            # 37 TRASTORNO (no capturado → 99)
         _bin(asp.campesino),                                             # 38 POBLACION_CAMPESINA
         _bin(getattr(asp, 'hijo_madre_cabeza_familia', False)),         # 39 HIJO_MADRE_CABEZA_FAMILIA
@@ -794,19 +796,15 @@ def _validar_matricula_simat(institucion, anio):
     sedes = list(institucion.sedes.filter(activa=True))
     if not sedes:
         config.append(_("No hay sedes activas."))
-    unica_sede = len(sedes) == 1
     for s in sedes:
         if not (s.codigo_dane_sede or '').strip():
-            # En colegios de ÚNICA sede, el reporte repite el DANE del
-            # establecimiento; solo se exige DANE propio cuando hay varias sedes.
-            if not unica_sede:
-                config.append(_("La sede «%(n)s» no tiene Código DANE de sede.") % {'n': s.nombre})
+            config.append(_("La sede «%(n)s» no tiene Código DANE de sede. Ingrésalo en Configuración › Sedes.") % {'n': s.nombre})
         else:
             _ds = _solo_digitos(s.codigo_dane_sede)
             if len(_ds) != 12:
                 config.append(_("El Código DANE de la sede «%(n)s» debe tener 12 dígitos (actualmente tiene %(d)s). Corrígelo en Configuración › Sedes.") % {'n': s.nombre, 'd': len(_ds)})
-        if not (s.consecutivo or '').strip() and not unica_sede:
-            config.append(_("La sede «%(n)s» no tiene consecutivo.") % {'n': s.nombre})
+        if not (s.consecutivo or '').strip():
+            config.append(_("La sede «%(n)s» no tiene consecutivo. Ingrésalo en Configuración › Sedes.") % {'n': s.nombre})
 
     # Departamento de la institución (para la Regla 4) = 2 primeros dígitos del ETC.
     depto_inst = ''
@@ -870,16 +868,26 @@ def _validar_matricula_simat(institucion, anio):
         # Estrato — obligatorio (0 a 6) para el reporte.
         if d.estrato in (None, ''):
             errores.append((_("Estrato"), _("%(e)s no tiene estrato socioeconómico (0 a 6). Complétalo en la ficha del estudiante.") % {'e': nom}))
+        # Grupo/curso — obligatorio. Se toma del grupo estructurado o del texto
+        # de la ficha; si ambos faltan, hay que asignarlo a mano.
+        _est = getattr(a, 'estudiante_creado', None)
+        _grupo = (getattr(_est, 'grupo_id', None) and _est.grupo.nombre) or (d.grupo or '').strip()
+        if not _grupo:
+            errores.append((_("Grupo"), _("%(e)s no tiene grupo/curso asignado. Asígnalo en la ficha del estudiante.") % {'e': nom}))
+        # País de origen — el SIMAT exige el CÓDIGO DANE, no el nombre. Si el
+        # país escrito no se reconoce, no se puede codificar → corregir a mano.
+        if _pais_cod(d.pais_origen) == '':
+            errores.append((_("País de origen"), _("%(e)s tiene un país de origen no reconocido («%(p)s»); no se puede convertir al código del MEN. Corrígelo en la ficha del estudiante.") % {'e': nom, 'p': d.pais_origen}))
         # DIVIPOLA de nacimiento y de expedición del documento — obligatorios
-        # para estudiantes de nacionalidad colombiana (país 170). Se usan los
-        # datos de la ficha; si faltan, el reporte cae a la residencia o al
-        # municipio de la institución (por eso aquí solo es advertencia).
-        es_colombiano = (d.pais_origen or '170') == '170'
+        # para estudiantes de nacionalidad colombiana. Si faltan, se dejan
+        # VACÍOS en el reporte y se marca ERROR: son datos reales que debe
+        # diligenciar una persona en la ficha del estudiante.
+        es_colombiano = _pais_cod(d.pais_origen) == '170'
         if es_colombiano:
             if not (d.departamento_nacimiento_id and d.municipio_nacimiento_id):
-                advertencias.append((_("Lugar de nacimiento"), _("%(e)s no tiene departamento/municipio de nacimiento; en el reporte se usará su residencia o el municipio de la institución. Complétalo en la ficha del estudiante.") % {'e': nom}))
+                errores.append((_("Lugar de nacimiento"), _("%(e)s no tiene departamento/municipio de nacimiento (DANE). Complétalo en la ficha del estudiante.") % {'e': nom}))
             if not (d.lugar_expedicion_departamento_id and d.lugar_expedicion_municipio_id):
-                advertencias.append((_("Lugar de expedición"), _("%(e)s no tiene departamento/municipio de expedición del documento; en el reporte se usará su residencia o el municipio de la institución.") % {'e': nom}))
+                errores.append((_("Lugar de expedición"), _("%(e)s no tiene departamento/municipio de expedición del documento (DANE). Complétalo en la ficha del estudiante.") % {'e': nom}))
         # Regla 3 — edad atípica para el grado
         if a.fecha_nacimiento and gid in _EDAD_ESPERADA:
             edad = anio - a.fecha_nacimiento.year
