@@ -941,7 +941,10 @@ class MencionReconocimientoForm(forms.ModelForm):
             'periodo': forms.Select(attrs={'class': 'form-select'}),
             'tipo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Mérito Deportivo, Excelencia Académica'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'fecha_otorgamiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            # type=date exige que el value se renderice en ISO (%Y-%m-%d); sin el
+            # format explícito, en español se renderiza como dd/mm/aaaa y el
+            # navegador BORRA la fecha (no la puede leer), rompiendo el guardado.
+            'fecha_otorgamiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
         }
         labels = {
             'estudiante': _('Estudiante Reconocido'),
@@ -956,6 +959,14 @@ class MencionReconocimientoForm(forms.ModelForm):
         # Extraemos el 'request' que le pasamos desde la vista
         request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        # La fecha nativa (type=date) siempre intercambia en formato ISO; aceptamos
+        # también dd/mm/aaaa por compatibilidad. Evita que la fecha se "borre".
+        self.fields['fecha_otorgamiento'].input_formats = ['%Y-%m-%d', '%d/%m/%Y']
+        # En una mención nueva, prellenar con hoy para que no quede vacía por error.
+        if not (self.instance and self.instance.pk) and not self.initial.get('fecha_otorgamiento'):
+            import datetime as _dt
+            self.fields['fecha_otorgamiento'].initial = _dt.date.today()
 
         # Si no hay un request, o el usuario no es un docente, no hacemos nada especial
         if not request or not hasattr(request.user, 'docente'):
