@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Halu Plataforma Escolar\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-09 15:09-0500\n"
+"POT-Creation-Date: 2026-08-13 06:36-0500\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -550,6 +550,14 @@ msgid "Describir imágenes (IA)"
 msgstr "Describe images (AI)"
 
 msgid ""
+"Genera con IA una audio-descripción detallada de las imágenes, para "
+"estudiantes que no las ven"
+msgstr "Use AI to generate a detailed audio description of the images, for students who cannot see them"
+
+msgid "Audio-describir imágenes (IA)"
+msgstr "Audio-describe images (AI)"
+
+msgid ""
 "Genera con IA la transcripción (subtítulo) de los audios de las preguntas"
 msgstr "Use AI to generate the transcription (subtitle) of the question audios"
 
@@ -856,11 +864,11 @@ msgstr "The image could not be uploaded."
 msgid "No se pudo subir el audio."
 msgstr "The audio could not be uploaded."
 
-msgid "Transcribiendo…"
-msgstr "Transcribing…"
+msgid "Describiendo…"
+msgstr "Describing…"
 
-msgid "Transcripción de audios"
-msgstr "Audio transcription"
+msgid "Audio-descripción de imágenes"
+msgstr "Image audio description"
 
 msgid "No se pudo"
 msgstr "Could not be done"
@@ -868,8 +876,11 @@ msgstr "Could not be done"
 msgid "No se pudo conectar."
 msgstr "Could not connect."
 
-msgid "Describiendo…"
-msgstr "Describing…"
+msgid "Transcribiendo…"
+msgstr "Transcribing…"
+
+msgid "Transcripción de audios"
+msgstr "Audio transcription"
 
 msgid "Descripciones de imágenes"
 msgstr "Image descriptions"
@@ -958,6 +969,9 @@ msgstr "Enter your numeric answer"
 
 msgid "Escribe solo el número (puedes usar decimales)."
 msgstr "Enter only the number (decimals allowed)."
+
+msgid "Audio-descripción de la imagen"
+msgstr "Image audio description"
 
 msgid "Ver transcripción"
 msgstr "View transcription"
@@ -2869,7 +2883,8 @@ msgstr "Easy-read description (AI)"
 msgid ""
 "Versión simplificada de las instrucciones, generada con IA para apoyo a la "
 "lectura."
-msgstr "Simplified version of the instructions, generated with AI to support reading."
+msgstr ""
+"Simplified version of the instructions, generated with AI to support reading."
 
 msgid "Material de Apoyo Adjunto (Opcional)"
 msgstr "Attached supporting material (Optional)"
@@ -3126,7 +3141,8 @@ msgstr "Easy-read observation (AI)"
 msgid ""
 "Versión simplificada de la observación, generada con IA para apoyo a la "
 "lectura."
-msgstr "Simplified version of the observation, generated with AI to support reading."
+msgstr ""
+"Simplified version of the observation, generated with AI to support reading."
 
 msgid "Nombre del Desempeño (Ej: Superior, Alto)"
 msgstr "Performance name (e.g.: Superior, High)"
@@ -4135,6 +4151,425 @@ msgstr "There are no students assigned to this course."
 msgid "Verifica que el grado tenga estudiantes activos registrados."
 msgstr "Check that the grade has active students registered."
 
+msgid "Centro de Ayuda del Docente"
+msgstr "Teacher Help Center"
+
+msgid ""
+"Manual completo de tu portal: planeación, evaluación y calificación, "
+"recursos, inclusión y accesibilidad. Todo se hace con botones dentro de la "
+"plataforma."
+msgstr "Complete manual of your portal: planning, assessment and grading, resources, inclusion and accessibility. Everything is done with buttons inside the platform."
+
+msgid "Buscar (ej. deber, notas, audio, simulacro, PIAR)…"
+msgstr "Search (e.g. assignment, grades, audio, mock exam, PIAR)…"
+
+msgid ""
+"Consejo: la ruta en azul te dice dónde encontrar cada herramienta en el menú "
+"de la izquierda."
+msgstr "Tip: the blue path tells you where to find each tool in the left menu."
+
+msgid "Inicio y comunicación"
+msgstr "Home and communication"
+
+msgid "Mi Panel Principal"
+msgstr "My Main Panel"
+
+msgid "Panel de Docente › Mi Panel Principal"
+msgstr "Teacher Panel › My Main Panel"
+
+msgid ""
+"Es tu pantalla de inicio: resume tus cursos, tareas pendientes por "
+"calificar, avisos y accesos rápidos. Empieza siempre aquí."
+msgstr "This is your home screen: it summarizes your courses, pending grading, notices and quick links. Always start here."
+
+msgid "Mensajes"
+msgstr "Messages"
+
+msgid "Panel de Docente › Mensajes"
+msgstr "Teacher Panel › Messages"
+
+msgid ""
+"Mensajería interna con coordinación, colegas y familias. El número rojo "
+"indica mensajes sin leer."
+msgstr "Internal messaging with coordination, colleagues and families. The red number shows unread messages."
+
+msgid "Planeación de clases"
+msgstr "Lesson planning"
+
+msgid "Planeador de Clases (IA)"
+msgstr "Lesson Planner (AI)"
+
+msgid "Centro de Gestión › Planeador de Clases (IA)"
+msgstr "Management Center › Lesson Planner (AI)"
+
+msgid ""
+"La IA te ayuda a redactar una clase: escribe el tema, el grado y los "
+"objetivos, y genera una propuesta que puedes editar y guardar."
+msgstr "AI helps you draft a lesson: enter the topic, grade and objectives, and it generates a proposal you can edit and save."
+
+msgid "Mis Planes Semanales"
+msgstr "My Weekly Plans"
+
+msgid "Centro de Gestión › Mis Planes Semanales"
+msgstr "Management Center › My Weekly Plans"
+
+msgid ""
+"Registra lo que trabajarás cada semana. Flujo: Borrador → Enviado → Aprobado "
+"(o Con observaciones) por el coordinador. Un ítem del plan se puede "
+"convertir en Deber o en Evaluación con un clic."
+msgstr "Record what you will work on each week. Flow: Draft → Sent → Approved (or With remarks) by the coordinator. A plan item can be turned into an Assignment or an Evaluation with one click."
+
+msgid "Historial de Lecciones"
+msgstr "Lesson History"
+
+msgid "Centro de Gestión › Historial de Lecciones"
+msgstr "Management Center › Lesson History"
+
+msgid ""
+"Consulta las lecciones que has dictado por curso, como registro de lo "
+"trabajado."
+msgstr "Review the lessons you have taught per course, as a record of what was covered."
+
+msgid "Mi Disponibilidad"
+msgstr "My Availability"
+
+msgid "Centro de Gestión › Mi Disponibilidad"
+msgstr "Management Center › My Availability"
+
+msgid ""
+"Indica tus horas libres para que coordinación pueda agendar reuniones o "
+"citas contigo."
+msgstr "Set your free hours so coordination can schedule meetings or appointments with you."
+
+msgid "Evaluación y calificación"
+msgstr "Assessment and grading"
+
+msgid "Categorías de Actividad"
+msgstr "Activity Categories"
+
+msgid "Centro de Gestión › Categorías de Actividad"
+msgstr "Management Center › Activity Categories"
+
+msgid ""
+"Define categorías (Saber Ser, Saber Hacer, etc.) y su porcentaje. Cada "
+"evaluación o deber usa una categoría; eso determina cuánto pesa la nota en "
+"el boletín. Sin categoría, la nota no cuenta."
+msgstr "Define categories (Saber Ser, Saber Hacer, etc.) and their percentage. Each evaluation or assignment uses a category; that determines how much the grade weighs on the report card. Without a category, the grade does not count."
+
+msgid "Evaluaciones (cuestionarios)"
+msgstr "Evaluations (quizzes)"
+
+msgid "Centro de Gestión › Evaluaciones"
+msgstr "Management Center › Evaluations"
+
+msgid "Crea una actividad evaluable y abre su editor de cuestionario."
+msgstr "Create a gradable activity and open its quiz editor."
+
+msgid ""
+"Agrega preguntas de muchos tipos: opción única/múltiple, verdadero/falso, "
+"texto libre, emparejar, completar, clasificar, etiquetar imagen, zonas "
+"activas, ordenar, mapa conceptual y respuesta numérica."
+msgstr "Add many question types: single/multiple choice, true/false, free text, matching, fill-in, classify, label image, hotspots, ordering, concept map and numeric answer."
+
+msgid ""
+"Puedes usar <kbd class=\"btn-demo\">Generar con IA</kbd> para crear "
+"preguntas a partir de un tema, y agregar imágenes o audios de apoyo por "
+"pregunta."
+msgstr "You can use <kbd class=\"btn-demo\">Generate with AI</kbd> to create questions from a topic, and add support images or audios per question."
+
+msgid ""
+"Define tiempo límite e intentos permitidos. Al finalizar, la nota se "
+"registra sola en el libro de notas."
+msgstr "Set a time limit and allowed attempts. When finished, the grade is recorded automatically in the gradebook."
+
+msgid ""
+"Accesibilidad: mira la sección «Inclusión y accesibilidad» para audios con "
+"subtítulos, lectura fácil y describir imágenes."
+msgstr "Accessibility: see the “Inclusion and accessibility” section for subtitled audios, easy read and describing images."
+
+msgid "Gestionar Deberes / Tareas"
+msgstr "Manage Assignments / Tasks"
+
+msgid "Centro de Gestión › Gestionar Deberes"
+msgstr "Management Center › Manage Assignments"
+
+msgid ""
+"Crea tareas con título, instrucciones, fecha límite, categoría y material "
+"adjunto (y, opcionalmente, un audio de apoyo). Los estudiantes entregan "
+"desde su portal."
+msgstr "Create tasks with a title, instructions, due date, category and attachment (and, optionally, a support audio). Students submit from their portal."
+
+msgid "Entregas por Calificar"
+msgstr "Submissions to Grade"
+
+msgid "Centro de Gestión › Entregas por Calificar"
+msgstr "Management Center › Submissions to Grade"
+
+msgid ""
+"Lista de entregas pendientes de nota. Ábrelas, revisa el archivo del "
+"estudiante, asigna la calificación y deja comentarios. En preguntas "
+"abiertas, la IA puede sugerirte una nota."
+msgstr "List of submissions pending grading. Open them, review the student's file, assign the grade and leave comments. For open questions, AI can suggest a grade."
+
+msgid "Historial de Entregas"
+msgstr "Submission History"
+
+msgid "Centro de Gestión › Historial de Entregas"
+msgstr "Management Center › Submission History"
+
+msgid ""
+"Consulta todas las entregas ya recibidas y calificadas, con su estado y "
+"notas."
+msgstr "Review all submissions already received and graded, with their status and grades."
+
+msgid "Libro de Notas"
+msgstr "Gradebook"
+
+msgid "Centro de Gestión › Libro de Notas"
+msgstr "Management Center › Gradebook"
+
+msgid ""
+"Selecciona el curso y registra o ajusta las calificaciones de tus "
+"estudiantes por actividad y período. Es la base del boletín."
+msgstr "Select the course and record or adjust your students' grades by activity and term. It is the basis of the report card."
+
+msgid "Gestionar Descriptores"
+msgstr "Manage Descriptors"
+
+msgid "Centro de Gestión › Gestionar Descriptores"
+msgstr "Management Center › Manage Descriptors"
+
+msgid ""
+"Administra los descriptores de logro/indicadores que se usan en la "
+"evaluación y en el boletín."
+msgstr "Manage the achievement descriptors/indicators used in the evaluation and on the report card."
+
+msgid "Reporte Nota Mínima y Reporte Global de Riesgo"
+msgstr "Minimum Grade Report and Global Risk Report"
+
+msgid "Centro de Gestión › Reporte Nota Mínima / Reporte Global de Riesgo"
+msgstr "Management Center › Minimum Grade Report / Global Risk Report"
+
+msgid ""
+"Identifican estudiantes con desempeño bajo o en riesgo, para que puedas "
+"intervenir a tiempo. Elige el curso y revisa el listado."
+msgstr "They identify students with low performance or at risk, so you can act in time. Choose the course and review the list."
+
+msgid "Simulacros e inclusión (PIAR)"
+msgstr "Mock exams and inclusion (PIAR)"
+
+msgid "Simulacros Saber"
+msgstr "Saber Mock Exams"
+
+msgid "Centro de Gestión › Simulacros Saber"
+msgstr "Management Center › Saber Mock Exams"
+
+msgid ""
+"Arma pruebas tipo ICFES desde un banco de preguntas (público o propio), "
+"publícalas para tus estudiantes y revisa los resultados. También puedes "
+"generar preguntas con IA e importarlas desde Excel."
+msgstr "Build ICFES-style tests from a question bank (public or your own), publish them for your students and review the results. You can also generate questions with AI and import them from Excel."
+
+msgid "PIARs / Inclusión"
+msgstr "Individual Learning Plans / Inclusion"
+
+msgid "Centro de Gestión › PIARs / Inclusión"
+msgstr "Management Center › PIARs / Inclusion"
+
+msgid ""
+"Plan Individual de Ajustes Razonables (Decreto 1421). Consulta el PIAR de un "
+"estudiante y registra los ajustes por materia y período, marcando si se "
+"alcanzaron. La creación del PIAR la hace coordinación/orientación."
+msgstr "Individual Reasonable Adjustment Plan (Decree 1421). Review a student's PIAR and record the adjustments by subject and term, marking whether they were achieved. The PIAR is created by coordination/counseling."
+
+msgid "Seguimiento y convivencia"
+msgstr "Follow-up and conduct"
+
+msgid "Observador del estudiante"
+msgstr "Student observer"
+
+msgid "Centro de Gestión › Observador"
+msgstr "Management Center › Observer"
+
+msgid ""
+"Registra anotaciones de convivencia por estudiante. El sistema ayuda a "
+"clasificar la situación (tipo I, II o III, Ley 1620) y avisa a coordinación "
+"cuando corresponde."
+msgstr "Record conduct notes per student. The system helps classify the situation (type I, II or III, Law 1620) and notifies coordination when appropriate."
+
+msgid "Menciones y Honores"
+msgstr "Recognitions and Honors"
+
+msgid "Centro de Gestión › Menciones y Honores"
+msgstr "Management Center › Mentions and Honors"
+
+msgid ""
+"Reconoce logros de tus estudiantes con menciones que quedan registradas en "
+"su historial."
+msgstr "Recognize your students' achievements with mentions recorded in their history."
+
+msgid "Mi Evaluación (desempeño docente)"
+msgstr "My Evaluation (teacher performance)"
+
+msgid "Centro de Gestión › Mi Evaluación"
+msgstr "Management Center › My Evaluation"
+
+msgid ""
+"Consulta tu propio proceso de evaluación de desempeño dentro de la "
+"institución."
+msgstr "Review your own performance evaluation process within the institution."
+
+msgid "Asistir en Otro Curso"
+msgstr "Cover Another Course"
+
+msgid "Panel de Docente › Asistir en Otro Curso"
+msgstr "Teacher Panel › Assist in Another Course"
+
+msgid ""
+"Te permite tomar asistencia en un curso que no es el tuyo (por ejemplo, "
+"cuando reemplazas a un colega)."
+msgstr "Lets you take attendance in a course that is not yours (for example, when you cover for a colleague)."
+
+msgid "Materiales de Apoyo"
+msgstr "Support Materials"
+
+msgid "Centro de Gestión › Materiales de Apoyo"
+msgstr "Management Center › Support Materials"
+
+msgid "Sube y comparte materiales (documentos, enlaces) para tus estudiantes."
+msgstr "Upload and share materials (documents, links) for your students."
+
+msgid "Recursos interactivos"
+msgstr "Interactive resources"
+
+msgid "Juegos y actividades para practicar"
+msgstr "Games and activities to practice"
+
+msgid "Panel de Docente › Recursos Interactivos"
+msgstr "Teacher Panel › Interactive Resources"
+
+msgid "Crea actividades lúdicas para reforzar temas:"
+msgstr "Create playful activities to reinforce topics:"
+
+msgid "Crucigramas, Sopas de Letras, Juegos de Memoria y Flash Cards."
+msgstr "Crosswords, Word Searches, Memory Games and Flash Cards."
+
+msgid "Quiz de Audio, Ordenar Secuencias, Trazado de Letras y Rompecabezas."
+msgstr "Audio Quiz, Sequencing, Letter Tracing and Puzzles."
+
+msgid "Galería 3D y Actividades 3D para contenidos interactivos."
+msgstr "3D Gallery and 3D Activities for interactive content."
+
+msgid ""
+"En cada uno: crea el recurso, complétalo y compártelo con tus estudiantes."
+msgstr "In each one: create the resource, complete it and share it with your students."
+
+msgid "Inclusión y accesibilidad"
+msgstr "Inclusion and accessibility"
+
+msgid "El Perfil de Accesibilidad (la base)"
+msgstr "The Accessibility Profile (the basis)"
+
+msgid "Lo configura: coordinador, rector u orientador"
+msgstr "Configured by: coordinator, principal or counselor"
+
+msgid ""
+"Hace que los apoyos se apliquen SOLOS al estudiante (tamaño de texto, alto "
+"contraste, lectura por voz, lectura fácil, tiempo extra). Tú no lo creas, "
+"pero es bueno saber que existe: cuando un estudiante con perfil abre un "
+"cuestionario o deber, sus apoyos ya están activos."
+msgstr "It makes the supports apply AUTOMATICALLY to the student (text size, high contrast, read-aloud, easy read, extra time). You don't create it, but it's good to know it exists: when a student with a profile opens a quiz or assignment, their supports are already active."
+
+msgid ""
+"Si crees que un estudiante necesita apoyos y no los tiene, avísale a "
+"coordinación u orientación."
+msgstr "If you think a student needs supports and doesn't have them, let coordination or counseling know."
+
+msgid "Audio con subtítulos en un deber"
+msgstr "Subtitled audio in an assignment"
+
+msgid ""
+"En <strong>Gestionar Deberes</strong>, crea o edita un deber y sube tu "
+"archivo en <strong>«Audio de apoyo»</strong> (hasta 20 MB)."
+msgstr "In <strong>Manage Assignments</strong>, create or edit an assignment and upload your file in <strong>“Support audio”</strong> (up to 20 MB)."
+
+msgid ""
+"Abre el <strong>detalle del deber</strong> y pulsa <kbd class=\"btn-demo\">"
+msgstr "Open the <strong>assignment detail</strong> and click <kbd class=\"btn-demo\">"
+
+msgid "Generar transcripción con IA"
+msgstr "Generate transcription with AI"
+
+msgid ""
+"El estudiante verá el reproductor y podrá leer la transcripción (subtítulo)."
+msgstr "The student will see the player and can read the transcription (subtitle)."
+
+msgid "Audio con subtítulos en las preguntas"
+msgstr "Subtitled audio in the questions"
+
+msgid ""
+"En el editor del cuestionario, sube el audio de una pregunta con "
+"<strong>«Audio de apoyo»</strong>."
+msgstr "In the quiz editor, upload a question's audio with <strong>“Support audio”</strong>."
+
+msgid "Arriba pulsa <kbd class=\"btn-demo\">"
+msgstr "At the top, click <kbd class=\"btn-demo\">"
+
+msgid "para subtitular todos de una vez."
+msgstr "to subtitle all of them at once."
+
+msgid "«Explícalo fácil» (lectura fácil)"
+msgstr "“Explain it simply” (easy read)"
+
+msgid ""
+"Reescribe un texto en frases cortas y sencillas sin cambiar su significado. "
+"Aparece como botón para el estudiante en: cada pregunta del cuestionario, la "
+"descripción del deber, y la observación del boletín. Si su perfil pide "
+"lectura fácil, se aplica automáticamente."
+msgstr "It rewrites a text in short, simple sentences without changing its meaning. It appears as a button for the student in: each quiz question, the assignment description, and the report card observation. If their profile requests easy read, it is applied automatically."
+
+msgid "Evaluaciones accesibles (imágenes, tiempo, modo lista)"
+msgstr "Accessible evaluations (images, time, list mode)"
+
+msgid ""
+"<strong>Describir imágenes:</strong> en el editor, pulsa <kbd class=\"btn-"
+"demo\">Describir imágenes (IA)</kbd> para generar el texto que leen los "
+"lectores de pantalla."
+msgstr "<strong>Describe images:</strong> in the editor, click <kbd class=\"btn-demo\">Describe images (AI)</kbd> to generate the text screen readers read."
+
+msgid ""
+"Tiempo extra: si el perfil del estudiante lo pide, su temporizador se amplía "
+"solo."
+msgstr "Extra time: if the student's profile requests it, their timer extends automatically."
+
+msgid ""
+"Modo accesible (lista): las preguntas de «etiquetar imagen» se responden con "
+"desplegables, sin ver ni tocar la imagen."
+msgstr "Accessible mode (list): “label image” questions are answered with dropdowns, without seeing or touching the image."
+
+msgid "Leer en voz alta y ajustes de pantalla"
+msgstr "Read aloud and display settings"
+
+msgid ""
+"El botón de accesibilidad en la barra superior abre un panel para agrandar "
+"texto, alto contraste, fuente legible, más espaciado y leer la página o la "
+"selección en voz alta. Cada usuario guarda sus ajustes."
+msgstr "The accessibility button in the top bar opens a panel to enlarge text, high contrast, readable font, more spacing and read the page or selection aloud. Each user saves their settings."
+
+msgid "Sobre la IA y su tope"
+msgstr "About AI and its limit"
+
+msgid ""
+"Las transcripciones y la lectura fácil usan IA. Cada institución tiene su "
+"cuenta y un tope mensual. Si ves un aviso de que la IA no está disponible o "
+"se alcanzó el tope, no es un error tuyo: coméntalo con coordinación o el "
+"administrador. Como cada resultado se guarda, no se vuelve a gastar al "
+"reutilizarlo."
+msgstr "Transcriptions and easy read use AI. Each institution has its own account and a monthly limit. If you see a notice that AI is unavailable or the limit was reached, it's not your fault: mention it to coordination or the administrator. Since each result is saved, it is not spent again when reused."
+
+msgid "No se encontraron temas con esa búsqueda."
+msgstr "No topics were found for that search."
+
 #, python-format
 msgid "Boletín - %(n)s - %(p)s"
 msgstr "Report Card - %(n)s - %(p)s"
@@ -4275,9 +4710,6 @@ msgstr "Main Panel"
 msgid "Evaluación Académica"
 msgstr "Academic Evaluation"
 
-msgid "Libro de Notas"
-msgstr "Gradebook"
-
 msgid ""
 "Registra y actualiza las calificaciones de tus estudiantes en la planilla "
 "digital optimizada."
@@ -4286,9 +4718,6 @@ msgstr ""
 
 msgid "Ir al Libro de Notas"
 msgstr "Go to the Gradebook"
-
-msgid "Categorías de Actividad"
-msgstr "Activity Categories"
 
 msgid ""
 "Consulta los tipos de evaluación disponibles: Tareas, Exámenes, Talleres, "
@@ -4309,9 +4738,6 @@ msgid ""
 msgstr ""
 "Define the achievements and descriptors that will appear on your students' "
 "report cards."
-
-msgid "Gestionar Descriptores"
-msgstr "Manage Descriptors"
 
 msgid "Evaluaciones"
 msgstr "Assessments"
@@ -4351,9 +4777,6 @@ msgstr ""
 
 msgid "Gestionar Menciones"
 msgstr "Manage Recognitions"
-
-msgid "Mi Disponibilidad"
-msgstr "My Availability"
 
 msgid ""
 "Configura tus horarios de atención para que las familias puedan agendar "
@@ -5012,9 +5435,6 @@ msgstr "Quick access"
 msgid "Bienestar / Alertas"
 msgstr "Well-being / Alerts"
 
-msgid "PIARs / Inclusión"
-msgstr "Individual Learning Plans / Inclusion"
-
 msgid "Reporte de Riesgo (IA)"
 msgstr "Risk report (AI)"
 
@@ -5026,9 +5446,6 @@ msgstr "My Office Hours"
 
 msgid "Citar a una Familia"
 msgstr "Summon a Family"
-
-msgid "Mensajes"
-msgstr "Messages"
 
 msgid "Próximas citas con familias"
 msgstr "Upcoming appointments with families"
@@ -5179,9 +5596,6 @@ msgid ""
 msgstr ""
 "There is no transcription yet. Generate it with AI so deaf or hard-of-"
 "hearing students can read it."
-
-msgid "Generar transcripción con IA"
-msgstr "Generate transcription with AI"
 
 msgid "Editar Deber"
 msgstr "Edit Assignment"
@@ -8917,9 +9331,6 @@ msgstr "The limit must be a valid number in pesos."
 msgid "Solo los docentes pueden acceder a los planes semanales."
 msgstr "Only teachers can access weekly plans."
 
-msgid "Mis Planes Semanales"
-msgstr "My Weekly Plans"
-
 msgid "Ya tienes un plan para esa semana y curso."
 msgstr "You already have a plan for that week and course."
 
@@ -10155,14 +10566,24 @@ msgstr "Configuration complete."
 msgid "Validar antes de exportar"
 msgstr "Validate before exporting"
 
-msgid "Reporte plano (.txt oficial)"
-msgstr "Flat-file report (official .txt)"
+msgid "Anexo 6A (.txt · matrícula)"
+msgstr "Annex 6A (.txt · enrollment)"
+
+msgid "Reporte plano (.txt)"
+msgstr "Flat-file report (.txt)"
 
 msgid "Reporte plano (.csv)"
 msgstr "Flat-file report (.csv)"
 
 msgid "Excel (revisión)"
 msgstr "Excel (review)"
+
+msgid ""
+"El «Anexo 6A» es el archivo plano de matrícula de 40 columnas separadas por "
+"«|», sin encabezado, con nombres en mayúsculas sin tildes y fechas DD/MM/"
+"AAAA — el formato base nacional para subir al SIMAT. Valida siempre contra "
+"la plantilla vigente de tu Secretaría antes de subir."
+msgstr "“Annex 6A” is the enrollment flat file with 40 columns separated by “|”, no header, names in uppercase without accents and dates DD/MM/YYYY — the national base format to upload to SIMAT. Always validate against your Education Office's current template before uploading."
 
 msgid "El SIMAT genera el reporte plano \\"
 msgstr "SIMAT generates the flat-file report \\"
@@ -10506,9 +10927,6 @@ msgstr "Generating questions with Gemini…"
 msgid "Guardar en el banco"
 msgstr "Save to bank"
 
-msgid "Simulacros Saber"
-msgstr "Saber Mock Exams"
-
 msgid "Crea y gestiona simulacros para tus estudiantes"
 msgstr "Create and manage mock exams for your students"
 
@@ -10818,26 +11236,11 @@ msgstr "Letter Tracing"
 msgid "Inclusión"
 msgstr "Inclusion"
 
-msgid "Mi Panel Principal"
-msgstr "My Main Panel"
-
-msgid "Planeador de Clases (IA)"
-msgstr "Lesson Planner (AI)"
-
-msgid "Entregas por Calificar"
-msgstr "Submissions to Grade"
-
-msgid "Historial de Entregas"
-msgstr "Submission History"
+msgid "Centro de Ayuda"
+msgstr "Help Center"
 
 msgid "Mi Evaluación"
 msgstr "My Evaluation"
-
-msgid "Materiales de Apoyo"
-msgstr "Support Materials"
-
-msgid "Menciones y Honores"
-msgstr "Recognitions and Honors"
 
 msgid "Observador"
 msgstr "Behavior Record"
@@ -10848,17 +11251,11 @@ msgstr "Minimum Grade Report"
 msgid "Reporte Global de Riesgo"
 msgstr "Global Risk Report"
 
-msgid "Historial de Lecciones"
-msgstr "Lesson History"
-
 msgid "Galería 3D"
 msgstr "3D Gallery"
 
 msgid "Actividades 3D"
 msgstr "3D Activities"
-
-msgid "Asistir en Otro Curso"
-msgstr "Cover Another Course"
 
 msgid "Convivencia y Bienestar"
 msgstr "Coexistence and Well-being"
