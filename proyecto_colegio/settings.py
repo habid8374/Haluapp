@@ -788,11 +788,31 @@ CHANNEL_LAYERS = {
 # ─────────────────────────────────────────────────────────────────────────────
 #  UNFOLD — Tema moderno del panel de administración (/admin/)
 # ─────────────────────────────────────────────────────────────────────────────
+def _admin_site_header(request):
+    """El encabezado del admin muestra SIEMPRE el nombre del colegio del usuario
+    (como antes). Superusuario/anónimo sin colegio → "HALU"."""
+    inst = getattr(getattr(request, 'user', None), 'institucion_asociada', None)
+    return getattr(inst, 'nombre', None) or "HALU"
+
+
+def _admin_site_logo(request):
+    """Logo del encabezado: el del colegio si lo tiene cargado; si no, el de HALU."""
+    from django.templatetags.static import static as _static
+    inst = getattr(getattr(request, 'user', None), 'institucion_asociada', None)
+    try:
+        logo = getattr(inst, 'logo', None)
+        if logo:
+            return logo.url
+    except Exception:
+        pass
+    return _static("core/img/logo_mi_software.png")
+
+
 UNFOLD = {
     "SITE_TITLE": "HALU · Administración",
-    "SITE_HEADER": "HALU",
+    "SITE_HEADER": _admin_site_header,   # nombre del colegio (dinámico)
     "SITE_SUBHEADER": "Sistema de Gestión Escolar",
-    "SITE_SYMBOL": "school",          # ícono (Material Symbols) junto al título
+    "SITE_LOGO": _admin_site_logo,       # logo del colegio (o HALU)
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
     "SITE_URL": "/",
