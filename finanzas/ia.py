@@ -23,14 +23,34 @@ from finanzas.institucion_credentials import (
 
 logger = logging.getLogger(__name__)
 
-_MODELO_GEMINI = 'gemini-2.5-flash'
+# Modelo Gemini por defecto de toda la plataforma. Se cambia AQUÍ una sola vez.
+# Nota: Google dejó de habilitar 'gemini-2.5-flash' para keys/cuentas nuevas
+# (responde 404). Usamos 'gemini-2.0-flash' (disponible para todos, GA y económico).
+_MODELO_GEMINI = 'gemini-2.0-flash'
 # Claude solo es respaldo → Haiku 4.5 (el más económico).
 _MODELO_CLAUDE = 'claude-haiku-4-5-20251001'
 
+# Modelos viejos que Google ya no habilita para cuentas nuevas → se remapean al
+# modelo por defecto en TODAS las llamadas (red de seguridad para el 404, aunque
+# alguna vista pase el nombre viejo).
+_MODELOS_GEMINI_REEMPLAZADOS = {
+    'gemini-2.5-flash': _MODELO_GEMINI,
+    'gemini-1.5-flash': _MODELO_GEMINI,
+    'gemini-1.5-pro': _MODELO_GEMINI,
+}
+
+
+def _norm_modelo(model):
+    """Devuelve el modelo vigente: si llega uno descontinuado, lo remapea."""
+    if not model:
+        return _MODELO_GEMINI
+    return _MODELOS_GEMINI_REEMPLAZADOS.get(model, model)
+
+
 # Precio aproximado por 1M de tokens (USD). Ajustable si cambian las tarifas.
 _PRECIOS_USD = {
-    _MODELO_GEMINI: (0.30, 2.50),          # gemini-2.5-flash (entrada, salida)
-    'gemini-2.0-flash': (0.10, 0.40),
+    'gemini-2.0-flash': (0.10, 0.40),      # modelo por defecto (entrada, salida)
+    'gemini-2.5-flash': (0.30, 2.50),
     'gemini-2.5-pro': (1.25, 10.00),
     _MODELO_CLAUDE: (1.00, 5.00),          # claude haiku 4.5
 }
@@ -125,6 +145,7 @@ def gemini_generate(institucion, model, contents, config=None):
     if not ok:
         raise IATopeSuperado(msg)
     from google import genai
+    model = _norm_modelo(model)  # remapea modelos descontinuados (evita 404)
     api_key = _google_api_key(institucion)
     client = genai.Client(api_key=api_key)
     resp = client.models.generate_content(model=model, contents=contents, config=config)

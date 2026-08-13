@@ -98,7 +98,7 @@ Cuando se envíe cualquier comunicación EN NOMBRE de una institución (correos 
 - **Backend**: Django 5.2, Python 3.12
 - **Base de datos**: PostgreSQL (SQLite solo en tests locales con `USE_SQLITE=1`)
 - **Cache/Cola**: Redis + Celery
-- **IA**: Google Gemini (via `google-generativeai`, modelo `gemini-2.5-flash`)
+- **IA**: Google Gemini (via `google-generativeai`, modelo por defecto `gemini-2.0-flash` — definido UNA vez en `finanzas/ia.py` `_MODELO_GEMINI`; los modelos descontinuados se remapean en `_norm_modelo`)
 - **Frontend**: Bootstrap 5 + Bootstrap Icons (`bi-*`)
 - **Templates**: Django template language, base: `base_academico.html`
 - **Tiempo real**: Django Channels + Redis (WebSockets)

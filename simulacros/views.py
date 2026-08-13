@@ -401,7 +401,7 @@ Reglas:
         if not _api_key:
             return JsonResponse({'ok': False, 'error': 'La institución no tiene Google API Key configurada.'}, status=400)
         try:
-            resp = _ia_gate.gemini_generate(institucion, 'gemini-2.5-flash', prompt)
+            resp = _ia_gate.gemini_generate(institucion, 'gemini-2.0-flash', prompt)
         except _ia_gate.IATopeSuperado as _e:
             return JsonResponse({'ok': False, 'error': str(_e)}, status=200)
         raw = resp.text.strip()

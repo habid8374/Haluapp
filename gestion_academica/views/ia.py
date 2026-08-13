@@ -1793,7 +1793,7 @@ class GenerarResumenEstudianteIAView(APIView):
                     status=500,
                 )
             try:
-                response = _ia_gate.gemini_generate(estudiante.institucion, 'gemini-2.5-flash', prompt)
+                response = _ia_gate.gemini_generate(estudiante.institucion, 'gemini-2.0-flash', prompt)
             except _ia_gate.IATopeSuperado as _e:
                 return Response({'status': 'error', 'message': str(_e)}, status=200)
 
@@ -1834,7 +1834,7 @@ def api_sugerir_nombre_idioma(request):
             f"Responde ÚNICAMENTE con el nombre traducido, sin explicaciones ni puntuación extra.\n\n"
             f"Materia en español: {nombre_es}"
         )
-        response = _ia_gate.gemini_generate(institucion, 'gemini-2.5-flash', prompt)
+        response = _ia_gate.gemini_generate(institucion, 'gemini-2.0-flash', prompt)
         nombre_sugerido = response.text.strip().strip('"').strip("'")
         return JsonResponse({'nombre_sugerido': nombre_sugerido})
 
@@ -1876,7 +1876,7 @@ def api_sugerir_nombres_idioma_masivo(request):
             f"Responde ÚNICAMENTE en formato JSON: {{\"<pk>\": \"<nombre traducido>\", ...}}. Sin texto adicional.\n\n"
             f"Materias:\n{lista}"
         )
-        response = _ia_gate.gemini_generate(institucion, 'gemini-2.5-flash', prompt)
+        response = _ia_gate.gemini_generate(institucion, 'gemini-2.0-flash', prompt)
         texto = response.text.strip()
         # Limpiar posibles bloques de código markdown
         if texto.startswith('```'):

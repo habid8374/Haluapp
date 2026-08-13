@@ -575,7 +575,7 @@ def generar_contenido_planeacion_task(self, planeacion_id):
         Asegúrate de que la lista "clases" contenga exactamente {planeacion.duracion_clases} objetos.
         """
 
-        response = _ia_gate.gemini_generate(planeacion.curso.institucion, 'gemini-2.5-flash', prompt)
+        response = _ia_gate.gemini_generate(planeacion.curso.institucion, 'gemini-2.0-flash', prompt)
 
         # Tu lógica de limpieza es excelente, la mantenemos
         raw_text = response.text.strip() if hasattr(response, "text") and response.text else ""
@@ -754,7 +754,7 @@ def analizar_comportamiento_task(user_id):
 
         try:
             response = _ia_gate.gemini_generate(
-                institucion, 'gemini-2.5-flash', prompt,
+                institucion, 'gemini-2.0-flash', prompt,
                 config=types.GenerateContentConfig(response_mime_type="application/json"),
             )
             json_text = response.text.strip().replace("```json", "").replace("```", "")
@@ -845,7 +845,7 @@ def generar_propuesta_horario_task(periodo_pk, institucion_id, grado_pk): # <-- 
         if not api_key:
             return {'status': 'FAILURE', 'error': 'La institución no tiene configurada google_api_key (Gemini).'}
 
-        response = _ia_gate.gemini_generate(institucion_obj, 'gemini-2.5-flash', prompt)
+        response = _ia_gate.gemini_generate(institucion_obj, 'gemini-2.0-flash', prompt)
 
         json_text = response.text
         match = re.search(r'\[.*\]', json_text, re.DOTALL)
@@ -940,7 +940,7 @@ def analizar_plagio_tarea_task(entrega_id):
             ---
             """
             
-            response = _ia_gate.gemini_generate(entrega_actual.deber.institucion, 'gemini-2.5-flash', prompt)
+            response = _ia_gate.gemini_generate(entrega_actual.deber.institucion, 'gemini-2.0-flash', prompt)
             json_text = response.text.strip().replace("```json", "").replace("```", "")
             resultado = json.loads(json_text)
 
@@ -1192,7 +1192,7 @@ def sugerir_material_de_refuerzo_task(calificacion_id):
             "Genera un consejo corto en español (máximo 150 palabras) con 2 o 3 pasos de estudio concretos y accionables. "
             "El tono debe ser alentador, nunca regañes."
         )
-        response = _ia_gate.gemini_generate(institucion, 'gemini-2.5-flash', prompt)
+        response = _ia_gate.gemini_generate(institucion, 'gemini-2.0-flash', prompt)
         consejo_ia = _sanitize_ai(response.text)
     except Exception as e:
         logger.error("Error al generar consejo de IA (task) para calificación %s: %s", calificacion_id, e)
@@ -1304,7 +1304,7 @@ def analizar_observacion_convivencia_task(anotacion_id):
         Anotación: "{anotacion.descripcion}"
         """
         response = _ia_gate.gemini_generate(
-            anotacion.institucion, 'gemini-2.5-flash', prompt,
+            anotacion.institucion, 'gemini-2.0-flash', prompt,
             config=types.GenerateContentConfig(response_mime_type="application/json"),
         )
         ai_data = json.loads(response.text)

@@ -13333,7 +13333,7 @@ def asistente_halu_api(request):
         if not _ok_ia:
             return JsonResponse({'respuesta': _msg_ia}, status=200)
         _chat_config = types.GenerateContentConfig(tools=list(tools_disponibles.values())) if tools_disponibles else None
-        chat = client.chats.create(model='gemini-2.5-flash', config=_chat_config, history=historial_previo)
+        chat = client.chats.create(model='gemini-2.0-flash', config=_chat_config, history=historial_previo)
         
         # Inyectamos la instrucción al principio de forma manual si es el primer mensaje
         mensaje_enviar = pregunta
@@ -13343,7 +13343,7 @@ def asistente_halu_api(request):
         response = chat.send_message(mensaje_enviar)
         try:
             _um = getattr(response, 'usage_metadata', None)
-            _ia_gate.registrar_uso(institucion, 'gemini-2.5-flash', getattr(_um,'prompt_token_count',0) or 0, getattr(_um,'candidates_token_count',0) or 0)
+            _ia_gate.registrar_uso(institucion, 'gemini-2.0-flash', getattr(_um,'prompt_token_count',0) or 0, getattr(_um,'candidates_token_count',0) or 0)
         except Exception:
             pass
         
@@ -16338,7 +16338,7 @@ class GenerarResumenEstudianteIAView(APIView):
                     status=500,
                 )
             try:
-                response = _ia_gate.gemini_generate(estudiante.institucion, 'gemini-2.5-flash', prompt)
+                response = _ia_gate.gemini_generate(estudiante.institucion, 'gemini-2.0-flash', prompt)
             except _ia_gate.IATopeSuperado as _e:
                 return Response({'status': 'error', 'message': str(_e)}, status=200)
 
@@ -16531,7 +16531,7 @@ class GenerarCorreoAcudienteIAView(APIView):
                     status=500,
                 )
             try:
-                response = _ia_gate.gemini_generate(estudiante.institucion, 'gemini-2.5-flash', prompt)
+                response = _ia_gate.gemini_generate(estudiante.institucion, 'gemini-2.0-flash', prompt)
             except _ia_gate.IATopeSuperado as _e:
                 return Response({'status': 'error', 'message': str(_e)}, status=200)
             return Response({'status': 'success', 'correo': response.text})
