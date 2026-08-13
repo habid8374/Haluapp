@@ -110,7 +110,11 @@ INSTALLED_APPS = [
     
             
     # 3. APPS DE DJANGO AL FINAL
-    'jazzmin',  # Tema moderno del admin (DEBE ir antes de django.contrib.admin)
+    # Tema moderno del admin (Unfold). DEBEN ir antes de django.contrib.admin.
+    'unfold',
+    'unfold.contrib.filters',
+    'unfold.contrib.forms',
+    'unfold.contrib.import_export',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -781,76 +785,53 @@ CHANNEL_LAYERS = {
     },
 }
 
-
 # ─────────────────────────────────────────────────────────────────────────────
-#  JAZZMIN — Tema moderno del panel de administración (/admin/)
+#  UNFOLD — Tema moderno del panel de administración (/admin/)
 # ─────────────────────────────────────────────────────────────────────────────
-JAZZMIN_SETTINGS = {
-    "site_title": "HALU · Administración",
-    "site_header": "HALU",
-    "site_brand": "HALU",
-    "site_logo": "core/img/logo_mi_software.png",
-    "login_logo": "core/img/logo_mi_software.png",
-    "site_logo_classes": "img-circle",
-    "welcome_sign": "Bienvenido al panel de administración de HALU",
-    "copyright": "HALU · Sistema de Gestión Escolar",
-    "search_model": ["gestion_academica.Usuario", "gestion_academica.Estudiante"],
-    # Menú superior (barra de arriba del admin)
-    "topmenu_links": [
-        {"name": "⬅ Volver a Gestión Académica", "url": "gestion_academica:inicio_academico", "icon": "fas fa-arrow-left"},
-        {"name": "Ver el sitio", "url": "/", "new_window": True, "icon": "fas fa-globe"},
-        {"name": "Usuarios", "model": "gestion_academica.usuario"},
-    ],
-    # También como acceso directo en el menú del usuario (arriba a la derecha)
-    "usermenu_links": [
-        {"name": "Ir a Gestión Académica", "url": "gestion_academica:inicio_academico", "icon": "fas fa-graduation-cap"},
-    ],
-    # Y en el MENÚ LATERAL (el del ☰, visible en celular) como enlace destacado.
-    "custom_links": {
-        "gestion_academica": [
-            {"name": "⬅ Volver a Gestión Académica", "url": "gestion_academica:inicio_academico",
-             "icon": "fas fa-arrow-left", "permissions": []},
+UNFOLD = {
+    "SITE_TITLE": "HALU · Administración",
+    "SITE_HEADER": "HALU",
+    "SITE_SUBHEADER": "Sistema de Gestión Escolar",
+    "SITE_SYMBOL": "school",          # ícono (Material Symbols) junto al título
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "SITE_URL": "/",
+    "THEME": None,                    # respeta claro/oscuro del dispositivo
+    "COLORS": {
+        "primary": {
+            "50": "238 242 255",
+            "100": "224 231 255",
+            "200": "199 210 254",
+            "300": "165 180 252",
+            "400": "129 140 248",
+            "500": "99 102 241",
+            "600": "79 70 229",
+            "700": "67 56 202",
+            "800": "55 48 163",
+            "900": "49 46 129",
+            "950": "30 27 75",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "Accesos rápidos",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Volver a Gestión Académica",
+                        "icon": "arrow_back",
+                        "link": "/academico/",
+                    },
+                    {
+                        "title": "Ver el sitio",
+                        "icon": "public",
+                        "link": "/",
+                    },
+                ],
+            },
         ],
-    },
-    "show_ui_builder": False,
-    "changeform_format": "horizontal_tabs",
-    # CSS propio: en celular deja el botón ☰ del menú arriba a la derecha, visible.
-    "custom_css": "admin/jazzmin_custom.css",
-    # Íconos (FontAwesome) para modelos frecuentes
-    "icons": {
-        "auth.Group": "fas fa-users-cog",
-        "gestion_academica.Usuario": "fas fa-user",
-        "gestion_academica.Estudiante": "fas fa-user-graduate",
-        "gestion_academica.Docente": "fas fa-chalkboard-teacher",
-        "gestion_academica.Familiar": "fas fa-user-friends",
-        "gestion_academica.Grado": "fas fa-layer-group",
-        "gestion_academica.Grupo": "fas fa-object-group",
-        "gestion_academica.NivelEscolaridad": "fas fa-graduation-cap",
-        "finanzas.InstitucionEducativa": "fas fa-school",
-    },
-    "default_icon_parents": "fas fa-chevron-circle-right",
-    "default_icon_children": "fas fa-circle",
-    "hide_apps": [],
-    "order_with_respect_to": ["gestion_academica", "finanzas", "auth"],
-}
-
-JAZZMIN_UI_TWEAKS = {
-    "navbar_small_text": False,
-    "footer_small_text": True,
-    "body_small_text": False,
-    "brand_small_text": False,
-    "brand_colour": "navbar-indigo",
-    "accent": "accent-indigo",
-    "navbar": "navbar-indigo navbar-dark",
-    "no_navbar_border": True,
-    "navbar_fixed": True,
-    "sidebar_fixed": True,
-    "sidebar": "sidebar-dark-indigo",
-    "sidebar_nav_flat_style": True,
-    "theme": "default",
-    "button_classes": {
-        "primary": "btn-primary",
-        "success": "btn-success",
-        "danger": "btn-danger",
     },
 }

@@ -4,10 +4,15 @@ Mixin multi-tenant para el Django admin.
 REGLA CRÍTICA SAAS MULTI-INSTITUCIÓN: ningún usuario staff de un colegio
 puede ver, editar ni crear registros de otra institución desde /admin/.
 El superusuario (propietario de la plataforma) conserva acceso total.
+
+Además, este mixin hereda de `unfold.admin.ModelAdmin`, por lo que TODOS los
+admins que lo usan adoptan el tema Unfold (formularios/listas con estilo) sin
+cambiar cada clase una por una.
 """
+from unfold.admin import ModelAdmin as _UnfoldModelAdmin
 
 
-class InstitucionScopedAdminMixin:
+class InstitucionScopedAdminMixin(_UnfoldModelAdmin):
     """
     Aplica aislamiento por institución a un ModelAdmin:
 
