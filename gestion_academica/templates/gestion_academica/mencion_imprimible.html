@@ -37,11 +37,20 @@
 <body>
 <table class="frame-out" cellpadding="0" cellspacing="0"><tr><td class="content">
 
-    <!-- Encabezado centrado y simétrico: escudo · logo · nombre -->
-    {% if escudo_url %}<img src="{{ escudo_url }}" style="height: 60px;" alt="Escudo de Colombia"><br>{% endif %}
-    {% if mencion.institucion.logo %}<img src="{{ mencion.institucion.logo.url }}" style="height: 46px;" alt="{{ mencion.institucion.nombre }}"><br>{% endif %}
-    <div class="school">{{ mencion.institucion.nombre }}</div>
-    <div class="platform">{% if mencion.institucion.ciudad_departamento %}{{ mencion.institucion.ciudad_departamento }} &middot; {% endif %}Rep&uacute;blica de Colombia</div>
+    <!-- Encabezado: escudo (esquina izq.) · logo+nombre (centro) · escarapela (esquina der.) -->
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td width="22%" style="text-align:left; vertical-align:top;">
+        {% if escudo_url %}<img src="{{ escudo_url }}" style="height: 100px;" alt="Escudo de Colombia">{% endif %}
+      </td>
+      <td width="56%" style="text-align:center; vertical-align:top;">
+        {% if mencion.institucion.logo %}<img src="{{ mencion.institucion.logo.url }}" style="height: 46px;" alt="{{ mencion.institucion.nombre }}"><br>{% endif %}
+        <div class="school">{{ mencion.institucion.nombre }}</div>
+        <div class="platform">{% if mencion.institucion.ciudad_departamento %}{{ mencion.institucion.ciudad_departamento }} &middot; {% endif %}Rep&uacute;blica de Colombia</div>
+      </td>
+      <td width="22%" style="text-align:right; vertical-align:top;">
+        <img src="{% static 'img/rosette_honor.png' %}" style="height: 110px;" alt="Menci&oacute;n de Honor">
+      </td>
+    </tr></table>
 
     <div class="rule">&#9670; &#9670; &#9670;</div>
 
@@ -66,7 +75,7 @@
         <div class="sign-name">&nbsp;</div>
         <div class="sign-role">Rector(a)</div>
       </td>
-      <td width="24%"><img src="{% static 'img/rosette_honor.png' %}" style="height: 92px;" alt="Menci&oacute;n de Honor"></td>
+      <td width="24%"><span style="color:{% if es_preescolar %}#ea580c{% else %}#b8860b{% endif %};font-size:26pt;">&#9733;</span></td>
       <td width="38%">
         <div class="sign-line"></div>
         {% if mencion.otorgado_por %}
