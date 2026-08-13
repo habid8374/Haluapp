@@ -805,6 +805,13 @@ JAZZMIN_SETTINGS = {
     "usermenu_links": [
         {"name": "Ir a Gestión Académica", "url": "gestion_academica:inicio_academico", "icon": "fas fa-graduation-cap"},
     ],
+    # Y en el MENÚ LATERAL (el del ☰, visible en celular) como enlace destacado.
+    "custom_links": {
+        "gestion_academica": [
+            {"name": "⬅ Volver a Gestión Académica", "url": "gestion_academica:inicio_academico",
+             "icon": "fas fa-arrow-left", "permissions": []},
+        ],
+    },
     "show_ui_builder": False,
     "changeform_format": "horizontal_tabs",
     # Íconos (FontAwesome) para modelos frecuentes
