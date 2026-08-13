@@ -795,10 +795,15 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Bienvenido al panel de administración de HALU",
     "copyright": "HALU · Sistema de Gestión Escolar",
     "search_model": ["gestion_academica.Usuario", "gestion_academica.Estudiante"],
-    # Menú superior
+    # Menú superior (barra de arriba del admin)
     "topmenu_links": [
-        {"name": "Ver el sitio", "url": "/", "new_window": True},
+        {"name": "⬅ Volver a Gestión Académica", "url": "gestion_academica:inicio_academico", "icon": "fas fa-arrow-left"},
+        {"name": "Ver el sitio", "url": "/", "new_window": True, "icon": "fas fa-globe"},
         {"name": "Usuarios", "model": "gestion_academica.usuario"},
+    ],
+    # También como acceso directo en el menú del usuario (arriba a la derecha)
+    "usermenu_links": [
+        {"name": "Ir a Gestión Académica", "url": "gestion_academica:inicio_academico", "icon": "fas fa-graduation-cap"},
     ],
     "show_ui_builder": False,
     "changeform_format": "horizontal_tabs",
