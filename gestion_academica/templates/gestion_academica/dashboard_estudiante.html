@@ -382,6 +382,9 @@
       </li>
       {% endfor %}
     </ul>
+    <a href="{% url 'gestion_academica:estudiante_mis_menciones' %}" class="d-inline-block mt-2 fw-bold" style="font-size:.85rem;">
+      {% trans "Ver todas mis menciones" %} <i class="bi bi-arrow-right-short"></i>
+    </a>
   </div>
   {% endif %}
   {% if portal_bloqueado_por_mora %}

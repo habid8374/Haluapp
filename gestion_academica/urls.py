@@ -155,6 +155,7 @@ urlpatterns = [
     path('mis-calificaciones/', views.mis_cursos_y_calificaciones_resumen, name='mis_cursos_calificaciones'),
     path('mis-calificaciones/curso/<int:curso_pk>/', views.detalle_mis_calificaciones_por_curso, name='detalle_mis_calificaciones_por_curso'),
     path('mi-boletin/', views.mi_boletin_periodo_actual, name='mi_boletin_periodo_actual'),
+    path('mis-menciones/', views.estudiante_mis_menciones, name='estudiante_mis_menciones'),
     path('mis-deberes/', views.mis_deberes_lista, name='mis_deberes_lista'),
     path('deber/<int:deber_pk>/entregar/', views.realizar_entrega_deber, name='realizar_entrega_deber'),
 

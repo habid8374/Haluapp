@@ -288,6 +288,11 @@
           <i class="bi bi-journal-check"></i> {% trans "Mis Simulacros" %}
         </a>
       </li>
+      <li class="nav-item item-color-8">
+        <a class="nav-link {% if 'mis-menciones' in request.path %}active{% endif %}" href="{% url 'gestion_academica:estudiante_mis_menciones' %}">
+          <i class="bi bi-award-fill"></i> {% trans "Mis Menciones" %}
+        </a>
+      </li>
       <li class="nav-item item-color-4">
         <a class="nav-link {% if '/crucigramas/' in request.path or '/sopa-letras/' in request.path or '/memoria/' in request.path or '/flashcards/' in request.path or '/quiz-audio/' in request.path or '/secuencias/' in request.path or '/trazado/' in request.path or '/rompecabezas/' in request.path %}{% else %}collapsed{% endif %}"
            href="#recursosInteractivosEst" data-bs-toggle="collapse" role="button"

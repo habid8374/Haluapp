@@ -4964,7 +4964,11 @@ def dashboard_estudiante(request):
         )
         
         context.update({
-            'ultimas_menciones': MencionReconocimiento.objects.filter(estudiante=estudiante, periodo=periodo_activo).order_by('-fecha_otorgamiento')[:3],
+            # Reconocimientos del estudiante SIN restringir al período activo: una
+            # mención puede no tener período o ser de otro, y el diploma es válido
+            # siempre. Antes se filtraba por periodo_activo y "desaparecía" el botón
+            # de descarga cuando la mención no era del período en curso.
+            'ultimas_menciones': MencionReconocimiento.objects.filter(estudiante=estudiante).order_by('-fecha_otorgamiento')[:3],
             'ultimas_noticias': Noticia.objects.filter(institucion=estudiante.institucion).order_by('-fecha_publicacion')[:3],
             'cursos_info': list(cursos_del_estudiante),
             'inasistencias_periodo': RegistroAsistencia.objects.filter(estudiante=estudiante, curso__periodo_academico=periodo_activo, estado='AUSENTE').count(),
@@ -6341,6 +6345,32 @@ def link_callback(uri, rel):  # noqa: F811
         return None
 
     return real_path
+
+
+@login_required
+def estudiante_mis_menciones(request):
+    """Página del estudiante con TODAS sus menciones/reconocimientos y el botón
+    para descargar cada diploma (respeta el bloqueo por mora, igual que el PDF)."""
+    estudiante = getattr(request.user, 'estudiante', None)
+    if estudiante is None:
+        messages.error(request, _("Solo los estudiantes pueden ver esta página."))
+        return redirect('gestion_academica:inicio_academico')
+
+    menciones = MencionReconocimiento.objects.filter(
+        estudiante=estudiante
+    ).select_related('otorgado_por__usuario', 'curso', 'periodo').order_by('-fecha_otorgamiento')
+
+    try:
+        estudiante_moroso = not estudiante.esta_al_dia()
+    except Exception:
+        estudiante_moroso = False
+
+    return render(request, 'gestion_academica/estudiante_mis_menciones.html', {
+        'menciones': menciones,
+        'estudiante_moroso': estudiante_moroso,
+        'titulo_pagina': _("Mis Menciones"),
+    })
+
 
 @login_required
 def generar_mencion_pdf(request, mencion_pk):
