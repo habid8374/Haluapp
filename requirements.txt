@@ -89,4 +89,4 @@ pyotp==2.9.0
 argon2-cffi==23.1.0
 django-pwa==2.0.1
 webauthn>=2.0.0  # Passkeys / login biométrico (WebAuthn)
-django-unfold==0.91.0
+django-unfold==0.81.0
