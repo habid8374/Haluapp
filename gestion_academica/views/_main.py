@@ -220,9 +220,14 @@ def get_current_institution(request_user):
 
 def link_callback(uri, rel):
     """Resuelve URIs de recursos para xhtml2pdf con protección contra path traversal."""
-    if uri.startswith(settings.MEDIA_URL):
-        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, "", 1))
-        allowed_root = os.path.realpath(settings.MEDIA_ROOT)
+    media_url = getattr(settings, 'MEDIA_URL', '') or ''
+    media_root = getattr(settings, 'MEDIA_ROOT', None)
+    # En modo S3/R2 no hay MEDIA_ROOT local y MEDIA_URL es una URL externa
+    # (ej. el logo del colegio). En ese caso NO resolvemos local: devolvemos la
+    # URI para que xhtml2pdf la descargue (evita romper el PDF por MEDIA_ROOT).
+    if media_url and media_root and uri.startswith(media_url):
+        path = os.path.join(media_root, uri.replace(media_url, "", 1))
+        allowed_root = os.path.realpath(media_root)
     elif uri.startswith(settings.STATIC_URL):
         path = os.path.join(settings.STATICFILES_DIRS[0], uri.replace(settings.STATIC_URL, "", 1))
         allowed_root = os.path.realpath(settings.STATICFILES_DIRS[0])
@@ -6428,9 +6433,23 @@ def generar_mencion_pdf(request, mencion_pk):
                 volver,
             )
 
+    # El diseño del diploma cambia según el nivel de escolaridad del estudiante:
+    # preescolar → versión lúdica y colorida; primaria/bachillerato → formal.
+    nivel_nombre = ''
+    try:
+        grado = mencion.estudiante.grado_actual
+        if grado and grado.nivel_escolaridad_id:
+            nivel_nombre = (grado.nivel_escolaridad.nombre or '').lower()
+    except Exception:
+        nivel_nombre = ''
+    es_preescolar = any(k in nivel_nombre for k in (
+        'preescolar', 'prescolar', 'inicial', 'transic', 'jardin', 'jardín', 'kinder', 'kínder', 'parvulo', 'párvulo'
+    ))
+
     context = {
         'mencion': mencion,
         'institucion': mencion.institucion,
+        'es_preescolar': es_preescolar,
     }
 
     template_path = 'gestion_academica/mencion_imprimible.html'
