@@ -401,9 +401,14 @@ class DocenteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
             'fields': ('modalidad_liquidacion', 'valor_hora_docencia'),
             'description': 'Por horas: use valor hora para estimados en exportaciones. Salario fijo: control de asistencia sin cálculo automático de pago.',
         }),
+        ('Firma para documentos (diplomas, menciones)', {
+            'fields': ('firma_docente',),
+            'description': 'Sube una imagen de la firma (fondo transparente o blanco, PNG/JPG). '
+                           'Se usará en los diplomas de mención de honor que otorgue este docente.',
+        }),
         ('Otros', {
             'classes': ('collapse',),
-            'fields': ('firma_docente', 'dashboard_layout'),
+            'fields': ('dashboard_layout',),
         }),
     )
 

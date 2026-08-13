@@ -5,90 +5,83 @@
     <meta charset="UTF-8">
     <title>{{ mencion.tipo }} - {{ mencion.estudiante }}</title>
     <style type="text/css">
-        @page { size: letter landscape; margin: 0.9cm; }
+        @page { size: letter landscape; margin: 0.7cm; }
         body { font-family: {% if es_preescolar %}"Trebuchet MS","Verdana",sans-serif{% else %}"Georgia","Times New Roman",serif{% endif %}; color: #1f2937; margin: 0; padding: 0; }
 
-        /* Paleta por nivel: formal (azul+dorado) / preescolar (verde+naranja) */
-        .frame-out { width: 100%; border: 7px double {% if es_preescolar %}#16a34a{% else %}#b8860b{% endif %};
+        .frame-out { width: 100%; border: 8px double {% if es_preescolar %}#16a34a{% else %}#b8860b{% endif %};
                      background-color: {% if es_preescolar %}#fffdf3{% else %}#fbf8f0{% endif %}; }
-        .content   { padding: 16px 44px; text-align: center; }
+        /* OJO: NO poner padding HORIZONTAL aquí — colapsa las imágenes del
+           encabezado y de las firmas (bug de xhtml2pdf con tablas anidadas).
+           Solo padding vertical. El texto va centrado y las tablas centradas
+           quedan naturalmente con margen. */
+        .content   { padding: 16px 0; text-align: center; }
 
-        .school    { font-size: 19pt; font-weight: bold; color: #0d2a4d; letter-spacing: .5px; margin: 6px 0 0 0; }
-        .platform  { font-size: 8.5pt; color: #6b7280; letter-spacing: 2px; text-transform: uppercase; margin: 3px 0 0 0; }
-        .rule      { color: {% if es_preescolar %}#ea580c{% else %}#b8860b{% endif %}; font-size: 12pt; letter-spacing: 8px; margin: 8px 0 2px 0; }
+        .country   { font-size: 12pt; color: #4b5563; letter-spacing: 1px; margin: 0; }
+        .school    { font-size: 25pt; font-weight: bold; color: #0d2a4d; margin: 4px 0 0 0; }
+        .place-top { font-size: 12pt; color: #6b7280; margin: 3px 0 0 0; }
 
-        .eyebrow   { font-size: {% if es_preescolar %}13pt{% else %}10.5pt{% endif %}; color: {% if es_preescolar %}#ea580c{% else %}#4b5563{% endif %};
-                     letter-spacing: 2px; text-transform: uppercase; font-weight: {% if es_preescolar %}bold{% else %}normal{% endif %}; margin: 6px 0 0 0; }
-        .title     { font-size: 30pt; font-weight: bold; color: {% if es_preescolar %}#ea580c{% else %}#b8860b{% endif %}; letter-spacing: 3px; margin: 2px 0 4px 0; }
-        .to        { font-size: 10.5pt; color: #4b5563; margin: 6px 0 0 0; }
-        .student   { font-style: italic; font-size: 27pt; color: {% if es_preescolar %}#0e7490{% else %}#0d2a4d{% endif %}; margin: 3px 0 8px 0; }
+        .rule      { color: {% if es_preescolar %}#ea580c{% else %}#b8860b{% endif %}; font-size: 15pt; letter-spacing: 10px; margin: 10px 0 6px 0; }
 
-        .ribbon-cell { background-color: {% if es_preescolar %}#16a34a{% else %}#0d2a4d{% endif %}; color: #ffffff; font-size: 10.5pt;
-                       font-weight: bold; letter-spacing: 2px; text-transform: uppercase; padding: 6px 24px; text-align: center; }
-        .desc      { font-size: 11pt; font-style: italic; color: #374151; line-height: 1.4; margin: 10px 0 0 0; }
+        .eyebrow   { font-size: 13pt; color: {% if es_preescolar %}#ea580c{% else %}#4b5563{% endif %}; letter-spacing: 3px; text-transform: uppercase; margin: 6px 0 0 0; }
+        .title     { font-size: 46pt; font-weight: bold; color: {% if es_preescolar %}#ea580c{% else %}#b8860b{% endif %}; letter-spacing: 5px; margin: 4px 0 6px 0; }
+        .to        { font-size: 13pt; color: #4b5563; margin: 4px 0 0 0; }
+        .student   { font-style: italic; font-size: 40pt; color: {% if es_preescolar %}#0e7490{% else %}#0d2a4d{% endif %}; margin: 6px 0 8px 0; }
+        .reason    { font-size: 16pt; color: #374151; margin: 6px 0 0 0; }
+        .reason b  { color: {% if es_preescolar %}#16a34a{% else %}#0d2a4d{% endif %}; }
+        .desc      { font-size: 13pt; font-style: italic; color: #4b5563; margin: 8px auto 0 auto; width: 80%; line-height: 1.4; }
+        .place     { font-size: 13pt; font-style: italic; color: #4b5563; margin: 16px 0 0 0; }
 
-        .sign td   { text-align: center; vertical-align: bottom; padding: 0 14px; }
-        .sign-line { border-top: 1.2px solid #374151; }
-        .sign-role { font-size: 9.5pt; color: #374151; }
-        .sign-name { font-size: 10pt; font-weight: bold; color: #0d2a4d; }
-        .place     { font-size: 9.5pt; font-style: italic; color: #4b5563; margin: 8px 0 0 0; text-align: center; }
+        .sign td   { text-align: center; vertical-align: bottom; padding: 0 22px; }
+        .sign-img  { height: 56px; margin-bottom: 2px; }
+        .sign-line { border-top: 1.4px solid #374151; }
+        .sign-role { font-size: 12pt; color: #374151; }
+        .sign-name { font-size: 13pt; font-weight: bold; color: #0d2a4d; }
     </style>
 </head>
 <body>
 <table class="frame-out" cellpadding="0" cellspacing="0"><tr><td class="content">
 
-    <!-- Encabezado: escudo (esquina izq.) · logo+nombre (centro) · escarapela (esquina der.) -->
+    <!-- Encabezado: escudo (esquina izq.) · país+colegio (centro) · escarapela (esquina der.) -->
     <table width="100%" cellpadding="0" cellspacing="0"><tr>
       <td width="22%" style="text-align:left; vertical-align:top;">
-        {% if escudo_url %}<img src="{{ escudo_url }}" style="height: 100px;" alt="Escudo de Colombia">{% endif %}
+        {% if escudo_url %}<img src="{{ escudo_url }}" alt="Escudo de Colombia">{% endif %}
       </td>
-      <td width="56%" style="text-align:center; vertical-align:top;">
-        {% if mencion.institucion.logo %}<img src="{{ mencion.institucion.logo.url }}" style="height: 46px;" alt="{{ mencion.institucion.nombre }}"><br>{% endif %}
+      <td width="56%" style="text-align:center; vertical-align:middle;">
+        <div class="country">Rep&uacute;blica de Colombia</div>
         <div class="school">{{ mencion.institucion.nombre }}</div>
-        <div class="platform">{% if mencion.institucion.ciudad_departamento %}{{ mencion.institucion.ciudad_departamento }} &middot; {% endif %}Rep&uacute;blica de Colombia</div>
+        {% if mencion.institucion.ciudad_departamento %}<div class="place-top">{{ mencion.institucion.ciudad_departamento }}</div>{% endif %}
       </td>
       <td width="22%" style="text-align:right; vertical-align:top;">
-        <img src="{% static 'img/rosette_honor.png' %}" style="height: 110px;" alt="Menci&oacute;n de Honor">
+        <img src="{% static 'img/rosette_honor.png' %}" alt="Menci&oacute;n de Honor">
       </td>
     </tr></table>
 
     <div class="rule">&#9670; &#9670; &#9670;</div>
 
-    <!-- Cuerpo principal -->
-    <div class="eyebrow">{% if es_preescolar %}&iexcl;Felicitaciones!{% else %}Reconocimiento Institucional{% endif %}</div>
-    <div class="title">{{ mencion.tipo|upper }}</div>
-    <div class="to">{% if es_preescolar %}Con mucho cari&ntilde;o para{% else %}Se otorga con orgullo a{% endif %}</div>
+    <!-- Cuerpo -->
+    <div class="eyebrow">{% if es_preescolar %}&iexcl;Felicitaciones!{% else %}Confiere la presente{% endif %}</div>
+    <div class="title">MENCI&Oacute;N DE HONOR</div>
+    <div class="to">{% if es_preescolar %}Con mucho cari&ntilde;o para:{% else %}a:{% endif %}</div>
     <div class="student">{{ mencion.estudiante.usuario.get_full_name|default:mencion.estudiante }}</div>
+    <div class="reason">Por: <b>{{ mencion.tipo }}</b></div>
+    {% if mencion.descripcion %}<div class="desc">&ldquo;{{ mencion.descripcion }}&rdquo;</div>{% endif %}
 
-    <table align="center" cellpadding="0" cellspacing="0" style="margin: 0 auto;"><tr>
-      <td class="ribbon-cell">{% if es_preescolar %}&iexcl;Excelente trabajo!{% else %}Estudiante distinguido(a){% endif %}</td>
-    </tr></table>
+    <div class="place">{{ mencion.institucion.ciudad_departamento|default:"" }}{% if mencion.institucion.ciudad_departamento %}, {% endif %}{{ mencion.fecha_otorgamiento|date:"d \d\e F \d\e Y" }}</div>
 
-    {% if mencion.descripcion %}
-      <div class="desc">&ldquo;{{ mencion.descripcion }}&rdquo;</div>
-    {% endif %}
-
-    <!-- Firmas con la escarapela de honor como sello central -->
-    <table class="sign" width="90%" align="center" cellpadding="0" cellspacing="0" style="margin: 18px auto 0 auto;"><tr>
-      <td width="38%">
+    <!-- Firmas -->
+    <table class="sign" width="82%" align="center" cellpadding="0" cellspacing="0" style="margin: 26px auto 0 auto;"><tr>
+      <td width="50%">
+        {% if mencion.otorgado_por.firma_docente %}<img src="{{ mencion.otorgado_por.firma_docente.url }}" class="sign-img" alt="Firma"><br>{% endif %}
         <div class="sign-line"></div>
+        {% if mencion.otorgado_por %}<div class="sign-name">{{ mencion.otorgado_por.usuario.get_full_name|default:mencion.otorgado_por.usuario.username }}</div>{% else %}<div class="sign-name">&nbsp;</div>{% endif %}
+        <div class="sign-role">Docente / Director(a) de Grupo</div>
+      </td>
+      <td width="50%">
+        <div class="sign-line" style="margin-top: 56px;"></div>
         <div class="sign-name">&nbsp;</div>
         <div class="sign-role">Rector(a)</div>
       </td>
-      <td width="24%"><span style="color:{% if es_preescolar %}#ea580c{% else %}#b8860b{% endif %};font-size:26pt;">&#9733;</span></td>
-      <td width="38%">
-        <div class="sign-line"></div>
-        {% if mencion.otorgado_por %}
-          <div class="sign-name">{{ mencion.otorgado_por.usuario.get_full_name|default:mencion.otorgado_por.usuario.username }}</div>
-          <div class="sign-role">Docente / Director(a) de Grupo</div>
-        {% else %}
-          <div class="sign-name">&nbsp;</div>
-          <div class="sign-role">Director(a) de Grupo</div>
-        {% endif %}
-      </td>
     </tr></table>
-
-    <div class="place">{{ mencion.institucion.ciudad_departamento|default:"" }}{% if mencion.institucion.ciudad_departamento %}, {% endif %}{{ mencion.fecha_otorgamiento|date:"d \d\e F \d\e Y" }}</div>
 
 </td></tr></table>
 </body>
