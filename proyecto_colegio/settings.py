@@ -814,6 +814,8 @@ JAZZMIN_SETTINGS = {
     },
     "show_ui_builder": False,
     "changeform_format": "horizontal_tabs",
+    # CSS propio: en celular deja el botón ☰ del menú arriba a la derecha, visible.
+    "custom_css": "admin/jazzmin_custom.css",
     # Íconos (FontAwesome) para modelos frecuentes
     "icons": {
         "auth.Group": "fas fa-users-cog",

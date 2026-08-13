@@ -1,0 +1,31 @@
+/* ─────────────────────────────────────────────────────────────
+   Personalización del admin (Jazzmin/AdminLTE) para HALU.
+   Objetivo: en celular, el botón de menú (☰) debe verse claro,
+   arriba a la DERECHA, sin que las cajas de búsqueda lo tapen.
+   ───────────────────────────────────────────────────────────── */
+
+/* Botón ☰ (abre/cierra el menú lateral): más grande y bien visible */
+.main-header a[data-widget="pushmenu"] {
+    font-size: 1.5rem !important;
+    color: #ffffff !important;
+    padding: .35rem .6rem !important;
+}
+.main-header a[data-widget="pushmenu"] i { color: #ffffff !important; }
+
+/* En celular / tablet */
+@media (max-width: 991.98px) {
+    /* La barra no debe romperse en varias líneas */
+    .main-header .navbar { flex-wrap: nowrap !important; }
+
+    /* Ocultamos las cajas de búsqueda de la barra (saturan y tapan el ☰);
+       la búsqueda sigue disponible dentro de cada listado. */
+    .main-header form.form-inline,
+    .main-header .navbar-search-block,
+    .main-header .navbar-nav form { display: none !important; }
+
+    /* Empujamos el grupo que contiene el ☰ hacia la derecha */
+    .main-header .navbar-nav:first-of-type { margin-left: auto !important; }
+
+    /* El menú de usuario queda pegado a la derecha, junto al ☰ */
+    .main-header .navbar-nav.ml-auto { margin-left: .25rem !important; }
+}
