@@ -1,5 +1,6 @@
 # gestion_academica/admin.py
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.http import HttpResponse
 # Importamos el modelo InstitucionEducativa como cadena de texto en los modelos
 # pero aquí en admin.py necesitamos importarlo directamente para registrarlo
 from finanzas.models import InstitucionEducativa
@@ -126,6 +127,89 @@ class UsuarioAdmin(InstitucionScopedAdminMixin, BaseUserAdmin):
             base.insert(3, 'institucion_asociada')
             base.append('is_staff')
         return base
+
+    # ── (C) Acciones masivas ──
+    actions = ['activar_usuarios', 'desactivar_usuarios',
+               'exportar_usuarios_excel', 'exportar_usuarios_csv',
+               'enviar_reset_password']
+
+    @admin.action(description='Activar usuarios seleccionados')
+    def activar_usuarios(self, request, queryset):
+        n = queryset.update(is_active=True)
+        self.message_user(request, f'{n} usuario(s) activado(s).', messages.SUCCESS)
+
+    @admin.action(description='Desactivar usuarios seleccionados')
+    def desactivar_usuarios(self, request, queryset):
+        # Nunca desactivarse a sí mismo ni a superusuarios (seguridad).
+        qs = queryset.exclude(pk=request.user.pk).exclude(is_superuser=True)
+        n = qs.update(is_active=False)
+        self.message_user(request, f'{n} usuario(s) desactivado(s).', messages.SUCCESS)
+
+    def _filas_export(self, queryset):
+        cols = ['Usuario', 'Correo', 'Nombre', 'Apellidos', 'Rol', 'Institución', 'Activo', 'Último acceso', 'Fecha de ingreso']
+        yield cols
+        for u in queryset.select_related('institucion_asociada'):
+            yield [
+                u.username, u.email or '', u.first_name or '', u.last_name or '',
+                u.get_rol_display(), str(u.institucion_asociada or ''),
+                'Sí' if u.is_active else 'No',
+                u.last_login.strftime('%Y-%m-%d %H:%M') if u.last_login else 'Nunca',
+                u.date_joined.strftime('%Y-%m-%d') if u.date_joined else '',
+            ]
+
+    @admin.action(description='Exportar seleccionados a Excel')
+    def exportar_usuarios_excel(self, request, queryset):
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill
+        wb = Workbook(); ws = wb.active; ws.title = 'Usuarios'
+        for i, fila in enumerate(self._filas_export(queryset)):
+            ws.append(fila)
+            if i == 0:
+                for c in ws[1]:
+                    c.font = Font(bold=True, color='FFFFFF')
+                    c.fill = PatternFill(start_color='0F3460', end_color='0F3460', fill_type='solid')
+        resp = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        resp['Content-Disposition'] = 'attachment; filename="usuarios.xlsx"'
+        wb.save(resp)
+        return resp
+
+    @admin.action(description='Exportar seleccionados a CSV')
+    def exportar_usuarios_csv(self, request, queryset):
+        import csv
+        resp = HttpResponse(content_type='text/csv; charset=utf-8')
+        resp['Content-Disposition'] = 'attachment; filename="usuarios.csv"'
+        resp.write('﻿')  # BOM para que Excel abra bien los acentos
+        w = csv.writer(resp)
+        for fila in self._filas_export(queryset):
+            w.writerow(fila)
+        return resp
+
+    @admin.action(description='Enviar enlace para restablecer contraseña')
+    def enviar_reset_password(self, request, queryset):
+        """Envía el correo de restablecimiento con el canal de correo de CADA
+        institución (regla multi-institución), reutilizando HaluPasswordResetForm."""
+        from gestion_academica.forms import HaluPasswordResetForm
+        enviados, sin_correo = 0, 0
+        for u in queryset:
+            if not u.email:
+                sin_correo += 1
+                continue
+            try:
+                form = HaluPasswordResetForm({'email': u.email})
+                if form.is_valid():
+                    form.save(
+                        request=request,
+                        use_https=request.is_secure(),
+                        subject_template_name='registration/password_reset_subject.txt',
+                        email_template_name='registration/password_reset_email.html',
+                    )
+                    enviados += 1
+            except Exception:
+                pass
+        msg = f'Enlaces de restablecimiento enviados: {enviados}.'
+        if sin_correo:
+            msg += f' {sin_correo} sin correo (omitidos).'
+        self.message_user(request, msg, messages.SUCCESS)
 
     def get_queryset(self, request):
         """Además del filtro por institución del mixin, un usuario staff

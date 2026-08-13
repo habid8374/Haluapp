@@ -110,6 +110,7 @@ INSTALLED_APPS = [
     
             
     # 3. APPS DE DJANGO AL FINAL
+    'jazzmin',  # Tema moderno del admin (DEBE ir antes de django.contrib.admin)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -777,5 +778,65 @@ CHANNEL_LAYERS = {
             "capacity": 1500,
             "expiry":   60,
         },
+    },
+}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  JAZZMIN — Tema moderno del panel de administración (/admin/)
+# ─────────────────────────────────────────────────────────────────────────────
+JAZZMIN_SETTINGS = {
+    "site_title": "HALU · Administración",
+    "site_header": "HALU",
+    "site_brand": "HALU",
+    "site_logo": "core/img/logo_mi_software.png",
+    "login_logo": "core/img/logo_mi_software.png",
+    "site_logo_classes": "img-circle",
+    "welcome_sign": "Bienvenido al panel de administración de HALU",
+    "copyright": "HALU · Sistema de Gestión Escolar",
+    "search_model": ["gestion_academica.Usuario", "gestion_academica.Estudiante"],
+    # Menú superior
+    "topmenu_links": [
+        {"name": "Ver el sitio", "url": "/", "new_window": True},
+        {"name": "Usuarios", "model": "gestion_academica.usuario"},
+    ],
+    "show_ui_builder": False,
+    "changeform_format": "horizontal_tabs",
+    # Íconos (FontAwesome) para modelos frecuentes
+    "icons": {
+        "auth.Group": "fas fa-users-cog",
+        "gestion_academica.Usuario": "fas fa-user",
+        "gestion_academica.Estudiante": "fas fa-user-graduate",
+        "gestion_academica.Docente": "fas fa-chalkboard-teacher",
+        "gestion_academica.Familiar": "fas fa-user-friends",
+        "gestion_academica.Grado": "fas fa-layer-group",
+        "gestion_academica.Grupo": "fas fa-object-group",
+        "gestion_academica.NivelEscolaridad": "fas fa-graduation-cap",
+        "finanzas.InstitucionEducativa": "fas fa-school",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "hide_apps": [],
+    "order_with_respect_to": ["gestion_academica", "finanzas", "auth"],
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": True,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-indigo",
+    "accent": "accent-indigo",
+    "navbar": "navbar-indigo navbar-dark",
+    "no_navbar_border": True,
+    "navbar_fixed": True,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-indigo",
+    "sidebar_nav_flat_style": True,
+    "theme": "default",
+    "button_classes": {
+        "primary": "btn-primary",
+        "success": "btn-success",
+        "danger": "btn-danger",
     },
 }
