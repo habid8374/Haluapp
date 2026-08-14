@@ -1,4 +1,5 @@
 # finanzas/admin.py
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 
@@ -316,19 +317,83 @@ class LlamadaMercadoPagoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
 admin.site.register(InstitucionEducativa, InstitucionEducativaAdmin)
 
 
+class AgregarModuloForm(forms.ModelForm):
+    """Formulario de ALTA por desplegable: eliges un módulo conocido y el resto
+    de sus datos (código, URL, ícono, descripción) se completan solos."""
+
+    class Meta:
+        model = ModuloPlataforma
+        fields = ['codigo']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from finanzas.modulos import MODULOS_CONOCIDOS
+        existentes = set(ModuloPlataforma.objects.values_list('codigo', flat=True))
+        opciones = [
+            (cod, data['nombre'])
+            for cod, data in sorted(MODULOS_CONOCIDOS.items(), key=lambda kv: kv[1].get('orden', 100))
+            if cod not in existentes
+        ]
+        self.fields['codigo'] = forms.ChoiceField(
+            label="Módulo a agregar",
+            choices=[('', '— Elige un módulo —')] + opciones,
+            help_text=("Elige el módulo de la lista (puedes escribir para buscar). "
+                       "Su código, URL, ícono y descripción se completan solos al guardar."),
+        )
+        if not opciones:
+            self.fields['codigo'].help_text = "Ya están agregados todos los módulos conocidos."
+
+    def save(self, commit=True):
+        from finanzas.modulos import MODULOS_CONOCIDOS
+        cod = self.cleaned_data['codigo']
+        data = MODULOS_CONOCIDOS[cod]
+        obj = super().save(commit=False)
+        obj.codigo = cod
+        obj.nombre = data['nombre']
+        obj.prefijo_url = data.get('prefijo_url', '')
+        obj.icono = data.get('icono', '')
+        obj.descripcion = data.get('descripcion', '')
+        obj.orden = data.get('orden', 100)
+        obj.activo = True
+        if commit:
+            obj.save()
+        return obj
+
+
 class ModuloPlataformaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
-    """Catálogo GLOBAL de módulos de la plataforma (solo el propietario). Agregar
-    un módulo nuevo = crear una fila aquí; luego se marca por institución en
-    «Módulos contratados» de cada colegio."""
+    """Catálogo GLOBAL de módulos de la plataforma (solo el propietario). Para
+    AGREGAR: eliges un módulo de un desplegable y todo se rellena solo. Para
+    EDITAR: puedes ajustar cualquier campo a mano."""
     list_display = ('nombre', 'codigo', 'prefijo_url', 'orden', 'activo', 'n_instituciones')
     list_editable = ('orden', 'activo')
     search_fields = ('nombre', 'codigo', 'prefijo_url')
     ordering = ('orden', 'nombre')
-    prepopulated_fields = {'codigo': ('nombre',)}
 
     @admin.display(description='Colegios con el módulo')
     def n_instituciones(self, obj):
         return obj.instituciones.count()
+
+    def get_form(self, request, obj=None, **kwargs):
+        # Al AGREGAR (obj=None) usamos el formulario de desplegable; al editar,
+        # el formulario normal con todos los campos.
+        if obj is None:
+            kwargs['form'] = AgregarModuloForm
+        return super().get_form(request, obj, **kwargs)
+
+    def get_fieldsets(self, request, obj=None):
+        if obj is None:
+            return ((None, {
+                'fields': ('codigo',),
+                'description': ('Elige el módulo que quieres habilitar. El código, la URL, '
+                               'el ícono y la descripción se completan automáticamente.'),
+            }),)
+        return super().get_fieldsets(request, obj)
+
+    def get_prepopulated_fields(self, request, obj=None):
+        # Solo al editar tiene sentido autollenar el código desde el nombre.
+        if obj is None:
+            return {}
+        return {'codigo': ('nombre',)}
 
 
 admin.site.register(ModuloPlataforma, ModuloPlataformaAdmin)

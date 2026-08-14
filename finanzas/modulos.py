@@ -26,6 +26,25 @@ from django.utils.translation import gettext as _
 # El núcleo académico (/academico/), Finanzas (/finanzas/, con su propio
 # interruptor) y la infraestructura (auth, mensajería, SIMAT, panel del dueño)
 # NO se bloquean con este sistema.
+# Registro de TODOS los módulos conocidos de la plataforma (con su/s prefijo/s
+# de URL, ícono y descripción). Es la lista que se ofrece en el desplegable del
+# admin: el propietario elige uno y el resto de datos se rellenan solos. Agregar
+# un módulo nuevo de verdad (una feature nueva) = añadir una entrada aquí.
+MODULOS_CONOCIDOS = {
+    'admisiones': {'nombre': 'Admisiones', 'prefijo_url': '/admisiones/', 'icono': 'bi-clipboard-check', 'descripcion': 'Portal de aspirantes, importación y matrícula.', 'orden': 10},
+    'simulacros': {'nombre': 'Simulacros (ICFES/Saber)', 'prefijo_url': '/simulacros/', 'icono': 'bi-journal-check', 'descripcion': 'Banco de preguntas y simulacros tipo Saber.', 'orden': 20},
+    'piar': {'nombre': 'PIAR (inclusión)', 'prefijo_url': '/piar/', 'icono': 'bi-universal-access', 'descripcion': 'Planes Individuales de Ajuste Razonable (Decreto 1421).', 'orden': 30},
+    'recursos_educativos': {'nombre': 'Recursos educativos', 'prefijo_url': '/academico/recursos/', 'icono': 'bi-collection-play', 'descripcion': 'Biblioteca de recursos y material de apoyo.', 'orden': 40},
+    'evaluacion_docente': {'nombre': 'Evaluación docente', 'prefijo_url': '/evaluacion-docente/', 'icono': 'bi-clipboard-data', 'descripcion': 'Evaluación de desempeño de los docentes.', 'orden': 50},
+    'autoevaluacion': {'nombre': 'Autoevaluación institucional', 'prefijo_url': '/autoevaluacion/', 'icono': 'bi-graph-up', 'descripcion': 'Autoevaluación institucional anual (guía 34).', 'orden': 60},
+    'recursos_interactivos': {'nombre': 'Recursos interactivos (juegos)', 'prefijo_url': '/crucigramas/ /sopa-letras/ /memoria/ /flashcards/ /quiz-audio/ /secuencias/ /trazado/ /rompecabezas/', 'icono': 'bi-controller', 'descripcion': 'Crucigramas, sopas de letras, memoria, flashcards, quiz de audio, secuencias, trazado y rompecabezas.', 'orden': 70},
+    'cuestionarios': {'nombre': 'Cuestionarios / Evaluaciones', 'prefijo_url': '/cuestionarios/', 'icono': 'bi-ui-checks', 'descripcion': 'Editor de cuestionarios y evaluaciones en línea.', 'orden': 80},
+    'facturacion_electronica': {'nombre': 'Facturación electrónica', 'prefijo_url': '/finanzas/facturacion-electronica/', 'icono': 'bi-receipt', 'descripcion': 'Facturación electrónica (requiere el módulo financiero).', 'orden': 90},
+    'simat': {'nombre': 'SIMAT (reporte oficial)', 'prefijo_url': '/simat/', 'icono': 'bi-file-earmark-spreadsheet', 'descripcion': 'Reporte de matrícula al MEN (Anexo 6A / plano).', 'orden': 100},
+    'mensajeria': {'nombre': 'Mensajería interna', 'prefijo_url': '/mensajeria/', 'icono': 'bi-chat-dots', 'descripcion': 'Mensajería interna entre usuarios.', 'orden': 110},
+}
+
+
 MODULOS_SEED = [
     ('admisiones', 'Admisiones', '/admisiones/'),
     ('simulacros', 'Simulacros (ICFES/Saber)', '/simulacros/'),
