@@ -11,6 +11,7 @@ devuelve (False, mensaje) en vez de romper. Usa SIEMPRE la credencial de LA
 institución (nunca una global), en línea con la regla multi-institución.
 """
 import logging
+import time
 from decimal import Decimal
 
 from django.db.models import F
@@ -55,18 +56,47 @@ def _es_error_modelo_no_disponible(exc):
     ))
 
 
+def _es_error_transitorio(exc):
+    """True si es un error TEMPORAL del servidor (sobrecarga/alta demanda), que
+    conviene reintentar: 503 UNAVAILABLE, overloaded, 500 internal, etc. NO
+    incluye cuota (429), que no se resuelve reintentando."""
+    s = str(exc).lower()
+    return any(t in s for t in (
+        '503', 'unavailable', 'overloaded', 'high demand',
+        '500', 'internal error', 'internalservererror', 'try again',
+        'deadline', 'timeout',
+    ))
+
+
 def _gemini_generate(client, model, contents, config=None):
-    """Genera con `model`; si ese modelo no está disponible en la key del colegio,
-    reintenta UNA vez con el modelo de respaldo. Devuelve (resp, modelo_usado)."""
+    """Genera con `model` de forma resiliente. Devuelve (resp, modelo_usado).
+
+    - Si el modelo está SOBRECARGADO (503/alta demanda), espera 2 s y reintenta.
+    - Si sigue caído, o el modelo no está disponible (404), prueba el modelo de
+      RESPALDO (que puede tener capacidad).
+    - Errores no recuperables (cuota 429, etc.) se re-lanzan tal cual (para caer
+      a Claude o mostrar el mensaje adecuado)."""
+    def _call(m):
+        return client.models.generate_content(model=m, contents=contents, config=config), m
+
     try:
-        return client.models.generate_content(model=model, contents=contents, config=config), model
+        return _call(model)
     except Exception as exc:
-        if model != _MODELO_GEMINI_RESPALDO and _es_error_modelo_no_disponible(exc):
-            logger.warning("Modelo Gemini '%s' no disponible (%s); reintento con '%s'.",
+        # 1) Sobrecarga temporal → una espera corta y reintento del mismo modelo.
+        if _es_error_transitorio(exc):
+            logger.warning("Gemini '%s' sobrecargado (%s); reintento en 2 s…", model, exc)
+            time.sleep(2)
+            try:
+                return _call(model)
+            except Exception as exc2:
+                exc = exc2
+        # 2) Aún caído o modelo no disponible → probar el respaldo (otro modelo).
+        if model != _MODELO_GEMINI_RESPALDO and (
+            _es_error_transitorio(exc) or _es_error_modelo_no_disponible(exc)
+        ):
+            logger.warning("Gemini '%s' no responde (%s); pruebo respaldo '%s'.",
                            model, exc, _MODELO_GEMINI_RESPALDO)
-            return (client.models.generate_content(
-                model=_MODELO_GEMINI_RESPALDO, contents=contents, config=config),
-                _MODELO_GEMINI_RESPALDO)
+            return _call(_MODELO_GEMINI_RESPALDO)
         raise
 
 
