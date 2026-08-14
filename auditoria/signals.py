@@ -58,6 +58,13 @@ def _registrar_evento_sesion(tipo_evento, request, user):
 @receiver(user_logged_in)
 def registrar_inicio_sesion(sender, request, user, **kwargs):
     _registrar_evento_sesion('LOGIN', request, user)
+    # Marca que hay que mostrar la pantalla de bienvenida en la primera página
+    # tras iniciar sesión (la limpia el context processor al mostrarla).
+    try:
+        if request is not None and hasattr(request, 'session'):
+            request.session['halu_bienvenida'] = True
+    except Exception:
+        pass
 
 
 @receiver(user_logged_out)

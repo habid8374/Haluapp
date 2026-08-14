@@ -241,6 +241,7 @@ TEMPLATES = [
                 'gestion_academica.context_processors.branding_processor',
                 'gestion_academica.context_processors.turnstile_processor',
                 'gestion_academica.context_processors.modulos_processor',
+                'gestion_academica.context_processors.bienvenida_processor',
 
             ],
         },

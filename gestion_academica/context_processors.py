@@ -64,6 +64,26 @@ def turnstile_processor(request):
     }
 
 
+def bienvenida_processor(request):
+    """Expone `mostrar_bienvenida=True` UNA sola vez tras iniciar sesión (la
+    bandera la pone el signal user_logged_in y aquí se consume/borra). Así la
+    pantalla de bienvenida sale en cada login, no una vez por navegador."""
+    mostrar = False
+    try:
+        user = getattr(request, 'user', None)
+        es_pagina = (
+            request.method == 'GET'
+            and request.headers.get('x-requested-with') != 'XMLHttpRequest'
+        )
+        if es_pagina and user is not None and user.is_authenticated:
+            if request.session.get('halu_bienvenida'):
+                mostrar = True
+                del request.session['halu_bienvenida']
+    except Exception:
+        mostrar = False
+    return {'mostrar_bienvenida': mostrar}
+
+
 def modulos_processor(request):
     """Expone a TODAS las plantillas el conjunto `modulos_activos` (códigos de
     los módulos que la institución del usuario tiene contratados). Se usa para

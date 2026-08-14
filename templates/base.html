@@ -516,8 +516,8 @@
             </div>
         </div>
     </nav>
-    {% if user.is_authenticated %}
-    <!-- ══ Bienvenida (pantalla completa, una vez por sesión) ══ -->
+    {% if mostrar_bienvenida %}
+    <!-- ══ Bienvenida (pantalla completa, se muestra al iniciar sesión) ══ -->
     <div id="halu-welcome" hidden aria-hidden="true">
       <div class="hw-inner">
         <div class="hw-logo-3d">
@@ -563,11 +563,9 @@
     </style>
     <script>
       (function () {
-        try { if (sessionStorage.getItem('haluWelcomeSeen')) return; } catch (e) {}
         var ov = document.getElementById('halu-welcome');
         var skip = document.getElementById('hwSkip');
         if (!ov) return;
-        try { sessionStorage.setItem('haluWelcomeSeen', '1'); } catch (e) {}
         var timer;
         function close() {
           clearTimeout(timer);
