@@ -104,6 +104,24 @@ def _lbl(mapa, valor, default=''):
     return mapa.get(valor or '', default)
 
 
+def _mayus(v):
+    """MAYÚSCULAS conservando tildes (así aparecen los nombres en el SIMAT)."""
+    return (_txt(v) or '').strip().upper()
+
+
+def _pais_lbl(v, default='COLOMBIA'):
+    """Nombre del país en MAYÚSCULAS; vacío → COLOMBIA (para el reporte plano)."""
+    return _mayus(v) or default
+
+
+def _sangre(v):
+    """Grupo sanguíneo con espacio antes del signo: 'B-' → 'B -' (formato SIMAT)."""
+    s = (_txt(v) or '').strip().upper()
+    if s and s[-1] in '+-':
+        return s[:-1].strip() + ' ' + s[-1]
+    return s
+
+
 def _cod(mapa, valor):
     """Devuelve el código SIMAT de un valor de choice; '' si no mapea."""
     return mapa.get(valor or '', '')
@@ -215,15 +233,15 @@ def _fila_aspirante(asp, institucion, anio, contador):
         'PER_ID': _txt(asp.simat_per_id),
         'DOC': _txt(asp.numero_documento),
         'TIPODOC': _lbl(_TIPODOC_LBL, asp.tipo_documento, _txt(asp.tipo_documento)),
-        'APELLIDO1': _txt(asp.primer_apellido),
-        'APELLIDO2': _txt(asp.segundo_apellido),
-        'NOMBRE1': _txt(asp.primer_nombre),
-        'NOMBRE2': _txt(asp.segundo_nombre),
+        'APELLIDO1': _mayus(asp.primer_apellido),
+        'APELLIDO2': _mayus(asp.segundo_apellido),
+        'NOMBRE1': _mayus(asp.primer_nombre),
+        'NOMBRE2': _mayus(asp.segundo_nombre),
         'GENERO': _lbl(_GENERO_LBL, asp.sexo),
         'FECHA_NACIMIENTO': fnac,
-        'BARRIO': _txt(asp.barrio),
-        'EPS': eps,
-        'TIPO DE SANGRE': _txt(asp.grupo_sanguineo),
+        'BARRIO': _mayus(asp.barrio),
+        'EPS': _mayus(eps),
+        'TIPO DE SANGRE': _sangre(asp.grupo_sanguineo),
         'MATRICULACONTRATADA': _sn(asp.matricula_contratada),
         'FUENTE_RECURSOS': _txt(asp.fuente_recursos) or 'NO APLICA',
         'INTERNADO': _txt(asp.internado) or 'NINGUNO',
@@ -231,7 +249,7 @@ def _fila_aspirante(asp, institucion, anio, contador):
         'HA_ESTADO_VINCULADO_SRPA': _si_no(asp.srpa),
         'ESTA_ACTIVO_SRPA': _si_no(asp.srpa),
         'DISCAPACIDAD': _lbl(_DISCAP_LBL, asp.discapacidad_categoria or 'NINGUNA', 'NO APLICA'),
-        'PAIS_ORIGEN': _txt(asp.pais_origen),
+        'PAIS_ORIGEN': _pais_lbl(asp.pais_origen),
         'CORREO': _txt(asp.email_contacto),
         'TELEFONO': _txt(asp.telefono_contacto),
         'ETNIA': etnia,
@@ -239,8 +257,8 @@ def _fila_aspirante(asp, institucion, anio, contador):
         'APOYO_ACADEMICO_ESPECIAL': _sn(asp.apoyo_academico_especial),
         'LIST_CAP_EXCEPCIONALES': _cod(_CAPACID_SIMAT, getattr(asp, 'capacidad_excepcional', '')),
         'CAMPESINO': _sn(asp.campesino),
-        'PAIS_NACIMIENTO': _txt(asp.pais_nacimiento),
-        'PAIS_NACIONALIDAD2': _txt(asp.nacionalidad),
+        'PAIS_NACIMIENTO': _pais_lbl(asp.pais_nacimiento),
+        'PAIS_NACIONALIDAD2': _pais_lbl(asp.nacionalidad),
         'CATEGORIA_AULA': '',
         'CONTADOR': contador,
     }
