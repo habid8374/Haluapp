@@ -1842,52 +1842,74 @@ def api_sugerir_nombre_idioma(request):
         return JsonResponse({'error': f'Error al contactar la IA: {e}'}, status=500)
 
 
+def _materias_accesibles(request, pks):
+    """Materias que el usuario puede ver/editar (mismo criterio que la lista):
+    el superusuario ve TODAS; los demás solo las de su institución. Evita el
+    desajuste que hacía fallar la sugerencia cuando el propietario (superusuario)
+    veía materias de otra institución."""
+    qs = Materia.objects.filter(pk__in=pks)
+    if request.user.is_superuser:
+        return qs
+    inst = getattr(request.user, 'institucion_asociada', None)
+    return qs.filter(institucion=inst) if inst else Materia.objects.none()
+
+
 @login_required
 @require_POST
 def api_sugerir_nombres_idioma_masivo(request):
     """
     Recibe una lista de PKs de materias sin nombre en idioma secundario
-    y devuelve sugerencias para todas en una sola llamada a Gemini.
+    y devuelve sugerencias para todas. Las materias se agrupan por institución
+    y cada grupo se traduce con la credencial Gemini DE SU institución (regla
+    multi-institución: nunca la clave de otra).
     Usado por el botón 'Sugerir para todas' en la lista de materias.
     """
+    from collections import defaultdict
     try:
         data = json.loads(request.body)
         pks = data.get('pks', [])
         idioma = data.get('idioma', 'Inglés').strip()
 
-        institucion = getattr(request.user, 'institucion_asociada', None)
-        if not institucion:
-            return JsonResponse({'error': 'Sin institución asociada.'}, status=403)
-
-        materias = Materia.objects.filter(pk__in=pks, institucion=institucion)
+        materias = _materias_accesibles(request, pks).select_related('institucion')
         if not materias.exists():
             return JsonResponse({'error': 'No se encontraron materias.'}, status=400)
 
-        api_key = institucion_google_api_key(institucion)
-        if not api_key:
-            return JsonResponse({'error': 'La institución no tiene configurada la API key de Google (Gemini).'}, status=500)
+        por_inst = defaultdict(list)
+        for m in materias:
+            por_inst[m.institucion].append(m)
 
-        _client = genai.Client(api_key=api_key)
+        sugerencias = {}
+        sin_key = []
+        for inst, mats in por_inst.items():
+            if not institucion_google_api_key(inst):
+                sin_key.append(inst.nombre)
+                continue
+            lista = '\n'.join([f'- {m.pk}: {m.nombre_materia}' for m in mats])
+            prompt = (
+                f"Eres un experto en nomenclatura educativa de colegios bilingües en Colombia.\n"
+                f"Traduce cada nombre de materia al {idioma}, usando la convención oficial de colegios bilingües.\n"
+                f"Responde ÚNICAMENTE en formato JSON: {{\"<pk>\": \"<nombre traducido>\", ...}}. Sin texto adicional.\n\n"
+                f"Materias:\n{lista}"
+            )
+            try:
+                response = _ia_gate.gemini_generate(inst, None, prompt)
+                texto = (response.text or '').strip()
+                if texto.startswith('```'):
+                    texto = texto.split('```')[1]
+                    if texto.startswith('json'):
+                        texto = texto[4:]
+                parsed = json.loads(texto.strip())
+                if isinstance(parsed, dict):
+                    sugerencias.update({str(k): v for k, v in parsed.items()})
+            except (json.JSONDecodeError, ValueError, IndexError):
+                continue  # esa institución devolvió algo inesperado; se omite
 
-        lista = '\n'.join([f'- {m.pk}: {m.nombre_materia}' for m in materias])
-        prompt = (
-            f"Eres un experto en nomenclatura educativa de colegios bilingües en Colombia.\n"
-            f"Traduce cada nombre de materia al {idioma}, usando la convención oficial de colegios bilingües.\n"
-            f"Responde ÚNICAMENTE en formato JSON: {{\"<pk>\": \"<nombre traducido>\", ...}}. Sin texto adicional.\n\n"
-            f"Materias:\n{lista}"
-        )
-        response = _ia_gate.gemini_generate(institucion, 'gemini-2.0-flash', prompt)
-        texto = response.text.strip()
-        # Limpiar posibles bloques de código markdown
-        if texto.startswith('```'):
-            texto = texto.split('```')[1]
-            if texto.startswith('json'):
-                texto = texto[4:]
-        sugerencias = json.loads(texto.strip())
+        if not sugerencias:
+            if sin_key:
+                return JsonResponse({'error': 'La(s) institución(es) no tienen configurada la API key de Google (Gemini): ' + ', '.join(sin_key)}, status=500)
+            return JsonResponse({'error': 'La IA no devolvió sugerencias válidas. Intenta de nuevo.'}, status=500)
         return JsonResponse({'sugerencias': sugerencias})
 
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'La IA devolvió una respuesta inesperada. Intenta de nuevo.'}, status=500)
     except Exception as e:
         return JsonResponse({'error': f'Error al contactar la IA: {e}'}, status=500)
 
@@ -1899,20 +1921,27 @@ def api_guardar_nombres_idioma_masivo(request):
     try:
         data = json.loads(request.body)
         sugerencias = data.get('sugerencias', {})  # {pk: nombre_sugerido}
-        institucion = getattr(request.user, 'institucion_asociada', None)
-        if not institucion:
-            return JsonResponse({'error': 'Sin institución asociada.'}, status=403)
+
+        # Solo materias que el usuario puede editar (superusuario todas; los
+        # demás las de su institución) — mismo criterio que la lista.
+        try:
+            pks = [int(k) for k in sugerencias.keys()]
+        except (TypeError, ValueError):
+            pks = []
+        materias = {m.pk: m for m in _materias_accesibles(request, pks)}
+        if not materias:
+            return JsonResponse({'error': 'No se encontraron materias.'}, status=400)
 
         actualizadas = 0
         for pk_str, nombre in sugerencias.items():
             try:
-                materia = Materia.objects.get(pk=int(pk_str), institucion=institucion)
-                if nombre and not materia.nombre_idioma_secundario:
-                    materia.nombre_idioma_secundario = nombre.strip()
-                    materia.save(update_fields=['nombre_idioma_secundario'])
-                    actualizadas += 1
-            except (Materia.DoesNotExist, ValueError):
-                continue
+                materia = materias.get(int(pk_str))
+            except (TypeError, ValueError):
+                materia = None
+            if materia and nombre and not materia.nombre_idioma_secundario:
+                materia.nombre_idioma_secundario = nombre.strip()
+                materia.save(update_fields=['nombre_idioma_secundario'])
+                actualizadas += 1
 
         return JsonResponse({'actualizadas': actualizadas})
     except Exception as e:
