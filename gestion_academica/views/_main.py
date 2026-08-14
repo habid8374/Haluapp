@@ -8674,6 +8674,64 @@ def detalle_caso_convivencia(request, pk):
                 caso_actualizado.save()
                 messages.success(request, f"Estado actualizado a: {caso.get_estado_display()}")
                 return redirect('gestion_academica:detalle_caso_convivencia', pk=pk)
+
+        elif accion == 'reclasificar':
+            form_accion = AccionForm()
+            form_estado = EstadoForm(instance=caso)
+            nuevo_tipo = (request.POST.get('tipo_situacion') or '').strip()
+            validos = dict(CasoConvivencia.TipoSituacion.choices)
+            if nuevo_tipo not in validos:
+                messages.error(request, "Tipo de situación no válido.")
+                return redirect('gestion_academica:detalle_caso_convivencia', pk=pk)
+            if nuevo_tipo == caso.tipo_situacion:
+                messages.info(request, "El caso ya está clasificado con ese tipo.")
+                return redirect('gestion_academica:detalle_caso_convivencia', pk=pk)
+
+            from datetime import timedelta
+            # Protocolo oficial del Decreto 1965 según el nuevo tipo.
+            _PROTOCOLO = {
+                'TIPO I': (
+                    "1. Reunir de inmediato a las partes y mediar pedagógicamente para reparar el daño y reconciliar.\n"
+                    "2. Fijar la solución de forma imparcial y justa; dejar constancia.\n"
+                    "3. Hacer seguimiento a los compromisos; si no es efectivo, escalar a Tipo II o III."
+                ),
+                'TIPO II': (
+                    "1. Si hay daño al cuerpo o la salud, garantizar atención inmediata en salud física y mental (remisión); constancia.\n"
+                    "2. Si se requiere restablecimiento de derechos, remitir a autoridades administrativas (ICBF, Ley 1098); constancia.\n"
+                    "3. Adoptar medidas para proteger a los involucrados; constancia.\n"
+                    "4. Informar de inmediato a los padres/acudientes de todos los involucrados; constancia.\n"
+                    "5. Generar espacios de diálogo con las partes y acudientes (con confidencialidad).\n"
+                    "6. Determinar acciones restaurativas y consecuencias para quienes participaron.\n"
+                    "7. Informar al Comité Escolar de Convivencia; análisis y seguimiento.\n"
+                    "8. Dejar constancia en acta suscrita por todos.\n"
+                    "9. Reportar el caso al Sistema de Información Unificado de Convivencia Escolar."
+                ),
+                'TIPO III': (
+                    "1. Si hay daño al cuerpo o la salud, atención inmediata en salud (remisión); constancia.\n"
+                    "2. Informar de inmediato a los padres/acudientes; constancia.\n"
+                    "3. Poner la situación en conocimiento de la POLICÍA NACIONAL de inmediato (presunto delito); constancia.\n"
+                    "4. Citar al Comité Escolar de Convivencia.\n"
+                    "5. Informar a los participantes del comité, con reserva de la información sensible.\n"
+                    "6. Adoptar medidas inmediatas para proteger a víctima, presunto agresor e informantes.\n"
+                    "7. Reportar el caso al Sistema de Información Unificado de Convivencia Escolar.\n"
+                    "8. Seguimiento por el Comité y las autoridades competentes."
+                ),
+            }
+            tipo_anterior = caso.get_tipo_situacion_display()
+            caso.tipo_situacion = nuevo_tipo
+            # Recalcular el plazo legal desde la apertura según el nuevo tipo.
+            base = caso.fecha_apertura or timezone.now()
+            caso.fecha_limite = base + timedelta(days=1 if nuevo_tipo == 'TIPO III' else 7)
+            caso.protocolo_ia = _PROTOCOLO.get(nuevo_tipo, caso.protocolo_ia)
+            caso.save(update_fields=['tipo_situacion', 'fecha_limite', 'protocolo_ia'])
+            # Dejar constancia en la línea de tiempo (auditoría).
+            AccionCaso.objects.create(
+                caso=caso, tipo_accion=AccionCaso.TipoAccion.OTRO,
+                descripcion=f"Reclasificación del caso: de «{tipo_anterior}» a «{caso.get_tipo_situacion_display()}» por {request.user.get_full_name() or request.user.username}. Se actualizó el plazo legal y el protocolo sugerido.",
+                ejecutado_por=request.user,
+            )
+            messages.success(request, f"Caso reclasificado a: {caso.get_tipo_situacion_display()}.")
+            return redirect('gestion_academica:detalle_caso_convivencia', pk=pk)
         else:
             form_accion = AccionForm()
             form_estado = EstadoForm(instance=caso)

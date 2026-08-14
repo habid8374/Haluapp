@@ -40,15 +40,15 @@
     <div class="col-lg-4">
       <div class="card mb-3
         {% if caso.estado == 'VENCIDO' %}border-danger
-        {% elif caso.tipo_situacion == 'TIPO_III' %}border-warning
+        {% elif caso.tipo_situacion == 'TIPO III' %}border-warning
         {% endif %}">
         <div class="card-header fw-bold">Datos del Caso</div>
         <ul class="list-group list-group-flush">
           <li class="list-group-item d-flex justify-content-between">
             <span class="text-muted small">Tipo</span>
-            {% if caso.tipo_situacion == 'TIPO_I' %}
+            {% if caso.tipo_situacion == 'TIPO I' %}
               <span class="badge bg-success">Tipo I – Leve</span>
-            {% elif caso.tipo_situacion == 'TIPO_II' %}
+            {% elif caso.tipo_situacion == 'TIPO II' %}
               <span class="badge bg-warning text-dark">Tipo II – Moderado</span>
             {% else %}
               <span class="badge bg-danger">Tipo III – Grave</span>
@@ -190,6 +190,28 @@
             </div>
             <button type="submit" class="btn btn-warning btn-sm w-100">
               <i class="bi bi-arrow-clockwise me-1"></i>Actualizar Estado
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header fw-bold">Reclasificar tipo (Ley 1620)</div>
+        <div class="card-body px-2 px-md-3">
+          <p class="text-muted small mb-2">La clasificación de la IA es una sugerencia. El coordinador tiene la última palabra: si el tipo no corresponde, corrígelo aquí. Se recalcula el plazo legal y el protocolo sugerido.</p>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="accion_form" value="reclasificar">
+            <div class="mb-2">
+              <label class="form-label small fw-semibold">Tipo de situación</label>
+              <select name="tipo_situacion" class="form-select form-select-sm w-100">
+                <option value="TIPO I"   {% if caso.tipo_situacion == 'TIPO I' %}selected{% endif %}>Tipo I – Conflicto menor</option>
+                <option value="TIPO II"  {% if caso.tipo_situacion == 'TIPO II' %}selected{% endif %}>Tipo II – Acoso/ciberacoso (sin delito)</option>
+                <option value="TIPO III" {% if caso.tipo_situacion == 'TIPO III' %}selected{% endif %}>Tipo III – Presunto delito</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+              <i class="bi bi-shield-check me-1"></i>Reclasificar caso
             </button>
           </form>
         </div>
