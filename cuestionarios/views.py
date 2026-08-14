@@ -1008,16 +1008,16 @@ class GenerarPreguntasIAView(APIView):
             logger.debug("GenerarPreguntasIA prompt (primeros 120 chars): %s...", prompt[:120])
 
             client = genai.Client(api_key=api_key)
-            response = client.models.generate_content(
-                model=_ia_gate._MODELO_GEMINI,
-                contents=prompt,
-                config=types.GenerateContentConfig(response_mime_type="application/json")
+            # Pasa por el helper central: reintento ante 503 + respaldo de modelo.
+            response, _usado = _ia_gate._gemini_generate(
+                client, _ia_gate._MODELO_GEMINI, prompt,
+                types.GenerateContentConfig(response_mime_type="application/json"),
             )
             # Registrar consumo de IA (tokens + costo) para el tope y el panel.
             try:
                 _um = getattr(response, 'usage_metadata', None)
                 _ia_gate.registrar_uso(
-                    cuestionario.institucion, _ia_gate._MODELO_GEMINI,
+                    cuestionario.institucion, _usado,
                     getattr(_um, 'prompt_token_count', 0) or 0,
                     getattr(_um, 'candidates_token_count', 0) or 0,
                 )
@@ -1121,15 +1121,15 @@ class SugerirCalificacionIAView(APIView):
 
             # --- Llamada a la API de Google ---
             client = genai.Client(api_key=api_key)
-            response = client.models.generate_content(
-                model=_ia_gate._MODELO_GEMINI,
-                contents=prompt,
-                config=types.GenerateContentConfig(response_mime_type="application/json")
+            # Pasa por el helper central: reintento ante 503 + respaldo de modelo.
+            response, _usado = _ia_gate._gemini_generate(
+                client, _ia_gate._MODELO_GEMINI, prompt,
+                types.GenerateContentConfig(response_mime_type="application/json"),
             )
             try:
                 _um = getattr(response, 'usage_metadata', None)
                 _ia_gate.registrar_uso(
-                    institucion, _ia_gate._MODELO_GEMINI,
+                    institucion, _usado,
                     getattr(_um, 'prompt_token_count', 0) or 0,
                     getattr(_um, 'candidates_token_count', 0) or 0,
                 )
