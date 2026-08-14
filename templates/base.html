@@ -523,7 +523,8 @@
         <div class="hw-logo-3d">
           <img src="{% static branding.LOGO_URL %}" alt="{{ branding.NOMBRE }}" class="hw-logo">
         </div>
-        <h1 class="hw-title">{% trans "¡Bienvenido a tu plataforma escolar!" %}</h1>
+        <h1 class="hw-title">{% blocktrans with nombre=user.first_name|default:user.username %}¡Hola, {{ nombre }}!{% endblocktrans %}</h1>
+        <p class="hw-sub">{% trans "Te damos la bienvenida a tu plataforma escolar" %}</p>
       </div>
       <button type="button" class="hw-enter" id="hwSkip">{% trans "Entrar" %} <i class="bi bi-arrow-right"></i></button>
     </div>
@@ -534,25 +535,25 @@
         animation: hwFadeIn .45s ease; }
       #halu-welcome[hidden] { display: none; }
       #halu-welcome.hw-closing { animation: hwFadeOut .5s ease forwards; }
-      #halu-welcome .hw-logo-3d { perspective: 900px; margin-bottom: 1.2rem; display: inline-block; }
-      #halu-welcome .hw-logo { width: min(46vw, 210px); height: auto; display: block;
-        transform-style: preserve-3d;
-        filter: drop-shadow(0 20px 34px rgba(0,0,0,.5)) drop-shadow(0 4px 8px rgba(0,0,0,.35));
-        animation: hwPop .9s cubic-bezier(.2,.8,.2,1.1) both, hwFloat 4.5s ease-in-out 1s infinite; }
+      #halu-welcome .hw-logo-3d { perspective: 620px; margin-bottom: 1.2rem; display: inline-block; }
+      #halu-welcome .hw-logo { width: min(48vw, 220px); height: auto; display: block;
+        transform-style: preserve-3d; will-change: transform;
+        filter: drop-shadow(0 26px 40px rgba(0,0,0,.55)) drop-shadow(0 6px 12px rgba(0,0,0,.4));
+        animation: hwPop 1s cubic-bezier(.2,.8,.2,1.1) both, hwFloat 5s ease-in-out 1.05s infinite; }
       #halu-welcome .hw-title { color: #fff; font-weight: 800; margin: 0; line-height: 1.15;
-        font-size: clamp(1.5rem, 5.2vw, 2.6rem); text-shadow: 0 4px 16px rgba(0,0,0,.35);
+        font-size: clamp(1.6rem, 5.6vw, 2.8rem); text-shadow: 0 4px 16px rgba(0,0,0,.35);
         animation: hwUp .7s .25s both; }
-      #halu-welcome .hw-sub { color: rgba(255,255,255,.82); font-weight: 700; letter-spacing: 3px;
-        text-transform: uppercase; font-size: .82rem; margin: .7rem 0 0; animation: hwUp .7s .4s both; }
+      #halu-welcome .hw-sub { color: rgba(255,255,255,.85); font-weight: 600; letter-spacing: .5px;
+        font-size: clamp(.95rem, 2.6vw, 1.1rem); margin: .6rem 0 0; animation: hwUp .7s .4s both; }
       #halu-welcome .hw-enter { position: absolute; bottom: 2.2rem; border: 1px solid rgba(255,255,255,.55);
         background: rgba(255,255,255,.12); color: #fff; font-weight: 700; font-size: .9rem;
         padding: .6rem 1.7rem; border-radius: 2rem; cursor: pointer; backdrop-filter: blur(6px);
         display: flex; align-items: center; gap: .5rem; animation: hwUp .7s .6s both; }
       #halu-welcome .hw-enter:hover { background: rgba(255,255,255,.22); }
-      @keyframes hwPop { from { opacity: 0; transform: rotateX(35deg) rotateY(-16deg) scale(.6); }
-        to { opacity: 1; transform: rotateX(0) rotateY(0) scale(1); } }
-      @keyframes hwFloat { 0%,100% { transform: translateY(0) rotateY(-9deg); }
-        50% { transform: translateY(-14px) rotateY(9deg); } }
+      @keyframes hwPop { from { opacity: 0; transform: rotateX(50deg) rotateY(-40deg) scale(.5); }
+        60% { opacity: 1; } to { opacity: 1; transform: rotateX(0) rotateY(0) scale(1); } }
+      @keyframes hwFloat { 0%,100% { transform: translateY(6px) rotateY(-22deg) rotateX(8deg); }
+        50% { transform: translateY(-16px) rotateY(22deg) rotateX(-6deg); } }
       @keyframes hwUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
       @keyframes hwFadeIn { from { opacity: 0; } to { opacity: 1; } }
       @keyframes hwFadeOut { to { opacity: 0; visibility: hidden; } }
