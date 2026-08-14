@@ -295,13 +295,13 @@
               {% for caso in casos %}
               <tr class="sentinel-row
                 {% if caso.estado == 'VENCIDO' %}table-danger
-                {% elif caso.tipo_situacion == 'TIPO_III' and caso.estado in 'ABIERTO,EN_SEGUIMIENTO' %}table-warning
+                {% elif caso.tipo_situacion == 'TIPO III' and caso.estado in 'ABIERTO,EN_SEGUIMIENTO' %}table-warning
                 {% elif caso.estado == 'CERRADO' %}table-secondary{% endif %}"
                 data-estado="{{ caso.estado }}" data-tipo="{{ caso.tipo_situacion }}">
                 <td><code class="small fw-bold">{{ caso.radicado }}</code></td>
                 <td>
-                  {% if caso.tipo_situacion == 'TIPO_I' %}<span class="badge bg-success">Tipo I</span>
-                  {% elif caso.tipo_situacion == 'TIPO_II' %}<span class="badge bg-warning text-dark">Tipo II</span>
+                  {% if caso.tipo_situacion == 'TIPO I' %}<span class="badge bg-success">Tipo I</span>
+                  {% elif caso.tipo_situacion == 'TIPO II' %}<span class="badge bg-warning text-dark">Tipo II</span>
                   {% else %}<span class="badge bg-danger">Tipo III</span>{% endif %}
                 </td>
                 <td>
@@ -339,7 +339,7 @@
         {% for caso in casos %}
         <div class="caso-card sentinel-card
           {% if caso.estado == 'VENCIDO' %}vencido
-          {% elif caso.tipo_situacion == 'TIPO_III' and caso.estado in 'ABIERTO,EN_SEGUIMIENTO' %}tipo-iii
+          {% elif caso.tipo_situacion == 'TIPO III' and caso.estado in 'ABIERTO,EN_SEGUIMIENTO' %}tipo-iii
           {% elif caso.estado == 'CERRADO' %}cerrado{% endif %}"
           data-estado="{{ caso.estado }}" data-tipo="{{ caso.tipo_situacion }}">
           <div class="caso-card-inner">
@@ -348,8 +348,8 @@
               <div>
                 <code class="fw-bold" style="font-size:.82rem;">{{ caso.radicado }}</code>
                 <div class="mt-1 d-flex flex-wrap gap-1">
-                  {% if caso.tipo_situacion == 'TIPO_I' %}<span class="badge bg-success">Tipo I</span>
-                  {% elif caso.tipo_situacion == 'TIPO_II' %}<span class="badge bg-warning text-dark">Tipo II</span>
+                  {% if caso.tipo_situacion == 'TIPO I' %}<span class="badge bg-success">Tipo I</span>
+                  {% elif caso.tipo_situacion == 'TIPO II' %}<span class="badge bg-warning text-dark">Tipo II</span>
                   {% else %}<span class="badge bg-danger">Tipo III</span>{% endif %}
                   {% if caso.estado == 'ABIERTO' %}<span class="badge bg-warning text-dark">Abierto</span>
                   {% elif caso.estado == 'EN_SEGUIMIENTO' %}<span class="badge bg-info text-dark">Seguimiento</span>

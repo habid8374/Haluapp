@@ -127,12 +127,25 @@
     <td>{{ caso.radicado }}</td>
     <td class="lbl">Tipo de Situación</td>
     <td>
-      {% if caso.tipo_situacion == 'TIPO_I' %}
+      {% if caso.tipo_situacion == 'TIPO I' %}
         <span class="badge badge-success">Tipo I – Leve</span>
-      {% elif caso.tipo_situacion == 'TIPO_II' %}
+      {% elif caso.tipo_situacion == 'TIPO II' %}
         <span class="badge badge-warning">Tipo II – Moderado</span>
       {% else %}
         <span class="badge badge-danger">Tipo III – Grave</span>
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <td class="lbl">Fundamento legal</td>
+    <td colspan="3">
+      Ley 1620 de 2013 y Decreto 1965 de 2013, art. 40 (clasificación).
+      {% if caso.tipo_situacion == 'TIPO I' %}
+        <strong>Protocolo art. 42</strong> — atención inmediata mediante mediación pedagógica.
+      {% elif caso.tipo_situacion == 'TIPO II' %}
+        <strong>Protocolo art. 43</strong> — actuación del Comité Escolar de Convivencia; respuesta en máximo 5 días hábiles.
+      {% else %}
+        <strong>Protocolo art. 44</strong> — presunto delito: reporte inmediato a la Policía Nacional / autoridad competente (máx. 2 horas hábiles).
       {% endif %}
     </td>
   </tr>
@@ -212,10 +225,14 @@
 <p>No se han registrado acciones en este expediente.</p>
 {% endif %}
 {% endwith %}
-<!-- Protocolo IA -->
+<!-- Protocolo -->
 {% if caso.protocolo_ia %}
-<h2 class="seccion">V. Protocolo Sugerido por Inteligencia Artificial (Halu Sentinel)</h2>
-<p style="font-style:italic;color:#444;">{{ caso.protocolo_ia }}</p>
+<h2 class="seccion">V. Protocolo aplicable
+  {% if caso.tipo_situacion == 'TIPO I' %}(Decreto 1965 de 2013, art. 42)
+  {% elif caso.tipo_situacion == 'TIPO II' %}(Decreto 1965 de 2013, art. 43)
+  {% else %}(Decreto 1965 de 2013, art. 44){% endif %}
+</h2>
+<p style="color:#444;">{{ caso.protocolo_ia|linebreaksbr }}</p>
 {% endif %}
 <!-- Resolución final -->
 {% if caso.resolucion_final %}
