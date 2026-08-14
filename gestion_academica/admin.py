@@ -5,6 +5,13 @@ from django.http import HttpResponse
 # pero aquí en admin.py necesitamos importarlo directamente para registrarlo
 from finanzas.models import InstitucionEducativa
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+# Formularios de Unfold para el modelo Usuario: sin ellos, el tema Unfold no
+# renderiza el formulario de crear/editar usuario (sale vacío, sin campos).
+from unfold.forms import (
+    AdminPasswordChangeForm as UnfoldAdminPasswordChangeForm,
+    UserChangeForm as UnfoldUserChangeForm,
+    UserCreationForm as UnfoldUserCreationForm,
+)
 from proyecto_colegio.admin_mixins import InstitucionScopedAdminMixin
 from import_export.admin import ImportExportModelAdmin
 from django.db.models import Q
@@ -46,6 +53,24 @@ class UsuarioAdmin(InstitucionScopedAdminMixin, BaseUserAdmin):
     VERSIÓN ACTUALIZADA: Incluye el campo para el ID del calendario de Google.
     """
     institucion_lookup = 'institucion_asociada'
+
+    # Formularios de Unfold (crear/editar usuario y cambiar contraseña). Son
+    # indispensables con el tema Unfold: de lo contrario el formulario de
+    # «crear usuario» se renderiza vacío (sin campos de usuario/contraseña).
+    form = UnfoldUserChangeForm
+    add_form = UnfoldUserCreationForm
+    change_password_form = UnfoldAdminPasswordChangeForm
+
+    # Unfold define add_fieldsets = () en su ModelAdmin y, por el orden de
+    # herencia, tapa el de Django (username + contraseñas). Por eso el
+    # formulario de crear usuario salía VACÍO. Lo declaramos explícitamente
+    # con los campos mínimos para crear el usuario (más rol e institución).
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2', 'rol', 'institucion_asociada'),
+        }),
+    )
 
     # --- INICIO DE LA CORRECCIÓN CLAVE ---
     # Añadimos la nueva sección "Conexiones Externas" a tus fieldsets existentes.
