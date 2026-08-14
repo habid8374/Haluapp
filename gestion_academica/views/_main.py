@@ -15854,7 +15854,7 @@ def seleccionar_curso_para_lecciones(request):
         return redirect('gestion_academica:inicio_academico')
 
     context = {
-        'titulo_pagina': "Seleccionar Curso para Ver Lecciones",
+        'titulo_pagina': _("Seleccionar Curso para Ver Lecciones"),
         'cursos': cursos
     }
     return render(request, 'gestion_academica/seleccionar_curso_lecciones.html', context)
@@ -15868,13 +15868,13 @@ def lista_lecciones_diarias(request, curso_pk):
     curso = get_object_or_404(get_filtered_queryset(Curso, request.user), pk=curso_pk)
     # Validamos que el docente que solicita tenga permiso sobre este curso
     if not curso.docentes_asignados.filter(pk=request.user.docente.pk).exists():
-        messages.error(request, "No tienes permiso para ver las lecciones de este curso.")
+        messages.error(request, _("No tienes permiso para ver las lecciones de este curso."))
         return redirect('gestion_academica:seleccionar_curso_para_lecciones')
 
     lecciones = LeccionDiaria.objects.filter(curso=curso).order_by('fecha')
 
     context = {
-        'titulo_pagina': f"Historial de Lecciones para {curso}",
+        'titulo_pagina': _("Historial de Lecciones para %(curso)s") % {'curso': curso},
         'curso': curso,
         'lecciones': lecciones
     }

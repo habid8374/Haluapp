@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">{{ titulo_pagina }}</h1>
         <a href="{% url 'gestion_academica:seleccionar_curso_para_lecciones' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-2"></i>Volver a Seleccionar Curso
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Volver a Seleccionar Curso" %}
         </a>
     </div>
     <div class="card shadow-sm">
@@ -17,9 +17,9 @@
                     <thead class="table-light">
                         <tr>
                             <th>{% trans "Fecha" %}</th>
-                            <th>Tema Tratado</th>
-                            <th>Creado Por</th>
-                            <th>Acciones</th>
+                            <th>{% trans "Tema Tratado" %}</th>
+                            <th>{% trans "Creado Por" %}</th>
+                            <th>{% trans "Acciones" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -30,7 +30,7 @@
                             <td>{{ leccion.creado_por.get_full_name }}</td>
                             <td>
                                 <a href="{% url 'gestion_academica:detalle_leccion_ia' leccion.pk %}" class="btn btn-sm btn-info">
-                                    Ver / Editar
+                                    {% trans "Ver / Editar" %}
                                 </a>
                             </td>
                         </tr>

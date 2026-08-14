@@ -11556,3 +11556,47 @@ msgstr "Results: %(tablero_titulo)s"
 #, python-format
 msgid "Resultado: %(tablero_titulo)s"
 msgstr "Result: %(tablero_titulo)s"
+
+# --- Lecciones diarias (i18n) ---
+
+msgid "Creado Por"
+msgstr "Created By"
+
+msgid "Tema Tratado"
+msgstr "Topic Covered"
+
+msgid "Guardar Cambios"
+msgstr "Save Changes"
+
+msgid "Volver a Seleccionar Curso"
+msgstr "Back to Course Selection"
+
+msgid "Ver / Editar"
+msgstr "View / Edit"
+
+msgid "Volver al curso"
+msgstr "Back to course"
+
+msgid "Resumen y Actividades"
+msgstr "Summary and Activities"
+
+msgid "Material Adicional"
+msgstr "Additional Material"
+
+msgid "Descargar Archivo"
+msgstr "Download File"
+
+msgid "Seleccionar Curso para Ver Lecciones"
+msgstr "Select a Course to View Lessons"
+
+msgid "Elige un curso para ver el historial completo de lecciones diarias que han sido registradas."
+msgstr "Choose a course to see the complete history of daily lessons that have been recorded."
+
+msgid "No tienes permiso para ver las lecciones de este curso."
+msgstr "You don't have permission to view this course's lessons."
+
+msgid "Historial de Lecciones para %(curso)s"
+msgstr "Lesson History for %(curso)s"
+
+msgid "Clase de <strong>%(materia)s</strong> (%(grado)s) del <strong>%(fecha)s</strong>"
+msgstr "Class of <strong>%(materia)s</strong> (%(grado)s) on <strong>%(fecha)s</strong>"

@@ -10,11 +10,11 @@
                 <h3 class="mb-0">{{ titulo_pagina }}</h3>
                 <!-- CORRECCIÓN 1: Se reemplazó el <form> erróneo por un enlace <a> simple y correcto -->
                 <a href="{% url 'gestion_academica:lista_lecciones_diarias' curso.pk %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Volver al curso
+                    <i class="bi bi-arrow-left"></i> {% trans "Volver al curso" %}
                 </a>
             </div>
             <p class="text-muted mb-0">
-                Clase de <strong>{{ curso.materia }}</strong> ({{ curso.grado }}) del <strong>{{ leccion.fecha|date:"d \d\e F \d\e Y" }}</strong>
+                {% blocktrans with materia=curso.materia grado=curso.grado fecha=leccion.fecha|date:"d \d\e F \d\e Y" %}Clase de <strong>{{ materia }}</strong> ({{ grado }}) del <strong>{{ fecha }}</strong>{% endblocktrans %}
             </p>
         </div>
         {% if es_docente %}
@@ -27,23 +27,23 @@
                     <div class="d-flex justify-content-end mt-4 border-top pt-3">
                         <a href="{% url 'gestion_academica:lista_lecciones_diarias' curso.pk %}" class="btn btn-secondary me-2">{% trans "Cancelar" %}</a>
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                            <i class="bi bi-check-circle me-2"></i>{% trans "Guardar Cambios" %}
                         </button>
                     </div>
                 </form>
             </div>
         {% else %}
             <div class="card-body p-4">
-                <h5 class="card-title">Tema Tratado</h5>
+                <h5 class="card-title">{% trans "Tema Tratado" %}</h5>
                 <p class="card-text fs-5">{{ leccion.tema_tratado }}</p>
                 <hr>
-                <h5 class="card-title mt-4">Resumen y Actividades</h5>
+                <h5 class="card-title mt-4">{% trans "Resumen y Actividades" %}</h5>
                 <div class="p-3 bg-light rounded" style="white-space: pre-wrap;">{{ leccion.resumen_clase|linebreaksbr }}</div>
                 {% if leccion.archivo_adjunto %}
                     <hr>
-                    <h5 class="card-title mt-4">Material Adicional</h5>
+                    <h5 class="card-title mt-4">{% trans "Material Adicional" %}</h5>
                     <a href="{{ leccion.archivo_adjunto.url }}" class="btn btn-success" target="_blank">
-                        <i class="bi bi-download me-2"></i>Descargar Archivo
+                        <i class="bi bi-download me-2"></i>{% trans "Descargar Archivo" %}
                     </a>
                 {% endif %}
             </div>
