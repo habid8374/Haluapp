@@ -1,0 +1,316 @@
+"""
+Países para el SIMAT (nombre + código oficial del SIMAT).
+
+Fuente única para: el desplegable de país en los formularios y el mapeo
+nombre→código del exportador. Colombia va primero por ser el caso frecuente;
+el resto va en orden alfabético.
+
+Los códigos y nombres provienen de la «Tabla de Referencia · País» oficial del
+SIMAT/MEN (ISO 3166-1 numérico: Colombia = 170, Ecuador = 218, España = 724…).
+Se conservan EXACTAMENTE los nombres oficiales del catálogo (aunque tengan
+variantes como «BRAZIL» o tildes propias del SIMAT) para que el valor guardado
+coincida con lo que el SIMAT espera.
+
+NO se autocompleta ningún valor: el usuario elige el país del desplegable. Si se
+deja sin seleccionar, queda vacío y el validador lo marca para que un humano lo
+diligencie — nunca se asume Colombia por defecto.
+"""
+import unicodedata
+
+# (nombre oficial SIMAT, código oficial SIMAT). Catálogo completo habilitado.
+PAISES = [
+    ('COLOMBIA', '170'),
+    ('AFGANISTÁN', '004'),
+    ('ALAND', '248'),
+    ('ALBANIA', '008'),
+    ('ALEMANIA', '276'),
+    ('ANDORRA', '020'),
+    ('ANGOLA', '024'),
+    ('ANGUILA', '660'),
+    ('ANTIGUA Y BARBUDA', '028'),
+    ('ANTÁRTIDA', '010'),
+    ('ARABIA SAUDITA', '682'),
+    ('ARGELIA', '012'),
+    ('ARGENTINA', '032'),
+    ('ARMENIA', '051'),
+    ('ARUBA', '533'),
+    ('AUSTRALIA', '036'),
+    ('AUSTRIA', '040'),
+    ('AZERBAIYÁN', '031'),
+    ('BAHAMAS', '044'),
+    ('BANGLADÉS', '050'),
+    ('BARBADOS', '052'),
+    ('BARÉIN', '048'),
+    ('BELICE', '084'),
+    ('BENIN', '204'),
+    ('BERMUDA', '060'),
+    ('BIELORRUSIA', '112'),
+    ('BOLIVIA', '068'),
+    ('BONAIRE, SAN EUSTAQUIO Y SABA', '535'),
+    ('BOSNIA-HERZEGOVINA', '070'),
+    ('BOTSUANA', '072'),
+    ('BRAZIL', '076'),
+    ('BRUNÉI', '096'),
+    ('BULGARIA', '100'),
+    ('BURKINA FASO', '854'),
+    ('BURUNDI', '108'),
+    ('BUTÁN', '064'),
+    ('BÉLGICA', '056'),
+    ('CABO VERDE', '132'),
+    ('CAMBOYA', '116'),
+    ('CAMERÚN', '120'),
+    ('CANADÁ', '124'),
+    ('CATAR', '634'),
+    ('CHAD', '148'),
+    ('CHILE', '152'),
+    ('CHINA', '156'),
+    ('CHIPRE', '196'),
+    ('COMORAS', '174'),
+    ('CONGO', '178'),
+    ('COREA DEL NORTE', '408'),
+    ('COREA DEL SUR', '410'),
+    ('COSTA DE MARFIL', '384'),
+    ('COSTA RICA', '188'),
+    ('CROACIA', '191'),
+    ('CUBA', '192'),
+    ('CURAZAO', '531'),
+    ('DINAMARCA', '208'),
+    ('DOMINICA', '212'),
+    ('ECUADOR', '218'),
+    ('EGIPTO', '818'),
+    ('EL SALVADOR', '222'),
+    ('EMIRATOS ÁRABES UNIDOS', '784'),
+    ('ERITREA', '232'),
+    ('ESLOVAQUIA', '703'),
+    ('ESLOVENIA', '705'),
+    ('ESPAÑA', '724'),
+    ('ESTADOS UNIDOS', '840'),
+    ('ESTONIA', '233'),
+    ('ETIOPIA', '231'),
+    ('FILIPINAS', '608'),
+    ('FINLANDIA', '246'),
+    ('FIYI', '242'),
+    ('FRANCIA', '250'),
+    ('GABON', '266'),
+    ('GAMBIA', '270'),
+    ('GEORGIA', '268'),
+    ('GHANA', '288'),
+    ('GIBRALTAR', '292'),
+    ('GRANADA', '308'),
+    ('GRECIA', '300'),
+    ('GROENLANDIA', '304'),
+    ('GUADALUOE', '312'),
+    ('GUAM', '316'),
+    ('GUATEMALA', '320'),
+    ('GUAYANA FRANCESA', '254'),
+    ('GUERNSEY', '831'),
+    ('GUINEA', '324'),
+    ('GUINEA ECUATORIAL', '226'),
+    ('GUINEA-BISÁU', '624'),
+    ('GUYANA', '328'),
+    ('HAITI', '332'),
+    ('HONDURAS', '340'),
+    ('HONG KONG', '344'),
+    ('HUNGRÍA', '348'),
+    ('INDIA', '356'),
+    ('INDONESIA', '360'),
+    ('IRAQ', '368'),
+    ('IRLANDA', '372'),
+    ('IRÁN', '364'),
+    ('ISLA BOUVET', '074'),
+    ('ISLA DE MAN', '833'),
+    ('ISLA DE NAVIDAD', '162'),
+    ('ISLA HEARD Y MCDONALD', '334'),
+    ('ISLA NORFOLK', '574'),
+    ('ISLANDIA', '352'),
+    ('ISLAS CAIMÁN', '136'),
+    ('ISLAS COCOS', '166'),
+    ('ISLAS COOK', '184'),
+    ('ISLAS FEROE', '234'),
+    ('ISLAS GEORGIAS DEL SUR Y SANDWICH DEL SUR', '239'),
+    ('ISLAS MALVINAS', '238'),
+    ('ISLAS MARIANAS DEL NORTE', '580'),
+    ('ISLAS MARSHALL', '584'),
+    ('ISLAS SOLOMON', '090'),
+    ('ISLAS TURCAS Y CAICOS', '796'),
+    ('ISLAS ULTRAMARINAS MENORES DE ESTADOS UNIDOS', '581'),
+    ('ISLAS VÍRGENES BRITÁNICAS', '092'),
+    ('ISLAS VÍRGENES DE LOS ESTADOS UNIDOS', '850'),
+    ('ISRAEL', '376'),
+    ('ITALIA', '380'),
+    ('JAMAICA', '388'),
+    ('JAPÓN', '392'),
+    ('JERSEY', '832'),
+    ('JORDANIA', '400'),
+    ('KAZAJISTÁN', '398'),
+    ('KENYA', '404'),
+    ('KIRGUISTÁN', '417'),
+    ('KIRIBATI', '296'),
+    ('KUWAIT', '414'),
+    ('LAOS', '418'),
+    ('LESOTO', '426'),
+    ('LETONIA', '428'),
+    ('LIBERIA', '430'),
+    ('LIBIA', '434'),
+    ('LIECHTENSTEIN', '438'),
+    ('LITUANIA', '440'),
+    ('LUXEMBURGO', '442'),
+    ('LÍBANO', '422'),
+    ('MACAO', '446'),
+    ('MACEDONIA', '807'),
+    ('MADAGASCAR', '450'),
+    ('MALASIA', '458'),
+    ('MALAUI', '454'),
+    ('MALDIVAS', '462'),
+    ('MALI', '466'),
+    ('MALTA', '470'),
+    ('MARRUECOS', '504'),
+    ('MARTINICA', '474'),
+    ('MAURICIO', '480'),
+    ('MAURITANIA', '478'),
+    ('MAYOTTE', '175'),
+    ('MICRONESIA', '583'),
+    ('MOLDAVIA', '498'),
+    ('MONGOLIA', '496'),
+    ('MONTENEGRO', '499'),
+    ('MONTSERRAT', '500'),
+    ('MOZAMBIQUE', '508'),
+    ('MYANMAR (FORMER BURMA)', '104'),
+    ('MÉXICO', '484'),
+    ('MÓNACO', '492'),
+    ('NAMIBIA', '516'),
+    ('NAURU', '520'),
+    ('NEPAL', '524'),
+    ('NICARAGUA', '558'),
+    ('NIGER', '562'),
+    ('NIGERIA', '566'),
+    ('NIUE', '570'),
+    ('NORUEGA', '578'),
+    ('NUEVA CALEDONIA', '540'),
+    ('NUEVA ZELANDA', '554'),
+    ('OMÁN', '512'),
+    ('PALAOS', '585'),
+    ('PALESTINA', '275'),
+    ('PANAMÁ', '591'),
+    ('PAPUA NUEVA GUINEA', '598'),
+    ('PAQUISTAN', '586'),
+    ('PARAGUAY', '600'),
+    ('PAÍSES BAJOS', '528'),
+    ('PERÚ', '604'),
+    ('PITCAIRN', '612'),
+    ('POLINESIA FRANCESA', '258'),
+    ('POLONIA', '616'),
+    ('PORTUGAL', '620'),
+    ('PUERTO RICO', '630'),
+    ('REINO UNIDO', '826'),
+    ('REPÚBLICA CENTROAFRICANA', '140'),
+    ('REPÚBLICA CHECA', '203'),
+    ('REPÚBLICA DEMOCRÁTICA DEL CONGO', '180'),
+    ('REPÚBLICA DOMINICANA', '214'),
+    ('REUNION', '638'),
+    ('RUANDA', '646'),
+    ('RUMANIA', '642'),
+    ('RUSIA', '643'),
+    ('SAHARA OCCIDENTAL', '732'),
+    ('SAMOA', '882'),
+    ('SAMOA AMERICANA', '016'),
+    ('SAN BARTOLOMÉ', '652'),
+    ('SAN CRISTÓBAL Y NIEVES', '659'),
+    ('SAN MARINO', '674'),
+    ('SAN MARTÍN (parte francesa)', '663'),
+    ('SAN MARTÍN (parte holandesa)', '534'),
+    ('SAN PEDRO Y MIQUELON', '666'),
+    ('SAN VICENTE Y LAS GRANADINAS', '670'),
+    ('SANTA HELENA, ASCENSIÓN Y TRISTÁN DE ACUÑA', '654'),
+    ('SANTA LUCIA', '662'),
+    ('SANTA SEDE', '336'),
+    ('SANTO TOME Y PRINCIPE', '678'),
+    ('SENEGAL', '686'),
+    ('SERBIA', '688'),
+    ('SEYCHELLES', '690'),
+    ('SIERRA LEONA', '694'),
+    ('SINGAPUR', '702'),
+    ('SIRIA', '760'),
+    ('SOMALIA', '706'),
+    ('SRI LANKA', '144'),
+    ('SUAZILANDIA', '748'),
+    ('SUDÁFRICA', '710'),
+    ('SUDÁN', '729'),
+    ('SUDÁN DEL SUR', '728'),
+    ('SUECIA', '752'),
+    ('SUIZA', '756'),
+    ('SURINAM', '740'),
+    ('SVALBARD Y JAN MAYEN', '744'),
+    ('TAILANDIA', '764'),
+    ('TAIWAN', '158'),
+    ('TANZANIA', '834'),
+    ('TAYIKISTÁN', '762'),
+    ('TERRITORIO BRITÁNICO DEL OCÉANO ÍNDICO', '086'),
+    ('TIERRAS AUSTRALES Y ANTÁRTICAS FRANCESAS', '260'),
+    ('TIMOR ORIENTAL', '626'),
+    ('TOGO', '768'),
+    ('TOKELAU', '772'),
+    ('TONGA', '776'),
+    ('TRINIDAD Y TOBAGO', '780'),
+    ('TURKMENISTAN', '795'),
+    ('TURQUÍA', '792'),
+    ('TUVALU', '798'),
+    ('TÚNEZ', '788'),
+    ('UCRANIA', '804'),
+    ('UGANDA', '800'),
+    ('URUGUAY', '858'),
+    ('UZBEKISTAN', '860'),
+    ('VANUATU', '548'),
+    ('VENEZUELA', '862'),
+    ('VIETNAM', '704'),
+    ('WALLIS Y FUTUNA', '876'),
+    ('YEMEN', '887'),
+    ('YIBUTI', '262'),
+    ('ZAMBIA', '894'),
+    ('ZIMBABUE', '716'),
+]
+
+# Choices para el desplegable (valor = nombre oficial; primera opción vacía).
+PAISES_CHOICES = [('', '— Selecciona el país —')] + [(n, n) for n, _ in PAISES]
+
+
+def _norm(s):
+    s = (s or '').strip()
+    s = ''.join(c for c in unicodedata.normalize('NFKD', s) if not unicodedata.combining(c))
+    return s.upper()
+
+
+# Mapa normalizado (sin tildes, mayúsculas) → código, para buscar sin importar
+# cómo venga escrito el país (incluye alias comunes de escritura).
+_COD_POR_NORM = {_norm(n): c for n, c in PAISES}
+_COD_POR_NORM.update({
+    'USA': '840',
+    'EEUU': '840',
+    'EE UU': '840',
+    'ESTADOS UNIDOS DE AMERICA': '840',
+    'BRASIL': '076',        # el catálogo lo trae como «BRAZIL»
+    'HAITI': '332',
+    'PAKISTAN': '586',      # el catálogo lo trae como «PAQUISTAN»
+})
+
+
+def codigo_pais(nombre):
+    """Código SIMAT del país a partir del nombre. Vacío o desconocido → '' (no inventa).
+    Si ya viene un código numérico, se respeta."""
+    s = (nombre or '').strip()
+    if not s:
+        return ''
+    if s.isdigit():
+        return s
+    return _COD_POR_NORM.get(_norm(s), '')
+
+
+def choices_incluyendo(valor):
+    """PAISES_CHOICES asegurando que un valor ya guardado (aunque no esté en el
+    catálogo oficial) siga apareciendo en el desplegable, para no perderlo al
+    editar un registro antiguo. No modifica ni inventa nada: solo conserva lo que
+    ya había."""
+    v = (valor or '').strip()
+    if not v or any(v == opcion for opcion, _ in PAISES_CHOICES):
+        return list(PAISES_CHOICES)
+    return list(PAISES_CHOICES) + [(v, v)]

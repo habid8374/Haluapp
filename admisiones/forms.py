@@ -7,9 +7,18 @@ from crispy_forms.layout import Layout, Fieldset, HTML
 from .models import Aspirante
 from gestion_academica.models import Grado
 from simat.models import Sede
+from simat.paises import PAISES_CHOICES, choices_incluyendo
 
 class AspiranteForm(forms.ModelForm):
-    
+
+    # País por desplegable (código SIMAT). Sin autorelleno: primera opción vacía.
+    pais_origen = forms.ChoiceField(
+        choices=PAISES_CHOICES, required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label=_("País de origen"),
+        help_text=_("Elige el país del aspirante (incluida Colombia). No se completa solo."),
+    )
+
     def __init__(self, *args, **kwargs):
         # Sacamos el 'user' que pasaremos desde la vista para filtrar
         user = kwargs.pop('user', None) 
@@ -19,6 +28,11 @@ class AspiranteForm(forms.ModelForm):
         # La fecha nativa (type=date) intercambia siempre en formato ISO.
         if 'fecha_nacimiento' in self.fields:
             self.fields['fecha_nacimiento'].input_formats = ['%Y-%m-%d', '%d/%m/%Y']
+
+        # Desplegable de país: conserva un valor ya guardado que no esté en la
+        # tabla oficial (registros antiguos), sin inventar nada.
+        self.fields['pais_origen'].choices = choices_incluyendo(
+            getattr(self.instance, 'pais_origen', '') if self.instance else '')
 
         # Si el usuario no es superadmin, filtramos por su institución
         institucion = None
@@ -200,7 +214,7 @@ class AspiranteForm(forms.ModelForm):
             'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Calle, barrio, municipio'}),
             'requiere_pago_inscripcion': forms.CheckboxInput(attrs={'class': 'form-check-input ms-2'}),
             # ── Caracterización SIMAT/SIMPADE ──
-            'pais_origen': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dejar en blanco si es Colombia'}),
+            # pais_origen: desplegable declarado como campo de clase.
             'zona_residencia': forms.Select(attrs={'class': 'form-select'}),
             'regimen_salud': forms.Select(attrs={'class': 'form-select'}),
             'discapacidad_categoria': forms.Select(attrs={'class': 'form-select'}),

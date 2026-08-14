@@ -109,9 +109,10 @@ def _mayus(v):
     return (_txt(v) or '').strip().upper()
 
 
-def _pais_lbl(v, default='COLOMBIA'):
-    """Nombre del país en MAYÚSCULAS; vacío → COLOMBIA (para el reporte plano)."""
-    return _mayus(v) or default
+def _pais_lbl(v):
+    """Nombre del país en MAYÚSCULAS (como en el reporte plano). Vacío → vacío:
+    NO se autocompleta ningún país; se elige del desplegable en la ficha."""
+    return _mayus(v)
 
 
 def _sangre(v):
@@ -289,56 +290,12 @@ def _fk_cod(obj):
     return obj.codigo if obj else ''
 
 
-# Códigos de país del SIMAT = ISO 3166-1 numérico (el MEN exige el CÓDIGO, no el
-# nombre). Confirmado con la tabla oficial: Argentina 032, Bolivia 068,
-# Brasil 076, Canadá 124, Colombia 170, Ecuador 218, Estados Unidos 840,
-# México 484, Panamá 591, Paraguay 600, Perú 604, Uruguay 858, Venezuela 862.
-# Se añaden otros orígenes frecuentes con su mismo código ISO. NO se inventa:
-# solo se traduce el país real de la ficha a su código.
-_PAIS_SIMAT = {
-    'ARGENTINA': '032',
-    'BOLIVIA': '068',
-    'BRASIL': '076',
-    'CANADA': '124',
-    'COLOMBIA': '170',
-    'ECUADOR': '218',
-    'ESTADOS UNIDOS': '840', 'USA': '840', 'EEUU': '840', 'EE UU': '840',
-    'MEXICO': '484',
-    'PANAMA': '591',
-    'PARAGUAY': '600',
-    'PERU': '604',
-    'URUGUAY': '858',
-    'VENEZUELA': '862',
-    # Otros orígenes frecuentes (mismo estándar ISO 3166-1 numérico):
-    'ESPANA': '724',
-    'CHILE': '152',
-    'CUBA': '192',
-    'HAITI': '332',
-    'REPUBLICA DOMINICANA': '214',
-    'NICARAGUA': '558',
-    'COSTA RICA': '188',
-    'GUATEMALA': '320',
-    'HONDURAS': '340',
-    'EL SALVADOR': '222',
-}
-
-
 def _pais_cod(valor):
-    """Traduce el país (texto de la ficha) al código DANE que exige el SIMAT.
-
-    - Vacío → '170' (Colombia; la ficha indica «dejar en blanco si es Colombia»).
-    - Ya numérico → se respeta tal cual.
-    - Nombre conocido → su código DANE.
-    - Nombre no reconocido → '' (la validación lo marca para corregir a mano).
-    No inventa: solo convierte el dato real a su código."""
-    import unicodedata
-    s = (valor or '').strip()
-    if not s:
-        return '170'
-    if s.isdigit():
-        return s
-    norm = ''.join(c for c in unicodedata.normalize('NFKD', s) if not unicodedata.combining(c)).upper().strip()
-    return _PAIS_SIMAT.get(norm, '')
+    """Traduce el país (elegido en el desplegable de la ficha) a su código DANE.
+    Vacío o no reconocido → '' (NO se inventa; la validación lo marca). El país
+    se selecciona del desplegable (simat.paises), nunca se autocompleta."""
+    from simat.paises import codigo_pais
+    return codigo_pais(valor)
 
 
 class _DatosSimat:
@@ -587,7 +544,7 @@ def _fila_anexo6a(asp, institucion):
         resguardo,                                                       # 33 RESGUARDO
         _bin(asp.srpa),                                                  # 34 SIST_RESPONSABILIDAD_PENAL
         _bin(asp.apoyo_academico_especial),                             # 35 APOYO_ACADEMICO_ESPECIAL
-        _pais_cod(asp.pais_origen),                                     # 36 PAIS_ORIGEN (código DANE; 170=Colombia)
+        _pais_cod(asp.pais_origen),                                     # 36 PAIS_ORIGEN (código SIMAT; 170=Colombia)
         '99',                                                            # 37 TRASTORNO (no capturado → 99)
         _bin(asp.campesino),                                             # 38 POBLACION_CAMPESINA
         _bin(getattr(asp, 'hijo_madre_cabeza_familia', False)),         # 39 HIJO_MADRE_CABEZA_FAMILIA

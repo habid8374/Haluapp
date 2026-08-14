@@ -29,6 +29,9 @@ from .models import (
 # Modelos de finanzas que pueden necesitarse para querysets en formularios
 from finanzas.models import InstitucionEducativa
 
+# Desplegable de países SIMAT (fuente única de códigos, sin autorelleno)
+from simat.paises import PAISES_CHOICES, choices_incluyendo
+
 
 class PerfilAccesibilidadForm(forms.ModelForm):
     """Editor del perfil de accesibilidad del estudiante (Ola 2)."""
@@ -353,6 +356,20 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
     """Caracterización SIMAT/SIMPADE del estudiante (a la par del Aspirante).
     Todos los campos opcionales; las FK van por desplegable de catálogo."""
 
+    # País por desplegable (código SIMAT). Sin autorelleno: la primera opción es
+    # vacía y solo un humano elige el país real del estudiante.
+    pais_origen = forms.ChoiceField(
+        choices=PAISES_CHOICES, required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label=_("País de origen"),
+        help_text=_("Elige el país del estudiante (incluida Colombia). No se completa solo."),
+    )
+    pais_nacimiento = forms.ChoiceField(
+        choices=PAISES_CHOICES, required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label=_("País de nacimiento"),
+    )
+
     class Meta:
         model = CaracterizacionEstudiante
         fields = [
@@ -390,7 +407,7 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
             'segundo_nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'primer_apellido': forms.TextInput(attrs={'class': 'form-control'}),
             'segundo_apellido': forms.TextInput(attrs={'class': 'form-control'}),
-            'pais_origen': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dejar en blanco si es Colombia'}),
+            # pais_origen / pais_nacimiento: desplegable declarado como campo de clase.
             'zona_residencia': forms.Select(attrs={'class': 'form-select'}),
             'regimen_salud': forms.Select(attrs={'class': 'form-select'}),
             'discapacidad_categoria': forms.Select(attrs={'class': 'form-select'}),
@@ -413,6 +430,14 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
                   'etnia_simat', 'resguardo', 'eps_simat']:
             if f in self.fields:
                 self.fields[f].required = False
+
+        # Desplegable de país: conserva cualquier valor ya guardado que no esté
+        # en la tabla oficial (registros antiguos), sin inventar nada.
+        inst_pais = getattr(self, 'instance', None)
+        self.fields['pais_origen'].choices = choices_incluyendo(
+            getattr(inst_pais, 'pais_origen', '') if inst_pais else '')
+        self.fields['pais_nacimiento'].choices = choices_incluyendo(
+            getattr(inst_pais, 'pais_nacimiento', '') if inst_pais else '')
 
         # Nombres SIMAT: primer nombre y primer apellido obligatorios.
         self.fields['primer_nombre'].required = True
