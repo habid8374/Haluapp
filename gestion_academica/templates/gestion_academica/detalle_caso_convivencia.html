@@ -150,16 +150,28 @@
         </div>
       </div>
       {% endif %}
-      {% if caso.protocolo_ia %}
       <div class="card mb-3 border-primary">
         <div class="card-header fw-bold text-primary">
           <i class="bi bi-cpu me-1"></i>Protocolo sugerido por IA
         </div>
         <div class="card-body small text-muted">
-          {{ caso.protocolo_ia|linebreaksbr }}
+          {% if caso.protocolo_ia %}
+            {{ caso.protocolo_ia|linebreaksbr }}
+          {% else %}
+            <span class="fst-italic">Aún no hay una sugerencia de protocolo.</span>
+          {% endif %}
+          {% if caso.estado not in 'CERRADO,ARCHIVADO' %}
+          <form method="post" class="mt-3">
+            {% csrf_token %}
+            <input type="hidden" name="accion_form" value="regenerar_ia">
+            <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+              <i class="bi bi-arrow-repeat me-1"></i>Regenerar sugerencia con IA
+            </button>
+            <div class="text-muted mt-1" style="font-size:.72rem;">Adapta el protocolo oficial del tipo actual ({{ caso.get_tipo_situacion_display }}) a este caso.</div>
+          </form>
+          {% endif %}
         </div>
       </div>
-      {% endif %}
       {% if caso.estado not in 'CERRADO,ARCHIVADO' %}
       <div class="card mb-3">
         <div class="card-header fw-bold">Cambiar Estado</div>

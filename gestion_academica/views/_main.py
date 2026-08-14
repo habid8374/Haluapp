@@ -8570,6 +8570,39 @@ def _sentinel_permiso(request):
     )
 
 
+# Artículo del Decreto 1965 y protocolo oficial por tipo (fuente única para
+# reclasificar y para regenerar la sugerencia de IA).
+_ARTICULO_PROTOCOLO_CONV = {'TIPO I': '42', 'TIPO II': '43', 'TIPO III': '44'}
+_PROTOCOLO_OFICIAL_CONV = {
+    'TIPO I': (
+        "1. Reunir de inmediato a las partes y mediar pedagógicamente para reparar el daño y reconciliar.\n"
+        "2. Fijar la solución de forma imparcial y justa; dejar constancia.\n"
+        "3. Hacer seguimiento a los compromisos; si no es efectivo, escalar a Tipo II o III."
+    ),
+    'TIPO II': (
+        "1. Si hay daño al cuerpo o la salud, garantizar atención inmediata en salud física y mental (remisión); constancia.\n"
+        "2. Si se requiere restablecimiento de derechos, remitir a autoridades administrativas (ICBF, Ley 1098); constancia.\n"
+        "3. Adoptar medidas para proteger a los involucrados; constancia.\n"
+        "4. Informar de inmediato a los padres/acudientes de todos los involucrados; constancia.\n"
+        "5. Generar espacios de diálogo con las partes y acudientes (con confidencialidad).\n"
+        "6. Determinar acciones restaurativas y consecuencias para quienes participaron.\n"
+        "7. Informar al Comité Escolar de Convivencia; análisis y seguimiento.\n"
+        "8. Dejar constancia en acta suscrita por todos.\n"
+        "9. Reportar el caso al Sistema de Información Unificado de Convivencia Escolar."
+    ),
+    'TIPO III': (
+        "1. Si hay daño al cuerpo o la salud, atención inmediata en salud (remisión); constancia.\n"
+        "2. Informar de inmediato a los padres/acudientes; constancia.\n"
+        "3. Poner la situación en conocimiento de la POLICÍA NACIONAL de inmediato (presunto delito); constancia.\n"
+        "4. Citar al Comité Escolar de Convivencia.\n"
+        "5. Informar a los participantes del comité, con reserva de la información sensible.\n"
+        "6. Adoptar medidas inmediatas para proteger a víctima, presunto agresor e informantes.\n"
+        "7. Reportar el caso al Sistema de Información Unificado de Convivencia Escolar.\n"
+        "8. Seguimiento por el Comité y las autoridades competentes."
+    ),
+}
+
+
 @login_required
 def detalle_caso_convivencia(request, pk):
     """
@@ -8688,41 +8721,12 @@ def detalle_caso_convivencia(request, pk):
                 return redirect('gestion_academica:detalle_caso_convivencia', pk=pk)
 
             from datetime import timedelta
-            # Protocolo oficial del Decreto 1965 según el nuevo tipo.
-            _PROTOCOLO = {
-                'TIPO I': (
-                    "1. Reunir de inmediato a las partes y mediar pedagógicamente para reparar el daño y reconciliar.\n"
-                    "2. Fijar la solución de forma imparcial y justa; dejar constancia.\n"
-                    "3. Hacer seguimiento a los compromisos; si no es efectivo, escalar a Tipo II o III."
-                ),
-                'TIPO II': (
-                    "1. Si hay daño al cuerpo o la salud, garantizar atención inmediata en salud física y mental (remisión); constancia.\n"
-                    "2. Si se requiere restablecimiento de derechos, remitir a autoridades administrativas (ICBF, Ley 1098); constancia.\n"
-                    "3. Adoptar medidas para proteger a los involucrados; constancia.\n"
-                    "4. Informar de inmediato a los padres/acudientes de todos los involucrados; constancia.\n"
-                    "5. Generar espacios de diálogo con las partes y acudientes (con confidencialidad).\n"
-                    "6. Determinar acciones restaurativas y consecuencias para quienes participaron.\n"
-                    "7. Informar al Comité Escolar de Convivencia; análisis y seguimiento.\n"
-                    "8. Dejar constancia en acta suscrita por todos.\n"
-                    "9. Reportar el caso al Sistema de Información Unificado de Convivencia Escolar."
-                ),
-                'TIPO III': (
-                    "1. Si hay daño al cuerpo o la salud, atención inmediata en salud (remisión); constancia.\n"
-                    "2. Informar de inmediato a los padres/acudientes; constancia.\n"
-                    "3. Poner la situación en conocimiento de la POLICÍA NACIONAL de inmediato (presunto delito); constancia.\n"
-                    "4. Citar al Comité Escolar de Convivencia.\n"
-                    "5. Informar a los participantes del comité, con reserva de la información sensible.\n"
-                    "6. Adoptar medidas inmediatas para proteger a víctima, presunto agresor e informantes.\n"
-                    "7. Reportar el caso al Sistema de Información Unificado de Convivencia Escolar.\n"
-                    "8. Seguimiento por el Comité y las autoridades competentes."
-                ),
-            }
             tipo_anterior = caso.get_tipo_situacion_display()
             caso.tipo_situacion = nuevo_tipo
             # Recalcular el plazo legal desde la apertura según el nuevo tipo.
             base = caso.fecha_apertura or timezone.now()
             caso.fecha_limite = base + timedelta(days=1 if nuevo_tipo == 'TIPO III' else 7)
-            caso.protocolo_ia = _PROTOCOLO.get(nuevo_tipo, caso.protocolo_ia)
+            caso.protocolo_ia = _PROTOCOLO_OFICIAL_CONV.get(nuevo_tipo, caso.protocolo_ia)
             caso.save(update_fields=['tipo_situacion', 'fecha_limite', 'protocolo_ia'])
             # Dejar constancia en la línea de tiempo (auditoría).
             AccionCaso.objects.create(
@@ -8731,6 +8735,43 @@ def detalle_caso_convivencia(request, pk):
                 ejecutado_por=request.user,
             )
             messages.success(request, f"Caso reclasificado a: {caso.get_tipo_situacion_display()}.")
+            return redirect('gestion_academica:detalle_caso_convivencia', pk=pk)
+
+        elif accion == 'regenerar_ia':
+            form_accion = AccionForm()
+            form_estado = EstadoForm(instance=caso)
+            # Regenera el protocolo sugerido para el tipo ACTUAL (el que fijó el
+            # coordinador), adaptando el protocolo oficial del Decreto 1965 al
+            # caso concreto (mencionando a los involucrados y los hechos).
+            from finanzas import ia as _ia
+            tipo = caso.tipo_situacion
+            art = _ARTICULO_PROTOCOLO_CONV.get(tipo, '43')
+            oficial = _PROTOCOLO_OFICIAL_CONV.get(tipo, '')
+            hechos = caso.descripcion_detalle or (caso.anotacion_origen.descripcion if caso.anotacion_origen else '')
+            prompt = (
+                "Eres un experto en la Ley 1620 de 2013 y el Decreto 1965 de 2013 (convivencia escolar, Colombia). "
+                f"Este caso ya está clasificado como {tipo}. NO cambies la clasificación. "
+                f"El protocolo oficial para {tipo} es el del artículo {art} del Decreto 1965, con estos pasos:\n{oficial}\n\n"
+                "Adapta esos pasos oficiales al caso concreto descrito abajo: manténlos en el MISMO orden y sentido legal, "
+                "pero redáctalos mencionando a los involucrados y los hechos específicos, y recordando 'dejar constancia' donde aplique. "
+                "Responde ÚNICAMENTE con la lista numerada de pasos, sin encabezados ni texto adicional.\n\n"
+                f"Caso: \"{hechos}\""
+            )
+            try:
+                ok, texto = _ia.generar_texto(caso.institucion, prompt)
+                if ok and texto.strip():
+                    caso.protocolo_ia = texto.strip()
+                    caso.save(update_fields=['protocolo_ia'])
+                    AccionCaso.objects.create(
+                        caso=caso, tipo_accion=AccionCaso.TipoAccion.OTRO,
+                        descripcion=f"Se regeneró con IA la sugerencia de protocolo para {caso.get_tipo_situacion_display()} por {request.user.get_full_name() or request.user.username}.",
+                        ejecutado_por=request.user,
+                    )
+                    messages.success(request, "Sugerencia de protocolo regenerada con IA.")
+                else:
+                    messages.warning(request, texto or "La IA no está disponible en este momento. Intenta más tarde.")
+            except Exception as exc:
+                messages.error(request, f"No se pudo regenerar la sugerencia: {exc}")
             return redirect('gestion_academica:detalle_caso_convivencia', pk=pk)
         else:
             form_accion = AccionForm()
