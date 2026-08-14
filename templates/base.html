@@ -575,7 +575,7 @@
         }
         ov.hidden = false;
         document.body.style.overflow = 'hidden';
-        timer = setTimeout(close, 3000);   // se cierra sola a los 3 s
+        timer = setTimeout(close, 6000);   // se cierra sola a los 6 s
         if (skip) skip.addEventListener('click', close);
         ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
       })();
