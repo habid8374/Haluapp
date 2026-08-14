@@ -67,6 +67,42 @@ _VICTIMA_SIMAT = {
     'VICTIMA_MINAS': '4', 'OTRA': '17',
 }
 
+# ── Tablas de ETIQUETAS legibles (para el "Reporte Plano" que se DESCARGA, tal
+#    como lo entrega el SIMAT: MASCULINO, OFICIAL, TI:TARJETA DE IDENTIDAD…).
+#    Tomadas de un reporte plano real del MEN. NO son códigos (esos van en el
+#    Anexo 6A de cargue). ─────────────────────────────────────────────────────
+_SECTOR_LBL = {'OFICIAL': 'OFICIAL', 'NO_OFICIAL': 'NO OFICIAL'}
+_ZONA_LBL = {'URBANA': 'URBANA', 'RURAL': 'RURAL'}
+_JORNADA_LBL = {
+    'MANANA': 'MAÑANA', 'COMPLETA': 'COMPLETA', 'TARDE': 'TARDE',
+    'NOCHE': 'NOCTURNA', 'UNICA': 'ÚNICA', 'FIN_DE_SEMANA': 'FIN DE SEMANA',
+}
+_GENERO_LBL = {'M': 'MASCULINO', 'F': 'FEMENINO'}
+_TIPODOC_LBL = {
+    'CC': 'CC:CÉDULA DE CIUDADANÍA', 'TI': 'TI:TARJETA DE IDENTIDAD',
+    'RC': 'RC:REGISTRO CIVIL DE NACIMIENTO', 'CE': 'CE:CÉDULA DE EXTRANJERÍA',
+    'NES': 'NES:NÚMERO ESTABLECIDO POR LA SECRETARÍA',
+    'PEP': 'PEP:PERMISO ESPECIAL DE PERMANENCIA',
+    'PPT': 'PPT:PERMISO DE PROTECCIÓN TEMPORAL', 'VISA': 'VISA',
+    'PA': 'PA:PASAPORTE', 'TMF': 'TMF:TARJETA DE MOVILIDAD FRONTERIZA', 'OT': 'OT:OTRO',
+}
+_DISCAP_LBL = {
+    'NINGUNA': 'NO APLICA', 'FISICA': 'DISCAPACIDAD FÍSICA',
+    'INTELECTUAL': 'DISCAPACIDAD INTELECTUAL', 'PSICOSOCIAL': 'DISCAPACIDAD PSICOSOCIAL (MENTAL)',
+    'VISUAL_BAJA': 'DISCAPACIDAD VISUAL BAJA VISIÓN IRREVERSIBLE',
+    'VISUAL_CEGUERA': 'DISCAPACIDAD VISUAL CEGUERA',
+    'AUDITIVA_HIPOACUSIA': 'DISCAPACIDAD AUDITIVA USUARIO DEL CASTELLANO',
+    'AUDITIVA_SORDA': 'DISCAPACIDAD AUDITIVA - USUARIO DE LENGUA DE SEÑAS COLOMBIANA',
+    'SORDOCEGUERA': 'SORDOCEGUERA', 'MULTIPLE': 'DISCAPACIDAD MÚLTIPLE',
+    'SISTEMICA': 'DISCAPACIDAD SISTÉMICA', 'VOZ_Y_HABLA': 'DISCAPACIDAD DE LA VOZ Y EL HABLA',
+    'TEA': 'TRASTORNO DEL ESPECTRO AUTISTA', 'OTRA': 'OTRA',
+}
+
+
+def _lbl(mapa, valor, default=''):
+    """Devuelve la etiqueta legible del valor; si no mapea, cae al default."""
+    return mapa.get(valor or '', default)
+
 
 def _cod(mapa, valor):
     """Devuelve el código SIMAT de un valor de choice; '' si no mapea."""
@@ -160,13 +196,13 @@ def _fila_aspirante(asp, institucion, anio, contador):
         'INSTITUCION': _txt(institucion.nombre),
         'DANE': _txt(institucion.codigo_dane),
         'CALENDARIO': _txt(institucion.simat_calendario),
-        'SECTOR': _cod(_SECTOR_SIMAT, institucion.simat_sector),
+        'SECTOR': _lbl(_SECTOR_LBL, institucion.simat_sector),
         'SEDE': _txt(sede.nombre) if sede else _txt(institucion.nombre),
         'CODIGO_DANE_SEDE': _txt(sede.codigo_dane_sede) if sede else '',
         'CONSECUTIVO': _txt(sede.consecutivo) if sede else '',
-        'ZONA_SEDE': _cod(_ZONA_SIMAT, sede.zona) if sede else '',
-        'JORNADA': _cod(_JORNADA_SIMAT, _jornada_efectiva(asp)),
-        'GRADO_COD': _txt(grado.nombre) if grado else '',
+        'ZONA_SEDE': _lbl(_ZONA_LBL, sede.zona) if sede else '',
+        'JORNADA': _lbl(_JORNADA_LBL, _jornada_efectiva(asp)),
+        'GRADO_COD': _txt(getattr(grado, 'simat_grado_id', '') if grado else ''),
         'GRUPO': _txt(grupo_nombre),
         'RENOMBRE': '',
         'MODELO': _txt(asp.modelo_educativo),
@@ -174,27 +210,27 @@ def _fila_aspirante(asp, institucion, anio, contador):
         'FECHAINI': '',
         'FECHAFIN': '',
         'NUI': _txt(asp.simat_nui),
-        'ESTRATO': ('NO APLICA' if asp.estrato == '0' else _txt(asp.estrato)),
-        'SISBEN IV': _txt(asp.sisben_grupo),
+        'ESTRATO': (('ESTRATO ' + str(asp.estrato)) if asp.estrato not in (None, '') else 'NO APLICA'),
+        'SISBEN IV': _txt(asp.sisben_grupo).upper() or 'NO APLICA',
         'PER_ID': _txt(asp.simat_per_id),
         'DOC': _txt(asp.numero_documento),
-        'TIPODOC': _cod(_TIPODOC_SIMAT, asp.tipo_documento),
+        'TIPODOC': _lbl(_TIPODOC_LBL, asp.tipo_documento, _txt(asp.tipo_documento)),
         'APELLIDO1': _txt(asp.primer_apellido),
         'APELLIDO2': _txt(asp.segundo_apellido),
         'NOMBRE1': _txt(asp.primer_nombre),
         'NOMBRE2': _txt(asp.segundo_nombre),
-        'GENERO': _cod(_GENERO_SIMAT, asp.sexo),
+        'GENERO': _lbl(_GENERO_LBL, asp.sexo),
         'FECHA_NACIMIENTO': fnac,
         'BARRIO': _txt(asp.barrio),
         'EPS': eps,
         'TIPO DE SANGRE': _txt(asp.grupo_sanguineo),
         'MATRICULACONTRATADA': _sn(asp.matricula_contratada),
-        'FUENTE_RECURSOS': _txt(asp.fuente_recursos),
-        'INTERNADO': _txt(asp.internado),
+        'FUENTE_RECURSOS': _txt(asp.fuente_recursos) or 'NO APLICA',
+        'INTERNADO': _txt(asp.internado) or 'NINGUNO',
         'NUM_CONTRATO': '',
-        'HA_ESTADO_VINCULADO_SRPA': _sn(asp.srpa),
-        'ESTA_ACTIVO_SRPA': _sn(asp.srpa),
-        'DISCAPACIDAD': _cod(_DISCAP_SIMAT, asp.discapacidad_categoria),
+        'HA_ESTADO_VINCULADO_SRPA': _si_no(asp.srpa),
+        'ESTA_ACTIVO_SRPA': _si_no(asp.srpa),
+        'DISCAPACIDAD': _lbl(_DISCAP_LBL, asp.discapacidad_categoria or 'NINGUNA', 'NO APLICA'),
         'PAIS_ORIGEN': _txt(asp.pais_origen),
         'CORREO': _txt(asp.email_contacto),
         'TELEFONO': _txt(asp.telefono_contacto),
