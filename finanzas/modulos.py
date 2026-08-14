@@ -20,13 +20,21 @@ from django.shortcuts import redirect
 from django.utils.translation import gettext as _
 
 
-# Semilla del catálogo: los módulos que la plataforma ofrece de fábrica. El
-# propietario puede agregar/editar más desde el admin (Módulos de la plataforma).
-# (codigo, nombre, descripcion, icono, prefijo_url, orden)
+# Referencia de los módulos sembrados de fábrica (migraciones 0031 y 0032). El
+# propietario puede agregar/editar/quitar más desde el admin (Módulos de la
+# plataforma) — esta lista es solo documentación; la fuente de verdad es la BD.
+# El núcleo académico (/academico/), Finanzas (/finanzas/, con su propio
+# interruptor) y la infraestructura (auth, mensajería, SIMAT, panel del dueño)
+# NO se bloquean con este sistema.
 MODULOS_SEED = [
-    ('admisiones', 'Admisiones', 'Portal de aspirantes, importación y matrícula.', 'bi-clipboard-check', '/admisiones/', 10),
-    ('simulacros', 'Simulacros (ICFES/Saber)', 'Banco de preguntas y simulacros tipo Saber.', 'bi-journal-check', '/simulacros/', 20),
-    ('piar', 'PIAR (inclusión)', 'Planes Individuales de Ajuste Razonable (Decreto 1421).', 'bi-universal-access', '/piar/', 30),
+    ('admisiones', 'Admisiones', '/admisiones/'),
+    ('simulacros', 'Simulacros (ICFES/Saber)', '/simulacros/'),
+    ('piar', 'PIAR (inclusión)', '/piar/'),
+    ('recursos_educativos', 'Recursos educativos', '/academico/recursos/'),
+    ('evaluacion_docente', 'Evaluación docente', '/evaluacion-docente/'),
+    ('autoevaluacion', 'Autoevaluación institucional', '/autoevaluacion/'),
+    ('recursos_interactivos', 'Recursos interactivos (juegos)', '/crucigramas/ …'),
+    ('cuestionarios', 'Cuestionarios / Evaluaciones', '/cuestionarios/'),
 ]
 
 
@@ -61,19 +69,25 @@ CACHE_KEY_PREFIJOS = 'modulos_prefijos_bloqueables_v1'
 
 def prefijos_bloqueables():
     """Lista de (prefijo_url, codigo) de los módulos activos que se bloquean por
-    URL. Cacheada 5 min; se limpia sola al editar el catálogo."""
+    URL. Un módulo puede cubrir VARIAS rutas: se separan por espacios o comas en
+    el campo `prefijo_url` (ej. los juegos interactivos). Cacheada 5 min; se
+    limpia sola al editar el catálogo."""
     from django.core.cache import cache
     data = cache.get(CACHE_KEY_PREFIJOS)
     if data is None:
+        pares = []
         try:
             from finanzas.models import ModuloPlataforma
-            data = list(
+            for prefijos, codigo in (
                 ModuloPlataforma.objects.filter(activo=True)
                 .exclude(prefijo_url='')
                 .values_list('prefijo_url', 'codigo')
-            )
+            ):
+                for p in (prefijos or '').replace(',', ' ').split():
+                    pares.append((p, codigo))
         except Exception:
-            data = []
+            pares = []
+        data = pares
         cache.set(CACHE_KEY_PREFIJOS, data, 300)
     return data
 

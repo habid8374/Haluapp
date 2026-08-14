@@ -66,9 +66,11 @@ class ModuloPlataforma(models.Model):
     prefijo_url = models.CharField(
         max_length=80, blank=True, verbose_name="Prefijo de URL",
         help_text=(
-            "Prefijo de URL del módulo, ej. '/admisiones/'. Si se define, el "
-            "acceso a esa ruta se bloquea para las instituciones que no tengan "
-            "el módulo contratado. Déjalo vacío si el módulo no se bloquea por URL."
+            "Prefijo(s) de URL del módulo, ej. '/admisiones/'. Puedes poner "
+            "VARIOS separados por espacio si el módulo abarca varias rutas "
+            "(ej. los juegos). Si se define, el acceso a esas rutas se bloquea "
+            "para las instituciones que no tengan el módulo contratado. Déjalo "
+            "vacío si el módulo no se bloquea por URL."
         ),
     )
     orden = models.PositiveSmallIntegerField(default=100, verbose_name="Orden")
