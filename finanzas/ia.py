@@ -24,20 +24,50 @@ from finanzas.institucion_credentials import (
 logger = logging.getLogger(__name__)
 
 # Modelo Gemini por defecto de toda la plataforma. Se cambia AQUÍ una sola vez.
-# Nota: Google dejó de habilitar 'gemini-2.5-flash' para keys/cuentas nuevas
-# (responde 404). Usamos 'gemini-2.0-flash' (disponible para todos, GA y económico).
-_MODELO_GEMINI = 'gemini-2.0-flash'
+# 'gemini-3.5-flash' es GA/estable (generación 3.x): calidad casi de Pro a costo
+# y velocidad de Flash. Reemplaza a 'gemini-2.0-flash' (generación vieja) y a
+# 'gemini-2.5-flash' (que Google apaga el 16-oct-2026).
+_MODELO_GEMINI = 'gemini-3.5-flash'
+# Respaldo si el modelo principal no estuviera disponible en la key de un colegio
+# (aún GA). Evita que la IA se caiga por un cambio de modelo.
+_MODELO_GEMINI_RESPALDO = 'gemini-2.0-flash'
 # Claude solo es respaldo → Haiku 4.5 (el más económico).
 _MODELO_CLAUDE = 'claude-haiku-4-5-20251001'
 
-# Modelos viejos que Google ya no habilita para cuentas nuevas → se remapean al
-# modelo por defecto en TODAS las llamadas (red de seguridad para el 404, aunque
-# alguna vista pase el nombre viejo).
+# Modelos viejos/descontinuados → se remapean al modelo por defecto en TODAS las
+# llamadas (red de seguridad, aunque alguna vista pase el nombre viejo).
 _MODELOS_GEMINI_REEMPLAZADOS = {
     'gemini-2.5-flash': _MODELO_GEMINI,
+    'gemini-2.0-flash': _MODELO_GEMINI,   # generación vieja → sube al 3.x por defecto
     'gemini-1.5-flash': _MODELO_GEMINI,
     'gemini-1.5-pro': _MODELO_GEMINI,
 }
+
+
+def _es_error_modelo_no_disponible(exc):
+    """True si la excepción indica que el MODELO no existe / no está disponible
+    para esa key (para reintentar con el respaldo, no para otros errores)."""
+    s = str(exc).lower()
+    return any(t in s for t in (
+        '404', 'not found', 'not supported', 'does not exist',
+        'no longer available', 'is not available', 'not available for',
+        'unknown model', 'invalid model',
+    ))
+
+
+def _gemini_generate(client, model, contents, config=None):
+    """Genera con `model`; si ese modelo no está disponible en la key del colegio,
+    reintenta UNA vez con el modelo de respaldo. Devuelve (resp, modelo_usado)."""
+    try:
+        return client.models.generate_content(model=model, contents=contents, config=config), model
+    except Exception as exc:
+        if model != _MODELO_GEMINI_RESPALDO and _es_error_modelo_no_disponible(exc):
+            logger.warning("Modelo Gemini '%s' no disponible (%s); reintento con '%s'.",
+                           model, exc, _MODELO_GEMINI_RESPALDO)
+            return (client.models.generate_content(
+                model=_MODELO_GEMINI_RESPALDO, contents=contents, config=config),
+                _MODELO_GEMINI_RESPALDO)
+        raise
 
 
 def _norm_modelo(model):
@@ -49,7 +79,8 @@ def _norm_modelo(model):
 
 # Precio aproximado por 1M de tokens (USD). Ajustable si cambian las tarifas.
 _PRECIOS_USD = {
-    'gemini-2.0-flash': (0.10, 0.40),      # modelo por defecto (entrada, salida)
+    'gemini-3.5-flash': (0.30, 2.50),      # modelo por defecto (entrada, salida) — aprox.
+    'gemini-2.0-flash': (0.10, 0.40),      # respaldo
     'gemini-2.5-flash': (0.30, 2.50),
     'gemini-2.5-pro': (1.25, 10.00),
     _MODELO_CLAUDE: (1.00, 5.00),          # claude haiku 4.5
@@ -148,10 +179,10 @@ def gemini_generate(institucion, model, contents, config=None):
     model = _norm_modelo(model)  # remapea modelos descontinuados (evita 404)
     api_key = _google_api_key(institucion)
     client = genai.Client(api_key=api_key)
-    resp = client.models.generate_content(model=model, contents=contents, config=config)
+    resp, usado = _gemini_generate(client, model, contents, config)
     try:
         tin, tout = _tokens_gemini(resp)
-        registrar_uso(institucion, model, tin, tout)
+        registrar_uso(institucion, usado, tin, tout)
     except Exception:
         pass
     return resp
@@ -171,9 +202,9 @@ def generar_texto(institucion, prompt, json=False):
             from google.genai import types
             client = genai.Client(api_key=gkey)
             cfg = types.GenerateContentConfig(response_mime_type="application/json") if json else None
-            resp = client.models.generate_content(model=_MODELO_GEMINI, contents=prompt, config=cfg)
+            resp, usado = _gemini_generate(client, _MODELO_GEMINI, prompt, cfg)
             tin, tout = _tokens_gemini(resp)
-            registrar_uso(institucion, _MODELO_GEMINI, tin, tout)
+            registrar_uso(institucion, usado, tin, tout)
             txt = (resp.text or '').strip()
             if txt:
                 return True, txt
@@ -234,12 +265,12 @@ def generar_desde_imagen(institucion, data, mime, prompt):
         from google import genai
         from google.genai import types
         client = genai.Client(api_key=gkey)
-        resp = client.models.generate_content(
-            model=_MODELO_GEMINI,
-            contents=[types.Part.from_bytes(data=data, mime_type=mime), prompt],
+        resp, usado = _gemini_generate(
+            client, _MODELO_GEMINI,
+            [types.Part.from_bytes(data=data, mime_type=mime), prompt],
         )
         tin, tout = _tokens_gemini(resp)
-        registrar_uso(institucion, _MODELO_GEMINI, tin, tout)
+        registrar_uso(institucion, usado, tin, tout)
         txt = (resp.text or '').strip()
         if txt:
             return True, txt
@@ -274,15 +305,15 @@ def transcribir_audio(institucion, data, mime, prompt=None):
         from google import genai
         from google.genai import types
         client = genai.Client(api_key=gkey)
-        resp = client.models.generate_content(
-            model=_MODELO_GEMINI,
-            contents=[
+        resp, usado = _gemini_generate(
+            client, _MODELO_GEMINI,
+            [
                 types.Part.from_bytes(data=data, mime_type=mime),
                 prompt or _PROMPT_TRANSCRIBIR,
             ],
         )
         tin, tout = _tokens_gemini(resp)
-        registrar_uso(institucion, _MODELO_GEMINI, tin, tout)
+        registrar_uso(institucion, usado, tin, tout)
         txt = (resp.text or '').strip()
         if txt:
             return True, txt

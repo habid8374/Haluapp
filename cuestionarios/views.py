@@ -1009,7 +1009,7 @@ class GenerarPreguntasIAView(APIView):
 
             client = genai.Client(api_key=api_key)
             response = client.models.generate_content(
-                model='gemini-2.0-flash',
+                model=_ia_gate._MODELO_GEMINI,
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type="application/json")
             )
@@ -1017,7 +1017,7 @@ class GenerarPreguntasIAView(APIView):
             try:
                 _um = getattr(response, 'usage_metadata', None)
                 _ia_gate.registrar_uso(
-                    cuestionario.institucion, 'gemini-2.0-flash',
+                    cuestionario.institucion, _ia_gate._MODELO_GEMINI,
                     getattr(_um, 'prompt_token_count', 0) or 0,
                     getattr(_um, 'candidates_token_count', 0) or 0,
                 )
@@ -1122,14 +1122,14 @@ class SugerirCalificacionIAView(APIView):
             # --- Llamada a la API de Google ---
             client = genai.Client(api_key=api_key)
             response = client.models.generate_content(
-                model='gemini-2.0-flash',
+                model=_ia_gate._MODELO_GEMINI,
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type="application/json")
             )
             try:
                 _um = getattr(response, 'usage_metadata', None)
                 _ia_gate.registrar_uso(
-                    institucion, 'gemini-2.0-flash',
+                    institucion, _ia_gate._MODELO_GEMINI,
                     getattr(_um, 'prompt_token_count', 0) or 0,
                     getattr(_um, 'candidates_token_count', 0) or 0,
                 )
