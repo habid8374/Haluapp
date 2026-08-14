@@ -1303,12 +1303,40 @@ def analizar_observacion_convivencia_task(anotacion_id):
 
         REGLA CLAVE (no sobre-clasificar): el acoso, el ciberacoso, la exclusión social y las burlas —aunque sean graves, repetidos y afecten emocionalmente— son TIPO II mientras NO constituyan un presunto delito. Ante la duda entre TIPO II y TIPO III, elige TIPO II, salvo que exista un presunto delito claro y explícito.
 
+        PROTOCOLOS OFICIALES (Decreto 1965, arts. 42-44). Para "protocolo_sugerido" usa EXACTAMENTE los pasos del protocolo del tipo que asignes, adaptados al caso concreto (menciona a los involucrados y los hechos). En cada paso importante recuerda "dejar constancia":
+
+        PROTOCOLO TIPO I (art. 42):
+        1. Reunir de inmediato a las partes y mediar pedagógicamente (exponer puntos de vista, reparar el daño, reconciliación).
+        2. Fijar la solución de forma imparcial y justa; dejar constancia.
+        3. Hacer seguimiento a los compromisos; si no es efectivo, escalar a Tipo II o III.
+
+        PROTOCOLO TIPO II (art. 43):
+        1. Si hay daño al cuerpo o la salud, garantizar atención inmediata en salud física y mental (remisión a EPS/entidad competente); constancia.
+        2. Si se requiere restablecimiento de derechos, remitir a las autoridades administrativas (ICBF, Ley 1098); constancia.
+        3. Adoptar medidas para proteger a los involucrados; constancia.
+        4. Informar de INMEDIATO a los padres/acudientes de TODOS los involucrados; constancia.
+        5. Generar espacios para que las partes y acudientes expongan lo ocurrido (con confidencialidad).
+        6. Determinar acciones restaurativas y las consecuencias para quienes promovieron o participaron.
+        7. El Presidente del Comité Escolar de Convivencia informa al comité; análisis y seguimiento (escalar a Tipo III si corresponde).
+        8. Dejar constancia en acta suscrita por todos.
+        9. Reportar el caso al Sistema de Información Unificado de Convivencia Escolar.
+
+        PROTOCOLO TIPO III (art. 44) — presunto delito:
+        1. Si hay daño al cuerpo o la salud, atención inmediata en salud (remisión); constancia.
+        2. Informar de INMEDIATO a los padres/acudientes; constancia.
+        3. El Presidente del Comité pone la situación en conocimiento de la POLICÍA NACIONAL de inmediato y por el medio más expedito (es un presunto delito); constancia.
+        4. Citar al Comité Escolar de Convivencia.
+        5. Informar a los participantes del comité, guardando reserva de la información sensible.
+        6. Adoptar medidas inmediatas para proteger a la víctima, al presunto agresor y a quienes informaron.
+        7. Reportar el caso al Sistema de Información Unificado de Convivencia Escolar.
+        8. Seguimiento por el Comité, la autoridad competente y el Comité Municipal/Distrital/Departamental de Convivencia.
+
         Responde ÚNICAMENTE con un objeto JSON válido con esta estructura:
         {{
             "tipo_situacion": "TIPO I" | "TIPO II" | "TIPO III" | "NINGUNO",
-            "justificacion": "Frase breve indicando el criterio de la Ley 1620 por el que corresponde ese tipo.",
+            "justificacion": "Frase breve indicando el criterio de la Ley 1620 / Decreto 1965 por el que corresponde ese tipo.",
             "resumen": "Un resumen objetivo y conciso de los hechos.",
-            "protocolo_sugerido": "Lista numerada de acciones según el protocolo del tipo asignado." | "No se requiere protocolo.",
+            "protocolo_sugerido": "Lista numerada con los pasos del protocolo oficial del tipo asignado, adaptados a este caso." | "No se requiere protocolo.",
             "requiere_revision": true | false
         }}
 
