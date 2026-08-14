@@ -1,0 +1,50 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}Módulos por colegio — Plataforma{% endblock %}
+
+{% block contenido %}
+<!-- Hero -->
+<div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); border-radius:18px; padding:1.75rem 2rem; color:white; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div>
+        <div style="display:inline-flex; align-items:center; gap:.6rem; background:rgba(255,255,255,.08); border-radius:20px; padding:.3rem .9rem; font-size:.78rem; margin-bottom:.6rem;">
+            <i class="bi bi-shield-lock-fill" style="color:#94a3b8;"></i> Acceso Super-Admin
+        </div>
+        <h2 class="fw-800 mb-1" style="color:#fff; font-size:1.55rem;"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Módulos por colegio</h2>
+        <p class="mb-0" style="color:#fff; opacity:.75; font-size:.9rem;">Elige un colegio para activar o bloquear los módulos de su plan.</p>
+    </div>
+    <a href="{% url 'platform_control:dashboard' %}" class="btn btn-outline-light fw-600" style="border-radius:9px;">
+        <i class="bi bi-arrow-left me-1"></i> Volver al panel
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius:14px;">
+  <div class="list-group list-group-flush">
+    {% for inst in instituciones %}
+    <a href="{% url 'platform_control:modulos_institucion' inst.pk %}"
+       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3"
+       style="border:0; border-bottom:1px solid #f1f5f9;">
+      <div class="d-flex align-items-center gap-3">
+        {% if inst.logo %}
+          <img src="{{ inst.logo.url }}" alt="" style="width:38px;height:38px;object-fit:contain;border-radius:8px;background:#f8fafc;">
+        {% else %}
+          <span style="width:38px;height:38px;border-radius:8px;background:#eef2ff;display:inline-flex;align-items:center;justify-content:center;"><i class="bi bi-building" style="color:#4f46e5;"></i></span>
+        {% endif %}
+        <div>
+          <div class="fw-700" style="color:#0f172a;">{{ inst.nombre }}</div>
+          <div class="text-muted" style="font-size:.82rem;">
+            {% if not inst.activa %}<span class="badge bg-danger-subtle text-danger me-1">Bloqueada</span>{% endif %}
+            {{ inst.n_modulos }} de {{ total_modulos }} módulos activos
+          </div>
+        </div>
+      </div>
+      <span class="d-flex align-items-center gap-2">
+        <span class="badge rounded-pill" style="background:#eef2ff;color:#4f46e5;">{{ inst.n_modulos }}/{{ total_modulos }}</span>
+        <i class="bi bi-chevron-right text-muted"></i>
+      </span>
+    </a>
+    {% empty %}
+    <div class="p-4 text-center text-muted">No hay instituciones registradas.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

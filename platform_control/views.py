@@ -238,6 +238,61 @@ def toggle_institucion(request, pk):
 
 
 # ---------------------------------------------------------------------------
+# Módulos por colegio (plan) — pantalla propia del propietario, fuera de /admin/
+# ---------------------------------------------------------------------------
+
+@_superadmin_required
+def modulos_index(request):
+    """Lista los colegios con un resumen de cuántos módulos tienen contratados,
+    con acceso a la pantalla de gestión de cada uno."""
+    from finanzas.models import InstitucionEducativa, ModuloPlataforma
+
+    total_modulos = ModuloPlataforma.objects.filter(activo=True).count()
+    instituciones = InstitucionEducativa.objects.annotate(
+        n_modulos=Count(
+            "modulos_contratados",
+            filter=Q(modulos_contratados__activo=True),
+            distinct=True,
+        )
+    ).order_by("nombre")
+    return render(request, "platform_control/modulos_index.html", {
+        "titulo_pagina": "Módulos por colegio",
+        "instituciones": instituciones,
+        "total_modulos": total_modulos,
+    })
+
+
+@_superadmin_required
+def modulos_institucion(request, pk):
+    """Activa/desactiva los módulos del plan de un colegio con interruptores
+    grandes. Incluye también el módulo financiero (que se guarda en su propio
+    campo). Solo el propietario (superusuario) llega aquí."""
+    from finanzas.models import InstitucionEducativa, ModuloPlataforma
+
+    institucion = get_object_or_404(InstitucionEducativa, pk=pk)
+    modulos = list(ModuloPlataforma.objects.filter(activo=True).order_by("orden", "nombre"))
+
+    if request.method == "POST":
+        seleccionados = set(request.POST.getlist("modulos"))
+        activos = [m for m in modulos if str(m.pk) in seleccionados]
+        institucion.modulos_contratados.set(activos)
+        # Módulo financiero: campo propio de la institución.
+        institucion.usa_modulo_financiero = ("financiero" in request.POST)
+        institucion.save(update_fields=["usa_modulo_financiero"])
+        messages.success(request, f"Módulos de «{institucion.nombre}» actualizados correctamente.")
+        return redirect("platform_control:modulos_institucion", pk=pk)
+
+    contratados_ids = set(institucion.modulos_contratados.values_list("pk", flat=True))
+    modulos_ctx = [{"obj": m, "activo": m.pk in contratados_ids} for m in modulos]
+    return render(request, "platform_control/modulos_institucion.html", {
+        "titulo_pagina": f"Módulos · {institucion.nombre}",
+        "institucion": institucion,
+        "modulos": modulos_ctx,
+        "usa_modulo_financiero": institucion.usa_modulo_financiero,
+    })
+
+
+# ---------------------------------------------------------------------------
 # Soporte / Tickets
 # ---------------------------------------------------------------------------
 
