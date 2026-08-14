@@ -168,6 +168,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'proyecto_colegio.middleware.SentryUsuarioMiddleware',  # Adjunta a Sentry qué usuario hizo cada error
     'proyecto_colegio.middleware.IdiomaPreferidoMiddleware',  # Activa el idioma preferido del usuario
     'auditoria.middleware.AuditoriaMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',

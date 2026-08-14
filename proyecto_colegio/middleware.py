@@ -303,6 +303,52 @@ class ModuloFinancieroMiddleware:
         return self.get_response(request)
 
 
+class SentryUsuarioMiddleware:
+    """Adjunta a Sentry la identidad del usuario en CADA request, para que cada
+    error muestre EXACTAMENTE quién lo provocó, no solo la URL.
+
+    Sentry ya captura URL y hora; aquí se añade: usuario (id, usuario, correo),
+    IP, y etiquetas de institución y rol (para filtrar «errores del colegio X»).
+    Se envía SOLO la identidad —de forma explícita y controlada— sin activar el
+    envío masivo de datos personales (send_default_pii sigue en False)."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self._sentry = None
+        if getattr(settings, 'SENTRY_DSN', ''):
+            try:
+                import sentry_sdk
+                self._sentry = sentry_sdk
+            except Exception:
+                self._sentry = None
+
+    def __call__(self, request):
+        if self._sentry is not None:
+            try:
+                self._marcar_usuario(request)
+            except Exception:
+                pass
+        return self.get_response(request)
+
+    def _marcar_usuario(self, request):
+        from auditoria.middleware import _get_client_ip
+        user = getattr(request, 'user', None)
+        if user is None or not user.is_authenticated:
+            self._sentry.set_user(None)
+            return
+        self._sentry.set_user({
+            'id': user.pk,
+            'username': user.get_username(),
+            'email': getattr(user, 'email', '') or '',
+            'ip_address': _get_client_ip(request),
+        })
+        self._sentry.set_tag('rol', getattr(user, 'rol', '') or '')
+        inst = getattr(user, 'institucion_asociada', None)
+        if inst is not None:
+            self._sentry.set_tag('institucion', inst.nombre)
+            self._sentry.set_tag('institucion_id', inst.pk)
+
+
 class ModulosContratadosMiddleware:
     """Bloquea por URL los módulos que la institución del usuario NO tiene
     contratados en su plan (catálogo ``ModuloPlataforma`` +
