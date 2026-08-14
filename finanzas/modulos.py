@@ -13,11 +13,14 @@ Reglas:
   bloquea nunca; solo se controlan los módulos que existan como fila de
   catálogo con su `prefijo_url`.
 """
+import logging
 from functools import wraps
 
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.utils.translation import gettext as _
+
+logger = logging.getLogger(__name__)
 
 
 # Referencia de los módulos sembrados de fábrica (migraciones 0031 y 0032). El
@@ -105,6 +108,10 @@ def prefijos_bloqueables():
                 for p in (prefijos or '').replace(',', ' ').split():
                     pares.append((p, codigo))
         except Exception:
+            # Fail-open a propósito: ante un fallo transitorio de BD/cache NO se
+            # bloquea el licenciamiento (mejor disponibilidad que dejar a todos
+            # sin módulos). Se registra para que no pase inadvertido.
+            logger.exception("No se pudieron leer los prefijos de módulos bloqueables (se omite el bloqueo por URL este ciclo).")
             pares = []
         data = pares
         cache.set(CACHE_KEY_PREFIJOS, data, 300)
@@ -117,7 +124,7 @@ def limpiar_cache_prefijos():
         from django.core.cache import cache
         cache.delete(CACHE_KEY_PREFIJOS)
     except Exception:
-        pass
+        logger.warning("No se pudo limpiar la cache de prefijos de módulos.", exc_info=True)
 
 
 def requiere_modulo(codigo):
