@@ -1293,11 +1293,22 @@ def analizar_observacion_convivencia_task(anotacion_id):
             return
         client = genai.Client(api_key=api_key)
         prompt = f"""
-        Actúa como un experto en la Ley 1620 de Colombia. Analiza la siguiente anotación y responde ÚNICAMENTE con un objeto JSON válido que siga esta estructura:
+        Actúa como un experto en la Ley 1620 de 2013 y su Decreto reglamentario 1965 de 2013 (convivencia escolar, Colombia). Clasifica la situación descrita en UNA sola categoría aplicando ESTRICTAMENTE los criterios legales. Clasifica por los HECHOS, NO por el tono ni por palabras emotivas (que un estudiante esté "llorando", "triste" o que se use la palabra "acoso" NO sube por sí solo la categoría).
+
+        Definiciones (Decreto 1965, art. 40):
+        - "TIPO I": Conflictos manejados inadecuadamente y situaciones ESPORÁDICAS que inciden en el clima escolar y que NO generan daño al cuerpo o a la salud (un insulto aislado, una riña ocasional, un roce puntual). Ocurren una vez o de forma aislada.
+        - "TIPO II": Situaciones de agresión escolar, ACOSO ESCOLAR (bullying) y CIBERACOSO (ciberbullying) que NO constituyan delito y que cumplan CUALQUIERA de: (a) se presentan de forma REPETIDA o SISTEMÁTICA; o (b) causan daño al cuerpo o a la salud SIN generar incapacidad. AQUÍ entran: exclusión social sostenida, burlas repetidas, difusión de stickers/memes/fotos ofensivas por redes o chats, hostigamiento continuado, agresiones físicas leves sin incapacidad.
+        - "TIPO III": Situaciones de agresión escolar CONSTITUTIVAS DE PRESUNTO DELITO: contra la libertad, integridad y formación sexual (abuso/acoso sexual), o CUALQUIER otro delito penal (lesiones personales con incapacidad, porte de armas, extorsión, amenazas de muerte, pornografía infantil, etc.). SOLO se clasifica TIPO III si hay indicios de un PRESUNTO DELITO.
+        - "NINGUNO": La anotación no describe una situación de convivencia (p. ej. una nota académica o positiva).
+
+        REGLA CLAVE (no sobre-clasificar): el acoso, el ciberacoso, la exclusión social y las burlas —aunque sean graves, repetidos y afecten emocionalmente— son TIPO II mientras NO constituyan un presunto delito. Ante la duda entre TIPO II y TIPO III, elige TIPO II, salvo que exista un presunto delito claro y explícito.
+
+        Responde ÚNICAMENTE con un objeto JSON válido con esta estructura:
         {{
             "tipo_situacion": "TIPO I" | "TIPO II" | "TIPO III" | "NINGUNO",
+            "justificacion": "Frase breve indicando el criterio de la Ley 1620 por el que corresponde ese tipo.",
             "resumen": "Un resumen objetivo y conciso de los hechos.",
-            "protocolo_sugerido": "Una lista numerada de acciones a seguir según el protocolo." | "No se requiere protocolo.",
+            "protocolo_sugerido": "Lista numerada de acciones según el protocolo del tipo asignado." | "No se requiere protocolo.",
             "requiere_revision": true | false
         }}
 
