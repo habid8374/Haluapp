@@ -7,6 +7,7 @@ from django.conf import settings # Para acceder a STATIC_URL, MEDIA_URL
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.utils import translation
+from django.utils.translation import gettext as _
 
 
 class TurnstileMiddleware:
@@ -299,6 +300,46 @@ class ModuloFinancieroMiddleware:
                              or not getattr(inst, 'usa_modulo_financiero', True)):
                     from django.shortcuts import render
                     return render(request, 'finanzas/acceso_no_disponible.html', status=403)
+        return self.get_response(request)
+
+
+class ModulosContratadosMiddleware:
+    """Bloquea por URL los módulos que la institución del usuario NO tiene
+    contratados en su plan (catálogo ``ModuloPlataforma`` +
+    ``InstitucionEducativa.modulos_contratados``).
+
+    Los prefijos a vigilar se leen del catálogo (campo ``prefijo_url``), así
+    agregar o quitar un módulo se hace desde el admin, sin tocar código. El
+    superusuario pasa transparente. Si el colegio no tiene el módulo, se muestra
+    un mensaje amable y se redirige al inicio académico (no un error técnico).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = getattr(request, 'user', None)
+        if user is not None and user.is_authenticated and not user.is_superuser:
+            path = request.path_info
+            try:
+                from finanzas.modulos import prefijos_bloqueables
+                gated = prefijos_bloqueables()
+            except Exception:
+                gated = []
+            for prefijo, codigo in gated:
+                if prefijo and path.startswith(prefijo):
+                    inst = getattr(user, 'institucion_asociada', None)
+                    tiene = bool(inst) and inst.modulos_contratados.filter(
+                        codigo=codigo, activo=True
+                    ).exists()
+                    if not tiene:
+                        messages.warning(
+                            request,
+                            _("Tu institución no tiene contratado este módulo. Si te "
+                              "interesa activarlo, contacta al administrador de la plataforma."),
+                        )
+                        return redirect('gestion_academica:inicio_academico')
+                    break
         return self.get_response(request)
 
 

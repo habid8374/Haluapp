@@ -42,6 +42,61 @@ def _default_bloqueo_secciones():
     return ['notas', 'progreso', 'boletin']
 
 
+class ModuloPlataforma(models.Model):
+    """Catálogo de módulos que ofrece la plataforma (Admisiones, Simulacros,
+    PIAR, etc.). Cada institución «contrata» los que incluye su plan mediante el
+    M2M `InstitucionEducativa.modulos_contratados`.
+
+    Es un catálogo GLOBAL de plataforma (sin institución): solo lo administra el
+    propietario/superusuario. Agregar un módulo nuevo es crear una fila aquí —
+    no requiere migración. Si la fila tiene `prefijo_url`, el acceso por URL a
+    ese módulo se bloquea automáticamente para las instituciones que no lo
+    tengan contratado (vía middleware)."""
+    codigo = models.SlugField(
+        max_length=40, unique=True,
+        verbose_name="Código",
+        help_text="Identificador interno del módulo, ej. 'admisiones' (sin espacios).",
+    )
+    nombre = models.CharField(max_length=80, verbose_name="Nombre visible")
+    descripcion = models.CharField(max_length=255, blank=True, verbose_name="Descripción")
+    icono = models.CharField(
+        max_length=40, blank=True, verbose_name="Ícono",
+        help_text="Clase de Bootstrap Icons, ej. 'bi-mortarboard'.",
+    )
+    prefijo_url = models.CharField(
+        max_length=80, blank=True, verbose_name="Prefijo de URL",
+        help_text=(
+            "Prefijo de URL del módulo, ej. '/admisiones/'. Si se define, el "
+            "acceso a esa ruta se bloquea para las instituciones que no tengan "
+            "el módulo contratado. Déjalo vacío si el módulo no se bloquea por URL."
+        ),
+    )
+    orden = models.PositiveSmallIntegerField(default=100, verbose_name="Orden")
+    activo = models.BooleanField(
+        default=True, verbose_name="Activo",
+        help_text="Si se desactiva, el módulo deja de ofrecerse a TODAS las instituciones.",
+    )
+
+    class Meta:
+        verbose_name = "Módulo de la plataforma"
+        verbose_name_plural = "Módulos de la plataforma"
+        ordering = ['orden', 'nombre']
+
+    def __str__(self):
+        return self.nombre
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        from finanzas.modulos import limpiar_cache_prefijos
+        limpiar_cache_prefijos()
+
+    def delete(self, *args, **kwargs):
+        result = super().delete(*args, **kwargs)
+        from finanzas.modulos import limpiar_cache_prefijos
+        limpiar_cache_prefijos()
+        return result
+
+
 class InstitucionEducativa(models.Model):
 
     nombre = models.CharField(max_length=100, verbose_name="Nombre de la Institución Educativa")
@@ -104,6 +159,17 @@ class InstitucionEducativa(models.Model):
             "Si se desactiva, esta institución NO ve el módulo de finanzas y la "
             "matrícula NO genera cuentas de cobro (los pagos se manejan por fuera "
             "de la plataforma). Independiente de si es pública o privada."
+        ),
+    )
+    modulos_contratados = models.ManyToManyField(
+        'ModuloPlataforma',
+        blank=True,
+        related_name='instituciones',
+        verbose_name="Módulos contratados (plan)",
+        help_text=(
+            "Marca los módulos que este colegio compró en su plan. Los módulos "
+            "que NO estén marcados se ocultan del menú y se bloquean para los "
+            "usuarios de esta institución (el superusuario siempre los ve)."
         ),
     )
     IDIOMA_CHOICES = [

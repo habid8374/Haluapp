@@ -64,6 +64,27 @@ def turnstile_processor(request):
     }
 
 
+def modulos_processor(request):
+    """Expone a TODAS las plantillas el conjunto `modulos_activos` (códigos de
+    los módulos que la institución del usuario tiene contratados). Se usa para
+    ocultar del menú los módulos que el colegio no compró. El superusuario ve
+    todo (recibe el conjunto de TODOS los módulos activos)."""
+    user = getattr(request, 'user', None)
+    if user is None or not user.is_authenticated:
+        return {'modulos_activos': set()}
+    try:
+        from finanzas.modulos import modulos_activos_de
+        if user.is_superuser:
+            from finanzas.models import ModuloPlataforma
+            return {'modulos_activos': set(
+                ModuloPlataforma.objects.filter(activo=True).values_list('codigo', flat=True)
+            )}
+        institucion = getattr(user, 'institucion_asociada', None)
+        return {'modulos_activos': modulos_activos_de(institucion)}
+    except Exception:
+        return {'modulos_activos': set()}
+
+
 def _get_banners_activos(user, institucion):
     try:
         from gestion_academica.models import Noticia

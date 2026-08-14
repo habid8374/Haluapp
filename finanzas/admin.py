@@ -9,6 +9,7 @@ from proyecto_colegio.admin_mixins import (
 # Importa los modelos desde tu aplicación finanzas
 from .models import (
     InstitucionEducativa,
+    ModuloPlataforma,
     TipoConceptoPago,
     ConceptoPago,
     CuentaPorCobrarEstudiante,
@@ -40,6 +41,8 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
     list_display = ('nombre', 'nit', 'telefono', 'correo_electronico', 'activa')
     list_filter = ('activa',) # Para poder filtrar por instituciones activas o bloqueadas
     autocomplete_fields = ['simat_municipio_etc']
+    # Selector de doble lista para marcar los módulos del plan cómodamente.
+    filter_horizontal = ('modulos_contratados',)
     fieldsets = (
         ('Información Básica', {
             'fields': ('nombre', 'nit', 'direccion', 'telefono', 'correo_electronico', 'logo', 'eslogan')
@@ -49,6 +52,15 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
             'fields': ('activa', 'tipo_institucion', 'usa_modulo_financiero', 'tarifa_mensual_plataforma', 'comision_por_transaccion_porcentaje'),
             'classes': ('collapse',),
             'description': 'Estos campos solo deben ser modificados por el super-administrador de HALU.'
+        }),
+        ('Módulos contratados (plan del colegio)', {
+            'fields': ('modulos_contratados',),
+            'description': (
+                'Marca los módulos que este colegio compró. Los que NO estén '
+                'marcados se ocultan del menú y se bloquean para sus usuarios '
+                '(el superusuario siempre los ve). El módulo de Finanzas se '
+                'controla arriba con «Usa el módulo financiero».'
+            ),
         }),
         ('Bilingüismo / Multiidioma', {
             'fields': ('es_bilingue', 'idioma_secundario'),
@@ -302,6 +314,24 @@ class LlamadaMercadoPagoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
 
 # --- Registro de los modelos en el panel de administración ---
 admin.site.register(InstitucionEducativa, InstitucionEducativaAdmin)
+
+
+class ModuloPlataformaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
+    """Catálogo GLOBAL de módulos de la plataforma (solo el propietario). Agregar
+    un módulo nuevo = crear una fila aquí; luego se marca por institución en
+    «Módulos contratados» de cada colegio."""
+    list_display = ('nombre', 'codigo', 'prefijo_url', 'orden', 'activo', 'n_instituciones')
+    list_editable = ('orden', 'activo')
+    search_fields = ('nombre', 'codigo', 'prefijo_url')
+    ordering = ('orden', 'nombre')
+    prepopulated_fields = {'codigo': ('nombre',)}
+
+    @admin.display(description='Colegios con el módulo')
+    def n_instituciones(self, obj):
+        return obj.instituciones.count()
+
+
+admin.site.register(ModuloPlataforma, ModuloPlataformaAdmin)
 admin.site.register(TipoConceptoPago, TipoConceptoPagoAdmin)
 admin.site.register(CuentaPorCobrarEstudiante, CuentaPorCobrarEstudianteAdmin)
 admin.site.register(PagoRegistrado, PagoRegistradoAdmin)

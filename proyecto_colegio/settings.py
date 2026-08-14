@@ -179,6 +179,7 @@ MIDDLEWARE = [
     'proyecto_colegio.middleware.PoliticaDatosMiddleware',  # Aceptación obligatoria de política de datos
     'proyecto_colegio.middleware.BloqueoEstudianteMiddleware',  # Bloqueo manual de acceso al portal del estudiante
     'proyecto_colegio.middleware.ModuloFinancieroMiddleware',  # Bloquea /finanzas/ si la institución no usa el módulo financiero
+    'proyecto_colegio.middleware.ModulosContratadosMiddleware',  # Bloquea módulos (admisiones, simulacros, PIAR…) que el colegio no contrató
 
     # --- MIDDLEWARE PARA REGISTRO INICIAL ---
     # Si quieres que el sistema SIEMPRE redirija a registro_inicial si no hay usuarios,
@@ -238,6 +239,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'gestion_academica.context_processors.branding_processor',
                 'gestion_academica.context_processors.turnstile_processor',
+                'gestion_academica.context_processors.modulos_processor',
 
             ],
         },
