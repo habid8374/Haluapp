@@ -1,4 +1,4 @@
-from django.db import migrations
+from django.db import migrations, models
 
 
 # Más módulos reales de la plataforma (codigo, nombre, descripcion, icono,
@@ -48,5 +48,21 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Ensancha la columna ANTES de sembrar: un módulo puede cubrir varias
+        # rutas (ej. los juegos) y el prefijo_url combinado supera los 80 chars.
+        migrations.AlterField(
+            model_name='moduloplataforma',
+            name='prefijo_url',
+            field=models.CharField(
+                blank=True, max_length=255, verbose_name='Prefijo de URL',
+                help_text=(
+                    "Prefijo(s) de URL del módulo, ej. '/admisiones/'. Puedes poner "
+                    "VARIOS separados por espacio si el módulo abarca varias rutas "
+                    "(ej. los juegos). Si se define, el acceso a esas rutas se bloquea "
+                    "para las instituciones que no tengan el módulo contratado. Déjalo "
+                    "vacío si el módulo no se bloquea por URL."
+                ),
+            ),
+        ),
         migrations.RunPython(sembrar, revertir),
     ]

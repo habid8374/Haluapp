@@ -64,7 +64,7 @@ class ModuloPlataforma(models.Model):
         help_text="Clase de Bootstrap Icons, ej. 'bi-mortarboard'.",
     )
     prefijo_url = models.CharField(
-        max_length=80, blank=True, verbose_name="Prefijo de URL",
+        max_length=255, blank=True, verbose_name="Prefijo de URL",
         help_text=(
             "Prefijo(s) de URL del módulo, ej. '/admisiones/'. Puedes poner "
             "VARIOS separados por espacio si el módulo abarca varias rutas "
