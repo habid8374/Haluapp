@@ -372,6 +372,7 @@ USE_TZ = True # Para habilitar el soporte de zona horaria
 LANGUAGES = [
     ('es', 'Español'),
     ('en', 'English'),
+    ('fr', 'Français'),
 ]
 
 # Catálogos de traducción (.po/.mo) para el selector de idiomas — Etapa B/C

@@ -60,6 +60,7 @@ class Usuario(AbstractUser):
     IDIOMAS_INTERFAZ = (
         ('es', 'Español'),
         ('en', 'English'),
+        ('fr', 'Français'),
     )
     idioma_preferido = models.CharField(
         max_length=5, choices=IDIOMAS_INTERFAZ, default='es',
