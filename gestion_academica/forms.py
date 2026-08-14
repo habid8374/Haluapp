@@ -31,6 +31,8 @@ from finanzas.models import InstitucionEducativa
 
 # Desplegable de países SIMAT (fuente única de códigos, sin autorelleno)
 from simat.paises import PAISES_CHOICES, choices_incluyendo
+# Cascada departamento → municipio (filtra municipios por departamento elegido)
+from simat.widgets import aplicar_cascada_depto_municipio
 
 
 class PerfilAccesibilidadForm(forms.ModelForm):
@@ -438,6 +440,9 @@ class CaracterizacionEstudianteForm(forms.ModelForm):
             getattr(inst_pais, 'pais_origen', '') if inst_pais else '')
         self.fields['pais_nacimiento'].choices = choices_incluyendo(
             getattr(inst_pais, 'pais_nacimiento', '') if inst_pais else '')
+
+        # Cascada: al elegir un departamento, el municipio se filtra a los suyos.
+        aplicar_cascada_depto_municipio(self)
 
         # Nombres SIMAT: primer nombre y primer apellido obligatorios.
         self.fields['primer_nombre'].required = True

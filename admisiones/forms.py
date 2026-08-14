@@ -8,6 +8,7 @@ from .models import Aspirante
 from gestion_academica.models import Grado
 from simat.models import Sede
 from simat.paises import PAISES_CHOICES, choices_incluyendo
+from simat.widgets import aplicar_cascada_depto_municipio
 
 class AspiranteForm(forms.ModelForm):
 
@@ -88,6 +89,9 @@ class AspiranteForm(forms.ModelForm):
                   'etnia_simat', 'resguardo', 'eps_simat', 'sede']:
             if f in self.fields:
                 self.fields[f].required = False
+
+        # Cascada: al elegir un departamento, el municipio se filtra a los suyos.
+        aplicar_cascada_depto_municipio(self)
 
         # Diseño en secciones profesionales (se renderiza con {% crispy form %})
         self.helper = FormHelper()

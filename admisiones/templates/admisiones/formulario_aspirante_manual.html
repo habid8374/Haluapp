@@ -1,5 +1,6 @@
 {% extends "base_admisiones.html" %}
 {% load crispy_forms_tags %}
+{% load static %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container mt-4">
@@ -35,4 +36,5 @@
         </div>
     </div>
 </div>
+<script src="{% static 'js/simat_cascada_municipio.js' %}"></script>
 {% endblock contenido %}
