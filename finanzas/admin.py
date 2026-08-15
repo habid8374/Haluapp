@@ -37,7 +37,37 @@ class EscalaValorativaInline(admin.TabularInline):
     ordering = ('orden',)
     fields = ('nombre_desempeno', 'abreviatura', 'nota_minima', 'nota_maxima', 'orden')
 
+_IDIOMA_INTERFAZ_LABELS = {
+    'en': 'English (Inglés)',
+    'fr': 'Français (Francés)',
+    'pt': 'Português (Portugués)',
+    'de': 'Deutsch (Alemán)',
+    'zh': '中文 (Mandarín)',
+}
+
+
+class InstitucionEducativaAdminForm(forms.ModelForm):
+    """Formulario del admin: los idiomas de interfaz contratados se eligen con
+    casillas (checkboxes), no con JSON crudo. Solo se ofrecen los idiomas que ya
+    tienen traducción disponible."""
+    idiomas_contratados = forms.MultipleChoiceField(
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=[(c, _IDIOMA_INTERFAZ_LABELS.get(c, c))
+                 for c in InstitucionEducativa.IDIOMAS_INTERFAZ_DISPONIBLES],
+        label="Idiomas de interfaz contratados",
+        help_text="Idiomas (además del español, que siempre está) en los que este "
+                  "colegio puede ver la plataforma. Aparecen en el selector de idioma "
+                  "de sus usuarios.",
+    )
+
+    class Meta:
+        model = InstitucionEducativa
+        fields = '__all__'
+
+
 class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
+    form = InstitucionEducativaAdminForm
     # ¡¡¡AQUÍ ESTÁ LA LÍNEA CORREGIDA!!!
     list_display = ('nombre', 'nit', 'telefono', 'correo_electronico', 'activa')
     list_filter = ('activa',) # Para poder filtrar por instituciones activas o bloqueadas
@@ -64,9 +94,14 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
             ),
         }),
         ('Bilingüismo / Multiidioma', {
-            'fields': ('es_bilingue', 'idioma_secundario'),
+            'fields': ('idiomas_contratados', 'es_bilingue', 'idioma_secundario'),
             'classes': ('collapse',),
-            'description': 'Activa esta sección para habilitar campos de segundo idioma en materias y mallas curriculares.',
+            'description': (
+                '«Idiomas de interfaz contratados»: marca los idiomas (además del '
+                'español) en los que este colegio puede ver la plataforma — aparecen '
+                'en el selector de idioma de cada usuario. «Es bilingüe» + «Idioma '
+                'secundario» son para las materias y mallas bilingües, no para la interfaz.'
+            ),
         }),
         # --- FIN: NUEVA SECCIÓN ---
         ('Información para Boletines', {

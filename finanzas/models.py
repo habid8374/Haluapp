@@ -181,6 +181,10 @@ class InstitucionEducativa(models.Model):
         ('de', 'Alemán'),
         ('zh', 'Mandarín'),
     ]
+    # Idiomas de INTERFAZ con catálogo de traducción (.po/.mo) realmente
+    # disponible hoy. El español es la base y siempre está. Cuando se traduzca
+    # otro idioma (pt/de/zh), se agrega aquí.
+    IDIOMAS_INTERFAZ_DISPONIBLES = ('en', 'fr')
     es_bilingue = models.BooleanField(
         default=False,
         verbose_name="Institución Bilingüe / Multiidioma",
@@ -193,6 +197,13 @@ class InstitucionEducativa(models.Model):
         default='en',
         verbose_name="Idioma Secundario de Instrucción",
         help_text="Idioma en que se dictan las materias bilingües (por defecto inglés).",
+    )
+    idiomas_contratados = models.JSONField(
+        default=list, blank=True,
+        verbose_name="Idiomas de interfaz contratados",
+        help_text="Idiomas (además del español, que siempre está) en los que este "
+                  "colegio puede ver la plataforma. Se muestran en el selector de "
+                  "idioma de cada usuario.",
     )
     nota_minima_aprobacion = models.DecimalField(max_digits=3, decimal_places=2, default=Decimal('3.0'), verbose_name="Nota Mínima para Aprobar", help_text="La nota que un estudiante debe alcanzar o superar para aprobar (ej: 3.0, 3.5).")
     escala_valorativa_texto = models.CharField(max_length=255, blank=True, default="Sup = Superior, Alt = Alto, Bas = Básico, Baj = Bajo", verbose_name="Texto de la Escala Valorativa")
@@ -327,6 +338,31 @@ class InstitucionEducativa(models.Model):
             return self.sedes.filter(activa=True).count() > 1
         except Exception:
             return False
+
+    def idiomas_interfaz(self):
+        """[(codigo, etiqueta_nativa)] de los idiomas de interfaz de este colegio:
+        SIEMPRE Español + los idiomas contratados que tengan traducción disponible.
+        Compatibilidad: si aún no hay contratados pero el colegio es bilingüe con un
+        idioma_secundario traducible, se usa ese (comportamiento anterior)."""
+        from django.conf import settings
+        etiquetas = dict(settings.LANGUAGES)
+        codigos = ['es']
+        for c in (self.idiomas_contratados or []):
+            if c in self.IDIOMAS_INTERFAZ_DISPONIBLES and c not in codigos:
+                codigos.append(c)
+        if len(codigos) == 1 and self.es_bilingue and self.idioma_secundario in self.IDIOMAS_INTERFAZ_DISPONIBLES:
+            codigos.append(self.idioma_secundario)
+        return [(c, etiquetas.get(c, c)) for c in codigos]
+
+    def codigos_idioma_interfaz(self):
+        """Solo los códigos de idioma de interfaz habilitados para este colegio
+        (para validar el cambio de idioma de un usuario)."""
+        return [c for c, _lbl in self.idiomas_interfaz()]
+
+    @property
+    def tiene_multiidioma(self):
+        """True si el colegio ofrece al menos un idioma además del español."""
+        return len(self.idiomas_interfaz()) > 1
 
     def clean(self):
         super().clean()

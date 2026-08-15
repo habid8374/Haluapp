@@ -16,11 +16,12 @@
     </li>
     {% endif %}
     {% comment %}
-      Selector de idioma: SOLO para la institución actual y SOLO si su idioma
-      secundario tiene interfaz traducida (inglés o francés). Cada colegio ve
-      únicamente su propio idioma secundario — sin fuga multi-tenant.
+      Selector de idioma: SOLO para la institución actual y SOLO con los idiomas
+      que ESE colegio contrató (institucion_actual.idiomas_interfaz). Español
+      siempre + los contratados. Cada colegio ve únicamente lo suyo — sin fuga
+      multi-tenant.
     {% endcomment %}
-    {% if institucion_actual.es_bilingue %}{% with sec=institucion_actual.idioma_secundario %}{% if sec == 'en' or sec == 'fr' %}
+    {% if institucion_actual.tiene_multiidioma %}
     <li class="nav-item dropdown">
       <a class="nav-link dropdown-toggle px-2" href="#" id="navbarIdiomaLink" role="button"
          data-bs-toggle="dropdown" aria-expanded="false" title="Idioma de la plataforma / Platform language / Langue de la plateforme">
@@ -28,45 +29,22 @@
         <span class="d-none d-md-inline" style="font-size:.86rem">{{ user.idioma_preferido|default:"es"|upper }}</span>
       </a>
       <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarIdiomaLink" style="min-width:160px">
+        {% for codigo, etiqueta in institucion_actual.idiomas_interfaz %}
         <li>
           <form method="post" action="{% url 'gestion_academica:cambiar_idioma' %}">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.path }}">
-            <button type="submit" name="language" value="es"
-                    class="dropdown-item d-flex align-items-center gap-2 {% if user.idioma_preferido == 'es' %}active{% endif %}">
-              <i class="bi bi-check2" style="visibility:{% if user.idioma_preferido == 'es' %}visible{% else %}hidden{% endif %}"></i>
-              Español
+            <button type="submit" name="language" value="{{ codigo }}"
+                    class="dropdown-item d-flex align-items-center gap-2 {% if user.idioma_preferido == codigo %}active{% endif %}">
+              <i class="bi bi-check2" style="visibility:{% if user.idioma_preferido == codigo %}visible{% else %}hidden{% endif %}"></i>
+              {{ etiqueta }}
             </button>
           </form>
         </li>
-        {% if sec == 'en' %}
-        <li>
-          <form method="post" action="{% url 'gestion_academica:cambiar_idioma' %}">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.path }}">
-            <button type="submit" name="language" value="en"
-                    class="dropdown-item d-flex align-items-center gap-2 {% if user.idioma_preferido == 'en' %}active{% endif %}">
-              <i class="bi bi-check2" style="visibility:{% if user.idioma_preferido == 'en' %}visible{% else %}hidden{% endif %}"></i>
-              English
-            </button>
-          </form>
-        </li>
-        {% elif sec == 'fr' %}
-        <li>
-          <form method="post" action="{% url 'gestion_academica:cambiar_idioma' %}">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.path }}">
-            <button type="submit" name="language" value="fr"
-                    class="dropdown-item d-flex align-items-center gap-2 {% if user.idioma_preferido == 'fr' %}active{% endif %}">
-              <i class="bi bi-check2" style="visibility:{% if user.idioma_preferido == 'fr' %}visible{% else %}hidden{% endif %}"></i>
-              Français
-            </button>
-          </form>
-        </li>
-        {% endif %}
+        {% endfor %}
       </ul>
     </li>
-    {% endif %}{% endwith %}{% endif %}
+    {% endif %}
     <li class="nav-item">
       <button type="button" class="nav-link px-2 border-0 bg-transparent"
               data-bs-toggle="offcanvas" data-bs-target="#accPanel"
