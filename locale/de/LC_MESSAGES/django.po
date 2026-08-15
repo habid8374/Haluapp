@@ -12079,3 +12079,88 @@ msgstr "Schülerausweis"
 
 msgid "Código QR del estudiante"
 msgstr "QR-Code des Schülers"
+
+msgid "(opcional)"
+msgstr "(optional)"
+
+msgid "Aún no has creado secuencias. ¡Crea la primera!"
+msgstr "Sie haben noch keine Sequenzen erstellt. Erstellen Sie die erste!"
+
+msgid "Aún no has creado sopas. ¡Crea la primera!"
+msgstr ""
+"Sie haben noch keine Wortsuchrätsel erstellt. Erstellen Sie das erste!"
+
+msgid "Cerrada"
+msgstr "Geschlossen"
+
+msgid "Ej. Animales de la granja"
+msgstr "Z. B. Bauernhoftiere"
+
+msgid "Ej. El ciclo de la planta"
+msgstr "Z. B. Der Kreislauf der Pflanze"
+
+msgid "Ej. Encuentra los 8 animales escondidos."
+msgstr "Z. B. Finde die 8 versteckten Tiere."
+
+msgid "Ej. Ordena las etapas de la 1 a la 4."
+msgstr "Z. B. Ordne die Phasen von 1 bis 4."
+
+msgid ""
+"El niño arrastra tarjetas al orden correcto (ciclos, números, secuencias). "
+"Se corrige solo y la nota llega al libro de notas."
+msgstr ""
+"Das Kind zieht die Karten in die richtige Reihenfolge (Kreisläufe, Zahlen, "
+"Sequenzen). Die Korrektur erfolgt automatisch und die Note wird ins "
+"Notenbuch übertragen."
+
+msgid "En progreso"
+msgstr "In Bearbeitung"
+
+msgid "Escribe cada palabra. La sopa se arma sola al publicar."
+msgstr ""
+"Geben Sie jedes Wort ein. Das Wortsuchrätsel wird beim Veröffentlichen "
+"automatisch erstellt."
+
+msgid ""
+"Escribe solo las palabras y el sistema arma la sopa sola. Los estudiantes "
+"las encuentran en pantalla y la nota llega al libro de notas."
+msgstr ""
+"Geben Sie nur die Wörter ein, und das System erstellt das Wortsuchrätsel. "
+"Die Schüler finden sie auf dem Bildschirm und die Note wird ins Notenbuch "
+"übertragen."
+
+msgid "Nota"
+msgstr "Note"
+
+msgid "Nueva secuencia"
+msgstr "Neue Sequenz"
+
+msgid "Nueva sopa"
+msgstr "Neues Wortsuchrätsel"
+
+msgid "Publicada"
+msgstr "Veröffentlicht"
+
+msgid "Resueltas"
+msgstr "Gelöst"
+
+msgid "Todavía nadie ha jugado."
+msgstr "Es hat noch niemand gespielt."
+
+msgid "Todavía nadie ha resuelto esta sopa."
+msgstr "Dieses Wortsuchrätsel hat noch niemand gelöst."
+
+msgid "Todavía nadie ha resuelto este crucigrama."
+msgstr "Dieses Kreuzworträtsel hat noch niemand gelöst."
+
+msgid "Todavía nadie ha resuelto este rompecabezas."
+msgstr "Dieses Puzzle hat noch niemand gelöst."
+
+msgid "Todavía nadie lo ha resuelto."
+msgstr "Es hat noch niemand gelöst."
+
+msgid "intento(s)"
+msgstr "Versuch(e)"
+
+msgid "resuelto(s)"
+msgstr "gelöst"

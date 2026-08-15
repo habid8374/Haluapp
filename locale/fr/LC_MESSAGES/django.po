@@ -12015,3 +12015,86 @@ msgstr "Carte d'élève"
 
 msgid "Código QR del estudiante"
 msgstr "Code QR de l'élève"
+
+msgid "(opcional)"
+msgstr "(facultatif)"
+
+msgid "Aún no has creado secuencias. ¡Crea la primera!"
+msgstr "Vous n'avez pas encore créé de séquences. Créez la première !"
+
+msgid "Aún no has creado sopas. ¡Crea la primera!"
+msgstr "Vous n'avez pas encore créé de mots mêlés. Créez le premier !"
+
+msgid "Cerrada"
+msgstr "Fermée"
+
+msgid "Ej. Animales de la granja"
+msgstr "Ex. Animaux de la ferme"
+
+msgid "Ej. El ciclo de la planta"
+msgstr "Ex. Le cycle de la plante"
+
+msgid "Ej. Encuentra los 8 animales escondidos."
+msgstr "Ex. Trouve les 8 animaux cachés."
+
+msgid "Ej. Ordena las etapas de la 1 a la 4."
+msgstr "Ex. Classe les étapes de 1 à 4."
+
+msgid ""
+"El niño arrastra tarjetas al orden correcto (ciclos, números, secuencias). "
+"Se corrige solo y la nota llega al libro de notas."
+msgstr ""
+"L'enfant glisse les cartes dans le bon ordre (cycles, nombres, séquences). "
+"La correction est automatique et la note est enregistrée dans le carnet de "
+"notes."
+
+msgid "En progreso"
+msgstr "En cours"
+
+msgid "Escribe cada palabra. La sopa se arma sola al publicar."
+msgstr ""
+"Saisissez chaque mot. Les mots mêlés se génèrent automatiquement à la "
+"publication."
+
+msgid ""
+"Escribe solo las palabras y el sistema arma la sopa sola. Los estudiantes "
+"las encuentran en pantalla y la nota llega al libro de notas."
+msgstr ""
+"Saisissez seulement les mots et le système génère les mots mêlés. Les élèves"
+" les trouvent à l'écran et la note est enregistrée dans le carnet de notes."
+
+msgid "Nota"
+msgstr "Note"
+
+msgid "Nueva secuencia"
+msgstr "Nouvelle séquence"
+
+msgid "Nueva sopa"
+msgstr "Nouveaux mots mêlés"
+
+msgid "Publicada"
+msgstr "Publiée"
+
+msgid "Resueltas"
+msgstr "Résolues"
+
+msgid "Todavía nadie ha jugado."
+msgstr "Personne n'a encore joué."
+
+msgid "Todavía nadie ha resuelto esta sopa."
+msgstr "Personne n'a encore résolu ces mots mêlés."
+
+msgid "Todavía nadie ha resuelto este crucigrama."
+msgstr "Personne n'a encore résolu ces mots croisés."
+
+msgid "Todavía nadie ha resuelto este rompecabezas."
+msgstr "Personne n'a encore résolu ce casse-tête."
+
+msgid "Todavía nadie lo ha resuelto."
+msgstr "Personne ne l'a encore résolu."
+
+msgid "intento(s)"
+msgstr "tentative(s)"
+
+msgid "resuelto(s)"
+msgstr "résolu(s)"

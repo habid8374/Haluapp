@@ -11821,3 +11821,83 @@ msgstr "Student ID card"
 
 msgid "Código QR del estudiante"
 msgstr "Student QR code"
+
+msgid "(opcional)"
+msgstr "(optional)"
+
+msgid "Aún no has creado secuencias. ¡Crea la primera!"
+msgstr "You haven't created any sequences yet. Create the first one!"
+
+msgid "Aún no has creado sopas. ¡Crea la primera!"
+msgstr "You haven't created any word searches yet. Create the first one!"
+
+msgid "Cerrada"
+msgstr "Closed"
+
+msgid "Ej. Animales de la granja"
+msgstr "E.g. Farm animals"
+
+msgid "Ej. El ciclo de la planta"
+msgstr "E.g. The plant cycle"
+
+msgid "Ej. Encuentra los 8 animales escondidos."
+msgstr "E.g. Find the 8 hidden animals."
+
+msgid "Ej. Ordena las etapas de la 1 a la 4."
+msgstr "E.g. Put the stages in order from 1 to 4."
+
+msgid ""
+"El niño arrastra tarjetas al orden correcto (ciclos, números, secuencias). "
+"Se corrige solo y la nota llega al libro de notas."
+msgstr ""
+"The child drags cards into the correct order (cycles, numbers, sequences). "
+"It grades itself and the mark goes to the gradebook."
+
+msgid "En progreso"
+msgstr "In progress"
+
+msgid "Escribe cada palabra. La sopa se arma sola al publicar."
+msgstr "Type each word. The word search builds itself when you publish."
+
+msgid ""
+"Escribe solo las palabras y el sistema arma la sopa sola. Los estudiantes "
+"las encuentran en pantalla y la nota llega al libro de notas."
+msgstr ""
+"Just type the words and the system builds the word search for you. Students "
+"find them on screen and the mark goes to the gradebook."
+
+msgid "Nota"
+msgstr "Grade"
+
+msgid "Nueva secuencia"
+msgstr "New sequence"
+
+msgid "Nueva sopa"
+msgstr "New word search"
+
+msgid "Publicada"
+msgstr "Published"
+
+msgid "Resueltas"
+msgstr "Solved"
+
+msgid "Todavía nadie ha jugado."
+msgstr "No one has played yet."
+
+msgid "Todavía nadie ha resuelto esta sopa."
+msgstr "No one has solved this word search yet."
+
+msgid "Todavía nadie ha resuelto este crucigrama."
+msgstr "No one has solved this crossword yet."
+
+msgid "Todavía nadie ha resuelto este rompecabezas."
+msgstr "No one has solved this puzzle yet."
+
+msgid "Todavía nadie lo ha resuelto."
+msgstr "No one has solved it yet."
+
+msgid "intento(s)"
+msgstr "attempt(s)"
+
+msgid "resuelto(s)"
+msgstr "solved"
