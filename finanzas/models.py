@@ -184,7 +184,7 @@ class InstitucionEducativa(models.Model):
     # Idiomas de INTERFAZ con catálogo de traducción (.po/.mo) realmente
     # disponible hoy. El español es la base y siempre está. Cuando se traduzca
     # otro idioma (pt/de/zh), se agrega aquí.
-    IDIOMAS_INTERFAZ_DISPONIBLES = ('en', 'fr')
+    IDIOMAS_INTERFAZ_DISPONIBLES = ('en', 'fr', 'de')
     es_bilingue = models.BooleanField(
         default=False,
         verbose_name="Institución Bilingüe / Multiidioma",

@@ -373,6 +373,7 @@ LANGUAGES = [
     ('es', 'Español'),
     ('en', 'English'),
     ('fr', 'Français'),
+    ('de', 'Deutsch'),
 ]
 
 # Catálogos de traducción (.po/.mo) para el selector de idiomas — Etapa B/C
