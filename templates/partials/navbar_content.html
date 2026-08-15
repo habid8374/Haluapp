@@ -15,9 +15,11 @@
       </a>
     </li>
     {% endif %}
-    {# Selector de idioma: SOLO para la institución actual y SOLO si su idioma
-       secundario tiene interfaz traducida (inglés o francés). Cada colegio ve
-       únicamente su propio idioma secundario — sin fuga multi-tenant. #}
+    {% comment %}
+      Selector de idioma: SOLO para la institución actual y SOLO si su idioma
+      secundario tiene interfaz traducida (inglés o francés). Cada colegio ve
+      únicamente su propio idioma secundario — sin fuga multi-tenant.
+    {% endcomment %}
     {% if institucion_actual.es_bilingue %}{% with sec=institucion_actual.idioma_secundario %}{% if sec == 'en' or sec == 'fr' %}
     <li class="nav-item dropdown">
       <a class="nav-link dropdown-toggle px-2" href="#" id="navbarIdiomaLink" role="button"

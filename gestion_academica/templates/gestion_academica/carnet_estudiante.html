@@ -1,5 +1,6 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE|default:'es' }}">
 <head>
     <meta charset="UTF-8">
     <title>{{ titulo_pagina }}</title>
@@ -87,21 +88,21 @@
     </style>
 </head>
 <body>
-    <button onclick="window.print()" class="no-print print-button">Imprimir Carnet</button>
+    <button onclick="window.print()" class="no-print print-button">{% trans "Imprimir carnet" %}</button>
     <div class="carnet">
         <div class="carnet-info">
             <div class="carnet-header">
                 {{ estudiante.institucion.nombre|upper }}
             </div>
             <p class="carnet-nombre">{{ estudiante.usuario.get_full_name }}</p>
-            <p class="carnet-grado"><strong>Grado:</strong> {{ estudiante.grado_actual.nombre }}{% if estudiante.grupo %} · {{ estudiante.grupo.nombre }}{% endif %}</p>
-            <p class="carnet-id"><strong>ID:</strong> {{ estudiante.documento_identidad }}</p>
+            <p class="carnet-grado"><strong>{% trans "Grado" %}:</strong> {{ estudiante.grado_actual.nombre }}{% if estudiante.grupo %} · {{ estudiante.grupo.nombre }}{% endif %}</p>
+            <p class="carnet-id"><strong>{% trans "ID" %}:</strong> {{ estudiante.documento_identidad }}</p>
             <div class="carnet-footer">
-                Carnet Estudiantil
+                {% trans "Carnet estudiantil" %}
             </div>
         </div>
         <div class="carnet-qr">
-            <img src="{{ qr_code_url }}" alt="Código QR del Estudiante">
+            <img src="{{ qr_code_url }}" alt="{% trans 'Código QR del estudiante' %}">
         </div>
     </div>
 </body>

@@ -5233,7 +5233,7 @@ class DetalleActividadAPIView(RetrieveAPIView):
 @requiere_pagos_al_dia
 def resolver_actividad_page(request, actividad_pk):
     if not hasattr(request.user, 'estudiante'):
-        messages.error(request, "Solo los estudiantes pueden resolver esta actividad.")
+        messages.error(request, _("Solo los estudiantes pueden resolver esta actividad."))
         return redirect('gestion_academica:inicio_academico')
 
     estudiante = request.user.estudiante
@@ -5245,7 +5245,7 @@ def resolver_actividad_page(request, actividad_pk):
     )
 
     if not estudiante_en_curso_actividad(estudiante, actividad):
-        messages.error(request, "No tienes permiso para esta actividad.")
+        messages.error(request, _("No tienes permiso para esta actividad."))
         return redirect('gestion_academica:dashboard_estudiante')
 
     if Cuestionario.objects.filter(actividad_calificable_id=actividad.pk).exists():
@@ -5254,7 +5254,7 @@ def resolver_actividad_page(request, actividad_pk):
     if not Pregunta.objects.filter(actividad=actividad).exists():
         messages.info(
             request,
-            "Esta actividad no tiene preguntas interactivas configuradas aquí.",
+            _("Esta actividad no tiene preguntas interactivas configuradas aquí."),
         )
         return redirect('gestion_academica:dashboard_estudiante')
 
@@ -5284,7 +5284,8 @@ def resolver_actividad_page(request, actividad_pk):
         if total_intentos >= actividad.numero_intentos_permitidos:
             messages.error(
                 request,
-                f"Has alcanzado el número máximo de {actividad.numero_intentos_permitidos} intentos para esta actividad.",
+                _("Has alcanzado el número máximo de %(n)s intentos para esta actividad.")
+                % {'n': actividad.numero_intentos_permitidos},
             )
             return redirect('gestion_academica:dashboard_estudiante')
         intento = IntentoActividad.objects.create(
@@ -5305,16 +5306,43 @@ def resolver_actividad_page(request, actividad_pk):
             intento.save()
             messages.error(
                 request,
-                f"Se ha agotado el tiempo para la actividad '{actividad.titulo}'.",
+                _("Se ha agotado el tiempo para la actividad: %(t)s")
+                % {'t': actividad.titulo},
             )
             return redirect('gestion_academica:dashboard_estudiante')
 
     if intento.estado == 'completado':
         messages.warning(
             request,
-            f"Ya has completado la actividad '{actividad.titulo}'.",
+            _("Ya has completado la actividad: %(t)s") % {'t': actividad.titulo},
         )
         return redirect('gestion_academica:dashboard_estudiante')
+
+    # Textos de la interfaz React (ResolverActividad.jsx) traducidos por Django
+    # (gettext → catálogo ES/EN/FR). Se pasan como JSON con json_script y el
+    # componente los consume; así la pantalla del examen también es multi-idioma.
+    i18n_actividad = {
+        'cargandoExamen': _("Cargando examen..."),
+        'tiempoRestante': _("Tiempo restante:"),
+        'tokenNoEncontrado': _("No se encontró el token de acceso. Por favor, inicia sesión de nuevo."),
+        'sesionExpirada': _("Tu sesión ha expirado. Por favor, inicia sesión de nuevo."),
+        'noCargoActividad': _("No se pudo cargar la actividad."),
+        'errorFatal': _("Error fatal: %(msg)s"),
+        'tiempoAgotado': _("¡Se acabó el tiempo! Tus respuestas serán enviadas automáticamente."),
+        'sinTokenSesion': _("No se encontró tu token de sesión. No se pueden enviar las respuestas."),
+        'enviadasExito': _("¡Respuestas enviadas con éxito! Redirigiendo..."),
+        'errorGuardar': _("Ocurrió un error al guardar tus respuestas."),
+        'errorEnviar': _("Error al enviar: %(msg)s"),
+        'progreso': _("Progreso: %(done)s de %(total)s preguntas respondidas"),
+        'pregunta': _("Pregunta %(n)s"),
+        'placeholderRespuesta': _("Escribe tu respuesta aquí..."),
+        'revisarEnviar': _("Revisar y enviar respuestas"),
+        'confirmarEnvio': _("Confirmar envío"),
+        'hasRespondido': _("Has respondido %(done)s de %(total)s preguntas."),
+        'confirmacion': _("¿Estás seguro de que quieres enviar tus respuestas? Una vez enviadas, no podrás modificarlas."),
+        'volverRevisar': _("Volver y revisar"),
+        'siEnviar': _("Sí, enviar definitivamente"),
+    }
 
     return render(
         request,
@@ -5322,6 +5350,7 @@ def resolver_actividad_page(request, actividad_pk):
         {
             'actividad': actividad,
             'tiempo_restante': tiempo_restante_segundos,
+            'i18n_actividad': i18n_actividad,
         },
     )
 

@@ -11909,3 +11909,109 @@ msgid ""
 msgstr ""
 "Cours de <strong>%(materia)s</strong> (%(grado)s) du "
 "<strong>%(fecha)s</strong>"
+
+msgid "Solo los estudiantes pueden resolver esta actividad."
+msgstr "Seuls les élèves peuvent réaliser cette activité."
+
+msgid "No tienes permiso para esta actividad."
+msgstr "Vous n'avez pas la permission pour cette activité."
+
+msgid "Esta actividad no tiene preguntas interactivas configuradas aquí."
+msgstr "Cette activité n'a pas de questions interactives configurées ici."
+
+msgid "Has alcanzado el número máximo de %(n)s intentos para esta actividad."
+msgstr ""
+"Vous avez atteint le nombre maximal de %(n)s tentatives pour cette activité."
+
+msgid "Se ha agotado el tiempo para la actividad: %(t)s"
+msgstr "Le temps est écoulé pour l'activité : %(t)s"
+
+msgid "Ya has completado la actividad: %(t)s"
+msgstr "Vous avez déjà terminé l'activité : %(t)s"
+
+msgid "Cargando examen..."
+msgstr "Chargement de l'examen..."
+
+msgid "Tiempo restante:"
+msgstr "Temps restant :"
+
+msgid "No se encontró el token de acceso. Por favor, inicia sesión de nuevo."
+msgstr "Jeton d'accès introuvable. Veuillez vous reconnecter."
+
+msgid "Tu sesión ha expirado. Por favor, inicia sesión de nuevo."
+msgstr "Votre session a expiré. Veuillez vous reconnecter."
+
+msgid "No se pudo cargar la actividad."
+msgstr "Impossible de charger l'activité."
+
+msgid "Error fatal: %(msg)s"
+msgstr "Erreur fatale : %(msg)s"
+
+msgid "¡Se acabó el tiempo! Tus respuestas serán enviadas automáticamente."
+msgstr "Le temps est écoulé ! Vos réponses seront envoyées automatiquement."
+
+msgid "No se encontró tu token de sesión. No se pueden enviar las respuestas."
+msgstr ""
+"Votre jeton de session est introuvable. Les réponses ne peuvent pas être "
+"envoyées."
+
+msgid "¡Respuestas enviadas con éxito! Redirigiendo..."
+msgstr "Réponses envoyées avec succès ! Redirection..."
+
+msgid "Ocurrió un error al guardar tus respuestas."
+msgstr "Une erreur s'est produite lors de l'enregistrement de vos réponses."
+
+msgid "Error al enviar: %(msg)s"
+msgstr "Erreur d'envoi : %(msg)s"
+
+msgid "Progreso: %(done)s de %(total)s preguntas respondidas"
+msgstr "Progression : %(done)s sur %(total)s questions répondues"
+
+msgid "Pregunta %(n)s"
+msgstr "Question %(n)s"
+
+msgid "Escribe tu respuesta aquí..."
+msgstr "Écrivez votre réponse ici..."
+
+msgid "Revisar y enviar respuestas"
+msgstr "Vérifier et envoyer les réponses"
+
+msgid "Confirmar envío"
+msgstr "Confirmer l'envoi"
+
+msgid "Has respondido %(done)s de %(total)s preguntas."
+msgstr "Vous avez répondu à %(done)s sur %(total)s questions."
+
+msgid ""
+"¿Estás seguro de que quieres enviar tus respuestas? Una vez enviadas, no "
+"podrás modificarlas."
+msgstr ""
+"Êtes-vous sûr de vouloir envoyer vos réponses ? Une fois envoyées, vous ne "
+"pourrez plus les modifier."
+
+msgid "Volver y revisar"
+msgstr "Revenir et vérifier"
+
+msgid "Sí, enviar definitivamente"
+msgstr "Oui, envoyer définitivement"
+
+msgid "Resolviendo: %(t)s"
+msgstr "Résolution : %(t)s"
+
+msgid "Cargando actividad..."
+msgstr "Chargement de l'activité..."
+
+msgid "Cargando actividad interactiva..."
+msgstr "Chargement de l'activité interactive..."
+
+msgid "Imprimir carnet"
+msgstr "Imprimer la carte"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "Carnet estudiantil"
+msgstr "Carte d'élève"
+
+msgid "Código QR del estudiante"
+msgstr "Code QR de l'élève"

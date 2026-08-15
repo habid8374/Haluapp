@@ -2,6 +2,18 @@
 
 const { useState, useEffect, useRef, StrictMode } = React;
 
+// --- i18n: textos traducidos por Django (ES/EN/FR), inyectados con json_script.
+//     Si por algo faltara el bloque, se usa el texto en español de respaldo. ---
+const I18N = (() => {
+    try { return JSON.parse(document.getElementById('i18n-actividad').textContent); }
+    catch (e) { return {}; }
+})();
+function t(key, fallback, vars) {
+    let s = (I18N && I18N[key]) || fallback;
+    if (vars) { for (const k in vars) { s = s.split('%(' + k + ')s').join(vars[k]); } }
+    return s;
+}
+
 // --- Componente de Temporizador ---
 function Timer({ initialSeconds, onTimeUp }) {
     const [seconds, setSeconds] = useState(initialSeconds);
@@ -27,7 +39,7 @@ function Timer({ initialSeconds, onTimeUp }) {
     return (
         <div className={`alert ${seconds < 300 ? 'alert-danger' : 'alert-info'} sticky-top text-center fs-4 shadow`}>
             <i className="bi bi-clock-history me-2"></i>
-            Tiempo Restante: <strong>{minutes}:{remainingSeconds.toString().padStart(2, '0')}</strong>
+            {t('tiempoRestante', 'Tiempo restante:')} <strong>{minutes}:{remainingSeconds.toString().padStart(2, '0')}</strong>
         </div>
     );
 }
@@ -53,7 +65,7 @@ function ActividadApp() {
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
         if (!token) {
-            setFeedback({ message: 'No se encontró el token de acceso. Por favor, inicia sesión de nuevo.', type: 'danger' });
+            setFeedback({ message: t('tokenNoEncontrado', 'No se encontró el token de acceso. Por favor, inicia sesión de nuevo.'), type: 'danger' });
             setLoading(false);
             return;
         }
@@ -65,8 +77,8 @@ function ActividadApp() {
             }
         })
         .then(response => {
-            if (response.status === 401) throw new Error('Tu sesión ha expirado. Por favor, inicia sesión de nuevo.');
-            if (!response.ok) throw new Error('No se pudo cargar la actividad.');
+            if (response.status === 401) throw new Error(t('sesionExpirada', 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.'));
+            if (!response.ok) throw new Error(t('noCargoActividad', 'No se pudo cargar la actividad.'));
             return response.json();
         })
         .then(data => {
@@ -74,7 +86,7 @@ function ActividadApp() {
             setLoading(false);
         })
         .catch(error => {
-            setFeedback({ message: `Error fatal: ${error.message}`, type: 'danger' });
+            setFeedback({ message: t('errorFatal', 'Error fatal: %(msg)s', { msg: error.message }), type: 'danger' });
             setLoading(false);
         });
     }, [apiUrl]);
@@ -85,7 +97,7 @@ function ActividadApp() {
     };
 
     const handleTimeUp = () => {
-        setFeedback({ message: '¡Se acabó el tiempo! Tus respuestas serán enviadas automáticamente.', type: 'warning' });
+        setFeedback({ message: t('tiempoAgotado', '¡Se acabó el tiempo! Tus respuestas serán enviadas automáticamente.'), type: 'warning' });
         setTimeout(() => handleSubmit(), 2000);
     };
 
@@ -106,7 +118,7 @@ function ActividadApp() {
         const token = localStorage.getItem('accessToken');
 
         if (!token) {
-            setFeedback({ message: 'No se encontró tu token de sesión. No se pueden enviar las respuestas.', type: 'danger' });
+            setFeedback({ message: t('sinTokenSesion', 'No se encontró tu token de sesión. No se pueden enviar las respuestas.'), type: 'danger' });
             setSubmitting(false);
             return;
         }
@@ -123,18 +135,18 @@ function ActividadApp() {
         .then(response => response.json().then(data => ({ status: response.status, body: data })))
         .then(({ status, body }) => {
             if (status >= 200 && status < 300) {
-                setFeedback({ message: body.message || '¡Respuestas enviadas con éxito! Redirigiendo...', type: 'success' });
+                setFeedback({ message: body.message || t('enviadasExito', '¡Respuestas enviadas con éxito! Redirigiendo...'), type: 'success' });
                 setTimeout(() => { window.location.href = redirectUrl; }, 2500);
-            } else { throw new Error(body.error || 'Ocurrió un error al guardar tus respuestas.'); }
+            } else { throw new Error(body.error || t('errorGuardar', 'Ocurrió un error al guardar tus respuestas.')); }
         })
         .catch(error => {
-            setFeedback({ message: `Error al enviar: ${error.message}`, type: 'danger' });
+            setFeedback({ message: t('errorEnviar', 'Error al enviar: %(msg)s', { msg: error.message }), type: 'danger' });
         })
         .finally(() => { setSubmitting(false); });
     };
     
     // --- RENDERIZADO ---
-    if (loading) { return <div className="text-center p-5"><div className="spinner-border" style={{width: "3rem", height: "3rem"}}></div><p className="mt-3">Cargando examen...</p></div>; }
+    if (loading) { return <div className="text-center p-5"><div className="spinner-border" style={{width: "3rem", height: "3rem"}}></div><p className="mt-3">{t('cargandoExamen', 'Cargando examen...')}</p></div>; }
     if (!actividad) { return <div className="alert alert-danger mx-3">{feedback.message}</div>; }
 
     const totalPreguntas = actividad.preguntas.length;
@@ -149,12 +161,12 @@ function ActividadApp() {
                 <div className="progress mb-3" style={{ height: "10px" }}>
                     <div className="progress-bar" role="progressbar" style={{ width: `${(preguntasRespondidas / totalPreguntas) * 100}%` }} ></div>
                 </div>
-                <p>Progreso: {preguntasRespondidas} de {totalPreguntas} preguntas respondidas</p>
+                <p>{t('progreso', 'Progreso: %(done)s de %(total)s preguntas respondidas', { done: preguntasRespondidas, total: totalPreguntas })}</p>
                 <hr />
 
                 {actividad.preguntas.map((pregunta, index) => (
                     <div key={pregunta.id} className="card mb-3 shadow-sm">
-                        <div className="card-header"><strong>Pregunta {index + 1}</strong></div>
+                        <div className="card-header"><strong>{t('pregunta', 'Pregunta %(n)s', { n: index + 1 })}</strong></div>
                         <div className="card-body">
                             <p className="card-text fs-5" dangerouslySetInnerHTML={{ __html: pregunta.enunciado }}></p>
                             
@@ -166,7 +178,7 @@ function ActividadApp() {
                             ))}
 
                             {pregunta.tipo === 'respuesta_abierta' && (
-                                <textarea className="form-control" rows="4" placeholder="Escribe tu respuesta aquí..." onChange={(e) => handleRespuestaChange(pregunta.id, e.target.value)} value={respuestas[pregunta.id] || ''}></textarea>
+                                <textarea className="form-control" rows="4" placeholder={t('placeholderRespuesta', 'Escribe tu respuesta aquí...')} onChange={(e) => handleRespuestaChange(pregunta.id, e.target.value)} value={respuestas[pregunta.id] || ''}></textarea>
                             )}
                         </div>
                     </div>
@@ -178,7 +190,7 @@ function ActividadApp() {
                         onClick={handleSubmitClick}
                         disabled={submitting || preguntasRespondidas < totalPreguntas}
                     >
-                        Revisar y Enviar Respuestas
+                        {t('revisarEnviar', 'Revisar y enviar respuestas')}
                     </button>
                 </div>
 
@@ -191,16 +203,16 @@ function ActividadApp() {
                     <div className="modal-dialog modal-dialog-centered">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Confirmar Envío</h5>
+                                <h5 className="modal-title">{t('confirmarEnvio', 'Confirmar envío')}</h5>
                                 <button type="button" className="btn-close" onClick={() => setShowReviewModal(false)}></button>
                             </div>
                             <div className="modal-body">
-                                <p>Has respondido {preguntasRespondidas} de {totalPreguntas} preguntas.</p>
-                                <p>¿Estás seguro de que quieres enviar tus respuestas? Una vez enviadas, <strong>no podrás modificarlas.</strong></p>
+                                <p>{t('hasRespondido', 'Has respondido %(done)s de %(total)s preguntas.', { done: preguntasRespondidas, total: totalPreguntas })}</p>
+                                <p>{t('confirmacion', '¿Estás seguro de que quieres enviar tus respuestas? Una vez enviadas, no podrás modificarlas.')}</p>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowReviewModal(false)}>Volver y Revisar</button>
-                                <button type="button" className="btn btn-primary" onClick={handleConfirmSubmit}>Sí, Enviar Definitivamente</button>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowReviewModal(false)}>{t('volverRevisar', 'Volver y revisar')}</button>
+                                <button type="button" className="btn btn-primary" onClick={handleConfirmSubmit}>{t('siEnviar', 'Sí, enviar definitivamente')}</button>
                             </div>
                         </div>
                     </div>
