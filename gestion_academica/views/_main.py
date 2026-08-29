@@ -12860,7 +12860,7 @@ def escaner_asistencia_docente(request):
     return render(request, 'gestion_academica/escaner_asistencia_docente.html', context)
 
 
-class RegistroAsistenciaDocenteListView(ListView):
+class RegistroAsistenciaDocenteListView(LoginRequiredMixin, ListView):
     model = RegistroAsistenciaDocente
     template_name = 'gestion_academica/asistencias_docentes_list.html'
     context_object_name = 'asistencias'
