@@ -366,7 +366,7 @@ def dashboard_psicoorientador(request):
         'citas_pendientes_count': 0,
     }
     try:
-        from .models import CasoConvivencia, AnotacionObservador
+        from ..models import CasoConvivencia, AnotacionObservador
         casos_qs = CasoConvivencia.objects.all() if user.is_superuser else CasoConvivencia.objects.filter(institucion=institucion)
         casos_abiertos_qs = casos_qs.exclude(estado='CERRADO')
         ctx['casos_abiertos'] = casos_abiertos_qs.count()
