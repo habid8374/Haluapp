@@ -9,7 +9,8 @@ from proyecto_colegio.admin_mixins import InstitucionScopedAdminMixin
 from import_export.admin import ImportExportModelAdmin
 from django.db.models import Q
 from django.urls import path
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
+from django.template.response import TemplateResponse
 from django.utils.html import format_html
 
 # Importa los modelos desde tu aplicación gestion_academica
@@ -305,17 +306,18 @@ class EscalaCualitativaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     
 @admin.register(Estudiante)
 class EstudianteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
-    list_display = ('usuario_nombre', 'codigo_estudiante', 'grado_actual', 'sexo', 'institucion',  'activo') # <-- 'sexo' añadido para vista rápida
+    list_display = ('usuario_nombre', 'codigo_estudiante', 'grado_actual', 'enfasis', 'sexo', 'institucion',  'activo') # <-- 'sexo' añadido para vista rápida
     search_fields = ('usuario__username', 'usuario__first_name', 'usuario__last_name', 'codigo_estudiante', 'documento_identidad')
-    list_filter = ('grado_actual', 'institucion', 'sexo', 'departamento') # <-- 'sexo' y 'departamento' añadidos como filtros
+    list_filter = ('grado_actual', 'enfasis', 'institucion', 'sexo', 'departamento') # <-- 'sexo' y 'departamento' añadidos como filtros
     ordering = ('institucion', 'grado_actual', 'usuario__last_name', 'usuario__first_name')
     raw_id_fields = ('usuario', 'grado_actual', 'institucion')
-    filter_horizontal = ('descuentos',) 
+    filter_horizontal = ('descuentos',)
+    actions = ['asignar_enfasis_masivo']
 
     # --- fieldsets para organizar el formulario de edición ---
     fieldsets = (
         ('Información de Usuario y Académica', {
-            'fields': ('usuario', 'codigo_estudiante', 'grado_actual', 'institucion')
+            'fields': ('usuario', 'codigo_estudiante', 'grado_actual', 'grupo', 'enfasis', 'institucion')
         }),
         ('Identificación Personal', {
             'fields': ('tipo_documento', 'documento_identidad', 'fecha_nacimiento', 'lugar_nacimiento', 'sexo', 'direccion')
@@ -339,6 +341,70 @@ class EstudianteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
         return obj.usuario.get_full_name() or obj.usuario.username
     usuario_nombre.admin_order_field = 'usuario__last_name'
     usuario_nombre.short_description = 'Nombre del Estudiante'
+
+    # --- Asignación masiva de Énfasis / Taller (modalidad técnica) ---
+    # Selecciona varios estudiantes en la lista (ej. todos los de 10° o 11°)
+    # y aplica el mismo énfasis a todos de una vez.
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                'asignar-enfasis/',
+                self.admin_site.admin_view(self.asignar_enfasis_view),
+                name='gestion_academica_estudiante_asignar_enfasis',
+            ),
+        ]
+        return custom_urls + urls
+
+    @admin.action(description='Asignar énfasis / taller a los seleccionados')
+    def asignar_enfasis_masivo(self, request, queryset):
+        ids = list(queryset.values_list('pk', flat=True))
+        request.session['enfasis_masivo_ids'] = ids
+        return redirect('admin:gestion_academica_estudiante_asignar_enfasis')
+
+    def asignar_enfasis_view(self, request):
+        ids = request.session.get('enfasis_masivo_ids') or []
+        institucion = getattr(request.user, 'institucion_asociada', None)
+
+        # Igual que el resto del mixin: el superusuario ve todo, un usuario de
+        # institución solo sus propios estudiantes (aunque los ids vinieran
+        # manipulados, esto los recorta a su colegio).
+        estudiantes_qs = Estudiante.objects.filter(pk__in=ids).select_related('usuario', 'grado_actual')
+        if not request.user.is_superuser:
+            if institucion is None:
+                estudiantes_qs = estudiantes_qs.none()
+            else:
+                estudiantes_qs = estudiantes_qs.filter(institucion=institucion)
+
+        enfasis_qs = Enfasis.objects.filter(activo=True)
+        if not request.user.is_superuser and institucion is not None:
+            enfasis_qs = enfasis_qs.filter(institucion=institucion)
+        elif not request.user.is_superuser:
+            enfasis_qs = enfasis_qs.none()
+
+        if not estudiantes_qs.exists():
+            messages.error(request, 'No hay estudiantes válidos seleccionados (o la selección expiró). Vuelve a seleccionarlos en la lista.')
+            return redirect('admin:gestion_academica_estudiante_changelist')
+
+        if request.method == 'POST':
+            enfasis_id = request.POST.get('enfasis_id')
+            if not enfasis_id:
+                messages.error(request, 'Debes elegir un énfasis.')
+            else:
+                enfasis_obj = get_object_or_404(enfasis_qs, pk=enfasis_id)
+                actualizados = estudiantes_qs.update(enfasis=enfasis_obj)
+                messages.success(request, f'Énfasis "{enfasis_obj}" asignado a {actualizados} estudiante(s).')
+                request.session.pop('enfasis_masivo_ids', None)
+                return redirect('admin:gestion_academica_estudiante_changelist')
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Asignar énfasis / taller a los seleccionados',
+            'estudiantes': estudiantes_qs.order_by('usuario__last_name'),
+            'enfasis_disponibles': enfasis_qs.order_by('nombre'),
+            'opts': self.model._meta,
+        }
+        return TemplateResponse(request, 'admin/gestion_academica/estudiante/asignar_enfasis.html', context)
 
 
 class RegistroAsistenciaResource(resources.ModelResource):

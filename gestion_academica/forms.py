@@ -262,7 +262,7 @@ class EstudianteForm(forms.ModelForm):
         fields = [
             'documento_identidad', 'tipo_documento', 'codigo_estudiante',
             'fecha_nacimiento',
-            'direccion', 'grado_actual', 'grupo', 'institucion', 'valor_matricula',
+            'direccion', 'grado_actual', 'grupo', 'enfasis', 'institucion', 'valor_matricula',
             'valor_mensualidad',
             'sexo', 'grupo_sanguineo', 'discapacidad',
             'colegio_procedencia',
@@ -277,6 +277,7 @@ class EstudianteForm(forms.ModelForm):
             'direccion': forms.TextInput(attrs={'class': 'form-control'}),
             'grado_actual': forms.Select(attrs={'class': 'form-select'}),
             'grupo': forms.Select(attrs={'class': 'form-select'}),
+            'enfasis': forms.Select(attrs={'class': 'form-select'}),
             'institucion': forms.Select(attrs={'class': 'form-select'}),
             'valor_matricula': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'valor_mensualidad': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -316,10 +317,17 @@ class EstudianteForm(forms.ModelForm):
                 self.fields['grupo'].queryset = filter_by_user_institution(
                     self.fields['grupo'].queryset, request.user
                 ).filter(activo=True).select_related('grado')
+            if 'enfasis' in self.fields:
+                self.fields['enfasis'].queryset = filter_by_user_institution(
+                    self.fields['enfasis'].queryset, request.user
+                ).filter(activo=True)
 
-        # El grupo es opcional y se filtra a la institución del estudiante.
+        # El grupo y el énfasis son opcionales (el énfasis solo aplica a
+        # colegios con modalidad técnica, ej. media técnica en 10°/11°).
         if 'grupo' in self.fields:
             self.fields['grupo'].required = False
+        if 'enfasis' in self.fields:
+            self.fields['enfasis'].required = False
             if not request.user.is_superuser and request.user.institucion_asociada:
                 self.fields['institucion'].initial = request.user.institucion_asociada
                 self.fields['institucion'].disabled = True

@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<p>
+  Vas a asignar un énfasis / taller a <strong>{{ estudiantes.count }}</strong> estudiante(s):
+</p>
+<ul>
+  {% for e in estudiantes %}
+  <li>{{ e.usuario.get_full_name|default:e.usuario.username }} — {{ e.grado_actual|default:"Sin grado" }}{% if e.enfasis %} (actualmente: {{ e.enfasis }}){% endif %}</li>
+  {% endfor %}
+</ul>
+
+{% if enfasis_disponibles %}
+<form method="post">
+  {% csrf_token %}
+  <p>
+    <label for="id_enfasis">Énfasis / taller a asignar:</label>
+    <select name="enfasis_id" id="id_enfasis" required>
+      <option value="">Selecciona uno…</option>
+      {% for en in enfasis_disponibles %}
+      <option value="{{ en.pk }}">{{ en.nombre }}</option>
+      {% endfor %}
+    </select>
+  </p>
+  <input type="submit" value="Asignar" class="default">
+  <a href="{% url 'admin:gestion_academica_estudiante_changelist' %}" class="button cancel-link">Cancelar</a>
+</form>
+{% else %}
+<p>
+  Tu institución todavía no tiene ningún énfasis creado en el catálogo.
+  Ve a <a href="{% url 'gestion_academica:crear_enfasis' %}">Gestión Académica › Énfasis / Talleres</a> y créalo primero.
+</p>
+<a href="{% url 'admin:gestion_academica_estudiante_changelist' %}" class="button">Volver</a>
+{% endif %}
+{% endblock %}
