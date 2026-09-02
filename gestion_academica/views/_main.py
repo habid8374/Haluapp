@@ -10120,11 +10120,22 @@ def exportar_ficha_orientacion_pdf(request, estudiante_pk):
         estudiante=estudiante
     ).exclude(estado='CANCELADA').select_related('orientador').order_by('fecha_hora_inicio')
 
+    # Resumen del PIAR vigente (solo datos académicos/pedagógicos, no
+    # confidenciales) — esta vista ya está restringida a psicólogo/rectoría,
+    # por lo que sí es seguro mostrarlo aquí como contexto adicional.
+    piar_actual = estudiante.piars.filter(estado='ACTIVO').order_by('-año_lectivo').select_related('grado').first()
+    ajustes_pendientes = (
+        piar_actual.ajustes.filter(alcanzado=False).select_related('materia')
+        if piar_actual else []
+    )
+
     context = {
         'estudiante': estudiante,
         'familiar': familiar,
         'seguimientos': seguimientos,
         'citas': citas,
+        'piar_actual': piar_actual,
+        'ajustes_pendientes': ajustes_pendientes,
         'institucion': institucion,
         'generado_por': user.get_full_name() or user.username,
         'fecha_generacion': timezone.now(),

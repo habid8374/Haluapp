@@ -1,0 +1,200 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Anexo PIAR — {{ piar.estudiante.usuario.get_full_name }}</title>
+<style>
+@page { size: letter; margin: 1.8cm 1.6cm 2.2cm 1.6cm; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 8.5pt; color: #1e293b; line-height: 1.4; }
+.top-bar { background: #0d3b66; height: 6px; width: 100%; margin-bottom: 10px; }
+.header-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.header-table td { vertical-align: middle; }
+.logo-cell { width: 72px; }
+.logo-cell img { width: 66px; height: auto; }
+.inst-cell { padding: 0 10px; }
+.inst-name { font-size: 12pt; font-weight: bold; color: #0d3b66; }
+.inst-sub { font-size: 7pt; color: #64748b; margin-top: 3px; line-height: 1.6; }
+.doc-cell { width: 200px; }
+.doc-box { border: 2px solid #0d3b66; border-radius: 5px; overflow: hidden; text-align: center; }
+.doc-box-header { background: #0d3b66; color: #fff; font-size: 7.5pt; font-weight: bold; padding: 5px 8px; text-transform: uppercase; letter-spacing: .8px; }
+.doc-box-body { padding: 6px 8px; }
+.doc-box-body p { font-size: 7.5pt; color: #475569; margin: 2px 0; }
+.doc-box-body strong { color: #0d3b66; }
+.oficial-bar { background: #eff6ff; border-left: 4px solid #0d3b66; padding: 5px 10px; font-size: 7.2pt; color: #1e3a5f; margin-bottom: 10px; }
+.section-label { background: #0d3b66; color: #fff; font-size: 7.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: .8px; padding: 4px 10px; margin: 10px 0 6px; }
+.datos-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.datos-table td { border: 1px solid #e2e8f0; padding: 4px 8px; font-size: 8pt; }
+.datos-table .lbl { background: #f1f5f9; color: #64748b; font-weight: bold; font-size: 7pt; text-transform: uppercase; width: 28%; white-space: nowrap; }
+.val-empty { color: #94a3b8; font-style: italic; font-size: 7.5pt; }
+.texto-box { border: 1px solid #e2e8f0; border-left: 3px solid #0d3b66; border-radius: 4px; padding: 7px 9px; margin-bottom: 8px; font-size: 8pt; color: #334155; white-space: pre-line; }
+.periodo-title { background: #eff6ff; color: #0d3b66; font-size: 7.5pt; font-weight: bold; padding: 4px 8px; margin: 8px 0 4px; border-radius: 3px; }
+.ajustes-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.ajustes-table thead tr { background: #1d4ed8; color: #fff; }
+.ajustes-table thead th { padding: 5px 6px; font-size: 6.8pt; font-weight: bold; text-align: left; text-transform: uppercase; }
+.ajustes-table tbody td { padding: 4px 6px; font-size: 7.5pt; vertical-align: top; border-bottom: 1px solid #f1f5f9; }
+.badge-alcanzado { color: #16a34a; font-weight: bold; }
+.badge-pendiente { color: #dc2626; font-weight: bold; }
+.firmas-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+.firmas-table td { width: 33.3%; text-align: center; vertical-align: bottom; padding: 0 6px; }
+.firma-linea { border-top: 1px solid #94a3b8; padding-top: 4px; font-size: 7pt; color: #475569; }
+.firma-nombre { font-weight: bold; font-size: 7.5pt; color: #0d3b66; }
+.firma-cargo { font-size: 7pt; color: #64748b; }
+.page-footer { position: fixed; bottom: 0.4cm; left: 0; right: 0; border-top: 1px solid #e2e8f0; padding-top: 4px; text-align: center; font-size: 6.5pt; color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="page-footer">
+  {{ institucion.nombre }} &nbsp;·&nbsp; NIT: {{ institucion.nit }}
+  &nbsp;·&nbsp; Anexo PIAR — Decreto 1421 de 2017
+  &nbsp;·&nbsp; {{ piar.estudiante.usuario.get_full_name }}
+  &nbsp;·&nbsp; Página <pdf:pagenumber> de <pdf:pagecount>
+</div>
+<div class="top-bar"></div>
+<table class="header-table">
+  <tr>
+    <td class="logo-cell">{% if institucion.logo %}<img src="{{ institucion.logo.url }}" alt="">{% endif %}</td>
+    <td class="inst-cell">
+      <div class="inst-name">{{ institucion.nombre }}</div>
+      <div class="inst-sub">
+        NIT: {{ institucion.nit }}{% if institucion.codigo_dane %} | DANE: {{ institucion.codigo_dane }}{% endif %}
+        {% if institucion.ciudad_departamento %} | {{ institucion.ciudad_departamento }}{% endif %}
+        {% if institucion.texto_aprobacion %}<br>{{ institucion.texto_aprobacion }}{% endif %}
+        {% if institucion.texto_resolucion %}<br>{{ institucion.texto_resolucion }}{% endif %}
+      </div>
+    </td>
+    <td class="doc-cell">
+      <div class="doc-box">
+        <div class="doc-box-header">Anexo PIAR</div>
+        <div class="doc-box-body">
+          <p>Año lectivo: <strong>{{ piar.año_lectivo }}</strong></p>
+          <p>Estado: <strong>{{ piar.get_estado_display }}</strong></p>
+          <p>Generado: <strong>{% now "d/m/Y" %}</strong></p>
+        </div>
+      </div>
+    </td>
+  </tr>
+</table>
+<div class="oficial-bar">
+  <strong>Documento oficial — Decreto 1421 de 2017.</strong> Plan Individual de Ajustes Razonables (PIAR).
+  Anexo pedagógico para archivo institucional y auditoría de la Secretaría de Educación.
+</div>
+
+<div class="section-label">1. Información General del Estudiante</div>
+<table class="datos-table">
+  <tr><td class="lbl">Nombres y Apellidos</td><td colspan="3"><strong>{{ piar.estudiante.usuario.get_full_name|upper }}</strong></td></tr>
+  <tr>
+    <td class="lbl">Documento</td><td>{{ piar.estudiante.documento_identidad|default:"—" }}</td>
+    <td class="lbl">Grado</td><td>{{ piar.grado.nombre|default:piar.estudiante.grado_actual.nombre|default:"—" }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Condición</td><td><strong>{{ piar.get_condicion_display }}</strong></td>
+    <td class="lbl">Docente líder</td><td>{{ piar.docente_lider.get_full_name|default:"—" }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Fecha de elaboración</td><td>{{ piar.fecha_elaboracion|date:"d/m/Y"|default:"—" }}</td>
+    <td class="lbl">Fecha de revisión</td><td>{% if piar.fecha_revision %}{{ piar.fecha_revision|date:"d/m/Y" }}{% else %}<span class="val-empty">—</span>{% endif %}</td>
+  </tr>
+</table>
+{% if piar.condicion_descripcion %}
+<div class="texto-box">{{ piar.condicion_descripcion }}</div>
+{% endif %}
+
+<div class="section-label">2. Características, Barreras y Apoyos</div>
+<div class="texto-box"><strong>Fortalezas: </strong>{{ piar.fortalezas|default:"—" }}</div>
+<div class="texto-box"><strong>Barreras para el aprendizaje: </strong>{{ piar.barreras|default:"—" }}</div>
+<div class="texto-box"><strong>Apoyos requeridos: </strong>{{ piar.apoyos|default:"—" }}</div>
+
+<div class="section-label">3. Ajustes Razonables por Período Académico</div>
+{% for periodo_num in "1234" %}
+{% with p_int=periodo_num|add:0 %}
+<div class="periodo-title">Período {{ periodo_num }}</div>
+<table class="ajustes-table">
+  <thead>
+    <tr>
+      <th style="width:15%;">Área / Materia</th>
+      <th style="width:20%;">Logro ajustado</th>
+      <th style="width:20%;">Estrategias flexibles</th>
+      <th style="width:20%;">Ajuste evaluativo</th>
+      <th style="width:15%;">Recursos de apoyo</th>
+      <th style="width:10%;">Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% if periodo_num == "1" %}{% for a in ajustes_por_periodo.1 %}
+    <tr>
+      <td>{{ a.materia.nombre_materia|default:"General" }}</td>
+      <td>{{ a.logro_ajustado }}</td>
+      <td>{{ a.estrategias_flexibles }}</td>
+      <td>{{ a.ajuste_evaluativo }}</td>
+      <td>{{ a.recursos_apoyo|default:"—" }}</td>
+      <td>{% if a.alcanzado %}<span class="badge-alcanzado">Alcanzado</span>{% else %}<span class="badge-pendiente">Pendiente</span>{% endif %}</td>
+    </tr>
+    {% empty %}<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:8px;">Sin ajustes registrados.</td></tr>{% endfor %}
+    {% elif periodo_num == "2" %}{% for a in ajustes_por_periodo.2 %}
+    <tr>
+      <td>{{ a.materia.nombre_materia|default:"General" }}</td>
+      <td>{{ a.logro_ajustado }}</td>
+      <td>{{ a.estrategias_flexibles }}</td>
+      <td>{{ a.ajuste_evaluativo }}</td>
+      <td>{{ a.recursos_apoyo|default:"—" }}</td>
+      <td>{% if a.alcanzado %}<span class="badge-alcanzado">Alcanzado</span>{% else %}<span class="badge-pendiente">Pendiente</span>{% endif %}</td>
+    </tr>
+    {% empty %}<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:8px;">Sin ajustes registrados.</td></tr>{% endfor %}
+    {% elif periodo_num == "3" %}{% for a in ajustes_por_periodo.3 %}
+    <tr>
+      <td>{{ a.materia.nombre_materia|default:"General" }}</td>
+      <td>{{ a.logro_ajustado }}</td>
+      <td>{{ a.estrategias_flexibles }}</td>
+      <td>{{ a.ajuste_evaluativo }}</td>
+      <td>{{ a.recursos_apoyo|default:"—" }}</td>
+      <td>{% if a.alcanzado %}<span class="badge-alcanzado">Alcanzado</span>{% else %}<span class="badge-pendiente">Pendiente</span>{% endif %}</td>
+    </tr>
+    {% empty %}<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:8px;">Sin ajustes registrados.</td></tr>{% endfor %}
+    {% elif periodo_num == "4" %}{% for a in ajustes_por_periodo.4 %}
+    <tr>
+      <td>{{ a.materia.nombre_materia|default:"General" }}</td>
+      <td>{{ a.logro_ajustado }}</td>
+      <td>{{ a.estrategias_flexibles }}</td>
+      <td>{{ a.ajuste_evaluativo }}</td>
+      <td>{{ a.recursos_apoyo|default:"—" }}</td>
+      <td>{% if a.alcanzado %}<span class="badge-alcanzado">Alcanzado</span>{% else %}<span class="badge-pendiente">Pendiente</span>{% endif %}</td>
+    </tr>
+    {% empty %}<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:8px;">Sin ajustes registrados.</td></tr>{% endfor %}
+    {% endif %}
+  </tbody>
+</table>
+{% endwith %}
+{% endfor %}
+
+<div class="section-label">4. Compromisos</div>
+{% if piar.compromisos_familia %}<div class="texto-box"><strong>Familia: </strong>{{ piar.compromisos_familia }}</div>{% endif %}
+{% if piar.compromisos_docentes %}<div class="texto-box"><strong>Docentes: </strong>{{ piar.compromisos_docentes }}</div>{% endif %}
+{% if piar.compromisos_institucion %}<div class="texto-box"><strong>Institución: </strong>{{ piar.compromisos_institucion }}</div>{% endif %}
+{% if not piar.compromisos_familia and not piar.compromisos_docentes and not piar.compromisos_institucion %}
+<p class="val-empty" style="padding:4px 0;">Sin compromisos registrados.</p>
+{% endif %}
+{% if piar.observaciones_generales %}
+<div class="section-label">5. Observaciones Generales</div>
+<div class="texto-box">{{ piar.observaciones_generales }}</div>
+{% endif %}
+
+<div class="section-label">Acta de Acuerdo — Firmas</div>
+<table class="firmas-table">
+  <tr>
+    <td><div style="height:45px;"></div></td>
+    <td><div style="height:45px;"></div></td>
+    <td><div style="height:45px;"></div></td>
+  </tr>
+  <tr>
+    <td><div class="firma-linea"><div class="firma-nombre">{{ piar.docente_lider.get_full_name|default:"___________________" }}</div><div class="firma-cargo">Docente Líder</div></div></td>
+    <td><div class="firma-linea"><div class="firma-nombre">___________________</div><div class="firma-cargo">Familia / Acudiente</div></div></td>
+    <td><div class="firma-linea"><div class="firma-nombre">{{ institucion.nombre_rectora|default:"___________________" }}</div><div class="firma-cargo">Coordinación / Rectoría</div></div></td>
+  </tr>
+</table>
+<div style="margin-top:12px; border-top:1px solid #e2e8f0; padding-top:6px; text-align:center; font-size:6.5pt; color:#94a3b8;">
+  Generado el {% now "d/m/Y H:i" %} por {{ generado_por }} — {{ institucion.nombre }}.
+</div>
+</body>
+</html>

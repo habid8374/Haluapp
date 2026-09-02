@@ -1130,6 +1130,109 @@ def generar_alertas_eventos_task():
     return f"Alertas de eventos/cumpleaños: {notificados} notificaciones creadas."
 
 
+@shared_task(name='gestion_academica.tasks.generar_alertas_piar_task')
+def generar_alertas_piar_task():
+    """
+    Tarea diaria: notifica al equipo (docente líder + coordinadores +
+    psicoorientadores) cuando un estudiante con PIAR activo tiene ajustes
+    (AjustePIAR) sin alcanzar. Cada institución se resuelve por separado a
+    partir del propio PIAR — nunca se cruzan destinatarios ni contexto de IA
+    entre instituciones distintas (multi-tenant).
+
+    Programar en Celery Beat:
+        'alertas-tempranas-piar-diarias': {
+            'task': 'gestion_academica.tasks.generar_alertas_piar_task',
+            'schedule': crontab(hour=7, minute=0),  # cada día a las 7am
+        }
+    """
+    from piar.models import PIAR, AjustePIAR
+    from .models import Notificacion, Usuario
+
+    hoy = timezone.localdate()
+    notificados = 0
+
+    ajustes = AjustePIAR.objects.filter(
+        alcanzado=False, piar__estado=PIAR.Estado.ACTIVO,
+    ).select_related('piar__institucion', 'piar__estudiante__usuario', 'piar__docente_lider', 'materia')
+
+    # Agrupar por PIAR para enviar un solo aviso consolidado por estudiante/día.
+    piares = {}
+    for ajuste in ajustes:
+        piares.setdefault(ajuste.piar_id, []).append(ajuste)
+
+    for piar_id, ajustes_pendientes in piares.items():
+        piar = ajustes_pendientes[0].piar
+        if piar.ultima_alerta_enviada == hoy:
+            continue
+
+        institucion = piar.institucion  # SIEMPRE del propio PIAR — nunca una query global sin scope
+
+        destinatarios = set(Usuario.objects.filter(
+            institucion_asociada=institucion, rol__in=['coordinador', 'psicologo'], is_active=True,
+        ))
+        if piar.docente_lider_id and piar.docente_lider.is_active:
+            destinatarios.add(piar.docente_lider)
+        if not destinatarios:
+            continue
+
+        materias_txt = ", ".join(
+            (a.materia.nombre_materia if a.materia else "General") for a in ajustes_pendientes
+        )
+
+        consejo_ia = ""
+        try:
+            api_key = get_inst_google_api_key(institucion)
+            if not api_key:
+                raise ValueError("Institución sin google_api_key")
+            prompt = (
+                f"Actúa como un asesor pedagógico llamado HALU. El estudiante {piar.estudiante} "
+                f"tiene un PIAR (Plan Individual de Ajustes Razonables, Decreto 1421/2017) con "
+                f"{len(ajustes_pendientes)} ajuste(s) sin alcanzar en: {materias_txt}. "
+                "Redacta una nota breve en español (máximo 100 palabras) para el equipo docente "
+                "sugiriendo una reunión de seguimiento interdisciplinario. Tono profesional y constructivo, "
+                "nunca alarmista."
+            )
+            response = _ia_gate.gemini_generate(institucion, 'gemini-2.0-flash', prompt)
+            consejo_ia = _sanitize_ai(response.text)
+        except Exception:
+            consejo_ia = ""  # sin clave configurada o error de IA: se omite, no se rompe el flujo
+
+        enlace = reverse('piar:detalle_piar', kwargs={'pk': piar.pk})
+        mensaje = (
+            f"PIAR de {piar.estudiante}: {len(ajustes_pendientes)} ajuste(s) sin alcanzar "
+            f"({materias_txt}). Se sugiere reunión de equipo de apoyo."
+        )
+
+        for dest in destinatarios:
+            Notificacion.objects.create(
+                destinatario=dest, institucion=institucion,
+                mensaje=mensaje, enlace=enlace, consejo_ia=consejo_ia,
+            )
+            notificados += 1
+
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                for dest in destinatarios:
+                    async_to_sync(channel_layer.group_send)(
+                        f"user_{dest.pk}",
+                        {
+                            'type': 'send_notification', 'kind': 'piar',
+                            'title': 'PIAR — objetivos sin alcanzar',
+                            'message': mensaje, 'url': enlace, 'severity': 'warning',
+                        }
+                    )
+        except Exception as ws_err:
+            logger.warning("WS PIAR no disponible: %s", ws_err)
+
+        piar.ultima_alerta_enviada = hoy
+        piar.save(update_fields=['ultima_alerta_enviada'])
+
+    return f"Alertas tempranas PIAR: {notificados} notificaciones creadas."
+
+
 @shared_task(name='gestion_academica.tasks.ejecutar_backup_database', bind=True, max_retries=2)
 def ejecutar_backup_database(self):
     """Tarea Celery que ejecuta el management command de backup diario."""

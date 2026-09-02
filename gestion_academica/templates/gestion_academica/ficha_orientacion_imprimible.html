@@ -110,7 +110,29 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 8.5pt; color: #1e29
 </table>
 {% else %}<p class="val-empty" style="padding:4px 0;">No hay acudiente registrado.</p>{% endif %}
 
-<div class="section-label">3. Registro de Seguimientos Psicosociales</div>
+<div class="section-label">3. Resumen PIAR (Decreto 1421 de 2017)</div>
+{% if piar_actual %}
+<table class="datos-table">
+  <tr>
+    <td class="lbl">Condición</td><td>{{ piar_actual.get_condicion_display }}</td>
+    <td class="lbl">Año lectivo</td><td>{{ piar_actual.año_lectivo }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Estado del PIAR</td><td>{{ piar_actual.get_estado_display }}</td>
+    <td class="lbl">Ajustes sin alcanzar</td><td>{{ ajustes_pendientes|length }}</td>
+  </tr>
+</table>
+{% if ajustes_pendientes %}
+<p class="seg-extra" style="margin-bottom:6px;">
+  <strong>Materias con ajuste pendiente:</strong>
+  {% for a in ajustes_pendientes %}{{ a.materia.nombre_materia|default:"General" }} (P{{ a.periodo }}){% if not forloop.last %}, {% endif %}{% endfor %}
+</p>
+{% endif %}
+{% else %}
+<p class="val-empty" style="padding:4px 0;">El estudiante no tiene un PIAR vigente.</p>
+{% endif %}
+
+<div class="section-label">4. Registro de Seguimientos Psicosociales</div>
 {% for s in seguimientos %}
 <div class="seg">
   <div class="seg-head">{{ s.fecha|date:"d/m/Y H:i" }} · Registró: {{ s.orientador.get_full_name|default:"—" }}</div>
@@ -124,7 +146,7 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 8.5pt; color: #1e29
 <p class="val-empty" style="padding:6px 0;">No hay seguimientos registrados.</p>
 {% endfor %}
 
-<div class="section-label">4. Citas de Orientación con la Familia</div>
+<div class="section-label">5. Citas de Orientación con la Familia</div>
 <table class="anot-table">
   <thead><tr><th style="width:90px;">Fecha</th><th style="width:80px;">Estado</th><th>Asunto</th><th>Acuerdos</th></tr></thead>
   <tbody>
@@ -141,7 +163,7 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 8.5pt; color: #1e29
   </tbody>
 </table>
 
-<div class="section-label">5. Firmas</div>
+<div class="section-label">6. Firmas</div>
 <table class="firmas-table">
   <tr>
     <td><div style="height:45px;"></div></td>

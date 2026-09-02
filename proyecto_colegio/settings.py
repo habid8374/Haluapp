@@ -698,6 +698,11 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'gestion_academica.tasks.generar_alertas_eventos_task',
         'schedule': crontab(hour=6, minute=0),
     },
+    # Alertas tempranas PIAR (ajustes sin alcanzar), 7:00 AM hora Colombia
+    'alertas-tempranas-piar-diarias': {
+        'task': 'gestion_academica.tasks.generar_alertas_piar_task',
+        'schedule': crontab(hour=7, minute=0),
+    },
 }
 
 # ── SENTRY — monitoreo de errores en producción ───────────────────────────────

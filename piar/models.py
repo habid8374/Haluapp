@@ -74,6 +74,10 @@ class PIAR(models.Model):
     )
     observaciones_generales = models.TextField(blank=True, verbose_name='Observaciones Generales')
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Creación')
+    ultima_alerta_enviada = models.DateField(
+        null=True, blank=True, verbose_name='Última alerta temprana enviada',
+        help_text='Fecha del último aviso automático por ajustes no alcanzados (evita duplicados el mismo día).',
+    )
 
     class Meta:
         unique_together = [['estudiante', 'año_lectivo']]

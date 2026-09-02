@@ -1,14 +1,22 @@
+import os
+import logging
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
+from django.template.loader import get_template
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.utils.translation import gettext as _
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db import IntegrityError
+from xhtml2pdf import pisa
 
 from .models import PIAR, AjustePIAR
 from gestion_academica.models import Estudiante, Grado, Materia
+
+logger = logging.getLogger(__name__)
 
 
 # ──────────────────────────────────────────────
@@ -214,6 +222,80 @@ def detalle_piar(request, pk):
         'ajustes_por_periodo': ajustes_por_periodo,
         'materias': materias,
     })
+
+
+# ──────────────────────────────────────────────
+# Anexo PIAR — export en PDF
+# ──────────────────────────────────────────────
+
+def _link_callback_pdf(uri, rel):
+    """Resuelve URIs de recursos (logo, estáticos) para xhtml2pdf, con
+    protección contra path traversal. Copia local del helper equivalente en
+    gestion_academica.views._main — cada app mantiene su propia copia en vez
+    de importar entre apps."""
+    media_url = getattr(settings, 'MEDIA_URL', '') or ''
+    media_root = getattr(settings, 'MEDIA_ROOT', None)
+    if media_url and media_root and uri.startswith(media_url):
+        path = os.path.join(media_root, uri.replace(media_url, "", 1))
+        allowed_root = os.path.realpath(media_root)
+    elif uri.startswith(settings.STATIC_URL):
+        path = os.path.join(settings.STATICFILES_DIRS[0], uri.replace(settings.STATIC_URL, "", 1))
+        allowed_root = os.path.realpath(settings.STATICFILES_DIRS[0])
+    else:
+        return uri
+    real_path = os.path.realpath(path)
+    if not real_path.startswith(allowed_root + os.sep) and real_path != allowed_root:
+        logger.warning("link_callback: path traversal bloqueado para URI: %s", uri)
+        return None
+    if not os.path.isfile(real_path):
+        return None
+    return real_path
+
+
+@login_required
+def exportar_piar_pdf(request, pk):
+    """Anexo PIAR oficial en PDF (Decreto 1421/2017) — documento académico/
+    pedagógico para firmas y auditoría de Secretaría de Educación. NUNCA
+    incluye información del seguimiento psicosocial confidencial
+    (SeguimientoOrientacion); eso queda exclusivamente en la Ficha de
+    Orientación, restringida a psicólogo/rectoría."""
+    if not _es_docente_o_superior(request.user):
+        messages.error(request, _('No tienes permiso para exportar este PIAR.'))
+        return redirect('piar:lista_piars')
+
+    institucion = _get_institucion(request)
+    piar = get_object_or_404(
+        PIAR.objects.select_related('estudiante__usuario', 'estudiante__grado_actual', 'grado', 'docente_lider', 'institucion'),
+        pk=pk, institucion=institucion,
+    )
+
+    ajustes_qs = piar.ajustes.select_related('materia').all()
+    ajustes_por_periodo = {1: [], 2: [], 3: [], 4: []}
+    for ajuste in ajustes_qs:
+        if ajuste.periodo in ajustes_por_periodo:
+            ajustes_por_periodo[ajuste.periodo].append(ajuste)
+
+    context = {
+        'piar': piar,
+        'ajustes_por_periodo': ajustes_por_periodo,
+        'institucion': piar.institucion,
+        'generado_por': request.user.get_full_name() or request.user.username,
+        'fecha_generacion': timezone.now(),
+    }
+    template = get_template('piar/piar_imprimible.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    nombre_archivo = f"PIAR_{piar.estudiante.usuario.get_full_name().replace(' ', '_')}_{piar.año_lectivo}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{nombre_archivo}"'
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+
+    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=_link_callback_pdf)
+    if pisa_status.err:
+        return HttpResponse('Ocurrió un error al generar el Anexo PIAR.', status=500)
+    return response
 
 
 # ──────────────────────────────────────────────

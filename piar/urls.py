@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.lista_piars, name='lista_piars'),
     path('nuevo/', views.crear_piar, name='crear_piar'),
     path('<int:pk>/', views.detalle_piar, name='detalle_piar'),
+    path('<int:pk>/pdf/', views.exportar_piar_pdf, name='exportar_piar_pdf'),
     path('<int:pk>/editar/', views.editar_piar, name='editar_piar'),
     path('<int:pk>/eliminar/', views.eliminar_piar, name='eliminar_piar'),
     path('<int:piar_pk>/ajuste/nuevo/', views.crear_ajuste, name='crear_ajuste'),
