@@ -79,6 +79,26 @@ urlpatterns = [
     path('enfasis/<int:pk>/eliminar/', views.EnfasisDeleteView.as_view(), name='eliminar_enfasis'),
     path('steam/', views.panel_steam, name='panel_steam'),
 
+    # --- Halu STEAM: Proyectos (ABP) ---
+    path('proyectos-steam/', views.ProyectoSTEAMListView.as_view(), name='lista_proyectos_steam'),
+    path('proyectos-steam/crear/', views.crear_proyecto_steam, name='crear_proyecto_steam'),
+    path('proyectos-steam/<int:pk>/', views.detalle_proyecto_steam, name='detalle_proyecto_steam'),
+    path('proyectos-steam/<int:pk>/editar/', views.editar_proyecto_steam, name='editar_proyecto_steam'),
+    path('proyectos-steam/<int:pk>/eliminar/', views.eliminar_proyecto_steam, name='eliminar_proyecto_steam'),
+    path('proyectos-steam/hito/<int:pk>/toggle/', views.toggle_hito_proyecto, name='toggle_hito_proyecto'),
+    path('proyectos-steam/hito/<int:pk>/eliminar/', views.eliminar_hito_proyecto, name='eliminar_hito_proyecto'),
+    path('proyectos-steam/participante/<int:pk>/eliminar/', views.eliminar_participante_proyecto, name='eliminar_participante_proyecto'),
+    path('proyectos-steam/evidencia/<int:pk>/eliminar/', views.eliminar_evidencia_proyecto, name='eliminar_evidencia_proyecto'),
+
+    # --- Halu STEAM: Insignias ---
+    path('insignias/', views.InsigniaListView.as_view(), name='lista_insignias'),
+    path('insignias/crear/', views.InsigniaCreateView.as_view(), name='crear_insignia'),
+    path('insignias/<int:pk>/editar/', views.InsigniaUpdateView.as_view(), name='editar_insignia'),
+    path('insignias/<int:pk>/eliminar/', views.InsigniaDeleteView.as_view(), name='eliminar_insignia'),
+
+    # --- Halu STEAM: Portafolio del estudiante ---
+    path('mi-portafolio-steam/', views.mi_portafolio_steam, name='mi_portafolio_steam'),
+
     # --- Gestión de Periodos Académicos ---
     path('periodos/', views.PeriodoAcademicoListView.as_view(), name='lista_periodos'),
     path('periodos/crear/', views.PeriodoAcademicoCreateView.as_view(), name='crear_periodo'),

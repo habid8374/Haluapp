@@ -12,7 +12,7 @@ desde el panel del propietario.
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render
 
-from ..models import Enfasis, Estudiante
+from ..models import Enfasis, Estudiante, Insignia, InsigniaObtenida, ProyectoSTEAM
 from ._main import get_current_institution
 
 
@@ -27,6 +27,9 @@ def panel_steam(request):
         Estudiante.objects.filter(institucion=institucion, enfasis__isnull=False).count()
         if institucion else 0
     )
+    total_proyectos = ProyectoSTEAM.objects.filter(institucion=institucion).count() if institucion else 0
+    total_insignias_catalogo = Insignia.objects.filter(institucion=institucion, activo=True).count() if institucion else 0
+    total_insignias_otorgadas = InsigniaObtenida.objects.filter(institucion=institucion).count() if institucion else 0
 
     context = {
         'titulo_pagina': "Halu STEAM",
@@ -34,5 +37,8 @@ def panel_steam(request):
         'enfasis_activos': enfasis_qs.filter(activo=True),
         'total_enfasis': enfasis_qs.count(),
         'estudiantes_con_enfasis': estudiantes_con_enfasis,
+        'total_proyectos': total_proyectos,
+        'total_insignias_catalogo': total_insignias_catalogo,
+        'total_insignias_otorgadas': total_insignias_otorgadas,
     }
     return render(request, 'gestion_academica/panel_steam.html', context)

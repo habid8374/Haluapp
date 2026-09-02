@@ -1,0 +1,33 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Proyecto" }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Proyecto" }}</h1>
+    <hr>
+    {% if proyecto %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>{% trans "¡Advertencia!" %}</h4>
+            <p>{% blocktrans with titulo=proyecto.titulo %}¿Estás seguro de que deseas eliminar el proyecto: <strong>{{ titulo }}</strong>?{% endblocktrans %}</p>
+            <hr>
+            <p class="mb-0">{% trans "Esta acción es irreversible. La actividad calificable enlazada y sus notas NO se eliminan (quedan en el Libro de Notas del curso)." %}</p>
+        </div>
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> {% trans "Sí, Eliminar" %}
+            </button>
+            <a href="{% url 'gestion_academica:lista_proyectos_steam' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> {% trans "No, Cancelar" %}
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i>{% trans "No se encontró el proyecto a eliminar." %}
+        </div>
+        <a href="{% url 'gestion_academica:lista_proyectos_steam' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> {% trans "Volver al Listado" %}
+        </a>
+    {% endif %}
+</div>
+{% endblock %}

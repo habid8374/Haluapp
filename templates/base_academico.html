@@ -290,6 +290,13 @@
         </a>
       </li>
       {% endif %}
+      {% if 'steam' in modulos_activos %}
+      <li class="nav-item item-color-2">
+        <a class="nav-link {% if request.resolver_match.url_name == 'mi_portafolio_steam' %}active{% endif %}" href="{% url 'gestion_academica:mi_portafolio_steam' %}">
+          <i class="bi bi-stars"></i> {% trans "Mi Portafolio STEAM" %}
+        </a>
+      </li>
+      {% endif %}
       <li class="nav-item item-color-8">
         <a class="nav-link {% if 'mis-menciones' in request.path %}active{% endif %}" href="{% url 'gestion_academica:estudiante_mis_menciones' %}">
           <i class="bi bi-award-fill"></i> {% trans "Mis Menciones" %}

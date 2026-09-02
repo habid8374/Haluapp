@@ -3481,3 +3481,134 @@ class EventoInstitucional(models.Model):
             except ValueError:
                 candidata = candidata.replace(year=hoy.year + 1, day=28)
         return candidata
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  MÓDULO: HALU STEAM — Proyectos e Insignias (Fase 2)
+#  Aprendizaje Basado en Proyectos (ABP) + microcredenciales verificables.
+#  Un ProyectoSTEAM se enlaza 1 a 1 a una ActividadCalificable existente, así
+#  que se califica desde el Libro de Notas de siempre (ya filtrado por
+#  énfasis) — no hay una pantalla de calificación paralela.
+# ══════════════════════════════════════════════════════════════════════════════
+
+class ProyectoSTEAM(models.Model):
+    class Estado(models.TextChoices):
+        PLANEACION = 'PLANEACION', _('En planeación')
+        EN_CURSO = 'EN_CURSO', _('En curso')
+        ENTREGADO = 'ENTREGADO', _('Entregado')
+        EVALUADO = 'EVALUADO', _('Evaluado')
+
+    institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, related_name='proyectos_steam', verbose_name=_("Institución"))
+    curso = models.ForeignKey('Curso', on_delete=models.CASCADE, related_name='proyectos_steam', verbose_name=_("Curso"))
+    actividad_calificable = models.OneToOneField(
+        'ActividadCalificable', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='proyecto_steam', verbose_name=_("Actividad calificable enlazada"),
+    )
+    titulo = models.CharField(max_length=200, verbose_name=_("Título del proyecto"))
+    reto = models.TextField(blank=True, verbose_name=_("Reto / pregunta guía"), help_text=_("¿Qué problema real intenta resolver este proyecto?"))
+    fecha_inicio = models.DateField(null=True, blank=True, verbose_name=_("Fecha de inicio"))
+    fecha_entrega = models.DateField(null=True, blank=True, verbose_name=_("Fecha de entrega"))
+    estado = models.CharField(max_length=12, choices=Estado.choices, default=Estado.PLANEACION, verbose_name=_("Estado"))
+    creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='proyectos_steam_creados', verbose_name=_("Creado por"))
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Proyecto STEAM")
+        verbose_name_plural = _("Proyectos STEAM")
+        ordering = ['-creado_en']
+
+    def __str__(self):
+        return f"{self.titulo} ({self.curso})"
+
+    @property
+    def porcentaje_hitos_completados(self):
+        total = self.hitos.count()
+        if not total:
+            return 0
+        return round(self.hitos.filter(completado=True).count() * 100 / total)
+
+
+class HitoProyecto(models.Model):
+    proyecto = models.ForeignKey(ProyectoSTEAM, on_delete=models.CASCADE, related_name='hitos', verbose_name=_("Proyecto"))
+    titulo = models.CharField(max_length=200, verbose_name=_("Hito"))
+    fecha_limite = models.DateField(null=True, blank=True, verbose_name=_("Fecha límite"))
+    completado = models.BooleanField(default=False, verbose_name=_("Completado"))
+    orden = models.PositiveIntegerField(default=0, verbose_name=_("Orden"))
+
+    class Meta:
+        verbose_name = _("Hito de Proyecto")
+        verbose_name_plural = _("Hitos de Proyecto")
+        ordering = ['orden', 'fecha_limite']
+
+    def __str__(self):
+        return self.titulo
+
+
+class ParticipanteProyecto(models.Model):
+    proyecto = models.ForeignKey(ProyectoSTEAM, on_delete=models.CASCADE, related_name='participantes', verbose_name=_("Proyecto"))
+    estudiante = models.ForeignKey('Estudiante', on_delete=models.CASCADE, related_name='proyectos_steam_participados', verbose_name=_("Estudiante"))
+    rol = models.CharField(max_length=100, blank=True, verbose_name=_("Rol en el equipo"), help_text=_("Ej: Líder, Diseñador, Documentador."))
+
+    class Meta:
+        verbose_name = _("Participante de Proyecto")
+        verbose_name_plural = _("Participantes de Proyecto")
+        unique_together = ('proyecto', 'estudiante')
+        ordering = ['estudiante__usuario__last_name']
+
+    def __str__(self):
+        return f"{self.estudiante} — {self.rol or 'Participante'}"
+
+
+class EvidenciaProyecto(models.Model):
+    proyecto = models.ForeignKey(ProyectoSTEAM, on_delete=models.CASCADE, related_name='evidencias', verbose_name=_("Proyecto"))
+    titulo = models.CharField(max_length=200, verbose_name=_("Título de la evidencia"))
+    url = models.URLField(verbose_name=_("Enlace (foto, video o documento)"), help_text=_("Solo URLs http:// o https://"))
+    subido_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='evidencias_steam_subidas', verbose_name=_("Subido por"))
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Evidencia de Proyecto")
+        verbose_name_plural = _("Evidencias de Proyecto")
+        ordering = ['-creado_en']
+
+    def __str__(self):
+        return self.titulo
+
+
+class Insignia(models.Model):
+    """Catálogo de microcredenciales STEAM por institución (ej. 'Programó su
+    primer robot'). Mismo patrón que Enfasis: catálogo por institución; se
+    otorga a estudiantes vía InsigniaObtenida."""
+    institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, related_name='insignias', verbose_name=_("Institución"))
+    nombre = models.CharField(max_length=100, verbose_name=_("Nombre de la insignia"))
+    descripcion = models.TextField(blank=True, verbose_name=_("Criterio para obtenerla"))
+    icono = models.CharField(max_length=40, default='bi-award-fill', verbose_name=_("Ícono"), help_text=_("Clase de Bootstrap Icons, ej. 'bi-award-fill'."))
+    color = models.CharField(max_length=7, default='#7c3aed', verbose_name=_("Color"), help_text=_("Color hexadecimal, ej. #7c3aed."))
+    activo = models.BooleanField(default=True, verbose_name=_("Activa"))
+
+    class Meta:
+        verbose_name = _("Insignia")
+        verbose_name_plural = _("Insignias")
+        unique_together = ('institucion', 'nombre')
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+
+class InsigniaObtenida(models.Model):
+    institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, related_name='insignias_otorgadas', verbose_name=_("Institución"))
+    insignia = models.ForeignKey(Insignia, on_delete=models.CASCADE, related_name='otorgadas', verbose_name=_("Insignia"))
+    estudiante = models.ForeignKey('Estudiante', on_delete=models.CASCADE, related_name='insignias_obtenidas', verbose_name=_("Estudiante"))
+    proyecto = models.ForeignKey(ProyectoSTEAM, on_delete=models.SET_NULL, null=True, blank=True, related_name='insignias_otorgadas', verbose_name=_("Proyecto de origen (opcional)"))
+    otorgada_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='insignias_steam_otorgadas', verbose_name=_("Otorgada por"))
+    nota = models.CharField(max_length=255, blank=True, verbose_name=_("Comentario (opcional)"))
+    fecha_obtenida = models.DateTimeField(auto_now_add=True, verbose_name=_("Fecha obtenida"))
+
+    class Meta:
+        verbose_name = _("Insignia Obtenida")
+        verbose_name_plural = _("Insignias Obtenidas")
+        ordering = ['-fecha_obtenida']
+
+    def __str__(self):
+        return f"{self.insignia} → {self.estudiante}"

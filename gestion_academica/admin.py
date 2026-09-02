@@ -30,6 +30,8 @@ from .models import (
     ResultadoCorteEstudiante, DetalleMateriaCortePrev,
     DBAPredefinido, EventoInstitucional,
     JustificacionInasistencia,
+    ProyectoSTEAM, HitoProyecto, ParticipanteProyecto, EvidenciaProyecto,
+    Insignia, InsigniaObtenida,
 )
 from import_export import resources
 
@@ -562,6 +564,45 @@ class EnfasisAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_filter = ('institucion', 'activo')
     ordering = ('institucion', 'nombre',)
     raw_id_fields = ('institucion',)
+
+class HitoProyectoInline(admin.TabularInline):
+    model = HitoProyecto
+    extra = 0
+
+class ParticipanteProyectoInline(admin.TabularInline):
+    model = ParticipanteProyecto
+    extra = 0
+    raw_id_fields = ('estudiante',)
+
+class EvidenciaProyectoInline(admin.TabularInline):
+    model = EvidenciaProyecto
+    extra = 0
+
+@admin.register(ProyectoSTEAM)
+class ProyectoSTEAMAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('titulo', 'curso', 'estado', 'institucion', 'creado_en')
+    search_fields = ('titulo',)
+    list_filter = ('institucion', 'estado')
+    ordering = ('-creado_en',)
+    raw_id_fields = ('institucion', 'curso', 'actividad_calificable')
+    inlines = [HitoProyectoInline, ParticipanteProyectoInline, EvidenciaProyectoInline]
+
+@admin.register(Insignia)
+class InsigniaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('nombre', 'institucion', 'activo')
+    search_fields = ('nombre',)
+    list_filter = ('institucion', 'activo')
+    ordering = ('institucion', 'nombre',)
+    raw_id_fields = ('institucion',)
+
+@admin.register(InsigniaObtenida)
+class InsigniaObtenidaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    CAMPOS_AUTOR = ('creado_por', 'registrado_por', 'publicado_por', 'generado_por', 'otorgada_por')
+    list_display = ('insignia', 'estudiante', 'proyecto', 'fecha_obtenida', 'institucion')
+    search_fields = ('insignia__nombre', 'estudiante__usuario__first_name', 'estudiante__usuario__last_name')
+    list_filter = ('institucion',)
+    ordering = ('-fecha_obtenida',)
+    raw_id_fields = ('institucion', 'insignia', 'estudiante', 'proyecto')
 
 @admin.register(PeriodoAcademico)
 class PeriodoAcademicoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):

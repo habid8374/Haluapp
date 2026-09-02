@@ -1,0 +1,60 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina|default:"Mi Portafolio STEAM" }}{% endblock %}
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-stars me-2"></i>{% trans "Mi Portafolio STEAM" %}</h2>
+  <p class="mb-0" style="color:#fff;opacity:.9;font-size:.92rem;">{% trans "Tus proyectos, insignias y evidencia — todo en un solo lugar." %}</p>
+</div>
+
+<div class="card border-0 shadow-sm mb-3" style="border-radius:16px;">
+  <div class="card-body p-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-award-fill me-2 text-warning"></i>{% trans "Insignias obtenidas" %} ({{ insignias.count }})</h5>
+    {% if insignias %}
+    <div class="d-flex flex-wrap gap-3">
+      {% for io in insignias %}
+      <div class="text-center" style="width:100px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:{{ io.insignia.color }}22;color:{{ io.insignia.color }};display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto .4rem;">
+          <i class="{{ io.insignia.icono }}"></i>
+        </div>
+        <div class="small fw-semibold">{{ io.insignia.nombre }}</div>
+        <div class="text-muted" style="font-size:.68rem;">{{ io.fecha_obtenida|date:"d/m/Y" }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0">{% trans "Todavía no tienes insignias. ¡Participa en un proyecto STEAM para ganar tu primera!" %}</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius:16px;">
+  <div class="card-body p-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-rocket-takeoff-fill me-2 text-primary"></i>{% trans "Mis proyectos" %} ({{ participaciones.count }})</h5>
+    {% if participaciones %}
+    <div class="row g-3">
+      {% for part in participaciones %}
+      <div class="col-md-6">
+        <div class="border rounded-3 p-3 h-100">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <span class="fw-semibold small">{{ part.proyecto.titulo }}</span>
+            {% if part.rol %}<span class="badge rounded-pill" style="background:#eef2ff;color:#4f46e5;font-size:.68rem;">{{ part.rol }}</span>{% endif %}
+          </div>
+          <p class="text-muted small mb-2"><i class="bi bi-collection-fill me-1"></i>{{ part.proyecto.curso.materia }}</p>
+          {% if part.proyecto.evidencias.all %}
+          <div class="d-flex flex-wrap gap-2">
+            {% for ev in part.proyecto.evidencias.all %}
+            <a href="{{ ev.url }}" target="_blank" rel="noopener noreferrer" class="small"><i class="bi bi-link-45deg me-1"></i>{{ ev.titulo }}</a>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted small mb-0">{% trans "Todavía no has participado en ningún proyecto STEAM." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

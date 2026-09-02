@@ -1,0 +1,359 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% load gestion_academica_filters %}
+{% block titulo %}{{ proyecto.titulo }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .steam-card { border-radius:16px; border:none; box-shadow:0 2px 12px rgba(0,0,0,.07); }
+  .toggle-hito { cursor:pointer; }
+  .badge-insignia-mini { font-size:.68rem; background:#fdf4ff; color:#a21caf; border-radius:999px; padding:.2rem .55rem; }
+  .progress-hitos { height:8px; border-radius:999px; }
+  .mini-form input, .mini-form select { font-size:.85rem; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+    <div>
+      <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+        <h2 class="mb-0" style="color:#fff;"><i class="bi bi-rocket-takeoff-fill me-2"></i>{{ proyecto.titulo }}</h2>
+        {% if proyecto.estado == 'PLANEACION' %}<span class="badge rounded-pill bg-light text-dark">{% trans "Planeación" %}</span>
+        {% elif proyecto.estado == 'EN_CURSO' %}<span class="badge rounded-pill bg-light text-primary">{% trans "En curso" %}</span>
+        {% elif proyecto.estado == 'ENTREGADO' %}<span class="badge rounded-pill bg-warning text-dark">{% trans "Entregado" %}</span>
+        {% else %}<span class="badge rounded-pill bg-success">{% trans "Evaluado" %}</span>{% endif %}
+      </div>
+      <p class="mb-0" style="color:#fff;opacity:.85;font-size:.9rem;"><i class="bi bi-collection-fill me-1"></i>{{ proyecto.curso }}</p>
+      {% if proyecto.reto %}<p class="mt-2 mb-0" style="color:#fff;opacity:.9;font-size:.9rem;max-width:640px;">{{ proyecto.reto }}</p>{% endif %}
+    </div>
+    <div class="d-flex flex-column gap-2 align-items-end">
+      {% if proyecto.actividad_calificable_id %}
+      <a href="{% url 'gestion_academica:redirigir_libro_notas' proyecto.curso.pk %}" class="btn btn-light btn-sm fw-semibold">
+        <i class="bi bi-journal-check me-1"></i>{% trans "Calificar en el Libro de Notas" %}
+      </a>
+      {% endif %}
+      {% if puede_gestionar %}
+      <div class="d-flex gap-1">
+        <a href="{% url 'gestion_academica:editar_proyecto_steam' proyecto.pk %}" class="btn btn-outline-light btn-sm" title="{% trans 'Editar' %}"><i class="bi bi-pencil-fill"></i></a>
+        <a href="{% url 'gestion_academica:eliminar_proyecto_steam' proyecto.pk %}" class="btn btn-outline-light btn-sm" title="{% trans 'Eliminar' %}"><i class="bi bi-trash-fill"></i></a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if messages %}{% for m in messages %}
+<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+{% endfor %}{% endif %}
+
+<div class="row g-3">
+  <!-- HITOS -->
+  <div class="col-lg-4">
+    <div class="card steam-card h-100">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-2"><i class="bi bi-flag-fill me-2 text-primary"></i>{% trans "Hitos" %}</h5>
+        <div class="progress progress-hitos mb-3">
+          <div class="progress-bar bg-success" id="barra-progreso-hitos" style="width:{{ proyecto.porcentaje_hitos_completados }}%;"></div>
+        </div>
+        {% for hito in proyecto.hitos.all %}
+        <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom">
+          {% if puede_gestionar %}
+          <button type="button" class="btn btn-sm toggle-hito {% if hito.completado %}btn-success{% else %}btn-outline-secondary{% endif %}"
+                  style="padding:.15rem .4rem;" data-url="{% url 'gestion_academica:toggle_hito_proyecto' hito.pk %}" data-completado="{{ hito.completado|yesno:'true,false' }}">
+            <i class="bi {% if hito.completado %}bi-check-lg{% else %}bi-circle{% endif %}"></i>
+          </button>
+          {% else %}
+          <i class="bi {% if hito.completado %}bi-check-circle-fill text-success{% else %}bi-circle text-muted{% endif %}"></i>
+          {% endif %}
+          <div class="flex-grow-1">
+            <div class="small fw-semibold {% if hito.completado %}text-decoration-line-through text-muted{% endif %}">{{ hito.titulo }}</div>
+            {% if hito.fecha_limite %}<div class="text-muted" style="font-size:.72rem;">{{ hito.fecha_limite|date:"d/m/Y" }}</div>{% endif %}
+          </div>
+          {% if puede_gestionar %}
+          <button type="button" class="btn btn-sm btn-outline-danger" style="padding:.1rem .35rem;"
+                  data-bs-toggle="modal" data-bs-target="#modalEliminarHito"
+                  data-action="{% url 'gestion_academica:eliminar_hito_proyecto' hito.pk %}" data-nombre="{{ hito.titulo }}">
+            <i class="bi bi-x" style="font-size:.75rem;"></i>
+          </button>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p class="text-muted small">{% trans "Sin hitos todavía." %}</p>
+        {% endfor %}
+        {% if puede_gestionar %}
+        <form method="post" class="mini-form mt-3">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="agregar_hito">
+          <div class="mb-2">{{ hito_form.titulo }}</div>
+          <div class="mb-2">{{ hito_form.fecha_limite }}</div>
+          <button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-plus-circle me-1"></i>{% trans "Agregar hito" %}</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- EQUIPO -->
+  <div class="col-lg-4">
+    <div class="card steam-card h-100">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-people-fill me-2 text-primary"></i>{% trans "Equipo" %}</h5>
+        {% for part in proyecto.participantes.all %}
+        <div class="mb-3 pb-2 border-bottom">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="small fw-semibold">{{ part.estudiante.usuario.get_full_name }}</div>
+              {% if part.rol %}<div class="text-muted" style="font-size:.75rem;">{{ part.rol }}</div>{% endif %}
+            </div>
+            {% if puede_gestionar %}
+            <div class="d-flex gap-1">
+              <button type="button" class="btn btn-sm btn-outline-warning" style="padding:.1rem .35rem;" title="{% trans 'Otorgar insignia' %}"
+                      data-bs-toggle="modal" data-bs-target="#modalOtorgarInsignia" data-estudiante-id="{{ part.estudiante.pk }}" data-estudiante-nombre="{{ part.estudiante.usuario.get_full_name }}">
+                <i class="bi bi-award" style="font-size:.75rem;"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" style="padding:.1rem .35rem;"
+                      data-bs-toggle="modal" data-bs-target="#modalEliminarParticipante"
+                      data-action="{% url 'gestion_academica:eliminar_participante_proyecto' part.pk %}" data-nombre="{{ part.estudiante.usuario.get_full_name }}">
+                <i class="bi bi-x" style="font-size:.75rem;"></i>
+              </button>
+            </div>
+            {% endif %}
+          </div>
+          {% with nombres=insignias_por_estudiante|get_item:part.estudiante.pk %}
+          {% if nombres %}
+          <div class="d-flex flex-wrap gap-1 mt-1">
+            {% for n in nombres %}<span class="badge-insignia-mini"><i class="bi bi-award-fill me-1"></i>{{ n }}</span>{% endfor %}
+          </div>
+          {% endif %}
+          {% endwith %}
+        </div>
+        {% empty %}
+        <p class="text-muted small">{% trans "Sin estudiantes asignados todavía." %}</p>
+        {% endfor %}
+        {% if puede_gestionar %}
+        <form method="post" class="mini-form mt-3">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="agregar_participante">
+          <div class="mb-2">{{ participante_form.estudiante }}</div>
+          <div class="mb-2">{{ participante_form.rol }}</div>
+          <button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-person-plus me-1"></i>{% trans "Agregar al equipo" %}</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- EVIDENCIAS -->
+  <div class="col-lg-4">
+    <div class="card steam-card h-100">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-camera-reels-fill me-2 text-primary"></i>{% trans "Evidencia" %}</h5>
+        {% for ev in proyecto.evidencias.all %}
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+          <a href="{{ ev.url }}" target="_blank" rel="noopener noreferrer" class="small text-truncate" style="max-width:180px;">
+            <i class="bi bi-link-45deg me-1"></i>{{ ev.titulo }}
+          </a>
+          {% if puede_gestionar %}
+          <button type="button" class="btn btn-sm btn-outline-danger" style="padding:.1rem .35rem;"
+                  data-bs-toggle="modal" data-bs-target="#modalEliminarEvidencia"
+                  data-action="{% url 'gestion_academica:eliminar_evidencia_proyecto' ev.pk %}" data-nombre="{{ ev.titulo }}">
+            <i class="bi bi-x" style="font-size:.75rem;"></i>
+          </button>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p class="text-muted small">{% trans "Sin evidencia todavía." %}</p>
+        {% endfor %}
+        {% if puede_gestionar %}
+        <form method="post" class="mini-form mt-3">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="agregar_evidencia">
+          <div class="mb-2">{{ evidencia_form.titulo }}</div>
+          <div class="mb-2">{{ evidencia_form.url }}</div>
+          {% for e in evidencia_form.url.errors %}<div class="text-danger mb-2" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
+          <button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-plus-circle me-1"></i>{% trans "Agregar evidencia" %}</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Otorgar insignia ===== -->
+<div class="modal fade" id="modalOtorgarInsignia" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fffbeb;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-award-fill" style="color:#d97706;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-800 mb-1">{% trans "Otorgar insignia" %}</h5>
+        <p id="modal-otorgar-nombre" class="text-muted mb-3" style="font-size:.85rem;"></p>
+        {% if otorgar_form.insignia.field.queryset.exists %}
+        <form id="form-otorgar-insignia" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="otorgar_insignia">
+          <input type="hidden" name="estudiante_id" id="modal-otorgar-estudiante-id">
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.8rem;">{{ otorgar_form.insignia.label }}</label>
+            {{ otorgar_form.insignia }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.8rem;">{{ otorgar_form.nota.label }}</label>
+            {{ otorgar_form.nota }}
+          </div>
+          <div class="modal-footer border-0 px-0 pb-0">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+            <button type="submit" class="btn btn-warning btn-sm fw-600"><i class="bi bi-award-fill me-1"></i>{% trans "Otorgar" %}</button>
+          </div>
+        </form>
+        {% else %}
+        <p class="text-muted mb-0" style="font-size:.85rem;">
+          {% trans "Tu institución todavía no tiene ninguna insignia creada." %}
+          {% if perms.gestion_academica.add_insignia %}<a href="{% url 'gestion_academica:crear_insignia' %}">{% trans "Créala primero." %}</a>{% endif %}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Eliminar hito ===== -->
+<div class="modal fade" id="modalEliminarHito" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-800 mb-1">{% trans "¿Eliminar este hito?" %}</h5>
+        <p id="modal-eliminar-hito-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="form-eliminar-hito" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Eliminar participante ===== -->
+<div class="modal fade" id="modalEliminarParticipante" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-800 mb-1">{% trans "¿Remover del equipo?" %}</h5>
+        <p id="modal-eliminar-participante-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="form-eliminar-participante" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, remover" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Eliminar evidencia ===== -->
+<div class="modal fade" id="modalEliminarEvidencia" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-800 mb-1">{% trans "¿Eliminar esta evidencia?" %}</h5>
+        <p id="modal-eliminar-evidencia-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="form-eliminar-evidencia" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+// Toggle de hitos (AJAX)
+document.querySelectorAll('.toggle-hito').forEach(function (el) {
+  el.addEventListener('click', function () {
+    var url = this.dataset.url;
+    var actual = this.dataset.completado === 'true';
+    var boton = this;
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.ok) return;
+      boton.dataset.completado = data.completado ? 'true' : 'false';
+      var fila = boton.closest('.d-flex');
+      var icon = boton.querySelector('i');
+      var titulo = fila.querySelector('.fw-semibold');
+      if (data.completado) {
+        boton.classList.remove('btn-outline-secondary');
+        boton.classList.add('btn-success');
+        icon.className = 'bi bi-check-lg';
+        titulo.classList.add('text-decoration-line-through', 'text-muted');
+      } else {
+        boton.classList.remove('btn-success');
+        boton.classList.add('btn-outline-secondary');
+        icon.className = 'bi bi-circle';
+        titulo.classList.remove('text-decoration-line-through', 'text-muted');
+      }
+      var barra = document.getElementById('barra-progreso-hitos');
+      if (barra) barra.style.width = data.porcentaje + '%';
+    });
+  });
+});
+
+// Modal otorgar insignia
+document.querySelectorAll('[data-bs-target="#modalOtorgarInsignia"]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    document.getElementById('modal-otorgar-estudiante-id').value = this.dataset.estudianteId;
+    document.getElementById('modal-otorgar-nombre').textContent = this.dataset.estudianteNombre || '';
+  });
+});
+
+// Modales de eliminar (hito / participante / evidencia)
+[
+  ['modalEliminarHito', 'form-eliminar-hito', 'modal-eliminar-hito-nombre'],
+  ['modalEliminarParticipante', 'form-eliminar-participante', 'modal-eliminar-participante-nombre'],
+  ['modalEliminarEvidencia', 'form-eliminar-evidencia', 'modal-eliminar-evidencia-nombre'],
+].forEach(function (cfg) {
+  document.querySelectorAll('[data-bs-target="#' + cfg[0] + '"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.getElementById(cfg[1]).action = this.dataset.action;
+      document.getElementById(cfg[2]).textContent = this.dataset.nombre || '';
+    });
+  });
+});
+</script>
+{% endblock %}

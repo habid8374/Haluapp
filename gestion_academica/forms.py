@@ -22,6 +22,8 @@ from .models import (
     DimensionDesarrollo, EscalaCualitativa, LogroPreescolar, TicketSoporte,
     RespuestaTicket, PlaneacionClase, Candidato, CaracterizacionEstudiante,
     JustificacionInasistencia, PerfilAccesibilidad,
+    ProyectoSTEAM, HitoProyecto, ParticipanteProyecto, EvidenciaProyecto,
+    Insignia, InsigniaObtenida,
 )
 
 
@@ -622,6 +624,133 @@ class EnfasisForm(forms.ModelForm):
         if nivel and inst and nivel.institucion_id != inst.pk:
             self.add_error('nivel_escolaridad', _("El nivel de escolaridad debe pertenecer a la misma institución de la materia."))
         return cleaned
+
+
+# ─── Halu STEAM: Proyectos (ABP) e Insignias ────────────────────────────────
+
+class ProyectoSTEAMForm(forms.ModelForm):
+    """Crea/edita un Proyecto STEAM. Al crear uno nuevo, la vista genera —
+    detrás de escena— la ActividadCalificable enlazada, usando el mismo
+    curso/tipo_actividad/título/fechas elegidos aquí, para que el proyecto
+    se pueda calificar desde el Libro de Notas de siempre."""
+
+    # No es un campo del modelo ProyectoSTEAM (la categoría vive en la
+    # ActividadCalificable enlazada) — se declara aparte y la vista lo usa
+    # al crear/editar esa actividad.
+    tipo_actividad = forms.ModelChoiceField(
+        queryset=TipoActividad.objects.none(), required=True,
+        label=_("Categoría de evaluación"),
+        help_text=_("Determina cómo pondera la nota del proyecto en el boletín (ej. Saber Hacer)."),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+
+    class Meta:
+        model = ProyectoSTEAM
+        fields = ['curso', 'titulo', 'reto', 'fecha_inicio', 'fecha_entrega', 'estado']
+        widgets = {
+            'reto': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'titulo': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_entrega': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'curso': forms.Select(attrs={'class': 'form-select'}),
+            'estado': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        if request:
+            self.fields['curso'].queryset = filter_by_user_institution(Curso.objects.all(), request.user)
+            self.fields['tipo_actividad'].queryset = filter_by_user_institution(TipoActividad.objects.all(), request.user)
+        if self.instance and self.instance.pk and self.instance.actividad_calificable_id:
+            self.fields['tipo_actividad'].initial = self.instance.actividad_calificable.tipo_actividad_id
+
+
+class HitoProyectoForm(forms.ModelForm):
+    class Meta:
+        model = HitoProyecto
+        fields = ['titulo', 'fecha_limite', 'orden']
+        widgets = {
+            'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ej: Diseño del prototipo')}),
+            'fecha_limite': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'orden': forms.NumberInput(attrs={'class': 'form-control', 'style': 'max-width:100px;'}),
+        }
+
+
+class ParticipanteProyectoForm(forms.ModelForm):
+    class Meta:
+        model = ParticipanteProyecto
+        fields = ['estudiante', 'rol']
+        widgets = {
+            'estudiante': forms.Select(attrs={'class': 'form-select'}),
+            'rol': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ej: Líder, Documentador…')}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        proyecto = kwargs.pop('proyecto', None)
+        super().__init__(*args, **kwargs)
+        if proyecto:
+            # Mismo aislamiento que el resto de la plataforma: si el curso del
+            # proyecto es un taller de un énfasis específico, solo se pueden
+            # agregar estudiantes de ese mismo énfasis (no todo el grado).
+            estudiantes_qs = Estudiante.objects.filter(
+                grado_actual=proyecto.curso.grado, institucion=proyecto.institucion, activo=True,
+            )
+            if proyecto.curso.enfasis_id:
+                estudiantes_qs = estudiantes_qs.filter(enfasis_id=proyecto.curso.enfasis_id)
+            ya_incluidos = proyecto.participantes.values_list('estudiante_id', flat=True)
+            self.fields['estudiante'].queryset = estudiantes_qs.exclude(pk__in=ya_incluidos).select_related('usuario').order_by('usuario__last_name')
+
+
+class EvidenciaProyectoForm(forms.ModelForm):
+    class Meta:
+        model = EvidenciaProyecto
+        fields = ['titulo', 'url']
+        widgets = {
+            'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ej: Video de la demostración')}),
+            'url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://…'}),
+        }
+
+
+class InsigniaForm(forms.ModelForm):
+    class Meta:
+        model = Insignia
+        fields = ['nombre', 'descripcion', 'icono', 'color', 'activo', 'institucion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'icono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'bi-award-fill'}),
+            'color': forms.TextInput(attrs={'class': 'form-control', 'type': 'color'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'institucion': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        if request:
+            self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
+            institucion = getattr(request.user, 'institucion_asociada', None)
+            if not request.user.is_superuser and institucion:
+                self.fields['institucion'].initial = institucion
+                self.fields['institucion'].disabled = True
+
+
+class OtorgarInsigniaForm(forms.Form):
+    """Formulario simple para otorgar una insignia ya existente del catálogo
+    a un estudiante concreto, opcionalmente vinculada a un proyecto."""
+    insignia = forms.ModelChoiceField(queryset=Insignia.objects.none(), label=_("Insignia"), widget=forms.Select(attrs={'class': 'form-select'}))
+    nota = forms.CharField(required=False, label=_("Comentario (opcional)"), widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    def __init__(self, *args, **kwargs):
+        institucion = kwargs.pop('institucion', None)
+        super().__init__(*args, **kwargs)
+        qs = Insignia.objects.filter(activo=True)
+        if institucion:
+            qs = qs.filter(institucion=institucion)
+        else:
+            qs = qs.none()
+        self.fields['insignia'].queryset = qs.order_by('nombre')
 
 
 class PeriodoAcademicoForm(forms.ModelForm):
