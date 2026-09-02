@@ -11901,3 +11901,455 @@ msgstr "attempt(s)"
 
 msgid "resuelto(s)"
 msgstr "solved"
+
+msgid "Activa (disponible para otorgar)"
+msgstr "Active (available to award)"
+
+msgid "Actividad calificable enlazada"
+msgstr "Linked gradable activity"
+
+msgid "Agregar al equipo"
+msgstr "Add to team"
+
+msgid "Agregar evidencia"
+msgstr "Add evidence"
+
+msgid "Agregar hito"
+msgstr "Add milestone"
+
+msgid ""
+"Al guardar, se crea automáticamente la actividad calificable enlazada — la "
+"nota se registra luego desde el Libro de Notas del curso."
+msgstr ""
+"When you save, the linked gradable activity is created automatically — the "
+"grade is then recorded from the course Gradebook."
+
+msgid "Alineación automática con STEM+ del MEN"
+msgstr "Automatic alignment with the Ministry of Education's STEM+ framework"
+
+msgid ""
+"Aprendizaje basado en proyectos: hitos, equipos y evidencia. Se califican "
+"desde el Libro de Notas de siempre."
+msgstr ""
+"Project-based learning: milestones, teams and evidence. Graded from the "
+"usual Gradebook."
+
+msgid ""
+"Banco de preguntas y simulacros tipo Saber/ICFES — incluye ciencias "
+"naturales y matemáticas, útiles para evaluar competencias STEAM."
+msgstr ""
+"Question bank and Saber/ICFES-style mock exams — includes natural sciences "
+"and math, useful for assessing STEAM competencies."
+
+msgid "Calificar en el Libro de Notas"
+msgstr "Grade in the Gradebook"
+
+msgid "Categoría de evaluación"
+msgstr "Evaluation category"
+
+msgid ""
+"Catálogo de microcredenciales STEAM que se pueden otorgar a los estudiantes "
+"desde un proyecto."
+msgstr ""
+"Catalog of STEAM micro-credentials that can be awarded to students from a "
+"project."
+
+msgid "Clase de Bootstrap Icons, ej. 'bi-award-fill'."
+msgstr "Bootstrap Icons class, e.g. 'bi-award-fill'."
+
+msgid "Color"
+msgstr "Color"
+
+msgid "Color hexadecimal, ej. #7c3aed."
+msgstr "Hex color, e.g. #7c3aed."
+
+msgid "Comentario (opcional)"
+msgstr "Comment (optional)"
+
+msgid ""
+"Configura las especialidades de tu media técnica (Electricidad, "
+"Ebanistería…) y asigna cursos y estudiantes."
+msgstr ""
+"Set up your technical-track specialties (Electrical, Woodworking…) and "
+"assign courses and students."
+
+msgid "Confirmar Eliminación de Insignia"
+msgstr "Confirm Badge Deletion"
+
+msgid "Contacta al administrador de la plataforma si te interesa activarlo."
+msgstr ""
+"Contact the platform administrator if you are interested in activating it."
+
+msgid "Contratado"
+msgstr "Active"
+
+msgid "Crear el primer proyecto"
+msgstr "Create the first project"
+
+msgid "Crear la primera insignia"
+msgstr "Create the first badge"
+
+msgid "Criterio para obtenerla"
+msgstr "Criteria to earn it"
+
+msgid ""
+"Crucigramas, sopas de letras, memoria, flashcards, quiz de audio, "
+"secuencias, trazado y rompecabezas — juegos que refuerzan vocabulario y "
+"lógica STEAM."
+msgstr ""
+"Crosswords, word searches, memory, flashcards, audio quizzes, sequences, "
+"letter tracing and jigsaw puzzles — games that reinforce STEAM vocabulary "
+"and logic."
+
+msgid "Créala primero."
+msgstr "Create it first."
+
+msgid ""
+"Define una microcredencial que los docentes podrán otorgar a un estudiante "
+"desde un Proyecto STEAM."
+msgstr ""
+"Define a micro-credential that teachers can award to a student from a STEAM "
+"Project."
+
+msgid ""
+"Determina cómo pondera la nota del proyecto en el boletín (ej. Saber Hacer)."
+msgstr ""
+"Determines how the project's grade is weighted on the report card (e.g. "
+"Know-How)."
+
+msgid "Editar Insignia"
+msgstr "Edit Badge"
+
+msgid "Editar Proyecto STEAM"
+msgstr "Edit STEAM Project"
+
+msgid "Ej: Líder, Diseñador, Documentador."
+msgstr "E.g.: Leader, Designer, Documenter."
+
+msgid "El enlace debe comenzar con http:// o https://"
+msgstr "The link must start with http:// or https://"
+
+msgid "Eliminar Proyecto STEAM"
+msgstr "Delete STEAM Project"
+
+msgid "En curso"
+msgstr "In progress"
+
+msgid "En el catálogo"
+msgstr "In the catalog"
+
+msgid "Enlace (foto, video o documento)"
+msgstr "Link (photo, video or document)"
+
+msgid "Equipo"
+msgstr "Team"
+
+msgid "Ese enlace no es válido."
+msgstr "That link is not valid."
+
+msgid "Ese estudiante ya tiene esa insignia en este proyecto."
+msgstr "That student already has that badge in this project."
+
+msgid "Esta acción es irreversible."
+msgstr "This action cannot be undone."
+
+msgid ""
+"Esta acción es irreversible. La actividad calificable enlazada y sus notas "
+"NO se eliminan (quedan en el Libro de Notas del curso)."
+msgstr ""
+"This action cannot be undone. The linked gradable activity and its grades "
+"are NOT deleted (they remain in the course Gradebook)."
+
+msgid "Esta pantalla es solo para estudiantes."
+msgstr "This screen is for students only."
+
+msgid "Estudiante agregado al equipo."
+msgstr "Student added to the team."
+
+msgid "Estudiante removido del equipo."
+msgstr "Student removed from the team."
+
+msgid "Evaluado"
+msgstr "Graded"
+
+msgid "Evidencia"
+msgstr "Evidence"
+
+msgid "Evidencia agregada."
+msgstr "Evidence added."
+
+msgid "Evidencia de Proyecto"
+msgstr "Project Evidence"
+
+msgid "Evidencia eliminada."
+msgstr "Evidence deleted."
+
+msgid "Evidencias de Proyecto"
+msgstr "Project Evidence"
+
+msgid "Fecha de inicio"
+msgstr "Start date"
+
+msgid "Fecha límite"
+msgstr "Due date"
+
+msgid "Fecha obtenida"
+msgstr "Date earned"
+
+msgid "Gestionar talleres"
+msgstr "Manage workshops"
+
+msgid "Halu STEAM"
+msgstr "Halu STEAM"
+
+msgid "Hito"
+msgstr "Milestone"
+
+msgid "Hito agregado."
+msgstr "Milestone added."
+
+msgid "Hito de Proyecto"
+msgstr "Project Milestone"
+
+msgid "Hito eliminado."
+msgstr "Milestone deleted."
+
+msgid "Hitos"
+msgstr "Milestones"
+
+msgid "Hitos de Proyecto"
+msgstr "Project Milestones"
+
+msgid "Incluido"
+msgstr "Included"
+
+msgid "Insignia"
+msgstr "Badge"
+
+msgid "Insignia '%(insignia)s' otorgada a %(estudiante)s."
+msgstr "Badge '%(insignia)s' awarded to %(estudiante)s."
+
+msgid "Insignia '%(nombre)s' creada."
+msgstr "Badge '%(nombre)s' created."
+
+msgid "Insignia '%(nombre)s' eliminada."
+msgstr "Badge '%(nombre)s' deleted."
+
+msgid "Insignia Obtenida"
+msgstr "Earned Badge"
+
+msgid "Insignia actualizada."
+msgstr "Badge updated."
+
+msgid "Insignias"
+msgstr "Badges"
+
+msgid "Insignias Obtenidas"
+msgstr "Earned Badges"
+
+msgid "Insignias obtenidas"
+msgstr "Badges earned"
+
+msgid "Mi Portafolio STEAM"
+msgstr "My STEAM Portfolio"
+
+msgid ""
+"Microcredenciales verificables que se otorgan a un estudiante desde un "
+"Proyecto STEAM."
+msgstr ""
+"Verifiable micro-credentials awarded to a student from a STEAM Project."
+
+msgid "Mis proyectos"
+msgstr "My projects"
+
+msgid "No contratado"
+msgstr "Not active"
+
+msgid "No hay insignias registradas aún."
+msgstr "No badges registered yet."
+
+msgid "No hay proyectos STEAM registrados aún."
+msgstr "No STEAM projects registered yet."
+
+msgid "No se encontró el proyecto a eliminar."
+msgstr "The project to delete was not found."
+
+msgid "No se encontró la insignia a eliminar."
+msgstr "The badge to delete was not found."
+
+msgid "No tienes permiso para editar este proyecto."
+msgstr "You do not have permission to edit this project."
+
+msgid "No tienes permiso para eliminar este proyecto."
+msgstr "You do not have permission to delete this project."
+
+msgid "No tienes permiso para esta acción."
+msgstr "You do not have permission for this action."
+
+msgid "No tienes permiso para modificar este proyecto."
+msgstr "You do not have permission to modify this project."
+
+msgid "Nombre de la insignia"
+msgstr "Badge name"
+
+msgid "Nueva Insignia"
+msgstr "New Badge"
+
+msgid "Nuevo Proyecto"
+msgstr "New Project"
+
+msgid "Nuevo Proyecto STEAM"
+msgstr "New STEAM Project"
+
+msgid "Otorgada por"
+msgstr "Awarded by"
+
+msgid "Otorgadas"
+msgstr "Awarded"
+
+msgid "Otorgar"
+msgstr "Award"
+
+msgid "Otorgar insignia"
+msgstr "Award badge"
+
+msgid "Panel STEAM"
+msgstr "STEAM Panel"
+
+msgid "Participante de Proyecto"
+msgstr "Project Participant"
+
+msgid "Participantes de Proyecto"
+msgstr "Project Participants"
+
+msgid "Planeación"
+msgstr "Planning"
+
+msgid "Proyecto"
+msgstr "Project"
+
+msgid "Proyecto '%(titulo)s' eliminado."
+msgstr "Project '%(titulo)s' deleted."
+
+msgid "Proyecto STEAM '%(titulo)s' creado. Ya puedes agregar hitos y equipo."
+msgstr ""
+"STEAM Project '%(titulo)s' created. You can now add milestones and a team."
+
+msgid "Proyecto actualizado."
+msgstr "Project updated."
+
+msgid "Proyecto de origen (opcional)"
+msgstr "Source project (optional)"
+
+msgid "Proyectos"
+msgstr "Projects"
+
+msgid "Proyectos STEAM"
+msgstr "STEAM Projects"
+
+msgid "Próx."
+msgstr "Soon"
+
+msgid "Próximamente en Halu STEAM"
+msgstr "Coming soon to Halu STEAM"
+
+msgid "Reporte de cumplimiento de los 6 principios STEM+ en un clic."
+msgstr "One-click compliance report for the 6 STEM+ principles."
+
+msgid "Reto / pregunta guía"
+msgstr "Challenge / guiding question"
+
+msgid "Rol en el equipo"
+msgstr "Role on the team"
+
+msgid "Simulacros"
+msgstr "Mock Exams"
+
+msgid "Sin criterio descrito."
+msgstr "No criteria described."
+
+msgid "Sin estudiantes asignados todavía."
+msgstr "No students assigned yet."
+
+msgid "Sin evidencia todavía."
+msgstr "No evidence yet."
+
+msgid "Sin hitos todavía."
+msgstr "No milestones yet."
+
+msgid "Sin reto descrito."
+msgstr "No challenge described."
+
+msgid "Solo URLs http:// o https://"
+msgstr "Only http:// or https:// URLs"
+
+msgid "Sí, remover"
+msgstr "Yes, remove"
+
+msgid "Talleres"
+msgstr "Workshops"
+
+msgid "Todavía no has participado en ningún proyecto STEAM."
+msgstr "You haven't taken part in any STEAM project yet."
+
+msgid ""
+"Todavía no tienes insignias. ¡Participa en un proyecto STEAM para ganar tu "
+"primera!"
+msgstr ""
+"You don't have any badges yet. Take part in a STEAM project to earn your "
+"first one!"
+
+msgid "Tu institución todavía no tiene ninguna insignia creada."
+msgstr "Your institution has not created any badge yet."
+
+msgid "Tus proyectos, insignias y evidencia — todo en un solo lugar."
+msgstr "Your projects, badges and evidence — all in one place."
+
+msgid "Título de la evidencia"
+msgstr "Evidence title"
+
+msgid "Título del proyecto"
+msgstr "Project title"
+
+msgid ""
+"Un solo lugar para coordinar la modalidad técnica y las herramientas STEAM "
+"de tu institución: talleres, recursos interactivos y simulacros."
+msgstr ""
+"One place to coordinate your institution's technical track and STEAM tools: "
+"workshops, interactive resources and mock exams."
+
+msgid "Ver insignias"
+msgstr "View badges"
+
+msgid "Ver proyectos"
+msgstr "View projects"
+
+msgid "Ver recursos"
+msgstr "View resources"
+
+msgid "Ver simulacros"
+msgstr "View mock exams"
+
+msgid "hitos"
+msgstr "milestones"
+
+msgid "¿Eliminar esta evidencia?"
+msgstr "Delete this evidence?"
+
+msgid "¿Eliminar este hito?"
+msgstr "Delete this milestone?"
+
+msgid "¿Qué problema real intenta resolver este proyecto?"
+msgstr "What real problem is this project trying to solve?"
+
+msgid "¿Remover del equipo?"
+msgstr "Remove from team?"
+
+msgid "Énfasis / Talleres"
+msgstr "Focus Area / Workshops"
+
+msgid "Ícono"
+msgstr "Icon"
+
+msgid "Ícono (Bootstrap Icons)"
+msgstr "Icon (Bootstrap Icons)"
