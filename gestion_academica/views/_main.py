@@ -1530,12 +1530,34 @@ class PeriodoAcademicoListView(LoginRequiredMixin, PermissionRequiredMixin, List
     paginate_by = 10
 
     def get_queryset(self):
-        base_queryset = super().get_queryset().order_by('-año_escolar', '-fecha_inicio')
+        base_queryset = super().get_queryset().select_related('institucion').order_by('-año_escolar', '-fecha_inicio')
         return get_filtered_queryset(self.model, self.request.user, base_queryset)
+
+    def get_paginate_by(self, queryset):
+        # El superusuario ve todos los períodos de todas las instituciones
+        # agrupados en un acordeón (sin paginación); cada institución sigue
+        # viendo solo los suyos, paginados, exactamente como antes.
+        if self.request.user.is_superuser:
+            return None
+        return self.paginate_by
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo_pagina'] = "Listado de Periodos Académicos"
+        if self.request.user.is_superuser:
+            periodos_lista = list(context['periodos'])
+            periodos_lista.sort(key=lambda p: (p.institucion.nombre if p.institucion else '').lower())
+            grupos = []
+            institucion_actual = object()
+            grupo_actual = None
+            for periodo_obj in periodos_lista:
+                if periodo_obj.institucion != institucion_actual:
+                    institucion_actual = periodo_obj.institucion
+                    grupo_actual = {'institucion': periodo_obj.institucion, 'periodos': []}
+                    grupos.append(grupo_actual)
+                grupo_actual['periodos'].append(periodo_obj)
+            context['grupos_por_institucion'] = grupos
+            context['vista_agrupada'] = True
         return context
 
 class PeriodoAcademicoCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
