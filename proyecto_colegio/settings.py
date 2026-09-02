@@ -110,11 +110,6 @@ INSTALLED_APPS = [
     
             
     # 3. APPS DE DJANGO AL FINAL
-    # Tema moderno del admin (Unfold). DEBEN ir antes de django.contrib.admin.
-    'unfold',
-    'unfold.contrib.filters',
-    'unfold.contrib.forms',
-    'unfold.contrib.import_export',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -796,73 +791,3 @@ CHANNEL_LAYERS = {
     },
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  UNFOLD — Tema moderno del panel de administración (/admin/)
-# ─────────────────────────────────────────────────────────────────────────────
-def _admin_site_header(request):
-    """El encabezado del admin muestra SIEMPRE el nombre del colegio del usuario
-    (como antes). Superusuario/anónimo sin colegio → "HALU"."""
-    inst = getattr(getattr(request, 'user', None), 'institucion_asociada', None)
-    return getattr(inst, 'nombre', None) or "HALU"
-
-
-def _admin_site_logo(request):
-    """Logo del encabezado: el del colegio si lo tiene cargado; si no, el de HALU."""
-    from django.templatetags.static import static as _static
-    inst = getattr(getattr(request, 'user', None), 'institucion_asociada', None)
-    try:
-        logo = getattr(inst, 'logo', None)
-        if logo:
-            return logo.url
-    except Exception:
-        pass
-    return _static("core/img/logo_mi_software.png")
-
-
-UNFOLD = {
-    "SITE_TITLE": "HALU · Administración",
-    "SITE_HEADER": _admin_site_header,   # nombre del colegio (dinámico)
-    "SITE_SUBHEADER": "Sistema de Gestión Escolar",
-    "SITE_LOGO": _admin_site_logo,       # logo del colegio (o HALU)
-    "SHOW_HISTORY": True,
-    "SHOW_VIEW_ON_SITE": True,
-    "SITE_URL": "/",
-    "THEME": None,                    # respeta claro/oscuro del dispositivo
-    "COLORS": {
-        "primary": {
-            "50": "238 242 255",
-            "100": "224 231 255",
-            "200": "199 210 254",
-            "300": "165 180 252",
-            "400": "129 140 248",
-            "500": "99 102 241",
-            "600": "79 70 229",
-            "700": "67 56 202",
-            "800": "55 48 163",
-            "900": "49 46 129",
-            "950": "30 27 75",
-        },
-    },
-    "SIDEBAR": {
-        "show_search": True,
-        "show_all_applications": True,
-        "navigation": [
-            {
-                "title": "Accesos rápidos",
-                "separator": True,
-                "items": [
-                    {
-                        "title": "Volver a Gestión Académica",
-                        "icon": "arrow_back",
-                        "link": "/academico/",
-                    },
-                    {
-                        "title": "Ver el sitio",
-                        "icon": "public",
-                        "link": "/",
-                    },
-                ],
-            },
-        ],
-    },
-}
