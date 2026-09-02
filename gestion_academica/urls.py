@@ -77,6 +77,7 @@ urlpatterns = [
     path('enfasis/crear/', views.EnfasisCreateView.as_view(), name='crear_enfasis'),
     path('enfasis/<int:pk>/editar/', views.EnfasisUpdateView.as_view(), name='editar_enfasis'),
     path('enfasis/<int:pk>/eliminar/', views.EnfasisDeleteView.as_view(), name='eliminar_enfasis'),
+    path('steam/', views.panel_steam, name='panel_steam'),
 
     # --- Gestión de Periodos Académicos ---
     path('periodos/', views.PeriodoAcademicoListView.as_view(), name='lista_periodos'),

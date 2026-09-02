@@ -374,6 +374,16 @@
         </a>
       </li>
       {% endif %}
+      {% if 'steam' in modulos_activos %}
+      <hr class="menu-divider">
+      <h5 class="menu-section-title">Halu STEAM</h5>
+      <li class="nav-item item-color-2">
+        <a class="nav-link {% if request.resolver_match.url_name == 'panel_steam' %}active{% endif %}"
+           href="{% url 'gestion_academica:panel_steam' %}">
+          <i class="bi bi-stars"></i> {% trans "Panel STEAM" %}
+        </a>
+      </li>
+      {% endif %}
       {% if perms.gestion_academica.acceso_modulo_academico %}
         <hr class="menu-divider">
         <h5 class="menu-section-title">Gestión General</h5>

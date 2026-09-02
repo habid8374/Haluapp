@@ -45,6 +45,7 @@ MODULOS_CONOCIDOS = {
     'facturacion_electronica': {'nombre': 'Facturación electrónica', 'prefijo_url': '/finanzas/facturacion-electronica/', 'icono': 'bi-receipt', 'descripcion': 'Facturación electrónica (requiere el módulo financiero).', 'orden': 90},
     'simat': {'nombre': 'SIMAT (reporte oficial)', 'prefijo_url': '/simat/', 'icono': 'bi-file-earmark-spreadsheet', 'descripcion': 'Reporte de matrícula al MEN (Anexo 6A / plano).', 'orden': 100},
     'mensajeria': {'nombre': 'Mensajería interna', 'prefijo_url': '/mensajeria/', 'icono': 'bi-chat-dots', 'descripcion': 'Mensajería interna entre usuarios.', 'orden': 110},
+    'steam': {'nombre': 'Halu STEAM', 'prefijo_url': '/academico/steam/', 'icono': 'bi-stars', 'descripcion': 'Panel de coordinación para la modalidad técnica/STEAM: talleres, recursos interactivos y simulacros en un solo lugar.', 'orden': 120},
 }
 
 

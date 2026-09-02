@@ -1,0 +1,143 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina|default:"Halu STEAM" }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .steam-card { border-radius:16px; border:none; box-shadow:0 2px 12px rgba(0,0,0,.07); height:100%; }
+  .steam-card .steam-card-body { padding:1.5rem; display:flex; flex-direction:column; height:100%; }
+  .steam-icon-badge { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; margin-bottom:1rem; }
+  .badge-contratado { background:#dcfce7; color:#16a34a; }
+  .badge-no-contratado { background:#f1f5f9; color:#64748b; }
+  .badge-proximamente { background:#fef3c7; color:#b45309; }
+  .steam-stat { font-size:2rem; font-weight:800; color:#1e293b; line-height:1; }
+  .steam-stat-label { font-size:.78rem; color:#64748b; text-transform:uppercase; letter-spacing:.04em; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-stars me-2"></i>{% trans "Halu STEAM" %}</h2>
+  <p class="mb-0" style="color:#fff;opacity:.85;font-size:.92rem;max-width:640px;">
+    {% trans "Un solo lugar para coordinar la modalidad técnica y las herramientas STEAM de tu institución: talleres, recursos interactivos y simulacros." %}
+  </p>
+</div>
+
+{% if messages %}{% for m in messages %}
+<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+{% endfor %}{% endif %}
+
+<div class="row g-3 mb-3">
+  <!-- Énfasis / Talleres — siempre disponible, es parte del núcleo académico -->
+  <div class="col-md-4">
+    <div class="card steam-card">
+      <div class="steam-card-body">
+        <div class="steam-icon-badge" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-tools"></i></div>
+        <h5 class="fw-bold mb-1">{% trans "Énfasis / Talleres" %}</h5>
+        <span class="badge rounded-pill badge-contratado align-self-start mb-3">{% trans "Incluido" %}</span>
+        <div class="d-flex gap-4 mb-3">
+          <div>
+            <div class="steam-stat">{{ total_enfasis }}</div>
+            <div class="steam-stat-label">{% trans "Talleres" %}</div>
+          </div>
+          <div>
+            <div class="steam-stat">{{ estudiantes_con_enfasis }}</div>
+            <div class="steam-stat-label">{% trans "Estudiantes" %}</div>
+          </div>
+        </div>
+        <p class="text-muted small flex-grow-1">{% trans "Configura las especialidades de tu media técnica (Electricidad, Ebanistería…) y asigna cursos y estudiantes." %}</p>
+        {% if perms.gestion_academica.view_enfasis %}
+        <a href="{% url 'gestion_academica:lista_enfasis' %}" class="btn btn-sm btn-primary mt-auto">
+          <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Gestionar talleres" %}
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recursos interactivos — módulo aparte, puede o no estar contratado -->
+  <div class="col-md-4">
+    <div class="card steam-card">
+      <div class="steam-card-body">
+        <div class="steam-icon-badge" style="background:#fdf4ff;color:#a21caf;"><i class="bi bi-controller"></i></div>
+        <h5 class="fw-bold mb-1">{% trans "Recursos Interactivos" %}</h5>
+        {% if 'recursos_interactivos' in modulos_activos %}
+        <span class="badge rounded-pill badge-contratado align-self-start mb-3">{% trans "Contratado" %}</span>
+        {% else %}
+        <span class="badge rounded-pill badge-no-contratado align-self-start mb-3">{% trans "No contratado" %}</span>
+        {% endif %}
+        <p class="text-muted small flex-grow-1">{% trans "Crucigramas, sopas de letras, memoria, flashcards, quiz de audio, secuencias, trazado y rompecabezas — juegos que refuerzan vocabulario y lógica STEAM." %}</p>
+        {% if 'recursos_interactivos' in modulos_activos %}
+        <a href="{% url 'crucigramas:mis_crucigramas' %}" class="btn btn-sm btn-primary mt-auto">
+          <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Ver recursos" %}
+        </a>
+        {% else %}
+        <p class="text-muted mt-auto mb-0" style="font-size:.8rem;">
+          <i class="bi bi-info-circle me-1"></i>{% trans "Contacta al administrador de la plataforma si te interesa activarlo." %}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Simulacros — módulo aparte, puede o no estar contratado -->
+  <div class="col-md-4">
+    <div class="card steam-card">
+      <div class="steam-card-body">
+        <div class="steam-icon-badge" style="background:#ecfeff;color:#0e7490;"><i class="bi bi-journal-check"></i></div>
+        <h5 class="fw-bold mb-1">{% trans "Simulacros" %}</h5>
+        {% if 'simulacros' in modulos_activos %}
+        <span class="badge rounded-pill badge-contratado align-self-start mb-3">{% trans "Contratado" %}</span>
+        {% else %}
+        <span class="badge rounded-pill badge-no-contratado align-self-start mb-3">{% trans "No contratado" %}</span>
+        {% endif %}
+        <p class="text-muted small flex-grow-1">{% trans "Banco de preguntas y simulacros tipo Saber/ICFES — incluye ciencias naturales y matemáticas, útiles para evaluar competencias STEAM." %}</p>
+        {% if 'simulacros' in modulos_activos %}
+        <a href="{% url 'simulacros:lista_simulacros' %}" class="btn btn-sm btn-primary mt-auto">
+          <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Ver simulacros" %}
+        </a>
+        {% else %}
+        <p class="text-muted mt-auto mb-0" style="font-size:.8rem;">
+          <i class="bi bi-info-circle me-1"></i>{% trans "Contacta al administrador de la plataforma si te interesa activarlo." %}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius:16px;">
+  <div class="card-body p-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-signpost-split me-2 text-primary"></i>{% trans "Próximamente en Halu STEAM" %}</h5>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="d-flex align-items-start gap-2">
+          <span class="badge rounded-pill badge-proximamente" style="font-size:.68rem;">{% trans "Próx." %}</span>
+          <div>
+            <div class="fw-semibold small">{% trans "Proyectos STEAM" %}</div>
+            <div class="text-muted" style="font-size:.8rem;">{% trans "Seguimiento por hitos y rúbrica de evidencia." %}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start gap-2">
+          <span class="badge rounded-pill badge-proximamente" style="font-size:.68rem;">{% trans "Próx." %}</span>
+          <div>
+            <div class="fw-semibold small">{% trans "Insignias / microcredenciales" %}</div>
+            <div class="text-muted" style="font-size:.8rem;">{% trans "Reconocimiento verificable de competencias STEAM." %}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="d-flex align-items-start gap-2">
+          <span class="badge rounded-pill badge-proximamente" style="font-size:.68rem;">{% trans "Próx." %}</span>
+          <div>
+            <div class="fw-semibold small">{% trans "Portafolio digital" %}</div>
+            <div class="text-muted" style="font-size:.8rem;">{% trans "Evidencia de cada proyecto, visible en el boletín." %}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
