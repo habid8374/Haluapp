@@ -8,6 +8,13 @@ pantalla se controla igual que cualquier otro módulo de la plataforma —
 catálogo `ModuloPlataforma` (código 'steam') + `modulos_contratados` por
 institución — así que por defecto ningún colegio la ve hasta que se le active
 desde el panel del propietario.
+
+Quién ve el panel: coordinadores Y docentes (ambos grupos tienen
+`view_proyectosteam` — ver la migración de permisos de Fase 2), no solo
+rectores/administradores. `acceso_modulo_academico` NO sirve aquí: ese
+permiso solo lo tiene el grupo 'rectores' (migración 0057), así que un
+coordinador real —la audiencia principal de este panel— quedaría bloqueado
+si se usara.
 """
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render
@@ -17,7 +24,7 @@ from ._main import get_current_institution
 
 
 @login_required
-@permission_required('gestion_academica.acceso_modulo_academico', raise_exception=True)
+@permission_required('gestion_academica.view_proyectosteam', raise_exception=True)
 def panel_steam(request):
     """Panel de coordinación para la modalidad STEAM/técnica del colegio."""
     institucion = get_current_institution(request.user)
