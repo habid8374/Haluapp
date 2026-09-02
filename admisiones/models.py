@@ -4,7 +4,7 @@ from django.utils import timezone
 import uuid
 from django.urls import reverse
 from gestion_academica.models import (   # Importamos Grado para saber a cuál aspira
-    Grado, Usuario, Estudiante,
+    Grado, Enfasis, Usuario, Estudiante,
     TIPO_DOCUMENTO_CHOICES, GRUPO_SANGUINEO_CHOICES,
     CaracterizacionEstudiante,
     SIMAT_SISBEN_CHOICES, SIMAT_CARACTER_CHOICES, SIMAT_ESPECIALIDAD_CHOICES,
@@ -50,6 +50,10 @@ class Aspirante(models.Model):
     email_contacto = models.EmailField(verbose_name="Email de Contacto Principal")
     telefono_contacto = models.CharField(max_length=20, blank=True, null=True, verbose_name="Teléfono de Contacto")
     grado_aspira = models.ForeignKey(Grado, on_delete=models.SET_NULL, null=True, verbose_name="Grado al que Aspira")
+    enfasis = models.ForeignKey(
+        Enfasis, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='aspirantes', verbose_name="Énfasis / Taller (media técnica)",
+    )
     estado = models.CharField(max_length=20, choices=EstadoAdmision.choices, default=EstadoAdmision.INSCRITO)
     requiere_pago_inscripcion = models.BooleanField(default=True)
     colegio_procedencia = models.CharField(max_length=255, blank=True, null=True, verbose_name="Colegio de Procedencia")
@@ -401,6 +405,17 @@ class Aspirante(models.Model):
                 "No se pudo asignar el grupo del aspirante/estudiante %s", self.pk
             )
 
+        # 2.b.quater Énfasis/taller (modalidad técnica): si el aspirante trae
+        # un énfasis capturado en la admisión, lo asigna al estudiante. Solo
+        # aplica a instituciones con talleres técnicos configurados; si no
+        # hay dato, no hace nada (comportamiento idéntico al de siempre).
+        try:
+            self._sincronizar_enfasis(estudiante_obj)
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "No se pudo asignar el énfasis del aspirante/estudiante %s", self.pk
+            )
+
         # 2.c Crea/vincula el acudiente (Familiar) desde los datos de la fila.
         try:
             self._sincronizar_acudiente(estudiante_obj)
@@ -453,6 +468,16 @@ class Aspirante(models.Model):
         )
         estudiante.grupo = grupo
         estudiante.save(update_fields=['grupo'])
+
+    def _sincronizar_enfasis(self, estudiante):
+        """Asigna al estudiante el énfasis/taller capturado en la admisión
+        (modalidad técnica). No autocrea el Énfasis (a diferencia del Grupo):
+        la institución ya lo define en su catálogo. Es idempotente y no pisa
+        un énfasis ya asignado manualmente."""
+        if not self.enfasis_id or estudiante.enfasis_id:
+            return
+        estudiante.enfasis = self.enfasis
+        estudiante.save(update_fields=['enfasis'])
 
     def _sincronizar_caracterizacion(self, estudiante):
         """Crea o actualiza el CaracterizacionEstudiante a partir del aspirante.

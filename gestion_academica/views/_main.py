@@ -59,6 +59,7 @@ import logging
 from xhtml2pdf import pisa
 from ..utils import (
     calcular_estado_academico_curso,
+    cursos_visibles_para_estudiante,
     obtener_desempeno,
     analizar_riesgo_academico_curso,
     analizar_riesgo_academico_en_lote,
@@ -111,7 +112,7 @@ from cuestionarios.models import Cuestionario
 
 from ..models import (
     Usuario, Grado, Estudiante, Docente, Familiar,
-    Materia, PeriodoAcademico, Curso, DirectorCurso,
+    Materia, Enfasis, PeriodoAcademico, Curso, DirectorCurso,
     TipoActividad, ActividadCalificable, Calificacion,
     PlanCurricular, Deber, EntregaDeber, MencionReconocimiento, ArchivoPlanAcademico,
     ConfiguracionInstitucion, Noticia, RegistroAsistencia, BloqueHorario, LeccionDiaria,
@@ -140,6 +141,7 @@ from ..forms import (
     CustomUserCreationForm, CustomUserUpdateForm,
     DocenteForm, EstudianteForm,
     MateriaForm,
+    EnfasisForm,
     PeriodoAcademicoForm,
     CursoForm,
     DirectorCursoForm,
@@ -1430,6 +1432,95 @@ class MateriaDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
         context['titulo_pagina'] = "Confirmar Eliminación de Materia"
         return context
 
+# --- Vistas para Énfasis / Talleres técnicos ---
+class EnfasisListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = Enfasis
+    template_name = 'gestion_academica/enfasis_lista.html'
+    context_object_name = 'enfasis_list'
+    permission_required = 'gestion_academica.view_enfasis'
+
+    def get_queryset(self):
+        base_queryset = super().get_queryset().order_by('nombre')
+        return get_filtered_queryset(self.model, self.request.user, base_queryset)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = "Énfasis / Talleres"
+        return context
+
+class EnfasisCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = Enfasis
+    form_class = EnfasisForm
+    template_name = 'gestion_academica/enfasis_formulario.html'
+    success_url = reverse_lazy('gestion_academica:lista_enfasis')
+    permission_required = 'gestion_academica.add_enfasis'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_formulario'] = "Crear Nuevo Énfasis"
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def form_valid(self, form):
+        if not self.request.user.is_superuser and hasattr(self.request.user, 'institucion_asociada') and self.request.user.institucion_asociada:
+            form.instance.institucion = self.request.user.institucion_asociada
+        elif self.request.user.is_superuser and not form.instance.institucion:
+            messages.error(self.request, "Como superusuario, debes seleccionar una institución para el énfasis.")
+            return self.form_invalid(form)
+
+        messages.success(self.request, f"Énfasis '{form.cleaned_data['nombre']}' creado exitosamente.")
+        return super().form_valid(form)
+
+class EnfasisUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Enfasis
+    form_class = EnfasisForm
+    template_name = 'gestion_academica/enfasis_formulario.html'
+    success_url = reverse_lazy('gestion_academica:lista_enfasis')
+    permission_required = 'gestion_academica.change_enfasis'
+
+    def get_queryset(self):
+        base_queryset = super().get_queryset()
+        return get_filtered_queryset(self.model, self.request.user, base_queryset)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_formulario'] = "Editar Énfasis"
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Énfasis '{form.cleaned_data['nombre']}' actualizado exitosamente.")
+        return super().form_valid(form)
+
+class EnfasisDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Enfasis
+    template_name = 'gestion_academica/enfasis_confirmar_eliminar.html'
+    success_url = reverse_lazy('gestion_academica:lista_enfasis')
+    context_object_name = 'enfasis'
+    permission_required = 'gestion_academica.delete_enfasis'
+
+    def get_queryset(self):
+        base_queryset = super().get_queryset()
+        return get_filtered_queryset(self.model, self.request.user, base_queryset)
+
+    def delete(self, request, *args, **kwargs):
+        enfasis_eliminado = self.get_object()
+        messages.success(request, f"El énfasis '{enfasis_eliminado.nombre}' ha sido eliminado exitosamente.")
+        return super().delete(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = "Confirmar Eliminación de Énfasis"
+        return context
+
 # --- Vistas para Periodos Académicos ---
 class PeriodoAcademicoListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = PeriodoAcademico
@@ -2473,18 +2564,23 @@ def realizar_entrega_deber(request, deber_pk):
 @permission_required('gestion_academica.puede_calificar_estudiantes') 
 def listar_estudiantes_para_calificar(request, actividad_pk):
     actividad = get_object_or_404(
-        get_filtered_queryset(ActividadCalificable, request.user).select_related('curso__grado', 'curso__materia', 'curso__periodo_academico'), 
+        get_filtered_queryset(ActividadCalificable, request.user).select_related('curso__grado', 'curso__materia', 'curso__periodo_academico', 'curso__enfasis'),
         pk=actividad_pk
     )
 
     if not request.user.is_superuser and not (hasattr(request.user, 'docente') and actividad.curso.docentes_asignados.filter(pk=request.user.docente.pk).exists()):
         messages.error(request, "No tienes permiso para calificar estudiantes en esta actividad.")
-        return redirect('gestion_academica:docente_seleccionar_curso_libro_notas') 
+        return redirect('gestion_academica:docente_seleccionar_curso_libro_notas')
 
+    # Si el curso es un taller de un énfasis específico (modalidad técnica),
+    # solo entran los estudiantes de ese mismo énfasis — no todo el grado.
     estudiantes_del_grado = Estudiante.objects.filter(
         grado_actual=actividad.curso.grado,
-        institucion=actividad.institucion 
-    ).select_related('usuario').order_by('usuario__last_name', 'usuario__first_name')
+        institucion=actividad.institucion
+    )
+    if actividad.curso.enfasis_id:
+        estudiantes_del_grado = estudiantes_del_grado.filter(enfasis_id=actividad.curso.enfasis_id)
+    estudiantes_del_grado = estudiantes_del_grado.select_related('usuario').order_by('usuario__last_name', 'usuario__first_name')
     
     calificaciones_existentes = Calificacion.objects.filter(
         actividad_calificable=actividad,
@@ -2517,7 +2613,9 @@ def registrar_editar_calificacion(request, actividad_pk, estudiante_pk):
         messages.error(request, "No tienes permiso para calificar a estudiantes en esta actividad.")
         return redirect('gestion_academica:docente_seleccionar_curso_libro_notas') 
 
-    if estudiante.grado_actual != actividad.curso.grado or estudiante.institucion != actividad.institucion:
+    curso = actividad.curso
+    if (estudiante.grado_actual != curso.grado or estudiante.institucion != actividad.institucion
+            or (curso.enfasis_id and estudiante.enfasis_id != curso.enfasis_id)):
         messages.error(request, "El estudiante no pertenece a este curso o institución.")
         return redirect('gestion_academica:listar_estudiantes_para_calificar', actividad_pk=actividad.pk)
     
@@ -2880,8 +2978,8 @@ def mi_boletin_periodo_actual(request):
     total_ihs_general = 0
 
     if periodo_activo:
-        cursos_del_estudiante = Curso.objects.filter(
-            grado=estudiante_actual.grado_actual, periodo_academico=periodo_activo
+        cursos_del_estudiante = cursos_visibles_para_estudiante(
+            estudiante_actual, periodo_activo
         ).select_related('materia').order_by('materia__nombre_materia')
 
         for curso in cursos_del_estudiante:
@@ -3258,8 +3356,8 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
         return render(request, 'gestion_academica/boletin_no_disponible.html', {'periodo': periodo}, status=200)
 
     # 4. Consulta principal para obtener los cursos y pre-cargar datos relacionados
-    cursos = Curso.objects.filter(
-        grado=estudiante_actual.grado_actual, periodo_academico=periodo
+    cursos = cursos_visibles_para_estudiante(
+        estudiante_actual, periodo
     ).select_related('materia').prefetch_related(
         'materia__areaacademica_set',
         Prefetch('materia__descriptores', queryset=DescriptorLogro.objects.filter(
@@ -3548,10 +3646,9 @@ def familiar_ver_boletin_estudiante(request, estudiante_pk):
     total_ihs_general = 0
 
     if estudiante_seleccionado.grado_actual and periodo_activo:
-        cursos_del_estudiante = Curso.objects.filter(
-            grado=estudiante_seleccionado.grado_actual,
-            periodo_academico=periodo_activo,
-            institucion=estudiante_seleccionado.institucion
+        cursos_del_estudiante = cursos_visibles_para_estudiante(
+            estudiante_seleccionado, periodo_activo,
+            Curso.objects.filter(institucion=estudiante_seleccionado.institucion),
         ).select_related('materia', 'grado', 'periodo_academico').prefetch_related('docentes_asignados__usuario').order_by('materia__nombre_materia')
 
         for curso_iter in cursos_del_estudiante:
@@ -13406,7 +13503,9 @@ def generar_boletin_descriptivo_pdf(request, estudiante_pk, periodo_pk):
     estudiante = get_object_or_404(Estudiante, pk=estudiante_pk, institucion=institucion)
     periodo = get_object_or_404(PeriodoAcademico, pk=periodo_pk, institucion=institucion)
 
-    cursos = Curso.objects.filter(grado=estudiante.grado_actual, periodo_academico=periodo, institucion=institucion).select_related('materia')
+    cursos = cursos_visibles_para_estudiante(
+        estudiante, periodo, Curso.objects.filter(institucion=institucion)
+    ).select_related('materia')
     
     materias_con_logros = []
     for curso in cursos:
@@ -16234,8 +16333,12 @@ def pasar_lista_view(request, curso_pk):
         messages.success(request, "La lista de asistencia ha sido actualizada.")
         return redirect('gestion_academica:pasar_lista', curso_pk=curso.pk)
 
-    # 3. Aseguramos que la lista de estudiantes también esté filtrada por la institución.
+    # 3. Aseguramos que la lista de estudiantes también esté filtrada por la
+    #    institución y, si el curso es un taller de un énfasis específico
+    #    (modalidad técnica), por ese mismo énfasis — no todo el grado.
     estudiantes = Estudiante.objects.filter(grado_actual=curso.grado, activo=True, institucion=institucion)
+    if curso.enfasis_id:
+        estudiantes = estudiantes.filter(enfasis_id=curso.enfasis_id)
     
     asistencias_hoy = []
     for est in estudiantes:

@@ -73,7 +73,7 @@
             <td style="width: 30%;"><strong>{% trans "Año:" %}</strong> {{ periodo.año_escolar }}</td>
         </tr>
         <tr>
-            <td><strong>{% trans "Curso:" %}</strong> {{ estudiante.grado_actual.nombre }}{% if estudiante.grupo %} · {{ estudiante.grupo.nombre }}{% endif %}</td>
+            <td><strong>{% trans "Curso:" %}</strong> {{ estudiante.grado_actual.nombre }}{% if estudiante.grupo %} · {{ estudiante.grupo.nombre }}{% endif %}{% if estudiante.enfasis %} · {% trans "Énfasis:" %} {{ estudiante.enfasis }}{% endif %}</td>
             <td><strong>{% trans "Fecha de entrega:" %}</strong> {{ fecha_emision|date:"d/m/Y" }}</td>
         </tr>
     </table>

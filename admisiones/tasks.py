@@ -267,12 +267,18 @@ def _bool_si_no(raw):
     return _norm_texto(raw) in {"SI", "S", "TRUE", "1", "YES", "Y", "X", "VERDADERO"}
 
 
-def _parsear_fila(row, grados_por_nombre, catalogos=None):
+def _parsear_fila(row, grados_por_nombre, catalogos=None, enfasis_por_nombre=None):
     """Valida y convierte una fila del Excel a un dict listo para crear el Aspirante.
 
     ``catalogos`` (opcional): dict de dicts {code→obj} para resolver las columnas
     codificadas SIMAT (departamento/municipio/etnia/EPS). Los desplegables de la
     plantilla entregan "CODIGO - NOMBRE"; tomamos el código antes de " - ".
+
+    ``enfasis_por_nombre`` (opcional): dict {nombre en minúsculas → Enfasis} del
+    catálogo de la institución. El Énfasis NUNCA se autocrea desde el Excel (a
+    diferencia del Grupo): si la celda trae texto y no matchea ningún énfasis
+    existente, la fila NO se rechaza — queda registrada en
+    ``"enfasis_no_encontrado"`` para que el llamador la marque como advertencia.
     """
 
     def _v(col, default=""):
@@ -324,6 +330,15 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
         raise _FilaInvalida(
             f"El grado '{grado_nombre}' no existe en la institución (revisa la plantilla)."
         )
+
+    # Énfasis/taller (modalidad técnica) — opcional, no se autocrea.
+    enfasis_nombre = _v("enfasis")
+    enfasis_obj = None
+    enfasis_no_encontrado = None
+    if enfasis_nombre:
+        enfasis_obj = (enfasis_por_nombre or {}).get(enfasis_nombre.lower())
+        if enfasis_obj is None:
+            enfasis_no_encontrado = enfasis_nombre
 
     try:
         fecha_nacimiento = _parsear_fecha(fecha_raw)
@@ -380,6 +395,8 @@ def _parsear_fila(row, grados_por_nombre, catalogos=None):
     return {
         "documento": documento,
         "grado": grado,
+        "enfasis": enfasis_obj,
+        "enfasis_no_encontrado": enfasis_no_encontrado,
         # El nombre "completo" (para mostrar y generar el usuario) se compone de
         # los 4 campos SIMAT, que son la fuente única.
         "nombres": " ".join(p for p in [primer_nombre, segundo_nombre] if p) or "Sin nombre",
@@ -560,6 +577,14 @@ def procesar_importacion_aspirantes_task(self, lote_id):
         )
         grados_por_nombre = {g.nombre.lower(): g for g in grados_qs}
 
+        # 2a.bis) Pre-cache énfasis/talleres (modalidad técnica) — catálogo
+        # propio de la institución, no se autocrea desde el Excel.
+        from gestion_academica.models import Enfasis
+        enfasis_por_nombre = {
+            e.nombre.lower(): e
+            for e in Enfasis.objects.filter(institucion=institucion, activo=True)
+        }
+
         # 2b) Pre-cache catálogos SIMAT (código→objeto) para resolver las FK
         from simat.models import Departamento, Municipio, Etnia, EPS, Resguardo, Sede
         catalogos = {
@@ -617,7 +642,7 @@ def procesar_importacion_aspirantes_task(self, lote_id):
 
             documento_raw = str(row.get("numero_documento", "")).strip()
             try:
-                datos = _parsear_fila(row, grados_por_nombre, catalogos)
+                datos = _parsear_fila(row, grados_por_nombre, catalogos, enfasis_por_nombre)
                 if datos["documento"] in existentes:
                     raise _FilaInvalida(
                         f"Ya existe un aspirante con documento '{datos['documento']}' en esta institución."
@@ -636,6 +661,25 @@ def procesar_importacion_aspirantes_task(self, lote_id):
                     # Rastreamos si esta fila generó al menos una advertencia
                     # para no incrementar filas_con_advertencia más de una vez.
                     fila_tiene_advertencia = False
+
+                    # Si la celda de "enfasis" traía texto pero no matcheó
+                    # ningún énfasis del catálogo de la institución, el
+                    # aspirante se crea igual (sin énfasis) pero se avisa —
+                    # nunca se autocrea un énfasis nuevo por error de tipeo.
+                    if datos.get("enfasis_no_encontrado"):
+                        fila_tiene_advertencia = True
+                        errores.append({
+                            "tipo": "warning",
+                            "fila": fila_num,
+                            "documento": documento_raw,
+                            "mensaje": (
+                                f"El énfasis '{datos['enfasis_no_encontrado']}' no existe en el "
+                                "catálogo de la institución; el aspirante se creó sin énfasis asignado."
+                            ),
+                            "error": (
+                                f"Énfasis '{datos['enfasis_no_encontrado']}' no encontrado."
+                            ),
+                        })
 
                     # Si la inscripción se completó pero el cobro NO se pudo crear
                     # por configuración faltante (ConceptoPago, nivel, etc.),
@@ -793,6 +837,7 @@ def _crear_aspirante_desde_datos(datos, institucion, lote, smtp_connection):
         apellidos=datos["apellidos"],
         numero_documento=datos["documento"],
         grado_aspira=datos["grado"],
+        enfasis=datos.get("enfasis"),
         fecha_nacimiento=datos["fecha_nacimiento"],
         email_contacto=datos["email_contacto"],
         telefono_contacto=datos["telefono_contacto"],

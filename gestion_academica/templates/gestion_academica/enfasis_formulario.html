@@ -1,0 +1,55 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_formulario|default:"Formulario de Énfasis" }}{% endblock %}
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-tools me-2"></i>{{ titulo_formulario|default:"Énfasis" }}</h2>
+  <p class="mb-0" style="color:#fff;opacity:.85;font-size:.92rem;">{% trans "Nombre del énfasis o taller técnico (ej. Electricidad, Ebanistería, Mecánica Industrial)." %}</p>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+          </div>
+          {% endif %}
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="font-size:.83rem;">{% trans "Nombre" %} <span class="text-danger">*</span></label>
+              {{ form.nombre }}
+              {% for e in form.nombre.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                {{ form.activo }}
+                <label class="form-check-label fw-semibold" style="font-size:.83rem;" for="{{ form.activo.id_for_label }}">{% trans "Activo (disponible para asignar)" %}</label>
+              </div>
+            </div>
+            {% if request.user.is_superuser %}
+            <div class="col-12">
+              <label class="form-label fw-semibold" style="font-size:.83rem;">{% trans "Institución" %} <span class="text-danger">*</span></label>
+              {{ form.institucion }}
+              {% for e in form.institucion.errors %}<div class="text-danger mt-1" style="font-size:.78rem;">{{ e }}</div>{% endfor %}
+            </div>
+            {% else %}
+              {{ form.institucion.as_hidden }}
+            {% endif %}
+          </div>
+          <div class="d-flex justify-content-end gap-2 mt-2">
+            <a href="{% url 'gestion_academica:lista_enfasis' %}" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-x-circle me-1"></i>{% trans "Cancelar" %}
+            </a>
+            <button type="submit" class="btn btn-primary btn-sm px-4">
+              <i class="bi bi-floppy-fill me-1"></i>{% trans "Guardar" %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

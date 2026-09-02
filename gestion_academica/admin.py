@@ -22,7 +22,7 @@ from django.utils.html import format_html
 # Importa los modelos desde tu aplicación gestion_academica
 from .models import (
     Usuario, Grado, Grupo, Estudiante, Docente, Familiar, PerfilAccesibilidad,
-    Materia, PeriodoAcademico, Curso, DirectorCurso,
+    Materia, Enfasis, PeriodoAcademico, Curso, DirectorCurso,
     TipoActividad, ActividadCalificable, Calificacion,
     PlanCurricular, Deber, EntregaDeber, MencionReconocimiento, ArchivoPlanAcademico,
     ConfiguracionInstitucion, Noticia, EnlaceVideollamada, AreaAcademica,
@@ -502,6 +502,14 @@ class MateriaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     search_fields = ('nombre_materia', 'codigo_materia')
     list_filter = ('nivel_escolaridad', 'institucion')
     ordering = ('institucion', 'nivel_escolaridad__orden', 'nombre_materia',)
+    raw_id_fields = ('institucion',)
+
+@admin.register(Enfasis)
+class EnfasisAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('nombre', 'institucion', 'activo')
+    search_fields = ('nombre',)
+    list_filter = ('institucion', 'activo')
+    ordering = ('institucion', 'nombre',)
     raw_id_fields = ('institucion',)
 
 @admin.register(PeriodoAcademico)

@@ -1,0 +1,45 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Énfasis" }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Énfasis" }}</h1>
+    <hr>
+    {% if enfasis %}
+        <div class="alert alert-warning shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>{% trans "¡Advertencia!" %}</h4>
+            <p>{% blocktrans with nombre=enfasis.nombre %}¿Estás seguro de que deseas eliminar el énfasis: <strong>{{ nombre }}</strong>?{% endblocktrans %}</p>
+            <hr>
+            <p class="mb-0">{% trans "Esta acción es irreversible." %}</p>
+            {% if enfasis.estudiantes.exists %}
+                <p class="mt-3 text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                    {% blocktrans with n=enfasis.estudiantes.count %}<strong>¡Importante!</strong> Este énfasis tiene {{ n }} estudiante(s) asignado(s). Al eliminarlo, esos estudiantes quedarán sin énfasis asignado.{% endblocktrans %}
+                </p>
+            {% endif %}
+            {% if enfasis.cursos.exists %}
+                <p class="text-danger">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                    {% blocktrans with n=enfasis.cursos.count %}<strong>¡Importante!</strong> Este énfasis está asignado a {{ n }} curso(s). Esos cursos pasarán a aplicar a todo el grado.{% endblocktrans %}
+                </p>
+            {% endif %}
+        </div>
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash-fill"></i> {% trans "Sí, Eliminar" %}
+            </button>
+            <a href="{% url 'gestion_academica:lista_enfasis' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> {% trans "No, Cancelar" %}
+            </a>
+        </form>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i>{% trans "No se encontró el énfasis a eliminar." %}
+        </div>
+        <a href="{% url 'gestion_academica:lista_enfasis' %}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-left-circle-fill"></i> {% trans "Volver al Listado" %}
+        </a>
+    {% endif %}
+</div>
+{% endblock %}

@@ -88,6 +88,18 @@ def docente_asignado_a_actividad(user, actividad):
 
 logger = logging.getLogger(__name__)
 
+def cursos_visibles_para_estudiante(estudiante, periodo_academico, queryset=None):
+    """Cursos de un estudiante para un período, respetando énfasis/talleres
+    (modalidad técnica): incluye los cursos sin énfasis (todo el grado, el
+    caso normal) más los del propio énfasis del estudiante, si tiene uno.
+    Usado por las distintas vistas de boletín para no duplicar el filtro."""
+    base = queryset if queryset is not None else Curso.objects.all()
+    return base.filter(
+        Q(enfasis__isnull=True) | Q(enfasis_id=estudiante.enfasis_id),
+        grado=estudiante.grado_actual, periodo_academico=periodo_academico,
+    )
+
+
 def calcular_estado_academico_curso(curso, estudiante):
     """
     Función centralizada para calcular el estado académico de un estudiante en un curso.

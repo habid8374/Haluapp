@@ -483,6 +483,13 @@
             </a>
           </li>
         {% endif %}
+        {% if perms.gestion_academica.view_enfasis %}
+          <li class="nav-item item-color-1">
+            <a class="nav-link" href="{% url 'gestion_academica:lista_enfasis' %}">
+              <i class="bi bi-tools"></i> Énfasis / Talleres
+            </a>
+          </li>
+        {% endif %}
         {% if perms.gestion_academica.view_curso %}
           <li class="nav-item item-color-5">
             <a class="nav-link" href="{% url 'gestion_academica:lista_cursos' %}">

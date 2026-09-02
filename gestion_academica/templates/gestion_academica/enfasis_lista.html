@@ -1,0 +1,70 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina|default:"Énfasis / Talleres" }}{% endblock %}
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h2 class="mb-1" style="color:#fff;"><i class="bi bi-tools me-2"></i>{{ titulo_pagina|default:"Énfasis / Talleres" }}</h2>
+      <p class="mb-0" style="color:#fff;opacity:.85;font-size:.92rem;">{% trans "Modalidades técnicas o talleres de tu institución (ej. Electricidad, Ebanistería). Solo aplica si tu colegio maneja media técnica." %}</p>
+    </div>
+    {% if perms.gestion_academica.add_enfasis %}
+    <a href="{% url 'gestion_academica:crear_enfasis' %}" class="btn btn-light btn-sm fw-semibold">
+      <i class="bi bi-plus-circle-fill me-1"></i>{% trans "Nuevo Énfasis" %}
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% if messages %}{% for m in messages %}
+<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+{% endfor %}{% endif %}
+{% if enfasis_list %}
+<div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:.88rem;">
+      <thead style="background:#f8f9ff;">
+        <tr>
+          <th class="ps-4 py-3" style="color:#4f46e5;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Énfasis / Taller" %}</th>
+          <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Estudiantes asignados" %}</th>
+          <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Estado" %}</th>
+          <th class="pe-4 py-3 text-center" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Acciones" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in enfasis_list %}
+        <tr>
+          <td class="ps-4 py-3 fw-semibold" style="color:#1e293b;">{{ e.nombre }}</td>
+          <td class="py-3" style="color:#64748b;">{{ e.estudiantes.count }}</td>
+          <td class="py-3">
+            {% if e.activo %}
+            <span class="badge rounded-pill" style="background:#dcfce7;color:#16a34a;">{% trans "Activo" %}</span>
+            {% else %}
+            <span class="badge rounded-pill" style="background:#f1f5f9;color:#64748b;">{% trans "Inactivo" %}</span>
+            {% endif %}
+          </td>
+          <td class="pe-4 py-3 text-center text-nowrap">
+            {% if perms.gestion_academica.change_enfasis %}
+            <a href="{% url 'gestion_academica:editar_enfasis' e.pk %}" class="btn btn-sm btn-outline-primary me-1" title="{% trans 'Editar' %}"><i class="bi bi-pencil-fill"></i></a>
+            {% endif %}
+            {% if perms.gestion_academica.delete_enfasis %}
+            <a href="{% url 'gestion_academica:eliminar_enfasis' e.pk %}" class="btn btn-sm btn-outline-danger" title="{% trans 'Eliminar' %}"><i class="bi bi-trash-fill"></i></a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card border-0 shadow-sm text-center py-5" style="border-radius:16px;">
+  <i class="bi bi-tools" style="font-size:2.5rem;color:#c7d2fe;"></i>
+  <p class="mt-3 text-muted">{% trans "No hay énfasis registrados aún." %}</p>
+  {% if perms.gestion_academica.add_enfasis %}
+  <a href="{% url 'gestion_academica:crear_enfasis' %}" class="btn btn-primary btn-sm px-4">
+    <i class="bi bi-plus-circle-fill me-1"></i>{% trans "Crear el primer énfasis" %}
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

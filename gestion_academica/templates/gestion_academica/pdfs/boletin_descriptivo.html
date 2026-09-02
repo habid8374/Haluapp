@@ -10,7 +10,7 @@
         <h1>INFORME DESCRIPTIVO – CUALITATIVO</h1>
         <h2>PROCESO DE APRENDIZAJE NIVEL PREESCOLAR</h2>
         <p><strong>Estudiante:</strong> {{ estudiante.usuario.get_full_name }}</p>
-        <p><strong>Grado:</strong> {{ estudiante.grado_actual.nombre }} | <strong>Periodo:</strong> {{ periodo.nombre }}</p>
+        <p><strong>Grado:</strong> {{ estudiante.grado_actual.nombre }} | <strong>Periodo:</strong> {{ periodo.nombre }}{% if estudiante.enfasis %} | <strong>Énfasis:</strong> {{ estudiante.enfasis }}{% endif %}</p>
     </header>
     {% for data in materias_con_logros %}
     <section>

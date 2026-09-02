@@ -30,7 +30,9 @@
         </div>
     <div class="card shadow-sm">
         <div class="card-header">
-            <h5 class="mb-0">{% trans "Estudiante:" %} {{ estudiante.usuario.get_full_name }}</h5>
+            <h5 class="mb-0">{% trans "Estudiante:" %} {{ estudiante.usuario.get_full_name }}
+                {% if estudiante.enfasis %}<span class="badge bg-secondary ms-2"><i class="bi bi-tools me-1"></i>{{ estudiante.enfasis }}</span>{% endif %}
+            </h5>
         </div>
         <div class="card-body">
             {% if cursos_con_detalle %}

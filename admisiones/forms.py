@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, HTML
 from .models import Aspirante
-from gestion_academica.models import Grado
+from gestion_academica.models import Grado, Enfasis
 from simat.models import Sede
 from simat.paises import PAISES_CHOICES, choices_incluyendo
 from simat.widgets import aplicar_cascada_depto_municipio
@@ -44,6 +44,20 @@ class AspiranteForm(forms.ModelForm):
                 self.fields['sede'].queryset = Sede.objects.filter(institucion=institucion, activa=True)
                 if not self.instance.pk:
                     self.fields['sede'].initial = Sede.principal_de(institucion)
+
+        # Énfasis/taller (modalidad técnica): solo se muestra si la
+        # institución tiene al menos un énfasis configurado en su catálogo —
+        # un colegio sin modalidad técnica ni siquiera ve este campo.
+        enfasis_qs = Enfasis.objects.none()
+        if institucion is not None:
+            enfasis_qs = Enfasis.objects.filter(institucion=institucion, activo=True)
+        elif user and user.is_superuser and getattr(self.instance, 'institucion_id', None):
+            enfasis_qs = Enfasis.objects.filter(institucion=self.instance.institucion_id, activo=True)
+        if enfasis_qs.exists():
+            self.fields['enfasis'].queryset = enfasis_qs
+            self.fields['enfasis'].required = False
+        else:
+            del self.fields['enfasis']
 
         # Grupo/sección como DESPLEGABLE (sin digitar) con los nombres de grupo
         # ya existentes en la institución; siempre incluye "01" por defecto.
@@ -114,6 +128,7 @@ class AspiranteForm(forms.ModelForm):
                 _("3. Matrícula"),
                 'grado_aspira', 'requiere_pago_inscripcion',
                 'sede', 'jornada', 'grupo',
+                *(['enfasis'] if 'enfasis' in self.fields else []),
                 'colegio_procedencia', 'matricula_contratada', 'repitente',
             ),
             Fieldset(
@@ -167,7 +182,7 @@ class AspiranteForm(forms.ModelForm):
             'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
             'numero_documento', 'tipo_documento',
             'fecha_nacimiento',
-            'email_contacto', 'telefono_contacto', 'grado_aspira',
+            'email_contacto', 'telefono_contacto', 'grado_aspira', 'enfasis',
             'sexo', 'grupo_sanguineo', 'discapacidad',
             'colegio_procedencia', 'direccion', 'requiere_pago_inscripcion',
             # ── Caracterización SIMPADE ──
@@ -208,6 +223,7 @@ class AspiranteForm(forms.ModelForm):
             'email_contacto': forms.EmailInput(attrs={'class': 'form-control'}),
             'telefono_contacto': forms.TextInput(attrs={'class': 'form-control'}),
             'grado_aspira': forms.Select(attrs={'class': 'form-select'}),
+            'enfasis': forms.Select(attrs={'class': 'form-select'}),
             'sexo': forms.Select(attrs={'class': 'form-select'}),
             'grupo_sanguineo': forms.Select(attrs={'class': 'form-select'}),
             'eps': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Sura, Nueva EPS, Coosalud…'}),

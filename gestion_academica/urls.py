@@ -72,6 +72,12 @@ urlpatterns = [
     path('materias/<int:pk>/editar/', views.MateriaUpdateView.as_view(), name='editar_materia'),
     path('materias/<int:pk>/eliminar/', views.MateriaDeleteView.as_view(), name='eliminar_materia'),
 
+    # --- Gestión de Énfasis / Talleres técnicos ---
+    path('enfasis/', views.EnfasisListView.as_view(), name='lista_enfasis'),
+    path('enfasis/crear/', views.EnfasisCreateView.as_view(), name='crear_enfasis'),
+    path('enfasis/<int:pk>/editar/', views.EnfasisUpdateView.as_view(), name='editar_enfasis'),
+    path('enfasis/<int:pk>/eliminar/', views.EnfasisDeleteView.as_view(), name='eliminar_enfasis'),
+
     # --- Gestión de Periodos Académicos ---
     path('periodos/', views.PeriodoAcademicoListView.as_view(), name='lista_periodos'),
     path('periodos/crear/', views.PeriodoAcademicoCreateView.as_view(), name='crear_periodo'),

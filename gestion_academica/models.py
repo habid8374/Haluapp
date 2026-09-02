@@ -504,6 +504,11 @@ class Estudiante(models.Model):
     direccion = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Dirección"))
     grado_actual = models.ForeignKey(Grado, on_delete=models.SET_NULL, null=True, blank=True, related_name='estudiantes_actuales', verbose_name=_("Grado Actual"))
     grupo = models.ForeignKey('Grupo', on_delete=models.SET_NULL, null=True, blank=True, related_name='estudiantes', verbose_name=_("Grupo/Sección"))
+    enfasis = models.ForeignKey(
+        'Enfasis', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='estudiantes', verbose_name=_("Énfasis / Taller"),
+        help_text=_("Solo aplica en instituciones con modalidad técnica (ej. media técnica)."),
+    )
     # Acudiente titular para facturación electrónica (el adquiriente de la factura).
     acudiente_responsable = models.ForeignKey(
         'gestion_academica.Familiar', on_delete=models.SET_NULL, null=True, blank=True,
@@ -1044,6 +1049,28 @@ class AreaAcademica(models.Model):
         return self.nombre
 
 
+class Enfasis(models.Model):
+    """Énfasis / taller técnico (modalidad de colegio técnico-industrial,
+    ej. Electricidad, Ebanistería, Mecánica). Catálogo propio de cada
+    institución — un colegio sin modalidad técnica simplemente no tiene
+    registros aquí y nunca ve esta funcionalidad."""
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='enfasis_tecnicos', verbose_name=_("Institución"),
+    )
+    nombre = models.CharField(max_length=100, verbose_name=_("Énfasis / Taller"))
+    activo = models.BooleanField(default=True, verbose_name=_("Activo"))
+
+    class Meta:
+        verbose_name = _("Énfasis / Taller")
+        verbose_name_plural = _("Énfasis / Talleres")
+        unique_together = ('institucion', 'nombre')
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+
 class Materia(models.Model):
     IDIOMA_INSTRUCCION_CHOICES = [
         ('es', _('Español')),
@@ -1198,6 +1225,13 @@ class Curso(models.Model):
     )
     institucion = models.ForeignKey('finanzas.InstitucionEducativa', on_delete=models.CASCADE, verbose_name=_("Institución"))
     aula = models.ForeignKey('gestion_academica.Aula', null=True, blank=True, on_delete=models.SET_NULL)
+    enfasis = models.ForeignKey(
+        'Enfasis', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='cursos', verbose_name=_("Énfasis / Taller"),
+        help_text=_("Vacío = aplica a todo el grado (comportamiento normal). "
+                     "Con un énfasis = solo ven y califican este curso los "
+                     "estudiantes con ese mismo énfasis (talleres técnicos)."),
+    )
 
     class Meta:
         verbose_name = _("Curso")

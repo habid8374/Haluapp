@@ -502,6 +502,7 @@ def _construir_plantilla_aspirantes(institucion):
         ('telefono_contacto', 'Teléfono'),
         # ── 3) Matrícula ──
         ('grado_aspira', 'Selecciona (lista)'),
+        ('enfasis', 'Selecciona (lista) — solo media técnica'),
         ('paga_inscripcion', 'SI o NO'),
         ('nombre_sede', 'Selecciona (lista)'),
         ('jornada', 'Selecciona (lista)'),
@@ -644,6 +645,15 @@ def _construir_plantilla_aspirantes(institucion):
     grados = Grado.objects.filter(institucion=institucion).order_by('orden')
     ref_grado = _lista_valores("CAT_GRADO", [g.nombre for g in grados])
 
+    # Énfasis/talleres (modalidad técnica) — catálogo propio de la
+    # institución. Vacío en colegios sin modalidad técnica (sin dropdown,
+    # la columna queda como texto libre sin efecto si no se usa).
+    from gestion_academica.models import Enfasis
+    ref_enfasis = _lista_valores(
+        "CAT_ENFASIS",
+        [e.nombre for e in Enfasis.objects.filter(institucion=institucion, activo=True).order_by('nombre')],
+    )
+
     # Grupos/secciones existentes en la institución (nombres). Siempre "01".
     from gestion_academica.models import Grupo
     nombres_grupo = sorted(set(
@@ -656,6 +666,7 @@ def _construir_plantilla_aspirantes(institucion):
     # ante cambios de orden). Fórmula = lista inline o rango de catálogo.
     dvs = {
         'grado_aspira': ref_grado,
+        'enfasis': ref_enfasis,
         'paga_inscripcion': '"SI,NO"',
         'tipo_documento': '"TI,CC,RC,PA,CE,NES,PEP,VISA,TMF,OT"',
         'sexo': '"M,F,O"',

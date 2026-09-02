@@ -11,7 +11,7 @@ from crispy_forms.layout import Layout, Fieldset
 
 # Modelos propios de gestion_academica
 from .models import (
-    Grado, Estudiante, Docente, Familiar, Materia, PeriodoAcademico,
+    Grado, Estudiante, Docente, Familiar, Materia, Enfasis, PeriodoAcademico,
     Curso, DirectorCurso, TipoActividad,
     ActividadCalificable, Calificacion, Deber, EntregaDeber,
     PlanCurricular, MencionReconocimiento, ArchivoPlanAcademico, Noticia,
@@ -578,6 +578,28 @@ class MateriaForm(forms.ModelForm):
 
         if request:
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
+
+
+class EnfasisForm(forms.ModelForm):
+    class Meta:
+        model = Enfasis
+        fields = ['nombre', 'activo', 'institucion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'institucion': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'nombre': _('Nombre'),
+            'activo': _('Activo'),
+            'institucion': _('Institución'),
+        }
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        if request:
+            self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             institucion = getattr(request.user, 'institucion_asociada', None)
             if not request.user.is_superuser and institucion:
                 self.fields['institucion'].initial = institucion
@@ -628,11 +650,12 @@ class PeriodoAcademicoForm(forms.ModelForm):
 class CursoForm(forms.ModelForm):
     class Meta:
         model = Curso
-        fields = ['materia', 'grado', 'periodo_academico', 'docentes_asignados', 'institucion']
+        fields = ['materia', 'grado', 'periodo_academico', 'enfasis', 'docentes_asignados', 'institucion']
         widgets = {
             'materia': forms.Select(attrs={'class': 'form-select'}),
             'grado': forms.Select(attrs={'class': 'form-select'}),
             'periodo_academico': forms.Select(attrs={'class': 'form-select'}),
+            'enfasis': forms.Select(attrs={'class': 'form-select'}),
             'docentes_asignados': forms.SelectMultiple(attrs={'class': 'form-select'}),
             'institucion': forms.Select(attrs={'class': 'form-select'}),
         }
@@ -640,17 +663,25 @@ class CursoForm(forms.ModelForm):
             'materia': _('Materia'),
             'grado': _('Grado'),
             'periodo_academico': _('Periodo Académico'),
+            'enfasis': _('Énfasis / Taller'),
             'docentes_asignados': _('Docentes Asignados'),
             'institucion': _('Institución'),
+        }
+        help_texts = {
+            'enfasis': _('Opcional. Solo si este curso es un taller de una modalidad técnica '
+                          '(ej. Electricidad) y debe verlo únicamente ese subgrupo del grado, '
+                          'no todo el grado.'),
         }
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        self.fields['enfasis'].required = False
         if request:
             self.fields['materia'].queryset = filter_by_user_institution(self.fields['materia'].queryset, request.user)
             self.fields['grado'].queryset = filter_by_user_institution(self.fields['grado'].queryset, request.user)
             self.fields['periodo_academico'].queryset = filter_by_user_institution(self.fields['periodo_academico'].queryset, request.user)
+            self.fields['enfasis'].queryset = filter_by_user_institution(self.fields['enfasis'].queryset, request.user)
             self.fields['docentes_asignados'].queryset = filter_by_user_institution(self.fields['docentes_asignados'].queryset, request.user)
             self.fields['institucion'].queryset = filter_by_user_institution(self.fields['institucion'].queryset, request.user)
             if not request.user.is_superuser and request.user.institucion_asociada:
