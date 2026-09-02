@@ -12353,3 +12353,6 @@ msgstr "Icon"
 
 msgid "Ícono (Bootstrap Icons)"
 msgstr "Icon (Bootstrap Icons)"
+
+msgid "Insignias:"
+msgstr "Badges:"
