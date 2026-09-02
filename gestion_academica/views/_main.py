@@ -3766,7 +3766,10 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
 
     estudiantes_del_curso = Estudiante.objects.filter(
         grado_actual=curso.grado, institucion=curso.institucion
-    ).select_related('usuario').order_by('usuario__last_name', 'usuario__first_name')
+    )
+    if curso.enfasis_id:
+        estudiantes_del_curso = estudiantes_del_curso.filter(enfasis_id=curso.enfasis_id)
+    estudiantes_del_curso = estudiantes_del_curso.select_related('usuario').order_by('usuario__last_name', 'usuario__first_name')
 
     actividades_del_curso = ActividadCalificable.objects.filter(
     curso=curso
@@ -6990,7 +6993,10 @@ def generar_reporte_nota_minima(request, curso_pk):
     )
     estudiantes = Estudiante.objects.filter(
         grado_actual=curso.grado
-    ).select_related('usuario').order_by('usuario__last_name')
+    )
+    if curso.enfasis_id:
+        estudiantes = estudiantes.filter(enfasis_id=curso.enfasis_id)
+    estudiantes = estudiantes.select_related('usuario').order_by('usuario__last_name')
 
     reporte_data = []
     NOTA_OBJETIVO = getattr(curso.institucion, 'nota_minima_aprobacion', Decimal('3.0'))
@@ -7230,13 +7236,16 @@ def exportar_reporte_nota_minima_excel(request, curso_pk):
     """
     # Reutilizamos la misma lógica de cálculo de la vista original
     curso = get_object_or_404(get_filtered_queryset(Curso, request.user, Curso.objects.select_related('grado')), pk=curso_pk)
-    estudiantes = Estudiante.objects.filter(grado_actual=curso.grado).select_related('usuario').order_by('usuario__last_name')
+    estudiantes = Estudiante.objects.filter(grado_actual=curso.grado)
+    if curso.enfasis_id:
+        estudiantes = estudiantes.filter(enfasis_id=curso.enfasis_id)
+    estudiantes = estudiantes.select_related('usuario').order_by('usuario__last_name')
     actividades = ActividadCalificable.objects.filter(curso=curso).select_related('tipo_actividad')
     calificaciones = Calificacion.objects.filter(actividad_calificable__in=actividades)
     calificaciones_map = defaultdict(dict)
     for cal in calificaciones:
         calificaciones_map[cal.estudiante_id][cal.actividad_calificable_id] = cal.valor_numerico
-    
+
     actividades_por_categoria = defaultdict(list)
     for actividad in actividades:
         if actividad.tipo_actividad and actividad.tipo_actividad.porcentaje:
@@ -7291,7 +7300,10 @@ def exportar_libro_de_notas_excel(request, curso_pk):
     """
     # 1. Obtener todos los datos necesarios (igual que antes)
     curso = get_object_or_404(get_filtered_queryset(Curso, request.user), pk=curso_pk)
-    estudiantes = Estudiante.objects.filter(grado_actual=curso.grado).select_related('usuario').order_by('usuario__last_name')
+    estudiantes = Estudiante.objects.filter(grado_actual=curso.grado)
+    if curso.enfasis_id:
+        estudiantes = estudiantes.filter(enfasis_id=curso.enfasis_id)
+    estudiantes = estudiantes.select_related('usuario').order_by('usuario__last_name')
     actividades = ActividadCalificable.objects.filter(curso=curso).select_related('tipo_actividad').order_by('tipo_actividad__nombre', 'titulo')
     
     calificaciones = Calificacion.objects.filter(actividad_calificable__in=actividades)
@@ -11280,7 +11292,10 @@ def libro_notas_api_view(request, curso_pk):
             return Response({'error': 'No tienes permiso para ver este libro de notas.'}, status=403)
 
         # 2. Obtenemos los componentes del libro de notas
-        estudiantes = Estudiante.objects.filter(grado_actual=curso.grado).select_related('usuario').order_by('usuario__last_name')
+        estudiantes = Estudiante.objects.filter(grado_actual=curso.grado)
+        if curso.enfasis_id:
+            estudiantes = estudiantes.filter(enfasis_id=curso.enfasis_id)
+        estudiantes = estudiantes.select_related('usuario').order_by('usuario__last_name')
         actividades = ActividadCalificable.objects.filter(curso=curso).order_by('fecha_publicacion')
         calificaciones = Calificacion.objects.filter(actividad_calificable__in=actividades)
 
@@ -11346,11 +11361,12 @@ def guardar_libro_notas_api_view(request, curso_pk):
         actividades_validas = set(
             ActividadCalificable.objects.filter(curso=curso).values_list('id', flat=True)
         )
-        estudiantes_validos = set(
-            Estudiante.objects.filter(
-                grado_actual=curso.grado, institucion=curso.institucion
-            ).values_list('id', flat=True)
+        _estudiantes_validos_qs = Estudiante.objects.filter(
+            grado_actual=curso.grado, institucion=curso.institucion
         )
+        if curso.enfasis_id:
+            _estudiantes_validos_qs = _estudiantes_validos_qs.filter(enfasis_id=curso.enfasis_id)
+        estudiantes_validos = set(_estudiantes_validos_qs.values_list('id', flat=True))
 
         calificaciones_procesadas_ids = []
 
@@ -13447,8 +13463,11 @@ def evaluar_logros_curso(request, curso_pk):
     ).filter(Q(materia=curso.materia) | Q(materia__isnull=True))
     # --- FIN DE LA CORRECCIÓN PRINCIPAL ---
 
-    estudiantes = Estudiante.objects.filter(grado_actual=curso.grado, activo=True).select_related('usuario')
-    
+    estudiantes = Estudiante.objects.filter(grado_actual=curso.grado, activo=True)
+    if curso.enfasis_id:
+        estudiantes = estudiantes.filter(enfasis_id=curso.enfasis_id)
+    estudiantes = estudiantes.select_related('usuario')
+
     if not logros.exists():
         messages.warning(request, f"No se encontraron logros para la materia '{curso.materia.nombre_materia}' en el '{curso.periodo_academico.nombre}'. Por favor, créalos primero en la sección de gestión de logros de Preescolar.")
 
@@ -15604,11 +15623,14 @@ def reporte_asistencia_materia(request):
         )
         
         # Obtenemos los estudiantes y anotamos sus conteos de asistencia para este curso
-        estudiantes_con_asistencia = Estudiante.objects.filter(
-            grado_actual=curso_seleccionado.grado, 
+        _estudiantes_asistencia_qs = Estudiante.objects.filter(
+            grado_actual=curso_seleccionado.grado,
             activo=True,
             institucion=institucion
-        ).annotate(
+        )
+        if curso_seleccionado.enfasis_id:
+            _estudiantes_asistencia_qs = _estudiantes_asistencia_qs.filter(enfasis_id=curso_seleccionado.enfasis_id)
+        estudiantes_con_asistencia = _estudiantes_asistencia_qs.annotate(
             total_presente=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='PRESENTE')),
             total_ausente=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='AUSENTE')),
             total_tardanza=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='TARDANZA')),
