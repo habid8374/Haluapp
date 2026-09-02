@@ -485,8 +485,15 @@
         {% endif %}
         {% if perms.gestion_academica.view_enfasis %}
           <li class="nav-item item-color-1">
-            <a class="nav-link" href="{% url 'gestion_academica:lista_enfasis' %}">
+            <a class="nav-link {% if request.resolver_match.url_name == 'lista_enfasis' %}active{% endif %}" href="{% url 'gestion_academica:lista_enfasis' %}">
               <i class="bi bi-tools"></i> Énfasis / Talleres
+            </a>
+          </li>
+        {% endif %}
+        {% if perms.gestion_academica.add_enfasis %}
+          <li class="nav-item item-color-1">
+            <a class="nav-link {% if request.resolver_match.url_name == 'crear_enfasis' %}active{% endif %}" href="{% url 'gestion_academica:crear_enfasis' %}">
+              <i class="bi bi-plus-circle"></i> Nuevo Énfasis
             </a>
           </li>
         {% endif %}
