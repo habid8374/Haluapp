@@ -12610,3 +12610,280 @@ msgstr "Electricity and electronics"
 
 msgid "Herramienta externa"
 msgstr "External tool"
+
+msgid "% de acierto"
+msgstr "% accuracy"
+
+msgid "10 ejercicios"
+msgstr "10 exercises"
+
+msgid "3 ejercicios"
+msgstr "3 exercises"
+
+msgid "5 ejercicios"
+msgstr "5 exercises"
+
+msgid "Así vas en cada tema que has practicado."
+msgstr "This is how you're doing in each topic you've practiced."
+
+msgid "Aún no has practicado ningún tema."
+msgstr "You haven't practiced any topic yet."
+
+msgid ""
+"Aún no hay ejercicios disponibles. Pídele a tu docente que active algunos."
+msgstr ""
+"There are no exercises available yet. Ask your teacher to activate some."
+
+msgid "Banco de Ejercicios"
+msgstr "Exercise Bank"
+
+msgid "DBA"
+msgstr "DBA"
+
+msgid "DBA dominados"
+msgstr "DBA mastered"
+
+msgid "Dominado"
+msgstr "Mastered"
+
+msgid "Ej: Elaboración propia del docente"
+msgstr "E.g.: Created by the teacher"
+
+msgid "Ejercicio de opción múltiple con única respuesta"
+msgstr "Multiple-choice exercise with a single answer"
+
+msgid "Ejercicios resueltos"
+msgstr "Exercises solved"
+
+msgid "Elegir otro tema"
+msgstr "Choose another topic"
+
+msgid ""
+"Elige un tema para practicar. La dificultad se ajusta a tu ritmo: entre más "
+"aciertos seguidos, más sube el nivel."
+msgstr ""
+"Choose a topic to practice. The difficulty adjusts to your pace: the more "
+"correct answers in a row, the higher the level."
+
+msgid "Empezar a practicar"
+msgstr "Start practicing"
+
+msgid "Enunciado"
+msgstr "Statement"
+
+msgid "Escribe el enunciado completo del ejercicio..."
+msgstr "Write the full exercise statement..."
+
+msgid "Este estudiante aún no ha practicado ningún DBA."
+msgstr "This student hasn't practiced any DBA yet."
+
+msgid "Explicación de la respuesta"
+msgstr "Answer explanation"
+
+msgid "Generando ejercicios con Gemini…"
+msgstr "Generating exercises with Gemini…"
+
+msgid "Generar ejercicios"
+msgstr "Generate exercises"
+
+msgid "Generar ejercicios con IA (Gemini)"
+msgstr "Generate exercises with AI (Gemini)"
+
+msgid "Nivel"
+msgstr "Level"
+
+msgid "Nivel de dominio de cada estudiante por DBA — piloto grados 3° a 5°"
+msgstr "Mastery level of each student per DBA — pilot grades 3rd-5th"
+
+msgid "No es correcto."
+msgstr "That's not correct."
+
+msgid "No hay ejercicios con esos filtros."
+msgstr "No exercises match those filters."
+
+msgid "No hay estudiantes en este grado."
+msgstr "There are no students in this grade."
+
+msgid "No se pudo enviar la respuesta. Verifica tu conexión."
+msgstr "The answer could not be sent. Check your connection."
+
+msgid "Nuevo ejercicio"
+msgstr "New exercise"
+
+msgid "Ocurrió un error. Intenta de nuevo."
+msgstr "An error occurred. Try again."
+
+msgid "Opciones de respuesta — marca la correcta"
+msgstr "Answer options — mark the correct one"
+
+msgid "Practicar"
+msgstr "Practice"
+
+msgid "Progreso del grupo"
+msgstr "Group progress"
+
+msgid "Progreso del Grupo"
+msgstr "Group Progress"
+
+msgid "Práctica adaptativa de matemáticas por DBA — piloto grados 3° a 5°"
+msgstr "Adaptive math practice by DBA — pilot grades 3rd-5th"
+
+msgid "Pública"
+msgstr "Public"
+
+msgid "Racha máxima"
+msgstr "Longest streak"
+
+msgid "Selecciona un grado para ver el progreso de sus estudiantes."
+msgstr "Select a grade to see its students' progress."
+
+msgid "Selecciona un grado…"
+msgstr "Select a grade…"
+
+msgid "Siguiente ejercicio"
+msgstr "Next exercise"
+
+msgid "Todos los DBA"
+msgstr "All DBAs"
+
+msgid "Todos los niveles"
+msgstr "All levels"
+
+msgid "Ver mi progreso"
+msgstr "See my progress"
+
+msgid "ejercicio"
+msgstr "exercise"
+
+msgid "opcional — se muestra al estudiante al responder"
+msgstr "optional — shown to the student when answering"
+
+msgid "racha"
+msgstr "streak"
+
+msgid "racha actual"
+msgstr "current streak"
+
+msgid "¡Correcto!"
+msgstr "Correct!"
+
+msgid "¡Dominado!"
+msgstr "Mastered!"
+
+msgid "¡Felicitaciones, dominaste este DBA!"
+msgstr "Congratulations, you mastered this DBA!"
+
+msgid "¡Subiste de nivel!"
+msgstr "You leveled up!"
+
+msgid "¿Eliminar este ejercicio?"
+msgstr "Delete this exercise?"
+
+msgid "¿Por qué es correcta esa opción?"
+msgstr "Why is that option correct?"
+
+msgid "Texto de la opción %(letra)s"
+msgstr "Option text %(letra)s"
+
+msgid ""
+"Aún no hay ejercicios disponibles para este DBA. Pídele a tu docente que "
+"genere algunos."
+msgstr ""
+"There are no exercises available for this DBA yet. Ask your teacher to "
+"generate some."
+
+msgid "Ejercicio eliminado."
+msgstr "Exercise deleted."
+
+msgid "Ejercicio guardado correctamente."
+msgstr "Exercise saved successfully."
+
+msgid "Selecciona un DBA válido."
+msgstr "Select a valid DBA."
+
+msgid "Editar Ejercicio"
+msgstr "Edit Exercise"
+
+msgid "Halu Math — Progreso del grupo"
+msgstr "Halu Math — Group progress"
+
+msgid "Progreso — %(nombre)s"
+msgstr "Progress — %(nombre)s"
+
+msgid "Halu Math — Practicar"
+msgstr "Halu Math — Practice"
+
+msgid "Mi Progreso — Halu Math"
+msgstr "My Progress — Halu Math"
+
+msgid "Halu Math — Banco de Ejercicios"
+msgstr "Halu Math — Exercise Bank"
+
+msgid "Nuevo Ejercicio"
+msgstr "New Exercise"
+
+msgid "Aciertos totales"
+msgstr "Total correct"
+
+msgid "Dominio de DBA"
+msgstr "DBA Mastery"
+
+msgid "Dominios de DBA"
+msgstr "DBA Masteries"
+
+msgid "Ejercicio"
+msgstr "Exercise"
+
+msgid "Ejercicio de Matemáticas"
+msgstr "Math Exercise"
+
+msgid "Ejercicios de Matemáticas"
+msgstr "Math Exercises"
+
+msgid "Es correcta"
+msgstr "Is correct"
+
+msgid "Fecha de dominio"
+msgstr "Mastery date"
+
+msgid "Intento de ejercicio"
+msgstr "Exercise attempt"
+
+msgid "Intentos de ejercicio"
+msgstr "Exercise attempts"
+
+msgid "Intentos totales"
+msgstr "Total attempts"
+
+msgid "Nivel actual"
+msgstr "Current level"
+
+msgid "Nivel de dificultad"
+msgstr "Difficulty level"
+
+msgid "Nivel en el momento del intento"
+msgstr "Level at the time of the attempt"
+
+msgid "Opciones de ejercicio"
+msgstr "Exercise options"
+
+msgid "Opción de ejercicio"
+msgstr "Exercise option"
+
+msgid "Opción elegida"
+msgstr "Chosen option"
+
+msgid "Público (catálogo de la plataforma)"
+msgstr "Public (platform catalog)"
+
+msgid "Racha actual"
+msgstr "Current streak"
+
+msgid "Texto"
+msgstr "Text"
+
+msgid "Vacío = ejercicio público del catálogo de la plataforma."
+msgstr "Empty = public exercise from the platform catalog."
+
+msgid "Halu Math"
+msgstr "Halu Math"

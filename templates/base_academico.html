@@ -318,6 +318,13 @@
         </a>
       </li>
       {% endif %}
+      {% if 'halu_math' in modulos_activos %}
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if 'matematicas' in request.path %}active{% endif %}" href="{% url 'halu_math:elegir_dba' %}">
+          <i class="bi bi-calculator-fill"></i> {% trans "Halu Math" %}
+        </a>
+      </li>
+      {% endif %}
       <li class="nav-item item-color-8">
         <a class="nav-link {% if 'mis-menciones' in request.path %}active{% endif %}" href="{% url 'gestion_academica:estudiante_mis_menciones' %}">
           <i class="bi bi-award-fill"></i> {% trans "Mis Menciones" %}
@@ -427,6 +434,22 @@
         </a>
       </li>
       {% endif %}
+      {% endif %}
+      {% if 'halu_math' in modulos_activos %}
+      <hr class="menu-divider">
+      <h5 class="menu-section-title">{% trans "Halu Math" %}</h5>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if request.resolver_match.url_name == 'banco_ejercicios' %}active{% endif %}"
+           href="{% url 'halu_math:banco_ejercicios' %}">
+          <i class="bi bi-calculator-fill"></i> {% trans "Banco de Ejercicios" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if request.resolver_match.url_name == 'progreso_grupo' %}active{% endif %}"
+           href="{% url 'halu_math:progreso_grupo' %}">
+          <i class="bi bi-graph-up-arrow"></i> {% trans "Progreso del Grupo" %}
+        </a>
+      </li>
       {% endif %}
       {% if perms.gestion_academica.acceso_modulo_academico %}
         <hr class="menu-divider">

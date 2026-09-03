@@ -46,6 +46,7 @@ MODULOS_CONOCIDOS = {
     'simat': {'nombre': 'SIMAT (reporte oficial)', 'prefijo_url': '/simat/', 'icono': 'bi-file-earmark-spreadsheet', 'descripcion': 'Reporte de matrícula al MEN (Anexo 6A / plano).', 'orden': 100},
     'mensajeria': {'nombre': 'Mensajería interna', 'prefijo_url': '/mensajeria/', 'icono': 'bi-chat-dots', 'descripcion': 'Mensajería interna entre usuarios.', 'orden': 110},
     'steam': {'nombre': 'Halu STEAM', 'prefijo_url': '/academico/steam/', 'icono': 'bi-stars', 'descripcion': 'Panel de coordinación para la modalidad técnica/STEAM: talleres, recursos interactivos y simulacros en un solo lugar.', 'orden': 120},
+    'halu_math': {'nombre': 'Halu Math', 'prefijo_url': '/matematicas/', 'icono': 'bi-calculator-fill', 'descripcion': 'Práctica adaptativa de matemáticas por DBA: dificultad ajustada al desempeño del estudiante, con ejercicios generados por IA y curados por el docente.', 'orden': 130},
 }
 
 

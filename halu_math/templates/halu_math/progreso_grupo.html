@@ -1,0 +1,99 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% load gestion_academica_filters %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+  .nivel-badge { font-size:.68rem; font-weight:700; border-radius:20px; padding:.25em .65em; display:inline-block; }
+  .nivel-basico { background:#f1f5f9; color:#64748b; }
+  .nivel-medio { background:#dbeafe; color:#1d4ed8; }
+  .nivel-alto { background:#dcfce7; color:#16a34a; }
+  .nivel-dominado { background:#fef3c7; color:#b45309; }
+  .celda-dba { min-width:110px; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <h2 class="fw-bold mb-1" style="font-size:1.3rem;color:#fff;"><i class="bi bi-graph-up-arrow me-2"></i>{{ titulo_pagina }}</h2>
+        <p class="mb-0" style="opacity:.85;font-size:.88rem;color:#fff;">{% trans "Nivel de dominio de cada estudiante por DBA — piloto grados 3° a 5°" %}</p>
+      </div>
+      <a href="{% url 'halu_math:banco_ejercicios' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>{% trans "Volver" %}</a>
+    </div>
+  </div>
+  <form method="get" class="row g-2 mb-3 p-3" style="background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+    <div class="col-md-4">
+      <select name="grado" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">{% trans "Selecciona un grado…" %}</option>
+        {% for grado in grados %}<option value="{{ grado.pk }}" {% if grado_sel == grado.pk|stringformat:"s" %}selected{% endif %}>{{ grado.nombre }}</option>{% endfor %}
+      </select>
+    </div>
+  </form>
+  {% if grado_sel %}
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-4">
+      <div class="card text-center shadow-sm py-2">
+        <div class="fw-800" style="font-size:2rem;color:#4f46e5;">{{ total_intentos }}</div>
+        <div class="text-muted small">{% trans "Ejercicios resueltos" %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4">
+      <div class="card text-center shadow-sm py-2">
+        <div class="fw-800" style="font-size:2rem;color:#16a34a;">{{ pct_acierto }}%</div>
+        <div class="text-muted small">{% trans "% de acierto" %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4">
+      <div class="card text-center shadow-sm py-2">
+        <div class="fw-800" style="font-size:2rem;color:#b45309;">{{ total_dominados }}</div>
+        <div class="text-muted small">{% trans "DBA dominados" %}</div>
+      </div>
+    </div>
+  </div>
+  <div class="card shadow-sm">
+    <div class="card-body p-0" style="overflow-x:auto;">
+      <table class="table table-sm mb-0" style="font-size:.82rem;">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">{% trans "Estudiante" %}</th>
+            {% for dba in dbas %}<th class="celda-dba text-center">{{ dba.get_grado_display }} #{{ dba.numero }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for fila in matriz %}
+          <tr>
+            <td class="ps-3">
+              <a href="{% url 'halu_math:progreso_estudiante' fila.estudiante.pk %}">{{ fila.estudiante.usuario.get_full_name }}</a>
+            </td>
+            {% for dominio in fila.celdas %}
+            <td class="text-center">
+              {% if dominio %}
+                {% if dominio.dominado %}
+                <span class="nivel-badge nivel-dominado"><i class="bi bi-trophy-fill me-1"></i>{% trans "Dominado" %}</span>
+                {% else %}
+                <span class="nivel-badge nivel-{{ dominio.nivel_actual|lower }}">{{ dominio.get_nivel_actual_display }}</span>
+                <div class="text-muted" style="font-size:.68rem;">{% trans "racha" %} {{ dominio.racha_actual }}</div>
+                {% endif %}
+              {% else %}
+              <span class="text-muted" style="font-size:.72rem;">—</span>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="{{ dbas|length|add:1 }}" class="text-center text-muted py-3">{% trans "No hay estudiantes en este grado." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-people" style="font-size:3rem;opacity:.3;"></i>
+    <p class="mt-2">{% trans "Selecciona un grado para ver el progreso de sus estudiantes." %}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

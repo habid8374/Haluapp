@@ -1,0 +1,75 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% load gestion_academica_filters %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container mt-4" style="max-width:780px;">
+  <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:16px;padding:1.5rem;color:#fff;margin-bottom:1.5rem;">
+    <h2 class="fw-bold mb-0" style="font-size:1.3rem;color:#fff;"><i class="bi bi-pencil-square me-2"></i>{{ titulo_pagina }}</h2>
+    <p class="mb-0 mt-1" style="opacity:.85;font-size:.88rem;color:#fff;">{% trans "Ejercicio de opción múltiple con única respuesta" %}</p>
+  </div>
+  {% if messages %}{% for m in messages %}
+  <div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}{% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="row g-3 mb-3">
+          <div class="col-md-8">
+            <label class="form-label fw-bold small">{% trans "DBA" %} *</label>
+            <select name="dba" class="form-select form-select-sm" required>
+              {% for dba in dbas %}
+              <option value="{{ dba.pk }}" {% if ejercicio.dba_id == dba.pk %}selected{% endif %}>{{ dba.get_grado_display }} — #{{ dba.numero }}: {{ dba.enunciado|truncatechars:80 }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold small">{% trans "Dificultad" %}</label>
+            <select name="nivel_dificultad" class="form-select form-select-sm">
+              {% for val, label in niveles %}
+              <option value="{{ val }}" {% if ejercicio.nivel_dificultad == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">{% trans "Enunciado" %} *</label>
+          <textarea name="enunciado" class="form-control" rows="4" required placeholder="{% trans "Escribe el enunciado completo del ejercicio..." %}">{{ ejercicio.enunciado|default:'' }}</textarea>
+        </div>
+        <div class="card mb-3" style="border-color:#e0e7ff;background:#f8faff;">
+          <div class="card-header fw-bold small" style="background:#eef2ff;color:#4f46e5;border-color:#e0e7ff;">
+            <i class="bi bi-list-ol me-1"></i>{% trans "Opciones de respuesta — marca la correcta" %}
+          </div>
+          <div class="card-body">
+            {% for letra in "ABCD" %}
+            <div class="d-flex align-items-center gap-3 mb-2">
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="radio" name="correcta" value="{{ letra }}" id="radio_{{ letra }}"
+                       {% if correcta == letra or not correcta and letra == 'A' %}checked{% endif %} required>
+                <label class="form-check-label fw-bold" for="radio_{{ letra }}" style="color:#4f46e5;">{{ letra }}</label>
+              </div>
+              <input type="text" name="opcion_{{ letra }}" class="form-control form-control-sm"
+                     placeholder="{% blocktrans %}Texto de la opción {{ letra }}{% endblocktrans %}" required
+                     value="{{ opciones|get_item:letra|default:'' }}">
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">{% trans "Explicación de la respuesta" %} <span class="text-muted fw-normal">({% trans "opcional — se muestra al estudiante al responder" %})</span></label>
+          <textarea name="explicacion" class="form-control form-control-sm" rows="2" placeholder="{% trans "¿Por qué es correcta esa opción?" %}">{{ ejercicio.explicacion|default:'' }}</textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">{% trans "Fuente" %} <span class="text-muted fw-normal">({% trans "opcional" %})</span></label>
+          <input type="text" name="fuente" class="form-control form-control-sm" placeholder="{% trans "Ej: Elaboración propia del docente" %}" value="{{ ejercicio.fuente|default:'' }}">
+        </div>
+      </div>
+      <div class="card-footer d-flex gap-2 justify-content-end">
+        <a href="{% url 'halu_math:banco_ejercicios' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{% trans "Volver" %}</a>
+        <button type="submit" class="btn btn-primary btn-sm fw-bold"><i class="bi bi-save me-1"></i>{{ accion }} {% trans "ejercicio" %}</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -90,6 +90,7 @@ urlpatterns = [
     path('2fa/', include('autenticacion_2fa.urls', namespace='2fa')),
     path('simulacros/', include('simulacros.urls', namespace='simulacros')),
     path('piar/', include('piar.urls', namespace='piar')),
+    path('matematicas/', include('halu_math.urls', namespace='halu_math')),
     path('simat/', include('simat.urls', namespace='simat')),
     path('evaluacion-docente/', include('evaluacion_docente.urls', namespace='evaluacion_docente')),
     path('autoevaluacion/', include('autoevaluacion_institucional.urls', namespace='autoevaluacion_institucional')),
