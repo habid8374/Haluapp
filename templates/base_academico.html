@@ -639,6 +639,14 @@
           <i class="bi bi-life-preserver"></i> {% trans "Centro de Ayuda" %}
         </a>
       </li>
+      {% if 'steam' in modulos_activos and perms.gestion_academica.view_proyectosteam %}
+      <li class="nav-item item-color-2">
+        <a class="nav-link {% if request.resolver_match.url_name == 'panel_steam' %}active{% endif %}"
+           href="{% url 'gestion_academica:panel_steam' %}">
+          <i class="bi bi-stars"></i> {% trans "Panel STEAM" %}
+        </a>
+      </li>
+      {% endif %}
       <li class="nav-item item-color-2">
         <a class="nav-link {% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}{% else %}collapsed{% endif %}" href="#gestionSubmenu"
            data-bs-toggle="collapse" role="button"
