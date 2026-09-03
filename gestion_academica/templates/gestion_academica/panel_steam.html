@@ -68,7 +68,7 @@
         {% endif %}
         <p class="text-muted small flex-grow-1">{% trans "Crucigramas, sopas de letras, memoria, flashcards, quiz de audio, secuencias, trazado y rompecabezas — juegos que refuerzan vocabulario y lógica STEAM." %}</p>
         {% if 'recursos_interactivos' in modulos_activos %}
-        <a href="{% url 'crucigramas:mis_crucigramas' %}" class="btn btn-sm btn-primary mt-auto">
+        <a href="{% url 'crucigramas:lista' %}" class="btn btn-sm btn-primary mt-auto">
           <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Ver recursos" %}
         </a>
         {% else %}
