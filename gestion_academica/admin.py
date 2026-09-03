@@ -624,7 +624,7 @@ class AsignacionSimulacionSTEAMAdmin(InstitucionScopedAdminMixin, admin.ModelAdm
     search_fields = ('simulacion__titulo',)
     list_filter = ('institucion',)
     ordering = ('-creado_en',)
-    raw_id_fields = ('institucion', 'simulacion', 'curso')
+    raw_id_fields = ('institucion', 'simulacion', 'curso', 'actividad_calificable')
 
 @admin.register(RetoSTEAM)
 class RetoSTEAMAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):

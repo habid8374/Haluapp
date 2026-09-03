@@ -99,6 +99,11 @@
             {{ asignar_form.curso }}
           </div>
           <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.8rem;">{{ asignar_form.tipo_actividad.label }}</label>
+            {{ asignar_form.tipo_actividad }}
+            <div class="form-text" style="font-size:.72rem;">{{ asignar_form.tipo_actividad.help_text }}</div>
+          </div>
+          <div class="mb-2">
             <label class="form-label fw-semibold" style="font-size:.8rem;">{{ asignar_form.nota.label }}</label>
             {{ asignar_form.nota }}
           </div>

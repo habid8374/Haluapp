@@ -716,7 +716,18 @@ class EvidenciaProyectoForm(forms.ModelForm):
 class AsignacionSimulacionSTEAMForm(forms.ModelForm):
     """Asigna una simulación STEAM (del catálogo) a uno de los cursos de la
     institución. La simulación en sí se elige en la vista (viene en la URL,
-    no en este formulario)."""
+    no en este formulario). Igual que ProyectoSTEAMForm, la categoría de
+    evaluación no es un campo del modelo de asignación — vive en la
+    ActividadCalificable que la vista crea/enlaza detrás de escena, para que
+    la simulación pondere en el boletín como cualquier otra actividad."""
+
+    tipo_actividad = forms.ModelChoiceField(
+        queryset=TipoActividad.objects.none(), required=True,
+        label=_("Categoría de evaluación"),
+        help_text=_("Determina cómo pondera la nota de esta simulación en el boletín (ej. Saber Hacer)."),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+
     class Meta:
         model = AsignacionSimulacionSTEAM
         fields = ['curso', 'nota', 'fecha_limite']
@@ -731,6 +742,7 @@ class AsignacionSimulacionSTEAMForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if request:
             self.fields['curso'].queryset = filter_by_user_institution(Curso.objects.all(), request.user)
+            self.fields['tipo_actividad'].queryset = filter_by_user_institution(TipoActividad.objects.all(), request.user)
 
 
 class InsigniaForm(forms.ModelForm):

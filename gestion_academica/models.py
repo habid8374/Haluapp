@@ -3704,6 +3704,11 @@ class AsignacionSimulacionSTEAM(models.Model):
     curso = models.ForeignKey(
         'Curso', on_delete=models.CASCADE, related_name='simulaciones_steam_asignadas', verbose_name=_("Curso"),
     )
+    actividad_calificable = models.OneToOneField(
+        'ActividadCalificable', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='asignacion_simulacion_steam', verbose_name=_("Actividad calificable enlazada"),
+        help_text=_("Se crea automáticamente al asignar, con la categoría de evaluación elegida, para que la simulación pondere en el boletín."),
+    )
     nota = models.TextField(blank=True, verbose_name=_("Instrucciones para el estudiante (opcional)"))
     fecha_limite = models.DateField(null=True, blank=True, verbose_name=_("Fecha límite (opcional)"))
     asignado_por = models.ForeignKey(

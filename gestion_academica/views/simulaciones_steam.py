@@ -14,13 +14,14 @@ le asignaron a un curso que él puede ver (respeta el aislamiento por
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from ..forms import AsignacionSimulacionSTEAMForm
-from ..models import AsignacionSimulacionSTEAM, PeriodoAcademico, SimulacionSTEAM
+from ..models import ActividadCalificable, AsignacionSimulacionSTEAM, PeriodoAcademico, SimulacionSTEAM
 from ..utils import cursos_visibles_para_estudiante
 from ._main import get_filtered_queryset
 
@@ -118,12 +119,24 @@ def asignar_simulacion_steam(request, simulacion_pk):
     if request.method == 'POST':
         form = AsignacionSimulacionSTEAMForm(request.POST, request=request)
         if form.is_valid():
-            asignacion = form.save(commit=False)
-            asignacion.simulacion = simulacion
-            asignacion.institucion = institucion
-            asignacion.asignado_por = request.user
+            curso = form.cleaned_data['curso']
             try:
-                asignacion.save()
+                with transaction.atomic():
+                    actividad = ActividadCalificable.objects.create(
+                        curso=curso,
+                        tipo_actividad=form.cleaned_data['tipo_actividad'],
+                        titulo=simulacion.titulo,
+                        descripcion=form.cleaned_data.get('nota') or simulacion.descripcion,
+                        fecha_publicacion=timezone.localdate(),
+                        fecha_entrega_limite=form.cleaned_data.get('fecha_limite'),
+                        institucion=curso.institucion,
+                    )
+                    asignacion = form.save(commit=False)
+                    asignacion.simulacion = simulacion
+                    asignacion.institucion = institucion
+                    asignacion.asignado_por = request.user
+                    asignacion.actividad_calificable = actividad
+                    asignacion.save()
                 messages.success(request, _("«%(titulo)s» asignada al curso.") % {'titulo': simulacion.titulo})
             except IntegrityError:
                 messages.warning(request, _("Esa simulación ya estaba asignada a ese curso."))
