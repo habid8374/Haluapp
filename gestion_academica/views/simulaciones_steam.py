@@ -36,13 +36,18 @@ def _puede_gestionar_asignacion(user, asignacion):
     return hasattr(user, 'docente') and asignacion.curso.docentes_asignados.filter(pk=user.docente.pk).exists()
 
 
-def _url_embed_phet(simulacion):
-    """PhET publica cada simulación HTML5 en
-    phet.colorado.edu/sims/html/<slug>/latest/<slug>_all.html — un build que
-    trae selector de idioma incluido (mismo patrón documentado en su botón
-    oficial «Embed»). El slug es el último tramo de la URL de la página que
-    guardamos (phet.colorado.edu/en/simulations/<slug>)."""
+def _url_embed_simulacion(simulacion):
+    """Construye la URL a embeber en el visor. PhET publica cada simulación
+    HTML5 en phet.colorado.edu/sims/html/<slug>/latest/<slug>_all.html — un
+    build que trae selector de idioma incluido (mismo patrón documentado en
+    su botón oficial «Embed»); el slug es el último tramo de la URL de la
+    página que guardamos (phet.colorado.edu/en/simulations/<slug>). Otras
+    fuentes (GeoGebra, etc.) ya publican su app directamente en una URL
+    embebible — se usa tal cual, sin transformar."""
     from urllib.parse import urlparse
+    hostname = (urlparse(simulacion.url).hostname or '').lower()
+    if hostname not in ('phet.colorado.edu', 'www.phet.colorado.edu'):
+        return simulacion.url
     slug = urlparse(simulacion.url).path.rstrip('/').rsplit('/', 1)[-1]
     if not slug:
         return None
@@ -182,7 +187,7 @@ def abrir_simulacion_steam(request, pk):
     )
     context = {
         'simulacion': simulacion,
-        'url_embed': _url_embed_phet(simulacion),
+        'url_embed': _url_embed_simulacion(simulacion),
         'volver_url': volver_url,
         'titulo_pagina': simulacion.titulo,
     }

@@ -3657,9 +3657,9 @@ class SimulacionSTEAM(models.Model):
     area = models.CharField(max_length=20, choices=Area.choices, verbose_name=_("Área"))
     url = models.URLField(
         verbose_name=_("Enlace a la simulación"),
-        help_text=_("Por ahora solo se permiten enlaces de phet.colorado.edu."),
+        help_text=_("Por ahora solo se permiten enlaces de phet.colorado.edu o geogebra.org."),
     )
-    icono = models.CharField(max_length=40, default='bi-atom', verbose_name=_("Ícono"))
+    icono = models.CharField(max_length=40, default='bi-graph-up-arrow', verbose_name=_("Ícono"))
     activo = models.BooleanField(default=True, verbose_name=_("Activa"))
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
@@ -3675,13 +3675,18 @@ class SimulacionSTEAM(models.Model):
     def __str__(self):
         return self.titulo
 
+    HOSTNAMES_PERMITIDOS = (
+        'phet.colorado.edu', 'www.phet.colorado.edu',
+        'geogebra.org', 'www.geogebra.org',
+    )
+
     def clean(self):
         from django.core.exceptions import ValidationError
         from urllib.parse import urlparse
         if self.url:
             hostname = (urlparse(self.url).hostname or '').lower()
-            if hostname not in ('phet.colorado.edu', 'www.phet.colorado.edu'):
-                raise ValidationError({'url': _("Por ahora solo se permiten enlaces de phet.colorado.edu.")})
+            if hostname not in self.HOSTNAMES_PERMITIDOS:
+                raise ValidationError({'url': _("Por ahora solo se permiten enlaces de phet.colorado.edu o geogebra.org.")})
 
 
 class AsignacionSimulacionSTEAM(models.Model):
@@ -3739,7 +3744,9 @@ class RetoSTEAM(models.Model):
         HIDRAULICA_NEUMATICA = 'HIDRAULICA_NEUMATICA', _('Hidráulica y neumática')
         MOVIMIENTO_TRANSPORTE = 'MOVIMIENTO_TRANSPORTE', _('Movimiento y transporte')
         CIENCIA_SOSTENIBILIDAD = 'CIENCIA_SOSTENIBILIDAD', _('Ciencia de la Tierra y sostenibilidad')
+        ELECTRICIDAD_ELECTRONICA = 'ELECTRICIDAD_ELECTRONICA', _('Electricidad y electrónica')
         COMPETENCIA_EXTERNA = 'COMPETENCIA_EXTERNA', _('Competencia externa')
+        HERRAMIENTA_EXTERNA = 'HERRAMIENTA_EXTERNA', _('Herramienta externa')
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE, null=True, blank=True,

@@ -12604,3 +12604,9 @@ msgstr ""
 
 msgid "Ciencia de la Tierra y sostenibilidad"
 msgstr "Earth Science and Sustainability"
+
+msgid "Electricidad y electrónica"
+msgstr "Electricity and electronics"
+
+msgid "Herramienta externa"
+msgstr "External tool"
