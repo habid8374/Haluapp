@@ -108,7 +108,7 @@
 
 <div class="row g-3 mb-3">
   <!-- Proyectos STEAM -->
-  <div class="col-md-6">
+  <div class="col-md-4">
     <div class="card steam-card">
       <div class="steam-card-body">
         <div class="steam-icon-badge" style="background:#eff6ff;color:#2563eb;"><i class="bi bi-rocket-takeoff-fill"></i></div>
@@ -126,8 +126,35 @@
     </div>
   </div>
 
+  <!-- Simulaciones STEAM (PhET) -->
+  <div class="col-md-4">
+    <div class="card steam-card">
+      <div class="steam-card-body">
+        <div class="steam-icon-badge" style="background:#fff7ed;color:#ea580c;"><i class="bi bi-atom"></i></div>
+        <h5 class="fw-bold mb-1">{% trans "Simulaciones STEAM" %}</h5>
+        <span class="badge rounded-pill badge-contratado align-self-start mb-3">{% trans "Incluido" %}</span>
+        <div class="d-flex gap-4 mb-3">
+          <div>
+            <div class="steam-stat">{{ total_simulaciones_catalogo }}</div>
+            <div class="steam-stat-label">{% trans "En el catálogo" %}</div>
+          </div>
+          <div>
+            <div class="steam-stat">{{ total_simulaciones_asignadas }}</div>
+            <div class="steam-stat-label">{% trans "Asignadas" %}</div>
+          </div>
+        </div>
+        <p class="text-muted small flex-grow-1">{% trans "Simulaciones reales de física, química, matemáticas y biología (PhET) — asígnalas a tus cursos." %}</p>
+        {% if perms.gestion_academica.view_simulacionsteam %}
+        <a href="{% url 'gestion_academica:catalogo_simulaciones_steam' %}" class="btn btn-sm btn-primary mt-auto">
+          <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Ver catálogo" %}
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
   <!-- Insignias -->
-  <div class="col-md-6">
+  <div class="col-md-4">
     <div class="card steam-card">
       <div class="steam-card-body">
         <div class="steam-icon-badge" style="background:#fffbeb;color:#d97706;"><i class="bi bi-award-fill"></i></div>

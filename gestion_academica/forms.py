@@ -24,6 +24,7 @@ from .models import (
     JustificacionInasistencia, PerfilAccesibilidad,
     ProyectoSTEAM, HitoProyecto, ParticipanteProyecto, EvidenciaProyecto,
     Insignia, InsigniaObtenida,
+    AsignacionSimulacionSTEAM,
 )
 
 
@@ -710,6 +711,26 @@ class EvidenciaProyectoForm(forms.ModelForm):
             'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Ej: Video de la demostración')}),
             'url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://…'}),
         }
+
+
+class AsignacionSimulacionSTEAMForm(forms.ModelForm):
+    """Asigna una simulación STEAM (del catálogo) a uno de los cursos de la
+    institución. La simulación en sí se elige en la vista (viene en la URL,
+    no en este formulario)."""
+    class Meta:
+        model = AsignacionSimulacionSTEAM
+        fields = ['curso', 'nota', 'fecha_limite']
+        widgets = {
+            'curso': forms.Select(attrs={'class': 'form-select'}),
+            'nota': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('Ej: Explora la simulación y anota qué pasa si cambias la resistencia.')}),
+            'fecha_limite': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        if request:
+            self.fields['curso'].queryset = filter_by_user_institution(Curso.objects.all(), request.user)
 
 
 class InsigniaForm(forms.ModelForm):

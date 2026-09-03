@@ -17,9 +17,13 @@ coordinador real —la audiencia principal de este panel— quedaría bloqueado
 si se usara.
 """
 from django.contrib.auth.decorators import login_required, permission_required
+from django.db.models import Q
 from django.shortcuts import render
 
-from ..models import Enfasis, Estudiante, Insignia, InsigniaObtenida, ItemMalla, ProyectoSTEAM
+from ..models import (
+    AsignacionSimulacionSTEAM, Enfasis, Estudiante, Insignia, InsigniaObtenida,
+    ItemMalla, ProyectoSTEAM, SimulacionSTEAM,
+)
 from ._main import get_current_institution
 
 
@@ -43,6 +47,14 @@ def panel_steam(request):
     items_con_stem = sum(1 for it in items_malla_qs if it.principios_stem)
     cobertura_stem_general = round(items_con_stem / total_items_malla * 100) if total_items_malla else 0
 
+    total_simulaciones_catalogo = (
+        SimulacionSTEAM.objects.filter(Q(es_publica=True) | Q(institucion=institucion), activo=True).count()
+        if institucion else 0
+    )
+    total_simulaciones_asignadas = (
+        AsignacionSimulacionSTEAM.objects.filter(institucion=institucion).count() if institucion else 0
+    )
+
     context = {
         'titulo_pagina': "Halu STEAM",
         'institucion': institucion,
@@ -54,5 +66,7 @@ def panel_steam(request):
         'total_insignias_otorgadas': total_insignias_otorgadas,
         'total_items_malla': total_items_malla,
         'cobertura_stem_general': cobertura_stem_general,
+        'total_simulaciones_catalogo': total_simulaciones_catalogo,
+        'total_simulaciones_asignadas': total_simulaciones_asignadas,
     }
     return render(request, 'gestion_academica/panel_steam.html', context)

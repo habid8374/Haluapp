@@ -3629,3 +3629,89 @@ class InsigniaObtenida(models.Model):
 
     def __str__(self):
         return f"{self.insignia} → {self.estudiante}"
+
+
+class SimulacionSTEAM(models.Model):
+    """Catálogo de simulaciones interactivas STEAM (PhET, Universidad de
+    Colorado Boulder — código abierto, licencia CC-BY). Mismo patrón
+    multi-tenant que BancoPregunta en el módulo de Simulacros:
+    es_publica=True → simulación curada por la plataforma, visible para
+    TODAS las instituciones; es_publica=False → simulación privada de
+    `institucion` (para cuando un colegio quiera agregar la suya propia)."""
+
+    class Area(models.TextChoices):
+        FISICA = 'FISICA', _('Física')
+        QUIMICA = 'QUIMICA', _('Química')
+        MATEMATICAS = 'MATEMATICAS', _('Matemáticas')
+        BIOLOGIA = 'BIOLOGIA', _('Biología')
+        CIENCIAS_TIERRA = 'CIENCIAS_TIERRA', _('Ciencias de la Tierra')
+
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='simulaciones_steam', verbose_name=_("Institución"),
+        help_text=_("Vacío = simulación pública del catálogo de la plataforma."),
+    )
+    es_publica = models.BooleanField(default=False, verbose_name=_("Pública (catálogo de la plataforma)"))
+    titulo = models.CharField(max_length=150, verbose_name=_("Título"))
+    descripcion = models.TextField(blank=True, verbose_name=_("Descripción"))
+    area = models.CharField(max_length=20, choices=Area.choices, verbose_name=_("Área"))
+    url = models.URLField(
+        verbose_name=_("Enlace a la simulación"),
+        help_text=_("Por ahora solo se permiten enlaces de phet.colorado.edu."),
+    )
+    icono = models.CharField(max_length=40, default='bi-atom', verbose_name=_("Ícono"))
+    activo = models.BooleanField(default=True, verbose_name=_("Activa"))
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='simulaciones_steam_creadas', verbose_name=_("Creada por"),
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Simulación STEAM")
+        verbose_name_plural = _("Simulaciones STEAM")
+        ordering = ['area', 'titulo']
+
+    def __str__(self):
+        return self.titulo
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from urllib.parse import urlparse
+        if self.url:
+            hostname = (urlparse(self.url).hostname or '').lower()
+            if hostname not in ('phet.colorado.edu', 'www.phet.colorado.edu'):
+                raise ValidationError({'url': _("Por ahora solo se permiten enlaces de phet.colorado.edu.")})
+
+
+class AsignacionSimulacionSTEAM(models.Model):
+    """Un docente/coordinador asigna una SimulacionSTEAM (del catálogo
+    público o privado de su institución) a uno de sus cursos. Esto SÍ es un
+    dato propio del colegio (qué curso la usa, quién y cuándo la asignó),
+    por eso `institucion` es obligatorio aunque la simulación sea pública."""
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='asignaciones_simulaciones_steam', verbose_name=_("Institución"),
+    )
+    simulacion = models.ForeignKey(
+        SimulacionSTEAM, on_delete=models.CASCADE, related_name='asignaciones', verbose_name=_("Simulación"),
+    )
+    curso = models.ForeignKey(
+        'Curso', on_delete=models.CASCADE, related_name='simulaciones_steam_asignadas', verbose_name=_("Curso"),
+    )
+    nota = models.TextField(blank=True, verbose_name=_("Instrucciones para el estudiante (opcional)"))
+    fecha_limite = models.DateField(null=True, blank=True, verbose_name=_("Fecha límite (opcional)"))
+    asignado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='simulaciones_steam_asignadas', verbose_name=_("Asignado por"),
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Asignación de Simulación STEAM")
+        verbose_name_plural = _("Asignaciones de Simulaciones STEAM")
+        unique_together = ('simulacion', 'curso')
+        ordering = ['-creado_en']
+
+    def __str__(self):
+        return f"{self.simulacion.titulo} → {self.curso}"

@@ -12458,3 +12458,75 @@ msgstr ""
 
 msgid "Ver detalle"
 msgstr "View detail"
+
+msgid "Abrir simulación"
+msgstr "Open simulation"
+
+msgid "Asignar"
+msgstr "Assign"
+
+msgid "Asignar simulación"
+msgstr "Assign simulation"
+
+msgid "Hasta el"
+msgstr "Due"
+
+msgid "Ir al catálogo"
+msgstr "Go to catalog"
+
+msgid "Las simulaciones STEAM que has asignado a tus cursos."
+msgstr "The STEAM simulations you have assigned to your courses."
+
+msgid "Mis Simulaciones STEAM"
+msgstr "My STEAM Simulations"
+
+msgid "No hay simulaciones en esta área todavía."
+msgstr "There are no simulations in this area yet."
+
+msgid "Privada"
+msgstr "Private"
+
+msgid "Simulaciones Asignadas"
+msgstr "Assigned Simulations"
+
+msgid "Simulaciones STEAM"
+msgstr "STEAM Simulations"
+
+msgid "Simulaciones interactivas que tus docentes te asignaron."
+msgstr "Interactive simulations your teachers assigned to you."
+
+msgid ""
+"Simulaciones interactivas reales de física, química, matemáticas y biología "
+"— de PhET, Universidad de Colorado Boulder (código abierto). Asígnalas a tus"
+" cursos."
+msgstr ""
+"Real interactive simulations in physics, chemistry, math and biology — from "
+"PhET, University of Colorado Boulder (open source). Assign them to your "
+"courses."
+
+msgid "Simulación"
+msgstr "Simulation"
+
+msgid "Sí, quitar"
+msgstr "Yes, remove"
+
+msgid "Todavía no has asignado ninguna simulación."
+msgstr "You have not assigned any simulation yet."
+
+msgid "Todavía no tienes ninguna simulación asignada."
+msgstr "You do not have any simulation assigned yet."
+
+msgid "Ver asignadas"
+msgstr "View assigned"
+
+msgid "Ver simulación"
+msgstr "View simulation"
+
+msgid "¿Quitar esta simulación del curso?"
+msgstr "Remove this simulation from the course?"
+
+msgid "Asignadas"
+msgstr "Assigned"
+
+msgid "Ver catálogo"
+msgstr "View catalog"

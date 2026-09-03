@@ -32,6 +32,7 @@ from .models import (
     JustificacionInasistencia,
     ProyectoSTEAM, HitoProyecto, ParticipanteProyecto, EvidenciaProyecto,
     Insignia, InsigniaObtenida,
+    SimulacionSTEAM, AsignacionSimulacionSTEAM,
 )
 from import_export import resources
 
@@ -603,6 +604,26 @@ class InsigniaObtenidaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_filter = ('institucion',)
     ordering = ('-fecha_obtenida',)
     raw_id_fields = ('institucion', 'insignia', 'estudiante', 'proyecto')
+
+@admin.register(SimulacionSTEAM)
+class SimulacionSTEAMAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    """El catálogo público (institucion vacío, es_publica=True) lo cura el
+    propietario de la plataforma (superusuario, único que ve filas sin
+    institución vía InstitucionScopedAdminMixin). Un colegio puede tener,
+    además, sus propias simulaciones privadas."""
+    list_display = ('titulo', 'area', 'es_publica', 'institucion', 'activo')
+    search_fields = ('titulo',)
+    list_filter = ('area', 'es_publica', 'activo')
+    ordering = ('area', 'titulo')
+    raw_id_fields = ('institucion',)
+
+@admin.register(AsignacionSimulacionSTEAM)
+class AsignacionSimulacionSTEAMAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('simulacion', 'curso', 'institucion', 'fecha_limite', 'creado_en')
+    search_fields = ('simulacion__titulo',)
+    list_filter = ('institucion',)
+    ordering = ('-creado_en',)
+    raw_id_fields = ('institucion', 'simulacion', 'curso')
 
 @admin.register(PeriodoAcademico)
 class PeriodoAcademicoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):

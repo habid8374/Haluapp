@@ -1,0 +1,99 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina|default:"Simulaciones Asignadas" }}{% endblock %}
+
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h2 class="mb-1" style="color:#fff;"><i class="bi bi-list-check me-2"></i>{% trans "Simulaciones Asignadas" %}</h2>
+      <p class="mb-0" style="color:#fff;opacity:.85;font-size:.92rem;">{% trans "Las simulaciones STEAM que has asignado a tus cursos." %}</p>
+    </div>
+    <a href="{% url 'gestion_academica:catalogo_simulaciones_steam' %}" class="btn btn-light btn-sm fw-semibold">
+      <i class="bi bi-atom me-1"></i>{% trans "Ir al catálogo" %}
+    </a>
+  </div>
+</div>
+
+{% if messages %}{% for m in messages %}
+<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+{% endfor %}{% endif %}
+
+{% if asignaciones %}
+<div class="card border-0 shadow-sm" style="border-radius:16px;">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.88rem;">
+        <thead style="background:#f8f9ff;">
+          <tr>
+            <th class="ps-4 py-3" style="color:#4f46e5;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Simulación" %}</th>
+            <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Curso" %}</th>
+            <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Fecha límite" %}</th>
+            <th class="pe-4 py-3 text-center" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Acciones" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in asignaciones %}
+          <tr>
+            <td class="ps-4 py-3 fw-semibold" style="color:#1e293b;"><i class="{{ a.simulacion.icono }} me-1"></i>{{ a.simulacion.titulo }}</td>
+            <td class="py-3" style="color:#64748b;">{{ a.curso }}</td>
+            <td class="py-3" style="color:#64748b;">{{ a.fecha_limite|date:"d/m/Y"|default:"—" }}</td>
+            <td class="pe-4 py-3 text-center">
+              <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarAsignacion"
+                      data-action="{% url 'gestion_academica:eliminar_asignacion_simulacion_steam' a.pk %}" data-nombre="{{ a.simulacion.titulo }}">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="card border-0 shadow-sm text-center py-5" style="border-radius:16px;">
+  <i class="bi bi-atom" style="font-size:2.5rem;color:#c7d2fe;"></i>
+  <p class="mt-3 text-muted">{% trans "Todavía no has asignado ninguna simulación." %}</p>
+  <a href="{% url 'gestion_academica:catalogo_simulaciones_steam' %}" class="btn btn-primary btn-sm px-4 mx-auto" style="width:fit-content;">
+    <i class="bi bi-atom me-1"></i>{% trans "Ir al catálogo" %}
+  </a>
+</div>
+{% endif %}
+
+<!-- ===== MODAL: Eliminar asignación ===== -->
+<div class="modal fade" id="modalEliminarAsignacion" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-800 mb-1">{% trans "¿Quitar esta simulación del curso?" %}</h5>
+        <p id="modal-eliminar-nombre" class="text-muted mb-0" style="font-size:.85rem;"></p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="form-eliminar-asignacion" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, quitar" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('[data-bs-target="#modalEliminarAsignacion"]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-eliminar-asignacion').action = this.dataset.action;
+    document.getElementById('modal-eliminar-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
+{% endblock %}

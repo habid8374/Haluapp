@@ -1,0 +1,127 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina|default:"Simulaciones STEAM" }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .sim-card { border-radius:16px; border:none; box-shadow:0 2px 12px rgba(0,0,0,.07); height:100%; }
+  .sim-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; }
+  .area-pill { font-size:.8rem; padding:.35rem .9rem; border-radius:999px; border:1px solid #e5e7eb; color:#475569; text-decoration:none; }
+  .area-pill.activa { background:#4f46e5; border-color:#4f46e5; color:#fff; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h2 class="mb-1" style="color:#fff;"><i class="bi bi-atom me-2"></i>{% trans "Simulaciones STEAM" %}</h2>
+      <p class="mb-0" style="color:#fff;opacity:.85;font-size:.92rem;max-width:640px;">
+        {% trans "Simulaciones interactivas reales de física, química, matemáticas y biología — de PhET, Universidad de Colorado Boulder (código abierto). Asígnalas a tus cursos." %}
+      </p>
+    </div>
+    {% if perms.gestion_academica.view_asignacionsimulacionsteam %}
+    <a href="{% url 'gestion_academica:mis_asignaciones_simulaciones_steam' %}" class="btn btn-light btn-sm fw-semibold">
+      <i class="bi bi-list-check me-1"></i>{% trans "Ver asignadas" %}
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+{% if messages %}{% for m in messages %}
+<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+{% endfor %}{% endif %}
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <a href="{% url 'gestion_academica:catalogo_simulaciones_steam' %}" class="area-pill {% if not area_seleccionada %}activa{% endif %}">{% trans "Todas" %}</a>
+  {% for codigo, etiqueta in areas %}
+  <a href="?area={{ codigo }}" class="area-pill {% if area_seleccionada == codigo %}activa{% endif %}">{{ etiqueta }}</a>
+  {% endfor %}
+</div>
+
+{% if simulaciones %}
+<div class="row g-3">
+  {% for sim in simulaciones %}
+  <div class="col-md-4">
+    <div class="card sim-card">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="sim-icon" style="background:#eef2ff;color:#4f46e5;"><i class="{{ sim.icono }}"></i></div>
+          <div>
+            <div class="fw-bold">{{ sim.titulo }}</div>
+            <span class="badge rounded-pill" style="background:#f1f5f9;color:#64748b;font-size:.68rem;">{{ sim.get_area_display }}</span>
+            {% if not sim.es_publica %}<span class="badge rounded-pill" style="background:#fdf4ff;color:#a21caf;font-size:.68rem;">{% trans "Privada" %}</span>{% endif %}
+          </div>
+        </div>
+        <p class="text-muted small flex-grow-1">{{ sim.descripcion }}</p>
+        <div class="d-flex justify-content-between align-items-center gap-2">
+          <a href="{{ sim.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-box-arrow-up-right me-1"></i>{% trans "Ver simulación" %}
+          </a>
+          {% if perms.gestion_academica.add_asignacionsimulacionsteam %}
+          <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalAsignarSimulacion"
+                  data-action="{% url 'gestion_academica:asignar_simulacion_steam' sim.pk %}" data-nombre="{{ sim.titulo }}">
+            <i class="bi bi-plus-circle me-1"></i>{% trans "Asignar" %}
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card sim-card text-center py-5">
+  <i class="bi bi-atom" style="font-size:2.5rem;color:#c7d2fe;"></i>
+  <p class="mt-3 text-muted">{% trans "No hay simulaciones en esta área todavía." %}</p>
+</div>
+{% endif %}
+
+<!-- ===== MODAL: Asignar simulación a un curso ===== -->
+<div class="modal fade" id="modalAsignarSimulacion" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-atom" style="color:#4f46e5;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-800 mb-1">{% trans "Asignar simulación" %}</h5>
+        <p id="modal-asignar-nombre" class="text-muted mb-3" style="font-size:.85rem;"></p>
+        <form id="form-asignar-simulacion" method="post">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.8rem;">{{ asignar_form.curso.label }}</label>
+            {{ asignar_form.curso }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.8rem;">{{ asignar_form.nota.label }}</label>
+            {{ asignar_form.nota }}
+          </div>
+          <div class="mb-2">
+            <label class="form-label fw-semibold" style="font-size:.8rem;">{{ asignar_form.fecha_limite.label }}</label>
+            {{ asignar_form.fecha_limite }}
+          </div>
+          <div class="modal-footer border-0 px-0 pb-0">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+            <button type="submit" class="btn btn-primary btn-sm fw-600"><i class="bi bi-check-circle me-1"></i>{% trans "Asignar" %}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('[data-bs-target="#modalAsignarSimulacion"]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-asignar-simulacion').action = this.dataset.action;
+    document.getElementById('modal-asignar-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
+{% endblock %}
