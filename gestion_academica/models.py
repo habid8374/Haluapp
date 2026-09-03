@@ -3738,6 +3738,7 @@ class RetoSTEAM(models.Model):
         ESTRUCTURAS = 'ESTRUCTURAS', _('Estructuras (puentes, torres)')
         HIDRAULICA_NEUMATICA = 'HIDRAULICA_NEUMATICA', _('Hidráulica y neumática')
         MOVIMIENTO_TRANSPORTE = 'MOVIMIENTO_TRANSPORTE', _('Movimiento y transporte')
+        CIENCIA_SOSTENIBILIDAD = 'CIENCIA_SOSTENIBILIDAD', _('Ciencia de la Tierra y sostenibilidad')
         COMPETENCIA_EXTERNA = 'COMPETENCIA_EXTERNA', _('Competencia externa')
 
     institucion = models.ForeignKey(

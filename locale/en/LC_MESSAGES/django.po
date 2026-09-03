@@ -12601,3 +12601,6 @@ msgstr ""
 "This is the official site of an entity outside Halu. Many sites do not allow"
 " themselves to be shown inside another page for security reasons — if you "
 "see a blank space, use the «Open in a new tab» button above."
+
+msgid "Ciencia de la Tierra y sostenibilidad"
+msgstr "Earth Science and Sustainability"
