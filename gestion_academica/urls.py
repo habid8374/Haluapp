@@ -105,6 +105,9 @@ urlpatterns = [
     path('simulaciones-steam/asignadas/<int:pk>/eliminar/', views.eliminar_asignacion_simulacion_steam, name='eliminar_asignacion_simulacion_steam'),
     path('mis-simulaciones-steam/', views.mis_simulaciones_steam, name='mis_simulaciones_steam'),
 
+    # --- Halu STEAM: Retos de ingeniería/robótica (plantillas ABP) ---
+    path('retos-steam/', views.catalogo_retos_steam, name='catalogo_retos_steam'),
+
     # --- Halu STEAM: Portafolio del estudiante ---
     path('mi-portafolio-steam/', views.mi_portafolio_steam, name='mi_portafolio_steam'),
 

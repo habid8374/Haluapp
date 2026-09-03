@@ -3715,3 +3715,69 @@ class AsignacionSimulacionSTEAM(models.Model):
 
     def __str__(self):
         return f"{self.simulacion.titulo} → {self.curso}"
+
+
+class RetoSTEAM(models.Model):
+    """Catálogo de plantillas de retos de ingeniería/robótica (ABP) — mismo
+    patrón multi-tenant que SimulacionSTEAM: es_publica=True con
+    institucion=None son plantillas curadas por la plataforma; una
+    institución puede tener además las suyas privadas.
+
+    Dos tipos de fila:
+    - Reto «hazlo tú mismo» (materiales de bajo costo, sin robot): trae
+      reto_texto/materiales/criterio_evaluacion/hitos_sugeridos — el
+      docente elige "Usar esta plantilla" al crear un Proyecto STEAM y se
+      precargan título, reto e hitos (mismo mecanismo que el planeador IA:
+      `_crear_hitos_sugeridos_ia`).
+    - Tarjeta informativa de una competencia externa (FIRST LEGO League,
+      VEX...): trae `enlace_externo`, requiere kits/inscripción que Halu no
+      gestiona — solo enlaza a la información oficial.
+    """
+
+    class Categoria(models.TextChoices):
+        ESTRUCTURAS = 'ESTRUCTURAS', _('Estructuras (puentes, torres)')
+        HIDRAULICA_NEUMATICA = 'HIDRAULICA_NEUMATICA', _('Hidráulica y neumática')
+        MOVIMIENTO_TRANSPORTE = 'MOVIMIENTO_TRANSPORTE', _('Movimiento y transporte')
+        COMPETENCIA_EXTERNA = 'COMPETENCIA_EXTERNA', _('Competencia externa')
+
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='retos_steam', verbose_name=_("Institución"),
+        help_text=_("Vacío = plantilla pública del catálogo de la plataforma."),
+    )
+    es_publica = models.BooleanField(default=False, verbose_name=_("Pública (catálogo de la plataforma)"))
+    titulo = models.CharField(max_length=150, verbose_name=_("Título"))
+    categoria = models.CharField(max_length=25, choices=Categoria.choices, verbose_name=_("Categoría"))
+    descripcion_corta = models.CharField(max_length=255, blank=True, verbose_name=_("Descripción corta (para la tarjeta)"))
+    reto_texto = models.TextField(
+        blank=True, verbose_name=_("Reto / pregunta guía"),
+        help_text=_("Se precarga como el reto del Proyecto STEAM al usar esta plantilla."),
+    )
+    materiales = models.TextField(blank=True, verbose_name=_("Materiales sugeridos"))
+    criterio_evaluacion = models.TextField(blank=True, verbose_name=_("Criterio de éxito"))
+    hitos_sugeridos = models.JSONField(
+        default=list, blank=True, verbose_name=_("Hitos sugeridos"),
+        help_text=_('Lista de {"titulo": "..."}, en orden — se crean como hitos reales al usar la plantilla.'),
+    )
+    enlace_externo = models.URLField(blank=True, verbose_name=_("Enlace oficial (competencias externas)"))
+    icono = models.CharField(max_length=40, default='bi-cone-striped', verbose_name=_("Ícono"))
+    activo = models.BooleanField(default=True, verbose_name=_("Activo"))
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='retos_steam_creados', verbose_name=_("Creado por"),
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Reto STEAM")
+        verbose_name_plural = _("Retos STEAM")
+        ordering = ['categoria', 'titulo']
+
+    def __str__(self):
+        return self.titulo
+
+    @property
+    def es_plantilla_usable(self):
+        """Trae contenido para precargar un Proyecto STEAM (a diferencia de
+        una tarjeta puramente informativa de competencia externa)."""
+        return bool(self.reto_texto)

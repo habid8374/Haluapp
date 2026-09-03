@@ -12530,3 +12530,56 @@ msgstr "Assigned"
 
 msgid "Ver catálogo"
 msgstr "View catalog"
+
+msgid "Más información"
+msgstr "More information"
+
+msgid "No hay retos en esta categoría todavía."
+msgstr "There are no challenges in this category yet."
+
+msgid ""
+"Plantillas de retos de ingeniería con materiales de bajo costo — úsalas para"
+" crear un Proyecto STEAM en un clic. También encuentras aquí competencias "
+"externas de robótica (requieren kits e inscripción propios del colegio)."
+msgstr ""
+"Low-cost engineering challenge templates — use them to create a STEAM "
+"Project in one click. You will also find external robotics competitions here"
+" (they require the school's own kits and registration)."
+
+msgid "Plantillas y competencias"
+msgstr "Templates and competitions"
+
+msgid "Retos STEAM"
+msgstr "STEAM Challenges"
+
+msgid ""
+"Retos de ingeniería con materiales de bajo costo — úsalos para crear un "
+"Proyecto STEAM en un clic. Incluye enlaces a competencias de robótica."
+msgstr ""
+"Low-cost engineering challenges — use them to create a STEAM Project in one "
+"click. Includes links to robotics competitions."
+
+msgid ""
+"Título, reto e hitos precargados desde una plantilla del catálogo de Retos "
+"STEAM — puedes editar todo antes de guardar."
+msgstr ""
+"Title, challenge and milestones preloaded from a STEAM Challenges catalog "
+"template — you can edit everything before saving."
+
+msgid "Usar esta plantilla"
+msgstr "Use this template"
+
+msgid "Ver retos"
+msgstr "View challenges"
+
+msgid "Estructuras (puentes, torres)"
+msgstr "Structures (bridges, towers)"
+
+msgid "Hidráulica y neumática"
+msgstr "Hydraulics and pneumatics"
+
+msgid "Movimiento y transporte"
+msgstr "Movement and transportation"
+
+msgid "Competencia externa"
+msgstr "External competition"

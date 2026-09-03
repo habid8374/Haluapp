@@ -15,6 +15,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -29,7 +30,7 @@ from ..forms import (
 )
 from ..models import (
     ActividadCalificable, EvidenciaProyecto, HitoProyecto, Insignia,
-    InsigniaObtenida, ParticipanteProyecto, ProyectoSTEAM,
+    InsigniaObtenida, ParticipanteProyecto, ProyectoSTEAM, RetoSTEAM,
 )
 from ._main import get_filtered_queryset
 
@@ -74,6 +75,7 @@ class ProyectoSTEAMListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
 @login_required
 @permission_required('gestion_academica.add_proyectosteam', raise_exception=True)
 def crear_proyecto_steam(request):
+    hitos_prefill_json = ''
     if request.method == 'POST':
         form = ProyectoSTEAMForm(request.POST, request=request)
         if form.is_valid():
@@ -98,10 +100,40 @@ def crear_proyecto_steam(request):
             messages.success(request, _("Proyecto STEAM '%(titulo)s' creado. Ya puedes agregar hitos y equipo.") % {'titulo': proyecto.titulo})
             return redirect('gestion_academica:detalle_proyecto_steam', pk=proyecto.pk)
     else:
-        form = ProyectoSTEAMForm(request=request)
+        form, hitos_prefill_json = _form_desde_reto_plantilla(request)
     return render(request, 'gestion_academica/proyecto_steam_formulario.html', {
         'form': form, 'titulo_pagina': _("Nuevo Proyecto STEAM"),
+        'hitos_prefill_json': hitos_prefill_json,
     })
+
+
+def _form_desde_reto_plantilla(request):
+    """Si la URL trae ?reto_pk=<id> (el docente vino del catálogo de Retos
+    STEAM y pulsó "Usar esta plantilla"), precarga título y reto con el
+    contenido de la plantilla y devuelve los hitos sugeridos ya en JSON —
+    listos para el mismo hidden input `hitos_ia` que usa el planeador IA."""
+    reto_pk = request.GET.get('reto_pk')
+    if not reto_pk:
+        return ProyectoSTEAMForm(request=request), ''
+
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    reto = RetoSTEAM.objects.filter(
+        Q(es_publica=True) | Q(institucion=institucion), pk=reto_pk, activo=True,
+    ).first()
+    if not reto or not reto.es_plantilla_usable:
+        return ProyectoSTEAMForm(request=request), ''
+
+    partes_reto = [reto.reto_texto]
+    if reto.materiales:
+        partes_reto.append(_("Materiales sugeridos: %(materiales)s") % {'materiales': reto.materiales})
+    if reto.criterio_evaluacion:
+        partes_reto.append(_("Criterio de éxito: %(criterio)s") % {'criterio': reto.criterio_evaluacion})
+
+    form = ProyectoSTEAMForm(request=request, initial={
+        'titulo': reto.titulo,
+        'reto': '\n\n'.join(partes_reto),
+    })
+    return form, json_module.dumps(reto.hitos_sugeridos)
 
 
 def _crear_hitos_sugeridos_ia(proyecto, hitos_ia_raw):

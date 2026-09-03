@@ -22,7 +22,7 @@ from django.shortcuts import render
 
 from ..models import (
     AsignacionSimulacionSTEAM, Enfasis, Estudiante, Insignia, InsigniaObtenida,
-    ItemMalla, ProyectoSTEAM, SimulacionSTEAM,
+    ItemMalla, ProyectoSTEAM, RetoSTEAM, SimulacionSTEAM,
 )
 from ._main import get_current_institution
 
@@ -55,6 +55,11 @@ def panel_steam(request):
         AsignacionSimulacionSTEAM.objects.filter(institucion=institucion).count() if institucion else 0
     )
 
+    total_retos_catalogo = (
+        RetoSTEAM.objects.filter(Q(es_publica=True) | Q(institucion=institucion), activo=True).count()
+        if institucion else 0
+    )
+
     context = {
         'titulo_pagina': "Halu STEAM",
         'institucion': institucion,
@@ -68,5 +73,6 @@ def panel_steam(request):
         'cobertura_stem_general': cobertura_stem_general,
         'total_simulaciones_catalogo': total_simulaciones_catalogo,
         'total_simulaciones_asignadas': total_simulaciones_asignadas,
+        'total_retos_catalogo': total_retos_catalogo,
     }
     return render(request, 'gestion_academica/panel_steam.html', context)

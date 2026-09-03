@@ -33,6 +33,7 @@ from .models import (
     ProyectoSTEAM, HitoProyecto, ParticipanteProyecto, EvidenciaProyecto,
     Insignia, InsigniaObtenida,
     SimulacionSTEAM, AsignacionSimulacionSTEAM,
+    RetoSTEAM,
 )
 from import_export import resources
 
@@ -624,6 +625,16 @@ class AsignacionSimulacionSTEAMAdmin(InstitucionScopedAdminMixin, admin.ModelAdm
     list_filter = ('institucion',)
     ordering = ('-creado_en',)
     raw_id_fields = ('institucion', 'simulacion', 'curso')
+
+@admin.register(RetoSTEAM)
+class RetoSTEAMAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    """El catálogo público (institucion vacío, es_publica=True) lo cura el
+    propietario de la plataforma, mismo patrón que SimulacionSTEAMAdmin."""
+    list_display = ('titulo', 'categoria', 'es_publica', 'institucion', 'activo')
+    search_fields = ('titulo',)
+    list_filter = ('categoria', 'es_publica', 'activo')
+    ordering = ('categoria', 'titulo')
+    raw_id_fields = ('institucion',)
 
 @admin.register(PeriodoAcademico)
 class PeriodoAcademicoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):

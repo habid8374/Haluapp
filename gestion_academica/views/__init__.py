@@ -35,6 +35,7 @@ from .ia_consumo import *
 from .steam import *
 from .proyectos_steam import *
 from .simulaciones_steam import *
+from .retos_steam import *
 
 # ── Vistas de Logros (Preescolar) ────────────────────────────────────────────
 # Estas vistas existen tanto en _main.py como en una versión legacy en ia.py.

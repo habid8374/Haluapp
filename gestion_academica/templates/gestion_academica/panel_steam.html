@@ -126,6 +126,25 @@
     </div>
   </div>
 
+  <!-- Retos STEAM (plantillas de ingeniería/robótica) -->
+  <div class="col-md-4">
+    <div class="card steam-card">
+      <div class="steam-card-body">
+        <div class="steam-icon-badge" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-cone-striped"></i></div>
+        <h5 class="fw-bold mb-1">{% trans "Retos STEAM" %}</h5>
+        <span class="badge rounded-pill badge-contratado align-self-start mb-3">{% trans "Incluido" %}</span>
+        <div class="steam-stat">{{ total_retos_catalogo }}</div>
+        <div class="steam-stat-label mb-3">{% trans "Plantillas y competencias" %}</div>
+        <p class="text-muted small flex-grow-1">{% trans "Retos de ingeniería con materiales de bajo costo — úsalos para crear un Proyecto STEAM en un clic. Incluye enlaces a competencias de robótica." %}</p>
+        {% if perms.gestion_academica.view_retosteam %}
+        <a href="{% url 'gestion_academica:catalogo_retos_steam' %}" class="btn btn-sm btn-primary mt-auto">
+          <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Ver retos" %}
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
   <!-- Simulaciones STEAM (PhET) -->
   <div class="col-md-4">
     <div class="card steam-card">
