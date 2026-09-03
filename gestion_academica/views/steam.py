@@ -19,7 +19,7 @@ si se usara.
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render
 
-from ..models import Enfasis, Estudiante, Insignia, InsigniaObtenida, ProyectoSTEAM
+from ..models import Enfasis, Estudiante, Insignia, InsigniaObtenida, ItemMalla, ProyectoSTEAM
 from ._main import get_current_institution
 
 
@@ -38,6 +38,11 @@ def panel_steam(request):
     total_insignias_catalogo = Insignia.objects.filter(institucion=institucion, activo=True).count() if institucion else 0
     total_insignias_otorgadas = InsigniaObtenida.objects.filter(institucion=institucion).count() if institucion else 0
 
+    items_malla_qs = ItemMalla.objects.filter(malla__institucion=institucion) if institucion else ItemMalla.objects.none()
+    total_items_malla = items_malla_qs.count()
+    items_con_stem = sum(1 for it in items_malla_qs if it.principios_stem)
+    cobertura_stem_general = round(items_con_stem / total_items_malla * 100) if total_items_malla else 0
+
     context = {
         'titulo_pagina': "Halu STEAM",
         'institucion': institucion,
@@ -47,5 +52,7 @@ def panel_steam(request):
         'total_proyectos': total_proyectos,
         'total_insignias_catalogo': total_insignias_catalogo,
         'total_insignias_otorgadas': total_insignias_otorgadas,
+        'total_items_malla': total_items_malla,
+        'cobertura_stem_general': cobertura_stem_general,
     }
     return render(request, 'gestion_academica/panel_steam.html', context)

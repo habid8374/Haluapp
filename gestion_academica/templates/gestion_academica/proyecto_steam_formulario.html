@@ -10,8 +10,30 @@
   <div class="col-lg-7">
     <div class="card border-0 shadow-sm" style="border-radius:16px;overflow:hidden;">
       <div class="card-body p-4">
+        {% if not proyecto %}
+        <div class="mb-4 p-3" id="steam-ia-box" style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:12px;">
+          <h6 class="fw-bold mb-2" style="color:#7c3aed;"><i class="bi bi-magic me-1"></i>{% trans "Generar propuesta con IA" %}</h6>
+          <p class="text-muted mb-2" style="font-size:.78rem;">{% trans "Pega un DBA (Derecho Básico de Aprendizaje) y, si quieres, la materia o el taller — la IA propone un título, un reto y de 3 a 5 hitos. Podrás editar todo antes de guardar." %}</p>
+          <div class="row g-2">
+            <div class="col-12">
+              <textarea id="steam-ia-dba" class="form-control form-control-sm" rows="2" placeholder="{% trans 'Ej: Explica el funcionamiento de circuitos eléctricos simples y su aplicación en la vida cotidiana.' %}"></textarea>
+            </div>
+            <div class="col-md-6">
+              <input type="text" id="steam-ia-materia" class="form-control form-control-sm" placeholder="{% trans 'Materia (opcional)' %}">
+            </div>
+            <div class="col-md-6">
+              <input type="text" id="steam-ia-taller" class="form-control form-control-sm" placeholder="{% trans 'Taller / énfasis (opcional)' %}">
+            </div>
+          </div>
+          <div id="steam-ia-error" class="text-danger mt-2" style="font-size:.78rem;display:none;"></div>
+          <button type="button" id="steam-ia-btn" class="btn btn-sm mt-2" style="background:#7c3aed;color:#fff;">
+            <i class="bi bi-stars me-1"></i>{% trans "Generar con IA" %}
+          </button>
+        </div>
+        {% endif %}
         <form method="post" novalidate>
           {% csrf_token %}
+          <input type="hidden" name="hitos_ia" id="steam-hitos-ia" value="">
           {% if form.non_field_errors %}
           <div class="alert alert-danger">
             {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
@@ -69,4 +91,57 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+(function () {
+  var btn = document.getElementById('steam-ia-btn');
+  if (!btn) return;
+  var errorBox = document.getElementById('steam-ia-error');
+  btn.addEventListener('click', function () {
+    var dba = document.getElementById('steam-ia-dba').value.trim();
+    errorBox.style.display = 'none';
+    if (!dba) {
+      errorBox.textContent = '{% trans "Escribe o pega un DBA primero." %}';
+      errorBox.style.display = 'block';
+      return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>{% trans "Generando…" %}';
+    fetch('{% url "gestion_academica:generar_proyecto_steam_ia" %}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+      body: JSON.stringify({
+        dba: dba,
+        materia: document.getElementById('steam-ia-materia').value.trim(),
+        taller: document.getElementById('steam-ia-taller').value.trim()
+      })
+    })
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (res) {
+        if (!res.ok) {
+          errorBox.textContent = res.data.error || '{% trans "No se pudo generar la propuesta. Intenta de nuevo." %}';
+          errorBox.style.display = 'block';
+          return;
+        }
+        document.getElementById('id_titulo').value = res.data.titulo || '';
+        document.getElementById('id_reto').value = res.data.reto || '';
+        document.getElementById('steam-hitos-ia').value = JSON.stringify(res.data.hitos || []);
+        var lista = (res.data.hitos || []).map(function (h) { return h.titulo; }).join(' · ');
+        errorBox.style.color = '#16a34a';
+        errorBox.textContent = lista ? '{% trans "Listo — título, reto e hitos propuestos:" %} ' + lista : '{% trans "Listo — título y reto propuestos." %}';
+        errorBox.style.display = 'block';
+      })
+      .catch(function () {
+        errorBox.textContent = '{% trans "No se pudo conectar con el servicio de IA. Intenta de nuevo." %}';
+        errorBox.style.display = 'block';
+      })
+      .finally(function () {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-stars me-1"></i>{% trans "Generar con IA" %}';
+      });
+  });
+})();
+</script>
 {% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina|default:"Reporte STEM+" }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .stem-card { border-radius:16px; border:none; box-shadow:0 2px 12px rgba(0,0,0,.07); }
+  .stem-bar-track { width:100%; height:10px; background:#f1f5f9; border-radius:999px; overflow:hidden; }
+  .stem-bar-fill { height:100%; background:linear-gradient(90deg,#a21caf,#7c3aed); border-radius:999px; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h2 class="mb-1" style="color:#fff;"><i class="bi bi-stars me-2"></i>{% trans "Reporte de cumplimiento STEM+" %}</h2>
+      <p class="mb-0" style="color:#fff;opacity:.85;font-size:.92rem;max-width:640px;">
+        {% trans "Qué tanto de tu malla curricular ya está alineada con los 6 principios de la Visión STEM+ del Ministerio de Educación — calculado a partir de lo que ya marcaste en cada ítem de malla." %}
+      </p>
+    </div>
+    <a href="{% url 'gestion_academica:panel_steam' %}" class="btn btn-light btn-sm fw-semibold">
+      <i class="bi bi-arrow-left me-1"></i>{% trans "Volver a Halu STEAM" %}
+    </a>
+  </div>
+</div>
+
+{% if messages %}{% for m in messages %}
+<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+{% endfor %}{% endif %}
+
+{% if total_items %}
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="card stem-card h-100">
+      <div class="card-body p-4 text-center">
+        <div style="font-size:2.6rem;font-weight:800;color:#7c3aed;">{{ cobertura_general }}%</div>
+        <div class="text-muted small mb-2">{% trans "Cobertura general" %}</div>
+        <div class="stem-bar-track"><div class="stem-bar-fill" style="width:{{ cobertura_general }}%;"></div></div>
+        <p class="text-muted mt-3 mb-0" style="font-size:.8rem;">
+          {% blocktrans with con=items_con_algun_principio total=total_items %}{{ con }} de {{ total }} ítems de malla tienen al menos un principio STEM+ marcado.{% endblocktrans %}
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card stem-card h-100">
+      <div class="card-body p-4">
+        <h6 class="fw-bold mb-3">{% trans "Por principio" %}</h6>
+        {% for p in principios_data %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between" style="font-size:.82rem;">
+            <span class="fw-semibold">{{ p.etiqueta }}</span>
+            <span class="text-muted">{{ p.cantidad }} {% trans "ítems" %} · {{ p.porcentaje }}%</span>
+          </div>
+          <div class="stem-bar-track" style="height:7px;"><div class="stem-bar-fill" style="width:{{ p.porcentaje }}%;"></div></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card stem-card">
+  <div class="card-header border-0 pt-3 pb-2">
+    <span class="fw-700"><i class="bi bi-diagram-3-fill me-2 text-primary"></i>{% trans "Mallas curriculares — de menor a mayor cobertura" %}</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.88rem;">
+        <thead style="background:#f8f9ff;">
+          <tr>
+            <th class="ps-4 py-3" style="color:#4f46e5;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Materia" %}</th>
+            <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Grado" %}</th>
+            <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Ítems" %}</th>
+            <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Cobertura" %}</th>
+            <th class="pe-4 py-3 text-center" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Acciones" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in mallas_detalle %}
+          <tr>
+            <td class="ps-4 py-3 fw-semibold" style="color:#1e293b;">{{ d.malla.materia }}</td>
+            <td class="py-3" style="color:#64748b;">{{ d.malla.grado }}</td>
+            <td class="py-3" style="color:#64748b;">{{ d.con_stem }}/{{ d.total }}</td>
+            <td class="py-3" style="min-width:140px;">
+              <div class="d-flex align-items-center gap-2">
+                <div class="stem-bar-track" style="height:7px;max-width:100px;"><div class="stem-bar-fill" style="width:{{ d.cobertura }}%;"></div></div>
+                <span style="font-size:.78rem;color:#64748b;">{{ d.cobertura }}%</span>
+              </div>
+            </td>
+            <td class="pe-4 py-3 text-center">
+              <a href="{% url 'gestion_academica:malla_curricular_detalle' d.malla.pk %}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil-fill me-1"></i>{% trans "Revisar" %}
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="card stem-card text-center py-5">
+  <i class="bi bi-diagram-3" style="font-size:2.5rem;color:#c7d2fe;"></i>
+  <p class="mt-3 text-muted">{% trans "Todavía no hay ítems de malla curricular registrados." %}</p>
+  {% if perms.gestion_academica.view_mallacurricular %}
+  <a href="{% url 'gestion_academica:malla_curricular_list' %}" class="btn btn-primary btn-sm px-4 mx-auto" style="width:fit-content;">
+    <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Ir a Mallas Curriculares" %}
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

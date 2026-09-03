@@ -287,6 +287,17 @@
         <div style="width:{{ cobertura_dba }}%;height:100%;background:{% if cobertura_dba == 100 %}#16a34a{% elif cobertura_dba >= 50 %}#f59e0b{% else %}#ef4444{% endif %};border-radius:3px;transition:width .4s;"></div>
       </div>
     </div>
+    <div class="mc-info-chip" style="flex-direction:column;align-items:flex-start;gap:.2rem;min-width:160px;">
+      <div style="display:flex;align-items:center;gap:.4rem;width:100%;">
+        <i class="bi bi-stars" style="color:#a21caf;"></i>
+        <strong>STEM+:</strong>
+        <span style="font-size:.75rem;">{{ items_con_stem }}/{{ total_items }} ítems</span>
+        <span class="ms-auto" style="font-weight:700;color:#a21caf;">{{ cobertura_stem }}%</span>
+      </div>
+      <div style="width:100%;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+        <div style="width:{{ cobertura_stem }}%;height:100%;background:#a21caf;border-radius:3px;transition:width .4s;"></div>
+      </div>
+    </div>
     {% endif %}
     <div id="chip-area-dba" class="mc-info-chip" style="display:none;"></div>
   </div>
@@ -341,6 +352,13 @@
                 {% if es_bilingue and item.eje_tematico_L2 %}
                 <div style="margin-top:.3rem;font-size:.78rem;color:#0369a1;font-style:italic;">
                   <i class="bi bi-translate" style="font-size:.7rem;"></i> {{ item.eje_tematico_L2 }}
+                </div>
+                {% endif %}
+                {% if item.principios_stem %}
+                <div class="d-flex flex-wrap gap-1" style="margin-top:.35rem;">
+                  {% for cod in item.principios_stem %}
+                  <span class="badge rounded-pill" style="background:#fdf4ff;color:#a21caf;font-size:.6rem;font-weight:600;"><i class="bi bi-stars me-1"></i>{{ cod|title }}</span>
+                  {% endfor %}
                 </div>
                 {% endif %}
               </td>
@@ -614,6 +632,19 @@
           <div class="col-md-1">
             <label class="form-label fw-semibold" style="font-size:.78rem;">Sem.</label>
             <input type="number" name="tiempo_semanas" class="form-control form-control-sm" value="10" min="1" max="20">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold" style="font-size:.78rem;">
+              <i class="bi bi-stars me-1"></i>Principios STEM+ (MEN) <span class="text-muted fw-normal">— opcional, para el reporte de alineación</span>
+            </label>
+            <div class="d-flex flex-wrap gap-3">
+              {% for codigo, etiqueta in principios_stem_choices %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="principios_stem" value="{{ codigo }}" id="stem-{{ p }}-{{ codigo }}">
+                <label class="form-check-label" style="font-size:.8rem;" for="stem-{{ p }}-{{ codigo }}">{{ etiqueta }}</label>
+              </div>
+              {% endfor %}
+            </div>
           </div>
         </div>
         <button type="submit" class="mc-add-btn"><i class="bi bi-plus-lg"></i> Agregar a la Malla</button>

@@ -89,6 +89,7 @@ urlpatterns = [
     path('proyectos-steam/hito/<int:pk>/eliminar/', views.eliminar_hito_proyecto, name='eliminar_hito_proyecto'),
     path('proyectos-steam/participante/<int:pk>/eliminar/', views.eliminar_participante_proyecto, name='eliminar_participante_proyecto'),
     path('proyectos-steam/evidencia/<int:pk>/eliminar/', views.eliminar_evidencia_proyecto, name='eliminar_evidencia_proyecto'),
+    path('proyectos-steam/generar-ia/', views.generar_proyecto_steam_ia, name='generar_proyecto_steam_ia'),
 
     # --- Halu STEAM: Insignias ---
     path('insignias/', views.InsigniaListView.as_view(), name='lista_insignias'),
@@ -512,6 +513,7 @@ urlpatterns = [
 
     # ── Malla Curricular (Coordinador / Jefe de Área) ──────────────────────
     path('mallas/', views.malla_curricular_list, name='malla_curricular_list'),
+    path('mallas/reporte-stem/', views.reporte_stem_view, name='reporte_stem'),
     path('mallas/<int:pk>/', views.malla_curricular_detalle, name='malla_curricular_detalle'),
     path('mallas/<int:pk>/eliminar/', views.malla_curricular_delete, name='malla_curricular_delete'),
     path('mallas/<int:pk>/imprimir/', views.malla_curricular_imprimir, name='malla_curricular_imprimir'),

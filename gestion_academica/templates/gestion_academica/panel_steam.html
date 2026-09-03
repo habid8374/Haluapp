@@ -154,16 +154,27 @@
   </div>
 </div>
 
-<div class="card border-0 shadow-sm" style="border-radius:16px;">
-  <div class="card-body p-4">
-    <h5 class="fw-bold mb-3"><i class="bi bi-signpost-split me-2 text-primary"></i>{% trans "Próximamente en Halu STEAM" %}</h5>
-    <div class="d-flex align-items-start gap-2">
-      <span class="badge rounded-pill badge-proximamente" style="font-size:.68rem;">{% trans "Próx." %}</span>
-      <div>
-        <div class="fw-semibold small">{% trans "Alineación automática con STEM+ del MEN" %}</div>
-        <div class="text-muted" style="font-size:.8rem;">{% trans "Reporte de cumplimiento de los 6 principios STEM+ en un clic." %}</div>
+<div class="card steam-card">
+  <div class="steam-card-body">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+      <div class="d-flex align-items-start gap-3">
+        <div class="steam-icon-badge" style="background:#fdf4ff;color:#a21caf;flex-shrink:0;"><i class="bi bi-diagram-3-fill"></i></div>
+        <div>
+          <h5 class="fw-bold mb-1">{% trans "Alineación STEM+ del MEN" %}</h5>
+          <span class="badge rounded-pill badge-contratado align-self-start mb-2">{% trans "Incluido" %}</span>
+          <p class="text-muted small mb-0" style="max-width:480px;">{% trans "Qué tanto de tu malla curricular ya está alineada con los 6 principios de la Visión STEM+ del Ministerio de Educación." %}</p>
+        </div>
+      </div>
+      <div class="text-center">
+        <div class="steam-stat" style="color:#a21caf;">{{ cobertura_stem_general }}%</div>
+        <div class="steam-stat-label">{% trans "Cobertura" %}</div>
       </div>
     </div>
+    {% if perms.gestion_academica.view_itemmalla %}
+    <a href="{% url 'gestion_academica:reporte_stem' %}" class="btn btn-sm btn-primary mt-3" style="width:fit-content;">
+      <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Ver reporte STEM+" %}
+    </a>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

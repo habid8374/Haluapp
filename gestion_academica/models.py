@@ -3018,8 +3018,25 @@ class ItemMalla(models.Model):
     Sigue la estructura oficial colombiana: EBC, DBA, competencias,
     logros, indicadores de desempeño por nivel (Bajo/Básico/Alto/Superior).
     """
+    # Los 6 principios de la Visión STEM+ del Ministerio de Educación
+    # Nacional (Colombia). Un ítem puede marcar los que aplique; se usan para
+    # el reporte de cumplimiento STEM+ de Halu STEAM (Fase 3).
+    PRINCIPIOS_STEM = [
+        ('INTEGRADO', _('Integrado')),
+        ('INCLUSIVO', _('Inclusivo')),
+        ('COLABORATIVO', _('Colaborativo')),
+        ('CONTEXTUAL', _('Contextual')),
+        ('ACTIVO', _('Activo')),
+        ('EXPANDIDO', _('Expandido')),
+    ]
+
     malla = models.ForeignKey(
         MallaCurricular, on_delete=models.CASCADE, related_name='items',
+    )
+    principios_stem = models.JSONField(
+        default=list, blank=True,
+        verbose_name=_("Principios STEM+ (MEN)"),
+        help_text=_("¿Cuáles de los 6 principios de la Visión STEM+ del MEN aplica este ítem?"),
     )
     periodo = models.PositiveSmallIntegerField(
         verbose_name=_("Período"),

@@ -9,6 +9,8 @@ Todo lo que lista estudiantes (participantes) respeta el mismo aislamiento
 por énfasis que el resto de la plataforma: si el curso es un taller scoped a
 un énfasis, solo se pueden agregar estudiantes de ese mismo énfasis.
 """
+import json as json_module
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -92,6 +94,7 @@ def crear_proyecto_steam(request):
                 proyecto.actividad_calificable = actividad
                 proyecto.creado_por = request.user
                 proyecto.save()
+                _crear_hitos_sugeridos_ia(proyecto, request.POST.get('hitos_ia', ''))
             messages.success(request, _("Proyecto STEAM '%(titulo)s' creado. Ya puedes agregar hitos y equipo.") % {'titulo': proyecto.titulo})
             return redirect('gestion_academica:detalle_proyecto_steam', pk=proyecto.pk)
     else:
@@ -99,6 +102,104 @@ def crear_proyecto_steam(request):
     return render(request, 'gestion_academica/proyecto_steam_formulario.html', {
         'form': form, 'titulo_pagina': _("Nuevo Proyecto STEAM"),
     })
+
+
+def _crear_hitos_sugeridos_ia(proyecto, hitos_ia_raw):
+    """Si el formulario trae hitos sugeridos por la IA (aceptados por el
+    usuario antes de guardar), los crea como HitoProyecto reales. Nunca
+    lanza: una lista mal formada simplemente no crea nada — el proyecto ya
+    se guardó y el usuario puede agregar hitos a mano."""
+    if not hitos_ia_raw:
+        return
+    try:
+        hitos = json_module.loads(hitos_ia_raw)
+    except (ValueError, TypeError):
+        return
+    if not isinstance(hitos, list):
+        return
+    nuevos = []
+    for i, h in enumerate(hitos[:10]):
+        if not isinstance(h, dict):
+            continue
+        titulo = str(h.get('titulo', '')).strip()[:200]
+        if not titulo:
+            continue
+        nuevos.append(HitoProyecto(proyecto=proyecto, titulo=titulo, orden=i))
+    if nuevos:
+        HitoProyecto.objects.bulk_create(nuevos)
+
+
+@login_required
+@permission_required('gestion_academica.add_proyectosteam', raise_exception=True)
+@require_POST
+def generar_proyecto_steam_ia(request):
+    """Halu STEAM — Fase 3, Componente E: a partir de un DBA (y opcionalmente
+    el nombre del taller/énfasis), genera con IA una propuesta de proyecto
+    STEAM completo (título, reto y una lista de hitos) que el docente o
+    coordinador revisa y ajusta antes de guardar — nunca se crea nada solo."""
+    try:
+        data = json_module.loads(request.body)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': _('Solicitud inválida.')}, status=400)
+
+    dba = (data.get('dba') or '').strip()
+    if not dba:
+        return JsonResponse({'error': _('Escribe o pega un DBA (Derecho Básico de Aprendizaje) primero.')}, status=400)
+    taller = (data.get('taller') or '').strip()
+    materia = (data.get('materia') or '').strip()
+
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if not institucion:
+        return JsonResponse({'error': _('Tu usuario no está asociado a ninguna institución.')}, status=403)
+
+    contexto_taller = f" en el taller/énfasis de {taller}" if taller else ""
+    contexto_materia = f" para la materia {materia}" if materia else ""
+    prompt = (
+        "Eres un experto en Aprendizaje Basado en Proyectos (ABP) y en la Visión STEM+ del "
+        "Ministerio de Educación de Colombia (principios: Integrado, Inclusivo, Colaborativo, "
+        "Contextual, Activo, Expandido). "
+        f"A partir del siguiente Derecho Básico de Aprendizaje (DBA){contexto_materia}{contexto_taller}, "
+        "diseña un proyecto STEAM real y aplicable en un colegio colombiano.\n\n"
+        f'DBA: "{dba}"\n\n'
+        "Responde ÚNICAMENTE con un JSON con esta forma exacta, sin texto adicional ni markdown:\n"
+        '{"titulo": "título corto y motivador del proyecto (máx 12 palabras)", '
+        '"reto": "el reto o pregunta guía del proyecto, 2-3 frases, un problema real que los estudiantes deben resolver", '
+        '"hitos": [{"titulo": "nombre del hito, breve"}, ...]}\n\n'
+        "Incluye entre 3 y 5 hitos, en orden lógico de ejecución (ej: investigar, diseñar, construir/prototipar, probar, presentar)."
+    )
+
+    from finanzas import ia as _ia
+    try:
+        ok, texto = _ia.generar_texto(institucion, prompt, json=True)
+    except Exception as exc:
+        return JsonResponse({'error': str(exc)}, status=500)
+
+    if not ok:
+        return JsonResponse({'error': texto}, status=502)
+
+    try:
+        propuesta = json_module.loads(texto)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': _('La IA no devolvió un formato válido. Intenta de nuevo.')}, status=502)
+
+    # Validación defensiva del esquema antes de devolverlo al cliente.
+    if not isinstance(propuesta, dict):
+        return JsonResponse({'error': _('La IA no devolvió un formato válido. Intenta de nuevo.')}, status=502)
+    titulo = str(propuesta.get('titulo', '')).strip()[:200]
+    reto = str(propuesta.get('reto', '')).strip()
+    hitos_raw = propuesta.get('hitos', [])
+    hitos = []
+    if isinstance(hitos_raw, list):
+        for h in hitos_raw[:10]:
+            if isinstance(h, dict) and str(h.get('titulo', '')).strip():
+                hitos.append({'titulo': str(h['titulo']).strip()[:200]})
+            elif isinstance(h, str) and h.strip():
+                hitos.append({'titulo': h.strip()[:200]})
+
+    if not titulo or not reto:
+        return JsonResponse({'error': _('La IA no devolvió un proyecto completo. Intenta de nuevo.')}, status=502)
+
+    return JsonResponse({'titulo': titulo, 'reto': reto, 'hitos': hitos})
 
 
 @login_required

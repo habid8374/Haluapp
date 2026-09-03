@@ -191,6 +191,12 @@ def malla_curricular_detalle(request, pk):
     items_con_dba = items_qs.exclude(dba='').exclude(dba__isnull=True).count()
     cobertura_dba = round(items_con_dba / total_items * 100) if total_items else 0
 
+    # Cobertura STEM+ (Fase 3 de Halu STEAM): % de ítems con al menos un
+    # principio marcado. Se calcula en Python (no en SQL) porque JSONField
+    # con SQLite no soporta bien filtros de "lista no vacía" multi-motor.
+    items_con_stem = sum(1 for it in items_qs if it.principios_stem)
+    cobertura_stem = round(items_con_stem / total_items * 100) if total_items else 0
+
     auto_print = request.GET.get('print') == '1'
     es_bilingue = getattr(institucion, 'es_bilingue', False)
     idioma_secundario = getattr(institucion, 'get_idioma_secundario_display', lambda: '')()
@@ -215,6 +221,9 @@ def malla_curricular_detalle(request, pk):
         'total_items': total_items,
         'items_con_dba': items_con_dba,
         'cobertura_dba': cobertura_dba,
+        'items_con_stem': items_con_stem,
+        'cobertura_stem': cobertura_stem,
+        'principios_stem_choices': ItemMalla.PRINCIPIOS_STEM,
     }
     return render(request, 'gestion_academica/malla_curricular_detalle.html', context)
 
@@ -234,6 +243,64 @@ def malla_curricular_imprimir(request, pk):
         'periodos': [1, 2, 3, 4],
     }
     return render(request, 'gestion_academica/malla_curricular_print.html', context)
+
+
+@login_required
+@permission_required('gestion_academica.view_itemmalla', raise_exception=True)
+def reporte_stem_view(request):
+    """Halu STEAM — Fase 3: reporte de cumplimiento de los 6 principios de la
+    Visión STEM+ del MEN, agregado sobre TODAS las mallas curriculares de la
+    institución. Ningún dato nuevo que capturar aparte: solo lee lo que los
+    coordinadores ya marcaron en cada ítem de malla."""
+    institucion = _get_institucion(request)
+    items_qs = ItemMalla.objects.filter(malla__institucion=institucion)
+    total_items = items_qs.count()
+
+    conteo_por_principio = {codigo: 0 for codigo, _lbl in ItemMalla.PRINCIPIOS_STEM}
+    items_con_algun_principio = 0
+    for item in items_qs:
+        if item.principios_stem:
+            items_con_algun_principio += 1
+            for cod in item.principios_stem:
+                if cod in conteo_por_principio:
+                    conteo_por_principio[cod] += 1
+
+    cobertura_general = round(items_con_algun_principio / total_items * 100) if total_items else 0
+
+    principios_data = [
+        {
+            'codigo': codigo, 'etiqueta': etiqueta,
+            'cantidad': conteo_por_principio[codigo],
+            'porcentaje': round(conteo_por_principio[codigo] / total_items * 100) if total_items else 0,
+        }
+        for codigo, etiqueta in ItemMalla.PRINCIPIOS_STEM
+    ]
+
+    mallas_detalle = []
+    mallas_qs = MallaCurricular.objects.filter(institucion=institucion).select_related('materia', 'grado')
+    for malla in mallas_qs:
+        items_malla = list(malla.items.all())
+        total = len(items_malla)
+        if not total:
+            continue
+        con_stem = sum(1 for it in items_malla if it.principios_stem)
+        mallas_detalle.append({
+            'malla': malla,
+            'total': total,
+            'con_stem': con_stem,
+            'cobertura': round(con_stem / total * 100),
+        })
+    mallas_detalle.sort(key=lambda d: d['cobertura'])
+
+    context = {
+        'titulo_pagina': _("Reporte STEM+"),
+        'total_items': total_items,
+        'items_con_algun_principio': items_con_algun_principio,
+        'cobertura_general': cobertura_general,
+        'principios_data': principios_data,
+        'mallas_detalle': mallas_detalle,
+    }
+    return render(request, 'gestion_academica/reporte_stem.html', context)
 
 
 @login_required
@@ -345,6 +412,10 @@ def item_malla_add(request, pk):
         recursos     = request.POST.get('recursos', '').strip()
         evaluacion   = request.POST.get('evaluacion', '').strip()
         tiempo       = request.POST.get('tiempo_semanas', 10)
+        principios_stem = [
+            c for c in request.POST.getlist('principios_stem')
+            if c in dict(ItemMalla.PRINCIPIOS_STEM)
+        ]
         # Campos L2 (bilingüe)
         eje_L2          = request.POST.get('eje_tematico_L2', '').strip()
         logro_L2        = request.POST.get('logro_L2', '').strip()
@@ -369,6 +440,7 @@ def item_malla_add(request, pk):
                 recursos=recursos or None,
                 evaluacion=evaluacion or None,
                 tiempo_semanas=int(tiempo),
+                principios_stem=principios_stem,
                 eje_tematico_L2=eje_L2,
                 logro_L2=logro_L2,
                 competencias_L2=competencias_L2 or None,
@@ -407,6 +479,10 @@ def item_malla_edit(request, item_pk):
         item.recursos        = request.POST.get('recursos', '').strip() or None
         item.evaluacion      = request.POST.get('evaluacion', '').strip() or None
         item.tiempo_semanas  = int(request.POST.get('tiempo_semanas', item.tiempo_semanas))
+        item.principios_stem = [
+            c for c in request.POST.getlist('principios_stem')
+            if c in dict(ItemMalla.PRINCIPIOS_STEM)
+        ]
         # Campos L2 (bilingüe)
         item.eje_tematico_L2    = request.POST.get('eje_tematico_L2', '').strip()
         item.logro_L2           = request.POST.get('logro_L2', '').strip()
@@ -436,6 +512,7 @@ def item_malla_edit(request, item_pk):
         'es_bilingue': getattr(inst, 'es_bilingue', False),
         'idioma_secundario': getattr(inst, 'get_idioma_secundario_display', lambda: '')(),
         'niveles': niveles,
+        'principios_stem_choices': ItemMalla.PRINCIPIOS_STEM,
     }
     return render(request, 'gestion_academica/item_malla_edit.html', context)
 

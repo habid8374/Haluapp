@@ -115,6 +115,20 @@
                      value="{{ item.eje_tematico }}" placeholder="Ej: Álgebra lineal — sistemas de ecuaciones" required>
             </div>
             <div class="mt-3">
+              <label class="form-label fw-semibold" style="font-size:.82rem;">
+                <i class="bi bi-stars me-1"></i>Principios STEM+ (MEN) <span class="text-muted fw-normal">— opcional, para el reporte de alineación</span>
+              </label>
+              <div class="d-flex flex-wrap gap-3">
+                {% for codigo, etiqueta in principios_stem_choices %}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="principios_stem" value="{{ codigo }}"
+                         id="edit-stem-{{ codigo }}" {% if codigo in item.principios_stem %}checked{% endif %}>
+                  <label class="form-check-label" style="font-size:.82rem;" for="edit-stem-{{ codigo }}">{{ etiqueta }}</label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="mt-3">
               <label class="form-label fw-semibold" style="font-size:.82rem;">Logro del Período <span class="text-danger">*</span></label>
               <textarea name="logro" class="form-control form-control-sm" rows="3"
                         placeholder="Describe el logro general que el estudiante debe alcanzar en este período…" required>{{ item.logro }}</textarea>

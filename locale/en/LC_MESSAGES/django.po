@@ -12356,3 +12356,102 @@ msgstr "Icon (Bootstrap Icons)"
 
 msgid "Insignias:"
 msgstr "Badges:"
+
+msgid "Alineación STEM+ del MEN"
+msgstr "MEN STEM+ Alignment"
+
+msgid "Cobertura"
+msgstr "Coverage"
+
+msgid "Cobertura general"
+msgstr "Overall coverage"
+
+msgid "Escribe o pega un DBA primero."
+msgstr "Write or paste a DBA first."
+
+msgid "Generando…"
+msgstr "Generating…"
+
+msgid "Generar propuesta con IA"
+msgstr "Generate proposal with AI"
+
+msgid "Ir a Mallas Curriculares"
+msgstr "Go to Curriculum Maps"
+
+msgid "Listo — título y reto propuestos."
+msgstr "Done — title and challenge proposed."
+
+msgid "Listo — título, reto e hitos propuestos:"
+msgstr "Done — title, challenge and milestones proposed:"
+
+msgid "Mallas curriculares — de menor a mayor cobertura"
+msgstr "Curriculum maps — from lowest to highest coverage"
+
+msgid "No se pudo conectar con el servicio de IA. Intenta de nuevo."
+msgstr "Could not connect to the AI service. Try again."
+
+msgid "No se pudo generar la propuesta. Intenta de nuevo."
+msgstr "Could not generate the proposal. Try again."
+
+msgid ""
+"Pega un DBA (Derecho Básico de Aprendizaje) y, si quieres, la materia o el "
+"taller — la IA propone un título, un reto y de 3 a 5 hitos. Podrás editar "
+"todo antes de guardar."
+msgstr ""
+"Paste a DBA (Basic Learning Right) and, if you want, the subject or workshop"
+" — the AI proposes a title, a challenge and 3 to 5 milestones. You can edit "
+"everything before saving."
+
+msgid "Por principio"
+msgstr "By principle"
+
+msgid ""
+"Qué tanto de tu malla curricular ya está alineada con los 6 principios de la"
+" Visión STEM+ del Ministerio de Educación — calculado a partir de lo que ya "
+"marcaste en cada ítem de malla."
+msgstr ""
+"How much of your curriculum map is already aligned with the 6 principles of "
+"the Ministry of Education's STEM+ Vision — calculated from what you've "
+"already marked on each curriculum map item."
+
+msgid ""
+"Qué tanto de tu malla curricular ya está alineada con los 6 principios de la"
+" Visión STEM+ del Ministerio de Educación."
+msgstr ""
+"How much of your curriculum map is already aligned with the 6 principles of "
+"the Ministry of Education's STEM+ Vision."
+
+msgid "Reporte de cumplimiento STEM+"
+msgstr "STEM+ Compliance Report"
+
+msgid "Todavía no hay ítems de malla curricular registrados."
+msgstr "There are no curriculum map items registered yet."
+
+msgid "Ver reporte STEM+"
+msgstr "View STEM+ report"
+
+msgid "Volver a Halu STEAM"
+msgstr "Back to Halu STEAM"
+
+msgid ""
+"Ej: Explica el funcionamiento de circuitos eléctricos simples y su "
+"aplicación en la vida cotidiana."
+msgstr ""
+"E.g.: Explain how simple electrical circuits work and their application in "
+"everyday life."
+
+msgid "Taller / énfasis (opcional)"
+msgstr "Workshop / emphasis (optional)"
+
+msgid "ítems"
+msgstr "items"
+
+msgid "Ítems"
+msgstr "Items"
+
+msgid ""
+"{{ con }} de {{ total }} ítems de malla tienen al menos un principio STEM+ "
+"marcado."
+msgstr ""
+"{{ con }} out of {{ total }} curriculum map items have at least one STEM+ "
+"principle marked."
