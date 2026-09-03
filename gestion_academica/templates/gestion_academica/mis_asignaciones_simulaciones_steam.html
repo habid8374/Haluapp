@@ -28,6 +28,7 @@
           <tr>
             <th class="ps-4 py-3" style="color:#4f46e5;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Simulación" %}</th>
             <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Curso" %}</th>
+            <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Categoría" %}</th>
             <th class="py-3" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Fecha límite" %}</th>
             <th class="pe-4 py-3 text-center" style="color:#64748b;font-size:.75rem;letter-spacing:.05em;text-transform:uppercase;">{% trans "Acciones" %}</th>
           </tr>
@@ -37,8 +38,22 @@
           <tr>
             <td class="ps-4 py-3 fw-semibold" style="color:#1e293b;"><i class="{{ a.simulacion.icono }} me-1"></i>{{ a.simulacion.titulo }}</td>
             <td class="py-3" style="color:#64748b;">{{ a.curso }}</td>
+            <td class="py-3" style="color:#64748b;">
+              {% if a.actividad_calificable.tipo_actividad %}
+                <span class="badge bg-light text-dark border">{{ a.actividad_calificable.tipo_actividad.nombre }}</span>
+              {% else %}
+                <span class="badge bg-warning-subtle text-warning-emphasis" title="{% trans 'Esta asignación es anterior a la categoría de evaluación — quítala y vuelve a asignarla para que pondere en el boletín.' %}">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i>{% trans "Sin categoría" %}
+                </span>
+              {% endif %}
+            </td>
             <td class="py-3" style="color:#64748b;">{{ a.fecha_limite|date:"d/m/Y"|default:"—" }}</td>
             <td class="pe-4 py-3 text-center">
+              {% if a.actividad_calificable_id %}
+              <a href="{% url 'gestion_academica:docente_libro_de_notas_por_curso' a.curso_id %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Calificar en el Libro de Notas' %}">
+                <i class="bi bi-journal-check"></i>
+              </a>
+              {% endif %}
               <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminarAsignacion"
                       data-action="{% url 'gestion_academica:eliminar_asignacion_simulacion_steam' a.pk %}" data-nombre="{{ a.simulacion.titulo }}">
                 <i class="bi bi-trash-fill"></i>

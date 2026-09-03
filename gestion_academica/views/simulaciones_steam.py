@@ -137,10 +137,11 @@ def asignar_simulacion_steam(request, simulacion_pk):
                     asignacion.asignado_por = request.user
                     asignacion.actividad_calificable = actividad
                     asignacion.save()
-                messages.success(request, _("«%(titulo)s» asignada al curso.") % {'titulo': simulacion.titulo})
+                messages.success(request, _("«%(titulo)s» asignada al curso. Ya puedes calificarla desde el Libro de Notas.") % {'titulo': simulacion.titulo})
+                return redirect('gestion_academica:mis_asignaciones_simulaciones_steam')
             except IntegrityError:
                 messages.warning(request, _("Esa simulación ya estaba asignada a ese curso."))
-            return redirect('gestion_academica:catalogo_simulaciones_steam')
+                return redirect('gestion_academica:catalogo_simulaciones_steam')
         messages.error(request, _("Revisa el formulario — no se pudo asignar."))
     return redirect('gestion_academica:catalogo_simulaciones_steam')
 
@@ -152,7 +153,9 @@ def mis_asignaciones_simulaciones_steam(request):
     solo las de los cursos donde está asignado."""
     qs = get_filtered_queryset(
         AsignacionSimulacionSTEAM, request.user,
-        AsignacionSimulacionSTEAM.objects.select_related('simulacion', 'curso', 'curso__materia', 'curso__grado'),
+        AsignacionSimulacionSTEAM.objects.select_related(
+            'simulacion', 'curso', 'curso__materia', 'curso__grado', 'actividad_calificable',
+        ),
     )
     if not (request.user.is_superuser or _es_coordinador_o_admin(request.user)):
         if hasattr(request.user, 'docente'):
