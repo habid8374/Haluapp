@@ -108,6 +108,7 @@ urlpatterns = [
 
     # --- Halu STEAM: Retos de ingeniería/robótica (plantillas ABP) ---
     path('retos-steam/', views.catalogo_retos_steam, name='catalogo_retos_steam'),
+    path('retos-steam/<int:pk>/abrir/', views.abrir_reto_steam, name='abrir_reto_steam'),
 
     # --- Halu STEAM: Portafolio del estudiante ---
     path('mi-portafolio-steam/', views.mi_portafolio_steam, name='mi_portafolio_steam'),

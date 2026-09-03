@@ -9,21 +9,26 @@ Dos tipos de tarjeta en el mismo catálogo (ver `RetoSTEAM.es_plantilla_usable`)
   solo enlazan a la página oficial — requieren kits/inscripción que Halu no
   gestiona.
 """
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _
 
 from ..models import RetoSTEAM
+
+
+def _retos_visibles_para(user):
+    institucion = getattr(user, 'institucion_asociada', None)
+    if user.is_superuser:
+        return RetoSTEAM.objects.filter(activo=True)
+    return RetoSTEAM.objects.filter(Q(es_publica=True) | Q(institucion=institucion), activo=True)
 
 
 @login_required
 @permission_required('gestion_academica.view_retosteam', raise_exception=True)
 def catalogo_retos_steam(request):
-    institucion = getattr(request.user, 'institucion_asociada', None)
-    if request.user.is_superuser:
-        qs = RetoSTEAM.objects.filter(activo=True)
-    else:
-        qs = RetoSTEAM.objects.filter(Q(es_publica=True) | Q(institucion=institucion), activo=True)
+    qs = _retos_visibles_para(request.user)
 
     categoria = request.GET.get('categoria', '')
     if categoria:
@@ -36,3 +41,24 @@ def catalogo_retos_steam(request):
         'titulo_pagina': "Catálogo de Retos STEAM",
     }
     return render(request, 'gestion_academica/catalogo_retos_steam.html', context)
+
+
+@login_required
+@permission_required('gestion_academica.view_retosteam', raise_exception=True)
+def abrir_reto_steam(request, pk):
+    """Visor propio de Halu para la tarjeta informativa de una competencia
+    externa (FIRST LEGO League, VEX…). A diferencia de las simulaciones
+    PhET, estos sitios NO están pensados para incrustarse — la mayoría de
+    páginas institucionales bloquean el "framing" por seguridad (evita
+    clickjacking), así que lo más probable es que el iframe salga en
+    blanco. Por eso el botón "Abrir en una pestaña nueva" siempre está
+    visible desde el primer momento, no solo como respaldo ante un error."""
+    reto = get_object_or_404(_retos_visibles_para(request.user), pk=pk)
+    if not reto.enlace_externo:
+        messages.error(request, _("Este reto no tiene un enlace externo."))
+        return redirect('gestion_academica:catalogo_retos_steam')
+    context = {
+        'reto': reto,
+        'titulo_pagina': reto.titulo,
+    }
+    return render(request, 'gestion_academica/visor_reto_steam.html', context)

@@ -12592,3 +12592,12 @@ msgstr "This simulation could not be prepared to view here."
 
 msgid "¿No carga? Ábrela en una pestaña nueva"
 msgstr "Won't load? Open it in a new tab"
+
+msgid ""
+"Este es el sitio oficial de una entidad externa a Halu. Muchos sitios no "
+"permiten mostrarse dentro de otra página por seguridad — si ves un espacio "
+"en blanco, usa el botón «Abrir en una pestaña nueva» de arriba."
+msgstr ""
+"This is the official site of an entity outside Halu. Many sites do not allow"
+" themselves to be shown inside another page for security reasons — if you "
+"see a blank space, use the «Open in a new tab» button above."

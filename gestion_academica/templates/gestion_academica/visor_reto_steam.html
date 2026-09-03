@@ -1,0 +1,31 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ reto.titulo }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .visor-frame { width:100%; height:70vh; min-height:400px; border:none; border-radius:14px; background:#fff; }
+  .visor-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem; margin-bottom:.75rem; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="visor-toolbar">
+  <div>
+    <a href="{% url 'gestion_academica:catalogo_retos_steam' %}" class="btn btn-outline-secondary btn-sm mb-1">
+      <i class="bi bi-arrow-left me-1"></i>{% trans "Volver" %}
+    </a>
+    <h4 class="mb-0 mt-1"><i class="{{ reto.icono }} me-1 text-primary"></i>{{ reto.titulo }}</h4>
+  </div>
+  <a href="{{ reto.enlace_externo }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
+    <i class="bi bi-box-arrow-up-right me-1"></i>{% trans "Abrir en una pestaña nueva" %}
+  </a>
+</div>
+
+<div class="alert alert-warning py-2 mb-3" style="font-size:.82rem;">
+  <i class="bi bi-info-circle me-1"></i>
+  {% trans "Este es el sitio oficial de una entidad externa a Halu. Muchos sitios no permiten mostrarse dentro de otra página por seguridad — si ves un espacio en blanco, usa el botón «Abrir en una pestaña nueva» de arriba." %}
+</div>
+
+<iframe class="visor-frame" src="{{ reto.enlace_externo }}" title="{{ reto.titulo }}"></iframe>
+{% endblock %}
