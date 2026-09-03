@@ -534,3 +534,31 @@ def mi_portafolio_steam(request):
         'titulo_pagina': _("Mi Portafolio STEAM"),
     }
     return render(request, 'gestion_academica/mi_portafolio_steam.html', context)
+
+
+@login_required
+def mi_proyecto_steam_detalle(request, pk):
+    """Vista de solo lectura para el estudiante: el reto, los hitos (con su
+    estado, sin poder tocarlos), el equipo y la evidencia de un proyecto en
+    el que participa. Nunca acepta POST — gestionar el proyecto sigue siendo
+    tarea exclusiva del docente/coordinador desde detalle_proyecto_steam."""
+    if not hasattr(request.user, 'estudiante'):
+        messages.error(request, _("Esta pantalla es solo para estudiantes."))
+        return redirect('gestion_academica:inicio_academico')
+
+    estudiante = request.user.estudiante
+    proyecto = get_object_or_404(
+        ProyectoSTEAM.objects
+        .filter(institucion=estudiante.institucion, participantes__estudiante=estudiante)
+        .select_related('curso', 'curso__materia')
+        .prefetch_related('hitos', 'participantes__estudiante__usuario', 'evidencias'),
+        pk=pk,
+    )
+    context = {
+        'proyecto': proyecto,
+        'insignias_por_estudiante': {
+            est_id: list(nombres) for est_id, nombres in _insignias_por_estudiante(proyecto).items()
+        },
+        'titulo_pagina': proyecto.titulo,
+    }
+    return render(request, 'gestion_academica/mi_proyecto_steam_detalle.html', context)

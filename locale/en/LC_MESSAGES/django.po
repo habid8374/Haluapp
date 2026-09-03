@@ -12455,3 +12455,6 @@ msgid ""
 msgstr ""
 "{{ con }} out of {{ total }} curriculum map items have at least one STEM+ "
 "principle marked."
+
+msgid "Ver detalle"
+msgstr "View detail"

@@ -35,20 +35,16 @@
     <div class="row g-3">
       {% for part in participaciones %}
       <div class="col-md-6">
+        <a href="{% url 'gestion_academica:mi_proyecto_steam_detalle' part.proyecto.pk %}" class="text-decoration-none">
         <div class="border rounded-3 p-3 h-100">
           <div class="d-flex justify-content-between align-items-start mb-1">
-            <span class="fw-semibold small">{{ part.proyecto.titulo }}</span>
+            <span class="fw-semibold small text-dark">{{ part.proyecto.titulo }}</span>
             {% if part.rol %}<span class="badge rounded-pill" style="background:#eef2ff;color:#4f46e5;font-size:.68rem;">{{ part.rol }}</span>{% endif %}
           </div>
           <p class="text-muted small mb-2"><i class="bi bi-collection-fill me-1"></i>{{ part.proyecto.curso.materia }}</p>
-          {% if part.proyecto.evidencias.all %}
-          <div class="d-flex flex-wrap gap-2">
-            {% for ev in part.proyecto.evidencias.all %}
-            <a href="{{ ev.url }}" target="_blank" rel="noopener noreferrer" class="small"><i class="bi bi-link-45deg me-1"></i>{{ ev.titulo }}</a>
-            {% endfor %}
-          </div>
-          {% endif %}
+          <span class="text-primary small"><i class="bi bi-arrow-right-circle me-1"></i>{% trans "Ver detalle" %}</span>
         </div>
+        </a>
       </div>
       {% endfor %}
     </div>

@@ -90,6 +90,7 @@ urlpatterns = [
     path('proyectos-steam/participante/<int:pk>/eliminar/', views.eliminar_participante_proyecto, name='eliminar_participante_proyecto'),
     path('proyectos-steam/evidencia/<int:pk>/eliminar/', views.eliminar_evidencia_proyecto, name='eliminar_evidencia_proyecto'),
     path('proyectos-steam/generar-ia/', views.generar_proyecto_steam_ia, name='generar_proyecto_steam_ia'),
+    path('mi-proyecto-steam/<int:pk>/', views.mi_proyecto_steam_detalle, name='mi_proyecto_steam_detalle'),
 
     # --- Halu STEAM: Insignias ---
     path('insignias/', views.InsigniaListView.as_view(), name='lista_insignias'),

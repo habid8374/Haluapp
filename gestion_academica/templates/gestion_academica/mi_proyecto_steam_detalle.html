@@ -1,0 +1,104 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% load gestion_academica_filters %}
+{% block titulo %}{{ proyecto.titulo }}{% endblock %}
+
+{% block extrastyles %}{{ block.super }}
+<style>
+  .steam-card { border-radius:16px; border:none; box-shadow:0 2px 12px rgba(0,0,0,.07); }
+  .badge-insignia-mini { font-size:.68rem; background:#fdf4ff; color:#a21caf; border-radius:999px; padding:.2rem .55rem; }
+  .progress-hitos { height:8px; border-radius:999px; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+    <div>
+      <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+        <h2 class="mb-0" style="color:#fff;"><i class="bi bi-rocket-takeoff-fill me-2"></i>{{ proyecto.titulo }}</h2>
+        {% if proyecto.estado == 'PLANEACION' %}<span class="badge rounded-pill bg-light text-dark">{% trans "Planeación" %}</span>
+        {% elif proyecto.estado == 'EN_CURSO' %}<span class="badge rounded-pill bg-light text-primary">{% trans "En curso" %}</span>
+        {% elif proyecto.estado == 'ENTREGADO' %}<span class="badge rounded-pill bg-warning text-dark">{% trans "Entregado" %}</span>
+        {% else %}<span class="badge rounded-pill bg-success">{% trans "Evaluado" %}</span>{% endif %}
+      </div>
+      <p class="mb-0" style="color:#fff;opacity:.85;font-size:.9rem;"><i class="bi bi-collection-fill me-1"></i>{{ proyecto.curso }}</p>
+      {% if proyecto.reto %}<p class="mt-2 mb-0" style="color:#fff;opacity:.9;font-size:.9rem;max-width:640px;">{{ proyecto.reto }}</p>{% endif %}
+    </div>
+    <a href="{% url 'gestion_academica:mi_portafolio_steam' %}" class="btn btn-light btn-sm fw-semibold">
+      <i class="bi bi-arrow-left me-1"></i>{% trans "Mi Portafolio STEAM" %}
+    </a>
+  </div>
+</div>
+
+{% if messages %}{% for m in messages %}
+<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+{% endfor %}{% endif %}
+
+<div class="row g-3">
+  <!-- HITOS (solo lectura) -->
+  <div class="col-lg-4">
+    <div class="card steam-card h-100">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-2"><i class="bi bi-flag-fill me-2 text-primary"></i>{% trans "Hitos" %}</h5>
+        <div class="progress progress-hitos mb-3">
+          <div class="progress-bar bg-success" style="width:{{ proyecto.porcentaje_hitos_completados }}%;"></div>
+        </div>
+        {% for hito in proyecto.hitos.all %}
+        <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom">
+          <i class="bi {% if hito.completado %}bi-check-circle-fill text-success{% else %}bi-circle text-muted{% endif %}"></i>
+          <div class="flex-grow-1">
+            <div class="small fw-semibold {% if hito.completado %}text-decoration-line-through text-muted{% endif %}">{{ hito.titulo }}</div>
+            {% if hito.fecha_limite %}<div class="text-muted" style="font-size:.72rem;">{{ hito.fecha_limite|date:"d/m/Y" }}</div>{% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-muted small">{% trans "Sin hitos todavía." %}</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- EQUIPO (solo lectura) -->
+  <div class="col-lg-4">
+    <div class="card steam-card h-100">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-people-fill me-2 text-primary"></i>{% trans "Equipo" %}</h5>
+        {% for part in proyecto.participantes.all %}
+        <div class="mb-3 pb-2 border-bottom">
+          <div class="small fw-semibold">{{ part.estudiante.usuario.get_full_name }}</div>
+          {% if part.rol %}<div class="text-muted" style="font-size:.75rem;">{{ part.rol }}</div>{% endif %}
+          {% with nombres=insignias_por_estudiante|get_item:part.estudiante.pk %}
+          {% if nombres %}
+          <div class="d-flex flex-wrap gap-1 mt-1">
+            {% for n in nombres %}<span class="badge-insignia-mini"><i class="bi bi-award-fill me-1"></i>{{ n }}</span>{% endfor %}
+          </div>
+          {% endif %}
+          {% endwith %}
+        </div>
+        {% empty %}
+        <p class="text-muted small">{% trans "Sin estudiantes asignados todavía." %}</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- EVIDENCIA (solo lectura) -->
+  <div class="col-lg-4">
+    <div class="card steam-card h-100">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-camera-reels-fill me-2 text-primary"></i>{% trans "Evidencia" %}</h5>
+        {% for ev in proyecto.evidencias.all %}
+        <div class="mb-2 pb-2 border-bottom">
+          <a href="{{ ev.url }}" target="_blank" rel="noopener noreferrer" class="small">
+            <i class="bi bi-link-45deg me-1"></i>{{ ev.titulo }}
+          </a>
+        </div>
+        {% empty %}
+        <p class="text-muted small">{% trans "Sin evidencia todavía." %}</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
