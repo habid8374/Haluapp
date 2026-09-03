@@ -107,6 +107,8 @@
 
   let valorActual = parseInt(inputInicial.value, 10) || 0;
   let historial = [valorActual];
+  const tiempoInicio = Date.now();
+  let cambiosValor = 0;
 
   function rango() {
     let min = Math.min.apply(null, historial.concat([0]));
@@ -193,6 +195,7 @@
     const desde = valorActual;
     valorActual = valorActual + delta;
     historial.push(valorActual);
+    cambiosValor++;
     dibujar({ desde: desde, hasta: valorActual, salto: delta });
     valorEl.textContent = valorActual;
     actualizarLog();
@@ -201,6 +204,7 @@
   function reiniciar() {
     valorActual = parseInt(inputInicial.value, 10) || 0;
     historial = [valorActual];
+    cambiosValor++;
     valorEl.textContent = valorActual;
     actualizarLog();
     dibujar(null);
@@ -229,6 +233,8 @@
 
       const form = new FormData();
       form.append('valor_final', valorActual);
+      form.append('tiempo_respuesta_ms', Date.now() - tiempoInicio);
+      form.append('cambios_antes_de_enviar', cambiosValor);
       form.append('csrfmiddlewaretoken', csrfToken);
 
       fetch('{% url "halu_math:responder_reto_recta_numerica" %}', { method: 'POST', body: form })
@@ -244,6 +250,9 @@
             mensaje = '<div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i><strong>{% trans "¡Correcto! Llegaste a la meta." %}</strong></div>';
           } else {
             mensaje = '<div class="alert alert-danger"><i class="bi bi-x-circle-fill me-1"></i><strong>{% trans "Todavía no. La meta era" %}</strong> ' + data.objetivo + '</div>';
+          }
+          if (data.es_correcta && data.es_fluido === false) {
+            mensaje += '<div class="small text-muted mb-2"><i class="bi bi-hourglass-split me-1"></i>{% trans "Acertaste, pero tómate menos tiempo y menos saltos para demostrar que ya lo dominas de verdad." %}</div>';
           }
           if (data.recien_dominado) {
             mensaje += '<div class="alert alert-warning text-center"><i class="bi bi-trophy-fill me-1"></i><strong>{% trans "¡Felicitaciones, dominaste este DBA!" %}</strong></div>';

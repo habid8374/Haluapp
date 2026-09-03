@@ -25,7 +25,7 @@ class EjercicioMathAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
 
 @admin.register(DominioDBA)
 class DominioDBAAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
-    list_display = ('estudiante', 'dba', 'nivel_actual', 'racha_actual', 'dominado', 'institucion')
+    list_display = ('estudiante', 'dba', 'nivel_actual', 'racha_actual', 'racha_fluida_actual', 'dominado', 'institucion')
     search_fields = ('estudiante__usuario__first_name', 'estudiante__usuario__last_name')
     list_filter = ('nivel_actual', 'dominado')
     ordering = ('-actualizado_en',)
@@ -34,15 +34,15 @@ class DominioDBAAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
 
 @admin.register(IntentoEjercicioMath)
 class IntentoEjercicioMathAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
-    list_display = ('estudiante', 'ejercicio', 'es_correcta', 'nivel_en_el_momento', 'creado_en', 'institucion')
-    list_filter = ('es_correcta', 'nivel_en_el_momento')
+    list_display = ('estudiante', 'ejercicio', 'es_correcta', 'es_fluido', 'nivel_en_el_momento', 'creado_en', 'institucion')
+    list_filter = ('es_correcta', 'es_fluido', 'nivel_en_el_momento')
     ordering = ('-creado_en',)
     raw_id_fields = ('institucion', 'estudiante', 'ejercicio', 'opcion_elegida')
 
 
 @admin.register(IntentoManipulativo)
 class IntentoManipulativoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
-    list_display = ('estudiante', 'dba', 'tipo', 'es_correcta', 'nivel_en_el_momento', 'creado_en', 'institucion')
-    list_filter = ('tipo', 'es_correcta', 'nivel_en_el_momento')
+    list_display = ('estudiante', 'dba', 'tipo', 'es_correcta', 'es_fluido', 'nivel_en_el_momento', 'creado_en', 'institucion')
+    list_filter = ('tipo', 'es_correcta', 'es_fluido', 'nivel_en_el_momento')
     ordering = ('-creado_en',)
     raw_id_fields = ('institucion', 'estudiante', 'dba')

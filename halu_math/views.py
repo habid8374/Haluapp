@@ -18,7 +18,7 @@ from .models import (
     OpcionEjercicioMath, TipoManipulativo,
 )
 from .motor import (
-    elegir_siguiente_ejercicio, generar_reto_bloques_base10, generar_reto_recta_numerica,
+    calcular_es_fluido, elegir_siguiente_ejercicio, generar_reto_bloques_base10, generar_reto_recta_numerica,
     procesar_respuesta,
 )
 
@@ -60,6 +60,26 @@ _DBA_MANIPULATIVOS = {
 
 def _manipulativo_de(dba):
     return _DBA_MANIPULATIVOS.get((dba.area, dba.grado, dba.numero))
+
+
+def _parse_telemetria_fluidez(request):
+    """Lee la telemetría de fluidez que manda el cliente (fase 2 de 3):
+    tiempo de respuesta y cambios antes de enviar. Nunca confiar en un
+    'es_fluido' que mande el cliente directamente — solo en estos dos datos
+    crudos, que luego se combinan server-side vía motor.calcular_es_fluido.
+    Un valor ausente o inválido se trata como 'sin telemetría' (tiempo=None),
+    que calcular_es_fluido no penaliza."""
+    try:
+        tiempo_ms = int(request.POST.get('tiempo_respuesta_ms', ''))
+        if tiempo_ms < 0:
+            tiempo_ms = None
+    except (TypeError, ValueError):
+        tiempo_ms = None
+    try:
+        cambios = max(0, int(request.POST.get('cambios_antes_de_enviar', '0')))
+    except (TypeError, ValueError):
+        cambios = 0
+    return tiempo_ms, cambios
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -509,20 +529,25 @@ def responder_ejercicio(request, dba_pk):
     opcion = OpcionEjercicioMath.objects.filter(pk=opcion_id, ejercicio=ejercicio).first() if opcion_id else None
     es_correcta = bool(opcion and opcion.es_correcta)
 
+    tiempo_ms, cambios = _parse_telemetria_fluidez(request)
+    es_fluido = calcular_es_fluido(dominio.nivel_actual, tiempo_ms, cambios)
+
     IntentoEjercicioMath.objects.create(
         institucion=institucion, estudiante=estudiante, ejercicio=ejercicio,
         opcion_elegida=opcion, es_correcta=es_correcta, nivel_en_el_momento=dominio.nivel_actual,
+        tiempo_respuesta_ms=tiempo_ms, cambios_antes_de_enviar=cambios, es_fluido=es_fluido,
     )
 
     nivel_antes = dominio.nivel_actual
     dominado_antes = dominio.dominado
-    dominio = procesar_respuesta(dominio, es_correcta)
+    dominio = procesar_respuesta(dominio, es_correcta, es_fluido)
 
     opcion_correcta = ejercicio.opcion_correcta
 
     return JsonResponse({
         'ok': True,
         'es_correcta': es_correcta,
+        'es_fluido': es_fluido,
         'explicacion': ejercicio.explicacion,
         'letra_correcta': opcion_correcta.letra if opcion_correcta else None,
         'nivel_actual': dominio.nivel_actual,
@@ -665,19 +690,24 @@ def responder_reto_recta_numerica(request):
     es_correcta = valor_final == reto['objetivo']
     del request.session['reto_math_RECTA_NUMERICA']
 
+    tiempo_ms, cambios = _parse_telemetria_fluidez(request)
+    es_fluido = calcular_es_fluido(dominio.nivel_actual, tiempo_ms, cambios)
+
     IntentoManipulativo.objects.create(
         institucion=institucion, estudiante=estudiante, dba=dba, tipo=TipoManipulativo.RECTA_NUMERICA,
         es_correcta=es_correcta, nivel_en_el_momento=dominio.nivel_actual,
         parametros={**reto, 'valor_final': valor_final},
+        tiempo_respuesta_ms=tiempo_ms, cambios_antes_de_enviar=cambios, es_fluido=es_fluido,
     )
 
     nivel_antes = dominio.nivel_actual
     dominado_antes = dominio.dominado
-    dominio = procesar_respuesta(dominio, es_correcta)
+    dominio = procesar_respuesta(dominio, es_correcta, es_fluido)
 
     return JsonResponse({
         'ok': True,
         'es_correcta': es_correcta,
+        'es_fluido': es_fluido,
         'objetivo': reto['objetivo'],
         'nivel_actual': dominio.nivel_actual,
         'nivel_actual_label': dominio.get_nivel_actual_display(),
@@ -738,19 +768,24 @@ def responder_reto_bloques_base10(request):
     es_correcta = total_final == reto['objetivo']
     del request.session['reto_math_BLOQUES_BASE10']
 
+    tiempo_ms, cambios = _parse_telemetria_fluidez(request)
+    es_fluido = calcular_es_fluido(dominio.nivel_actual, tiempo_ms, cambios)
+
     IntentoManipulativo.objects.create(
         institucion=institucion, estudiante=estudiante, dba=dba, tipo=TipoManipulativo.BLOQUES_BASE10,
         es_correcta=es_correcta, nivel_en_el_momento=dominio.nivel_actual,
         parametros={**reto, 'total_final': total_final},
+        tiempo_respuesta_ms=tiempo_ms, cambios_antes_de_enviar=cambios, es_fluido=es_fluido,
     )
 
     nivel_antes = dominio.nivel_actual
     dominado_antes = dominio.dominado
-    dominio = procesar_respuesta(dominio, es_correcta)
+    dominio = procesar_respuesta(dominio, es_correcta, es_fluido)
 
     return JsonResponse({
         'ok': True,
         'es_correcta': es_correcta,
+        'es_fluido': es_fluido,
         'objetivo': reto['objetivo'],
         'nivel_actual': dominio.nivel_actual,
         'nivel_actual_label': dominio.get_nivel_actual_display(),

@@ -17,8 +17,37 @@ UMBRAL_RACHA = 5  # aciertos seguidos para subir de nivel / dominar
 
 _ORDEN_NIVELES = [Dificultad.BASICO, Dificultad.MEDIO, Dificultad.ALTO]
 
+# ─── Evaluación por fluidez (fase 2 de 3) ───────────────────────────────────
+# Un acierto correcto pero lento/dubitativo demuestra que el estudiante llegó
+# al resultado, no que domina el concepto con soltura (el caso real que
+# motivó esto: "tardó 45 segundos en una suma simple y acertó, no tiene
+# fluidez conceptual, solo cálculo manual lento"). Por eso NO se penaliza la
+# progresión de nivel (Básico→Medio→Alto ya mide si el concepto es correcto,
+# no la velocidad) pero SÍ se exige, además de la racha normal, una racha de
+# aciertos fluidos en el nivel Alto para marcar el DBA como dominado — ver
+# DominioDBA.racha_fluida_actual y procesar_respuesta más abajo.
 
-def procesar_respuesta(dominio: DominioDBA, es_correcta: bool) -> DominioDBA:
+_UMBRAL_TIEMPO_MS = {
+    Dificultad.BASICO: 8_000,
+    Dificultad.MEDIO: 15_000,
+    Dificultad.ALTO: 25_000,
+}
+UMBRAL_CAMBIOS_FLUIDO = 1  # como máximo 1 cambio de opción/valor antes de enviar, para contar como fluido
+
+
+def calcular_es_fluido(nivel, tiempo_respuesta_ms, cambios_antes_de_enviar):
+    """Índice de fluidez combinado: tiempo de respuesta + cuántas veces
+    cambió de opción/valor antes de enviar. Sin telemetría (tiempo_respuesta_ms
+    es None — p. ej. un cliente que no la envió) no se penaliza: se asume
+    fluido, para no castigar por un dato que el cliente simplemente no
+    mandó."""
+    if tiempo_respuesta_ms is None:
+        return True
+    umbral_tiempo = _UMBRAL_TIEMPO_MS.get(nivel, _UMBRAL_TIEMPO_MS[Dificultad.MEDIO])
+    return tiempo_respuesta_ms <= umbral_tiempo and cambios_antes_de_enviar <= UMBRAL_CAMBIOS_FLUIDO
+
+
+def procesar_respuesta(dominio: DominioDBA, es_correcta: bool, es_fluido: bool = True) -> DominioDBA:
     """Actualiza el estado de dominio de un estudiante sobre un DBA a
     partir de un intento. Persiste el cambio y devuelve el dominio
     actualizado."""
@@ -27,16 +56,19 @@ def procesar_respuesta(dominio: DominioDBA, es_correcta: bool) -> DominioDBA:
         dominio.aciertos_totales += 1
         dominio.racha_actual += 1
         dominio.racha_maxima = max(dominio.racha_maxima, dominio.racha_actual)
+        dominio.racha_fluida_actual = dominio.racha_fluida_actual + 1 if es_fluido else 0
         if dominio.racha_actual >= UMBRAL_RACHA:
             indice_actual = _ORDEN_NIVELES.index(dominio.nivel_actual)
             if indice_actual < len(_ORDEN_NIVELES) - 1:
                 dominio.nivel_actual = _ORDEN_NIVELES[indice_actual + 1]
                 dominio.racha_actual = 0
-            elif not dominio.dominado:
+                dominio.racha_fluida_actual = 0
+            elif not dominio.dominado and dominio.racha_fluida_actual >= UMBRAL_RACHA:
                 dominio.dominado = True
                 dominio.fecha_dominado = timezone.now()
     else:
         dominio.racha_actual = 0
+        dominio.racha_fluida_actual = 0
     dominio.save()
     return dominio
 

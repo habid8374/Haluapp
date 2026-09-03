@@ -49,6 +49,22 @@
   const responderUrl = '{% url "halu_math:responder_ejercicio" dba.pk %}';
   const csrfToken = '{{ csrf_token }}';
   let respondido = false;
+  const tiempoInicio = Date.now();
+  let cambiosOpcion = 0;
+  let ultimoHover = null;
+
+  // Señal de duda (fase 2 de 3): no hay un paso de "seleccionar y confirmar"
+  // — la respuesta se envía en el mismo clic — así que se aproxima con
+  // cuántas opciones distintas exploró (hover) antes de decidirse.
+  document.querySelectorAll('.opcion-btn').forEach(function(btn) {
+    btn.addEventListener('mouseenter', function() {
+      if (respondido) return;
+      if (ultimoHover !== this) {
+        cambiosOpcion++;
+        ultimoHover = this;
+      }
+    });
+  });
 
   document.querySelectorAll('.opcion-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
@@ -64,6 +80,8 @@
       const form = new FormData();
       form.append('ejercicio_id', ejercicioId);
       form.append('opcion_id', opcionId);
+      form.append('tiempo_respuesta_ms', Date.now() - tiempoInicio);
+      form.append('cambios_antes_de_enviar', cambiosOpcion);
       form.append('csrfmiddlewaretoken', csrfToken);
 
       fetch(responderUrl, { method: 'POST', body: form })
@@ -96,6 +114,9 @@
             mensaje += ' ' + data.explicacion;
           }
           mensaje += '</div>';
+          if (data.es_correcta && data.es_fluido === false) {
+            mensaje += '<div class="small text-muted mb-2"><i class="bi bi-hourglass-split me-1"></i>{% trans "Acertaste, pero tómate menos tiempo y menos vueltas para demostrar que ya lo dominas de verdad." %}</div>';
+          }
 
           if (data.recien_dominado) {
             mensaje += '<div class="alert alert-warning text-center"><i class="bi bi-trophy-fill me-1"></i><strong>{% trans "¡Felicitaciones, dominaste este DBA!" %}</strong></div>';

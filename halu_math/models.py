@@ -108,6 +108,10 @@ class DominioDBA(models.Model):
     )
     racha_actual = models.PositiveSmallIntegerField(default=0, verbose_name=_("Racha actual"))
     racha_maxima = models.PositiveSmallIntegerField(default=0, verbose_name=_("Racha máxima"))
+    racha_fluida_actual = models.PositiveSmallIntegerField(
+        default=0, verbose_name=_("Racha fluida actual"),
+        help_text=_("Aciertos fluidos seguidos en el nivel Alto — junto con la racha normal, se exige para marcar el DBA como dominado (ver halu_math.motor.calcular_es_fluido)."),
+    )
     intentos_totales = models.PositiveIntegerField(default=0, verbose_name=_("Intentos totales"))
     aciertos_totales = models.PositiveIntegerField(default=0, verbose_name=_("Aciertos totales"))
     dominado = models.BooleanField(default=False, verbose_name=_("Dominado"))
@@ -151,6 +155,18 @@ class IntentoEjercicioMath(models.Model):
     nivel_en_el_momento = models.CharField(
         max_length=10, choices=Dificultad.choices, verbose_name=_("Nivel en el momento del intento"),
     )
+    tiempo_respuesta_ms = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=_("Tiempo de respuesta (ms)"),
+        help_text=_("Desde que se mostró el ejercicio hasta que se envió la respuesta."),
+    )
+    cambios_antes_de_enviar = models.PositiveSmallIntegerField(
+        default=0, verbose_name=_("Cambios antes de enviar"),
+        help_text=_("Cuántas opciones distintas se exploraron (hover) antes del clic final — señal de duda."),
+    )
+    es_fluido = models.BooleanField(
+        default=True, verbose_name=_("Respuesta fluida"),
+        help_text=_("Rápida y sin muchas dudas, según halu_math.motor.calcular_es_fluido."),
+    )
     creado_en = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -191,6 +207,18 @@ class IntentoManipulativo(models.Model):
     parametros = models.JSONField(
         default=dict, blank=True, verbose_name=_("Parámetros del reto"),
         help_text=_("Reto planteado y respuesta dada, para poder auditar."),
+    )
+    tiempo_respuesta_ms = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=_("Tiempo de respuesta (ms)"),
+        help_text=_("Desde que se mostró el reto hasta que se envió la respuesta."),
+    )
+    cambios_antes_de_enviar = models.PositiveSmallIntegerField(
+        default=0, verbose_name=_("Cambios antes de enviar"),
+        help_text=_("Cuántas veces se manipuló el widget (saltos, unidades, decenas) antes de comprobar — señal de duda."),
+    )
+    es_fluido = models.BooleanField(
+        default=True, verbose_name=_("Respuesta fluida"),
+        help_text=_("Rápida y sin muchas dudas, según halu_math.motor.calcular_es_fluido."),
     )
     creado_en = models.DateTimeField(auto_now_add=True)
 

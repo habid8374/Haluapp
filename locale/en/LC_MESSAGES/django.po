@@ -13003,3 +13003,69 @@ msgstr "Correct! You formed the number."
 
 msgid "¡Correcto! Llegaste a la meta."
 msgstr "Correct! You reached the target."
+
+msgid "Racha fluida actual"
+msgstr "Current fluent streak"
+
+msgid ""
+"Aciertos fluidos seguidos en el nivel Alto — junto con la racha normal, se "
+"exige para marcar el DBA como dominado (ver "
+"halu_math.motor.calcular_es_fluido)."
+msgstr ""
+"Fluent correct answers in a row at the Advanced level — required, along with"
+" the normal streak, to mark the DBA as mastered (see "
+"halu_math.motor.calcular_es_fluido)."
+
+msgid "Tiempo de respuesta (ms)"
+msgstr "Response time (ms)"
+
+msgid "Desde que se mostró el ejercicio hasta que se envió la respuesta."
+msgstr "From when the exercise was shown until the answer was submitted."
+
+msgid "Cambios antes de enviar"
+msgstr "Changes before submitting"
+
+msgid ""
+"Cuántas opciones distintas se exploraron (hover) antes del clic final — "
+"señal de duda."
+msgstr ""
+"How many different options were explored (hover) before the final click — a "
+"hesitation signal."
+
+msgid "Respuesta fluida"
+msgstr "Fluent answer"
+
+msgid "Rápida y sin muchas dudas, según halu_math.motor.calcular_es_fluido."
+msgstr ""
+"Fast and without much hesitation, per halu_math.motor.calcular_es_fluido."
+
+msgid "Desde que se mostró el reto hasta que se envió la respuesta."
+msgstr "From when the challenge was shown until the answer was submitted."
+
+msgid ""
+"Cuántas veces se manipuló el widget (saltos, unidades, decenas) antes de "
+"comprobar — señal de duda."
+msgstr ""
+"How many times the widget was manipulated (jumps, units, tens) before "
+"checking — a hesitation signal."
+
+msgid ""
+"Acertaste, pero tómate menos tiempo y menos vueltas para demostrar que ya lo"
+" dominas de verdad."
+msgstr ""
+"You got it right, but take less time and fewer tries to prove you've truly "
+"mastered it."
+
+msgid ""
+"Acertaste, pero tómate menos tiempo y menos saltos para demostrar que ya lo "
+"dominas de verdad."
+msgstr ""
+"You got it right, but take less time and fewer jumps to prove you've truly "
+"mastered it."
+
+msgid ""
+"Acertaste, pero tómate menos tiempo y menos movimientos para demostrar que "
+"ya lo dominas de verdad."
+msgstr ""
+"You got it right, but take less time and fewer moves to prove you've truly "
+"mastered it."
