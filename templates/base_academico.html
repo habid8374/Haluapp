@@ -326,7 +326,7 @@
       </li>
       <li class="nav-item item-color-1">
         <a class="nav-link {% if 'laboratorio' in request.path %}active{% endif %}" href="{% url 'halu_math:laboratorio_index' %}">
-          <i class="bi bi-flask-fill"></i> {% trans "Laboratorio Matemático" %}
+          <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Laboratorio Matemático" %}
         </a>
       </li>
       {% endif %}
@@ -458,7 +458,7 @@
       <li class="nav-item item-color-1">
         <a class="nav-link {% if 'laboratorio' in request.path %}active{% endif %}"
            href="{% url 'halu_math:laboratorio_index' %}">
-          <i class="bi bi-flask-fill"></i> {% trans "Laboratorio Matemático" %}
+          <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Laboratorio Matemático" %}
         </a>
       </li>
       {% endif %}
@@ -733,6 +733,26 @@
         </a>
       </li>
       {% endif %}
+      {% endif %}
+      {% if 'halu_math' in modulos_activos %}
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if request.resolver_match.url_name == 'banco_ejercicios' %}active{% endif %}"
+           href="{% url 'halu_math:banco_ejercicios' %}">
+          <i class="bi bi-calculator-fill"></i> {% trans "Banco de Ejercicios" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if request.resolver_match.url_name == 'progreso_grupo' %}active{% endif %}"
+           href="{% url 'halu_math:progreso_grupo' %}">
+          <i class="bi bi-graph-up-arrow"></i> {% trans "Progreso del Grupo" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if 'laboratorio' in request.path %}active{% endif %}"
+           href="{% url 'halu_math:laboratorio_index' %}">
+          <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Laboratorio Matemático" %}
+        </a>
+      </li>
       {% endif %}
       <li class="nav-item item-color-2">
         <a class="nav-link {% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}{% else %}collapsed{% endif %}" href="#gestionSubmenu"
