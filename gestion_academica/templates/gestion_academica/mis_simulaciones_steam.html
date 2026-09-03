@@ -30,8 +30,8 @@
         {% if a.nota %}<p class="text-muted small mb-2"><i class="bi bi-chat-left-text me-1"></i>{{ a.nota }}</p>{% endif %}
         {% if a.fecha_limite %}<p class="text-muted small mb-2"><i class="bi bi-calendar-event me-1"></i>{% trans "Hasta el" %} {{ a.fecha_limite|date:"d/m/Y" }}</p>{% endif %}
         <p class="text-muted small flex-grow-1">{{ a.simulacion.descripcion }}</p>
-        <a href="{{ a.simulacion.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary mt-auto">
-          <i class="bi bi-box-arrow-up-right me-1"></i>{% trans "Abrir simulación" %}
+        <a href="{% url 'gestion_academica:abrir_simulacion_steam' a.simulacion.pk %}" class="btn btn-sm btn-primary mt-auto">
+          <i class="bi bi-play-circle me-1"></i>{% trans "Abrir simulación" %}
         </a>
       </div>
     </div>

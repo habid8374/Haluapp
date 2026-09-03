@@ -12583,3 +12583,12 @@ msgstr "Movement and transportation"
 
 msgid "Competencia externa"
 msgstr "External competition"
+
+msgid "Abrir en una pestaña nueva"
+msgstr "Open in a new tab"
+
+msgid "No se pudo preparar esta simulación para verla aquí."
+msgstr "This simulation could not be prepared to view here."
+
+msgid "¿No carga? Ábrela en una pestaña nueva"
+msgstr "Won't load? Open it in a new tab"

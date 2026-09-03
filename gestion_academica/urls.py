@@ -101,6 +101,7 @@ urlpatterns = [
     # --- Halu STEAM: Simulaciones (PhET) ---
     path('simulaciones-steam/', views.catalogo_simulaciones_steam, name='catalogo_simulaciones_steam'),
     path('simulaciones-steam/<int:simulacion_pk>/asignar/', views.asignar_simulacion_steam, name='asignar_simulacion_steam'),
+    path('simulaciones-steam/<int:pk>/abrir/', views.abrir_simulacion_steam, name='abrir_simulacion_steam'),
     path('simulaciones-steam/asignadas/', views.mis_asignaciones_simulaciones_steam, name='mis_asignaciones_simulaciones_steam'),
     path('simulaciones-steam/asignadas/<int:pk>/eliminar/', views.eliminar_asignacion_simulacion_steam, name='eliminar_asignacion_simulacion_steam'),
     path('mis-simulaciones-steam/', views.mis_simulaciones_steam, name='mis_simulaciones_steam'),
