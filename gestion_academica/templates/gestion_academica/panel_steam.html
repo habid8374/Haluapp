@@ -68,9 +68,21 @@
         {% endif %}
         <p class="text-muted small flex-grow-1">{% trans "Crucigramas, sopas de letras, memoria, flashcards, quiz de audio, secuencias, trazado y rompecabezas — juegos que refuerzan vocabulario y lógica STEAM." %}</p>
         {% if 'recursos_interactivos' in modulos_activos %}
-        <a href="{% url 'crucigramas:lista' %}" class="btn btn-sm btn-primary mt-auto">
-          <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Ver recursos" %}
-        </a>
+        <div class="dropdown mt-auto">
+          <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Ver recursos" %}
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'crucigramas:lista' %}"><i class="bi bi-grid-3x3-gap-fill me-2"></i>{% trans "Crucigramas" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'sopa_letras:lista' %}"><i class="bi bi-search-heart me-2"></i>{% trans "Sopas de Letras" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'memoria:lista' %}"><i class="bi bi-images me-2"></i>{% trans "Juegos de Memoria" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'flashcards:lista' %}"><i class="bi bi-card-image me-2"></i>{% trans "Flash Cards" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'quiz_audio:lista' %}"><i class="bi bi-volume-up-fill me-2"></i>{% trans "Quiz de Audio" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'secuencias:lista' %}"><i class="bi bi-sort-numeric-down me-2"></i>{% trans "Ordenar Secuencias" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'trazado:lista' %}"><i class="bi bi-pencil-fill me-2"></i>{% trans "Trazado de Letras" %}</a></li>
+            <li><a class="dropdown-item" href="{% url 'rompecabezas:lista' %}"><i class="bi bi-puzzle-fill me-2"></i>{% trans "Rompecabezas" %}</a></li>
+          </ul>
+        </div>
         {% else %}
         <p class="text-muted mt-auto mb-0" style="font-size:.8rem;">
           <i class="bi bi-info-circle me-1"></i>{% trans "Contacta al administrador de la plataforma si te interesa activarlo." %}
