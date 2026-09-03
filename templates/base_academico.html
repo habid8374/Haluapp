@@ -2,11 +2,27 @@
 {% load static %}
 {% load notificaciones_tags %}
 {% load i18n %}
+{% load gestion_academica_filters %}
 {% block titulo %}{{ branding.NOMBRE }}{% endblock %}
 {% block body_class %}layout-academico{% endblock %}
 {% block extrastyles %}
 {{ block.super }}
 <style>
+  /* ══════════════════════════════════════════════════════
+     HALU STEAM — Wordmark degradado (ver filtro `steamify`)
+     Cada aparición de "STEAM" en un título se envuelve con este span.
+     @supports evita texto invisible en navegadores sin background-clip:text.
+  ══════════════════════════════════════════════════════ */
+  .steam-gradient-text { font-weight: 800; }
+  @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    .steam-gradient-text {
+      background: linear-gradient(90deg, #22d3ee 0%, #3b82f6 25%, #f59e0b 50%, #22c55e 75%, #ec4899 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+  }
   /* ══════════════════════════════════════════════════════
      HALU — SIDEBAR LAYOUT
      Transforma el menú flotante en sidebar fijo izquierdo.
@@ -388,7 +404,7 @@
       {% endif %}
       {% if 'steam' in modulos_activos and perms.gestion_academica.view_proyectosteam %}
       <hr class="menu-divider">
-      <h5 class="menu-section-title">Halu STEAM</h5>
+      <h5 class="menu-section-title">{{ "Halu STEAM"|steamify }}</h5>
       <li class="nav-item item-color-2">
         <a class="nav-link {% if request.resolver_match.url_name == 'panel_steam' %}active{% endif %}"
            href="{% url 'gestion_academica:panel_steam' %}">

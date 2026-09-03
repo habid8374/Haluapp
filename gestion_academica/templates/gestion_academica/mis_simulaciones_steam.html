@@ -1,10 +1,12 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
+{% load gestion_academica_filters %}
 {% block titulo %}{{ titulo_pagina|default:"Mis Simulaciones STEAM" }}{% endblock %}
 
 {% block contenido %}
+{% trans "Mis Simulaciones STEAM" as titulo_mis_sim_steam %}
 <div style="background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
-  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-graph-up-arrow me-2"></i>{% trans "Mis Simulaciones STEAM" %}</h2>
+  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-graph-up-arrow me-2"></i>{{ titulo_mis_sim_steam|steamify }}</h2>
   <p class="mb-0" style="color:#fff;opacity:.9;font-size:.92rem;">{% trans "Simulaciones interactivas que tus docentes te asignaron." %}</p>
 </div>
 

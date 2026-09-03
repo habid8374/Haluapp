@@ -1,9 +1,10 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
+{% load gestion_academica_filters %}
 {% block titulo %}{{ titulo_pagina|default:"Proyecto STEAM" }}{% endblock %}
 {% block contenido %}
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
-  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-rocket-takeoff-fill me-2"></i>{{ titulo_pagina|default:"Proyecto STEAM" }}</h2>
+  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-rocket-takeoff-fill me-2"></i>{{ titulo_pagina|default:"Proyecto STEAM"|steamify }}</h2>
   <p class="mb-0" style="color:#fff;opacity:.85;font-size:.92rem;">{% trans "Al guardar, se crea automáticamente la actividad calificable enlazada — la nota se registra luego desde el Libro de Notas del curso." %}</p>
 </div>
 <div class="row justify-content-center">

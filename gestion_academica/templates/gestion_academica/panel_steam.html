@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
+{% load gestion_academica_filters %}
 {% block titulo %}{{ titulo_pagina|default:"Halu STEAM" }}{% endblock %}
 
 {% block extrastyles %}{{ block.super }}
@@ -16,8 +17,9 @@
 {% endblock %}
 
 {% block contenido %}
+{% trans "Halu STEAM" as titulo_halu_steam %}
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
-  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-stars me-2"></i>{% trans "Halu STEAM" %}</h2>
+  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-stars me-2"></i>{{ titulo_halu_steam|steamify }}</h2>
   <p class="mb-0" style="color:#fff;opacity:.85;font-size:.92rem;max-width:640px;">
     {% trans "Un solo lugar para coordinar la modalidad técnica y las herramientas STEAM de tu institución: talleres, recursos interactivos y simulacros." %}
   </p>
@@ -124,7 +126,8 @@
     <div class="card steam-card">
       <div class="steam-card-body">
         <div class="steam-icon-badge" style="background:#eff6ff;color:#2563eb;"><i class="bi bi-rocket-takeoff-fill"></i></div>
-        <h5 class="fw-bold mb-1">{% trans "Proyectos STEAM" %}</h5>
+        {% trans "Proyectos STEAM" as titulo_proyectos_steam %}
+        <h5 class="fw-bold mb-1">{{ titulo_proyectos_steam|steamify }}</h5>
         <span class="badge rounded-pill badge-contratado align-self-start mb-3">{% trans "Incluido" %}</span>
         <div class="steam-stat">{{ total_proyectos }}</div>
         <div class="steam-stat-label mb-3">{% trans "Proyectos" %}</div>
@@ -143,7 +146,8 @@
     <div class="card steam-card">
       <div class="steam-card-body">
         <div class="steam-icon-badge" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-cone-striped"></i></div>
-        <h5 class="fw-bold mb-1">{% trans "Retos STEAM" %}</h5>
+        {% trans "Retos STEAM" as titulo_retos_steam_card %}
+        <h5 class="fw-bold mb-1">{{ titulo_retos_steam_card|steamify }}</h5>
         <span class="badge rounded-pill badge-contratado align-self-start mb-3">{% trans "Incluido" %}</span>
         <div class="steam-stat">{{ total_retos_catalogo }}</div>
         <div class="steam-stat-label mb-3">{% trans "Plantillas y competencias" %}</div>
@@ -162,7 +166,8 @@
     <div class="card steam-card">
       <div class="steam-card-body">
         <div class="steam-icon-badge" style="background:#fff7ed;color:#ea580c;"><i class="bi bi-graph-up-arrow"></i></div>
-        <h5 class="fw-bold mb-1">{% trans "Simulaciones STEAM" %}</h5>
+        {% trans "Simulaciones STEAM" as titulo_sim_steam_card %}
+        <h5 class="fw-bold mb-1">{{ titulo_sim_steam_card|steamify }}</h5>
         <span class="badge rounded-pill badge-contratado align-self-start mb-3">{% trans "Incluido" %}</span>
         <div class="d-flex gap-4 mb-3">
           <div>

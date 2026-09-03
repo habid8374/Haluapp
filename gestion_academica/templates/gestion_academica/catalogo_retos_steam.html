@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
+{% load gestion_academica_filters %}
 {% block titulo %}{{ titulo_pagina|default:"Retos STEAM" }}{% endblock %}
 
 {% block extrastyles %}{{ block.super }}
@@ -13,7 +14,8 @@
 
 {% block contenido %}
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
-  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-cone-striped me-2"></i>{% trans "Retos STEAM" %}</h2>
+  {% trans "Retos STEAM" as titulo_retos_steam %}
+  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-cone-striped me-2"></i>{{ titulo_retos_steam|steamify }}</h2>
   <p class="mb-0" style="color:#fff;opacity:.85;font-size:.92rem;max-width:640px;">
     {% trans "Plantillas de retos de ingeniería con materiales de bajo costo — úsalas para crear un Proyecto STEAM en un clic. También encuentras aquí competencias externas de robótica (requieren kits e inscripción propios del colegio)." %}
   </p>

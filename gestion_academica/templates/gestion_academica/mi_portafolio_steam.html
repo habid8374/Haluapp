@@ -1,9 +1,11 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
+{% load gestion_academica_filters %}
 {% block titulo %}{{ titulo_pagina|default:"Mi Portafolio STEAM" }}{% endblock %}
 {% block contenido %}
+{% trans "Mi Portafolio STEAM" as titulo_portafolio_steam %}
 <div style="background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
-  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-stars me-2"></i>{% trans "Mi Portafolio STEAM" %}</h2>
+  <h2 class="mb-1" style="color:#fff;"><i class="bi bi-stars me-2"></i>{{ titulo_portafolio_steam|steamify }}</h2>
   <p class="mb-0" style="color:#fff;opacity:.9;font-size:.92rem;">{% trans "Tus proyectos, insignias y evidencia — todo en un solo lugar." %}</p>
 </div>
 

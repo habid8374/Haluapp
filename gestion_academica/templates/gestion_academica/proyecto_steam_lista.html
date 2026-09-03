@@ -1,11 +1,12 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
+{% load gestion_academica_filters %}
 {% block titulo %}{{ titulo_pagina|default:"Proyectos STEAM" }}{% endblock %}
 {% block contenido %}
 <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <div>
-      <h2 class="mb-1" style="color:#fff;"><i class="bi bi-rocket-takeoff-fill me-2"></i>{{ titulo_pagina|default:"Proyectos STEAM" }}</h2>
+      <h2 class="mb-1" style="color:#fff;"><i class="bi bi-rocket-takeoff-fill me-2"></i>{{ titulo_pagina|default:"Proyectos STEAM"|steamify }}</h2>
       <p class="mb-0" style="color:#fff;opacity:.85;font-size:.92rem;">{% trans "Aprendizaje basado en proyectos: hitos, equipos y evidencia. Se califican desde el Libro de Notas de siempre." %}</p>
     </div>
     {% if perms.gestion_academica.add_proyectosteam %}
