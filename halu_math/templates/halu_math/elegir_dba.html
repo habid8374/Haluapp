@@ -42,9 +42,18 @@
       <span class="nivel-badge nivel-basico">{% trans "Nuevo" %}</span>
       {% endif %}
     </div>
-    <a href="{% url 'halu_math:practicar_dba' fila.dba.pk %}" class="btn btn-primary fw-bold">
-      <i class="bi bi-play-fill me-1"></i>{% trans "Practicar" %}
-    </a>
+    <div class="d-flex flex-column gap-1">
+      {% if fila.tiene_ejercicios %}
+      <a href="{% url 'halu_math:practicar_dba' fila.dba.pk %}" class="btn btn-primary btn-sm fw-bold">
+        <i class="bi bi-play-fill me-1"></i>{% trans "Practicar" %}
+      </a>
+      {% endif %}
+      {% if fila.manipulativo_url %}
+      <a href="{% url fila.manipulativo_url %}" class="btn btn-outline-primary btn-sm fw-bold">
+        <i class="bi {{ fila.manipulativo_icono }} me-1"></i>{% trans "Practicar con manipulativo" %}
+      </a>
+      {% endif %}
+    </div>
   </div>
   {% empty %}
   <div class="text-center py-5 text-muted">

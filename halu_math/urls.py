@@ -28,4 +28,10 @@ urlpatterns = [
     path('laboratorio/recta-numerica/', views.laboratorio_recta_numerica, name='laboratorio_recta_numerica'),
     path('laboratorio/bloques-base10/', views.laboratorio_bloques_base10, name='laboratorio_bloques_base10'),
     path('laboratorio/balanza/', views.laboratorio_balanza, name='laboratorio_balanza'),
+
+    # Modo Reto (calificado, alimenta el motor real)
+    path('laboratorio/recta-numerica/reto/', views.reto_recta_numerica, name='reto_recta_numerica'),
+    path('laboratorio/recta-numerica/reto/responder/', views.responder_reto_recta_numerica, name='responder_reto_recta_numerica'),
+    path('laboratorio/bloques-base10/reto/', views.reto_bloques_base10, name='reto_bloques_base10'),
+    path('laboratorio/bloques-base10/reto/responder/', views.responder_reto_bloques_base10, name='responder_reto_bloques_base10'),
 ]

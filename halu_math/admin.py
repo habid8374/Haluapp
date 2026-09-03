@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from proyecto_colegio.admin_mixins import InstitucionScopedAdminMixin
 
-from .models import DominioDBA, EjercicioMath, IntentoEjercicioMath, OpcionEjercicioMath
+from .models import DominioDBA, EjercicioMath, IntentoEjercicioMath, IntentoManipulativo, OpcionEjercicioMath
 
 
 class OpcionEjercicioMathInline(admin.TabularInline):
@@ -38,3 +38,11 @@ class IntentoEjercicioMathAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_filter = ('es_correcta', 'nivel_en_el_momento')
     ordering = ('-creado_en',)
     raw_id_fields = ('institucion', 'estudiante', 'ejercicio', 'opcion_elegida')
+
+
+@admin.register(IntentoManipulativo)
+class IntentoManipulativoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('estudiante', 'dba', 'tipo', 'es_correcta', 'nivel_en_el_momento', 'creado_en', 'institucion')
+    list_filter = ('tipo', 'es_correcta', 'nivel_en_el_momento')
+    ordering = ('-creado_en',)
+    raw_id_fields = ('institucion', 'estudiante', 'dba')

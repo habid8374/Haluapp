@@ -710,59 +710,15 @@
           <i class="bi bi-life-preserver"></i> {% trans "Centro de Ayuda" %}
         </a>
       </li>
-      {% if 'steam' in modulos_activos and perms.gestion_academica.view_proyectosteam %}
       <li class="nav-item item-color-2">
-        <a class="nav-link {% if request.resolver_match.url_name == 'panel_steam' %}active{% endif %}"
-           href="{% url 'gestion_academica:panel_steam' %}">
-          <i class="bi bi-stars"></i> {% trans "Panel STEAM" %}
-        </a>
-      </li>
-      {% if perms.gestion_academica.view_simulacionsteam %}
-      <li class="nav-item item-color-2">
-        <a class="nav-link {% if 'simulaciones-steam' in request.path %}active{% endif %}"
-           href="{% url 'gestion_academica:catalogo_simulaciones_steam' %}">
-          <i class="bi bi-graph-up-arrow"></i> {% trans "Simulaciones STEAM" %}
-        </a>
-      </li>
-      {% endif %}
-      {% if perms.gestion_academica.view_retosteam %}
-      <li class="nav-item item-color-2">
-        <a class="nav-link {% if 'retos-steam' in request.path %}active{% endif %}"
-           href="{% url 'gestion_academica:catalogo_retos_steam' %}">
-          <i class="bi bi-cone-striped"></i> {% trans "Retos STEAM" %}
-        </a>
-      </li>
-      {% endif %}
-      {% endif %}
-      {% if 'halu_math' in modulos_activos %}
-      <li class="nav-item item-color-1">
-        <a class="nav-link {% if request.resolver_match.url_name == 'banco_ejercicios' %}active{% endif %}"
-           href="{% url 'halu_math:banco_ejercicios' %}">
-          <i class="bi bi-calculator-fill"></i> {% trans "Banco de Ejercicios" %}
-        </a>
-      </li>
-      <li class="nav-item item-color-1">
-        <a class="nav-link {% if request.resolver_match.url_name == 'progreso_grupo' %}active{% endif %}"
-           href="{% url 'halu_math:progreso_grupo' %}">
-          <i class="bi bi-graph-up-arrow"></i> {% trans "Progreso del Grupo" %}
-        </a>
-      </li>
-      <li class="nav-item item-color-1">
-        <a class="nav-link {% if 'laboratorio' in request.path %}active{% endif %}"
-           href="{% url 'halu_math:laboratorio_index' %}">
-          <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Laboratorio Matemático" %}
-        </a>
-      </li>
-      {% endif %}
-      <li class="nav-item item-color-2">
-        <a class="nav-link {% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}{% else %}collapsed{% endif %}" href="#gestionSubmenu"
+        <a class="nav-link {% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path or 'steam' in request.path or 'matematicas' in request.path %}{% else %}collapsed{% endif %}" href="#gestionSubmenu"
            data-bs-toggle="collapse" role="button"
-           aria-expanded="{% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}true{% else %}false{% endif %}"
+           aria-expanded="{% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path or 'steam' in request.path or 'matematicas' in request.path %}true{% else %}false{% endif %}"
            aria-controls="gestionSubmenu">
           <i class="bi bi-tools"></i> {% trans "Centro de Gestión" %}
           <i class="bi bi-chevron-down float-end"></i>
         </a>
-        <div class="collapse {% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path %}show{% endif %}" id="gestionSubmenu">
+        <div class="collapse {% if 'gestion' in request.path or 'planes-semanales' in request.path or 'planeador' in request.path or 'docente/mallas' in request.path or 'cuestionarios' in request.path or 'steam' in request.path or 'matematicas' in request.path %}show{% endif %}" id="gestionSubmenu">
           <ul class="nav flex-column ps-3">
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'planeador' in request.path %}active{% endif %}"
@@ -809,6 +765,50 @@
                 <i class="bi bi-card-list"></i> {% trans "Gestionar Descriptores" %}
               </a>
             </li>
+            {% if 'steam' in modulos_activos and perms.gestion_academica.view_proyectosteam %}
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'panel_steam' %}active{% endif %}"
+                 href="{% url 'gestion_academica:panel_steam' %}">
+                <i class="bi bi-stars"></i> {% trans "Panel STEAM" %}
+              </a>
+            </li>
+            {% if perms.gestion_academica.view_simulacionsteam %}
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if 'simulaciones-steam' in request.path %}active{% endif %}"
+                 href="{% url 'gestion_academica:catalogo_simulaciones_steam' %}">
+                <i class="bi bi-graph-up-arrow"></i> {% trans "Simulaciones STEAM" %}
+              </a>
+            </li>
+            {% endif %}
+            {% if perms.gestion_academica.view_retosteam %}
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if 'retos-steam' in request.path %}active{% endif %}"
+                 href="{% url 'gestion_academica:catalogo_retos_steam' %}">
+                <i class="bi bi-cone-striped"></i> {% trans "Retos STEAM" %}
+              </a>
+            </li>
+            {% endif %}
+            {% endif %}
+            {% if 'halu_math' in modulos_activos %}
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'banco_ejercicios' %}active{% endif %}"
+                 href="{% url 'halu_math:banco_ejercicios' %}">
+                <i class="bi bi-calculator-fill"></i> {% trans "Banco de Ejercicios" %}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'progreso_grupo' %}active{% endif %}"
+                 href="{% url 'halu_math:progreso_grupo' %}">
+                <i class="bi bi-graph-up-arrow"></i> {% trans "Progreso del Grupo" %}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link sub-item {% if 'laboratorio' in request.path %}active{% endif %}"
+                 href="{% url 'halu_math:laboratorio_index' %}">
+                <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Laboratorio Matemático" %}
+              </a>
+            </li>
+            {% endif %}
             {% if 'simulacros' in modulos_activos %}
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'simulacros' in request.path %}active{% endif %}"

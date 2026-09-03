@@ -7,6 +7,10 @@
   .rn-svg-wrap svg { width:100%; height:auto; display:block; }
   .rn-salto { min-width:58px; }
   .rn-log { font-size:.85rem; color:#475569; background:#f8fafc; border-radius:10px; padding:.6rem .9rem; min-height:2.4rem; }
+  .rn-modo-tabs { display:flex; gap:.4rem; margin-bottom:1rem; }
+  .rn-modo-tab { flex:1; text-align:center; padding:.5rem .75rem; border-radius:10px; border:1px solid #e2e8f0; text-decoration:none; font-weight:700; font-size:.85rem; color:#475569; background:#fff; }
+  .rn-modo-tab.activo { background:#4f46e5; color:#fff; border-color:#4f46e5; }
+  .rn-meta-box { background:#fff7ed; border:1px solid #fdba74; border-radius:12px; padding:.75rem 1rem; margin-bottom:1rem; text-align:center; }
 </style>
 {% endblock %}
 {% block contenido %}
@@ -18,12 +22,31 @@
     </div>
   </div>
 
+  <div class="rn-modo-tabs">
+    <a href="{% url 'halu_math:laboratorio_recta_numerica' %}" class="rn-modo-tab {% if not modo_reto %}activo{% endif %}">
+      <i class="bi bi-controller me-1"></i>{% trans "Modo libre" %}
+    </a>
+    {% if user.rol == 'estudiante' %}
+    <a href="{% url 'halu_math:reto_recta_numerica' %}" class="rn-modo-tab {% if modo_reto %}activo{% endif %}">
+      <i class="bi bi-bullseye me-1"></i>{% trans "Modo reto" %}
+    </a>
+    {% endif %}
+  </div>
+
+  {% if modo_reto %}
+  <div class="rn-meta-box">
+    <div class="small text-muted fw-bold">{% trans "Tu meta" %}</div>
+    <div class="fw-800" style="font-size:1.8rem;color:#c2410c;">{{ reto.objetivo }}</div>
+    {% if dominio %}<div class="small text-muted mt-1"><i class="bi bi-fire"></i> {% trans "racha" %} {{ dominio.racha_actual }} · {% trans "nivel" %} {{ dominio.get_nivel_actual_display }}</div>{% endif %}
+  </div>
+  {% endif %}
+
   <div class="card shadow-sm">
     <div class="card-body">
       <div class="row g-3 align-items-end mb-3">
         <div class="col-auto">
           <label class="form-label small fw-bold mb-1">{% trans "Valor inicial" %}</label>
-          <input type="number" id="rn-valor-inicial" class="form-control form-control-sm" value="0" style="width:110px;">
+          <input type="number" id="rn-valor-inicial" class="form-control form-control-sm" value="{% if modo_reto %}{{ reto.inicio }}{% else %}0{% endif %}" style="width:110px;" {% if modo_reto %}readonly{% endif %}>
         </div>
         <div class="col-auto">
           <div class="small text-muted mb-1">{% trans "Valor actual" %}</div>
@@ -59,6 +82,13 @@
 
       <div class="small fw-bold text-muted mb-1">{% trans "Recorrido" %}</div>
       <div class="rn-log" id="rn-log"></div>
+
+      {% if modo_reto %}
+      <div class="mt-3">
+        <button type="button" id="rn-comprobar" class="btn btn-primary w-100 fw-bold"><i class="bi bi-check-circle-fill me-1"></i>{% trans "Comprobar" %}</button>
+        <div id="rn-feedback" class="mt-3" style="display:none;"></div>
+      </div>
+      {% endif %}
     </div>
   </div>
 </div>
@@ -71,6 +101,7 @@
   const inputInicial = document.getElementById('rn-valor-inicial');
   const logEl = document.getElementById('rn-log');
   const valorEl = document.getElementById('rn-valor-actual');
+  const modoReto = {% if modo_reto %}true{% else %}false{% endif %};
 
   const ANCHO = 860, MARGEN = 46, EJE_Y = 78;
 
@@ -80,6 +111,7 @@
   function rango() {
     let min = Math.min.apply(null, historial.concat([0]));
     let max = Math.max.apply(null, historial.concat([20]));
+    if (modoReto) { max = Math.max(max, {{ reto.objetivo|default:20 }}); min = Math.min(min, {{ reto.objetivo|default:0 }}); }
     const span = max - min;
     const pad = Math.max(5, Math.round(span * 0.2));
     min -= pad; max += pad;
@@ -118,6 +150,14 @@
       const txt = crear('text', { x: cx, y: EJE_Y + 26, 'text-anchor': 'middle', 'font-size': 13, fill: '#475569' });
       txt.textContent = v;
       svg.appendChild(txt);
+    }
+
+    if (modoReto) {
+      const cxMeta = x({{ reto.objetivo|default:0 }}, min, max);
+      svg.appendChild(crear('line', { x1: cxMeta, x2: cxMeta, y1: EJE_Y - 30, y2: EJE_Y + 30, stroke: '#c2410c', 'stroke-width': 2, 'stroke-dasharray': '4,3' }));
+      const etiquetaMeta = crear('text', { x: cxMeta, y: EJE_Y + 46, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: '#c2410c' });
+      etiquetaMeta.textContent = '{% trans "meta" %}';
+      svg.appendChild(etiquetaMeta);
     }
 
     if (saltoAnimado) {
@@ -175,6 +215,51 @@
   valorEl.textContent = valorActual;
   actualizarLog();
   dibujar(null);
+
+  if (modoReto) {
+    const btnComprobar = document.getElementById('rn-comprobar');
+    const feedbackEl = document.getElementById('rn-feedback');
+    const csrfToken = '{{ csrf_token }}';
+    let yaRespondido = false;
+
+    btnComprobar.addEventListener('click', function() {
+      if (yaRespondido) return;
+      yaRespondido = true;
+      btnComprobar.disabled = true;
+
+      const form = new FormData();
+      form.append('valor_final', valorActual);
+      form.append('csrfmiddlewaretoken', csrfToken);
+
+      fetch('{% url "halu_math:responder_reto_recta_numerica" %}', { method: 'POST', body: form })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.ok) {
+            feedbackEl.style.display = 'block';
+            feedbackEl.innerHTML = '<div class="alert alert-danger">' + (data.error || '{% trans "Ocurrió un error. Intenta de nuevo." %}') + '</div>';
+            return;
+          }
+          let mensaje = '';
+          if (data.es_correcta) {
+            mensaje = '<div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i><strong>{% trans "¡Correcto! Llegaste a la meta." %}</strong></div>';
+          } else {
+            mensaje = '<div class="alert alert-danger"><i class="bi bi-x-circle-fill me-1"></i><strong>{% trans "Todavía no. La meta era" %}</strong> ' + data.objetivo + '</div>';
+          }
+          if (data.recien_dominado) {
+            mensaje += '<div class="alert alert-warning text-center"><i class="bi bi-trophy-fill me-1"></i><strong>{% trans "¡Felicitaciones, dominaste este DBA!" %}</strong></div>';
+          } else if (data.subio_nivel) {
+            mensaje += '<div class="alert alert-info text-center"><i class="bi bi-arrow-up-circle-fill me-1"></i>{% trans "¡Subiste de nivel!" %} ' + data.nivel_actual_label + '</div>';
+          }
+          mensaje += '<a href="{% url "halu_math:reto_recta_numerica" %}" class="btn btn-primary fw-bold w-100 mt-2"><i class="bi bi-arrow-right-circle-fill me-1"></i>{% trans "Otro reto" %}</a>';
+          feedbackEl.style.display = 'block';
+          feedbackEl.innerHTML = mensaje;
+        })
+        .catch(function() {
+          feedbackEl.style.display = 'block';
+          feedbackEl.innerHTML = '<div class="alert alert-danger">{% trans "No se pudo enviar la respuesta. Verifica tu conexión." %}</div>';
+        });
+    });
+  }
 })();
 </script>
 {% endblock %}

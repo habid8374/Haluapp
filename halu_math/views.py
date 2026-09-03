@@ -13,8 +13,14 @@ from django_ratelimit.decorators import ratelimit
 
 from gestion_academica.models import DBAPredefinido, Estudiante, Grado
 
-from .models import DominioDBA, Dificultad, EjercicioMath, IntentoEjercicioMath, OpcionEjercicioMath
-from .motor import elegir_siguiente_ejercicio, procesar_respuesta
+from .models import (
+    DominioDBA, Dificultad, EjercicioMath, IntentoEjercicioMath, IntentoManipulativo,
+    OpcionEjercicioMath, TipoManipulativo,
+)
+from .motor import (
+    elegir_siguiente_ejercicio, generar_reto_bloques_base10, generar_reto_recta_numerica,
+    procesar_respuesta,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +44,22 @@ def _es_estudiante(user):
 
 def _dbas_piloto():
     return DBAPredefinido.objects.filter(area='matematicas', grado__in=GRADOS_PILOTO).order_by('grado', 'numero')
+
+
+# DBA con reto calificado de manipulativo (ver plan "Laboratorio → Retos
+# Calificados"): grado3°#1 (valor posicional → Bloques de Base 10) no tiene
+# banco de opción múltiple propio, así que sin esto quedaría invisible en
+# elegir_dba. grado3°#2 (operaciones → Recta Numérica) puede tener AMBOS
+# caminos (banco de opción múltiple Y manipulativo) — el estudiante ve los
+# dos botones si aplican.
+_DBA_MANIPULATIVOS = {
+    ('matematicas', '3', 1): ('halu_math:reto_bloques_base10', 'bi-grid-3x3-gap-fill'),
+    ('matematicas', '3', 2): ('halu_math:reto_recta_numerica', 'bi-arrow-left-right'),
+}
+
+
+def _manipulativo_de(dba):
+    return _DBA_MANIPULATIVOS.get((dba.area, dba.grado, dba.numero))
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -407,12 +429,25 @@ def elegir_dba(request):
         messages.error(request, _("No tienes perfil de estudiante."))
         return redirect('gestion_academica:inicio_academico')
 
+    filtro_manipulativos = Q()
+    for area, grado, numero in _DBA_MANIPULATIVOS:
+        filtro_manipulativos |= Q(area=area, grado=grado, numero=numero)
+
     dbas = _dbas_piloto().filter(
-        Q(ejercicios_math__es_publica=True) | Q(ejercicios_math__institucion=institucion),
+        Q(ejercicios_math__es_publica=True) | Q(ejercicios_math__institucion=institucion) | filtro_manipulativos,
     ).distinct()
     dominios = {d.dba_id: d for d in DominioDBA.objects.filter(estudiante=estudiante, dba__in=dbas)}
 
-    filas = [{'dba': dba, 'dominio': dominios.get(dba.pk)} for dba in dbas]
+    filas = []
+    for dba in dbas:
+        manipulativo = _manipulativo_de(dba)
+        filas.append({
+            'dba': dba,
+            'dominio': dominios.get(dba.pk),
+            'tiene_ejercicios': dba.ejercicios_math.filter(Q(es_publica=True) | Q(institucion=institucion)).exists(),
+            'manipulativo_url': manipulativo[0] if manipulativo else None,
+            'manipulativo_icono': manipulativo[1] if manipulativo else None,
+        })
 
     return render(request, 'halu_math/elegir_dba.html', {
         'filas': filas,
@@ -556,4 +591,171 @@ def laboratorio_bloques_base10(request):
 def laboratorio_balanza(request):
     return render(request, 'halu_math/laboratorio_balanza.html', {
         'titulo_pagina': _('Balanza de Ecuaciones'),
+    })
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# MODO RETO — conecta Recta Numérica y Bloques de Base 10 al motor real
+# (mismo DominioDBA/procesar_respuesta que el banco de ejercicios). Balanza
+# se queda en modo libre: no hay un DBA de grado 3°-5° que le corresponda
+# en el catálogo del MEN ya cargado — no se le inventa uno.
+#
+# El reto se genera en el servidor y se guarda en la sesión al mostrarlo;
+# el POST de verificación SIEMPRE compara contra eso, nunca contra un
+# "es_correcta" que mande el cliente (mismo criterio IDOR del resto del
+# módulo — la meta ya es visible en pantalla, no es un secreto; la sesión
+# solo evita responder sin haber pedido un reto real).
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _dba_recta_numerica():
+    return get_object_or_404(DBAPredefinido, area='matematicas', grado='3', numero=2)
+
+
+def _dba_bloques_base10():
+    return get_object_or_404(DBAPredefinido, area='matematicas', grado='3', numero=1)
+
+
+@login_required
+def reto_recta_numerica(request):
+    if not _es_estudiante(request.user):
+        return redirect('halu_math:laboratorio_index')
+    institucion = _get_institucion(request)
+    estudiante = getattr(request.user, 'estudiante', None)
+    if not estudiante:
+        messages.error(request, _("No tienes perfil de estudiante."))
+        return redirect('halu_math:laboratorio_index')
+
+    dba = _dba_recta_numerica()
+    dominio, _creado = DominioDBA.objects.get_or_create(
+        estudiante=estudiante, dba=dba, defaults={'institucion': institucion},
+    )
+    reto = generar_reto_recta_numerica(dominio.nivel_actual)
+    request.session['reto_math_RECTA_NUMERICA'] = reto
+
+    return render(request, 'halu_math/laboratorio_recta_numerica.html', {
+        'titulo_pagina': _('Recta Numérica Abierta'),
+        'modo_reto': True,
+        'reto': reto,
+        'dominio': dominio,
+    })
+
+
+@login_required
+@require_POST
+def responder_reto_recta_numerica(request):
+    if not _es_estudiante(request.user):
+        return JsonResponse({'ok': False, 'error': 'Sin permiso.'}, status=403)
+    institucion = _get_institucion(request)
+    estudiante = getattr(request.user, 'estudiante', None)
+    if not estudiante:
+        return JsonResponse({'ok': False, 'error': 'Sin perfil de estudiante.'}, status=403)
+
+    reto = request.session.get('reto_math_RECTA_NUMERICA')
+    if not reto:
+        return JsonResponse({'ok': False, 'error': 'No hay un reto pendiente. Pide uno nuevo.'}, status=404)
+
+    dba = _dba_recta_numerica()
+    dominio = get_object_or_404(DominioDBA, estudiante=estudiante, dba=dba, institucion=institucion)
+
+    try:
+        valor_final = int(request.POST.get('valor_final', ''))
+    except (TypeError, ValueError):
+        return JsonResponse({'ok': False, 'error': 'Valor inválido.'}, status=400)
+
+    es_correcta = valor_final == reto['objetivo']
+    del request.session['reto_math_RECTA_NUMERICA']
+
+    IntentoManipulativo.objects.create(
+        institucion=institucion, estudiante=estudiante, dba=dba, tipo=TipoManipulativo.RECTA_NUMERICA,
+        es_correcta=es_correcta, nivel_en_el_momento=dominio.nivel_actual,
+        parametros={**reto, 'valor_final': valor_final},
+    )
+
+    nivel_antes = dominio.nivel_actual
+    dominado_antes = dominio.dominado
+    dominio = procesar_respuesta(dominio, es_correcta)
+
+    return JsonResponse({
+        'ok': True,
+        'es_correcta': es_correcta,
+        'objetivo': reto['objetivo'],
+        'nivel_actual': dominio.nivel_actual,
+        'nivel_actual_label': dominio.get_nivel_actual_display(),
+        'racha_actual': dominio.racha_actual,
+        'subio_nivel': dominio.nivel_actual != nivel_antes,
+        'dominado': dominio.dominado,
+        'recien_dominado': dominio.dominado and not dominado_antes,
+    })
+
+
+@login_required
+def reto_bloques_base10(request):
+    if not _es_estudiante(request.user):
+        return redirect('halu_math:laboratorio_index')
+    institucion = _get_institucion(request)
+    estudiante = getattr(request.user, 'estudiante', None)
+    if not estudiante:
+        messages.error(request, _("No tienes perfil de estudiante."))
+        return redirect('halu_math:laboratorio_index')
+
+    dba = _dba_bloques_base10()
+    dominio, _creado = DominioDBA.objects.get_or_create(
+        estudiante=estudiante, dba=dba, defaults={'institucion': institucion},
+    )
+    reto = generar_reto_bloques_base10(dominio.nivel_actual)
+    request.session['reto_math_BLOQUES_BASE10'] = reto
+
+    return render(request, 'halu_math/laboratorio_bloques_base10.html', {
+        'titulo_pagina': _('Bloques de Base 10'),
+        'modo_reto': True,
+        'reto': reto,
+        'dominio': dominio,
+    })
+
+
+@login_required
+@require_POST
+def responder_reto_bloques_base10(request):
+    if not _es_estudiante(request.user):
+        return JsonResponse({'ok': False, 'error': 'Sin permiso.'}, status=403)
+    institucion = _get_institucion(request)
+    estudiante = getattr(request.user, 'estudiante', None)
+    if not estudiante:
+        return JsonResponse({'ok': False, 'error': 'Sin perfil de estudiante.'}, status=403)
+
+    reto = request.session.get('reto_math_BLOQUES_BASE10')
+    if not reto:
+        return JsonResponse({'ok': False, 'error': 'No hay un reto pendiente. Pide uno nuevo.'}, status=404)
+
+    dba = _dba_bloques_base10()
+    dominio = get_object_or_404(DominioDBA, estudiante=estudiante, dba=dba, institucion=institucion)
+
+    try:
+        total_final = int(request.POST.get('total_final', ''))
+    except (TypeError, ValueError):
+        return JsonResponse({'ok': False, 'error': 'Valor inválido.'}, status=400)
+
+    es_correcta = total_final == reto['objetivo']
+    del request.session['reto_math_BLOQUES_BASE10']
+
+    IntentoManipulativo.objects.create(
+        institucion=institucion, estudiante=estudiante, dba=dba, tipo=TipoManipulativo.BLOQUES_BASE10,
+        es_correcta=es_correcta, nivel_en_el_momento=dominio.nivel_actual,
+        parametros={**reto, 'total_final': total_final},
+    )
+
+    nivel_antes = dominio.nivel_actual
+    dominado_antes = dominio.dominado
+    dominio = procesar_respuesta(dominio, es_correcta)
+
+    return JsonResponse({
+        'ok': True,
+        'es_correcta': es_correcta,
+        'objetivo': reto['objetivo'],
+        'nivel_actual': dominio.nivel_actual,
+        'nivel_actual_label': dominio.get_nivel_actual_display(),
+        'racha_actual': dominio.racha_actual,
+        'subio_nivel': dominio.nivel_actual != nivel_antes,
+        'dominado': dominio.dominado,
+        'recien_dominado': dominio.dominado and not dominado_antes,
     })

@@ -9,6 +9,10 @@
   .b10-unidad { width:28px; height:28px; border-radius:6px; background:#4f46e5; }
   @keyframes b10-pop { 0% { transform:scale(.4); opacity:.3; } 60% { transform:scale(1.15); } 100% { transform:scale(1); opacity:1; } }
   .b10-nueva { animation:b10-pop .35s ease-out; }
+  .b10-modo-tabs { display:flex; gap:.4rem; margin-bottom:1rem; }
+  .b10-modo-tab { flex:1; text-align:center; padding:.5rem .75rem; border-radius:10px; border:1px solid #e2e8f0; text-decoration:none; font-weight:700; font-size:.85rem; color:#475569; background:#fff; }
+  .b10-modo-tab.activo { background:#4f46e5; color:#fff; border-color:#4f46e5; }
+  .b10-meta-box { background:#fff7ed; border:1px solid #fdba74; border-radius:12px; padding:.75rem 1rem; margin-bottom:1rem; text-align:center; }
 </style>
 {% endblock %}
 {% block contenido %}
@@ -19,6 +23,25 @@
       <a href="{% url 'halu_math:laboratorio_index' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>{% trans "Volver al Laboratorio" %}</a>
     </div>
   </div>
+
+  <div class="b10-modo-tabs">
+    <a href="{% url 'halu_math:laboratorio_bloques_base10' %}" class="b10-modo-tab {% if not modo_reto %}activo{% endif %}">
+      <i class="bi bi-controller me-1"></i>{% trans "Modo libre" %}
+    </a>
+    {% if user.rol == 'estudiante' %}
+    <a href="{% url 'halu_math:reto_bloques_base10' %}" class="b10-modo-tab {% if modo_reto %}activo{% endif %}">
+      <i class="bi bi-bullseye me-1"></i>{% trans "Modo reto" %}
+    </a>
+    {% endif %}
+  </div>
+
+  {% if modo_reto %}
+  <div class="b10-meta-box">
+    <div class="small text-muted fw-bold">{% trans "Tu meta" %}</div>
+    <div class="fw-800" style="font-size:1.8rem;color:#c2410c;">{{ reto.objetivo }}</div>
+    {% if dominio %}<div class="small text-muted mt-1"><i class="bi bi-fire"></i> {% trans "racha" %} {{ dominio.racha_actual }} · {% trans "nivel" %} {{ dominio.get_nivel_actual_display }}</div>{% endif %}
+  </div>
+  {% endif %}
 
   <div class="card shadow-sm">
     <div class="card-body">
@@ -52,6 +75,13 @@
           <button type="button" id="b10-menos-decena" class="btn btn-outline-success w-100"><i class="bi bi-dash-lg me-1"></i>{% trans "Decena" %}</button>
         </div>
       </div>
+
+      {% if modo_reto %}
+      <div class="mt-3">
+        <button type="button" id="b10-comprobar" class="btn btn-primary w-100 fw-bold"><i class="bi bi-check-circle-fill me-1"></i>{% trans "Comprobar" %}</button>
+        <div id="b10-feedback" class="mt-3" style="display:none;"></div>
+      </div>
+      {% endif %}
     </div>
   </div>
 </div>
@@ -61,6 +91,7 @@
 (function(){
   const txtDecenas = '{% trans "decenas" %}';
   const txtUnidades = '{% trans "unidades" %}';
+  const modoReto = {% if modo_reto %}true{% else %}false{% endif %};
 
   let decenas = 0, unidades = 0;
   const contDecenas = document.getElementById('b10-decenas');
@@ -113,6 +144,52 @@
   document.getElementById('b10-reiniciar').addEventListener('click', reiniciar);
 
   render(false);
+
+  if (modoReto) {
+    const btnComprobar = document.getElementById('b10-comprobar');
+    const feedbackEl = document.getElementById('b10-feedback');
+    const csrfToken = '{{ csrf_token }}';
+    let yaRespondido = false;
+
+    btnComprobar.addEventListener('click', function() {
+      if (yaRespondido) return;
+      yaRespondido = true;
+      btnComprobar.disabled = true;
+
+      const total = decenas * 10 + unidades;
+      const form = new FormData();
+      form.append('total_final', total);
+      form.append('csrfmiddlewaretoken', csrfToken);
+
+      fetch('{% url "halu_math:responder_reto_bloques_base10" %}', { method: 'POST', body: form })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.ok) {
+            feedbackEl.style.display = 'block';
+            feedbackEl.innerHTML = '<div class="alert alert-danger">' + (data.error || '{% trans "Ocurrió un error. Intenta de nuevo." %}') + '</div>';
+            return;
+          }
+          let mensaje = '';
+          if (data.es_correcta) {
+            mensaje = '<div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i><strong>{% trans "¡Correcto! Formaste el número." %}</strong></div>';
+          } else {
+            mensaje = '<div class="alert alert-danger"><i class="bi bi-x-circle-fill me-1"></i><strong>{% trans "Todavía no. La meta era" %}</strong> ' + data.objetivo + '</div>';
+          }
+          if (data.recien_dominado) {
+            mensaje += '<div class="alert alert-warning text-center"><i class="bi bi-trophy-fill me-1"></i><strong>{% trans "¡Felicitaciones, dominaste este DBA!" %}</strong></div>';
+          } else if (data.subio_nivel) {
+            mensaje += '<div class="alert alert-info text-center"><i class="bi bi-arrow-up-circle-fill me-1"></i>{% trans "¡Subiste de nivel!" %} ' + data.nivel_actual_label + '</div>';
+          }
+          mensaje += '<a href="{% url "halu_math:reto_bloques_base10" %}" class="btn btn-primary fw-bold w-100 mt-2"><i class="bi bi-arrow-right-circle-fill me-1"></i>{% trans "Otro reto" %}</a>';
+          feedbackEl.style.display = 'block';
+          feedbackEl.innerHTML = mensaje;
+        })
+        .catch(function() {
+          feedbackEl.style.display = 'block';
+          feedbackEl.innerHTML = '<div class="alert alert-danger">{% trans "No se pudo enviar la respuesta. Verifica tu conexión." %}</div>';
+        });
+    });
+  }
 })();
 </script>
 {% endblock %}

@@ -160,3 +160,44 @@ class IntentoEjercicioMath(models.Model):
 
     def __str__(self):
         return f"{self.estudiante} — {self.ejercicio_id} ({'✓' if self.es_correcta else '✗'})"
+
+
+class TipoManipulativo(models.TextChoices):
+    RECTA_NUMERICA = 'RECTA_NUMERICA', _('Recta numérica abierta')
+    BLOQUES_BASE10 = 'BLOQUES_BASE10', _('Bloques de base 10')
+
+
+class IntentoManipulativo(models.Model):
+    """Registro de un reto calificado resuelto con un manipulativo del
+    Laboratorio Matemático (a diferencia de IntentoEjercicioMath, no hay
+    'opción elegida' — el reto se resuelve manipulando el widget hasta
+    llegar a un valor final, que el servidor compara contra la meta que él
+    mismo generó y guardó en la sesión al mostrar el reto)."""
+
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='intentos_manipulativo', verbose_name=_("Institución"),
+    )
+    estudiante = models.ForeignKey(
+        'gestion_academica.Estudiante', on_delete=models.CASCADE,
+        related_name='intentos_manipulativo', verbose_name=_("Estudiante"),
+    )
+    dba = models.ForeignKey('gestion_academica.DBAPredefinido', on_delete=models.CASCADE, verbose_name=_("DBA"))
+    tipo = models.CharField(max_length=20, choices=TipoManipulativo.choices, verbose_name=_("Manipulativo"))
+    es_correcta = models.BooleanField(default=False, verbose_name=_("Es correcta"))
+    nivel_en_el_momento = models.CharField(
+        max_length=10, choices=Dificultad.choices, verbose_name=_("Nivel en el momento del intento"),
+    )
+    parametros = models.JSONField(
+        default=dict, blank=True, verbose_name=_("Parámetros del reto"),
+        help_text=_("Reto planteado y respuesta dada, para poder auditar."),
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Intento de manipulativo")
+        verbose_name_plural = _("Intentos de manipulativo")
+        ordering = ['-creado_en']
+
+    def __str__(self):
+        return f"{self.estudiante} — {self.get_tipo_display()} ({'✓' if self.es_correcta else '✗'})"

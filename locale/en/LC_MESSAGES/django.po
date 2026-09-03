@@ -12970,3 +12970,36 @@ msgstr "The left side weighs more."
 
 msgid "El lado derecho pesa más."
 msgstr "The right side weighs more."
+
+msgid "Con reto calificado"
+msgstr "With graded challenge"
+
+msgid "Modo libre"
+msgstr "Free mode"
+
+msgid "Modo reto"
+msgstr "Challenge mode"
+
+msgid "Otro reto"
+msgstr "Another challenge"
+
+msgid "Practicar con manipulativo"
+msgstr "Practice with manipulative"
+
+msgid "Todavía no. La meta era"
+msgstr "Not yet. The target was"
+
+msgid "Tu meta"
+msgstr "Your target"
+
+msgid "meta"
+msgstr "target"
+
+msgid "nivel"
+msgstr "level"
+
+msgid "¡Correcto! Formaste el número."
+msgstr "Correct! You formed the number."
+
+msgid "¡Correcto! Llegaste a la meta."
+msgstr "Correct! You reached the target."
