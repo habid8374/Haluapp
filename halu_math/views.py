@@ -515,3 +515,45 @@ def mi_progreso_math(request):
         'dominios': dominios,
         'titulo_pagina': _('Mi Progreso — Halu Math'),
     })
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# LABORATORIO MATEMÁTICO — manipulativos visuales de uso libre (sandbox, sin
+# calificar). Abierto a cualquier rol autenticado del módulo, igual que un
+# juego de recursos_interactivos — no hay datos de por medio que aislar por
+# institución, el aislamiento del módulo ya lo da el middleware de siempre.
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _volver_url_halu_math(user):
+    """A dónde vuelve cada rol desde el laboratorio: el estudiante a
+    'practicar', el docente/coordinador a su banco de ejercicios."""
+    return 'halu_math:elegir_dba' if hasattr(user, 'estudiante') else 'halu_math:banco_ejercicios'
+
+
+@login_required
+def laboratorio_index(request):
+    return render(request, 'halu_math/laboratorio_index.html', {
+        'volver_url': _volver_url_halu_math(request.user),
+        'titulo_pagina': _('Halu Math — Laboratorio Matemático'),
+    })
+
+
+@login_required
+def laboratorio_recta_numerica(request):
+    return render(request, 'halu_math/laboratorio_recta_numerica.html', {
+        'titulo_pagina': _('Recta Numérica Abierta'),
+    })
+
+
+@login_required
+def laboratorio_bloques_base10(request):
+    return render(request, 'halu_math/laboratorio_bloques_base10.html', {
+        'titulo_pagina': _('Bloques de Base 10'),
+    })
+
+
+@login_required
+def laboratorio_balanza(request):
+    return render(request, 'halu_math/laboratorio_balanza.html', {
+        'titulo_pagina': _('Balanza de Ecuaciones'),
+    })

@@ -1,0 +1,188 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+  .bz-svg-wrap { background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:.5rem; }
+  .bz-svg-wrap svg { width:100%; height:auto; display:block; max-height:260px; }
+  .bz-ficha { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:6px; background:#4f46e5; color:#fff; font-size:.72rem; font-weight:700; margin:2px; }
+  .bz-lado { border:1px solid #e2e8f0; border-radius:12px; padding:1rem; height:100%; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div class="container mt-3" style="max-width:900px;">
+  <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:16px;padding:1.25rem 1.5rem;color:#fff;margin-bottom:1.25rem;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <h2 class="fw-bold mb-0" style="font-size:1.15rem;color:#fff;"><i class="bi bi-distribute-vertical me-2"></i>{{ titulo_pagina }}</h2>
+      <a href="{% url 'halu_math:laboratorio_index' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>{% trans "Volver al Laboratorio" %}</a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="bz-svg-wrap mb-2">
+        <svg id="bz-svg" viewBox="0 0 700 240"></svg>
+      </div>
+      <div class="text-center mb-3">
+        <span id="bz-mensaje" class="fw-bold" style="font-size:1.05rem;"></span>
+      </div>
+      <div class="d-flex justify-content-end mb-2">
+        <button type="button" id="bz-reiniciar" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Reiniciar" %}</button>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="bz-lado">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-bold">{% trans "Lado izquierdo" %}</span>
+              <span class="fw-bold" style="color:#4f46e5;" id="bz-suma-izq">0</span>
+            </div>
+            <div class="d-flex flex-wrap gap-1 mb-2">
+              <button type="button" class="btn btn-sm btn-primary bz-agregar" data-lado="izq" data-valor="1">+1</button>
+              <button type="button" class="btn btn-sm btn-primary bz-agregar" data-lado="izq" data-valor="2">+2</button>
+              <button type="button" class="btn btn-sm btn-primary bz-agregar" data-lado="izq" data-valor="5">+5</button>
+              <button type="button" class="btn btn-sm btn-primary bz-agregar" data-lado="izq" data-valor="10">+10</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary bz-quitar" data-lado="izq"><i class="bi bi-dash-lg"></i></button>
+            </div>
+            <div id="bz-fichas-izq"></div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="bz-lado">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-bold">{% trans "Lado derecho" %}</span>
+              <span class="fw-bold" style="color:#4f46e5;" id="bz-suma-der">0</span>
+            </div>
+            <div class="d-flex flex-wrap gap-1 mb-2">
+              <button type="button" class="btn btn-sm btn-primary bz-agregar" data-lado="der" data-valor="1">+1</button>
+              <button type="button" class="btn btn-sm btn-primary bz-agregar" data-lado="der" data-valor="2">+2</button>
+              <button type="button" class="btn btn-sm btn-primary bz-agregar" data-lado="der" data-valor="5">+5</button>
+              <button type="button" class="btn btn-sm btn-primary bz-agregar" data-lado="der" data-valor="10">+10</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary bz-quitar" data-lado="der"><i class="bi bi-dash-lg"></i></button>
+            </div>
+            <div id="bz-fichas-der"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+(function(){
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('bz-svg');
+  const mensajeEl = document.getElementById('bz-mensaje');
+  const sumaIzqEl = document.getElementById('bz-suma-izq');
+  const sumaDerEl = document.getElementById('bz-suma-der');
+  const fichasIzqEl = document.getElementById('bz-fichas-izq');
+  const fichasDerEl = document.getElementById('bz-fichas-der');
+
+  const txtEquilibrado = '{% trans "¡Equilibrado! Ambos lados pesan lo mismo." %}';
+  const txtIzqPesa = '{% trans "El lado izquierdo pesa más." %}';
+  const txtDerPesa = '{% trans "El lado derecho pesa más." %}';
+
+  let fichasIzq = [];
+  let fichasDer = [];
+
+  const CX = 350, CY = 90, MITAD_BRAZO = 230, LARGO_HILO = 60;
+  const MAX_GRADOS = 16;
+
+  function crear(tag, attrs) {
+    const el = document.createElementNS(NS, tag);
+    Object.keys(attrs).forEach(function(k){ el.setAttribute(k, attrs[k]); });
+    return el;
+  }
+
+  function dibujarPan(cxBase, cyBase, suma) {
+    const g = crear('g', {});
+    g.appendChild(crear('line', { x1: cxBase, y1: cyBase, x2: cxBase, y2: cyBase + LARGO_HILO, stroke: '#94a3b8', 'stroke-width': 2 }));
+    const anchoPan = 90;
+    g.appendChild(crear('rect', {
+      x: cxBase - anchoPan / 2, y: cyBase + LARGO_HILO, width: anchoPan, height: 14,
+      rx: 4, fill: '#c7d2fe', stroke: '#4f46e5', 'stroke-width': 1.5,
+    }));
+    const txt = crear('text', {
+      x: cxBase, y: cyBase + LARGO_HILO + 34, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 800, fill: '#4f46e5',
+    });
+    txt.textContent = suma;
+    g.appendChild(txt);
+    return g;
+  }
+
+  function render() {
+    const sumaIzq = fichasIzq.reduce(function(a, b){ return a + b; }, 0);
+    const sumaDer = fichasDer.reduce(function(a, b){ return a + b; }, 0);
+    sumaIzqEl.textContent = sumaIzq;
+    sumaDerEl.textContent = sumaDer;
+
+    fichasIzqEl.innerHTML = '';
+    fichasIzq.forEach(function(v){
+      const b = document.createElement('span');
+      b.className = 'bz-ficha';
+      b.textContent = v;
+      fichasIzqEl.appendChild(b);
+    });
+    fichasDerEl.innerHTML = '';
+    fichasDer.forEach(function(v){
+      const b = document.createElement('span');
+      b.className = 'bz-ficha';
+      b.textContent = v;
+      fichasDerEl.appendChild(b);
+    });
+
+    const diff = sumaDer - sumaIzq;
+    let grados = diff * 1.4;
+    if (grados > MAX_GRADOS) grados = MAX_GRADOS;
+    if (grados < -MAX_GRADOS) grados = -MAX_GRADOS;
+    const rad = grados * Math.PI / 180;
+
+    const xIzq = CX - MITAD_BRAZO * Math.cos(rad);
+    const yIzq = CY - MITAD_BRAZO * Math.sin(rad);
+    const xDer = CX + MITAD_BRAZO * Math.cos(rad);
+    const yDer = CY + MITAD_BRAZO * Math.sin(rad);
+
+    svg.innerHTML = '';
+    // base y fulcro
+    svg.appendChild(crear('line', { x1: CX, y1: CY, x2: CX - 40, y2: 230, stroke: '#94a3b8', 'stroke-width': 6, 'stroke-linecap': 'round' }));
+    svg.appendChild(crear('line', { x1: CX, y1: CY, x2: CX + 40, y2: 230, stroke: '#94a3b8', 'stroke-width': 6, 'stroke-linecap': 'round' }));
+    svg.appendChild(crear('circle', { cx: CX, cy: CY, r: 8, fill: '#334155' }));
+    // brazo
+    svg.appendChild(crear('line', { x1: xIzq, y1: yIzq, x2: xDer, y2: yDer, stroke: '#334155', 'stroke-width': 5, 'stroke-linecap': 'round' }));
+    // platos
+    svg.appendChild(dibujarPan(xIzq, yIzq, sumaIzq));
+    svg.appendChild(dibujarPan(xDer, yDer, sumaDer));
+
+    if (sumaIzq === sumaDer) {
+      mensajeEl.textContent = txtEquilibrado;
+      mensajeEl.style.color = '#16a34a';
+    } else if (sumaIzq > sumaDer) {
+      mensajeEl.textContent = txtIzqPesa;
+      mensajeEl.style.color = '#c2410c';
+    } else {
+      mensajeEl.textContent = txtDerPesa;
+      mensajeEl.style.color = '#c2410c';
+    }
+  }
+
+  document.querySelectorAll('.bz-agregar').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const valor = parseInt(this.dataset.valor, 10);
+      if (this.dataset.lado === 'izq') { fichasIzq.push(valor); } else { fichasDer.push(valor); }
+      render();
+    });
+  });
+  document.querySelectorAll('.bz-quitar').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (this.dataset.lado === 'izq') { fichasIzq.pop(); } else { fichasDer.pop(); }
+      render();
+    });
+  });
+  document.getElementById('bz-reiniciar').addEventListener('click', function(){
+    fichasIzq = []; fichasDer = []; render();
+  });
+
+  render();
+})();
+</script>
+{% endblock %}

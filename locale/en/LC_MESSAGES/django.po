@@ -12887,3 +12887,86 @@ msgstr "Empty = public exercise from the platform catalog."
 
 msgid "Halu Math"
 msgstr "Halu Math"
+
+msgid "Laboratorio Matemático"
+msgstr "Math Lab"
+
+msgid ""
+"Manipulativos visuales para explorar matemáticas con las manos — sin "
+"calificar, de uso libre en clase o por tu cuenta."
+msgstr ""
+"Visual manipulatives to explore math hands-on — ungraded, free to use in "
+"class or on your own."
+
+msgid "Recta Numérica Abierta"
+msgstr "Open Number Line"
+
+msgid "Da saltos de +1, +5, +10 y +20 para sumar y restar sobre una recta."
+msgstr "Take jumps of +1, +5, +10 and +20 to add and subtract on a line."
+
+msgid "Bloques de Base 10"
+msgstr "Base-Ten Blocks"
+
+msgid "Agrupa unidades en decenas y descubre el valor posicional."
+msgstr "Group units into tens and discover place value."
+
+msgid "Balanza de Ecuaciones"
+msgstr "Equation Balance"
+
+msgid ""
+"Agrega pesas a cada lado y descubre cuándo una ecuación está en equilibrio."
+msgstr "Add weights to each side and discover when an equation is balanced."
+
+msgid "Volver a Halu Math"
+msgstr "Back to Halu Math"
+
+msgid "Volver al Laboratorio"
+msgstr "Back to the Lab"
+
+msgid "Valor inicial"
+msgstr "Starting value"
+
+msgid "Valor actual"
+msgstr "Current value"
+
+msgid "Saltar hacia adelante"
+msgstr "Jump forward"
+
+msgid "Saltar hacia atrás"
+msgstr "Jump backward"
+
+msgid "Recorrido"
+msgstr "Path"
+
+msgid "decenas"
+msgstr "tens"
+
+msgid "unidades"
+msgstr "units"
+
+msgid "Decenas"
+msgstr "Tens"
+
+msgid "Unidades"
+msgstr "Units"
+
+msgid "Unidad"
+msgstr "Unit"
+
+msgid "Decena"
+msgstr "Ten"
+
+msgid "Lado izquierdo"
+msgstr "Left side"
+
+msgid "Lado derecho"
+msgstr "Right side"
+
+msgid "¡Equilibrado! Ambos lados pesan lo mismo."
+msgstr "Balanced! Both sides weigh the same."
+
+msgid "El lado izquierdo pesa más."
+msgstr "The left side weighs more."
+
+msgid "El lado derecho pesa más."
+msgstr "The right side weighs more."

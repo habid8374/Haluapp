@@ -22,4 +22,10 @@ urlpatterns = [
     path('practicar/<int:dba_pk>/', views.practicar_dba, name='practicar_dba'),
     path('practicar/<int:dba_pk>/responder/', views.responder_ejercicio, name='responder_ejercicio'),
     path('mi-progreso/', views.mi_progreso_math, name='mi_progreso_math'),
+
+    # Laboratorio Matemático (manipulativos visuales de uso libre)
+    path('laboratorio/', views.laboratorio_index, name='laboratorio_index'),
+    path('laboratorio/recta-numerica/', views.laboratorio_recta_numerica, name='laboratorio_recta_numerica'),
+    path('laboratorio/bloques-base10/', views.laboratorio_bloques_base10, name='laboratorio_bloques_base10'),
+    path('laboratorio/balanza/', views.laboratorio_balanza, name='laboratorio_balanza'),
 ]

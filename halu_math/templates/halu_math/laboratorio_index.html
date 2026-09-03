@@ -1,0 +1,46 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% load gestion_academica_filters %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+  .lab-card { border:1px solid #e2e8f0; border-radius:16px; padding:1.5rem; background:#fff; height:100%; transition:box-shadow .15s, transform .15s; text-decoration:none; display:block; }
+  .lab-card:hover { box-shadow:0 4px 18px rgba(79,70,229,.16); border-color:#a5b4fc; transform:translateY(-2px); }
+  .lab-icono { width:56px; height:56px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; margin-bottom:.9rem; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div class="container mt-3" style="max-width:900px;">
+  <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:18px;padding:2rem;color:#fff;margin-bottom:1.5rem;">
+    {% trans "Halu Math" as titulo_halu_math %}
+    <h2 style="color:#fff;"><i class="bi bi-flask-fill me-2"></i>{{ titulo_halu_math|steamify }} — {% trans "Laboratorio Matemático" %}</h2>
+    <p style="color:#fff;" class="mb-0">{% trans "Manipulativos visuales para explorar matemáticas con las manos — sin calificar, de uso libre en clase o por tu cuenta." %}</p>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <a href="{% url 'halu_math:laboratorio_recta_numerica' %}" class="lab-card">
+        <div class="lab-icono" style="background:#eef2ff;color:#4f46e5;"><i class="bi bi-arrow-left-right"></i></div>
+        <h5 class="fw-bold mb-1">{% trans "Recta Numérica Abierta" %}</h5>
+        <p class="text-muted mb-0" style="font-size:.85rem;">{% trans "Da saltos de +1, +5, +10 y +20 para sumar y restar sobre una recta." %}</p>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{% url 'halu_math:laboratorio_bloques_base10' %}" class="lab-card">
+        <div class="lab-icono" style="background:#f0fdf4;color:#16a34a;"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+        <h5 class="fw-bold mb-1">{% trans "Bloques de Base 10" %}</h5>
+        <p class="text-muted mb-0" style="font-size:.85rem;">{% trans "Agrupa unidades en decenas y descubre el valor posicional." %}</p>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{% url 'halu_math:laboratorio_balanza' %}" class="lab-card">
+        <div class="lab-icono" style="background:#fff7ed;color:#c2410c;"><i class="bi bi-distribute-vertical"></i></div>
+        <h5 class="fw-bold mb-1">{% trans "Balanza de Ecuaciones" %}</h5>
+        <p class="text-muted mb-0" style="font-size:.85rem;">{% trans "Agrega pesas a cada lado y descubre cuándo una ecuación está en equilibrio." %}</p>
+      </a>
+    </div>
+  </div>
+  <div class="text-center mt-4">
+    <a href="{% url volver_url %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{% trans "Volver a Halu Math" %}</a>
+  </div>
+</div>
+{% endblock %}

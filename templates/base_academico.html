@@ -320,8 +320,13 @@
       {% endif %}
       {% if 'halu_math' in modulos_activos %}
       <li class="nav-item item-color-1">
-        <a class="nav-link {% if 'matematicas' in request.path %}active{% endif %}" href="{% url 'halu_math:elegir_dba' %}">
+        <a class="nav-link {% if 'matematicas' in request.path and 'laboratorio' not in request.path %}active{% endif %}" href="{% url 'halu_math:elegir_dba' %}">
           <i class="bi bi-calculator-fill"></i> {% trans "Halu Math" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if 'laboratorio' in request.path %}active{% endif %}" href="{% url 'halu_math:laboratorio_index' %}">
+          <i class="bi bi-flask-fill"></i> {% trans "Laboratorio Matemático" %}
         </a>
       </li>
       {% endif %}
@@ -448,6 +453,12 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'progreso_grupo' %}active{% endif %}"
            href="{% url 'halu_math:progreso_grupo' %}">
           <i class="bi bi-graph-up-arrow"></i> {% trans "Progreso del Grupo" %}
+        </a>
+      </li>
+      <li class="nav-item item-color-1">
+        <a class="nav-link {% if 'laboratorio' in request.path %}active{% endif %}"
+           href="{% url 'halu_math:laboratorio_index' %}">
+          <i class="bi bi-flask-fill"></i> {% trans "Laboratorio Matemático" %}
         </a>
       </li>
       {% endif %}
