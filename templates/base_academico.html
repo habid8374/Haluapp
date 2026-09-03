@@ -298,7 +298,7 @@
       </li>
       <li class="nav-item item-color-2">
         <a class="nav-link {% if request.resolver_match.url_name == 'mis_simulaciones_steam' %}active{% endif %}" href="{% url 'gestion_academica:mis_simulaciones_steam' %}">
-          <i class="bi bi-atom"></i> {% trans "Mis Simulaciones STEAM" %}
+          <i class="bi bi-graph-up-arrow"></i> {% trans "Mis Simulaciones STEAM" %}
         </a>
       </li>
       {% endif %}
@@ -399,7 +399,7 @@
       <li class="nav-item item-color-2">
         <a class="nav-link {% if 'simulaciones-steam' in request.path %}active{% endif %}"
            href="{% url 'gestion_academica:catalogo_simulaciones_steam' %}">
-          <i class="bi bi-atom"></i> {% trans "Simulaciones STEAM" %}
+          <i class="bi bi-graph-up-arrow"></i> {% trans "Simulaciones STEAM" %}
         </a>
       </li>
       {% endif %}
@@ -671,7 +671,7 @@
       <li class="nav-item item-color-2">
         <a class="nav-link {% if 'simulaciones-steam' in request.path %}active{% endif %}"
            href="{% url 'gestion_academica:catalogo_simulaciones_steam' %}">
-          <i class="bi bi-atom"></i> {% trans "Simulaciones STEAM" %}
+          <i class="bi bi-graph-up-arrow"></i> {% trans "Simulaciones STEAM" %}
         </a>
       </li>
       {% endif %}

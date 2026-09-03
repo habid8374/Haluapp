@@ -43,7 +43,7 @@ RETOS = [
     {
         'titulo': "Puente Hidráulico con Jeringas",
         'categoria': 'HIDRAULICA_NEUMATICA',
-        'icono': 'bi-droplet-half',
+        'icono': 'bi-gear-fill',
         'descripcion_corta': "Un puente levadizo que se abre y cierra con el principio de Pascal, sin motores.",
         'reto_texto': "Construye un puente levadizo que se abra y cierre usando el principio de Pascal: jeringas llenas de agua conectadas por mangueras, sin ningún motor eléctrico.",
         'materiales': "Jeringas plásticas (4-6), manguera delgada flexible, palos de madera o pitillos, cartón o icopor para la base, agua, silicona.",
@@ -59,7 +59,7 @@ RETOS = [
     {
         'titulo': "Brazo Hidráulico con Jeringas",
         'categoria': 'HIDRAULICA_NEUMATICA',
-        'icono': 'bi-gear-wide-connected',
+        'icono': 'bi-wrench-adjustable-circle-fill',
         'descripcion_corta': "Un brazo articulado que se mueve con jeringas como pistones hidráulicos.",
         'reto_texto': "Construye un brazo mecánico articulado que se mueva usando jeringas como pistones hidráulicos, capaz de levantar un objeto pequeño.",
         'materiales': "Jeringas plásticas (6-8), manguera delgada, palos de madera o icopor, agua, silicona o cinta.",
@@ -75,7 +75,7 @@ RETOS = [
     {
         'titulo': "Auto Propulsado por Globo",
         'categoria': 'MOVIMIENTO_TRANSPORTE',
-        'icono': 'bi-wind',
+        'icono': 'bi-speedometer2',
         'descripcion_corta': "Un vehículo que se mueve solo con el aire de un globo — acción y reacción.",
         'reto_texto': "Diseña y construye un vehículo que se mueva únicamente con el aire liberado de un globo inflado, y que recorra la mayor distancia posible en línea recta.",
         'materiales': "Globos, botella o cartón para el chasis, pitillos, tapas de gaseosa o CDs para las ruedas, palillos de madera para los ejes, cinta.",
@@ -91,7 +91,7 @@ RETOS = [
     {
         'titulo': "Aterrizaje Seguro del Huevo",
         'categoria': 'MOVIMIENTO_TRANSPORTE',
-        'icono': 'bi-egg-fill',
+        'icono': 'bi-shield-fill',
         'descripcion_corta': "Diseña una estructura que proteja un huevo crudo en una caída desde 3 metros.",
         'reto_texto': "Diseña una estructura protectora que permita que un huevo crudo caiga desde al menos 3 metros de altura sin romperse.",
         'materiales': "Huevos crudos, pitillos, algodón, cartón, globos, papel periódico, cinta, bolsas plásticas.",
@@ -114,7 +114,7 @@ RETOS = [
     {
         'titulo': "VEX IQ",
         'categoria': 'COMPETENCIA_EXTERNA',
-        'icono': 'bi-cpu-fill',
+        'icono': 'bi-cpu',
         'descripcion_corta': "Actividades y retos de robótica VEX IQ, con currículo gratuito para el aula. Requiere kits VEX propios.",
         'enlace_externo': "https://education.vex.com/stemlabs/iq",
     },
