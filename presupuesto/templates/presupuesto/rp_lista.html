@@ -12,11 +12,12 @@
   <div class="card">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light"><tr><th>N°</th><th>CDP</th><th>Tercero</th><th>Objeto</th><th>Valor</th><th>Saldo</th><th>Estado</th><th></th></tr></thead>
+        <thead class="table-light"><tr><th>N°</th><th>CDP</th><th>Tercero</th><th>Objeto</th><th>CPC</th><th>Valor</th><th>Saldo</th><th>Estado</th><th></th></tr></thead>
         <tbody>
           {% for r in rps %}
           <tr>
             <td class="fw-bold">{{ r.numero }}</td><td>#{{ r.cdp.numero }}</td><td>{{ r.tercero }}</td><td>{{ r.objeto_contrato }}</td>
+            <td>{% if r.categoria_cpc %}<span class="small text-muted">{{ r.categoria_cpc.codigo }}</span> {{ r.categoria_cpc.titulo }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
             <td>${{ r.valor|floatformat:2 }}</td><td>${{ r.saldo_disponible|floatformat:2 }}</td>
             <td><span class="badge {% if r.estado == 'VIGENTE' %}bg-success{% elif r.estado == 'LIQUIDADO' %}bg-secondary{% else %}bg-danger{% endif %}">{{ r.get_estado_display }}</span></td>
             <td>
@@ -28,7 +29,7 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="8" class="text-center text-muted py-4">No hay RP registrados.</td></tr>
+          <tr><td colspan="9" class="text-center text-muted py-4">No hay RP registrados.</td></tr>
           {% endfor %}
         </tbody>
       </table>

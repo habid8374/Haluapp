@@ -8,6 +8,7 @@ from .models import (
     Apropiacion,
     CatalogoGeneralCuentas,
     ConceptoRetencion,
+    FuenteFinanciacion,
     ModificacionPresupuestal,
     Obligacion,
     OrdenDePago,
@@ -17,6 +18,7 @@ from .models import (
     RubroPresupuestalIngreso,
     VigenciaFiscal,
 )
+from .widgets import CategoriaCPCWidget
 
 
 class _InstitucionScopedFormMixin:
@@ -42,6 +44,9 @@ class VigenciaFiscalForm(_InstitucionScopedFormMixin, forms.ModelForm):
 
 
 class RubroPresupuestalIngresoForm(_InstitucionScopedFormMixin, forms.ModelForm):
+    # tipo_recurso es del catálogo CHIP GLOBAL (sin institución) — su
+    # queryset se filtra manualmente abajo, no con fk_institucion_fields
+    # (mismo criterio que cuenta_puc_pasivo en ConceptoRetencionForm).
     fk_institucion_fields = ('rubro_padre',)
 
     class Meta:
@@ -53,6 +58,11 @@ class RubroPresupuestalIngresoForm(_InstitucionScopedFormMixin, forms.ModelForm)
             'tipo_recurso': forms.Select(attrs={'class': 'form-select'}),
             'rubro_padre': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tipo_recurso'].queryset = FuenteFinanciacion.objects.all()
+        self.fields['tipo_recurso'].required = True
 
 
 class RubroPresupuestalGastoForm(_InstitucionScopedFormMixin, forms.ModelForm):
@@ -137,15 +147,18 @@ class CDPForm(_InstitucionScopedFormMixin, forms.ModelForm):
 
 
 class RPForm(_InstitucionScopedFormMixin, forms.ModelForm):
+    # categoria_cpc es del catálogo CPC del DANE, GLOBAL (sin institución) —
+    # se busca por texto, no se filtra por institucion.
     fk_institucion_fields = ('cdp', 'tercero')
 
     class Meta:
         model = RP
-        fields = ['cdp', 'tercero', 'objeto_contrato', 'valor']
+        fields = ['cdp', 'tercero', 'objeto_contrato', 'categoria_cpc', 'valor']
         widgets = {
             'cdp': forms.Select(attrs={'class': 'form-select'}),
             'tercero': forms.Select(attrs={'class': 'form-select'}),
             'objeto_contrato': forms.TextInput(attrs={'class': 'form-control'}),
+            'categoria_cpc': CategoriaCPCWidget(),
             'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
 

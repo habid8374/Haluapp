@@ -61,7 +61,7 @@ def expedir_cdp(*, apropiacion: Apropiacion, valor: Decimal, objeto: str, usuari
 
 
 @transaction.atomic
-def crear_rp(*, cdp: CDP, tercero, objeto_contrato: str, valor: Decimal, usuario) -> RP:
+def crear_rp(*, cdp: CDP, tercero, objeto_contrato: str, valor: Decimal, usuario, categoria_cpc=None) -> RP:
     cdp = CDP.objects.select_for_update().get(pk=cdp.pk)
     if cdp.estado != CDP.Estado.VIGENTE:
         raise ValidationError('El CDP #%(num)s no está vigente.' % {'num': cdp.numero})
@@ -81,6 +81,7 @@ def crear_rp(*, cdp: CDP, tercero, objeto_contrato: str, valor: Decimal, usuario
         numero=_siguiente_numero(cdp.institucion_id, 'presupuesto_rp'),
         tercero=tercero,
         objeto_contrato=objeto_contrato,
+        categoria_cpc=categoria_cpc,
         valor=valor,
         creado_por=usuario,
     )

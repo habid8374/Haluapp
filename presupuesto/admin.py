@@ -7,8 +7,10 @@ from .models import (
     RP,
     Apropiacion,
     CatalogoGeneralCuentas,
+    CategoriaCPC,
     ComprobanteContable,
     ConceptoRetencion,
+    FuenteFinanciacion,
     ModificacionPresupuestal,
     MovimientoContable,
     Obligacion,
@@ -32,10 +34,10 @@ class VigenciaFiscalAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
 @admin.register(RubroPresupuestalIngreso)
 class RubroPresupuestalIngresoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('codigo', 'nombre', 'tipo_recurso', 'institucion', 'activo')
-    list_filter = ('tipo_recurso', 'activo')
+    list_filter = ('activo',)
     search_fields = ('codigo', 'nombre')
     ordering = ('codigo',)
-    raw_id_fields = ('institucion', 'rubro_padre')
+    raw_id_fields = ('institucion', 'rubro_padre', 'tipo_recurso')
 
 
 @admin.register(RubroPresupuestalGasto)
@@ -93,10 +95,10 @@ class CDPAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
 
 @admin.register(RP)
 class RPAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
-    list_display = ('numero', 'cdp', 'tercero', 'valor', 'saldo_disponible', 'estado', 'institucion')
+    list_display = ('numero', 'cdp', 'tercero', 'categoria_cpc', 'valor', 'saldo_disponible', 'estado', 'institucion')
     list_filter = ('estado',)
     ordering = ('-numero',)
-    raw_id_fields = ('institucion', 'cdp', 'tercero', 'creado_por')
+    raw_id_fields = ('institucion', 'cdp', 'tercero', 'categoria_cpc', 'creado_por')
 
     @admin.display(description='Saldo disponible')
     def saldo_disponible(self, obj):
@@ -133,6 +135,29 @@ class CatalogoGeneralCuentasAdmin(admin.ModelAdmin):
     search_fields = ('codigo', 'nombre')
     ordering = ('codigo',)
     raw_id_fields = ('cuenta_padre',)
+
+
+@admin.register(FuenteFinanciacion)
+class FuenteFinanciacionAdmin(admin.ModelAdmin):
+    """Catálogo GLOBAL de plataforma (sin institución) — Fuentes de
+    Financiación oficiales del CHIP (Contaduría General de la Nación),
+    mismo criterio que CatalogoGeneralCuentasAdmin."""
+    list_display = ('codigo_fuente', 'nombre_cuenta', 'aplica_establecimientos_publicos_territoriales')
+    list_filter = ('aplica_establecimientos_publicos_territoriales',)
+    search_fields = ('codigo_fuente', 'nombre_cuenta')
+    ordering = ('codigo_fuente',)
+
+
+@admin.register(CategoriaCPC)
+class CategoriaCPCAdmin(admin.ModelAdmin):
+    """Catálogo GLOBAL de plataforma (sin institución) — Clasificación
+    Central de Productos del DANE, mismo criterio que
+    CatalogoGeneralCuentasAdmin. ~9.933 filas: sin list_filter por tipo
+    para no listar miles de enlaces en el sidebar del admin (search_fields
+    ya cubre la búsqueda por código o título)."""
+    list_display = ('codigo', 'titulo', 'tipo')
+    search_fields = ('codigo', 'titulo')
+    ordering = ('codigo',)
 
 
 @admin.register(ConceptoRetencion)

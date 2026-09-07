@@ -15,7 +15,7 @@
         <thead class="table-light"><tr><th>Código</th><th>Nombre</th><th>Fuente de financiación</th><th>Activo</th></tr></thead>
         <tbody>
           {% for r in rubros %}
-          <tr><td class="fw-bold">{{ r.codigo }}</td><td>{{ r.nombre }}</td><td>{{ r.get_tipo_recurso_display }}</td>
+          <tr><td class="fw-bold">{{ r.codigo }}</td><td>{{ r.nombre }}</td><td>{% if r.tipo_recurso %}{{ r.tipo_recurso }}{% else %}<span class="text-muted fst-italic">Sin asignar — edítalo</span>{% endif %}</td>
             <td><span class="badge {% if r.activo %}bg-success{% else %}bg-secondary{% endif %}">{% if r.activo %}Sí{% else %}No{% endif %}</span></td></tr>
           {% empty %}
           <tr><td colspan="4" class="text-center text-muted py-4">No hay rubros de ingreso registrados.</td></tr>

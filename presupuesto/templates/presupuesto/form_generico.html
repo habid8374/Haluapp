@@ -32,3 +32,48 @@
   </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('.cpc-buscador').forEach(function (contenedor) {
+  var input = contenedor.querySelector('.cpc-buscador-input');
+  var oculto = contenedor.querySelector('input[type="hidden"]');
+  var lista = contenedor.querySelector('.cpc-buscador-resultados');
+  var temporizador = null;
+
+  function ocultarLista() { lista.style.display = 'none'; lista.innerHTML = ''; }
+
+  input.addEventListener('input', function () {
+    oculto.value = '';
+    var q = input.value.trim();
+    clearTimeout(temporizador);
+    if (q.length < 2) { ocultarLista(); return; }
+    temporizador = setTimeout(function () {
+      fetch('{% url "presupuesto:buscar_categoria_cpc" %}?q=' + encodeURIComponent(q))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          lista.innerHTML = '';
+          if (!data.resultados.length) { ocultarLista(); return; }
+          data.resultados.forEach(function (item) {
+            var opcion = document.createElement('button');
+            opcion.type = 'button';
+            opcion.className = 'list-group-item list-group-item-action';
+            opcion.textContent = item.texto;
+            opcion.addEventListener('click', function () {
+              input.value = item.texto;
+              oculto.value = item.id;
+              ocultarLista();
+            });
+            lista.appendChild(opcion);
+          });
+          lista.style.display = 'block';
+        });
+    }, 300);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!contenedor.contains(e.target)) ocultarLista();
+  });
+});
+</script>
+{% endblock %}

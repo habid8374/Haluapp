@@ -55,4 +55,6 @@ urlpatterns = [
     path('comprobantes/<int:pk>/reversar/', views.reversar_comprobante, name='reversar_comprobante'),
 
     path('catalogo-cgc/', views.lista_catalogo_cgc, name='lista_catalogo_cgc'),
+
+    path('categoria-cpc/buscar/', views.buscar_categoria_cpc, name='buscar_categoria_cpc'),
 ]

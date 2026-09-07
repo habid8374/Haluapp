@@ -68,21 +68,83 @@ class VigenciaFiscal(models.Model):
 # suyos según su propio acuerdo de presupuesto anual)
 # ─────────────────────────────────────────────────────────────────────────
 
-class RubroPresupuestalIngreso(models.Model):
-    class TipoRecurso(models.TextChoices):
-        SGP = 'SGP', 'Sistema General de Participaciones'
-        RECURSOS_PROPIOS = 'RECURSOS_PROPIOS', 'Recursos propios'
-        TRANSFERENCIAS = 'TRANSFERENCIAS', 'Transferencias territoriales'
-        RECURSOS_CAPITAL = 'RECURSOS_CAPITAL', 'Recursos de capital'
-        DONACIONES = 'DONACIONES', 'Donaciones'
+class FuenteFinanciacion(models.Model):
+    """Catálogo GLOBAL de plataforma — Catálogo CHIP de Fuentes de
+    Financiación de la Contaduría General de la Nación (mismo criterio
+    que CatalogoGeneralCuentas/DBAPredefinido: es un catálogo oficial de
+    referencia, no un dato de un colegio). Jerarquía Ámbito → Grupo →
+    Subgrupo → Clase → Subclase, con un código compuesto (ej.
+    "1.2.3.1.01") que identifica de dónde viene la plata."""
 
+    ambito_codigo = models.PositiveSmallIntegerField()
+    ambito_nombre = models.CharField(max_length=100)
+    grupo_codigo = models.PositiveSmallIntegerField()
+    grupo_nombre = models.CharField(max_length=200)
+    subgrupo_codigo = models.PositiveSmallIntegerField()
+    subgrupo_nombre = models.CharField(max_length=200)
+    clase_codigo = models.PositiveSmallIntegerField()
+    clase_nombre = models.CharField(max_length=200)
+    subclase_codigo = models.CharField(max_length=10)
+    subclase_nombre = models.CharField(max_length=200)
+    codigo_fuente = models.CharField('Código', max_length=20, unique=True)
+    nombre_cuenta = models.CharField('Nombre completo', max_length=255)
+    aplica_establecimientos_publicos_territoriales = models.BooleanField(
+        default=False,
+        help_text='Aplica a establecimientos públicos como un Fondo de Servicios Educativos.',
+    )
+    aplica_departamentos = models.BooleanField(default=False)
+    aplica_municipios = models.BooleanField(default=False)
+    aplica_bogota = models.BooleanField(default=False)
+    aplica_san_andres = models.BooleanField(default=False)
+    aplica_empresas_territoriales_no_financieras = models.BooleanField(default=False)
+    aplica_empresas_nacionales_no_financieras = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['codigo_fuente']
+        verbose_name = 'Fuente de Financiación'
+        verbose_name_plural = 'Fuentes de Financiación (CHIP)'
+
+    def __str__(self):
+        return f"{self.codigo_fuente} · {self.subclase_nombre}"
+
+
+class CategoriaCPC(models.Model):
+    """Catálogo GLOBAL de plataforma — Clasificación Central de Productos
+    (CPC) Ver. 2.1 A.C., oficializada por el DANE (Resolución 0463 de
+    2024). Catálogo plano (no jerárquico en la BD, aunque el código CPC sí
+    tiene estructura interna) con ~9.900 códigos reales de bienes y
+    servicios, para clasificar qué se está comprando en cada RP."""
+
+    class Tipo(models.TextChoices):
+        BIEN = 'BIEN', 'Bien'
+        SERVICIO = 'SERVICIO', 'Servicio'
+
+    codigo = models.CharField('Código CPC', max_length=15, unique=True)
+    titulo = models.CharField('Título', max_length=255)
+    tipo = models.CharField(max_length=10, choices=Tipo.choices)
+
+    class Meta:
+        ordering = ['codigo']
+        verbose_name = 'Categoría CPC'
+        verbose_name_plural = 'Categorías CPC (Bienes y Servicios)'
+
+    def __str__(self):
+        return f"{self.codigo} · {self.titulo}"
+
+
+class RubroPresupuestalIngreso(models.Model):
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
         related_name='rubros_ingreso', verbose_name='Institución',
     )
     codigo = models.CharField('Código', max_length=20)
     nombre = models.CharField('Nombre', max_length=200)
-    tipo_recurso = models.CharField('Fuente de financiación', max_length=20, choices=TipoRecurso.choices)
+    tipo_recurso = models.ForeignKey(
+        FuenteFinanciacion, on_delete=models.PROTECT, null=True, blank=True,
+        related_name='rubros_ingreso', verbose_name='Fuente de financiación (CHIP)',
+        help_text='Catálogo oficial CHIP de la Contaduría General de la Nación. '
+                   'Nulo solo en rubros creados antes de este catálogo — reasígnalo al editar.',
+    )
     rubro_padre = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True,
         related_name='hijos', verbose_name='Rubro padre',
@@ -362,6 +424,11 @@ class RP(models.Model):
         verbose_name='Tercero / contratista',
     )
     objeto_contrato = models.CharField('Objeto del contrato', max_length=255)
+    categoria_cpc = models.ForeignKey(
+        CategoriaCPC, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='registros_presupuestales', verbose_name='Clasificación CPC (bien/servicio)',
+        help_text='Qué bien o servicio se está comprando, según el catálogo CPC del DANE.',
+    )
     valor = models.DecimalField('Valor', max_digits=14, decimal_places=2)
     estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.VIGENTE)
     creado_por = models.ForeignKey(

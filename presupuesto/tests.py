@@ -259,3 +259,67 @@ class ContabilidadYRetencionesTest(TestCase):
         response = self.client.post(reverse('presupuesto:anular_orden_pago', args=[orden.pk]), {'motivo': 'x'})
         orden.refresh_from_db()
         self.assertNotEqual(orden.estado, 'ANULADA')
+
+
+class CatalogosOficialesTest(TestCase):
+    """Catálogos globales sembrados por migración: Fuentes de Financiación
+    (CHIP/CGN) y Categoría CPC (DANE). Ambos son catálogos de referencia sin
+    institución — se sirven a través de las migraciones de datos, no se
+    crean aquí."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.inst_a = _crear_institucion("FSE Colegio Catálogos", "900333333-3")
+        cls.user_a = _crear_usuario("admin_catalogos", "cat@fse.test", cls.inst_a)
+        cls.vigencia_a = VigenciaFiscal.objects.create(institucion=cls.inst_a, anio=2026)
+        cls.rubro_gasto = RubroPresupuestalGasto.objects.create(
+            institucion=cls.inst_a, codigo="2.3.2", nombre="Materiales",
+            tipo=RubroPresupuestalGasto.Tipo.FUNCIONAMIENTO,
+        )
+        cls.apropiacion = Apropiacion.objects.create(
+            institucion=cls.inst_a, vigencia=cls.vigencia_a, rubro=cls.rubro_gasto,
+            valor_inicial=Decimal('1000000.00'),
+        )
+        cls.proveedor = Proveedor.objects.create(institucion=cls.inst_a, nombre="Papelería Central")
+
+    def test_fuentes_de_financiacion_sembradas(self):
+        from .models import FuenteFinanciacion
+        self.assertEqual(FuenteFinanciacion.objects.count(), 230)
+        self.assertTrue(
+            FuenteFinanciacion.objects.filter(aplica_establecimientos_publicos_territoriales=True).exists()
+        )
+
+    def test_categoria_cpc_sembrada(self):
+        from .models import CategoriaCPC
+        self.assertEqual(CategoriaCPC.objects.count(), 9933)
+        self.assertEqual(CategoriaCPC.objects.filter(tipo='BIEN').count(), 8254)
+        self.assertEqual(CategoriaCPC.objects.filter(tipo='SERVICIO').count(), 1679)
+
+    def test_buscar_categoria_cpc_requiere_al_menos_dos_caracteres(self):
+        from django.urls import reverse
+        self.client.force_login(self.user_a)
+        response = self.client.get(reverse('presupuesto:buscar_categoria_cpc'), {'q': 'a'})
+        self.assertEqual(response.json(), {'resultados': []})
+
+    def test_buscar_categoria_cpc_encuentra_por_titulo(self):
+        from django.urls import reverse
+        from .models import CategoriaCPC
+        objetivo = CategoriaCPC.objects.filter(titulo__icontains='computador').first()
+        self.assertIsNotNone(objetivo, "el catálogo real debería traer al menos un 'computador'")
+        self.client.force_login(self.user_a)
+        response = self.client.get(reverse('presupuesto:buscar_categoria_cpc'), {'q': 'computador'})
+        data = response.json()
+        self.assertTrue(any(r['id'] == objetivo.pk for r in data['resultados']))
+
+    def test_rp_puede_llevar_categoria_cpc(self):
+        from .models import CategoriaCPC
+        cat = CategoriaCPC.objects.first()
+        cdp = services.expedir_cdp(
+            apropiacion=self.apropiacion, valor=Decimal('300000.00'),
+            objeto="Compra de materiales", usuario=self.user_a,
+        )
+        rp = services.crear_rp(
+            cdp=cdp, tercero=self.proveedor, objeto_contrato="Resmas de papel",
+            categoria_cpc=cat, valor=Decimal('200000.00'), usuario=self.user_a,
+        )
+        self.assertEqual(rp.categoria_cpc, cat)

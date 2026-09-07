@@ -4,6 +4,8 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -29,6 +31,7 @@ from .models import (
     RP,
     Apropiacion,
     CatalogoGeneralCuentas,
+    CategoriaCPC,
     ComprobanteContable,
     ConceptoRetencion,
     ModificacionPresupuestal,
@@ -426,7 +429,7 @@ def lista_rp(request):
     guard = _requiere_gestor(request)
     if guard:
         return guard
-    rps = RP.objects.filter(**_filtro_institucion(request)).select_related('cdp', 'tercero').order_by('-numero')
+    rps = RP.objects.filter(**_filtro_institucion(request)).select_related('cdp', 'tercero', 'categoria_cpc').order_by('-numero')
     return render(request, 'presupuesto/rp_lista.html', {'titulo_pagina': 'Registros Presupuestales (RP)', 'rps': rps})
 
 
@@ -444,6 +447,7 @@ def crear_rp(request):
                     cdp=form.cleaned_data['cdp'],
                     tercero=form.cleaned_data['tercero'],
                     objeto_contrato=form.cleaned_data['objeto_contrato'],
+                    categoria_cpc=form.cleaned_data.get('categoria_cpc'),
                     valor=form.cleaned_data['valor'],
                     usuario=request.user,
                 )
@@ -795,3 +799,24 @@ def lista_catalogo_cgc(request):
     return render(request, 'presupuesto/catalogo_cgc_lista.html', {
         'titulo_pagina': 'Catálogo General de Cuentas (CGC)', 'cuentas': cuentas,
     })
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Categoría CPC (DANE) — catálogo GLOBAL de ~9.933 códigos, solo lectura,
+# consumido por el buscador de RPForm (ver presupuesto/widgets.py).
+# ─────────────────────────────────────────────────────────────────────────
+
+@login_required
+def buscar_categoria_cpc(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    q = (request.GET.get('q') or '').strip()
+    if len(q) < 2:
+        return JsonResponse({'resultados': []})
+    coincidencias = CategoriaCPC.objects.filter(
+        Q(codigo__icontains=q) | Q(titulo__icontains=q)
+    ).order_by('codigo')[:20]
+    return JsonResponse({'resultados': [
+        {'id': c.pk, 'texto': f"{c.codigo} · {c.titulo}"} for c in coincidencias
+    ]})
