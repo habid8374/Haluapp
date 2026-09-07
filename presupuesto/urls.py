@@ -40,6 +40,19 @@ urlpatterns = [
 
     path('ordenes-pago/', views.lista_ordenes_pago, name='lista_ordenes_pago'),
     path('ordenes-pago/nueva/', views.crear_orden_pago, name='crear_orden_pago'),
+    path('ordenes-pago/<int:pk>/', views.detalle_orden_pago, name='detalle_orden_pago'),
     path('ordenes-pago/<int:pk>/anular/', views.anular_orden_pago, name='anular_orden_pago'),
-    path('ordenes-pago/<int:pk>/marcar-pagada/', views.marcar_orden_pagada, name='marcar_orden_pagada'),
+    path('ordenes-pago/<int:pk>/retenciones/agregar/', views.agregar_retencion, name='agregar_retencion'),
+    path('ordenes-pago/<int:pk>/retenciones/<int:retencion_pk>/quitar/', views.quitar_retencion, name='quitar_retencion'),
+    path('ordenes-pago/<int:pk>/generar-comprobante/', views.generar_comprobante, name='generar_comprobante'),
+
+    path('conceptos-retencion/', views.lista_conceptos_retencion, name='lista_conceptos_retencion'),
+    path('conceptos-retencion/nuevo/', views.crear_concepto_retencion, name='crear_concepto_retencion'),
+
+    path('comprobantes/', views.lista_comprobantes, name='lista_comprobantes'),
+    path('comprobantes/<int:pk>/', views.detalle_comprobante, name='detalle_comprobante'),
+    path('comprobantes/<int:pk>/contabilizar/', views.contabilizar_comprobante, name='contabilizar_comprobante'),
+    path('comprobantes/<int:pk>/reversar/', views.reversar_comprobante, name='reversar_comprobante'),
+
+    path('catalogo-cgc/', views.lista_catalogo_cgc, name='lista_catalogo_cgc'),
 ]

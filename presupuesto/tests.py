@@ -30,9 +30,13 @@ def _crear_institucion(nombre, nit):
 
 
 def _crear_usuario(username, email, institucion):
+    from django.utils import timezone
+    from gestion_academica.legal import POLITICA_TRATAMIENTO_DATOS_VERSION
     return Usuario.objects.create_user(
         username=username, email=email, password="TestPass123!",
         rol='administrador', institucion_asociada=institucion, is_staff=True,
+        acepto_tratamiento_datos=True, fecha_aceptacion_tratamiento_datos=timezone.now(),
+        version_politica_aceptada=POLITICA_TRATAMIENTO_DATOS_VERSION,
     )
 
 
@@ -75,8 +79,8 @@ class CicloPresupuestalTest(TestCase):
         obligacion = services.causar_obligacion(rp=rp, valor=Decimal('500000.00'), soporte=None, usuario=self.user_a)
         self.assertEqual(rp.saldo_disponible, Decimal('0.00'))
 
-        orden = services.generar_orden_pago(obligacion=obligacion, total_retenciones=Decimal('20000.00'), usuario=self.user_a)
-        self.assertEqual(orden.valor_neto, Decimal('480000.00'))
+        orden = services.generar_orden_pago(obligacion=obligacion, usuario=self.user_a)
+        self.assertEqual(orden.valor_neto, Decimal('500000.00'))
         self.assertEqual(obligacion.saldo_disponible, Decimal('0.00'))
 
     def test_cdp_no_puede_superar_saldo_apropiacion(self):
@@ -133,3 +137,125 @@ class CicloPresupuestalTest(TestCase):
         response = self.client.get(reverse('presupuesto:dashboard'))
         self.assertEqual(response.status_code, 302)
         self.assertNotEqual(response.url, reverse('presupuesto:dashboard'))
+
+
+class ContabilidadYRetencionesTest(TestCase):
+    """Fase 2: causación contable (partida doble) y retenciones."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from .models import CatalogoGeneralCuentas
+
+        cls.inst_a = _crear_institucion("FSE Contab A", "900333333-3")
+        cls.user_a = _crear_usuario("admin_contab_a", "contaba@fse.test", cls.inst_a)
+        cls.proveedor_a = Proveedor.objects.create(institucion=cls.inst_a, nombre="Papelería La Central")
+
+        cls.cuenta_gasto = CatalogoGeneralCuentas.objects.create(codigo='5120-T', nombre='Materiales y suministros', naturaleza='DEBITO')
+        cls.cuenta_bancos = CatalogoGeneralCuentas.objects.create(codigo='1110-T', nombre='Bancos', naturaleza='DEBITO')
+        cls.cuenta_retefuente = CatalogoGeneralCuentas.objects.create(codigo='2436-T', nombre='ReteFuente por pagar', naturaleza='CREDITO')
+
+        cls.vigencia = VigenciaFiscal.objects.create(institucion=cls.inst_a, anio=2026)
+        cls.rubro = RubroPresupuestalGasto.objects.create(
+            institucion=cls.inst_a, codigo="2.3.2", nombre="Papelería",
+            tipo=RubroPresupuestalGasto.Tipo.FUNCIONAMIENTO, cuenta_cgc_gasto=cls.cuenta_gasto,
+        )
+        cls.apropiacion = Apropiacion.objects.create(
+            institucion=cls.inst_a, vigencia=cls.vigencia, rubro=cls.rubro, valor_inicial=Decimal('1000000.00'),
+        )
+
+    def _crear_orden_pago(self, valor=Decimal('500000.00')):
+        cdp = services.expedir_cdp(apropiacion=self.apropiacion, valor=valor, objeto="Papelería", usuario=self.user_a)
+        rp = services.crear_rp(cdp=cdp, tercero=self.proveedor_a, objeto_contrato="Compra papelería", valor=valor, usuario=self.user_a)
+        obligacion = services.causar_obligacion(rp=rp, valor=valor, soporte=None, usuario=self.user_a)
+        return services.generar_orden_pago(obligacion=obligacion, usuario=self.user_a)
+
+    def test_orden_pago_nace_sin_retenciones(self):
+        orden = self._crear_orden_pago()
+        self.assertEqual(orden.total_retenciones, Decimal('0.00'))
+        self.assertEqual(orden.valor_neto, orden.valor_bruto)
+
+    def test_agregar_retencion_recalcula_neto(self):
+        from .models import ConceptoRetencion
+        orden = self._crear_orden_pago(Decimal('500000.00'))
+        concepto = ConceptoRetencion.objects.create(
+            institucion=self.inst_a, tipo=ConceptoRetencion.Tipo.RETEFUENTE, nombre='ReteFuente compras',
+            tarifa_porcentaje=Decimal('2.5'), cuenta_puc_pasivo=self.cuenta_retefuente,
+        )
+        services.agregar_retencion(orden_pago=orden, concepto=concepto, base_gravable=Decimal('500000.00'), usuario=self.user_a)
+        orden.refresh_from_db()
+        self.assertEqual(orden.total_retenciones, Decimal('12500.00'))
+        self.assertEqual(orden.valor_neto, Decimal('487500.00'))
+
+    def test_retencion_no_puede_superar_valor_bruto(self):
+        from .models import ConceptoRetencion
+        orden = self._crear_orden_pago(Decimal('100000.00'))
+        concepto = ConceptoRetencion.objects.create(
+            institucion=self.inst_a, tipo=ConceptoRetencion.Tipo.RETEFUENTE, nombre='ReteFuente enorme',
+            tarifa_porcentaje=Decimal('150'), cuenta_puc_pasivo=self.cuenta_retefuente,
+        )
+        with self.assertRaises(ValidationError):
+            services.agregar_retencion(orden_pago=orden, concepto=concepto, base_gravable=Decimal('100000.00'), usuario=self.user_a)
+
+    def test_comprobante_queda_cuadrado_y_contabilizable(self):
+        from .models import ConceptoRetencion
+        orden = self._crear_orden_pago(Decimal('500000.00'))
+        concepto = ConceptoRetencion.objects.create(
+            institucion=self.inst_a, tipo=ConceptoRetencion.Tipo.RETEFUENTE, nombre='ReteFuente compras',
+            tarifa_porcentaje=Decimal('2.5'), cuenta_puc_pasivo=self.cuenta_retefuente,
+        )
+        services.agregar_retencion(orden_pago=orden, concepto=concepto, base_gravable=Decimal('500000.00'), usuario=self.user_a)
+        comprobante = services.generar_comprobante_contable(orden_pago=orden, cuenta_bancos=self.cuenta_bancos, usuario=self.user_a)
+        self.assertTrue(comprobante.esta_cuadrado)
+        self.assertEqual(comprobante.total_debitos, Decimal('500000.00'))
+        self.assertEqual(comprobante.total_creditos, Decimal('500000.00'))
+
+        services.contabilizar_comprobante(comprobante=comprobante, usuario=self.user_a)
+        comprobante.refresh_from_db()
+        orden.refresh_from_db()
+        self.assertEqual(comprobante.estado, 'CONTABILIZADO')
+        self.assertEqual(orden.estado, 'PAGADA')
+
+    def test_no_se_puede_generar_comprobante_sin_cuenta_configurada_en_rubro(self):
+        rubro_sin_cuenta = RubroPresupuestalGasto.objects.create(
+            institucion=self.inst_a, codigo="2.3.9", nombre="Sin cuenta configurada",
+            tipo=RubroPresupuestalGasto.Tipo.FUNCIONAMIENTO,
+        )
+        apropiacion = Apropiacion.objects.create(
+            institucion=self.inst_a, vigencia=self.vigencia, rubro=rubro_sin_cuenta, valor_inicial=Decimal('200000.00'),
+        )
+        cdp = services.expedir_cdp(apropiacion=apropiacion, valor=Decimal('100000.00'), objeto="X", usuario=self.user_a)
+        rp = services.crear_rp(cdp=cdp, tercero=self.proveedor_a, objeto_contrato="Y", valor=Decimal('100000.00'), usuario=self.user_a)
+        obligacion = services.causar_obligacion(rp=rp, valor=Decimal('100000.00'), soporte=None, usuario=self.user_a)
+        orden = services.generar_orden_pago(obligacion=obligacion, usuario=self.user_a)
+        with self.assertRaises(ValidationError):
+            services.generar_comprobante_contable(orden_pago=orden, cuenta_bancos=self.cuenta_bancos, usuario=self.user_a)
+
+    def test_no_se_puede_contabilizar_dos_veces(self):
+        orden = self._crear_orden_pago()
+        comprobante = services.generar_comprobante_contable(orden_pago=orden, cuenta_bancos=self.cuenta_bancos, usuario=self.user_a)
+        services.contabilizar_comprobante(comprobante=comprobante, usuario=self.user_a)
+        with self.assertRaises(ValidationError):
+            services.contabilizar_comprobante(comprobante=comprobante, usuario=self.user_a)
+
+    def test_reversar_comprobante_crea_ajuste_con_movimientos_invertidos(self):
+        orden = self._crear_orden_pago()
+        comprobante = services.generar_comprobante_contable(orden_pago=orden, cuenta_bancos=self.cuenta_bancos, usuario=self.user_a)
+        services.contabilizar_comprobante(comprobante=comprobante, usuario=self.user_a)
+
+        reverso = services.reversar_comprobante(comprobante=comprobante, usuario=self.user_a, motivo="Error en el beneficiario")
+        self.assertEqual(reverso.tipo, 'AJUSTE')
+        self.assertEqual(reverso.estado, 'CONTABILIZADO')
+        self.assertTrue(reverso.esta_cuadrado)
+        # El movimiento original debitaba el gasto; el reverso debe acreditarlo por el mismo valor.
+        mov_original = comprobante.movimientos.get(cuenta=self.cuenta_gasto)
+        mov_reverso = reverso.movimientos.get(cuenta=self.cuenta_gasto)
+        self.assertEqual(mov_reverso.valor_credito, mov_original.valor_debito)
+
+    def test_no_se_puede_anular_orden_con_comprobante_generado(self):
+        from django.urls import reverse
+        orden = self._crear_orden_pago()
+        services.generar_comprobante_contable(orden_pago=orden, cuenta_bancos=self.cuenta_bancos, usuario=self.user_a)
+        self.client.force_login(self.user_a)
+        response = self.client.post(reverse('presupuesto:anular_orden_pago', args=[orden.pk]), {'motivo': 'x'})
+        orden.refresh_from_db()
+        self.assertNotEqual(orden.estado, 'ANULADA')

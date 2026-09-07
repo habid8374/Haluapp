@@ -6,10 +6,13 @@ from .models import (
     CDP,
     RP,
     Apropiacion,
+    CatalogoGeneralCuentas,
+    ConceptoRetencion,
     ModificacionPresupuestal,
     Obligacion,
     OrdenDePago,
     PresupuestoIngreso,
+    RetencionAplicada,
     RubroPresupuestalGasto,
     RubroPresupuestalIngreso,
     VigenciaFiscal,
@@ -57,13 +60,18 @@ class RubroPresupuestalGastoForm(_InstitucionScopedFormMixin, forms.ModelForm):
 
     class Meta:
         model = RubroPresupuestalGasto
-        fields = ['codigo', 'nombre', 'tipo', 'rubro_padre', 'activo']
+        fields = ['codigo', 'nombre', 'tipo', 'rubro_padre', 'cuenta_cgc_gasto', 'activo']
         widgets = {
             'codigo': forms.TextInput(attrs={'class': 'form-control'}),
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo': forms.Select(attrs={'class': 'form-select'}),
             'rubro_padre': forms.Select(attrs={'class': 'form-select'}),
+            'cuenta_cgc_gasto': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['cuenta_cgc_gasto'].queryset = CatalogoGeneralCuentas.objects.filter(activo=True, permite_movimientos=True)
 
 
 class PresupuestoIngresoForm(_InstitucionScopedFormMixin, forms.ModelForm):
@@ -171,14 +179,57 @@ class OrdenDePagoForm(_InstitucionScopedFormMixin, forms.ModelForm):
 
     class Meta:
         model = OrdenDePago
-        fields = ['obligacion', 'total_retenciones']
+        fields = ['obligacion']
         widgets = {
             'obligacion': forms.Select(attrs={'class': 'form-select'}),
-            'total_retenciones': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
-        labels = {'total_retenciones': 'Total retenciones (ReteFuente, ReteICA, estampillas…)'}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.institucion is not None:
             self.fields['obligacion'].queryset = self.fields['obligacion'].queryset.filter(estado=Obligacion.Estado.VIGENTE)
+
+
+class RetencionAplicadaForm(_InstitucionScopedFormMixin, forms.ModelForm):
+    fk_institucion_fields = ('concepto',)
+
+    class Meta:
+        model = RetencionAplicada
+        fields = ['concepto', 'base_gravable']
+        widgets = {
+            'concepto': forms.Select(attrs={'class': 'form-select'}),
+            'base_gravable': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.institucion is not None:
+            self.fields['concepto'].queryset = ConceptoRetencion.objects.filter(institucion=self.institucion, activo=True)
+
+
+class ConceptoRetencionForm(_InstitucionScopedFormMixin, forms.ModelForm):
+    # cuenta_puc_pasivo es del catálogo CGC GLOBAL (sin institución) — su
+    # queryset se filtra manualmente abajo, no con fk_institucion_fields.
+
+    class Meta:
+        model = ConceptoRetencion
+        fields = ['tipo', 'nombre', 'tarifa_porcentaje', 'cuenta_puc_pasivo', 'activo']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'tarifa_porcentaje': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001'}),
+            'cuenta_puc_pasivo': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['cuenta_puc_pasivo'].queryset = CatalogoGeneralCuentas.objects.filter(activo=True, permite_movimientos=True)
+
+
+class GenerarComprobanteForm(forms.Form):
+    cuenta_bancos = forms.ModelChoiceField(
+        queryset=CatalogoGeneralCuentas.objects.filter(activo=True, permite_movimientos=True),
+        label='Cuenta de Bancos/Caja desde la que se paga',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text='La Tesorería/Bancos por institución llega en la Fase 3 — por ahora se elige aquí la cuenta CGC.',
+    )

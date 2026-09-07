@@ -1,0 +1,80 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-cash-stack me-2"></i>Orden de Pago #{{ orden.numero }}</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">Beneficiario: {{ orden.beneficiario }} — Obligación #{{ orden.obligacion.numero }}</p>
+    {% include "presupuesto/_nav.html" %}
+  </div>
+  {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="card"><div class="card-body text-center"><div class="text-muted small fw-bold text-uppercase">Valor Bruto</div><div class="fs-4 fw-bold">${{ orden.valor_bruto|floatformat:2 }}</div></div></div></div>
+    <div class="col-md-4"><div class="card"><div class="card-body text-center"><div class="text-muted small fw-bold text-uppercase">Total Retenciones</div><div class="fs-4 fw-bold text-warning">${{ orden.total_retenciones|floatformat:2 }}</div></div></div></div>
+    <div class="col-md-4"><div class="card"><div class="card-body text-center"><div class="text-muted small fw-bold text-uppercase">Valor Neto a Pagar</div><div class="fs-4 fw-bold text-success">${{ orden.valor_neto|floatformat:2 }}</div></div></div></div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-percent me-1"></i>Retenciones aplicadas</span>
+      <span class="badge {% if orden.estado == 'GENERADA' %}bg-warning text-dark{% elif orden.estado == 'PAGADA' %}bg-success{% else %}bg-danger{% endif %}">{{ orden.get_estado_display }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table mb-0 align-middle">
+        <thead class="table-light"><tr><th>Concepto</th><th>Base gravable</th><th>Tarifa</th><th>Valor</th><th></th></tr></thead>
+        <tbody>
+          {% for r in retenciones %}
+          <tr>
+            <td>{{ r.concepto.nombre }}</td><td>${{ r.base_gravable|floatformat:2 }}</td><td>{{ r.tarifa_porcentaje }}%</td><td class="fw-bold">${{ r.valor|floatformat:2 }}</td>
+            <td>
+              {% if orden.estado == 'GENERADA' and not tiene_comprobante %}
+              <form method="post" action="{% url 'presupuesto:quitar_retencion' orden.pk r.pk %}" onsubmit="return true;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-3">Sin retenciones aplicadas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if orden.estado == 'GENERADA' and not tiene_comprobante %}
+    <div class="card-footer bg-white">
+      <form method="post" action="{% url 'presupuesto:agregar_retencion' orden.pk %}" class="row g-2 align-items-end">
+        {% csrf_token %}
+        <div class="col-md-5">
+          <label class="form-label small fw-bold">{{ form_retencion.concepto.label }}</label>
+          {{ form_retencion.concepto }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">{{ form_retencion.base_gravable.label }}</label>
+          {{ form_retencion.base_gravable }}
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-outline-success w-100"><i class="bi bi-plus-circle me-1"></i>Agregar retención</button>
+        </div>
+      </form>
+      <div class="form-text mt-1">¿No aparece el concepto que necesitas? <a href="{% url 'presupuesto:crear_concepto_retencion' %}">Crea uno nuevo</a>.</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <div class="fw-bold">Comprobante contable</div>
+        <div class="text-muted small">La causación contable de esta orden por partida doble.</div>
+      </div>
+      {% if tiene_comprobante %}
+        <a href="{% url 'presupuesto:detalle_comprobante' orden.comprobante_contable.pk %}" class="btn btn-primary"><i class="bi bi-journal-text me-1"></i>Ver comprobante #{{ orden.comprobante_contable.numero }}</a>
+      {% elif orden.estado == 'GENERADA' %}
+        <a href="{% url 'presupuesto:generar_comprobante' orden.pk %}" class="btn btn-success"><i class="bi bi-journal-plus me-1"></i>Generar comprobante contable</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

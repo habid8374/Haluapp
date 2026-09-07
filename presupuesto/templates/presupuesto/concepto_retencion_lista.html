@@ -1,0 +1,31 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-percent me-2"></i>Conceptos de Retención</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">ReteFuente, ReteICA, estampillas territoriales — con su tarifa y cuenta contable de pasivo.</p>
+    {% include "presupuesto/_nav.html" %}
+  </div>
+  {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+  <div class="mb-3"><a href="{% url 'presupuesto:crear_concepto_retencion' %}" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Nuevo concepto</a></div>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light"><tr><th>Tipo</th><th>Nombre</th><th>Tarifa</th><th>Cuenta CGC (pasivo)</th><th>Activo</th></tr></thead>
+        <tbody>
+          {% for c in conceptos %}
+          <tr>
+            <td>{{ c.get_tipo_display }}</td><td>{{ c.nombre }}</td><td>{{ c.tarifa_porcentaje }}%</td>
+            <td>{{ c.cuenta_puc_pasivo|default:"— sin configurar —" }}</td>
+            <td><span class="badge {% if c.activo %}bg-success{% else %}bg-secondary{% endif %}">{% if c.activo %}Sí{% else %}No{% endif %}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">No hay conceptos de retención registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

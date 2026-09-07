@@ -4,7 +4,7 @@
 <div class="container-fluid mt-3">
   <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
     <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-cash-stack me-2"></i>Órdenes de Pago</h2>
-    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">El último paso: instruir el pago al beneficiario, con sus retenciones descontadas.</p>
+    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">Instruye el pago al beneficiario, agrega sus retenciones y genera el comprobante contable.</p>
     {% include "presupuesto/_nav.html" %}
   </div>
   {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
@@ -20,11 +20,8 @@
             <td>${{ o.valor_bruto|floatformat:2 }}</td><td>${{ o.total_retenciones|floatformat:2 }}</td><td class="fw-bold">${{ o.valor_neto|floatformat:2 }}</td>
             <td><span class="badge {% if o.estado == 'GENERADA' %}bg-warning text-dark{% elif o.estado == 'PAGADA' %}bg-success{% else %}bg-danger{% endif %}">{{ o.get_estado_display }}</span></td>
             <td class="d-flex gap-1">
+              <a href="{% url 'presupuesto:detalle_orden_pago' o.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver</a>
               {% if o.estado == 'GENERADA' %}
-              <form method="post" action="{% url 'presupuesto:marcar_orden_pagada' o.pk %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-check2-circle me-1"></i>Marcar pagada</button>
-              </form>
               <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnular" data-action="{% url 'presupuesto:anular_orden_pago' o.pk %}" data-nombre="Orden de Pago #{{ o.numero }}">
                 <i class="bi bi-x-circle me-1"></i>Anular
               </button>

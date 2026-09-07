@@ -6,10 +6,15 @@ from .models import (
     CDP,
     RP,
     Apropiacion,
+    CatalogoGeneralCuentas,
+    ComprobanteContable,
+    ConceptoRetencion,
     ModificacionPresupuestal,
+    MovimientoContable,
     Obligacion,
     OrdenDePago,
     PresupuestoIngreso,
+    RetencionAplicada,
     RubroPresupuestalGasto,
     RubroPresupuestalIngreso,
     VigenciaFiscal,
@@ -35,11 +40,11 @@ class RubroPresupuestalIngresoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmi
 
 @admin.register(RubroPresupuestalGasto)
 class RubroPresupuestalGastoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
-    list_display = ('codigo', 'nombre', 'tipo', 'institucion', 'activo')
+    list_display = ('codigo', 'nombre', 'tipo', 'cuenta_cgc_gasto', 'institucion', 'activo')
     list_filter = ('tipo', 'activo')
     search_fields = ('codigo', 'nombre')
     ordering = ('codigo',)
-    raw_id_fields = ('institucion', 'rubro_padre')
+    raw_id_fields = ('institucion', 'rubro_padre', 'cuenta_cgc_gasto')
 
 
 @admin.register(PresupuestoIngreso)
@@ -116,3 +121,44 @@ class OrdenDePagoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_filter = ('estado',)
     ordering = ('-numero',)
     raw_id_fields = ('institucion', 'obligacion', 'beneficiario', 'creado_por')
+
+
+@admin.register(CatalogoGeneralCuentas)
+class CatalogoGeneralCuentasAdmin(admin.ModelAdmin):
+    """Catálogo GLOBAL de plataforma (sin institución) — mismo criterio que
+    DBAPredefinido en piar/simulacros: es un catálogo de referencia, no un
+    dato de un colegio. Lo administra el propietario de la plataforma."""
+    list_display = ('codigo', 'nombre', 'naturaleza', 'cuenta_padre', 'permite_movimientos', 'activo')
+    list_filter = ('naturaleza', 'permite_movimientos', 'activo')
+    search_fields = ('codigo', 'nombre')
+    ordering = ('codigo',)
+    raw_id_fields = ('cuenta_padre',)
+
+
+@admin.register(ConceptoRetencion)
+class ConceptoRetencionAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('nombre', 'tipo', 'tarifa_porcentaje', 'cuenta_puc_pasivo', 'institucion', 'activo')
+    list_filter = ('tipo', 'activo')
+    raw_id_fields = ('institucion', 'cuenta_puc_pasivo')
+
+
+class MovimientoContableInline(admin.TabularInline):
+    model = MovimientoContable
+    extra = 0
+    raw_id_fields = ('cuenta', 'tercero')
+
+
+@admin.register(ComprobanteContable)
+class ComprobanteContableAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('numero', 'tipo', 'estado', 'orden_pago', 'vigencia', 'fecha', 'institucion')
+    list_filter = ('tipo', 'estado', 'vigencia')
+    ordering = ('-numero',)
+    raw_id_fields = ('institucion', 'vigencia', 'orden_pago', 'comprobante_que_reversa', 'contabilizado_por')
+    inlines = [MovimientoContableInline]
+
+
+@admin.register(RetencionAplicada)
+class RetencionAplicadaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    institucion_lookup = 'orden_pago__institucion'
+    list_display = ('orden_pago', 'concepto', 'base_gravable', 'tarifa_porcentaje', 'valor')
+    raw_id_fields = ('orden_pago', 'concepto')

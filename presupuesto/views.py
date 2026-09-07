@@ -5,16 +5,20 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from . import services
 from .forms import (
     ApropiacionForm,
     CDPForm,
+    ConceptoRetencionForm,
+    GenerarComprobanteForm,
     ModificacionPresupuestalForm,
     ObligacionForm,
     OrdenDePagoForm,
     PresupuestoIngresoForm,
+    RetencionAplicadaForm,
     RPForm,
     RubroPresupuestalGastoForm,
     RubroPresupuestalIngresoForm,
@@ -24,10 +28,14 @@ from .models import (
     CDP,
     RP,
     Apropiacion,
+    CatalogoGeneralCuentas,
+    ComprobanteContable,
+    ConceptoRetencion,
     ModificacionPresupuestal,
     Obligacion,
     OrdenDePago,
     PresupuestoIngreso,
+    RetencionAplicada,
     RubroPresupuestalGasto,
     RubroPresupuestalIngreso,
     VigenciaFiscal,
@@ -541,7 +549,7 @@ def lista_ordenes_pago(request):
     guard = _requiere_gestor(request)
     if guard:
         return guard
-    ordenes = OrdenDePago.objects.filter(**_filtro_institucion(request)).select_related('obligacion', 'beneficiario').order_by('-numero')
+    ordenes = OrdenDePago.objects.filter(**_filtro_institucion(request)).select_related('obligacion', 'beneficiario', 'comprobante_contable').order_by('-numero')
     return render(request, 'presupuesto/orden_pago_lista.html', {'titulo_pagina': 'Órdenes de Pago', 'ordenes': ordenes})
 
 
@@ -555,13 +563,12 @@ def crear_orden_pago(request):
         form = OrdenDePagoForm(request.POST, institucion=institucion)
         if form.is_valid():
             try:
-                services.generar_orden_pago(
+                orden = services.generar_orden_pago(
                     obligacion=form.cleaned_data['obligacion'],
-                    total_retenciones=form.cleaned_data['total_retenciones'],
                     usuario=request.user,
                 )
-                messages.success(request, 'Orden de Pago generada correctamente.')
-                return redirect('presupuesto:lista_ordenes_pago')
+                messages.success(request, 'Orden de Pago generada. Ahora puedes agregar retenciones si aplican y generar el comprobante contable.')
+                return redirect('presupuesto:detalle_orden_pago', pk=orden.pk)
             except ValidationError as e:
                 form.add_error(None, e.message if hasattr(e, 'message') else str(e))
     else:
@@ -573,12 +580,99 @@ def crear_orden_pago(request):
 
 
 @login_required
+def detalle_orden_pago(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    orden = get_object_or_404(
+        OrdenDePago.objects.select_related('obligacion', 'beneficiario', 'comprobante_contable'),
+        pk=pk, **_filtro_institucion(request),
+    )
+    institucion = _get_institucion(request) if not request.user.is_superuser else orden.institucion
+    retenciones = orden.retenciones.select_related('concepto')
+    form_retencion = RetencionAplicadaForm(institucion=institucion)
+    tiene_comprobante = hasattr(orden, 'comprobante_contable')
+    return render(request, 'presupuesto/orden_pago_detalle.html', {
+        'titulo_pagina': f'Orden de Pago #{orden.numero}', 'orden': orden,
+        'retenciones': retenciones, 'form_retencion': form_retencion,
+        'tiene_comprobante': tiene_comprobante,
+    })
+
+
+@login_required
+@require_POST
+def agregar_retencion(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    orden = get_object_or_404(OrdenDePago, pk=pk, **_filtro_institucion(request))
+    institucion = _get_institucion(request) if not request.user.is_superuser else orden.institucion
+    form = RetencionAplicadaForm(request.POST, institucion=institucion)
+    if form.is_valid():
+        try:
+            services.agregar_retencion(
+                orden_pago=orden, concepto=form.cleaned_data['concepto'],
+                base_gravable=form.cleaned_data['base_gravable'], usuario=request.user,
+            )
+            messages.success(request, 'Retención agregada.')
+        except ValidationError as e:
+            messages.error(request, e.message if hasattr(e, 'message') else str(e))
+    else:
+        messages.error(request, 'Datos inválidos para la retención.')
+    return redirect('presupuesto:detalle_orden_pago', pk=pk)
+
+
+@login_required
+@require_POST
+def quitar_retencion(request, pk, retencion_pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    orden = get_object_or_404(OrdenDePago, pk=pk, **_filtro_institucion(request))
+    retencion = get_object_or_404(RetencionAplicada, pk=retencion_pk, orden_pago=orden)
+    try:
+        services.quitar_retencion(retencion=retencion, usuario=request.user)
+        messages.success(request, 'Retención eliminada.')
+    except ValidationError as e:
+        messages.error(request, e.message if hasattr(e, 'message') else str(e))
+    return redirect('presupuesto:detalle_orden_pago', pk=pk)
+
+
+@login_required
+def generar_comprobante(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    orden = get_object_or_404(OrdenDePago, pk=pk, **_filtro_institucion(request))
+    if request.method == 'POST':
+        form = GenerarComprobanteForm(request.POST)
+        if form.is_valid():
+            try:
+                comprobante = services.generar_comprobante_contable(
+                    orden_pago=orden, cuenta_bancos=form.cleaned_data['cuenta_bancos'], usuario=request.user,
+                )
+                messages.success(request, 'Comprobante contable generado en Borrador. Revísalo y contabilízalo.')
+                return redirect('presupuesto:detalle_comprobante', pk=comprobante.pk)
+            except ValidationError as e:
+                form.add_error(None, e.message if hasattr(e, 'message') else str(e))
+    else:
+        form = GenerarComprobanteForm()
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': f'Generar Comprobante — Orden de Pago #{orden.numero}', 'form': form,
+        'icono': 'bi-journal-text', 'volver_href': reverse('presupuesto:detalle_orden_pago', args=[orden.pk]),
+    })
+
+
+@login_required
 @require_POST
 def anular_orden_pago(request, pk):
     guard = _requiere_gestor(request)
     if guard:
         return guard
     orden = get_object_or_404(OrdenDePago, pk=pk, **_filtro_institucion(request))
+    if hasattr(orden, 'comprobante_contable'):
+        messages.error(request, 'No se puede anular: ya tiene un comprobante contable. Usa la opción de reversar el comprobante en su lugar.')
+        return redirect('presupuesto:lista_ordenes_pago')
     orden.estado = OrdenDePago.Estado.ANULADA
     orden.anulado_motivo = request.POST.get('motivo', '')
     orden.save(update_fields=['estado', 'anulado_motivo'])
@@ -589,14 +683,115 @@ def anular_orden_pago(request, pk):
     return redirect('presupuesto:lista_ordenes_pago')
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# Conceptos de Retención
+# ─────────────────────────────────────────────────────────────────────────
+
 @login_required
-@require_POST
-def marcar_orden_pagada(request, pk):
+def lista_conceptos_retencion(request):
     guard = _requiere_gestor(request)
     if guard:
         return guard
-    orden = get_object_or_404(OrdenDePago, pk=pk, **_filtro_institucion(request))
-    orden.estado = OrdenDePago.Estado.PAGADA
-    orden.save(update_fields=['estado'])
-    messages.success(request, 'Orden de Pago #%(num)s marcada como pagada.' % {'num': orden.numero})
-    return redirect('presupuesto:lista_ordenes_pago')
+    conceptos = ConceptoRetencion.objects.filter(**_filtro_institucion(request)).select_related('cuenta_puc_pasivo')
+    return render(request, 'presupuesto/concepto_retencion_lista.html', {
+        'titulo_pagina': 'Conceptos de Retención', 'conceptos': conceptos,
+    })
+
+
+@login_required
+def crear_concepto_retencion(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    if request.method == 'POST':
+        form = ConceptoRetencionForm(request.POST, institucion=institucion)
+        if form.is_valid():
+            concepto = form.save(commit=False)
+            concepto.institucion = institucion
+            concepto.save()
+            messages.success(request, 'Concepto de retención creado.')
+            return redirect('presupuesto:lista_conceptos_retencion')
+    else:
+        form = ConceptoRetencionForm(institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Nuevo Concepto de Retención', 'form': form,
+        'icono': 'bi-percent', 'volver_url': 'presupuesto:lista_conceptos_retencion',
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Comprobantes Contables
+# ─────────────────────────────────────────────────────────────────────────
+
+@login_required
+def lista_comprobantes(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    comprobantes = ComprobanteContable.objects.filter(**_filtro_institucion(request)).select_related('orden_pago', 'vigencia').order_by('-numero')
+    return render(request, 'presupuesto/comprobante_lista.html', {
+        'titulo_pagina': 'Comprobantes Contables', 'comprobantes': comprobantes,
+    })
+
+
+@login_required
+def detalle_comprobante(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    comprobante = get_object_or_404(
+        ComprobanteContable.objects.select_related('orden_pago', 'comprobante_que_reversa'),
+        pk=pk, **_filtro_institucion(request),
+    )
+    movimientos = comprobante.movimientos.select_related('cuenta', 'tercero')
+    return render(request, 'presupuesto/comprobante_detalle.html', {
+        'titulo_pagina': f'Comprobante #{comprobante.numero}', 'comprobante': comprobante, 'movimientos': movimientos,
+    })
+
+
+@login_required
+@require_POST
+def contabilizar_comprobante(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    comprobante = get_object_or_404(ComprobanteContable, pk=pk, **_filtro_institucion(request))
+    try:
+        services.contabilizar_comprobante(comprobante=comprobante, usuario=request.user)
+        messages.success(request, 'Comprobante contabilizado. Ya no se puede editar — a partir de ahora solo se reversa con un ajuste.')
+    except ValidationError as e:
+        messages.error(request, e.message if hasattr(e, 'message') else str(e))
+    return redirect('presupuesto:detalle_comprobante', pk=pk)
+
+
+@login_required
+@require_POST
+def reversar_comprobante(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    comprobante = get_object_or_404(ComprobanteContable, pk=pk, **_filtro_institucion(request))
+    motivo = request.POST.get('motivo', '')
+    try:
+        reverso = services.reversar_comprobante(comprobante=comprobante, usuario=request.user, motivo=motivo)
+        messages.success(request, f'Comprobante reversado con el ajuste #{reverso.numero}.')
+        return redirect('presupuesto:detalle_comprobante', pk=reverso.pk)
+    except ValidationError as e:
+        messages.error(request, e.message if hasattr(e, 'message') else str(e))
+        return redirect('presupuesto:detalle_comprobante', pk=pk)
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Catálogo General de Cuentas (solo lectura — lo administra el propietario)
+# ─────────────────────────────────────────────────────────────────────────
+
+@login_required
+def lista_catalogo_cgc(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    cuentas = CatalogoGeneralCuentas.objects.filter(activo=True).select_related('cuenta_padre')
+    return render(request, 'presupuesto/catalogo_cgc_lista.html', {
+        'titulo_pagina': 'Catálogo General de Cuentas (CGC)', 'cuentas': cuentas,
+    })

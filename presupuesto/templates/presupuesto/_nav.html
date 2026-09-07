@@ -10,4 +10,7 @@
   <a href="{% url 'presupuesto:lista_rp' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'lista_rp' or request.resolver_match.url_name == 'crear_rp' or request.resolver_match.url_name == 'anular_rp' %}btn-light{% else %}btn-outline-light{% endif %} fw-bold"><i class="bi bi-file-earmark-text me-1"></i>RP</a>
   <a href="{% url 'presupuesto:lista_obligaciones' %}" class="btn btn-sm {% if 'obligacion' in request.resolver_match.url_name %}btn-light{% else %}btn-outline-light{% endif %} fw-bold"><i class="bi bi-file-earmark-check me-1"></i>Obligaciones</a>
   <a href="{% url 'presupuesto:lista_ordenes_pago' %}" class="btn btn-sm {% if 'orden_pago' in request.resolver_match.url_name %}btn-light{% else %}btn-outline-light{% endif %} fw-bold"><i class="bi bi-cash-stack me-1"></i>Órdenes de Pago</a>
+  <a href="{% url 'presupuesto:lista_conceptos_retencion' %}" class="btn btn-sm {% if 'concepto_retencion' in request.resolver_match.url_name %}btn-light{% else %}btn-outline-light{% endif %} fw-bold"><i class="bi bi-percent me-1"></i>Retenciones</a>
+  <a href="{% url 'presupuesto:lista_comprobantes' %}" class="btn btn-sm {% if 'comprobante' in request.resolver_match.url_name %}btn-light{% else %}btn-outline-light{% endif %} fw-bold"><i class="bi bi-journal-text me-1"></i>Comprobantes</a>
+  <a href="{% url 'presupuesto:lista_catalogo_cgc' %}" class="btn btn-sm {% if 'catalogo_cgc' in request.resolver_match.url_name %}btn-light{% else %}btn-outline-light{% endif %} fw-bold"><i class="bi bi-journal-bookmark me-1"></i>Catálogo CGC</a>
 </div>

@@ -1,0 +1,33 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-journal-text me-2"></i>Comprobantes Contables</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">La causación por partida doble de cada Orden de Pago — se generan desde el detalle de cada orden.</p>
+    {% include "presupuesto/_nav.html" %}
+  </div>
+  {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light"><tr><th>N°</th><th>Tipo</th><th>Orden de Pago</th><th>Vigencia</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+        <tbody>
+          {% for c in comprobantes %}
+          <tr>
+            <td class="fw-bold">{{ c.numero }}</td><td>{{ c.get_tipo_display }}</td>
+            <td>{% if c.orden_pago %}#{{ c.orden_pago.numero }}{% else %}—{% endif %}</td>
+            <td>{{ c.vigencia.anio }}</td>
+            <td><span class="badge {% if c.estado == 'BORRADOR' %}bg-warning text-dark{% elif c.estado == 'CONTABILIZADO' %}bg-success{% else %}bg-danger{% endif %}">{{ c.get_estado_display }}</span></td>
+            <td>{{ c.fecha|date:"d/m/Y" }}</td>
+            <td><a href="{% url 'presupuesto:detalle_comprobante' c.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No hay comprobantes generados todavía.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

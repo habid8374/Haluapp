@@ -1,0 +1,90 @@
+{% extends "base_academico.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-journal-text me-2"></i>Comprobante #{{ comprobante.numero }}</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">
+      {{ comprobante.get_tipo_display }}
+      {% if comprobante.orden_pago %} — Orden de Pago #{{ comprobante.orden_pago.numero }}{% endif %}
+      {% if comprobante.comprobante_que_reversa %} — Reversa al comprobante #{{ comprobante.comprobante_que_reversa.numero }}{% endif %}
+    </p>
+    {% include "presupuesto/_nav.html" %}
+  </div>
+  {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="badge fs-6 {% if comprobante.estado == 'BORRADOR' %}bg-warning text-dark{% elif comprobante.estado == 'CONTABILIZADO' %}bg-success{% else %}bg-danger{% endif %}">{{ comprobante.get_estado_display }}</span>
+    <div class="d-flex gap-2">
+      {% if comprobante.estado == 'BORRADOR' %}
+      <form method="post" action="{% url 'presupuesto:contabilizar_comprobante' comprobante.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success"><i class="bi bi-check2-circle me-1"></i>Contabilizar</button>
+      </form>
+      {% elif comprobante.estado == 'CONTABILIZADO' and not comprobante.reversiones.exists %}
+      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalReversar">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Reversar
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header bg-white fw-bold">Movimientos</div>
+    <div class="table-responsive">
+      <table class="table mb-0 align-middle">
+        <thead class="table-light"><tr><th>Cuenta CGC</th><th>Tercero</th><th>Descripción</th><th class="text-end">Débito</th><th class="text-end">Crédito</th></tr></thead>
+        <tbody>
+          {% for m in movimientos %}
+          <tr>
+            <td>{{ m.cuenta }}</td><td>{{ m.tercero|default:"—" }}</td><td>{{ m.descripcion }}</td>
+            <td class="text-end">{% if m.valor_debito %}${{ m.valor_debito|floatformat:2 }}{% endif %}</td>
+            <td class="text-end">{% if m.valor_credito %}${{ m.valor_credito|floatformat:2 }}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr class="fw-bold table-light">
+            <td colspan="3" class="text-end">Totales</td>
+            <td class="text-end">${{ comprobante.total_debitos|floatformat:2 }}</td>
+            <td class="text-end">${{ comprobante.total_creditos|floatformat:2 }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="card-footer bg-white">
+      {% if comprobante.esta_cuadrado %}
+        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Cuadrado (débitos = créditos)</span>
+      {% else %}
+        <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i>No cuadra — no se puede contabilizar así</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalReversar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-800 mb-1">¿Reversar este comprobante?</h5>
+        <p class="text-muted mb-2" style="font-size:.85rem;">Se crea un comprobante de ajuste nuevo con los movimientos invertidos. Este comprobante original nunca se edita ni se borra.</p>
+        <label class="form-label small fw-bold">Motivo</label>
+        <textarea form="form-reversar" name="motivo" class="form-control" rows="2" required></textarea>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <form id="form-reversar" method="post" action="{% url 'presupuesto:reversar_comprobante' comprobante.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-arrow-counterclockwise me-1"></i>Sí, reversar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
