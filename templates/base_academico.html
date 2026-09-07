@@ -686,22 +686,26 @@
     {% if user.is_authenticated %}
       {% with inst=request.user.institucion_asociada %}
       {% if perms.finanzas.acceso_modulo_finanzas or user.rol in 'rector,tesoreria,administrador' %}
-        {% if request.user.is_superuser or not inst or inst.tipo_institucion != 'publico' and inst.usa_modulo_financiero %}
-        <hr class="menu-divider">
-        <h5 class="menu-section-title">Otros Módulos</h5>
-        <li class="nav-item item-color-2">
-          <a class="nav-link {% if 'finanzas' in request.path %}active{% endif %}" href="{% url 'finanzas:dashboard_financiero' %}">
-            <i class="bi bi-currency-dollar"></i> Ir a Módulo de Finanzas
-          </a>
-        </li>
-        {% elif 'presupuesto' in modulos_activos and inst.tipo_institucion == 'publico' %}
-        <hr class="menu-divider">
-        <h5 class="menu-section-title">Otros Módulos</h5>
-        <li class="nav-item item-color-2">
-          <a class="nav-link {% if 'presupuesto' in request.path %}active{% endif %}" href="{% url 'presupuesto:dashboard' %}">
-            <i class="bi bi-bank2"></i> Presupuesto FSE
-          </a>
-        </li>
+        {% if inst.tipo_institucion == 'publico' %}
+          {% if request.user.is_superuser or 'presupuesto' in modulos_activos %}
+          <hr class="menu-divider">
+          <h5 class="menu-section-title">Otros Módulos</h5>
+          <li class="nav-item item-color-2">
+            <a class="nav-link {% if 'presupuesto' in request.path %}active{% endif %}" href="{% url 'presupuesto:dashboard' %}">
+              <i class="bi bi-bank2"></i> Presupuesto FSE
+            </a>
+          </li>
+          {% endif %}
+        {% else %}
+          {% if request.user.is_superuser or not inst or inst.usa_modulo_financiero %}
+          <hr class="menu-divider">
+          <h5 class="menu-section-title">Otros Módulos</h5>
+          <li class="nav-item item-color-2">
+            <a class="nav-link {% if 'finanzas' in request.path %}active{% endif %}" href="{% url 'finanzas:dashboard_financiero' %}">
+              <i class="bi bi-currency-dollar"></i> Ir a Módulo de Finanzas
+            </a>
+          </li>
+          {% endif %}
         {% endif %}
       {% endif %}
       {% endwith %}
