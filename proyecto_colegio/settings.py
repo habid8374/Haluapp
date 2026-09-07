@@ -144,6 +144,11 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 
+# A01/A07: HALU no permite alta pública. Las cuentas las crea el colegio
+# (admisiones, coordinador) o el superadmin — nunca un desconocido desde
+# /accounts/signup/. Ver proyecto_colegio/adapters.py.
+ACCOUNT_ADAPTER = 'proyecto_colegio.adapters.NoPublicSignupAccountAdapter'
+
 # Asegura que cada email sea único en la plataforma.
 ACCOUNT_UNIQUE_EMAIL = True
 

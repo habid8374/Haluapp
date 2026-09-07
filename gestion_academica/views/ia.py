@@ -1579,12 +1579,15 @@ class SincronizarPermisosView(LoginRequiredMixin, View):
     template_name = 'gestion_academica/sincronizar_permisos.html'
 
     def get(self, request, *args, **kwargs):
-        # El método GET no necesita cambios, ya funciona bien.
-        if not request.user.is_staff:
+        # A01: is_staff por sí solo NO es frontera de rol (el psicoorientador
+        # también tiene is_staff=True, ver signals.py). Esta vista añade
+        # usuarios en bloque a grupos de Django — solo administración.
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (request.user.is_superuser or rol in ('coordinador', 'administrador', 'rector')):
             raise PermissionDenied
 
         grupos_gestionables = Group.objects.all().order_by('name')
-        
+
         context = {
             'titulo_pagina': 'Sincronización de Permisos por Rol',
             'grupos': grupos_gestionables
@@ -1592,9 +1595,10 @@ class SincronizarPermisosView(LoginRequiredMixin, View):
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
-        if not request.user.is_staff:
+        rol = getattr(request.user, 'rol', '') or ''
+        if not (request.user.is_superuser or rol in ('coordinador', 'administrador', 'rector')):
             raise PermissionDenied
-            
+
         grupo_id = request.POST.get('grupo_id')
         if not grupo_id:
             messages.error(request, "No se especificó un grupo para sincronizar.")
