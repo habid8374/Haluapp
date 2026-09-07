@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titulo %}Presupuesto FSE - {% if request.user.institucion_asociada.nombre %}{{ request.user.institucion_asociada.nombre }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block body_class %}layout-presupuesto{% endblock %}
+{% block extrastyles %}
+{{ block.super }}
+<style>
+  /* ══════════════════════════════════════════════════════
+     HALU — SIDEBAR LAYOUT (Presupuesto FSE)
+     Mismo patrón que base_finanzas.html: menú flotante -> sidebar fijo.
+  ══════════════════════════════════════════════════════ */
+  body.layout-presupuesto {
+    --sidebar-w: 245px;
+    --brand-primary: #047857;
+    --brand-primary-dark: #065f46;
+  }
+  body.layout-presupuesto #floatingMenuToggle { display: none !important; }
+  body.layout-presupuesto #mainMenuPanel {
+    position: fixed !important;
+    top: 3.4rem !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: 0 !important;
+    width: var(--sidebar-w) !important;
+    max-height: none !important;
+    height: calc(100vh - 3.4rem) !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-right: 1px solid #d1e7dd !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    z-index: 1020 !important;
+    box-shadow: 3px 0 20px rgba(6, 95, 70, .06) !important;
+    padding: .75rem .65rem 2rem !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background-color: #ffffff !important;
+    transition: transform .28s ease !important;
+  }
+  body.layout-presupuesto #mainMenuPanel::-webkit-scrollbar { width: 4px; }
+  body.layout-presupuesto #mainMenuPanel::-webkit-scrollbar-thumb {
+    background: #a7d7c5; border-radius: 4px;
+  }
+  body.layout-presupuesto { padding-left: var(--sidebar-w); transition: padding-left .28s ease; }
+  body.layout-presupuesto #mainMenuPanel .nav-link {
+    padding-left: .75rem !important; border-radius: .5rem;
+    transition: background .15s, padding-left .15s, color .15s;
+  }
+  body.layout-presupuesto #mainMenuPanel .nav-link:hover {
+    background-color: #ecfdf5 !important; color: #047857 !important; padding-left: 1rem !important;
+  }
+  body.layout-presupuesto #mainMenuPanel .nav-link.active {
+    background-color: #d1fae5 !important; color: #065f46 !important;
+    font-weight: 600 !important; padding-left: 1rem !important;
+  }
+  .btn-sidebar-toggle-pre {
+    background: none; border: none; color: rgba(255,255,255,.9);
+    font-size: 1.4rem; padding: .28rem .5rem; border-radius: .45rem;
+    cursor: pointer; transition: background .18s;
+    display: flex; align-items: center; margin-right: .35rem;
+    flex-shrink: 0; line-height: 1;
+  }
+  .btn-sidebar-toggle-pre:hover { background: rgba(255,255,255,.18); color: #fff; }
+  .sidebar-brand-row-pre {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .2rem .35rem .8rem;
+    border-bottom: 1px solid #d1e7dd; margin-bottom: .5rem;
+  }
+  .sidebar-brand-row-pre .sb-label {
+    font-size: .73rem; font-weight: 800; color: #047857;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  @media (max-width: 991.98px) {
+    body.layout-presupuesto { padding-left: 0 !important; }
+    body.layout-presupuesto #mainMenuPanel {
+      transform: translateX(-108%) !important;
+      width: 285px !important;
+      box-shadow: 8px 0 32px rgba(0,0,0,.2) !important;
+      z-index: 1055 !important;
+    }
+    body.layout-presupuesto.sidebar-open #mainMenuPanel { transform: translateX(0) !important; }
+    body.layout-presupuesto.sidebar-open::after {
+      content: ''; position: fixed; inset: 0;
+      background: rgba(6,55,40,.45); z-index: 1054;
+    }
+  }
+  @media (min-width: 992px) {
+    body.layout-presupuesto main.container {
+      max-width: 100% !important;
+      padding-left: 1.5rem !important;
+      padding-right: 1.5rem !important;
+    }
+  }
+  body.layout-presupuesto .navbar-toggler { display: none !important; }
+  body.layout-presupuesto #navbarNavContent {
+    display: flex !important;
+    flex-basis: auto !important;
+    flex-shrink: 0;
+  }
+  body.layout-presupuesto .top-navbar .container-fluid { flex-wrap: nowrap !important; }
+  body.layout-presupuesto .navbar-brand {
+    flex-shrink: 1; min-width: 0; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+  @media (max-width: 479px) {
+    body.layout-presupuesto .navbar-brand .brand-text { display: none; }
+  }
+  @media (max-width: 575.98px) {
+    body.layout-presupuesto .top-navbar .navbar-nav .nav-item.dropdown { position: static !important; }
+    body.layout-presupuesto .top-navbar .navbar-nav .dropdown-menu {
+      position: absolute !important; top: 100% !important; right: .4rem !important; left: auto !important;
+      margin-top: .35rem !important; z-index: 1200 !important; box-shadow: 0 12px 30px rgba(0,0,0,.22) !important;
+    }
+  }
+</style>
+{% endblock extrastyles %}
+{% block navbar_brand %}
+<button class="btn-sidebar-toggle-pre" id="sidebarToggleBtnPre" aria-label="Abrir/cerrar menú lateral" type="button">
+  <i class="bi bi-list"></i>
+</button>
+<a class="navbar-brand ms-1" href="{% url 'presupuesto:dashboard' %}">
+  <i class="bi bi-bank2 me-1"></i>
+  <span class="brand-text">Presupuesto FSE</span>
+</a>
+{% endblock navbar_brand %}
+{% block navbar_content %}{% include 'partials/navbar_content.html' %}{% endblock navbar_content %}
+{% block floating_menu_content %}
+  <div class="sidebar-brand-row-pre">
+    <i class="bi bi-bank2 text-success" style="font-size:1.05rem"></i>
+    <span class="sb-label">Presupuesto FSE</span>
+  </div>
+  <ul class="nav flex-column">
+    <h5 class="menu-section-title">Principal</h5>
+    <li class="nav-item item-color-1">
+      <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+         href="{% url 'presupuesto:dashboard' %}">
+        <i class="bi bi-speedometer2"></i> Resumen
+      </a>
+    </li>
+
+    <h5 class="menu-section-title">Configuración</h5>
+    <li class="nav-item item-color-2">
+      <a class="nav-link {% if 'vigencia' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_vigencias' %}">
+        <i class="bi bi-calendar-range"></i> Vigencias Fiscales
+      </a>
+    </li>
+    <li class="nav-item item-color-3">
+      <a class="nav-link {% if 'rubros_ingreso' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_rubros_ingreso' %}">
+        <i class="bi bi-arrow-down-circle"></i> Rubros de Ingreso
+      </a>
+    </li>
+    <li class="nav-item item-color-4">
+      <a class="nav-link {% if 'rubros_gasto' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_rubros_gasto' %}">
+        <i class="bi bi-arrow-up-circle"></i> Rubros de Gasto
+      </a>
+    </li>
+    <li class="nav-item item-color-1">
+      <a class="nav-link {% if 'concepto_retencion' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_conceptos_retencion' %}">
+        <i class="bi bi-percent"></i> Retenciones
+      </a>
+    </li>
+    <li class="nav-item item-color-2">
+      <a class="nav-link {% if 'catalogo_cgc' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_catalogo_cgc' %}">
+        <i class="bi bi-journal-bookmark"></i> Catálogo CGC
+      </a>
+    </li>
+
+    <h5 class="menu-section-title">Ciclo Presupuestal</h5>
+    <li class="nav-item item-color-3">
+      <a class="nav-link {% if 'presupuesto_ingreso' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_presupuesto_ingreso' %}">
+        <i class="bi bi-cash-coin"></i> Presupuesto de Ingresos
+      </a>
+    </li>
+    <li class="nav-item item-color-4">
+      <a class="nav-link {% if 'apropiacion' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_apropiaciones' %}">
+        <i class="bi bi-piggy-bank"></i> Apropiaciones
+      </a>
+    </li>
+    <li class="nav-item item-color-1">
+      <a class="nav-link {% if 'modificacion' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_modificaciones' %}">
+        <i class="bi bi-arrow-left-right"></i> Modificaciones
+      </a>
+    </li>
+    <li class="nav-item item-color-2">
+      <a class="nav-link {% if 'cdp' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_cdp' %}">
+        <i class="bi bi-file-earmark-lock"></i> CDP
+      </a>
+    </li>
+    <li class="nav-item item-color-3">
+      <a class="nav-link {% if request.resolver_match.url_name == 'lista_rp' or request.resolver_match.url_name == 'crear_rp' or request.resolver_match.url_name == 'anular_rp' %}active{% endif %}"
+         href="{% url 'presupuesto:lista_rp' %}">
+        <i class="bi bi-file-earmark-text"></i> RP
+      </a>
+    </li>
+    <li class="nav-item item-color-4">
+      <a class="nav-link {% if 'obligacion' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_obligaciones' %}">
+        <i class="bi bi-file-earmark-check"></i> Obligaciones
+      </a>
+    </li>
+    <li class="nav-item item-color-1">
+      <a class="nav-link {% if 'orden_pago' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_ordenes_pago' %}">
+        <i class="bi bi-cash-stack"></i> Órdenes de Pago
+      </a>
+    </li>
+
+    <h5 class="menu-section-title">Contabilidad</h5>
+    <li class="nav-item item-color-2">
+      <a class="nav-link {% if 'comprobante' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:lista_comprobantes' %}">
+        <i class="bi bi-journal-text"></i> Comprobantes
+      </a>
+    </li>
+
+    <hr class="menu-divider">
+    <h5 class="menu-section-title">Ir a Módulos</h5>
+    <li class="nav-item item-color-2">
+      <a class="nav-link" href="{% url 'gestion_academica:inicio_academico' %}">
+        <i class="bi bi-mortarboard-fill"></i> Módulo Académico
+      </a>
+    </li>
+    <hr class="menu-divider">
+    <h5 class="menu-section-title">Cuenta</h5>
+    <li class="nav-item item-color-1">
+      <a class="nav-link {% if request.resolver_match.url_name == 'ver_mi_perfil' %}active{% endif %}"
+         href="{% url 'gestion_academica:ver_mi_perfil' %}">
+        <i class="bi bi-person-lines-fill"></i> Mi Perfil
+      </a>
+    </li>
+    <li class="nav-item item-color-2">
+      <a class="nav-link" href="{% url 'password_change' %}">
+        <i class="bi bi-key-fill"></i> Cambiar Contraseña
+      </a>
+    </li>
+    <li class="nav-item item-color-3">
+      <form id="logout-form-menu-pre" action="{% url 'logout' %}" method="post" style="display:none">
+        {% csrf_token %}
+      </form>
+      <a class="nav-link" href="#"
+         onclick="event.preventDefault();document.getElementById('logout-form-menu-pre').submit();">
+        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+      </a>
+    </li>
+  </ul>
+{% endblock floating_menu_content %}
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  var body  = document.body;
+  var btn   = document.getElementById('sidebarToggleBtnPre');
+  var panel = document.getElementById('mainMenuPanel');
+  if (!btn || !panel) return;
+  function isMobile() { return window.innerWidth < 992; }
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (isMobile()) { body.classList.toggle('sidebar-open'); }
+  });
+  document.addEventListener('click', function (e) {
+    if (isMobile() && body.classList.contains('sidebar-open')) {
+      if (!panel.contains(e.target) && !btn.contains(e.target)) {
+        body.classList.remove('sidebar-open');
+      }
+    }
+  });
+  panel.querySelectorAll('a:not([data-bs-toggle])').forEach(function (a) {
+    a.addEventListener('click', function () {
+      if (isMobile()) body.classList.remove('sidebar-open');
+    });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && isMobile()) body.classList.remove('sidebar-open');
+  });
+})();
+</script>
+{% endblock extra_js %}

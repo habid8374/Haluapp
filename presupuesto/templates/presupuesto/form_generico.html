@@ -1,10 +1,9 @@
-{% extends "base_academico.html" %}
+{% extends "base_presupuesto.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container-fluid mt-3">
   <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
     <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi {{ icono|default:'bi-bank2' }} me-2"></i>{{ titulo_pagina }}</h2>
-    {% include "presupuesto/_nav.html" %}
   </div>
 
   <div class="card" style="max-width:640px;">

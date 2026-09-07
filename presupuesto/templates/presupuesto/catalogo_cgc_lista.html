@@ -1,11 +1,10 @@
-{% extends "base_academico.html" %}
+{% extends "base_presupuesto.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container-fluid mt-3">
   <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
     <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-journal-bookmark me-2"></i>Catálogo General de Cuentas (CGC)</h2>
     <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">Catálogo base de ejemplo — el propietario de la plataforma lo administra desde el admin. Antes de cerrar una vigencia real, valídalo con tu contador contra la resolución CGN vigente.</p>
-    {% include "presupuesto/_nav.html" %}
   </div>
   <div class="card">
     <div class="table-responsive">

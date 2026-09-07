@@ -1,11 +1,10 @@
-{% extends "base_academico.html" %}
+{% extends "base_presupuesto.html" %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container-fluid mt-3">
   <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
     <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-calendar-range me-2"></i>Vigencias Fiscales</h2>
     <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">Cada año se abre una vigencia; al cerrarla no se puede comprometer más presupuesto en ella.</p>
-    {% include "presupuesto/_nav.html" %}
   </div>
   {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
   <div class="mb-3"><a href="{% url 'presupuesto:crear_vigencia' %}" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Abrir vigencia</a></div>
