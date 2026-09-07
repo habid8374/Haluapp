@@ -671,6 +671,17 @@
         {% endif %}
         {% endwith %}
       {% endif %}
+      {% if 'presupuesto' in modulos_activos and user.rol in 'administrador,rector,tesoreria' %}
+        {% with inst=request.user.institucion_asociada %}
+        {% if request.user.is_superuser or not inst or inst.tipo_institucion == 'publico' %}
+        <li class="nav-item item-color-2">
+          <a class="nav-link {% if 'presupuesto' in request.path %}active{% endif %}" href="{% url 'presupuesto:dashboard' %}">
+            <i class="bi bi-bank2"></i> {% trans "Presupuesto FSE" %}
+          </a>
+        </li>
+        {% endif %}
+        {% endwith %}
+      {% endif %}
       <hr class="menu-divider">
       <li class="nav-item item-color-4">
         <a class="nav-link" href="{% url 'admin:index' %}">

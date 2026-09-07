@@ -1,0 +1,75 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-calendar-range me-2"></i>{% trans "Vigencias Fiscales" %}</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">{% trans "Cada año se abre una vigencia; al cerrarla no se puede comprometer más presupuesto en ella." %}</p>
+    {% include "presupuesto/_nav.html" %}
+  </div>
+  {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+  <div class="mb-3"><a href="{% url 'presupuesto:crear_vigencia' %}" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>{% trans "Abrir vigencia" %}</a></div>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light"><tr><th>{% trans "Año" %}</th><th>{% trans "Estado" %}</th><th>{% trans "Apertura" %}</th><th>{% trans "Cierre" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for v in vigencias %}
+          <tr>
+            <td class="fw-bold">{{ v.anio }}</td>
+            <td><span class="badge {% if v.estado == 'ABIERTA' %}bg-success{% else %}bg-secondary{% endif %}">{{ v.get_estado_display }}</span></td>
+            <td>{{ v.fecha_apertura|date:"d/m/Y H:i" }}</td>
+            <td>{{ v.fecha_cierre|date:"d/m/Y H:i"|default:"—" }}</td>
+            <td>
+              {% if v.estado == 'ABIERTA' %}
+              <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalCerrar" data-action="{% url 'presupuesto:cerrar_vigencia' v.pk %}" data-anio="{{ v.anio }}">
+                <i class="bi bi-lock-fill me-1"></i>{% trans "Cerrar" %}
+              </button>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">{% trans "No hay vigencias registradas todavía." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalCerrar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-800 mb-1">{% trans "¿Cerrar esta vigencia?" %}</h5>
+        <p id="modal-cerrar-anio" class="text-muted mb-0" style="font-size:.85rem;"></p>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "No se podrán expedir más CDP en esta vigencia." %}</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="form-cerrar" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-lock-fill me-1"></i>{% trans "Sí, cerrar" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('[data-bs-target="#modalCerrar"]').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-cerrar').action = this.dataset.action;
+    document.getElementById('modal-cerrar-anio').textContent = "{% trans 'Vigencia' %} " + this.dataset.anio;
+  });
+});
+</script>
+{% endblock %}

@@ -47,6 +47,7 @@ MODULOS_CONOCIDOS = {
     'mensajeria': {'nombre': 'Mensajería interna', 'prefijo_url': '/mensajeria/', 'icono': 'bi-chat-dots', 'descripcion': 'Mensajería interna entre usuarios.', 'orden': 110},
     'steam': {'nombre': 'Halu STEAM', 'prefijo_url': '/academico/steam/', 'icono': 'bi-stars', 'descripcion': 'Panel de coordinación para la modalidad técnica/STEAM: talleres, recursos interactivos y simulacros en un solo lugar.', 'orden': 120},
     'halu_math': {'nombre': 'Halu Math', 'prefijo_url': '/matematicas/', 'icono': 'bi-calculator-fill', 'descripcion': 'Práctica adaptativa de matemáticas por DBA: dificultad ajustada al desempeño del estudiante, con ejercicios generados por IA y curados por el docente.', 'orden': 130},
+    'presupuesto': {'nombre': 'Presupuesto FSE', 'prefijo_url': '/presupuesto/', 'icono': 'bi-bank2', 'descripcion': 'Ciclo presupuestal del Fondo de Servicios Educativos: apropiación, CDP, RP, obligación y orden de pago (Decreto 1075 de 2015).', 'orden': 140},
 }
 
 

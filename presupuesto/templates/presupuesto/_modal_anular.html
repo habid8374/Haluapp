@@ -1,0 +1,27 @@
+{% load i18n %}
+<div class="modal fade" id="modalAnular" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div style="width:48px;height:48px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="fw-800 mb-1">{% trans "¿Anular este documento?" %}</h5>
+        <p id="modal-anular-nombre" class="text-muted mb-2" style="font-size:.85rem;"></p>
+        <label class="form-label small fw-bold">{% trans "Motivo de anulación" %}</label>
+        <textarea form="form-anular" name="motivo" class="form-control" rows="2" required></textarea>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Esta acción no se puede deshacer." %}</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+        <form id="form-anular" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-x-circle me-1"></i>{% trans "Sí, anular" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     'simulacros.apps.SimulacrosConfig',
     'piar.apps.PiarConfig',
     'halu_math.apps.HaluMathConfig',
+    'presupuesto.apps.PresupuestoConfig',
     'simat.apps.SimatConfig',
     'evaluacion_docente.apps.EvaluacionDocenteConfig',
     'autoevaluacion_institucional.apps.AutoevaluacionInstitucionalConfig',
