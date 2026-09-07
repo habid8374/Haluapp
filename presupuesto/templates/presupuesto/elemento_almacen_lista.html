@@ -1,0 +1,37 @@
+{% extends "base_presupuesto.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-box-seam me-2"></i>Elementos de Almacén</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">Bienes de consumo o devolutivos que el Fondo guarda en almacén.</p>
+  </div>
+  {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+  <div class="mb-3 d-flex gap-2">
+    <a href="{% url 'presupuesto:crear_elemento_almacen' %}" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Nuevo elemento</a>
+    <a href="{% url 'presupuesto:lista_movimientos_almacen' %}" class="btn btn-outline-success"><i class="bi bi-arrow-left-right me-1"></i>Ver movimientos</a>
+  </div>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light"><tr><th>Código</th><th>Nombre</th><th>Unidad</th><th>Stock actual</th><th>Stock mínimo</th><th>Activo</th></tr></thead>
+        <tbody>
+          {% for e in elementos %}
+          <tr>
+            <td class="fw-bold">{{ e.codigo }}</td><td>{{ e.nombre }}</td><td>{{ e.unidad_medida }}</td>
+            <td>
+              {{ e.stock_actual }}
+              {% if e.stock_actual <= e.stock_minimo %}<span class="badge bg-warning text-dark ms-1"><i class="bi bi-exclamation-triangle"></i> Bajo</span>{% endif %}
+            </td>
+            <td>{{ e.stock_minimo }}</td>
+            <td><span class="badge {% if e.activo %}bg-success{% else %}bg-secondary{% endif %}">{% if e.activo %}Sí{% else %}No{% endif %}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">No hay elementos de almacén registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -10,9 +10,13 @@ from .models import (
     CategoriaCPC,
     ComprobanteContable,
     ConceptoRetencion,
+    CuentaBancaria,
+    ElementoAlmacen,
     FuenteFinanciacion,
     ModificacionPresupuestal,
+    MovimientoAlmacen,
     MovimientoContable,
+    MovimientoTesoreria,
     Obligacion,
     OrdenDePago,
     PresupuestoIngreso,
@@ -178,7 +182,7 @@ class ComprobanteContableAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     list_display = ('numero', 'tipo', 'estado', 'orden_pago', 'vigencia', 'fecha', 'institucion')
     list_filter = ('tipo', 'estado', 'vigencia')
     ordering = ('-numero',)
-    raw_id_fields = ('institucion', 'vigencia', 'orden_pago', 'comprobante_que_reversa', 'contabilizado_por')
+    raw_id_fields = ('institucion', 'vigencia', 'orden_pago', 'comprobante_que_reversa', 'cuenta_bancaria', 'contabilizado_por')
     inlines = [MovimientoContableInline]
 
 
@@ -187,3 +191,41 @@ class RetencionAplicadaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
     institucion_lookup = 'orden_pago__institucion'
     list_display = ('orden_pago', 'concepto', 'base_gravable', 'tarifa_porcentaje', 'valor')
     raw_id_fields = ('orden_pago', 'concepto')
+
+
+@admin.register(CuentaBancaria)
+class CuentaBancariaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('banco', 'numero_cuenta', 'tipo', 'cuenta_cgc', 'saldo_actual', 'institucion', 'activa')
+    list_filter = ('tipo', 'activa')
+    raw_id_fields = ('institucion', 'cuenta_cgc')
+
+    @admin.display(description='Saldo actual')
+    def saldo_actual(self, obj):
+        return f"${obj.saldo_actual:,.2f}"
+
+
+@admin.register(MovimientoTesoreria)
+class MovimientoTesoreriaAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('cuenta_bancaria', 'tipo', 'valor', 'concepto', 'fecha', 'conciliado', 'institucion')
+    list_filter = ('tipo', 'conciliado')
+    ordering = ('-fecha',)
+    raw_id_fields = ('institucion', 'cuenta_bancaria', 'comprobante_contable')
+
+
+@admin.register(ElementoAlmacen)
+class ElementoAlmacenAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('codigo', 'nombre', 'unidad_medida', 'stock_actual', 'stock_minimo', 'institucion', 'activo')
+    search_fields = ('codigo', 'nombre')
+    raw_id_fields = ('institucion',)
+
+    @admin.display(description='Stock actual')
+    def stock_actual(self, obj):
+        return obj.stock_actual
+
+
+@admin.register(MovimientoAlmacen)
+class MovimientoAlmacenAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('elemento', 'tipo', 'cantidad', 'valor_total', 'rp', 'responsable', 'fecha', 'institucion')
+    list_filter = ('tipo',)
+    ordering = ('-fecha',)
+    raw_id_fields = ('institucion', 'elemento', 'rp', 'creado_por')

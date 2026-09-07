@@ -8,8 +8,11 @@ from .models import (
     Apropiacion,
     CatalogoGeneralCuentas,
     ConceptoRetencion,
+    CuentaBancaria,
+    ElementoAlmacen,
     FuenteFinanciacion,
     ModificacionPresupuestal,
+    MovimientoAlmacen,
     Obligacion,
     OrdenDePago,
     PresupuestoIngreso,
@@ -240,9 +243,60 @@ class ConceptoRetencionForm(_InstitucionScopedFormMixin, forms.ModelForm):
 
 
 class GenerarComprobanteForm(forms.Form):
-    cuenta_bancos = forms.ModelChoiceField(
-        queryset=CatalogoGeneralCuentas.objects.filter(activo=True, permite_movimientos=True),
-        label='Cuenta de Bancos/Caja desde la que se paga',
+    cuenta_bancaria = forms.ModelChoiceField(
+        queryset=CuentaBancaria.objects.none(),
+        label='Cuenta bancaria desde la que se paga',
         widget=forms.Select(attrs={'class': 'form-select'}),
-        help_text='La Tesorería/Bancos por institución llega en la Fase 3 — por ahora se elige aquí la cuenta CGC.',
     )
+
+    def __init__(self, *args, institucion=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        qs = CuentaBancaria.objects.filter(activa=True)
+        if institucion is not None:
+            qs = qs.filter(institucion=institucion)
+        self.fields['cuenta_bancaria'].queryset = qs
+
+
+class CuentaBancariaForm(_InstitucionScopedFormMixin, forms.ModelForm):
+    class Meta:
+        model = CuentaBancaria
+        fields = ['banco', 'numero_cuenta', 'tipo', 'cuenta_cgc', 'saldo_inicial', 'activa']
+        widgets = {
+            'banco': forms.TextInput(attrs={'class': 'form-control'}),
+            'numero_cuenta': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'cuenta_cgc': forms.Select(attrs={'class': 'form-select'}),
+            'saldo_inicial': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['cuenta_cgc'].queryset = CatalogoGeneralCuentas.objects.filter(activo=True, permite_movimientos=True)
+
+
+class ElementoAlmacenForm(_InstitucionScopedFormMixin, forms.ModelForm):
+    class Meta:
+        model = ElementoAlmacen
+        fields = ['codigo', 'nombre', 'unidad_medida', 'stock_minimo', 'activo']
+        widgets = {
+            'codigo': forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'unidad_medida': forms.TextInput(attrs={'class': 'form-control'}),
+            'stock_minimo': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+
+class MovimientoAlmacenForm(_InstitucionScopedFormMixin, forms.ModelForm):
+    fk_institucion_fields = ('elemento', 'rp')
+
+    class Meta:
+        model = MovimientoAlmacen
+        fields = ['elemento', 'tipo', 'cantidad', 'valor_unitario', 'rp', 'responsable']
+        widgets = {
+            'elemento': forms.Select(attrs={'class': 'form-select'}),
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control'}),
+            'valor_unitario': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'rp': forms.Select(attrs={'class': 'form-select'}),
+            'responsable': forms.TextInput(attrs={'class': 'form-control'}),
+        }

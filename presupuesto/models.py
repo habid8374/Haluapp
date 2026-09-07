@@ -621,6 +621,11 @@ class ComprobanteContable(models.Model):
         'self', on_delete=models.PROTECT, null=True, blank=True,
         related_name='reversiones', verbose_name='Comprobante que reversa (solo ajustes)',
     )
+    cuenta_bancaria = models.ForeignKey(
+        'CuentaBancaria', on_delete=models.PROTECT, null=True, blank=True,
+        related_name='comprobantes', verbose_name='Cuenta bancaria de pago',
+        help_text='De dónde sale la plata. Se usa para mover el saldo real en Tesorería al contabilizar.',
+    )
     fecha = models.DateTimeField('Fecha de creación', auto_now_add=True)
     contabilizado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+',

@@ -1,0 +1,47 @@
+{% extends "base_presupuesto.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-arrow-left-right me-2"></i>Movimientos de Tesorería</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">Ingresos y egresos reales de cada cuenta bancaria, generados al contabilizar un comprobante.</p>
+  </div>
+  {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+  <form method="get" class="mb-3 d-flex gap-2 align-items-center">
+    <label class="form-label mb-0 fw-bold">Cuenta:</label>
+    <select name="cuenta" class="form-select" style="max-width:320px;" onchange="this.form.submit()">
+      <option value="">Todas</option>
+      {% for c in cuentas %}
+      <option value="{{ c.pk }}" {% if cuenta_seleccionada == c.pk|stringformat:"s" %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light"><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Concepto</th><th>Valor</th><th>Conciliado</th><th></th></tr></thead>
+        <tbody>
+          {% for m in movimientos %}
+          <tr>
+            <td>{{ m.fecha|date:"d/m/Y H:i" }}</td><td>{{ m.cuenta_bancaria }}</td>
+            <td><span class="badge {% if m.tipo == 'INGRESO' %}bg-success{% else %}bg-danger{% endif %}">{{ m.get_tipo_display }}</span></td>
+            <td>{{ m.concepto }}</td><td>${{ m.valor|floatformat:2 }}</td>
+            <td>{% if m.conciliado %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+            <td>
+              {% if not m.conciliado %}
+              <form method="post" action="{% url 'presupuesto:conciliar_movimiento_tesoreria' m.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-check-circle me-1"></i>Conciliar</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No hay movimientos de tesorería registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

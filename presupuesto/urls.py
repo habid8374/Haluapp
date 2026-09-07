@@ -57,4 +57,15 @@ urlpatterns = [
     path('catalogo-cgc/', views.lista_catalogo_cgc, name='lista_catalogo_cgc'),
 
     path('categoria-cpc/buscar/', views.buscar_categoria_cpc, name='buscar_categoria_cpc'),
+
+    path('cuentas-bancarias/', views.lista_cuentas_bancarias, name='lista_cuentas_bancarias'),
+    path('cuentas-bancarias/nueva/', views.crear_cuenta_bancaria, name='crear_cuenta_bancaria'),
+
+    path('tesoreria/movimientos/', views.lista_movimientos_tesoreria, name='lista_movimientos_tesoreria'),
+    path('tesoreria/movimientos/<int:pk>/conciliar/', views.conciliar_movimiento_tesoreria, name='conciliar_movimiento_tesoreria'),
+
+    path('almacen/elementos/', views.lista_elementos_almacen, name='lista_elementos_almacen'),
+    path('almacen/elementos/nuevo/', views.crear_elemento_almacen, name='crear_elemento_almacen'),
+    path('almacen/movimientos/', views.lista_movimientos_almacen, name='lista_movimientos_almacen'),
+    path('almacen/movimientos/nuevo/', views.crear_movimiento_almacen, name='crear_movimiento_almacen'),
 ]

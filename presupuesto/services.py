@@ -27,7 +27,8 @@ from finanzas.models import ConsecutivoDocumento
 
 from .models import (
     CDP, RP, Obligacion, OrdenDePago, Apropiacion,
-    ComprobanteContable, ConceptoRetencion, MovimientoContable, RetencionAplicada,
+    ComprobanteContable, ConceptoRetencion, CuentaBancaria, ElementoAlmacen,
+    MovimientoAlmacen, MovimientoContable, MovimientoTesoreria, RetencionAplicada,
 )
 
 
@@ -192,10 +193,13 @@ def quitar_retencion(*, retencion: RetencionAplicada, usuario):
 
 
 @transaction.atomic
-def generar_comprobante_contable(*, orden_pago: OrdenDePago, cuenta_bancos, usuario) -> ComprobanteContable:
+def generar_comprobante_contable(*, orden_pago: OrdenDePago, cuenta_bancaria: CuentaBancaria, usuario) -> ComprobanteContable:
     """Crea el comprobante en BORRADOR con sus movimientos ya balanceados
     por construcción (débito al gasto = crédito a retenciones + crédito a
-    bancos), listo para que el contador lo revise y lo contabilice."""
+    bancos), listo para que el contador lo revise y lo contabilice. El
+    movimiento REAL de tesorería (el que mueve el saldo de la cuenta
+    bancaria) se crea después, al contabilizar — no aquí — para que un
+    comprobante en Borrador nunca afecte el saldo real."""
     orden_pago = OrdenDePago.objects.select_for_update().get(pk=orden_pago.pk)
     if hasattr(orden_pago, 'comprobante_contable'):
         raise ValidationError('Esta Orden de Pago ya tiene un comprobante contable.')
@@ -204,6 +208,8 @@ def generar_comprobante_contable(*, orden_pago: OrdenDePago, cuenta_bancos, usua
     vigencia = orden_pago.obligacion.rp.cdp.vigencia
     if not vigencia.esta_abierta:
         raise ValidationError('La vigencia %(anio)s está cerrada.' % {'anio': vigencia.anio})
+    if not cuenta_bancaria.activa:
+        raise ValidationError('La cuenta bancaria seleccionada no está activa.')
 
     rubro = orden_pago.obligacion.rp.cdp.apropiacion.rubro
     cuenta_gasto = rubro.cuenta_cgc_gasto
@@ -219,6 +225,7 @@ def generar_comprobante_contable(*, orden_pago: OrdenDePago, cuenta_bancos, usua
         numero=_siguiente_numero(orden_pago.institucion_id, 'presupuesto_comprobante'),
         tipo=ComprobanteContable.Tipo.EGRESO,
         orden_pago=orden_pago,
+        cuenta_bancaria=cuenta_bancaria,
     )
     MovimientoContable.objects.create(
         comprobante=comprobante, cuenta=cuenta_gasto, tercero=orden_pago.beneficiario,
@@ -238,7 +245,7 @@ def generar_comprobante_contable(*, orden_pago: OrdenDePago, cuenta_bancos, usua
             valor_debito=Decimal('0.00'), valor_credito=retencion.valor,
         )
     MovimientoContable.objects.create(
-        comprobante=comprobante, cuenta=cuenta_bancos, tercero=orden_pago.beneficiario,
+        comprobante=comprobante, cuenta=cuenta_bancaria.cuenta_cgc, tercero=orden_pago.beneficiario,
         descripcion=f'Pago neto Orden de Pago #{orden_pago.numero}',
         valor_debito=Decimal('0.00'), valor_credito=orden_pago.valor_neto,
     )
@@ -257,6 +264,20 @@ def contabilizar_comprobante(*, comprobante: ComprobanteContable, usuario) -> Co
         raise ValidationError(
             'El comprobante no cuadra: débitos ($%(d)s) ≠ créditos ($%(c)s). No se puede contabilizar así.'
             % {'d': f'{comprobante.total_debitos:,.2f}', 'c': f'{comprobante.total_creditos:,.2f}'}
+        )
+    if comprobante.cuenta_bancaria_id:
+        cuenta_bancaria = CuentaBancaria.objects.select_for_update().get(pk=comprobante.cuenta_bancaria_id)
+        valor_pago = comprobante.orden_pago.valor_neto if comprobante.orden_pago_id else comprobante.total_creditos
+        if cuenta_bancaria.saldo_actual < valor_pago:
+            raise ValidationError(
+                'La cuenta bancaria "%(cuenta)s" no tiene saldo suficiente ($%(saldo)s disponibles, se necesitan $%(valor)s).'
+                % {'cuenta': cuenta_bancaria, 'saldo': f'{cuenta_bancaria.saldo_actual:,.2f}', 'valor': f'{valor_pago:,.2f}'}
+            )
+        MovimientoTesoreria.objects.create(
+            institucion=comprobante.institucion, cuenta_bancaria=cuenta_bancaria,
+            tipo=MovimientoTesoreria.Tipo.EGRESO,
+            concepto=f'Pago comprobante #{comprobante.numero}' + (f' — OP #{comprobante.orden_pago.numero}' if comprobante.orden_pago_id else ''),
+            valor=valor_pago, comprobante_contable=comprobante,
         )
     comprobante.estado = ComprobanteContable.Estado.CONTABILIZADO
     comprobante.contabilizado_por = usuario
@@ -297,6 +318,17 @@ def reversar_comprobante(*, comprobante: ComprobanteContable, usuario, motivo: s
             descripcion=f'Reversión de comprobante #{comprobante.numero}: {mov.descripcion}',
             valor_debito=mov.valor_credito, valor_credito=mov.valor_debito,
         )
+    if comprobante.cuenta_bancaria_id:
+        valor_pago = comprobante.movimientos_tesoreria.filter(
+            tipo=MovimientoTesoreria.Tipo.EGRESO
+        ).aggregate(t=Sum('valor'))['t'] or Decimal('0.00')
+        if valor_pago:
+            MovimientoTesoreria.objects.create(
+                institucion=comprobante.institucion, cuenta_bancaria=comprobante.cuenta_bancaria,
+                tipo=MovimientoTesoreria.Tipo.INGRESO,
+                concepto=f'Reversión comprobante #{comprobante.numero}: {motivo}',
+                valor=valor_pago, comprobante_contable=reverso,
+            )
     comprobante.anulado_motivo = motivo
     comprobante.save(update_fields=['anulado_motivo'])
     return reverso
@@ -314,3 +346,28 @@ def cerrar_vigencia(*, vigencia, usuario):
     vigencia.cerrada_por = usuario
     vigencia.save(update_fields=['estado', 'fecha_cierre', 'cerrada_por'])
     return vigencia
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Fase 3 — Almacén
+# ─────────────────────────────────────────────────────────────────────────
+
+@transaction.atomic
+def registrar_movimiento_almacen(*, elemento: ElementoAlmacen, tipo: str, cantidad: int,
+                                  valor_unitario: Decimal = Decimal('0.00'), rp=None,
+                                  responsable: str = '', usuario) -> MovimientoAlmacen:
+    """Registra una entrada o salida de almacén. El stock nunca se toca
+    directo: `ElementoAlmacen.stock_actual` se calcula sumando/restando
+    estos movimientos, igual que el saldo de una CuentaBancaria."""
+    elemento = ElementoAlmacen.objects.select_for_update().get(pk=elemento.pk)
+    if cantidad <= 0:
+        raise ValidationError('La cantidad debe ser mayor a cero.')
+    if tipo == MovimientoAlmacen.Tipo.SALIDA and cantidad > elemento.stock_actual:
+        raise ValidationError(
+            'No hay stock suficiente de "%(elemento)s" (disponible: %(stock)s, solicitado: %(cantidad)s).'
+            % {'elemento': elemento.nombre, 'stock': elemento.stock_actual, 'cantidad': cantidad}
+        )
+    return MovimientoAlmacen.objects.create(
+        institucion=elemento.institucion, elemento=elemento, tipo=tipo, cantidad=cantidad,
+        valor_unitario=valor_unitario, rp=rp, responsable=responsable, creado_por=usuario,
+    )

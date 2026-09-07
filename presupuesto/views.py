@@ -15,8 +15,11 @@ from .forms import (
     ApropiacionForm,
     CDPForm,
     ConceptoRetencionForm,
+    CuentaBancariaForm,
+    ElementoAlmacenForm,
     GenerarComprobanteForm,
     ModificacionPresupuestalForm,
+    MovimientoAlmacenForm,
     ObligacionForm,
     OrdenDePagoForm,
     PresupuestoIngresoForm,
@@ -34,7 +37,11 @@ from .models import (
     CategoriaCPC,
     ComprobanteContable,
     ConceptoRetencion,
+    CuentaBancaria,
+    ElementoAlmacen,
     ModificacionPresupuestal,
+    MovimientoAlmacen,
+    MovimientoTesoreria,
     Obligacion,
     OrdenDePago,
     PresupuestoIngreso,
@@ -648,19 +655,20 @@ def generar_comprobante(request, pk):
     if guard:
         return guard
     orden = get_object_or_404(OrdenDePago, pk=pk, **_filtro_institucion(request))
+    institucion = _get_institucion(request)
     if request.method == 'POST':
-        form = GenerarComprobanteForm(request.POST)
+        form = GenerarComprobanteForm(request.POST, institucion=institucion)
         if form.is_valid():
             try:
                 comprobante = services.generar_comprobante_contable(
-                    orden_pago=orden, cuenta_bancos=form.cleaned_data['cuenta_bancos'], usuario=request.user,
+                    orden_pago=orden, cuenta_bancaria=form.cleaned_data['cuenta_bancaria'], usuario=request.user,
                 )
                 messages.success(request, 'Comprobante contable generado en Borrador. Revísalo y contabilízalo.')
                 return redirect('presupuesto:detalle_comprobante', pk=comprobante.pk)
             except ValidationError as e:
                 form.add_error(None, e.message if hasattr(e, 'message') else str(e))
     else:
-        form = GenerarComprobanteForm()
+        form = GenerarComprobanteForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
         'titulo_pagina': f'Generar Comprobante — Orden de Pago #{orden.numero}', 'form': form,
         'icono': 'bi-journal-text', 'volver_href': reverse('presupuesto:detalle_orden_pago', args=[orden.pk]),
@@ -820,3 +828,150 @@ def buscar_categoria_cpc(request):
     return JsonResponse({'resultados': [
         {'id': c.pk, 'texto': f"{c.codigo} · {c.titulo}"} for c in coincidencias
     ]})
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Fase 3 — Tesorería
+# ─────────────────────────────────────────────────────────────────────────
+
+@login_required
+def lista_cuentas_bancarias(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    cuentas = CuentaBancaria.objects.filter(**_filtro_institucion(request)).select_related('cuenta_cgc')
+    return render(request, 'presupuesto/cuenta_bancaria_lista.html', {
+        'titulo_pagina': 'Cuentas Bancarias', 'cuentas': cuentas,
+    })
+
+
+@login_required
+def crear_cuenta_bancaria(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    if request.method == 'POST':
+        form = CuentaBancariaForm(request.POST, institucion=institucion)
+        if form.is_valid():
+            cuenta = form.save(commit=False)
+            cuenta.institucion = institucion
+            cuenta.save()
+            messages.success(request, 'Cuenta bancaria creada.')
+            return redirect('presupuesto:lista_cuentas_bancarias')
+    else:
+        form = CuentaBancariaForm(institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Nueva Cuenta Bancaria', 'form': form,
+        'icono': 'bi-bank', 'volver_url': 'presupuesto:lista_cuentas_bancarias',
+    })
+
+
+@login_required
+def lista_movimientos_tesoreria(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    movimientos = MovimientoTesoreria.objects.filter(
+        **_filtro_institucion(request)
+    ).select_related('cuenta_bancaria', 'comprobante_contable')
+    cuenta_id = request.GET.get('cuenta')
+    if cuenta_id:
+        movimientos = movimientos.filter(cuenta_bancaria_id=cuenta_id)
+    cuentas = CuentaBancaria.objects.filter(**_filtro_institucion(request))
+    return render(request, 'presupuesto/movimiento_tesoreria_lista.html', {
+        'titulo_pagina': 'Movimientos de Tesorería', 'movimientos': movimientos,
+        'cuentas': cuentas, 'cuenta_seleccionada': cuenta_id,
+    })
+
+
+@login_required
+@require_POST
+def conciliar_movimiento_tesoreria(request, pk):
+    from django.utils import timezone
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    movimiento = get_object_or_404(MovimientoTesoreria, pk=pk, **_filtro_institucion(request))
+    movimiento.conciliado = True
+    movimiento.fecha_conciliacion = timezone.now()
+    movimiento.save(update_fields=['conciliado', 'fecha_conciliacion'])
+    messages.success(request, 'Movimiento marcado como conciliado.')
+    return redirect('presupuesto:lista_movimientos_tesoreria')
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Fase 3 — Almacén
+# ─────────────────────────────────────────────────────────────────────────
+
+@login_required
+def lista_elementos_almacen(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    elementos = ElementoAlmacen.objects.filter(**_filtro_institucion(request))
+    return render(request, 'presupuesto/elemento_almacen_lista.html', {
+        'titulo_pagina': 'Elementos de Almacén', 'elementos': elementos,
+    })
+
+
+@login_required
+def crear_elemento_almacen(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    if request.method == 'POST':
+        form = ElementoAlmacenForm(request.POST, institucion=institucion)
+        if form.is_valid():
+            elemento = form.save(commit=False)
+            elemento.institucion = institucion
+            elemento.save()
+            messages.success(request, 'Elemento de almacén creado.')
+            return redirect('presupuesto:lista_elementos_almacen')
+    else:
+        form = ElementoAlmacenForm(institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Nuevo Elemento de Almacén', 'form': form,
+        'icono': 'bi-box-seam', 'volver_url': 'presupuesto:lista_elementos_almacen',
+    })
+
+
+@login_required
+def lista_movimientos_almacen(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    movimientos = MovimientoAlmacen.objects.filter(
+        **_filtro_institucion(request)
+    ).select_related('elemento', 'rp').order_by('-fecha')
+    return render(request, 'presupuesto/movimiento_almacen_lista.html', {
+        'titulo_pagina': 'Movimientos de Almacén', 'movimientos': movimientos,
+    })
+
+
+@login_required
+def crear_movimiento_almacen(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    if request.method == 'POST':
+        form = MovimientoAlmacenForm(request.POST, institucion=institucion)
+        if form.is_valid():
+            try:
+                services.registrar_movimiento_almacen(
+                    elemento=form.cleaned_data['elemento'], tipo=form.cleaned_data['tipo'],
+                    cantidad=form.cleaned_data['cantidad'], valor_unitario=form.cleaned_data['valor_unitario'],
+                    rp=form.cleaned_data['rp'], responsable=form.cleaned_data['responsable'], usuario=request.user,
+                )
+                messages.success(request, 'Movimiento de almacén registrado.')
+                return redirect('presupuesto:lista_movimientos_almacen')
+            except ValidationError as e:
+                form.add_error(None, e.message if hasattr(e, 'message') else str(e))
+    else:
+        form = MovimientoAlmacenForm(institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Registrar Movimiento de Almacén', 'form': form,
+        'icono': 'bi-box-arrow-in-down', 'volver_url': 'presupuesto:lista_movimientos_almacen',
+    })
