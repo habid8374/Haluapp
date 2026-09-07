@@ -741,3 +741,167 @@ class RetencionAplicada(models.Model):
 
     def __str__(self):
         return f"{self.concepto.nombre}: ${self.valor:,.2f}"
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Fase 3 — Tesorería
+# ─────────────────────────────────────────────────────────────────────────
+
+class CuentaBancaria(models.Model):
+    """Cuenta bancaria real del Fondo de Servicios Educativos. Reemplaza la
+    elección ad-hoc de una cuenta CGC de "bancos" al generar un comprobante
+    (Fase 2): ahora el pago sale de una cuenta con saldo propio, y ese
+    saldo se mueve con cada `MovimientoTesoreria` (nunca se edita a mano)."""
+
+    class Tipo(models.TextChoices):
+        AHORROS = 'AHORROS', 'Cuenta de Ahorros'
+        CORRIENTE = 'CORRIENTE', 'Cuenta Corriente'
+
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='cuentas_bancarias', verbose_name='Institución',
+    )
+    banco = models.CharField('Banco', max_length=100)
+    numero_cuenta = models.CharField('Número de cuenta', max_length=30)
+    tipo = models.CharField(max_length=10, choices=Tipo.choices, default=Tipo.AHORROS)
+    cuenta_cgc = models.ForeignKey(
+        CatalogoGeneralCuentas, on_delete=models.PROTECT, related_name='cuentas_bancarias',
+        verbose_name='Cuenta contable (CGC) de bancos',
+        help_text='La cuenta del catálogo (ej. 1110 Bancos) que se acredita al pagar desde esta cuenta.',
+    )
+    saldo_inicial = models.DecimalField('Saldo inicial', max_digits=14, decimal_places=2, default=Decimal('0.00'))
+    activa = models.BooleanField('Activa', default=True)
+
+    class Meta:
+        unique_together = ('institucion', 'banco', 'numero_cuenta')
+        ordering = ['banco', 'numero_cuenta']
+        verbose_name = 'Cuenta Bancaria'
+        verbose_name_plural = 'Cuentas Bancarias'
+
+    def __str__(self):
+        return f"{self.banco} · {self.numero_cuenta}"
+
+    @property
+    def saldo_actual(self):
+        ingresos = self.movimientos.filter(tipo=MovimientoTesoreria.Tipo.INGRESO).aggregate(t=Sum('valor'))['t'] or Decimal('0.00')
+        egresos = self.movimientos.filter(tipo=MovimientoTesoreria.Tipo.EGRESO).aggregate(t=Sum('valor'))['t'] or Decimal('0.00')
+        return self.saldo_inicial + ingresos - egresos
+
+
+class MovimientoTesoreria(models.Model):
+    """Un ingreso o egreso real de una cuenta bancaria. Se crea SIEMPRE
+    desde `services` (nunca a mano): un egreso al generar el comprobante de
+    una Orden de Pago, un ingreso al reversarlo. `conciliado` es lo único
+    que se marca manualmente, al cuadrar contra el extracto bancario."""
+
+    class Tipo(models.TextChoices):
+        INGRESO = 'INGRESO', 'Ingreso'
+        EGRESO = 'EGRESO', 'Egreso'
+
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='movimientos_tesoreria', verbose_name='Institución',
+    )
+    cuenta_bancaria = models.ForeignKey(
+        CuentaBancaria, on_delete=models.PROTECT, related_name='movimientos', verbose_name='Cuenta bancaria',
+    )
+    tipo = models.CharField(max_length=10, choices=Tipo.choices)
+    concepto = models.CharField('Concepto', max_length=255)
+    valor = models.DecimalField('Valor', max_digits=14, decimal_places=2)
+    comprobante_contable = models.ForeignKey(
+        ComprobanteContable, on_delete=models.PROTECT, null=True, blank=True,
+        related_name='movimientos_tesoreria', verbose_name='Comprobante contable de origen',
+    )
+    fecha = models.DateTimeField('Fecha', auto_now_add=True)
+    conciliado = models.BooleanField('Conciliado', default=False)
+    fecha_conciliacion = models.DateTimeField('Fecha de conciliación', null=True, blank=True)
+
+    class Meta:
+        ordering = ['-fecha']
+        verbose_name = 'Movimiento de Tesorería'
+        verbose_name_plural = 'Movimientos de Tesorería'
+
+    def __str__(self):
+        signo = '+' if self.tipo == self.Tipo.INGRESO else '-'
+        return f"{self.cuenta_bancaria} · {signo}${self.valor:,.2f}"
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Fase 3 — Almacén e Inventarios
+# ─────────────────────────────────────────────────────────────────────────
+
+class ElementoAlmacen(models.Model):
+    """Un bien de consumo o devolutivo que el FSE guarda en almacén (no un
+    activo fijo con placa — eso es un módulo aparte, fuera de este
+    alcance). El stock nunca se edita a mano: se mueve con
+    `MovimientoAlmacen` (entradas/salidas), igual que el saldo de una
+    cuenta bancaria."""
+
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='elementos_almacen', verbose_name='Institución',
+    )
+    codigo = models.CharField('Código', max_length=30)
+    nombre = models.CharField('Nombre', max_length=200)
+    unidad_medida = models.CharField('Unidad de medida', max_length=30, default='Unidad')
+    stock_minimo = models.PositiveIntegerField('Stock mínimo (alerta)', default=0)
+    activo = models.BooleanField('Activo', default=True)
+
+    class Meta:
+        unique_together = ('institucion', 'codigo')
+        ordering = ['codigo']
+        verbose_name = 'Elemento de Almacén'
+        verbose_name_plural = 'Elementos de Almacén'
+
+    def __str__(self):
+        return f"{self.codigo} · {self.nombre}"
+
+    @property
+    def stock_actual(self):
+        entradas = self.movimientos.filter(tipo=MovimientoAlmacen.Tipo.ENTRADA).aggregate(t=Sum('cantidad'))['t'] or 0
+        salidas = self.movimientos.filter(tipo=MovimientoAlmacen.Tipo.SALIDA).aggregate(t=Sum('cantidad'))['t'] or 0
+        return entradas - salidas
+
+
+class MovimientoAlmacen(models.Model):
+    """Una entrada (compra recibida) o salida (entregado/consumido) de un
+    elemento de almacén. `rp` es opcional: una entrada normalmente viene de
+    un contrato (RP) ya causado, pero el módulo no obliga a tener uno (ej.
+    una donación)."""
+
+    class Tipo(models.TextChoices):
+        ENTRADA = 'ENTRADA', 'Entrada'
+        SALIDA = 'SALIDA', 'Salida'
+
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='movimientos_almacen', verbose_name='Institución',
+    )
+    elemento = models.ForeignKey(
+        ElementoAlmacen, on_delete=models.PROTECT, related_name='movimientos', verbose_name='Elemento',
+    )
+    tipo = models.CharField(max_length=10, choices=Tipo.choices)
+    cantidad = models.PositiveIntegerField('Cantidad')
+    valor_unitario = models.DecimalField('Valor unitario', max_digits=14, decimal_places=2, default=Decimal('0.00'))
+    rp = models.ForeignKey(
+        RP, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='movimientos_almacen', verbose_name='RP de origen (compra)',
+    )
+    responsable = models.CharField('Entregado a / recibido de', max_length=200, blank=True)
+    fecha = models.DateTimeField('Fecha', auto_now_add=True)
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
+    )
+
+    class Meta:
+        ordering = ['-fecha']
+        verbose_name = 'Movimiento de Almacén'
+        verbose_name_plural = 'Movimientos de Almacén'
+
+    def __str__(self):
+        signo = '+' if self.tipo == self.Tipo.ENTRADA else '-'
+        return f"{self.elemento.codigo} · {signo}{self.cantidad}"
+
+    @property
+    def valor_total(self):
+        return self.valor_unitario * self.cantidad
