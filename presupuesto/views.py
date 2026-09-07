@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from . import services
@@ -49,7 +48,7 @@ def _es_gestor_presupuesto(user):
 def _requiere_gestor(request):
     """Devuelve None si el usuario puede gestionar presupuesto, o un redirect si no."""
     if not _es_gestor_presupuesto(request.user):
-        messages.error(request, _('No tienes permiso para acceder al módulo de Presupuesto.'))
+        messages.error(request, 'No tienes permiso para acceder al módulo de Presupuesto.')
         return redirect('gestion_academica:inicio_academico')
     return None
 
@@ -89,7 +88,7 @@ def dashboard(request):
     total_disponible = sum((a.saldo_disponible for a in apropiaciones), start=0)
 
     context = {
-        'titulo_pagina': _('Presupuesto FSE'),
+        'titulo_pagina': 'Presupuesto FSE',
         'vigencias': vigencias,
         'vigencia_actual': vigencia_actual,
         'apropiaciones': apropiaciones,
@@ -111,7 +110,7 @@ def lista_vigencias(request):
         return guard
     vigencias = VigenciaFiscal.objects.filter(**_filtro_institucion(request)).order_by('-anio')
     return render(request, 'presupuesto/vigencia_lista.html', {
-        'titulo_pagina': _('Vigencias Fiscales'), 'vigencias': vigencias,
+        'titulo_pagina': 'Vigencias Fiscales', 'vigencias': vigencias,
     })
 
 
@@ -129,7 +128,7 @@ def crear_vigencia(request):
             try:
                 vigencia.full_clean()
                 vigencia.save()
-                messages.success(request, _('Vigencia %(anio)s abierta correctamente.') % {'anio': vigencia.anio})
+                messages.success(request, 'Vigencia %(anio)s abierta correctamente.' % {'anio': vigencia.anio})
                 return redirect('presupuesto:lista_vigencias')
             except ValidationError as e:
                 for field, errs in getattr(e, 'message_dict', {'__all__': e.messages}).items():
@@ -138,7 +137,7 @@ def crear_vigencia(request):
     else:
         form = VigenciaFiscalForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
-        'titulo_pagina': _('Abrir Vigencia Fiscal'), 'form': form,
+        'titulo_pagina': 'Abrir Vigencia Fiscal', 'form': form,
         'icono': 'bi-calendar-range', 'volver_url': 'presupuesto:lista_vigencias',
     })
 
@@ -152,7 +151,7 @@ def cerrar_vigencia(request, pk):
     filtro = _filtro_institucion(request)
     vigencia = get_object_or_404(VigenciaFiscal, pk=pk, **filtro)
     services.cerrar_vigencia(vigencia=vigencia, usuario=request.user)
-    messages.success(request, _('Vigencia %(anio)s cerrada. No se podrán comprometer más recursos en ella.') % {'anio': vigencia.anio})
+    messages.success(request, 'Vigencia %(anio)s cerrada. No se podrán comprometer más recursos en ella.' % {'anio': vigencia.anio})
     return redirect('presupuesto:lista_vigencias')
 
 
@@ -167,7 +166,7 @@ def lista_rubros_ingreso(request):
         return guard
     rubros = RubroPresupuestalIngreso.objects.filter(**_filtro_institucion(request)).order_by('codigo')
     return render(request, 'presupuesto/rubro_ingreso_lista.html', {
-        'titulo_pagina': _('Rubros de Ingreso'), 'rubros': rubros,
+        'titulo_pagina': 'Rubros de Ingreso', 'rubros': rubros,
     })
 
 
@@ -183,12 +182,12 @@ def crear_rubro_ingreso(request):
             rubro = form.save(commit=False)
             rubro.institucion = institucion
             rubro.save()
-            messages.success(request, _('Rubro de ingreso creado.'))
+            messages.success(request, 'Rubro de ingreso creado.')
             return redirect('presupuesto:lista_rubros_ingreso')
     else:
         form = RubroPresupuestalIngresoForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
-        'titulo_pagina': _('Nuevo Rubro de Ingreso'), 'form': form,
+        'titulo_pagina': 'Nuevo Rubro de Ingreso', 'form': form,
         'icono': 'bi-arrow-down-circle', 'volver_url': 'presupuesto:lista_rubros_ingreso',
     })
 
@@ -200,7 +199,7 @@ def lista_rubros_gasto(request):
         return guard
     rubros = RubroPresupuestalGasto.objects.filter(**_filtro_institucion(request)).order_by('codigo')
     return render(request, 'presupuesto/rubro_gasto_lista.html', {
-        'titulo_pagina': _('Rubros de Gasto'), 'rubros': rubros,
+        'titulo_pagina': 'Rubros de Gasto', 'rubros': rubros,
     })
 
 
@@ -216,12 +215,12 @@ def crear_rubro_gasto(request):
             rubro = form.save(commit=False)
             rubro.institucion = institucion
             rubro.save()
-            messages.success(request, _('Rubro de gasto creado.'))
+            messages.success(request, 'Rubro de gasto creado.')
             return redirect('presupuesto:lista_rubros_gasto')
     else:
         form = RubroPresupuestalGastoForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
-        'titulo_pagina': _('Nuevo Rubro de Gasto'), 'form': form,
+        'titulo_pagina': 'Nuevo Rubro de Gasto', 'form': form,
         'icono': 'bi-arrow-up-circle', 'volver_url': 'presupuesto:lista_rubros_gasto',
     })
 
@@ -237,7 +236,7 @@ def lista_presupuesto_ingreso(request):
         return guard
     items = PresupuestoIngreso.objects.filter(**_filtro_institucion(request)).select_related('rubro', 'vigencia').order_by('-vigencia__anio')
     return render(request, 'presupuesto/presupuesto_ingreso_lista.html', {
-        'titulo_pagina': _('Presupuesto de Ingresos'), 'items': items,
+        'titulo_pagina': 'Presupuesto de Ingresos', 'items': items,
     })
 
 
@@ -255,7 +254,7 @@ def crear_presupuesto_ingreso(request):
             try:
                 item.full_clean()
                 item.save()
-                messages.success(request, _('Presupuesto de ingreso registrado.'))
+                messages.success(request, 'Presupuesto de ingreso registrado.')
                 return redirect('presupuesto:lista_presupuesto_ingreso')
             except ValidationError as e:
                 for field, errs in getattr(e, 'message_dict', {'__all__': e.messages}).items():
@@ -264,7 +263,7 @@ def crear_presupuesto_ingreso(request):
     else:
         form = PresupuestoIngresoForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
-        'titulo_pagina': _('Registrar Presupuesto de Ingreso'), 'form': form,
+        'titulo_pagina': 'Registrar Presupuesto de Ingreso', 'form': form,
         'icono': 'bi-cash-coin', 'volver_url': 'presupuesto:lista_presupuesto_ingreso',
     })
 
@@ -280,7 +279,7 @@ def lista_apropiaciones(request):
         return guard
     apropiaciones = Apropiacion.objects.filter(**_filtro_institucion(request)).select_related('rubro', 'vigencia').order_by('-vigencia__anio', 'rubro__codigo')
     return render(request, 'presupuesto/apropiacion_lista.html', {
-        'titulo_pagina': _('Apropiaciones Presupuestales'), 'apropiaciones': apropiaciones,
+        'titulo_pagina': 'Apropiaciones Presupuestales', 'apropiaciones': apropiaciones,
     })
 
 
@@ -298,7 +297,7 @@ def crear_apropiacion(request):
             try:
                 apropiacion.full_clean()
                 apropiacion.save()
-                messages.success(request, _('Apropiación registrada.'))
+                messages.success(request, 'Apropiación registrada.')
                 return redirect('presupuesto:lista_apropiaciones')
             except ValidationError as e:
                 for field, errs in getattr(e, 'message_dict', {'__all__': e.messages}).items():
@@ -307,7 +306,7 @@ def crear_apropiacion(request):
     else:
         form = ApropiacionForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
-        'titulo_pagina': _('Nueva Apropiación'), 'form': form,
+        'titulo_pagina': 'Nueva Apropiación', 'form': form,
         'icono': 'bi-piggy-bank', 'volver_url': 'presupuesto:lista_apropiaciones',
     })
 
@@ -319,7 +318,7 @@ def lista_modificaciones(request):
         return guard
     mods = ModificacionPresupuestal.objects.filter(**_filtro_institucion(request)).select_related('apropiacion', 'apropiacion_destino').order_by('-fecha')
     return render(request, 'presupuesto/modificacion_lista.html', {
-        'titulo_pagina': _('Modificaciones Presupuestales'), 'modificaciones': mods,
+        'titulo_pagina': 'Modificaciones Presupuestales', 'modificaciones': mods,
     })
 
 
@@ -338,7 +337,7 @@ def crear_modificacion(request):
             try:
                 mod.full_clean()
                 mod.save()
-                messages.success(request, _('Modificación presupuestal registrada.'))
+                messages.success(request, 'Modificación presupuestal registrada.')
                 return redirect('presupuesto:lista_modificaciones')
             except ValidationError as e:
                 for field, errs in getattr(e, 'message_dict', {'__all__': e.messages}).items():
@@ -347,7 +346,7 @@ def crear_modificacion(request):
     else:
         form = ModificacionPresupuestalForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
-        'titulo_pagina': _('Nueva Modificación Presupuestal'), 'form': form,
+        'titulo_pagina': 'Nueva Modificación Presupuestal', 'form': form,
         'icono': 'bi-arrow-left-right', 'volver_url': 'presupuesto:lista_modificaciones',
     })
 
@@ -362,7 +361,7 @@ def lista_cdp(request):
     if guard:
         return guard
     cdps = CDP.objects.filter(**_filtro_institucion(request)).select_related('apropiacion', 'vigencia').order_by('-numero')
-    return render(request, 'presupuesto/cdp_lista.html', {'titulo_pagina': _('Certificados de Disponibilidad (CDP)'), 'cdps': cdps})
+    return render(request, 'presupuesto/cdp_lista.html', {'titulo_pagina': 'Certificados de Disponibilidad (CDP)', 'cdps': cdps})
 
 
 @login_required
@@ -381,14 +380,14 @@ def crear_cdp(request):
                     objeto=form.cleaned_data['objeto'],
                     usuario=request.user,
                 )
-                messages.success(request, _('CDP expedido correctamente.'))
+                messages.success(request, 'CDP expedido correctamente.')
                 return redirect('presupuesto:lista_cdp')
             except ValidationError as e:
                 form.add_error(None, e.message if hasattr(e, 'message') else str(e))
     else:
         form = CDPForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
-        'titulo_pagina': _('Expedir CDP'), 'form': form,
+        'titulo_pagina': 'Expedir CDP', 'form': form,
         'icono': 'bi-file-earmark-lock', 'volver_url': 'presupuesto:lista_cdp',
     })
 
@@ -401,12 +400,12 @@ def anular_cdp(request, pk):
         return guard
     cdp = get_object_or_404(CDP, pk=pk, **_filtro_institucion(request))
     if cdp.total_comprometido_rp > 0:
-        messages.error(request, _('No se puede anular: ya tiene Registros Presupuestales (RP) asociados.'))
+        messages.error(request, 'No se puede anular: ya tiene Registros Presupuestales (RP) asociados.')
     else:
         cdp.estado = CDP.Estado.ANULADO
         cdp.anulado_motivo = request.POST.get('motivo', '')
         cdp.save(update_fields=['estado', 'anulado_motivo'])
-        messages.success(request, _('CDP #%(num)s anulado.') % {'num': cdp.numero})
+        messages.success(request, 'CDP #%(num)s anulado.' % {'num': cdp.numero})
     return redirect('presupuesto:lista_cdp')
 
 
@@ -420,7 +419,7 @@ def lista_rp(request):
     if guard:
         return guard
     rps = RP.objects.filter(**_filtro_institucion(request)).select_related('cdp', 'tercero').order_by('-numero')
-    return render(request, 'presupuesto/rp_lista.html', {'titulo_pagina': _('Registros Presupuestales (RP)'), 'rps': rps})
+    return render(request, 'presupuesto/rp_lista.html', {'titulo_pagina': 'Registros Presupuestales (RP)', 'rps': rps})
 
 
 @login_required
@@ -440,14 +439,14 @@ def crear_rp(request):
                     valor=form.cleaned_data['valor'],
                     usuario=request.user,
                 )
-                messages.success(request, _('Registro Presupuestal (RP) creado correctamente.'))
+                messages.success(request, 'Registro Presupuestal (RP) creado correctamente.')
                 return redirect('presupuesto:lista_rp')
             except ValidationError as e:
                 form.add_error(None, e.message if hasattr(e, 'message') else str(e))
     else:
         form = RPForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
-        'titulo_pagina': _('Nuevo Registro Presupuestal (RP)'), 'form': form,
+        'titulo_pagina': 'Nuevo Registro Presupuestal (RP)', 'form': form,
         'icono': 'bi-file-earmark-text', 'volver_url': 'presupuesto:lista_rp',
     })
 
@@ -460,7 +459,7 @@ def anular_rp(request, pk):
         return guard
     rp = get_object_or_404(RP, pk=pk, **_filtro_institucion(request))
     if rp.total_obligado > 0:
-        messages.error(request, _('No se puede anular: ya tiene Obligaciones asociadas.'))
+        messages.error(request, 'No se puede anular: ya tiene Obligaciones asociadas.')
     else:
         rp.estado = RP.Estado.ANULADO
         rp.anulado_motivo = request.POST.get('motivo', '')
@@ -468,7 +467,7 @@ def anular_rp(request, pk):
         if rp.cdp.estado == CDP.Estado.AGOTADO:
             rp.cdp.estado = CDP.Estado.VIGENTE
             rp.cdp.save(update_fields=['estado'])
-        messages.success(request, _('RP #%(num)s anulado.') % {'num': rp.numero})
+        messages.success(request, 'RP #%(num)s anulado.' % {'num': rp.numero})
     return redirect('presupuesto:lista_rp')
 
 
@@ -482,7 +481,7 @@ def lista_obligaciones(request):
     if guard:
         return guard
     obligaciones = Obligacion.objects.filter(**_filtro_institucion(request)).select_related('rp', 'rp__tercero').order_by('-numero')
-    return render(request, 'presupuesto/obligacion_lista.html', {'titulo_pagina': _('Obligaciones'), 'obligaciones': obligaciones})
+    return render(request, 'presupuesto/obligacion_lista.html', {'titulo_pagina': 'Obligaciones', 'obligaciones': obligaciones})
 
 
 @login_required
@@ -501,14 +500,14 @@ def crear_obligacion(request):
                     soporte=form.cleaned_data.get('soporte_recibido_satisfaccion'),
                     usuario=request.user,
                 )
-                messages.success(request, _('Obligación causada correctamente.'))
+                messages.success(request, 'Obligación causada correctamente.')
                 return redirect('presupuesto:lista_obligaciones')
             except ValidationError as e:
                 form.add_error(None, e.message if hasattr(e, 'message') else str(e))
     else:
         form = ObligacionForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
-        'titulo_pagina': _('Causar Obligación'), 'form': form,
+        'titulo_pagina': 'Causar Obligación', 'form': form,
         'icono': 'bi-file-earmark-check', 'volver_url': 'presupuesto:lista_obligaciones',
     })
 
@@ -521,7 +520,7 @@ def anular_obligacion(request, pk):
         return guard
     obligacion = get_object_or_404(Obligacion, pk=pk, **_filtro_institucion(request))
     if obligacion.total_pagado > 0:
-        messages.error(request, _('No se puede anular: ya tiene Órdenes de Pago asociadas.'))
+        messages.error(request, 'No se puede anular: ya tiene Órdenes de Pago asociadas.')
     else:
         obligacion.estado = Obligacion.Estado.ANULADA
         obligacion.anulado_motivo = request.POST.get('motivo', '')
@@ -529,7 +528,7 @@ def anular_obligacion(request, pk):
         if obligacion.rp.estado == RP.Estado.LIQUIDADO:
             obligacion.rp.estado = RP.Estado.VIGENTE
             obligacion.rp.save(update_fields=['estado'])
-        messages.success(request, _('Obligación #%(num)s anulada.') % {'num': obligacion.numero})
+        messages.success(request, 'Obligación #%(num)s anulada.' % {'num': obligacion.numero})
     return redirect('presupuesto:lista_obligaciones')
 
 
@@ -543,7 +542,7 @@ def lista_ordenes_pago(request):
     if guard:
         return guard
     ordenes = OrdenDePago.objects.filter(**_filtro_institucion(request)).select_related('obligacion', 'beneficiario').order_by('-numero')
-    return render(request, 'presupuesto/orden_pago_lista.html', {'titulo_pagina': _('Órdenes de Pago'), 'ordenes': ordenes})
+    return render(request, 'presupuesto/orden_pago_lista.html', {'titulo_pagina': 'Órdenes de Pago', 'ordenes': ordenes})
 
 
 @login_required
@@ -561,14 +560,14 @@ def crear_orden_pago(request):
                     total_retenciones=form.cleaned_data['total_retenciones'],
                     usuario=request.user,
                 )
-                messages.success(request, _('Orden de Pago generada correctamente.'))
+                messages.success(request, 'Orden de Pago generada correctamente.')
                 return redirect('presupuesto:lista_ordenes_pago')
             except ValidationError as e:
                 form.add_error(None, e.message if hasattr(e, 'message') else str(e))
     else:
         form = OrdenDePagoForm(institucion=institucion)
     return render(request, 'presupuesto/form_generico.html', {
-        'titulo_pagina': _('Generar Orden de Pago'), 'form': form,
+        'titulo_pagina': 'Generar Orden de Pago', 'form': form,
         'icono': 'bi-cash-stack', 'volver_url': 'presupuesto:lista_ordenes_pago',
     })
 
@@ -586,7 +585,7 @@ def anular_orden_pago(request, pk):
     if orden.obligacion.estado == Obligacion.Estado.PAGADA:
         orden.obligacion.estado = Obligacion.Estado.VIGENTE
         orden.obligacion.save(update_fields=['estado'])
-    messages.success(request, _('Orden de Pago #%(num)s anulada.') % {'num': orden.numero})
+    messages.success(request, 'Orden de Pago #%(num)s anulada.' % {'num': orden.numero})
     return redirect('presupuesto:lista_ordenes_pago')
 
 
@@ -599,5 +598,5 @@ def marcar_orden_pagada(request, pk):
     orden = get_object_or_404(OrdenDePago, pk=pk, **_filtro_institucion(request))
     orden.estado = OrdenDePago.Estado.PAGADA
     orden.save(update_fields=['estado'])
-    messages.success(request, _('Orden de Pago #%(num)s marcada como pagada.') % {'num': orden.numero})
+    messages.success(request, 'Orden de Pago #%(num)s marcada como pagada.' % {'num': orden.numero})
     return redirect('presupuesto:lista_ordenes_pago')

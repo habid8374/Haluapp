@@ -1,19 +1,18 @@
 {% extends "base_academico.html" %}
-{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container-fluid mt-3">
   <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
-    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-file-earmark-lock me-2"></i>{% trans "Certificados de Disponibilidad Presupuestal (CDP)" %}</h2>
-    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">{% trans "Aparta presupuesto de una apropiación antes de comprometerlo con un tercero." %}</p>
+    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-file-earmark-lock me-2"></i>Certificados de Disponibilidad Presupuestal (CDP)</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">Aparta presupuesto de una apropiación antes de comprometerlo con un tercero.</p>
     {% include "presupuesto/_nav.html" %}
   </div>
   {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
-  <div class="mb-3"><a href="{% url 'presupuesto:crear_cdp' %}" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>{% trans "Expedir CDP" %}</a></div>
+  <div class="mb-3"><a href="{% url 'presupuesto:crear_cdp' %}" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Expedir CDP</a></div>
   <div class="card">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light"><tr><th>{% trans "N°" %}</th><th>{% trans "Apropiación" %}</th><th>{% trans "Objeto" %}</th><th>{% trans "Valor" %}</th><th>{% trans "Saldo" %}</th><th>{% trans "Estado" %}</th><th></th></tr></thead>
+        <thead class="table-light"><tr><th>N°</th><th>Apropiación</th><th>Objeto</th><th>Valor</th><th>Saldo</th><th>Estado</th><th></th></tr></thead>
         <tbody>
           {% for c in cdps %}
           <tr>
@@ -23,13 +22,13 @@
             <td>
               {% if c.estado == 'VIGENTE' %}
               <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnular" data-action="{% url 'presupuesto:anular_cdp' c.pk %}" data-nombre="CDP #{{ c.numero }}">
-                <i class="bi bi-x-circle me-1"></i>{% trans "Anular" %}
+                <i class="bi bi-x-circle me-1"></i>Anular
               </button>
               {% endif %}
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="7" class="text-center text-muted py-4">{% trans "No hay CDP expedidos." %}</td></tr>
+          <tr><td colspan="7" class="text-center text-muted py-4">No hay CDP expedidos.</td></tr>
           {% endfor %}
         </tbody>
       </table>

@@ -21,7 +21,6 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.utils.translation import gettext as _
 
 from finanzas.models import ConsecutivoDocumento
 
@@ -37,13 +36,13 @@ def expedir_cdp(*, apropiacion: Apropiacion, valor: Decimal, objeto: str, usuari
     apropiacion = Apropiacion.objects.select_for_update().get(pk=apropiacion.pk)
     vigencia = apropiacion.vigencia
     if not vigencia.esta_abierta:
-        raise ValidationError(_('La vigencia %(anio)s está cerrada: no se pueden expedir nuevos CDP.') % {'anio': vigencia.anio})
+        raise ValidationError('La vigencia %(anio)s está cerrada: no se pueden expedir nuevos CDP.' % {'anio': vigencia.anio})
     if valor <= 0:
-        raise ValidationError(_('El valor del CDP debe ser mayor a cero.'))
+        raise ValidationError('El valor del CDP debe ser mayor a cero.')
     saldo = apropiacion.saldo_disponible
     if valor > saldo:
         raise ValidationError(
-            _('El CDP ($%(valor)s) supera el saldo disponible de la apropiación ($%(saldo)s).')
+            'El CDP ($%(valor)s) supera el saldo disponible de la apropiación ($%(saldo)s).'
             % {'valor': f'{valor:,.2f}', 'saldo': f'{saldo:,.2f}'}
         )
     return CDP.objects.create(
@@ -61,15 +60,15 @@ def expedir_cdp(*, apropiacion: Apropiacion, valor: Decimal, objeto: str, usuari
 def crear_rp(*, cdp: CDP, tercero, objeto_contrato: str, valor: Decimal, usuario) -> RP:
     cdp = CDP.objects.select_for_update().get(pk=cdp.pk)
     if cdp.estado != CDP.Estado.VIGENTE:
-        raise ValidationError(_('El CDP #%(num)s no está vigente.') % {'num': cdp.numero})
+        raise ValidationError('El CDP #%(num)s no está vigente.' % {'num': cdp.numero})
     if not cdp.vigencia.esta_abierta:
-        raise ValidationError(_('La vigencia %(anio)s está cerrada.') % {'anio': cdp.vigencia.anio})
+        raise ValidationError('La vigencia %(anio)s está cerrada.' % {'anio': cdp.vigencia.anio})
     if valor <= 0:
-        raise ValidationError(_('El valor del RP debe ser mayor a cero.'))
+        raise ValidationError('El valor del RP debe ser mayor a cero.')
     saldo = cdp.saldo_disponible
     if valor > saldo:
         raise ValidationError(
-            _('El RP ($%(valor)s) supera el saldo disponible del CDP #%(num)s ($%(saldo)s).')
+            'El RP ($%(valor)s) supera el saldo disponible del CDP #%(num)s ($%(saldo)s).'
             % {'valor': f'{valor:,.2f}', 'num': cdp.numero, 'saldo': f'{saldo:,.2f}'}
         )
     rp = RP.objects.create(
@@ -91,15 +90,15 @@ def crear_rp(*, cdp: CDP, tercero, objeto_contrato: str, valor: Decimal, usuario
 def causar_obligacion(*, rp: RP, valor: Decimal, soporte, usuario) -> Obligacion:
     rp = RP.objects.select_for_update().get(pk=rp.pk)
     if rp.estado != RP.Estado.VIGENTE:
-        raise ValidationError(_('El RP #%(num)s no está vigente.') % {'num': rp.numero})
+        raise ValidationError('El RP #%(num)s no está vigente.' % {'num': rp.numero})
     if not rp.cdp.vigencia.esta_abierta:
-        raise ValidationError(_('La vigencia %(anio)s está cerrada.') % {'anio': rp.cdp.vigencia.anio})
+        raise ValidationError('La vigencia %(anio)s está cerrada.' % {'anio': rp.cdp.vigencia.anio})
     if valor <= 0:
-        raise ValidationError(_('El valor de la obligación debe ser mayor a cero.'))
+        raise ValidationError('El valor de la obligación debe ser mayor a cero.')
     saldo = rp.saldo_disponible
     if valor > saldo:
         raise ValidationError(
-            _('La obligación ($%(valor)s) supera el saldo disponible del RP #%(num)s ($%(saldo)s).')
+            'La obligación ($%(valor)s) supera el saldo disponible del RP #%(num)s ($%(saldo)s).'
             % {'valor': f'{valor:,.2f}', 'num': rp.numero, 'saldo': f'{saldo:,.2f}'}
         )
     obligacion = Obligacion.objects.create(
@@ -120,15 +119,15 @@ def causar_obligacion(*, rp: RP, valor: Decimal, soporte, usuario) -> Obligacion
 def generar_orden_pago(*, obligacion: Obligacion, total_retenciones: Decimal, usuario) -> OrdenDePago:
     obligacion = Obligacion.objects.select_for_update().get(pk=obligacion.pk)
     if obligacion.estado != Obligacion.Estado.VIGENTE:
-        raise ValidationError(_('La obligación #%(num)s no está vigente.') % {'num': obligacion.numero})
+        raise ValidationError('La obligación #%(num)s no está vigente.' % {'num': obligacion.numero})
     if not obligacion.rp.cdp.vigencia.esta_abierta:
-        raise ValidationError(_('La vigencia %(anio)s está cerrada.') % {'anio': obligacion.rp.cdp.vigencia.anio})
+        raise ValidationError('La vigencia %(anio)s está cerrada.' % {'anio': obligacion.rp.cdp.vigencia.anio})
     valor_bruto = obligacion.saldo_disponible
     if valor_bruto <= 0:
-        raise ValidationError(_('La obligación #%(num)s ya está totalmente pagada.') % {'num': obligacion.numero})
+        raise ValidationError('La obligación #%(num)s ya está totalmente pagada.' % {'num': obligacion.numero})
     total_retenciones = total_retenciones or Decimal('0.00')
     if total_retenciones < 0 or total_retenciones > valor_bruto:
-        raise ValidationError(_('Las retenciones no pueden ser negativas ni superar el valor de la obligación.'))
+        raise ValidationError('Las retenciones no pueden ser negativas ni superar el valor de la obligación.')
     orden = OrdenDePago.objects.create(
         institucion=obligacion.institucion,
         obligacion=obligacion,

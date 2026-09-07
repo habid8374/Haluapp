@@ -25,7 +25,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Sum
-from django.utils.translation import gettext_lazy as _
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -34,27 +33,27 @@ from django.utils.translation import gettext_lazy as _
 
 class VigenciaFiscal(models.Model):
     class Estado(models.TextChoices):
-        ABIERTA = 'ABIERTA', _('Abierta')
-        CERRADA = 'CERRADA', _('Cerrada')
+        ABIERTA = 'ABIERTA', 'Abierta'
+        CERRADA = 'CERRADA', 'Cerrada'
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='vigencias_fiscales', verbose_name=_('Institución'),
+        related_name='vigencias_fiscales', verbose_name='Institución',
     )
-    anio = models.PositiveIntegerField(_('Año'))
+    anio = models.PositiveIntegerField('Año')
     estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.ABIERTA)
-    fecha_apertura = models.DateTimeField(_('Fecha de apertura'), auto_now_add=True)
-    fecha_cierre = models.DateTimeField(_('Fecha de cierre'), null=True, blank=True)
+    fecha_apertura = models.DateTimeField('Fecha de apertura', auto_now_add=True)
+    fecha_cierre = models.DateTimeField('Fecha de cierre', null=True, blank=True)
     cerrada_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='+', verbose_name=_('Cerrada por'),
+        related_name='+', verbose_name='Cerrada por',
     )
 
     class Meta:
         unique_together = ('institucion', 'anio')
         ordering = ['-anio']
-        verbose_name = _('Vigencia Fiscal')
-        verbose_name_plural = _('Vigencias Fiscales')
+        verbose_name = 'Vigencia Fiscal'
+        verbose_name_plural = 'Vigencias Fiscales'
 
     def __str__(self):
         return f"{self.institucion} — {self.anio} ({self.get_estado_display()})"
@@ -71,30 +70,30 @@ class VigenciaFiscal(models.Model):
 
 class RubroPresupuestalIngreso(models.Model):
     class TipoRecurso(models.TextChoices):
-        SGP = 'SGP', _('Sistema General de Participaciones')
-        RECURSOS_PROPIOS = 'RECURSOS_PROPIOS', _('Recursos propios')
-        TRANSFERENCIAS = 'TRANSFERENCIAS', _('Transferencias territoriales')
-        RECURSOS_CAPITAL = 'RECURSOS_CAPITAL', _('Recursos de capital')
-        DONACIONES = 'DONACIONES', _('Donaciones')
+        SGP = 'SGP', 'Sistema General de Participaciones'
+        RECURSOS_PROPIOS = 'RECURSOS_PROPIOS', 'Recursos propios'
+        TRANSFERENCIAS = 'TRANSFERENCIAS', 'Transferencias territoriales'
+        RECURSOS_CAPITAL = 'RECURSOS_CAPITAL', 'Recursos de capital'
+        DONACIONES = 'DONACIONES', 'Donaciones'
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='rubros_ingreso', verbose_name=_('Institución'),
+        related_name='rubros_ingreso', verbose_name='Institución',
     )
-    codigo = models.CharField(_('Código'), max_length=20)
-    nombre = models.CharField(_('Nombre'), max_length=200)
-    tipo_recurso = models.CharField(_('Fuente de financiación'), max_length=20, choices=TipoRecurso.choices)
+    codigo = models.CharField('Código', max_length=20)
+    nombre = models.CharField('Nombre', max_length=200)
+    tipo_recurso = models.CharField('Fuente de financiación', max_length=20, choices=TipoRecurso.choices)
     rubro_padre = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True,
-        related_name='hijos', verbose_name=_('Rubro padre'),
+        related_name='hijos', verbose_name='Rubro padre',
     )
-    activo = models.BooleanField(_('Activo'), default=True)
+    activo = models.BooleanField('Activo', default=True)
 
     class Meta:
         unique_together = ('institucion', 'codigo')
         ordering = ['codigo']
-        verbose_name = _('Rubro Presupuestal de Ingreso')
-        verbose_name_plural = _('Rubros Presupuestales de Ingreso')
+        verbose_name = 'Rubro Presupuestal de Ingreso'
+        verbose_name_plural = 'Rubros Presupuestales de Ingreso'
 
     def __str__(self):
         return f"{self.codigo} · {self.nombre}"
@@ -102,27 +101,27 @@ class RubroPresupuestalIngreso(models.Model):
 
 class RubroPresupuestalGasto(models.Model):
     class Tipo(models.TextChoices):
-        FUNCIONAMIENTO = 'FUNCIONAMIENTO', _('Funcionamiento')
-        INVERSION = 'INVERSION', _('Inversión')
+        FUNCIONAMIENTO = 'FUNCIONAMIENTO', 'Funcionamiento'
+        INVERSION = 'INVERSION', 'Inversión'
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='rubros_gasto', verbose_name=_('Institución'),
+        related_name='rubros_gasto', verbose_name='Institución',
     )
-    codigo = models.CharField(_('Código'), max_length=20)
-    nombre = models.CharField(_('Nombre'), max_length=200)
-    tipo = models.CharField(_('Tipo de gasto'), max_length=20, choices=Tipo.choices)
+    codigo = models.CharField('Código', max_length=20)
+    nombre = models.CharField('Nombre', max_length=200)
+    tipo = models.CharField('Tipo de gasto', max_length=20, choices=Tipo.choices)
     rubro_padre = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True,
-        related_name='hijos', verbose_name=_('Rubro padre'),
+        related_name='hijos', verbose_name='Rubro padre',
     )
-    activo = models.BooleanField(_('Activo'), default=True)
+    activo = models.BooleanField('Activo', default=True)
 
     class Meta:
         unique_together = ('institucion', 'codigo')
         ordering = ['codigo']
-        verbose_name = _('Rubro Presupuestal de Gasto')
-        verbose_name_plural = _('Rubros Presupuestales de Gasto')
+        verbose_name = 'Rubro Presupuestal de Gasto'
+        verbose_name_plural = 'Rubros Presupuestales de Gasto'
 
     def __str__(self):
         return f"{self.codigo} · {self.nombre}"
@@ -136,30 +135,30 @@ class RubroPresupuestalGasto(models.Model):
 class PresupuestoIngreso(models.Model):
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='presupuestos_ingreso', verbose_name=_('Institución'),
+        related_name='presupuestos_ingreso', verbose_name='Institución',
     )
     vigencia = models.ForeignKey(
         VigenciaFiscal, on_delete=models.CASCADE,
-        related_name='presupuestos_ingreso', verbose_name=_('Vigencia fiscal'),
+        related_name='presupuestos_ingreso', verbose_name='Vigencia fiscal',
     )
     rubro = models.ForeignKey(
         RubroPresupuestalIngreso, on_delete=models.PROTECT,
-        related_name='presupuestos', verbose_name=_('Rubro de ingreso'),
+        related_name='presupuestos', verbose_name='Rubro de ingreso',
     )
-    valor_inicial = models.DecimalField(_('Valor presupuestado'), max_digits=14, decimal_places=2, default=Decimal('0.00'))
-    valor_recaudado = models.DecimalField(_('Valor recaudado'), max_digits=14, decimal_places=2, default=Decimal('0.00'))
+    valor_inicial = models.DecimalField('Valor presupuestado', max_digits=14, decimal_places=2, default=Decimal('0.00'))
+    valor_recaudado = models.DecimalField('Valor recaudado', max_digits=14, decimal_places=2, default=Decimal('0.00'))
 
     class Meta:
         unique_together = ('vigencia', 'rubro')
-        verbose_name = _('Presupuesto de Ingreso')
-        verbose_name_plural = _('Presupuestos de Ingreso')
+        verbose_name = 'Presupuesto de Ingreso'
+        verbose_name_plural = 'Presupuestos de Ingreso'
 
     def __str__(self):
         return f"{self.rubro} — {self.vigencia.anio}: ${self.valor_inicial:,.2f}"
 
     def clean(self):
         if self.rubro_id and self.vigencia_id and self.rubro.institucion_id != self.vigencia.institucion_id:
-            raise ValidationError(_('El rubro y la vigencia deben pertenecer a la misma institución.'))
+            raise ValidationError('El rubro y la vigencia deben pertenecer a la misma institución.')
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -169,29 +168,29 @@ class PresupuestoIngreso(models.Model):
 class Apropiacion(models.Model):
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='apropiaciones', verbose_name=_('Institución'),
+        related_name='apropiaciones', verbose_name='Institución',
     )
     vigencia = models.ForeignKey(
         VigenciaFiscal, on_delete=models.CASCADE,
-        related_name='apropiaciones', verbose_name=_('Vigencia fiscal'),
+        related_name='apropiaciones', verbose_name='Vigencia fiscal',
     )
     rubro = models.ForeignKey(
         RubroPresupuestalGasto, on_delete=models.PROTECT,
-        related_name='apropiaciones', verbose_name=_('Rubro de gasto'),
+        related_name='apropiaciones', verbose_name='Rubro de gasto',
     )
-    valor_inicial = models.DecimalField(_('Apropiación inicial'), max_digits=14, decimal_places=2, default=Decimal('0.00'))
+    valor_inicial = models.DecimalField('Apropiación inicial', max_digits=14, decimal_places=2, default=Decimal('0.00'))
 
     class Meta:
         unique_together = ('vigencia', 'rubro')
-        verbose_name = _('Apropiación Presupuestal')
-        verbose_name_plural = _('Apropiaciones Presupuestales')
+        verbose_name = 'Apropiación Presupuestal'
+        verbose_name_plural = 'Apropiaciones Presupuestales'
 
     def __str__(self):
         return f"{self.rubro} — {self.vigencia.anio}"
 
     def clean(self):
         if self.rubro_id and self.vigencia_id and self.rubro.institucion_id != self.vigencia.institucion_id:
-            raise ValidationError(_('El rubro y la vigencia deben pertenecer a la misma institución.'))
+            raise ValidationError('El rubro y la vigencia deben pertenecer a la misma institución.')
 
     # --- Saldos calculados (siempre en vivo, nunca desnormalizados) ---
 
@@ -236,52 +235,52 @@ class Apropiacion(models.Model):
 
 class ModificacionPresupuestal(models.Model):
     class Tipo(models.TextChoices):
-        ADICION = 'ADICION', _('Adición')
-        REDUCCION = 'REDUCCION', _('Reducción')
-        TRASLADO = 'TRASLADO', _('Traslado')
+        ADICION = 'ADICION', 'Adición'
+        REDUCCION = 'REDUCCION', 'Reducción'
+        TRASLADO = 'TRASLADO', 'Traslado'
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='modificaciones_presupuestales', verbose_name=_('Institución'),
+        related_name='modificaciones_presupuestales', verbose_name='Institución',
     )
     apropiacion = models.ForeignKey(
         Apropiacion, on_delete=models.CASCADE,
-        related_name='modificaciones', verbose_name=_('Apropiación (origen)'),
+        related_name='modificaciones', verbose_name='Apropiación (origen)',
     )
     apropiacion_destino = models.ForeignKey(
         Apropiacion, on_delete=models.CASCADE, null=True, blank=True,
-        related_name='traslados_recibidos', verbose_name=_('Apropiación destino (solo traslados)'),
-        help_text=_('Obligatorio solo para movimientos de tipo Traslado: el rubro que RECIBE el valor.'),
+        related_name='traslados_recibidos', verbose_name='Apropiación destino (solo traslados)',
+        help_text='Obligatorio solo para movimientos de tipo Traslado: el rubro que RECIBE el valor.',
     )
-    tipo = models.CharField(_('Tipo de movimiento'), max_length=12, choices=Tipo.choices)
-    valor = models.DecimalField(_('Valor'), max_digits=14, decimal_places=2)
+    tipo = models.CharField('Tipo de movimiento', max_length=12, choices=Tipo.choices)
+    valor = models.DecimalField('Valor', max_digits=14, decimal_places=2)
     acto_administrativo = models.CharField(
-        _('Acto administrativo'), max_length=255, blank=True,
-        help_text=_('Ej: Resolución 014 del 12/03/2026 del Consejo Directivo.'),
+        'Acto administrativo', max_length=255, blank=True,
+        help_text='Ej: Resolución 014 del 12/03/2026 del Consejo Directivo.',
     )
-    soporte = models.FileField(_('Soporte (PDF)'), upload_to='presupuesto/modificaciones/', blank=True, null=True)
+    soporte = models.FileField('Soporte (PDF)', upload_to='presupuesto/modificaciones/', blank=True, null=True)
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
     )
-    fecha = models.DateTimeField(_('Fecha de registro'), auto_now_add=True)
+    fecha = models.DateTimeField('Fecha de registro', auto_now_add=True)
 
     class Meta:
         ordering = ['-fecha']
-        verbose_name = _('Modificación Presupuestal')
-        verbose_name_plural = _('Modificaciones Presupuestales')
+        verbose_name = 'Modificación Presupuestal'
+        verbose_name_plural = 'Modificaciones Presupuestales'
 
     def __str__(self):
         return f"{self.get_tipo_display()} ${self.valor:,.2f} — {self.apropiacion.rubro}"
 
     def clean(self):
         if self.tipo == self.Tipo.TRASLADO and not self.apropiacion_destino_id:
-            raise ValidationError({'apropiacion_destino': _('Un traslado necesita el rubro que recibe el valor.')})
+            raise ValidationError({'apropiacion_destino': 'Un traslado necesita el rubro que recibe el valor.'})
         if self.tipo != self.Tipo.TRASLADO and self.apropiacion_destino_id:
-            raise ValidationError({'apropiacion_destino': _('Solo los traslados usan un rubro destino.')})
+            raise ValidationError({'apropiacion_destino': 'Solo los traslados usan un rubro destino.'})
         if self.apropiacion_destino_id and self.apropiacion_destino_id == self.apropiacion_id:
-            raise ValidationError({'apropiacion_destino': _('El rubro destino no puede ser el mismo que el de origen.')})
+            raise ValidationError({'apropiacion_destino': 'El rubro destino no puede ser el mismo que el de origen.'})
         if self.valor is not None and self.valor <= 0:
-            raise ValidationError({'valor': _('El valor debe ser mayor a cero.')})
+            raise ValidationError({'valor': 'El valor debe ser mayor a cero.'})
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -292,35 +291,35 @@ class CDP(models.Model):
     """Certificado de Disponibilidad Presupuestal."""
 
     class Estado(models.TextChoices):
-        VIGENTE = 'VIGENTE', _('Vigente')
-        ANULADO = 'ANULADO', _('Anulado')
-        AGOTADO = 'AGOTADO', _('Agotado')
+        VIGENTE = 'VIGENTE', 'Vigente'
+        ANULADO = 'ANULADO', 'Anulado'
+        AGOTADO = 'AGOTADO', 'Agotado'
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='cdps', verbose_name=_('Institución'),
+        related_name='cdps', verbose_name='Institución',
     )
     vigencia = models.ForeignKey(
-        VigenciaFiscal, on_delete=models.PROTECT, related_name='cdps', verbose_name=_('Vigencia fiscal'),
+        VigenciaFiscal, on_delete=models.PROTECT, related_name='cdps', verbose_name='Vigencia fiscal',
     )
     apropiacion = models.ForeignKey(
-        Apropiacion, on_delete=models.PROTECT, related_name='cdps', verbose_name=_('Apropiación'),
+        Apropiacion, on_delete=models.PROTECT, related_name='cdps', verbose_name='Apropiación',
     )
-    numero = models.PositiveIntegerField(_('Número'), editable=False)
-    valor = models.DecimalField(_('Valor'), max_digits=14, decimal_places=2)
-    objeto = models.CharField(_('Objeto'), max_length=255, help_text=_('Para qué se aparta este dinero.'))
+    numero = models.PositiveIntegerField('Número', editable=False)
+    valor = models.DecimalField('Valor', max_digits=14, decimal_places=2)
+    objeto = models.CharField('Objeto', max_length=255, help_text='Para qué se aparta este dinero.')
     estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.VIGENTE)
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
     )
-    fecha_expedicion = models.DateTimeField(_('Fecha de expedición'), auto_now_add=True)
-    anulado_motivo = models.CharField(_('Motivo de anulación'), max_length=255, blank=True)
+    fecha_expedicion = models.DateTimeField('Fecha de expedición', auto_now_add=True)
+    anulado_motivo = models.CharField('Motivo de anulación', max_length=255, blank=True)
 
     class Meta:
         unique_together = ('institucion', 'vigencia', 'numero')
         ordering = ['-numero']
-        verbose_name = _('Certificado de Disponibilidad Presupuestal (CDP)')
-        verbose_name_plural = _('Certificados de Disponibilidad Presupuestal (CDP)')
+        verbose_name = 'Certificado de Disponibilidad Presupuestal (CDP)'
+        verbose_name_plural = 'Certificados de Disponibilidad Presupuestal (CDP)'
 
     def __str__(self):
         return f"CDP #{self.numero}/{self.vigencia.anio} — ${self.valor:,.2f}"
@@ -341,36 +340,36 @@ class RP(models.Model):
     """Registro Presupuestal (compromiso con un tercero)."""
 
     class Estado(models.TextChoices):
-        VIGENTE = 'VIGENTE', _('Vigente')
-        ANULADO = 'ANULADO', _('Anulado')
-        LIQUIDADO = 'LIQUIDADO', _('Liquidado')
+        VIGENTE = 'VIGENTE', 'Vigente'
+        ANULADO = 'ANULADO', 'Anulado'
+        LIQUIDADO = 'LIQUIDADO', 'Liquidado'
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='registros_presupuestales', verbose_name=_('Institución'),
+        related_name='registros_presupuestales', verbose_name='Institución',
     )
     cdp = models.ForeignKey(
-        CDP, on_delete=models.PROTECT, related_name='registros_presupuestales', verbose_name=_('CDP'),
+        CDP, on_delete=models.PROTECT, related_name='registros_presupuestales', verbose_name='CDP',
     )
-    numero = models.PositiveIntegerField(_('Número'), editable=False)
+    numero = models.PositiveIntegerField('Número', editable=False)
     tercero = models.ForeignKey(
         'finanzas.Proveedor', on_delete=models.PROTECT, related_name='registros_presupuestales',
-        verbose_name=_('Tercero / contratista'),
+        verbose_name='Tercero / contratista',
     )
-    objeto_contrato = models.CharField(_('Objeto del contrato'), max_length=255)
-    valor = models.DecimalField(_('Valor'), max_digits=14, decimal_places=2)
+    objeto_contrato = models.CharField('Objeto del contrato', max_length=255)
+    valor = models.DecimalField('Valor', max_digits=14, decimal_places=2)
     estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.VIGENTE)
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
     )
-    fecha = models.DateTimeField(_('Fecha de registro'), auto_now_add=True)
-    anulado_motivo = models.CharField(_('Motivo de anulación'), max_length=255, blank=True)
+    fecha = models.DateTimeField('Fecha de registro', auto_now_add=True)
+    anulado_motivo = models.CharField('Motivo de anulación', max_length=255, blank=True)
 
     class Meta:
         unique_together = ('institucion', 'numero')
         ordering = ['-numero']
-        verbose_name = _('Registro Presupuestal (RP)')
-        verbose_name_plural = _('Registros Presupuestales (RP)')
+        verbose_name = 'Registro Presupuestal (RP)'
+        verbose_name_plural = 'Registros Presupuestales (RP)'
 
     def __str__(self):
         return f"RP #{self.numero} — ${self.valor:,.2f} ({self.tercero})"
@@ -391,34 +390,34 @@ class Obligacion(models.Model):
     """Causación del gasto: el bien/servicio ya se recibió a satisfacción."""
 
     class Estado(models.TextChoices):
-        VIGENTE = 'VIGENTE', _('Vigente')
-        ANULADA = 'ANULADA', _('Anulada')
-        PAGADA = 'PAGADA', _('Pagada')
+        VIGENTE = 'VIGENTE', 'Vigente'
+        ANULADA = 'ANULADA', 'Anulada'
+        PAGADA = 'PAGADA', 'Pagada'
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='obligaciones', verbose_name=_('Institución'),
+        related_name='obligaciones', verbose_name='Institución',
     )
     rp = models.ForeignKey(
-        RP, on_delete=models.PROTECT, related_name='obligaciones', verbose_name=_('Registro Presupuestal (RP)'),
+        RP, on_delete=models.PROTECT, related_name='obligaciones', verbose_name='Registro Presupuestal (RP)',
     )
-    numero = models.PositiveIntegerField(_('Número'), editable=False)
-    valor = models.DecimalField(_('Valor'), max_digits=14, decimal_places=2)
+    numero = models.PositiveIntegerField('Número', editable=False)
+    valor = models.DecimalField('Valor', max_digits=14, decimal_places=2)
     soporte_recibido_satisfaccion = models.FileField(
-        _('Soporte (acta / factura)'), upload_to='presupuesto/obligaciones/', blank=True, null=True,
+        'Soporte (acta / factura)', upload_to='presupuesto/obligaciones/', blank=True, null=True,
     )
     estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.VIGENTE)
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
     )
-    fecha = models.DateTimeField(_('Fecha de registro'), auto_now_add=True)
-    anulado_motivo = models.CharField(_('Motivo de anulación'), max_length=255, blank=True)
+    fecha = models.DateTimeField('Fecha de registro', auto_now_add=True)
+    anulado_motivo = models.CharField('Motivo de anulación', max_length=255, blank=True)
 
     class Meta:
         unique_together = ('institucion', 'numero')
         ordering = ['-numero']
-        verbose_name = _('Obligación')
-        verbose_name_plural = _('Obligaciones')
+        verbose_name = 'Obligación'
+        verbose_name_plural = 'Obligaciones'
 
     def __str__(self):
         return f"Obligación #{self.numero} — ${self.valor:,.2f}"
@@ -437,36 +436,36 @@ class Obligacion(models.Model):
 
 class OrdenDePago(models.Model):
     class Estado(models.TextChoices):
-        GENERADA = 'GENERADA', _('Generada')
-        PAGADA = 'PAGADA', _('Pagada')
-        ANULADA = 'ANULADA', _('Anulada')
+        GENERADA = 'GENERADA', 'Generada'
+        PAGADA = 'PAGADA', 'Pagada'
+        ANULADA = 'ANULADA', 'Anulada'
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='ordenes_de_pago', verbose_name=_('Institución'),
+        related_name='ordenes_de_pago', verbose_name='Institución',
     )
     obligacion = models.ForeignKey(
-        Obligacion, on_delete=models.PROTECT, related_name='ordenes_de_pago', verbose_name=_('Obligación'),
+        Obligacion, on_delete=models.PROTECT, related_name='ordenes_de_pago', verbose_name='Obligación',
     )
-    numero = models.PositiveIntegerField(_('Número'), editable=False)
-    valor_bruto = models.DecimalField(_('Valor bruto'), max_digits=14, decimal_places=2)
-    total_retenciones = models.DecimalField(_('Total retenciones'), max_digits=14, decimal_places=2, default=Decimal('0.00'))
-    valor_neto = models.DecimalField(_('Valor neto a pagar'), max_digits=14, decimal_places=2)
+    numero = models.PositiveIntegerField('Número', editable=False)
+    valor_bruto = models.DecimalField('Valor bruto', max_digits=14, decimal_places=2)
+    total_retenciones = models.DecimalField('Total retenciones', max_digits=14, decimal_places=2, default=Decimal('0.00'))
+    valor_neto = models.DecimalField('Valor neto a pagar', max_digits=14, decimal_places=2)
     beneficiario = models.ForeignKey(
-        'finanzas.Proveedor', on_delete=models.PROTECT, related_name='ordenes_de_pago', verbose_name=_('Beneficiario'),
+        'finanzas.Proveedor', on_delete=models.PROTECT, related_name='ordenes_de_pago', verbose_name='Beneficiario',
     )
     estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.GENERADA)
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
     )
-    fecha = models.DateTimeField(_('Fecha de registro'), auto_now_add=True)
-    anulado_motivo = models.CharField(_('Motivo de anulación'), max_length=255, blank=True)
+    fecha = models.DateTimeField('Fecha de registro', auto_now_add=True)
+    anulado_motivo = models.CharField('Motivo de anulación', max_length=255, blank=True)
 
     class Meta:
         unique_together = ('institucion', 'numero')
         ordering = ['-numero']
-        verbose_name = _('Orden de Pago')
-        verbose_name_plural = _('Órdenes de Pago')
+        verbose_name = 'Orden de Pago'
+        verbose_name_plural = 'Órdenes de Pago'
 
     def __str__(self):
         return f"Orden de Pago #{self.numero} — ${self.valor_neto:,.2f}"

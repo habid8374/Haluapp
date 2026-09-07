@@ -1,5 +1,4 @@
 from django import forms
-from django.utils.translation import gettext_lazy as _
 
 from finanzas.models import Proveedor
 
@@ -177,7 +176,7 @@ class OrdenDePagoForm(_InstitucionScopedFormMixin, forms.ModelForm):
             'obligacion': forms.Select(attrs={'class': 'form-select'}),
             'total_retenciones': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
-        labels = {'total_retenciones': _('Total retenciones (ReteFuente, ReteICA, estampillas…)')}
+        labels = {'total_retenciones': 'Total retenciones (ReteFuente, ReteICA, estampillas…)'}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

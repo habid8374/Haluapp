@@ -263,6 +263,9 @@ def inicio_academico(request):
         elif user.rol == 'familiar':
             return redirect('gestion_academica:portal_familiar_inicio')
         elif user.rol == 'tesoreria':
+            inst = getattr(user, 'institucion_asociada', None)
+            if inst and inst.tipo_institucion == 'publico':
+                return redirect('presupuesto:dashboard')
             return redirect('finanzas:dashboard_financiero')
         elif user.rol == 'secretaria':
             return redirect('admisiones:dashboard_admisiones')

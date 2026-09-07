@@ -1,5 +1,4 @@
 {% extends "base_academico.html" %}
-{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container-fluid mt-3">
@@ -24,8 +23,8 @@
           </div>
         {% endfor %}
         <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i>{% trans "Guardar" %}</button>
-          {% if volver_url %}<a href="{% url volver_url %}" class="btn btn-outline-secondary">{% trans "Cancelar" %}</a>{% endif %}
+          <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i>Guardar</button>
+          {% if volver_url %}<a href="{% url volver_url %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
         </div>
       </form>
     </div>
