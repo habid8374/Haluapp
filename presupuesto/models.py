@@ -120,7 +120,7 @@ class CategoriaCPC(models.Model):
         SERVICIO = 'SERVICIO', 'Servicio'
 
     codigo = models.CharField('Código CPC', max_length=15, unique=True)
-    titulo = models.CharField('Título', max_length=255)
+    titulo = models.TextField('Título')
     tipo = models.CharField(max_length=10, choices=Tipo.choices)
 
     class Meta:
