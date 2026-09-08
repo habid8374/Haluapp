@@ -419,6 +419,11 @@ ROL_GRUPO_MAP = {
     'tesoreria': 'tesoreria',
     'rector': 'rectores',
     'psicologo': 'psicoorientadores',
+    # 'administrador' = dueño de la institución (colegios pequeños: una sola
+    # persona hace de secretaría + tesorería a la vez). Grupo 'administradores'
+    # creado en la migración 0099 con la unión de esos dos conjuntos de
+    # permisos, más comunicados (Noticia).
+    'administrador': 'administradores',
 }
 
 
