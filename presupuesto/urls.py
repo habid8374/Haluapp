@@ -10,16 +10,24 @@ urlpatterns = [
 
     path('vigencias/', views.lista_vigencias, name='lista_vigencias'),
     path('vigencias/nueva/', views.crear_vigencia, name='crear_vigencia'),
+    path('vigencias/<int:pk>/editar/', views.editar_vigencia, name='editar_vigencia'),
+    path('vigencias/<int:pk>/eliminar/', views.eliminar_vigencia, name='eliminar_vigencia'),
     path('vigencias/<int:pk>/cerrar/', views.cerrar_vigencia, name='cerrar_vigencia'),
 
     path('rubros-ingreso/', views.lista_rubros_ingreso, name='lista_rubros_ingreso'),
     path('rubros-ingreso/nuevo/', views.crear_rubro_ingreso, name='crear_rubro_ingreso'),
+    path('rubros-ingreso/<int:pk>/editar/', views.editar_rubro_ingreso, name='editar_rubro_ingreso'),
+    path('rubros-ingreso/<int:pk>/eliminar/', views.eliminar_rubro_ingreso, name='eliminar_rubro_ingreso'),
 
     path('rubros-gasto/', views.lista_rubros_gasto, name='lista_rubros_gasto'),
     path('rubros-gasto/nuevo/', views.crear_rubro_gasto, name='crear_rubro_gasto'),
+    path('rubros-gasto/<int:pk>/editar/', views.editar_rubro_gasto, name='editar_rubro_gasto'),
+    path('rubros-gasto/<int:pk>/eliminar/', views.eliminar_rubro_gasto, name='eliminar_rubro_gasto'),
 
     path('ingresos/', views.lista_presupuesto_ingreso, name='lista_presupuesto_ingreso'),
     path('ingresos/nuevo/', views.crear_presupuesto_ingreso, name='crear_presupuesto_ingreso'),
+    path('ingresos/<int:pk>/editar/', views.editar_presupuesto_ingreso, name='editar_presupuesto_ingreso'),
+    path('ingresos/<int:pk>/eliminar/', views.eliminar_presupuesto_ingreso, name='eliminar_presupuesto_ingreso'),
     path('ingresos/<int:pk>/recaudo/', views.registrar_recaudo, name='registrar_recaudo'),
 
     path('apropiaciones/', views.lista_apropiaciones, name='lista_apropiaciones'),
@@ -27,6 +35,8 @@ urlpatterns = [
 
     path('modificaciones/', views.lista_modificaciones, name='lista_modificaciones'),
     path('modificaciones/nueva/', views.crear_modificacion, name='crear_modificacion'),
+    path('modificaciones/<int:pk>/editar/', views.editar_modificacion, name='editar_modificacion'),
+    path('modificaciones/<int:pk>/eliminar/', views.eliminar_modificacion, name='eliminar_modificacion'),
 
     path('cdp/', views.lista_cdp, name='lista_cdp'),
     path('cdp/nuevo/', views.crear_cdp, name='crear_cdp'),
@@ -54,6 +64,8 @@ urlpatterns = [
 
     path('conceptos-retencion/', views.lista_conceptos_retencion, name='lista_conceptos_retencion'),
     path('conceptos-retencion/nuevo/', views.crear_concepto_retencion, name='crear_concepto_retencion'),
+    path('conceptos-retencion/<int:pk>/editar/', views.editar_concepto_retencion, name='editar_concepto_retencion'),
+    path('conceptos-retencion/<int:pk>/eliminar/', views.eliminar_concepto_retencion, name='eliminar_concepto_retencion'),
 
     path('comprobantes/', views.lista_comprobantes, name='lista_comprobantes'),
     path('comprobantes/<int:pk>/', views.detalle_comprobante, name='detalle_comprobante'),
@@ -67,12 +79,16 @@ urlpatterns = [
 
     path('cuentas-bancarias/', views.lista_cuentas_bancarias, name='lista_cuentas_bancarias'),
     path('cuentas-bancarias/nueva/', views.crear_cuenta_bancaria, name='crear_cuenta_bancaria'),
+    path('cuentas-bancarias/<int:pk>/editar/', views.editar_cuenta_bancaria, name='editar_cuenta_bancaria'),
+    path('cuentas-bancarias/<int:pk>/eliminar/', views.eliminar_cuenta_bancaria, name='eliminar_cuenta_bancaria'),
 
     path('tesoreria/movimientos/', views.lista_movimientos_tesoreria, name='lista_movimientos_tesoreria'),
     path('tesoreria/movimientos/<int:pk>/conciliar/', views.conciliar_movimiento_tesoreria, name='conciliar_movimiento_tesoreria'),
 
     path('almacen/elementos/', views.lista_elementos_almacen, name='lista_elementos_almacen'),
     path('almacen/elementos/nuevo/', views.crear_elemento_almacen, name='crear_elemento_almacen'),
+    path('almacen/elementos/<int:pk>/editar/', views.editar_elemento_almacen, name='editar_elemento_almacen'),
+    path('almacen/elementos/<int:pk>/eliminar/', views.eliminar_elemento_almacen, name='eliminar_elemento_almacen'),
     path('almacen/movimientos/', views.lista_movimientos_almacen, name='lista_movimientos_almacen'),
     path('almacen/movimientos/nuevo/', views.crear_movimiento_almacen, name='crear_movimiento_almacen'),
 

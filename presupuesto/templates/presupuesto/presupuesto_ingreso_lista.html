@@ -16,12 +16,16 @@
           {% for i in items %}
           <tr>
             <td>{{ i.vigencia.anio }}</td><td>{{ i.rubro }}</td><td>${{ i.valor_inicial|floatformat:2 }}</td><td>${{ i.valor_recaudado|floatformat:2 }}</td>
-            <td>
+            <td class="d-flex gap-1">
               {% if i.vigencia.esta_abierta %}
               <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalRecaudo" data-action="{% url 'presupuesto:registrar_recaudo' i.pk %}">
                 <i class="bi bi-plus-circle me-1"></i>Registrar recaudo
               </button>
               {% endif %}
+              <a href="{% url 'presupuesto:editar_presupuesto_ingreso' i.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil-fill me-1"></i>Editar</a>
+              <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalEliminar" data-action="{% url 'presupuesto:eliminar_presupuesto_ingreso' i.pk %}" data-nombre="{{ i.rubro }} — {{ i.vigencia.anio }}">
+                <i class="bi bi-trash-fill me-1"></i>Eliminar
+              </button>
             </td>
           </tr>
           {% empty %}
@@ -54,12 +58,19 @@
     </div>
   </div>
 </div>
+{% include "presupuesto/_modal_eliminar.html" %}
 {% endblock %}
 {% block extra_js %}{{ block.super }}
 <script>
 document.querySelectorAll('[data-bs-target="#modalRecaudo"]').forEach(btn => {
   btn.addEventListener('click', function () {
     document.getElementById('form-recaudo').action = this.dataset.action;
+  });
+});
+document.querySelectorAll('[data-bs-target="#modalEliminar"]').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-eliminar').action = this.dataset.action;
+    document.getElementById('modal-eliminar-nombre').textContent = this.dataset.nombre || '';
   });
 });
 </script>

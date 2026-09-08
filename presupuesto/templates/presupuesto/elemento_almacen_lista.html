@@ -14,7 +14,7 @@
   <div class="card">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light"><tr><th>Código</th><th>Nombre</th><th>Unidad</th><th>Stock actual</th><th>Stock mínimo</th><th>Activo</th></tr></thead>
+        <thead class="table-light"><tr><th>Código</th><th>Nombre</th><th>Unidad</th><th>Stock actual</th><th>Stock mínimo</th><th>Activo</th><th></th></tr></thead>
         <tbody>
           {% for e in elementos %}
           <tr>
@@ -25,13 +25,30 @@
             </td>
             <td>{{ e.stock_minimo }}</td>
             <td><span class="badge {% if e.activo %}bg-success{% else %}bg-secondary{% endif %}">{% if e.activo %}Sí{% else %}No{% endif %}</span></td>
+            <td class="d-flex gap-1">
+              <a href="{% url 'presupuesto:editar_elemento_almacen' e.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil-fill me-1"></i>Editar</a>
+              <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalEliminar" data-action="{% url 'presupuesto:eliminar_elemento_almacen' e.pk %}" data-nombre="{{ e.codigo }} · {{ e.nombre }}">
+                <i class="bi bi-trash-fill me-1"></i>Eliminar
+              </button>
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="6" class="text-center text-muted py-4">No hay elementos de almacén registrados.</td></tr>
+          <tr><td colspan="7" class="text-center text-muted py-4">No hay elementos de almacén registrados.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 </div>
+{% include "presupuesto/_modal_eliminar.html" %}
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('[data-bs-target="#modalEliminar"]').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-eliminar').action = this.dataset.action;
+    document.getElementById('modal-eliminar-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
 {% endblock %}

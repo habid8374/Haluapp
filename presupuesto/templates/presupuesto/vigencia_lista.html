@@ -19,12 +19,16 @@
             <td><span class="badge {% if v.estado == 'ABIERTA' %}bg-success{% else %}bg-secondary{% endif %}">{{ v.get_estado_display }}</span></td>
             <td>{{ v.fecha_apertura|date:"d/m/Y H:i" }}</td>
             <td>{{ v.fecha_cierre|date:"d/m/Y H:i"|default:"—" }}</td>
-            <td>
+            <td class="d-flex gap-1">
+              <a href="{% url 'presupuesto:editar_vigencia' v.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil-fill me-1"></i>Editar</a>
               {% if v.estado == 'ABIERTA' %}
               <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalCerrar" data-action="{% url 'presupuesto:cerrar_vigencia' v.pk %}" data-anio="{{ v.anio }}">
                 <i class="bi bi-lock-fill me-1"></i>Cerrar
               </button>
               {% endif %}
+              <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalEliminar" data-action="{% url 'presupuesto:eliminar_vigencia' v.pk %}" data-nombre="Vigencia {{ v.anio }}">
+                <i class="bi bi-trash-fill me-1"></i>Eliminar
+              </button>
             </td>
           </tr>
           {% empty %}
@@ -60,6 +64,7 @@
     </div>
   </div>
 </div>
+{% include "presupuesto/_modal_eliminar.html" %}
 {% endblock %}
 {% block extra_js %}{{ block.super }}
 <script>
@@ -67,6 +72,12 @@ document.querySelectorAll('[data-bs-target="#modalCerrar"]').forEach(btn => {
   btn.addEventListener('click', function () {
     document.getElementById('form-cerrar').action = this.dataset.action;
     document.getElementById('modal-cerrar-anio').textContent = "Vigencia " + this.dataset.anio;
+  });
+});
+document.querySelectorAll('[data-bs-target="#modalEliminar"]').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-eliminar').action = this.dataset.action;
+    document.getElementById('modal-eliminar-nombre').textContent = this.dataset.nombre || '';
   });
 });
 </script>

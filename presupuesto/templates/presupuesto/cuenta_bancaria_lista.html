@@ -11,20 +11,37 @@
   <div class="card">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light"><tr><th>Banco</th><th>N° Cuenta</th><th>Tipo</th><th>Cuenta CGC</th><th>Saldo actual</th><th>Activa</th></tr></thead>
+        <thead class="table-light"><tr><th>Banco</th><th>N° Cuenta</th><th>Tipo</th><th>Cuenta CGC</th><th>Saldo actual</th><th>Activa</th><th></th></tr></thead>
         <tbody>
           {% for c in cuentas %}
           <tr>
             <td class="fw-bold">{{ c.banco }}</td><td>{{ c.numero_cuenta }}</td><td>{{ c.get_tipo_display }}</td>
             <td>{{ c.cuenta_cgc }}</td><td>${{ c.saldo_actual|floatformat:2 }}</td>
             <td><span class="badge {% if c.activa %}bg-success{% else %}bg-secondary{% endif %}">{% if c.activa %}Sí{% else %}No{% endif %}</span></td>
+            <td class="d-flex gap-1">
+              <a href="{% url 'presupuesto:editar_cuenta_bancaria' c.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil-fill me-1"></i>Editar</a>
+              <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalEliminar" data-action="{% url 'presupuesto:eliminar_cuenta_bancaria' c.pk %}" data-nombre="{{ c.banco }} · {{ c.numero_cuenta }}">
+                <i class="bi bi-trash-fill me-1"></i>Eliminar
+              </button>
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="6" class="text-center text-muted py-4">No hay cuentas bancarias registradas.</td></tr>
+          <tr><td colspan="7" class="text-center text-muted py-4">No hay cuentas bancarias registradas.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 </div>
+{% include "presupuesto/_modal_eliminar.html" %}
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('[data-bs-target="#modalEliminar"]').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-eliminar').action = this.dataset.action;
+    document.getElementById('modal-eliminar-nombre').textContent = this.dataset.nombre || '';
+  });
+});
+</script>
 {% endblock %}

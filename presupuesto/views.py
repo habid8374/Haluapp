@@ -5,7 +5,8 @@ from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db import transaction
+from django.db.models import ProtectedError, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -78,6 +79,28 @@ def _filtro_institucion(request):
     if request.user.is_superuser:
         return {}
     return {'institucion': _get_institucion(request)}
+
+
+def _eliminar_generico(request, model, pk, volver_url, nombre_singular):
+    """Elimina un registro de catálogo simple (sin cadena presupuestal
+    propia) — vigencias, rubros, conceptos de retención, cuentas bancarias,
+    elementos de almacén. Si otro registro ya depende de él (protegido con
+    on_delete=PROTECT), se avisa en lenguaje sencillo en vez de dejar pasar
+    el error técnico de Django."""
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    obj = get_object_or_404(model, pk=pk, **_filtro_institucion(request))
+    try:
+        obj.delete()
+        messages.success(request, f'{nombre_singular} eliminado.')
+    except ProtectedError:
+        messages.error(
+            request,
+            f'No se puede eliminar: este {nombre_singular.lower()} ya tiene movimientos o registros '
+            'asociados. Solo se pueden eliminar los que todavía no se han usado.',
+        )
+    return redirect(volver_url)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -176,6 +199,40 @@ def crear_vigencia(request):
 
 
 @login_required
+def editar_vigencia(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    vigencia = get_object_or_404(VigenciaFiscal, pk=pk, **_filtro_institucion(request))
+    if request.method == 'POST':
+        form = VigenciaFiscalForm(request.POST, instance=vigencia, institucion=institucion)
+        if form.is_valid():
+            actualizada = form.save(commit=False)
+            try:
+                actualizada.full_clean()
+                actualizada.save()
+                messages.success(request, 'Vigencia actualizada.')
+                return redirect('presupuesto:lista_vigencias')
+            except ValidationError as e:
+                for field, errs in getattr(e, 'message_dict', {'__all__': e.messages}).items():
+                    for err in errs:
+                        form.add_error(field if field != '__all__' else None, err)
+    else:
+        form = VigenciaFiscalForm(instance=vigencia, institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Editar Vigencia Fiscal', 'form': form,
+        'icono': 'bi-calendar-range', 'volver_url': 'presupuesto:lista_vigencias',
+    })
+
+
+@login_required
+@require_POST
+def eliminar_vigencia(request, pk):
+    return _eliminar_generico(request, VigenciaFiscal, pk, 'presupuesto:lista_vigencias', 'Vigencia fiscal')
+
+
+@login_required
 @require_POST
 def cerrar_vigencia(request, pk):
     guard = _requiere_gestor(request)
@@ -226,6 +283,33 @@ def crear_rubro_ingreso(request):
 
 
 @login_required
+def editar_rubro_ingreso(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    rubro = get_object_or_404(RubroPresupuestalIngreso, pk=pk, **_filtro_institucion(request))
+    if request.method == 'POST':
+        form = RubroPresupuestalIngresoForm(request.POST, instance=rubro, institucion=institucion)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Rubro de ingreso actualizado.')
+            return redirect('presupuesto:lista_rubros_ingreso')
+    else:
+        form = RubroPresupuestalIngresoForm(instance=rubro, institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Editar Rubro de Ingreso', 'form': form,
+        'icono': 'bi-arrow-down-circle', 'volver_url': 'presupuesto:lista_rubros_ingreso',
+    })
+
+
+@login_required
+@require_POST
+def eliminar_rubro_ingreso(request, pk):
+    return _eliminar_generico(request, RubroPresupuestalIngreso, pk, 'presupuesto:lista_rubros_ingreso', 'Rubro de ingreso')
+
+
+@login_required
 def lista_rubros_gasto(request):
     guard = _requiere_gestor(request)
     if guard:
@@ -256,6 +340,33 @@ def crear_rubro_gasto(request):
         'titulo_pagina': 'Nuevo Rubro de Gasto', 'form': form,
         'icono': 'bi-arrow-up-circle', 'volver_url': 'presupuesto:lista_rubros_gasto',
     })
+
+
+@login_required
+def editar_rubro_gasto(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    rubro = get_object_or_404(RubroPresupuestalGasto, pk=pk, **_filtro_institucion(request))
+    if request.method == 'POST':
+        form = RubroPresupuestalGastoForm(request.POST, instance=rubro, institucion=institucion)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Rubro de gasto actualizado.')
+            return redirect('presupuesto:lista_rubros_gasto')
+    else:
+        form = RubroPresupuestalGastoForm(instance=rubro, institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Editar Rubro de Gasto', 'form': form,
+        'icono': 'bi-arrow-up-circle', 'volver_url': 'presupuesto:lista_rubros_gasto',
+    })
+
+
+@login_required
+@require_POST
+def eliminar_rubro_gasto(request, pk):
+    return _eliminar_generico(request, RubroPresupuestalGasto, pk, 'presupuesto:lista_rubros_gasto', 'Rubro de gasto')
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -299,6 +410,53 @@ def crear_presupuesto_ingreso(request):
         'titulo_pagina': 'Registrar Presupuesto de Ingreso', 'form': form,
         'icono': 'bi-cash-coin', 'volver_url': 'presupuesto:lista_presupuesto_ingreso',
     })
+
+
+@login_required
+def editar_presupuesto_ingreso(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    item = get_object_or_404(PresupuestoIngreso, pk=pk, **_filtro_institucion(request))
+    if request.method == 'POST':
+        form = PresupuestoIngresoForm(request.POST, instance=item, institucion=institucion)
+        if form.is_valid():
+            actualizado = form.save(commit=False)
+            try:
+                actualizado.full_clean()
+                actualizado.save()
+                messages.success(request, 'Presupuesto de ingreso actualizado.')
+                return redirect('presupuesto:lista_presupuesto_ingreso')
+            except ValidationError as e:
+                for field, errs in getattr(e, 'message_dict', {'__all__': e.messages}).items():
+                    for err in errs:
+                        form.add_error(field if field != '__all__' else None, err)
+    else:
+        form = PresupuestoIngresoForm(instance=item, institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Editar Presupuesto de Ingreso', 'form': form,
+        'icono': 'bi-cash-coin', 'volver_url': 'presupuesto:lista_presupuesto_ingreso',
+    })
+
+
+@login_required
+@require_POST
+def eliminar_presupuesto_ingreso(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    item = get_object_or_404(PresupuestoIngreso, pk=pk, **_filtro_institucion(request))
+    if item.valor_recaudado and item.valor_recaudado > 0:
+        messages.error(
+            request,
+            'No se puede eliminar: este presupuesto de ingreso ya tiene recaudo registrado '
+            '(${:,.2f}). Corrígelo editándolo en vez de eliminarlo.'.format(item.valor_recaudado),
+        )
+        return redirect('presupuesto:lista_presupuesto_ingreso')
+    item.delete()
+    messages.success(request, 'Presupuesto de ingreso eliminado.')
+    return redirect('presupuesto:lista_presupuesto_ingreso')
 
 
 @login_required
@@ -399,6 +557,72 @@ def crear_modificacion(request):
         'titulo_pagina': 'Nueva Modificación Presupuestal', 'form': form,
         'icono': 'bi-arrow-left-right', 'volver_url': 'presupuesto:lista_modificaciones',
     })
+
+
+def _validar_apropiaciones_saldo_no_negativo(*apropiaciones):
+    """Después de editar/eliminar una modificación presupuestal, el saldo
+    disponible de cada apropiación afectada (origen y, si es traslado,
+    destino) se recalcula en vivo — si ya hay CDP expedidos contra el valor
+    que se está quitando, el saldo quedaría negativo. Se bloquea el cambio
+    en ese caso en vez de dejar una apropiación con saldo imposible."""
+    for aprop in apropiaciones:
+        if aprop is not None and aprop.saldo_disponible < 0:
+            raise ValidationError(
+                'No se puede aplicar este cambio: dejaría el saldo disponible de "%(rubro)s" en negativo, '
+                'porque ya hay CDP expedidos contra el valor que se está quitando o cambiando. '
+                'Anula primero esos CDP y vuelve a intentarlo.' % {'rubro': aprop.rubro}
+            )
+
+
+@login_required
+def editar_modificacion(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    mod = get_object_or_404(ModificacionPresupuestal, pk=pk, **_filtro_institucion(request))
+    apropiaciones_originales = [mod.apropiacion, mod.apropiacion_destino]
+    if request.method == 'POST':
+        form = ModificacionPresupuestalForm(request.POST, request.FILES, instance=mod, institucion=institucion)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    actualizada = form.save(commit=False)
+                    actualizada.full_clean()
+                    actualizada.save()
+                    _validar_apropiaciones_saldo_no_negativo(
+                        actualizada.apropiacion, actualizada.apropiacion_destino, *apropiaciones_originales
+                    )
+                messages.success(request, 'Modificación presupuestal actualizada.')
+                return redirect('presupuesto:lista_modificaciones')
+            except ValidationError as e:
+                for field, errs in getattr(e, 'message_dict', {'__all__': e.messages}).items():
+                    for err in errs:
+                        form.add_error(field if field != '__all__' else None, err)
+    else:
+        form = ModificacionPresupuestalForm(instance=mod, institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Editar Modificación Presupuestal', 'form': form,
+        'icono': 'bi-arrow-left-right', 'volver_url': 'presupuesto:lista_modificaciones',
+    })
+
+
+@login_required
+@require_POST
+def eliminar_modificacion(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    mod = get_object_or_404(ModificacionPresupuestal, pk=pk, **_filtro_institucion(request))
+    apropiacion, apropiacion_destino = mod.apropiacion, mod.apropiacion_destino
+    try:
+        with transaction.atomic():
+            mod.delete()
+            _validar_apropiaciones_saldo_no_negativo(apropiacion, apropiacion_destino)
+        messages.success(request, 'Modificación presupuestal eliminada.')
+    except ValidationError as e:
+        messages.error(request, e.messages[0] if getattr(e, 'messages', None) else str(e))
+    return redirect('presupuesto:lista_modificaciones')
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -764,6 +988,33 @@ def crear_concepto_retencion(request):
     })
 
 
+@login_required
+def editar_concepto_retencion(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    concepto = get_object_or_404(ConceptoRetencion, pk=pk, **_filtro_institucion(request))
+    if request.method == 'POST':
+        form = ConceptoRetencionForm(request.POST, instance=concepto, institucion=institucion)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Concepto de retención actualizado.')
+            return redirect('presupuesto:lista_conceptos_retencion')
+    else:
+        form = ConceptoRetencionForm(instance=concepto, institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Editar Concepto de Retención', 'form': form,
+        'icono': 'bi-percent', 'volver_url': 'presupuesto:lista_conceptos_retencion',
+    })
+
+
+@login_required
+@require_POST
+def eliminar_concepto_retencion(request, pk):
+    return _eliminar_generico(request, ConceptoRetencion, pk, 'presupuesto:lista_conceptos_retencion', 'Concepto de retención')
+
+
 # ─────────────────────────────────────────────────────────────────────────
 # Comprobantes Contables
 # ─────────────────────────────────────────────────────────────────────────
@@ -900,6 +1151,33 @@ def crear_cuenta_bancaria(request):
 
 
 @login_required
+def editar_cuenta_bancaria(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    cuenta = get_object_or_404(CuentaBancaria, pk=pk, **_filtro_institucion(request))
+    if request.method == 'POST':
+        form = CuentaBancariaForm(request.POST, instance=cuenta, institucion=institucion)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Cuenta bancaria actualizada.')
+            return redirect('presupuesto:lista_cuentas_bancarias')
+    else:
+        form = CuentaBancariaForm(instance=cuenta, institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Editar Cuenta Bancaria', 'form': form,
+        'icono': 'bi-bank', 'volver_url': 'presupuesto:lista_cuentas_bancarias',
+    })
+
+
+@login_required
+@require_POST
+def eliminar_cuenta_bancaria(request, pk):
+    return _eliminar_generico(request, CuentaBancaria, pk, 'presupuesto:lista_cuentas_bancarias', 'Cuenta bancaria')
+
+
+@login_required
 def lista_movimientos_tesoreria(request):
     guard = _requiere_gestor(request)
     if guard:
@@ -967,6 +1245,33 @@ def crear_elemento_almacen(request):
         'titulo_pagina': 'Nuevo Elemento de Almacén', 'form': form,
         'icono': 'bi-box-seam', 'volver_url': 'presupuesto:lista_elementos_almacen',
     })
+
+
+@login_required
+def editar_elemento_almacen(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    institucion = _get_institucion(request)
+    elemento = get_object_or_404(ElementoAlmacen, pk=pk, **_filtro_institucion(request))
+    if request.method == 'POST':
+        form = ElementoAlmacenForm(request.POST, instance=elemento, institucion=institucion)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Elemento de almacén actualizado.')
+            return redirect('presupuesto:lista_elementos_almacen')
+    else:
+        form = ElementoAlmacenForm(instance=elemento, institucion=institucion)
+    return render(request, 'presupuesto/form_generico.html', {
+        'titulo_pagina': 'Editar Elemento de Almacén', 'form': form,
+        'icono': 'bi-box-seam', 'volver_url': 'presupuesto:lista_elementos_almacen',
+    })
+
+
+@login_required
+@require_POST
+def eliminar_elemento_almacen(request, pk):
+    return _eliminar_generico(request, ElementoAlmacen, pk, 'presupuesto:lista_elementos_almacen', 'Elemento de almacén')
 
 
 @login_required
