@@ -444,7 +444,6 @@ ROL_GRUPO_MAP = {
 | `analizar_propuesta_candidato` | `Candidato` post_save | Analiza propuesta electoral con Gemini, guarda en `analisis_ia` |
 | `gestionar_notificacion_documento_listo` | `SolicitudDocumento` pre_save | Detecta cambio a `LISTO_DESCARGA` → envía correo al egresado |
 | `notificar_nuevo_ticket_a_superadmin` | `TicketSoporte` post_save | Envía correo a `SOFTWARE_CONTACT_EMAIL` usando SMTP de la institución |
-| `crear_registros_asistencia_por_clase` | `RegistroAsistencia` post_save | Si estado=PRESENTE → crea registros por cada curso del día del alumno |
 | `crear_conceptos_pago_para_nivel` | `NivelEscolaridad` post_save | Sincroniza ConceptoPago estándar (inscripción + matrícula + 10 pensiones); `transaction.on_commit` |
 | `asignar_permisos_portal_al_guardar_familiar` | `Familiar` post_save | Asigna permisos del portal familiar al usuario vinculado |
 | `notificar_docente_nueva_cita_reunion` | `CitaReunion` post_save | Crea Notificacion + evento WebSocket para el docente de la cita |

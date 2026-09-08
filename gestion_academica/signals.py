@@ -14,7 +14,7 @@ import json
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, get_connection
 
-from .models import Calificacion, ArchivoPlanAcademico, Notificacion, AnotacionObservador, Usuario, Candidato, TicketSoporte, RegistroAsistencia, Curso, NivelEscolaridad, Familiar, CitaReunion, CasoConvivencia, InvolucradoCaso, Estudiante, Deber, ActividadCalificable
+from .models import Calificacion, ArchivoPlanAcademico, Notificacion, AnotacionObservador, Usuario, Candidato, TicketSoporte, RegistroAsistencia, NivelEscolaridad, Familiar, CitaReunion, CasoConvivencia, InvolucradoCaso, Estudiante, Deber, ActividadCalificable
 from finanzas.models import InstitucionEducativa
 from finanzas.institucion_credentials import google_api_key as get_inst_google_api_key
 
@@ -151,51 +151,14 @@ def notificar_nuevo_ticket_a_superadmin(sender, instance, created, **kwargs):
             logger.error("FALLO CRÍTICO al enviar notificación por correo para el ticket %s: %s", ticket.ticket_id, e, exc_info=True)
         # --- FIN DE LA LÓGICA DE ENVÍO ---
         # 
-@receiver(post_save, sender=RegistroAsistencia)
-def crear_registros_asistencia_por_clase(sender, instance, created, **kwargs):
-    """
-    Cuando se crea un registro de asistencia general para el día, este signal
-    crea automáticamente los registros de asistencia por clase para ese estudiante,
-    marcando todos como 'PRESENTE' por defecto.
-    """
-    # Solo se activa al crear un nuevo registro y si el estado es 'Presente'
-    if created and instance.estado == 'PRESENTE':
-        estudiante = instance.estudiante
-        fecha = instance.fecha # Usamos el DateTimeField de la asistencia general
-        
-        # Buscamos el horario del estudiante para ese día de la semana
-        dia_semana = fecha.weekday() # Lunes=0, Martes=1, etc.
-        cursos_del_dia = Curso.objects.filter(
-            grado=estudiante.grado_actual,
-            institucion=estudiante.institucion,  # aislamiento explícito por institución
-            horarios__dia_semana=dia_semana
-        ).distinct()
-
-        fecha_dia = fecha.date()
-        # Cursos del día que YA tienen registro para este estudiante hoy: los
-        # excluimos para no duplicar (y para que la re-emisión de este mismo
-        # signal por cada registro creado termine sin trabajo).
-        ya_registrados = set(
-            RegistroAsistencia.objects.filter(
-                estudiante=estudiante,
-                curso__in=cursos_del_dia,
-                fecha_solo=fecha_dia,
-            ).values_list('curso_id', flat=True)
-        )
-        faltantes = [c for c in cursos_del_dia if c.pk not in ya_registrados]
-
-        if faltantes:
-            logger.info(f"Signal activado: creando asistencia para {estudiante} en {len(faltantes)} cursos del día.")
-        for curso in faltantes:
-            RegistroAsistencia.objects.create(
-                estudiante=estudiante,
-                curso=curso,
-                estado='PRESENTE',
-                fecha=fecha,
-                institucion=estudiante.institucion,
-                registrado_por=instance.registrado_por,
-                aula=curso.aula,
-            )
+# NOTA: existió aquí un signal (`crear_registros_asistencia_por_clase`) que,
+# al marcar a un estudiante PRESENTE en una clase (p. ej. por escaneo QR),
+# lo marcaba automáticamente PRESENTE en TODAS sus demás materias
+# programadas ese mismo día — incluidas clases que aún no habían ocurrido.
+# Se eliminó a propósito: cada docente debe confirmar la asistencia de SU
+# propia clase de forma independiente, porque un estudiante puede
+# ausentarse a mitad del día (cita médica, excusa, etc.) y estar presente
+# en una clase no garantiza que vaya a estar en las siguientes.
 
 
 # ---------------------------------------------------------------------------

@@ -970,8 +970,9 @@
         </div>
       </li>
       <li class="nav-item item-color-3">
-        <a class="nav-link" href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}">
-          <i class="bi bi-people-fill"></i> {% trans "Asistir en Otro Curso" %}
+        <a class="nav-link {% if 'asistencia/seleccionar-curso' in request.path or 'pasar-lista' in request.path %}active{% endif %}"
+           href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}">
+          <i class="bi bi-person-check-fill"></i> {% trans "Tomar Asistencia" %}
         </a>
       </li>
     {% endif %}
@@ -998,6 +999,12 @@
       <li class="nav-item item-color-6">
         <a class="nav-link" href="{% url 'gestion_academica:admin_asistencia_diaria' %}">
           <i class="bi bi-calendar-check"></i> Control de Asistencia
+        </a>
+      </li>
+      <li class="nav-item item-color-6">
+        <a class="nav-link {% if 'asistencia/seleccionar-curso' in request.path or 'pasar-lista' in request.path %}active{% endif %}"
+           href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}?todos=1">
+          <i class="bi bi-person-check-fill"></i> {% trans "Cubrir Asistencia" %}
         </a>
       </li>
       <li class="nav-item item-color-7">

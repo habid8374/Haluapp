@@ -4384,35 +4384,46 @@ def escaner_asistencia(request, curso_pk): # <--- CAMBIO: de curso_id a curso_pk
     return render(request, 'gestion_academica/escaner_asistencia.html', context)
 
 @login_required
-@permission_required('gestion_academica.add_registroasistencia')
 def seleccionar_curso_asistencia(request):
     """
-    Muestra TODOS los cursos activos de la institución para que un docente
-    pueda seleccionar uno y gestionar su asistencia (ideal para cubrir ausencias).
+    Muestra los cursos del docente logueado para que elija en cuál va a
+    tomar asistencia. Con ?todos=1 (o siempre, para coordinador/
+    administrador, que no tienen "sus" cursos) muestra TODOS los cursos
+    de la institución — para cubrir a un director de grupo u otro
+    docente que no pueda estar ese día.
     """
-    if not hasattr(request.user, 'docente'):
-        messages.error(request, "Acceso denegado. Solo para docentes.")
+    es_docente = hasattr(request.user, 'docente')
+    rol = getattr(request.user, 'rol', '') or ''
+    es_coordinacion = rol in ('coordinador', 'administrador')
+    if not (es_docente or es_coordinacion or request.user.is_superuser):
+        messages.error(request, "Acceso denegado. Solo para docentes o coordinación.")
         return redirect('gestion_academica:inicio_academico')
 
-    # Obtenemos la institución del docente logueado
-    institucion_docente = request.user.institucion_asociada
-    periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=institucion_docente).first()
-    
+    # Coordinación no tiene "mis cursos" propios: siempre ve todos.
+    ver_todos = request.GET.get('todos') == '1' or not es_docente
+
+    institucion_actual = request.user.institucion_asociada
+    periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=institucion_actual).first()
+
     cursos_institucion = []
-    if periodo_activo and institucion_docente:
-        # Buscamos TODOS los cursos de la institución en el periodo activo
+    if periodo_activo and institucion_actual:
         cursos_institucion = Curso.objects.filter(
-            institucion=institucion_docente,
+            institucion=institucion_actual,
             periodo_academico=periodo_activo
-        ).select_related('materia', 'grado').prefetch_related('docentes_asignados__usuario').order_by('grado__nombre', 'materia__nombre_materia')
+        )
+        if not ver_todos:
+            cursos_institucion = cursos_institucion.filter(docentes_asignados=request.user.docente)
+        cursos_institucion = cursos_institucion.select_related('materia', 'grado').prefetch_related(
+            'docentes_asignados__usuario'
+        ).distinct().order_by('grado__nombre', 'materia__nombre_materia')
 
     context = {
         'cursos': cursos_institucion,
         'periodo_activo': periodo_activo,
-        'titulo_pagina': "Seleccionar un Curso para Asistir"
+        'ver_todos': ver_todos,
+        'es_docente': es_docente,
+        'titulo_pagina': "Tomar Asistencia" if not ver_todos else "Cubrir Asistencia de Otro Curso",
     }
-    # La plantilla ahora debe mostrar la lista de todos los cursos.
-    # El enlace de cada curso debe apuntar a la vista 'gestionar_asistencia'.
     return render(request, 'gestion_academica/seleccionar_curso_asistencia.html', context)
 
 @login_required
@@ -16502,9 +16513,19 @@ def pasar_lista_view(request, curso_pk):
     # --- FIN DE LA CORRECCIÓN ---
 
     hoy = timezone.now().date()
-    
+
     # 2. La lógica de permisos ahora es una segunda capa de seguridad.
-    if not (request.user.is_superuser or (hasattr(request.user, 'docente') and request.user.docente in curso.docentes_asignados.all())):
+    #    Cualquier docente de la institución (no solo el asignado a este
+    #    curso específico) o coordinación puede pasar lista aquí — cubre
+    #    al director de grupo o docente que no pudo estar ese día. El
+    #    aislamiento multi-institución ya quedó garantizado arriba
+    #    (curso_qs filtrado por institución).
+    rol = getattr(request.user, 'rol', '') or ''
+    if not (
+        request.user.is_superuser
+        or hasattr(request.user, 'docente')
+        or rol in ('coordinador', 'administrador')
+    ):
         messages.error(request, "No tienes permiso para pasar lista en este curso.")
         return redirect('gestion_academica:dashboard_docente')
 

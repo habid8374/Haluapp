@@ -56,3 +56,11 @@ from ._main import (
 # versión de _main.py al final para blindar el aislamiento multi-institución
 # (evita que un staff pueda despachar sobre un curso de otro colegio por pk).
 from ._main import redirigir_a_libro_de_notas
+
+# ── Pasar Lista (asistencia) ─────────────────────────────────────────────────
+# Igual que los dos casos anteriores: existe tanto en _main.py (filtra también
+# por énfasis cuando el curso es un taller de modalidad técnica, para no
+# mezclar estudiantes de otro énfasis del mismo grado) como una copia legacy
+# en ia.py que NO aplica ese filtro. Se reimporta la versión de _main.py al
+# final para blindar ese aislamiento por énfasis.
+from ._main import pasar_lista_view
