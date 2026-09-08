@@ -6476,36 +6476,6 @@ class DocenteMencionDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         return MencionReconocimiento.objects.filter(otorgado_por=self.request.user.docente)
 
-def link_callback(uri, rel):  # noqa: F811
-    """
-    Convierte una URL de recurso (/media/... o /static/...) a una ruta de sistema
-    de archivos absoluta que xhtml2pdf pueda encontrar. Protegida contra path traversal.
-    """
-    # Para archivos de MEDIA (logos de la institución, etc.)
-    if uri.startswith(settings.MEDIA_URL):
-        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, "", 1))
-        allowed_root = os.path.realpath(settings.MEDIA_ROOT)
-
-    # Para archivos STATIC (marco del diploma, sello, etc.)
-    elif uri.startswith(settings.STATIC_URL):
-        path = os.path.join(settings.STATICFILES_DIRS[0], uri.replace(settings.STATIC_URL, "", 1))
-        allowed_root = os.path.realpath(settings.STATICFILES_DIRS[0])
-
-    else:
-        return uri
-
-    # Protección contra path traversal (ej: /../../../etc/passwd)
-    real_path = os.path.realpath(path)
-    if not real_path.startswith(allowed_root + os.sep) and real_path != allowed_root:
-        logger.warning("link_callback: path traversal bloqueado para URI: %s", uri)
-        return None
-
-    if not os.path.isfile(real_path):
-        return None
-
-    return real_path
-
-
 @login_required
 def estudiante_mis_menciones(request):
     """Página del estudiante con TODAS sus menciones/reconocimientos y el botón

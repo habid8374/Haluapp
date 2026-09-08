@@ -133,14 +133,25 @@ def run_health_check_task(self, ejecucion_id: int, institucion_id: int | None = 
 
 
 def _link_callback_pdf(uri, rel):
-    """Resuelve URLs de media/static a rutas del filesystem para xhtml2pdf."""
-    if uri.startswith(settings.MEDIA_URL):
-        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, "", 1).lstrip("/"))
+    """Resuelve URLs de media/static a rutas del filesystem para xhtml2pdf,
+    protegida contra path traversal. En modo S3/R2 no hay MEDIA_ROOT local y
+    MEDIA_URL es una URL externa (ej. el logo del colegio): en ese caso no
+    resolvemos local, devolvemos la URI para que xhtml2pdf la descargue."""
+    media_url = getattr(settings, 'MEDIA_URL', '') or ''
+    media_root = getattr(settings, 'MEDIA_ROOT', None)
+    if media_url and media_root and uri.startswith(media_url):
+        path = os.path.join(media_root, uri.replace(media_url, "", 1).lstrip("/"))
+        allowed_root = os.path.realpath(media_root)
     elif uri.startswith(settings.STATIC_URL):
         path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, "", 1).lstrip("/"))
+        allowed_root = os.path.realpath(settings.STATIC_ROOT)
     else:
         return uri
-    return path if os.path.isfile(path) else None
+    real_path = os.path.realpath(path)
+    if not real_path.startswith(allowed_root + os.sep) and real_path != allowed_root:
+        logger.warning("_link_callback_pdf: path traversal bloqueado para URI: %s", uri)
+        return None
+    return real_path if os.path.isfile(real_path) else None
 
 
 @shared_task(

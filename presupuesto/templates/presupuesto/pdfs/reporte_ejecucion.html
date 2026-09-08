@@ -27,7 +27,7 @@
 <body>
     <table class="header-table">
         <tr>
-            <td class="logo-cell">{% if institucion.logo %}<img src="{{ institucion.logo.path }}" class="logo" alt="Logo">{% endif %}</td>
+            <td class="logo-cell">{% if institucion.logo %}<img src="{{ institucion.logo.url }}" class="logo" alt="Logo">{% endif %}</td>
             <td class="info-cell">
                 <h2>{{ institucion.nombre }}</h2>
                 <p>NIT: {{ institucion.nit }}</p>

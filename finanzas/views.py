@@ -1419,30 +1419,6 @@ class CuentaPorCobrarEstudianteDeleteView(LoginRequiredMixin, PermissionRequired
         context["titulo_pagina"] = "Confirmar Eliminación de Cuenta"
         return context
 
-# Función de ayuda para que xhtml2pdf encuentre imágenes y CSS
-def link_callback(uri, rel):
-    """
-    Convierte los URI de HTML a rutas del sistema de archivos para que pisa
-    pueda encontrar los recursos (imágenes, CSS, etc.).
-    Protegida contra path traversal.
-    """
-    if uri.startswith(settings.MEDIA_URL):
-        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
-        allowed_root = os.path.realpath(settings.MEDIA_ROOT)
-    elif uri.startswith(settings.STATIC_URL):
-        path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, ""))
-        allowed_root = os.path.realpath(settings.STATIC_ROOT)
-    else:
-        return uri
-
-    real_path = os.path.realpath(path)
-    if not real_path.startswith(allowed_root + os.sep) and real_path != allowed_root:
-        logger.warning("link_callback: path traversal bloqueado para URI: %s", uri)
-        return None
-    if not os.path.isfile(real_path):
-        return None
-    return real_path
-
 @login_required
 def generar_recibo_pago(request, pago_id):
     """
@@ -3188,11 +3164,16 @@ def libro_diario_pdf(request):
     return response
 
 
-def link_callback(uri, rel):  # noqa: F811
-    """Segunda definición consolidada — protegida contra path traversal."""
-    if uri.startswith(settings.MEDIA_URL):
-        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ''))
-        allowed_root = os.path.realpath(settings.MEDIA_ROOT)
+def link_callback(uri, rel):
+    """Resuelve URIs de recursos para xhtml2pdf, protegida contra path
+    traversal. En modo S3/R2 no hay MEDIA_ROOT local y MEDIA_URL es una URL
+    externa (ej. el logo del colegio): en ese caso no resolvemos local,
+    devolvemos la URI para que xhtml2pdf la descargue por HTTP."""
+    media_url = getattr(settings, 'MEDIA_URL', '') or ''
+    media_root = getattr(settings, 'MEDIA_ROOT', None)
+    if media_url and media_root and uri.startswith(media_url):
+        path = os.path.join(media_root, uri.replace(media_url, ''))
+        allowed_root = os.path.realpath(media_root)
     elif uri.startswith(settings.STATIC_URL):
         path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, ''))
         allowed_root = os.path.realpath(settings.STATIC_ROOT)
