@@ -135,9 +135,13 @@
         {% if asistencia_data %}
         <a href="{% url 'gestion_academica:exportar_asistencia_diaria_excel' %}?fecha={{ fecha_consultada|date:'Y-m-d' }}"
            class="btn btn-light fw-bold" style="border-radius:9px;color:var(--ps-dark);font-size:.85rem;">
-          <i class="bi bi-file-earmark-excel-fill me-1" style="color:#1d6f42;"></i> Exportar Excel
+          <i class="bi bi-file-earmark-excel-fill me-1" style="color:#1d6f42;"></i> Exportar Excel (día)
         </a>
         {% endif %}
+        <button type="button" class="btn btn-light fw-bold" style="border-radius:9px;color:var(--ps-dark);font-size:.85rem;"
+                data-bs-toggle="modal" data-bs-target="#modalExportarMensual">
+          <i class="bi bi-file-earmark-excel-fill me-1" style="color:#1d6f42;"></i> Exportar Excel (mes)
+        </button>
       </div>
     </div>
   </div>
@@ -235,5 +239,32 @@
     </div>
   </div>
   {% endif %}
+</div>
+
+<!-- Modal: Exportar Excel del mes -->
+<div class="modal fade" id="modalExportarMensual" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="fw-800 mb-0"><i class="bi bi-file-earmark-excel-fill me-1" style="color:#1d6f42;"></i> Exportar asistencia del mes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="get" action="{% url 'gestion_academica:exportar_asistencia_mensual_excel' %}">
+        <div class="modal-body pt-2">
+          <p class="text-muted mb-3" style="font-size:.85rem;">
+            Se genera una hoja con un estudiante por fila y una columna por cada día del mes que tuvo clase (P = presente, A = ausente, T = tardanza, J = justificado), agrupado por grado.
+          </p>
+          <label for="mes_export" class="ps-filter-label"><i class="bi bi-calendar-month me-1"></i>Mes a exportar</label>
+          <input type="month" name="mes" id="mes_export" class="ps-filter-input w-100" value="{{ fecha_consultada|date:'Y-m' }}" required>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-sm" style="background:#1d6f42;color:#fff;">
+            <i class="bi bi-download me-1"></i>Descargar Excel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

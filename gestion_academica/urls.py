@@ -325,6 +325,7 @@ urlpatterns = [
     path('reportes/riesgo-global/exportar/', views.exportar_reporte_riesgo_global_view, name='exportar_reporte_riesgo_global'),
     path('admin/asistencia-diaria/', views.asistencia_diaria_admin_view, name='admin_asistencia_diaria'),
     path('admin/asistencia-diaria/exportar/', views.exportar_asistencia_diaria_excel, name='exportar_asistencia_diaria_excel'),
+    path('admin/asistencia-diaria/exportar-mensual/', views.exportar_asistencia_mensual_excel, name='exportar_asistencia_mensual_excel'),
     path('api/asistencia-diaria-data/', views.asistencia_diaria_data_api, name='api_asistencia_diaria_data'),
     path('reportes/riesgo-academico/', views.dashboard_riesgo_academico, name='dashboard_riesgo_academico'),
     path('dashboard/coordinador/', views.dashboard_coordinador_view, name='dashboard_coordinador'),

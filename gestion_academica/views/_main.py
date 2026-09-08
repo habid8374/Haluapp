@@ -8007,6 +8007,180 @@ def exportar_asistencia_diaria_excel(request):
 
 
 @login_required
+@permission_required('gestion_academica.view_registroasistencia')
+def exportar_asistencia_mensual_excel(request):
+    """Exporta un mes completo de asistencia como matriz (una fila por
+    estudiante, una columna por cada día del mes que tuvo clase), con el
+    mismo criterio de estilo que el export diario."""
+    if not request.user.is_staff:
+        messages.error(request, "Acceso denegado.")
+        return redirect('gestion_academica:admin_asistencia_diaria')
+
+    import calendar
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    mes_str = request.GET.get('mes', timezone.localdate().strftime('%Y-%m'))
+    try:
+        anio, mes = (int(x) for x in mes_str.split('-'))
+        primer_dia = date(anio, mes, 1)
+    except (ValueError, TypeError):
+        hoy = timezone.localdate()
+        anio, mes = hoy.year, hoy.month
+        primer_dia = date(anio, mes, 1)
+        mes_str = f"{anio}-{mes:02d}"
+
+    ultimo_dia = date(anio, mes, calendar.monthrange(anio, mes)[1])
+
+    institucion = getattr(request.user, 'institucion_asociada', None)
+
+    inicio_mes = timezone.make_aware(datetime.combine(primer_dia, time.min))
+    fin_mes = timezone.make_aware(datetime.combine(ultimo_dia, time.max))
+
+    estudiantes_activos = Estudiante.objects.filter(
+        institucion=institucion, usuario__is_active=True
+    ).select_related('usuario', 'grado_actual').order_by('grado_actual__nombre', 'usuario__last_name')
+
+    registros_mes = RegistroAsistencia.objects.filter(
+        fecha__range=(inicio_mes, fin_mes),
+        estudiante__institucion=institucion,
+    ).select_related('estudiante')
+
+    # Solo los días que realmente tuvieron registros (evita columnas vacías
+    # de fines de semana o días sin clase).
+    dias_con_clase = sorted({timezone.localtime(r.fecha).date() for r in registros_mes})
+
+    estado_por_estudiante_dia = defaultdict(dict)
+    for r in registros_mes:
+        dia = timezone.localtime(r.fecha).date()
+        estado_por_estudiante_dia[r.estudiante_id][dia] = r.estado
+
+    ABREV = {'PRESENTE': 'P', 'AUSENTE': 'A', 'TARDANZA': 'T', 'JUSTIFICADO': 'J'}
+
+    asistencia_por_grado = defaultdict(list)
+    for est in estudiantes_activos:
+        if est.grado_actual:
+            asistencia_por_grado[est.grado_actual.nombre].append(est)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Asistencia Mensual"
+
+    color_header = "1E1B4B"
+    color_grado = "3730A3"
+    color_present = "DCFCE7"
+    color_absent = "FEE2E2"
+    color_tardanza = "FEF3C7"
+    color_justificado = "DBEAFE"
+    thin = Side(style='thin', color="D1D5DB")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    def cell_style(cell, bold=False, bg=None, font_color="000000", size=9, align="center"):
+        cell.font = Font(bold=bold, color=font_color, size=size)
+        if bg:
+            cell.fill = PatternFill("solid", fgColor=bg)
+        cell.alignment = Alignment(horizontal=align, vertical="center", wrap_text=True)
+        cell.border = border
+
+    n_dias = len(dias_con_clase)
+    ncols = max(5 + n_dias, 5)
+
+    nombre_mes = date_format(primer_dia, "F Y").capitalize()
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ncols)
+    ws.cell(row=1, column=1, value=f"Control de Asistencia Mensual — {nombre_mes}")
+    cell_style(ws.cell(row=1, column=1), bold=True, bg=color_header, font_color="FFFFFF", size=13, align="center")
+    ws.row_dimensions[1].height = 28
+
+    if institucion:
+        ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=ncols)
+        ws.cell(row=2, column=1, value=institucion.nombre)
+        cell_style(ws.cell(row=2, column=1), bold=True, bg="3730A3", font_color="FFFFFF", size=10, align="center")
+        ws.row_dimensions[2].height = 18
+
+    if not dias_con_clase:
+        ws.merge_cells(start_row=3, start_column=1, end_row=3, end_column=ncols)
+        ws.cell(row=3, column=1, value="No hay registros de asistencia en este mes.")
+        cell_style(ws.cell(row=3, column=1), align="center")
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="asistencia_mensual_{mes_str}.xlsx"'
+        wb.save(response)
+        return response
+
+    fila = 3
+    for grado_nombre, estudiantes in asistencia_por_grado.items():
+        ws.merge_cells(start_row=fila, start_column=1, end_row=fila, end_column=ncols)
+        ws.cell(row=fila, column=1, value=f"  GRADO: {grado_nombre.upper()}")
+        cell_style(ws.cell(row=fila, column=1), bold=True, bg=color_grado, font_color="FFFFFF", size=10, align="left")
+        ws.row_dimensions[fila].height = 20
+        fila += 1
+
+        ws.cell(row=fila, column=1, value="#")
+        ws.cell(row=fila, column=2, value="Estudiante")
+        for i, dia in enumerate(dias_con_clase):
+            ws.cell(row=fila, column=3 + i, value=dia.strftime('%d'))
+        ws.cell(row=fila, column=3 + n_dias, value="Presentes")
+        ws.cell(row=fila, column=4 + n_dias, value="Ausencias")
+        ws.cell(row=fila, column=5 + n_dias, value="Tardanzas")
+        for ci in range(1, ncols + 1):
+            cell_style(ws.cell(row=fila, column=ci), bold=True, bg="E0E7FF", font_color=color_header, size=9)
+        ws.row_dimensions[fila].height = 16
+        fila += 1
+
+        for idx, est in enumerate(estudiantes, 1):
+            estados = estado_por_estudiante_dia.get(est.pk, {})
+            ws.cell(row=fila, column=1, value=idx)
+            ws.cell(row=fila, column=2, value=est.usuario.get_full_name())
+            cell_style(ws.cell(row=fila, column=1))
+            cell_style(ws.cell(row=fila, column=2), align="left")
+
+            n_presentes = n_ausentes = n_tardanzas = 0
+            for i, dia in enumerate(dias_con_clase):
+                estado = estados.get(dia)
+                abrev = ABREV.get(estado, '-')
+                bg = None
+                if estado == 'PRESENTE':
+                    bg = color_present
+                    n_presentes += 1
+                elif estado == 'AUSENTE':
+                    bg = color_absent
+                    n_ausentes += 1
+                elif estado == 'TARDANZA':
+                    bg = color_tardanza
+                    n_tardanzas += 1
+                elif estado == 'JUSTIFICADO':
+                    bg = color_justificado
+                cell_style(ws.cell(row=fila, column=3 + i, value=abrev), bg=bg)
+
+            ws.cell(row=fila, column=3 + n_dias, value=n_presentes)
+            ws.cell(row=fila, column=4 + n_dias, value=n_ausentes)
+            ws.cell(row=fila, column=5 + n_dias, value=n_tardanzas)
+            for ci in (3 + n_dias, 4 + n_dias, 5 + n_dias):
+                cell_style(ws.cell(row=fila, column=ci), bold=True)
+
+            ws.row_dimensions[fila].height = 15
+            fila += 1
+
+        fila += 1
+
+    ws.column_dimensions['A'].width = 5
+    ws.column_dimensions['B'].width = 32
+    for i in range(n_dias):
+        ws.column_dimensions[get_column_letter(3 + i)].width = 4
+    for offset in (3, 4, 5):
+        ws.column_dimensions[get_column_letter(offset + n_dias)].width = 11
+
+    ws.freeze_panes = "C3"
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="asistencia_mensual_{mes_str}.xlsx"'
+    wb.save(response)
+    return response
+
+
+@login_required
 @permission_required('gestion_academica.view_analisisriesgo')
 def dashboard_riesgo_academico(request):
     """
