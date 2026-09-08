@@ -138,6 +138,12 @@
         <i class="bi bi-speedometer2"></i> Resumen
       </a>
     </li>
+    <li class="nav-item item-color-2">
+      <a class="nav-link {% if 'reporte_ejecucion' in request.resolver_match.url_name %}active{% endif %}"
+         href="{% url 'presupuesto:reporte_ejecucion' %}">
+        <i class="bi bi-clipboard-data"></i> Reportes (CHIP/SIA)
+      </a>
+    </li>
 
     <h5 class="menu-section-title">Configuración</h5>
     <li class="nav-item item-color-2">

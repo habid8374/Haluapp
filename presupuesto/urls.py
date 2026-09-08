@@ -19,6 +19,7 @@ urlpatterns = [
 
     path('ingresos/', views.lista_presupuesto_ingreso, name='lista_presupuesto_ingreso'),
     path('ingresos/nuevo/', views.crear_presupuesto_ingreso, name='crear_presupuesto_ingreso'),
+    path('ingresos/<int:pk>/recaudo/', views.registrar_recaudo, name='registrar_recaudo'),
 
     path('apropiaciones/', views.lista_apropiaciones, name='lista_apropiaciones'),
     path('apropiaciones/nueva/', views.crear_apropiacion, name='crear_apropiacion'),
@@ -68,4 +69,7 @@ urlpatterns = [
     path('almacen/elementos/nuevo/', views.crear_elemento_almacen, name='crear_elemento_almacen'),
     path('almacen/movimientos/', views.lista_movimientos_almacen, name='lista_movimientos_almacen'),
     path('almacen/movimientos/nuevo/', views.crear_movimiento_almacen, name='crear_movimiento_almacen'),
+
+    path('reportes/', views.reporte_ejecucion, name='reporte_ejecucion'),
+    path('reportes/exportar/', views.exportar_reporte_ejecucion_excel, name='exportar_reporte_ejecucion_excel'),
 ]

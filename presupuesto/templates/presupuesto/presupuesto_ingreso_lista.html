@@ -11,16 +11,56 @@
   <div class="card">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light"><tr><th>Vigencia</th><th>Rubro</th><th>Presupuestado</th><th>Recaudado</th></tr></thead>
+        <thead class="table-light"><tr><th>Vigencia</th><th>Rubro</th><th>Presupuestado</th><th>Recaudado</th><th></th></tr></thead>
         <tbody>
           {% for i in items %}
-          <tr><td>{{ i.vigencia.anio }}</td><td>{{ i.rubro }}</td><td>${{ i.valor_inicial|floatformat:2 }}</td><td>${{ i.valor_recaudado|floatformat:2 }}</td></tr>
+          <tr>
+            <td>{{ i.vigencia.anio }}</td><td>{{ i.rubro }}</td><td>${{ i.valor_inicial|floatformat:2 }}</td><td>${{ i.valor_recaudado|floatformat:2 }}</td>
+            <td>
+              {% if i.vigencia.esta_abierta %}
+              <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalRecaudo" data-action="{% url 'presupuesto:registrar_recaudo' i.pk %}">
+                <i class="bi bi-plus-circle me-1"></i>Registrar recaudo
+              </button>
+              {% endif %}
+            </td>
+          </tr>
           {% empty %}
-          <tr><td colspan="4" class="text-center text-muted py-4">No hay presupuesto de ingresos registrado.</td></tr>
+          <tr><td colspan="5" class="text-center text-muted py-4">No hay presupuesto de ingresos registrado.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="modalRecaudo" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="form-recaudo" method="post">
+        {% csrf_token %}
+        <div class="modal-header border-0 pb-0">
+          <h5 class="fw-800 mb-0"><i class="bi bi-cash-coin me-2"></i>Registrar recaudo</h5>
+          <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <label class="form-label fw-bold">Valor recaudado</label>
+          <input type="number" name="valor" step="0.01" min="0.01" class="form-control" required>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-circle me-1"></i>Registrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{{ block.super }}
+<script>
+document.querySelectorAll('[data-bs-target="#modalRecaudo"]').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.getElementById('form-recaudo').action = this.dataset.action;
+  });
+});
+</script>
 {% endblock %}

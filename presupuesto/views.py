@@ -1,5 +1,6 @@
 """Vistas del módulo Presupuesto FSE (Fase 1 — Núcleo Presupuestal)."""
 import logging
+from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -10,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from . import services
+from . import reportes, services
 from .forms import (
     ApropiacionForm,
     CDPForm,
@@ -284,6 +285,23 @@ def crear_presupuesto_ingreso(request):
         'titulo_pagina': 'Registrar Presupuesto de Ingreso', 'form': form,
         'icono': 'bi-cash-coin', 'volver_url': 'presupuesto:lista_presupuesto_ingreso',
     })
+
+
+@login_required
+@require_POST
+def registrar_recaudo(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    item = get_object_or_404(PresupuestoIngreso, pk=pk, **_filtro_institucion(request))
+    try:
+        valor = Decimal(request.POST.get('valor', '0'))
+        services.registrar_recaudo(presupuesto_ingreso=item, valor=valor, usuario=request.user)
+        messages.success(request, 'Recaudo registrado.')
+    except (InvalidOperation, ValidationError) as e:
+        mensaje = e.message if hasattr(e, 'message') else str(e)
+        messages.error(request, f'No se pudo registrar el recaudo: {mensaje}')
+    return redirect('presupuesto:lista_presupuesto_ingreso')
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -975,3 +993,95 @@ def crear_movimiento_almacen(request):
         'titulo_pagina': 'Registrar Movimiento de Almacén', 'form': form,
         'icono': 'bi-box-arrow-in-down', 'volver_url': 'presupuesto:lista_movimientos_almacen',
     })
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Fase 4 — Reportes de ejecución presupuestal y consolidación (CHIP/SIA)
+# ─────────────────────────────────────────────────────────────────────────
+
+def _resolver_vigencia(request, filtro):
+    vigencia_id = request.GET.get('vigencia')
+    vigencias = VigenciaFiscal.objects.filter(**filtro).order_by('-anio')
+    vigencia = None
+    if vigencia_id:
+        vigencia = vigencias.filter(pk=vigencia_id).first()
+    if not vigencia:
+        vigencia = vigencias.filter(estado=VigenciaFiscal.Estado.ABIERTA).first() or vigencias.first()
+    return vigencia, vigencias
+
+
+@login_required
+def reporte_ejecucion(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    filtro = _filtro_institucion(request)
+    vigencia, vigencias = _resolver_vigencia(request, filtro)
+
+    filas_ingresos = reportes.ejecucion_ingresos(vigencia) if vigencia else []
+    filas_gastos = reportes.ejecucion_gastos(vigencia) if vigencia else []
+    filas_balance = reportes.balance_comprobacion(vigencia) if vigencia else []
+
+    return render(request, 'presupuesto/reporte_ejecucion.html', {
+        'titulo_pagina': 'Reportes de Ejecución (CHIP/SIA)',
+        'vigencias': vigencias, 'vigencia_actual': vigencia,
+        'filas_ingresos': filas_ingresos, 'filas_gastos': filas_gastos, 'filas_balance': filas_balance,
+        'total_ingreso_presupuestado': sum((f['presupuestado'] for f in filas_ingresos), Decimal('0.00')),
+        'total_ingreso_recaudado': sum((f['recaudado'] for f in filas_ingresos), Decimal('0.00')),
+        'total_gasto_apropiado': sum((f['apropiacion_definitiva'] for f in filas_gastos), Decimal('0.00')),
+        'total_gasto_comprometido': sum((f['comprometido'] for f in filas_gastos), Decimal('0.00')),
+        'total_gasto_obligado': sum((f['obligado'] for f in filas_gastos), Decimal('0.00')),
+        'total_gasto_pagado': sum((f['pagado'] for f in filas_gastos), Decimal('0.00')),
+    })
+
+
+@login_required
+def exportar_reporte_ejecucion_excel(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    from django.http import HttpResponse
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Font, PatternFill
+
+    filtro = _filtro_institucion(request)
+    vigencia, _vigencias = _resolver_vigencia(request, filtro)
+    if not vigencia:
+        messages.error(request, 'No hay ninguna vigencia fiscal para exportar.')
+        return redirect('presupuesto:reporte_ejecucion')
+
+    def _hoja(wb, titulo, encabezados, filas):
+        ws = wb.create_sheet(titulo)
+        ws.append(encabezados)
+        for cell in ws[1]:
+            cell.fill = PatternFill(start_color="065F46", end_color="065F46", fill_type="solid")
+            cell.font = Font(bold=True, color="FFFFFF", size=10)
+            cell.alignment = Alignment(horizontal='center')
+        for fila in filas:
+            ws.append(fila)
+        for col_cells in ws.columns:
+            w = max((len(str(c.value or '')) for c in col_cells), default=8)
+            ws.column_dimensions[col_cells[0].column_letter].width = min(max(w + 2, 10), 40)
+        ws.freeze_panes = "A2"
+        return ws
+
+    wb = Workbook()
+    wb.remove(wb.active)
+
+    _hoja(wb, 'Ejecución Ingresos', ['Rubro', 'Fuente de Financiación (CHIP)', 'Presupuestado', 'Recaudado', 'Saldo por Recaudar'], [
+        [str(f['rubro']), str(f['fuente_financiacion'] or ''), float(f['presupuestado']), float(f['recaudado']), float(f['saldo_por_recaudar'])]
+        for f in reportes.ejecucion_ingresos(vigencia)
+    ])
+    _hoja(wb, 'Ejecución Gastos', ['Rubro', 'Apropiación Inicial', 'Apropiación Definitiva', 'Comprometido (RP)', 'Obligado', 'Pagado', 'Saldo por Comprometer'], [
+        [str(f['rubro']), float(f['apropiacion_inicial']), float(f['apropiacion_definitiva']), float(f['comprometido']), float(f['obligado']), float(f['pagado']), float(f['saldo_por_comprometer'])]
+        for f in reportes.ejecucion_gastos(vigencia)
+    ])
+    _hoja(wb, 'Balance Comprobación', ['Cuenta CGC', 'Nombre', 'Total Débitos', 'Total Créditos', 'Saldo'], [
+        [f['cuenta__codigo'], f['cuenta__nombre'], float(f['total_debitos']), float(f['total_creditos']), float(f['saldo'])]
+        for f in reportes.balance_comprobacion(vigencia)
+    ])
+
+    resp = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    resp['Content-Disposition'] = f'attachment; filename="reporte_ejecucion_presupuestal_{vigencia.anio}.xlsx"'
+    wb.save(resp)
+    return resp

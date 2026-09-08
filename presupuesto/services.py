@@ -28,12 +28,30 @@ from finanzas.models import ConsecutivoDocumento
 from .models import (
     CDP, RP, Obligacion, OrdenDePago, Apropiacion,
     ComprobanteContable, ConceptoRetencion, CuentaBancaria, ElementoAlmacen,
-    MovimientoAlmacen, MovimientoContable, MovimientoTesoreria, RetencionAplicada,
+    MovimientoAlmacen, MovimientoContable, MovimientoTesoreria, PresupuestoIngreso,
+    RetencionAplicada,
 )
 
 
 def _siguiente_numero(institucion_id, tipo_documento):
     return ConsecutivoDocumento.obtener_siguiente(institucion_id, tipo_documento)
+
+
+@transaction.atomic
+def registrar_recaudo(*, presupuesto_ingreso: PresupuestoIngreso, valor: Decimal, usuario) -> PresupuestoIngreso:
+    """Suma `valor` a lo ya recaudado de este rubro de ingreso. A diferencia
+    del gasto, un ingreso SÍ puede terminar recaudando más de lo
+    presupuestado (un cálculo optimista no debe bloquear el registro real),
+    así que aquí no hay un "saldo disponible" que proteger — solo se valida
+    que el valor tenga sentido."""
+    presupuesto_ingreso = PresupuestoIngreso.objects.select_for_update().get(pk=presupuesto_ingreso.pk)
+    if valor <= 0:
+        raise ValidationError('El valor recaudado debe ser mayor a cero.')
+    if not presupuesto_ingreso.vigencia.esta_abierta:
+        raise ValidationError('La vigencia %(anio)s está cerrada.' % {'anio': presupuesto_ingreso.vigencia.anio})
+    presupuesto_ingreso.valor_recaudado += valor
+    presupuesto_ingreso.save(update_fields=['valor_recaudado'])
+    return presupuesto_ingreso
 
 
 @transaction.atomic

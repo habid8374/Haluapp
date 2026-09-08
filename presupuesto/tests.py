@@ -411,3 +411,120 @@ class TesoreriaYAlmacenTest(TestCase):
             services.registrar_movimiento_almacen(
                 elemento=self.elemento, tipo=MovimientoAlmacen.Tipo.SALIDA, cantidad=1, usuario=self.user_a,
             )
+
+
+class ReportesEjecucionTest(TestCase):
+    """Fase 4: reportes de ejecución presupuestal (CHIP/SIA) y consolidación."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from .models import (
+            CatalogoGeneralCuentas, CuentaBancaria, FuenteFinanciacion, PresupuestoIngreso,
+            RubroPresupuestalIngreso,
+        )
+
+        cls.inst_a = _crear_institucion("FSE Reportes A", "900555555-5")
+        cls.user_a = _crear_usuario("admin_reportes_a", "reportes@fse.test", cls.inst_a)
+        cls.proveedor_a = Proveedor.objects.create(institucion=cls.inst_a, nombre="Distribuidora Escolar")
+
+        cls.fuente = FuenteFinanciacion.objects.first()
+        cls.vigencia = VigenciaFiscal.objects.create(institucion=cls.inst_a, anio=2026)
+
+        cls.rubro_ingreso = RubroPresupuestalIngreso.objects.create(
+            institucion=cls.inst_a, codigo="1.1", nombre="SGP", tipo_recurso=cls.fuente,
+        )
+        cls.presupuesto_ingreso = PresupuestoIngreso.objects.create(
+            institucion=cls.inst_a, vigencia=cls.vigencia, rubro=cls.rubro_ingreso, valor_inicial=Decimal('1000000.00'),
+        )
+
+        cls.cuenta_gasto = CatalogoGeneralCuentas.objects.create(codigo='5120-R', nombre='Materiales', naturaleza='DEBITO')
+        cls.cuenta_bancos_cgc = CatalogoGeneralCuentas.objects.create(codigo='1110-R', nombre='Bancos', naturaleza='DEBITO')
+        cls.cuenta_bancaria = CuentaBancaria.objects.create(
+            institucion=cls.inst_a, banco='Banco Reportes', numero_cuenta='777-1',
+            cuenta_cgc=cls.cuenta_bancos_cgc, saldo_inicial=Decimal('5000000.00'),
+        )
+        cls.rubro_gasto = RubroPresupuestalGasto.objects.create(
+            institucion=cls.inst_a, codigo="2.3.5", nombre="Materiales", tipo=RubroPresupuestalGasto.Tipo.FUNCIONAMIENTO,
+            cuenta_cgc_gasto=cls.cuenta_gasto,
+        )
+        cls.apropiacion = Apropiacion.objects.create(
+            institucion=cls.inst_a, vigencia=cls.vigencia, rubro=cls.rubro_gasto, valor_inicial=Decimal('500000.00'),
+        )
+
+    def test_registrar_recaudo_suma_al_valor_recaudado(self):
+        services.registrar_recaudo(presupuesto_ingreso=self.presupuesto_ingreso, valor=Decimal('300000.00'), usuario=self.user_a)
+        services.registrar_recaudo(presupuesto_ingreso=self.presupuesto_ingreso, valor=Decimal('50000.00'), usuario=self.user_a)
+        self.presupuesto_ingreso.refresh_from_db()
+        self.assertEqual(self.presupuesto_ingreso.valor_recaudado, Decimal('350000.00'))
+
+    def test_registrar_recaudo_rechaza_valor_no_positivo(self):
+        with self.assertRaises(ValidationError):
+            services.registrar_recaudo(presupuesto_ingreso=self.presupuesto_ingreso, valor=Decimal('0.00'), usuario=self.user_a)
+
+    def test_ejecucion_ingresos_refleja_recaudo(self):
+        from . import reportes
+        services.registrar_recaudo(presupuesto_ingreso=self.presupuesto_ingreso, valor=Decimal('400000.00'), usuario=self.user_a)
+        filas = reportes.ejecucion_ingresos(self.vigencia)
+        self.assertEqual(len(filas), 1)
+        self.assertEqual(filas[0]['presupuestado'], Decimal('1000000.00'))
+        self.assertEqual(filas[0]['recaudado'], Decimal('400000.00'))
+        self.assertEqual(filas[0]['saldo_por_recaudar'], Decimal('600000.00'))
+        self.assertEqual(filas[0]['fuente_financiacion'], self.fuente)
+
+    def test_ejecucion_gastos_refleja_cadena_completa(self):
+        from . import reportes
+        cdp = services.expedir_cdp(apropiacion=self.apropiacion, valor=Decimal('300000.00'), objeto="Compra", usuario=self.user_a)
+        rp = services.crear_rp(cdp=cdp, tercero=self.proveedor_a, objeto_contrato="Materiales", valor=Decimal('250000.00'), usuario=self.user_a)
+        obligacion = services.causar_obligacion(rp=rp, valor=Decimal('250000.00'), soporte=None, usuario=self.user_a)
+        orden = services.generar_orden_pago(obligacion=obligacion, usuario=self.user_a)
+        comprobante = services.generar_comprobante_contable(orden_pago=orden, cuenta_bancaria=self.cuenta_bancaria, usuario=self.user_a)
+        services.contabilizar_comprobante(comprobante=comprobante, usuario=self.user_a)
+
+        filas = reportes.ejecucion_gastos(self.vigencia)
+        self.assertEqual(len(filas), 1)
+        fila = filas[0]
+        self.assertEqual(fila['apropiacion_definitiva'], Decimal('500000.00'))
+        self.assertEqual(fila['comprometido'], Decimal('250000.00'))
+        self.assertEqual(fila['obligado'], Decimal('250000.00'))
+        self.assertEqual(fila['pagado'], Decimal('250000.00'))
+        self.assertEqual(fila['saldo_por_comprometer'], Decimal('250000.00'))
+
+    def test_balance_comprobacion_solo_incluye_contabilizados(self):
+        from . import reportes
+        cdp = services.expedir_cdp(apropiacion=self.apropiacion, valor=Decimal('100000.00'), objeto="Compra", usuario=self.user_a)
+        rp = services.crear_rp(cdp=cdp, tercero=self.proveedor_a, objeto_contrato="Materiales", valor=Decimal('100000.00'), usuario=self.user_a)
+        obligacion = services.causar_obligacion(rp=rp, valor=Decimal('100000.00'), soporte=None, usuario=self.user_a)
+        orden = services.generar_orden_pago(obligacion=obligacion, usuario=self.user_a)
+        comprobante = services.generar_comprobante_contable(orden_pago=orden, cuenta_bancaria=self.cuenta_bancaria, usuario=self.user_a)
+
+        # Aún en Borrador: no debe aparecer en el balance.
+        filas = reportes.balance_comprobacion(self.vigencia)
+        self.assertEqual(len(filas), 0)
+
+        services.contabilizar_comprobante(comprobante=comprobante, usuario=self.user_a)
+        filas = reportes.balance_comprobacion(self.vigencia)
+        codigos = {f['cuenta__codigo']: f for f in filas}
+        self.assertIn('5120-R', codigos)
+        self.assertEqual(codigos['5120-R']['total_debitos'], Decimal('100000.00'))
+        self.assertEqual(codigos['5120-R']['saldo'], Decimal('100000.00'))
+
+    def test_vista_reportes_requiere_login(self):
+        from django.urls import reverse
+        response = self.client.get(reverse('presupuesto:reporte_ejecucion'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_vista_reportes_renderiza_para_gestor(self):
+        from django.urls import reverse
+        self.client.force_login(self.user_a)
+        response = self.client.get(reverse('presupuesto:reporte_ejecucion'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_exportar_excel_devuelve_xlsx(self):
+        from django.urls import reverse
+        self.client.force_login(self.user_a)
+        response = self.client.get(reverse('presupuesto:exportar_reporte_ejecucion_excel'), {'vigencia': self.vigencia.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )

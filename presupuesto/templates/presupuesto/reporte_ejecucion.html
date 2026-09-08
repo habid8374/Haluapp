@@ -1,0 +1,111 @@
+{% extends "base_presupuesto.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-clipboard-data me-2"></i>Reportes de Ejecución (CHIP/SIA)</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.9rem;color:#fff;">Ejecución presupuestal de ingresos y gastos, y balance de comprobación contable, por vigencia fiscal.</p>
+  </div>
+  {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }} alert-dismissible fade show">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>{% endfor %}{% endif %}
+
+  <form method="get" class="mb-3 d-flex gap-2 align-items-center flex-wrap">
+    <label class="form-label mb-0 fw-bold">Vigencia:</label>
+    <select name="vigencia" class="form-select" style="max-width:200px;" onchange="this.form.submit()">
+      {% for v in vigencias %}
+      <option value="{{ v.pk }}" {% if vigencia_actual.pk == v.pk %}selected{% endif %}>{{ v.anio }} ({{ v.get_estado_display }})</option>
+      {% endfor %}
+    </select>
+    {% if vigencia_actual %}
+    <a href="{% url 'presupuesto:exportar_reporte_ejecucion_excel' %}?vigencia={{ vigencia_actual.pk }}" class="btn btn-outline-success">
+      <i class="bi bi-file-earmark-excel me-1"></i>Exportar a Excel
+    </a>
+    {% endif %}
+  </form>
+
+  {% if not vigencia_actual %}
+  <div class="alert alert-info">No hay ninguna vigencia fiscal creada todavía.</div>
+  {% else %}
+
+  <ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-ingresos" type="button"><i class="bi bi-arrow-down-circle me-1"></i>Ejecución Ingresos</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-gastos" type="button"><i class="bi bi-arrow-up-circle me-1"></i>Ejecución Gastos</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-balance" type="button"><i class="bi bi-journal-text me-1"></i>Balance de Comprobación</button></li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-ingresos">
+      <div class="row g-2 mb-3">
+        <div class="col-md-6"><div class="card text-bg-success"><div class="card-body"><div class="small opacity-75">Total presupuestado</div><div class="fs-5 fw-bold">${{ total_ingreso_presupuestado|floatformat:2 }}</div></div></div></div>
+        <div class="col-md-6"><div class="card text-bg-primary"><div class="card-body"><div class="small opacity-75">Total recaudado</div><div class="fs-5 fw-bold">${{ total_ingreso_recaudado|floatformat:2 }}</div></div></div></div>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light"><tr><th>Rubro</th><th>Fuente de Financiación (CHIP)</th><th>Presupuestado</th><th>Recaudado</th><th>Saldo por Recaudar</th></tr></thead>
+            <tbody>
+              {% for f in filas_ingresos %}
+              <tr>
+                <td class="fw-bold">{{ f.rubro }}</td>
+                <td>{% if f.fuente_financiacion %}{{ f.fuente_financiacion }}{% else %}<span class="text-muted fst-italic">Sin asignar</span>{% endif %}</td>
+                <td>${{ f.presupuestado|floatformat:2 }}</td><td>${{ f.recaudado|floatformat:2 }}</td><td>${{ f.saldo_por_recaudar|floatformat:2 }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No hay presupuesto de ingresos para esta vigencia.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-gastos">
+      <div class="row g-2 mb-3">
+        <div class="col-md-3"><div class="card text-bg-success"><div class="card-body"><div class="small opacity-75">Apropiado</div><div class="fs-5 fw-bold">${{ total_gasto_apropiado|floatformat:2 }}</div></div></div></div>
+        <div class="col-md-3"><div class="card text-bg-warning"><div class="card-body"><div class="small opacity-75">Comprometido</div><div class="fs-5 fw-bold">${{ total_gasto_comprometido|floatformat:2 }}</div></div></div></div>
+        <div class="col-md-3"><div class="card text-bg-info"><div class="card-body"><div class="small opacity-75">Obligado</div><div class="fs-5 fw-bold">${{ total_gasto_obligado|floatformat:2 }}</div></div></div></div>
+        <div class="col-md-3"><div class="card text-bg-primary"><div class="card-body"><div class="small opacity-75">Pagado</div><div class="fs-5 fw-bold">${{ total_gasto_pagado|floatformat:2 }}</div></div></div></div>
+      </div>
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light"><tr><th>Rubro</th><th>Apropiación Inicial</th><th>Apropiación Definitiva</th><th>Comprometido</th><th>Obligado</th><th>Pagado</th><th>Saldo por Comprometer</th></tr></thead>
+            <tbody>
+              {% for f in filas_gastos %}
+              <tr>
+                <td class="fw-bold">{{ f.rubro }}</td>
+                <td>${{ f.apropiacion_inicial|floatformat:2 }}</td><td>${{ f.apropiacion_definitiva|floatformat:2 }}</td>
+                <td>${{ f.comprometido|floatformat:2 }}</td><td>${{ f.obligado|floatformat:2 }}</td><td>${{ f.pagado|floatformat:2 }}</td>
+                <td>${{ f.saldo_por_comprometer|floatformat:2 }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7" class="text-center text-muted py-4">No hay apropiaciones para esta vigencia.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-balance">
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light"><tr><th>Cuenta CGC</th><th>Nombre</th><th>Total Débitos</th><th>Total Créditos</th><th>Saldo</th></tr></thead>
+            <tbody>
+              {% for f in filas_balance %}
+              <tr>
+                <td class="fw-bold">{{ f.cuenta__codigo }}</td><td>{{ f.cuenta__nombre }}</td>
+                <td>${{ f.total_debitos|floatformat:2 }}</td><td>${{ f.total_creditos|floatformat:2 }}</td><td>${{ f.saldo|floatformat:2 }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-4">No hay comprobantes contabilizados en esta vigencia.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
