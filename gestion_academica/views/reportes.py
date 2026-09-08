@@ -1318,35 +1318,56 @@ def reporte_asistencia_materia(request):
     grado_id = request.GET.get('grado')
     periodo_id = request.GET.get('periodo')
     materia_id = request.GET.get('materia')
+    fecha_inicio_str = request.GET.get('fecha_inicio')
+    fecha_fin_str = request.GET.get('fecha_fin')
+
+    fecha_inicio = None
+    fecha_fin = None
+    try:
+        if fecha_inicio_str:
+            fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+        if fecha_fin_str:
+            fecha_fin = datetime.strptime(fecha_fin_str, '%Y-%m-%d').date()
+    except ValueError:
+        fecha_inicio = None
+        fecha_fin = None
 
     reporte_data = {}
     curso_seleccionado = None
 
     if grado_id:
         materias_del_grado = Materia.objects.filter(
-            cursos__grado_id=grado_id, 
+            cursos__grado_id=grado_id,
             cursos__institucion=institucion
         ).distinct().order_by('nombre_materia')
 
     if grado_id and periodo_id and materia_id:
         curso_seleccionado = get_object_or_404(
             Curso.objects.select_related('grado', 'periodo_academico', 'materia'),
-            grado_id=grado_id, 
-            periodo_academico_id=periodo_id, 
+            grado_id=grado_id,
+            periodo_academico_id=periodo_id,
             materia_id=materia_id,
             institucion=institucion
         )
-        
+
+        # Filtro de asistencia del curso, opcionalmente acotado a un rango de
+        # fechas (por defecto, todo el histórico del periodo).
+        filtro_fechas = Q()
+        if fecha_inicio:
+            filtro_fechas &= Q(asistencias__fecha_solo__gte=fecha_inicio)
+        if fecha_fin:
+            filtro_fechas &= Q(asistencias__fecha_solo__lte=fecha_fin)
+
         # Obtenemos los estudiantes y anotamos sus conteos de asistencia para este curso
         estudiantes_con_asistencia = Estudiante.objects.filter(
-            grado_actual=curso_seleccionado.grado, 
+            grado_actual=curso_seleccionado.grado,
             activo=True,
             institucion=institucion
         ).annotate(
-            total_presente=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='PRESENTE')),
-            total_ausente=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='AUSENTE')),
-            total_tardanza=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='TARDANZA')),
-            total_justificado=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='JUSTIFICADO')),
+            total_presente=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='PRESENTE') & filtro_fechas),
+            total_ausente=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='AUSENTE') & filtro_fechas),
+            total_tardanza=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='TARDANZA') & filtro_fechas),
+            total_justificado=Count('asistencias', filter=Q(asistencias__curso=curso_seleccionado, asistencias__estado='JUSTIFICADO') & filtro_fechas),
         ).select_related('usuario').order_by('usuario__last_name')
 
         # Preparamos los datos para el gráfico
@@ -1365,7 +1386,9 @@ def reporte_asistencia_materia(request):
         'titulo_pagina': _("Reporte de Asistencia por Materia"),
         'grados': grados, 'periodos': periodos, 'materias_del_grado': materias_del_grado,
         'curso_seleccionado': curso_seleccionado,
-        'reporte_data': reporte_data
+        'reporte_data': reporte_data,
+        'fecha_inicio': fecha_inicio_str if fecha_inicio else '',
+        'fecha_fin': fecha_fin_str if fecha_fin else '',
     }
     return render(request, 'gestion_academica/reportes/reporte_asistencia_materia.html', context)
 

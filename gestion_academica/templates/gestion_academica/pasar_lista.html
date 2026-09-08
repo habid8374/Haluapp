@@ -1,45 +1,72 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+  .pl-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    padding: .9rem 1rem;
+    border-bottom: 1px solid #eef2f7;
+  }
+  .pl-fila:last-child { border-bottom: none; }
+  .pl-nombre { font-weight: 600; color: #0f172a; flex: 1 1 100%; min-width: 0; }
+  .pl-estados {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    flex: 1 1 100%;
+  }
+  .pl-estados .btn-check:checked + label { box-shadow: none; }
+  .pl-estados label {
+    flex: 1 1 auto;
+    min-width: 4.5rem;
+    text-align: center;
+    font-size: .85rem;
+    padding: .4rem .5rem;
+  }
+  @media (min-width: 576px) {
+    .pl-nombre { flex: 1 1 auto; }
+    .pl-estados { flex: 0 0 auto; }
+    .pl-estados label { min-width: 5.5rem; }
+  }
+</style>
+{% endblock %}
 {% block contenido %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">{{ titulo_pagina }}</h1>
-        <span class="badge bg-primary fs-6">Fecha: {{ fecha|date:"l, d \d\e F" }}</span>
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h1 class="h3 mb-0">{{ titulo_pagina }}</h1>
+        <span class="badge bg-primary fs-6">{% trans "Fecha" %}: {{ fecha|date:"l, d \d\e F" }}</span>
     </div>
-    <p class="lead text-muted">La asistencia se carga automáticamente como "Presente" si el estudiante ingresó a la institución. Modifica únicamente los casos de ausencia o tardanza.</p>
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'gestion_academica:reporte_asistencia_materia' %}?grado={{ curso.grado_id }}&periodo={{ curso.periodo_academico_id }}&materia={{ curso.materia_id }}"
+           class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-calendar-range me-1"></i>{% trans "Ver reporte / historial de esta materia" %}
+        </a>
+    </div>
+    <p class="lead text-muted">{% trans "La asistencia se carga automáticamente como \"Presente\" si el estudiante ingresó a la institución. Modifica únicamente los casos de ausencia o tardanza." %}</p>
     <form method="post">
         {% csrf_token %}
         <div class="card shadow-sm">
             <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Estudiante</th>
-                                <th class="text-center" style="width: 350px;">Estado de Asistencia</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for asistencia in asistencias %}
-                            <tr>
-                                <td><strong>{{ asistencia.estudiante.usuario.get_full_name }}</strong></td>
-                                <td class="text-center">
-                                    <div class="btn-group" role="group">
-                                        {% for val, name in estados %}
-                                            <input type="radio" class="btn-check" name="estado_{{ asistencia.pk }}" id="estado-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" value="{{ val }}" {% if asistencia.estado == val %}checked{% endif %}>
-                                            <label class="btn btn-outline-primary" for="estado-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">{{ name }}</label>
-                                        {% endfor %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                {% for asistencia in asistencias %}
+                <div class="pl-fila">
+                    <div class="pl-nombre">{{ asistencia.estudiante.usuario.get_full_name }}</div>
+                    <div class="pl-estados btn-group" role="group">
+                        {% for val, name in estados %}
+                            <input type="radio" class="btn-check" name="estado_{{ asistencia.pk }}" id="estado-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" value="{{ val }}" {% if asistencia.estado == val %}checked{% endif %}>
+                            <label class="btn btn-outline-primary" for="estado-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">{{ name }}</label>
+                        {% endfor %}
+                    </div>
                 </div>
+                {% endfor %}
             </div>
             <div class="card-footer text-end">
                 <button type="submit" class="btn btn-success">
-                    <i class="bi bi-check-circle-fill me-2"></i>Guardar Cambios en la Asistencia
+                    <i class="bi bi-check-circle-fill me-2"></i>{% trans "Guardar Cambios en la Asistencia" %}
                 </button>
             </div>
         </div>
