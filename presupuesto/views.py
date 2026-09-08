@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -1040,7 +1040,6 @@ def exportar_reporte_ejecucion_excel(request):
     guard = _requiere_gestor(request)
     if guard:
         return guard
-    from django.http import HttpResponse
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Font, PatternFill
 
@@ -1085,3 +1084,143 @@ def exportar_reporte_ejecucion_excel(request):
     resp['Content-Disposition'] = f'attachment; filename="reporte_ejecucion_presupuestal_{vigencia.anio}.xlsx"'
     wb.save(resp)
     return resp
+
+
+@login_required
+def exportar_reporte_ejecucion_pdf(request):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    filtro = _filtro_institucion(request)
+    vigencia, _vigencias = _resolver_vigencia(request, filtro)
+    if not vigencia:
+        messages.error(request, 'No hay ninguna vigencia fiscal para exportar.')
+        return redirect('presupuesto:reporte_ejecucion')
+
+    from django.template.loader import get_template
+    from django.utils import timezone
+    from xhtml2pdf import pisa
+
+    from .pdf_utils import link_callback_pdf
+
+    filas_ingresos = reportes.ejecucion_ingresos(vigencia)
+    filas_gastos = reportes.ejecucion_gastos(vigencia)
+    filas_balance = reportes.balance_comprobacion(vigencia)
+    context = {
+        'institucion': _get_institucion(request),
+        'vigencia': vigencia,
+        'filas_ingresos': filas_ingresos,
+        'filas_gastos': filas_gastos,
+        'filas_balance': filas_balance,
+        'total_ingreso_presupuestado': sum((f['presupuestado'] for f in filas_ingresos), Decimal('0.00')),
+        'total_ingreso_recaudado': sum((f['recaudado'] for f in filas_ingresos), Decimal('0.00')),
+        'total_gasto_apropiado': sum((f['apropiacion_definitiva'] for f in filas_gastos), Decimal('0.00')),
+        'total_gasto_comprometido': sum((f['comprometido'] for f in filas_gastos), Decimal('0.00')),
+        'total_gasto_obligado': sum((f['obligado'] for f in filas_gastos), Decimal('0.00')),
+        'total_gasto_pagado': sum((f['pagado'] for f in filas_gastos), Decimal('0.00')),
+        'fecha_generacion': timezone.now(),
+    }
+    html = get_template('presupuesto/pdfs/reporte_ejecucion.html').render(context)
+    resp = HttpResponse(content_type='application/pdf')
+    resp['Content-Disposition'] = f'inline; filename="reporte_ejecucion_presupuestal_{vigencia.anio}.pdf"'
+    pisa_status = pisa.CreatePDF(html, dest=resp, link_callback=link_callback_pdf)
+    if pisa_status.err:
+        return HttpResponse('Ocurrió un error al generar el reporte en PDF.', status=500)
+    return resp
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Documentos imprimibles (PDF) — CDP, RP, Obligación, Orden de Pago,
+# Comprobante de Egreso. Cada uno es el soporte físico/legal del expediente
+# contable del Fondo de Servicios Educativos.
+# ─────────────────────────────────────────────────────────────────────────
+
+def _renderizar_pdf(request, template_name, context, nombre_archivo):
+    from django.template.loader import get_template
+    from django.utils import timezone
+    from xhtml2pdf import pisa
+
+    from .pdf_utils import link_callback_pdf
+
+    context = {**context, 'institucion': _get_institucion(request), 'fecha_generacion': timezone.now()}
+    html = get_template(template_name).render(context)
+    resp = HttpResponse(content_type='application/pdf')
+    resp['Content-Disposition'] = f'inline; filename="{nombre_archivo}"'
+    resp['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    pisa_status = pisa.CreatePDF(html, dest=resp, link_callback=link_callback_pdf)
+    if pisa_status.err:
+        return HttpResponse('Ocurrió un error al generar el PDF.', status=500)
+    return resp
+
+
+@login_required
+def imprimir_cdp(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    from .pdf_utils import valor_en_letras
+    cdp = get_object_or_404(CDP.objects.select_related('apropiacion__rubro', 'vigencia', 'creado_por'), pk=pk, **_filtro_institucion(request))
+    return _renderizar_pdf(request, 'presupuesto/pdfs/cdp.html', {
+        'cdp': cdp, 'valor_letras': valor_en_letras(cdp.valor),
+    }, f'CDP_{cdp.numero}_{cdp.vigencia.anio}.pdf')
+
+
+@login_required
+def imprimir_rp(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    from .pdf_utils import valor_en_letras
+    rp = get_object_or_404(
+        RP.objects.select_related('cdp__vigencia', 'tercero', 'categoria_cpc', 'creado_por'),
+        pk=pk, **_filtro_institucion(request),
+    )
+    return _renderizar_pdf(request, 'presupuesto/pdfs/rp.html', {
+        'rp': rp, 'valor_letras': valor_en_letras(rp.valor),
+    }, f'RP_{rp.numero}.pdf')
+
+
+@login_required
+def imprimir_obligacion(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    from .pdf_utils import valor_en_letras
+    obligacion = get_object_or_404(
+        Obligacion.objects.select_related('rp__tercero', 'creado_por'),
+        pk=pk, **_filtro_institucion(request),
+    )
+    return _renderizar_pdf(request, 'presupuesto/pdfs/obligacion.html', {
+        'obligacion': obligacion, 'valor_letras': valor_en_letras(obligacion.valor),
+    }, f'Obligacion_{obligacion.numero}.pdf')
+
+
+@login_required
+def imprimir_orden_pago(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    from .pdf_utils import valor_en_letras
+    orden = get_object_or_404(
+        OrdenDePago.objects.select_related('obligacion__rp', 'beneficiario', 'creado_por').prefetch_related('retenciones__concepto'),
+        pk=pk, **_filtro_institucion(request),
+    )
+    return _renderizar_pdf(request, 'presupuesto/pdfs/orden_pago.html', {
+        'orden': orden, 'valor_letras': valor_en_letras(orden.valor_neto),
+    }, f'OrdenDePago_{orden.numero}.pdf')
+
+
+@login_required
+def imprimir_comprobante(request, pk):
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    comprobante = get_object_or_404(
+        ComprobanteContable.objects.select_related(
+            'vigencia', 'orden_pago__beneficiario', 'comprobante_que_reversa', 'cuenta_bancaria', 'contabilizado_por',
+        ).prefetch_related('movimientos__cuenta'),
+        pk=pk, **_filtro_institucion(request),
+    )
+    return _renderizar_pdf(request, 'presupuesto/pdfs/comprobante.html', {
+        'comprobante': comprobante,
+    }, f'Comprobante_{comprobante.numero}.pdf')

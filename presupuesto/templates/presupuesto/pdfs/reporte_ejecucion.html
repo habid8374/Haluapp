@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reporte de Ejecución {{ vigencia.anio }}</title>
+<style>
+    @page { size: letter landscape; margin: 1.3cm; }
+    body { font-family: Arial, sans-serif; font-size: 9pt; color: #333; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+    .header-table .logo-cell { width: 20%; text-align: left; vertical-align: top; }
+    .header-table .info-cell { width: 50%; text-align: center; }
+    .header-table .doc-cell { width: 30%; text-align: right; vertical-align: top; }
+    .header-table .logo { max-width: 90px; max-height: 70px; }
+    .header-table h2 { margin: 0; font-size: 13pt; }
+    .header-table p { margin: 2px 0; font-size: 8pt; }
+    .doc-box { border: 1px solid #333; padding: 8px; display: inline-block; }
+    .doc-box h3 { margin: 0 0 4px 0; font-size: 11pt; }
+    h4 { margin: 16px 0 6px; font-size: 11pt; color: #065f46; border-bottom: 2px solid #065f46; padding-bottom: 3px; }
+    table.datos { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+    table.datos th, table.datos td { border: 1px solid #333; padding: 5px; }
+    table.datos th { background-color: #065f46; color: #fff; }
+    .text-right { text-align: right; }
+    .totales-row { font-weight: bold; background-color: #f2f2f2; }
+    .footer-nota { margin-top: 16px; font-size: 7.5pt; color: #777; }
+</style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td class="logo-cell">{% if institucion.logo %}<img src="{{ institucion.logo.path }}" class="logo" alt="Logo">{% endif %}</td>
+            <td class="info-cell">
+                <h2>{{ institucion.nombre }}</h2>
+                <p>NIT: {{ institucion.nit }}</p>
+            </td>
+            <td class="doc-cell">
+                <div class="doc-box">
+                    <h3>REPORTE DE EJECUCIÓN (CHIP/SIA)</h3>
+                    <p><strong>Vigencia fiscal {{ vigencia.anio }}</strong></p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <h4>Ejecución de Ingresos</h4>
+    <table class="datos">
+        <thead><tr><th>Rubro</th><th>Fuente de Financiación (CHIP)</th><th class="text-right">Presupuestado</th><th class="text-right">Recaudado</th><th class="text-right">Saldo por Recaudar</th></tr></thead>
+        <tbody>
+            {% for f in filas_ingresos %}
+            <tr>
+                <td>{{ f.rubro }}</td><td>{{ f.fuente_financiacion|default:"Sin asignar" }}</td>
+                <td class="text-right">${{ f.presupuestado|floatformat:2 }}</td><td class="text-right">${{ f.recaudado|floatformat:2 }}</td><td class="text-right">${{ f.saldo_por_recaudar|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-right"><em>Sin presupuesto de ingresos para esta vigencia.</em></td></tr>
+            {% endfor %}
+            <tr class="totales-row">
+                <td colspan="2">Totales</td>
+                <td class="text-right">${{ total_ingreso_presupuestado|floatformat:2 }}</td>
+                <td class="text-right">${{ total_ingreso_recaudado|floatformat:2 }}</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Ejecución de Gastos</h4>
+    <table class="datos">
+        <thead><tr><th>Rubro</th><th class="text-right">Apr. Inicial</th><th class="text-right">Apr. Definitiva</th><th class="text-right">Comprometido</th><th class="text-right">Obligado</th><th class="text-right">Pagado</th><th class="text-right">Saldo por Comprometer</th></tr></thead>
+        <tbody>
+            {% for f in filas_gastos %}
+            <tr>
+                <td>{{ f.rubro }}</td>
+                <td class="text-right">${{ f.apropiacion_inicial|floatformat:2 }}</td><td class="text-right">${{ f.apropiacion_definitiva|floatformat:2 }}</td>
+                <td class="text-right">${{ f.comprometido|floatformat:2 }}</td><td class="text-right">${{ f.obligado|floatformat:2 }}</td>
+                <td class="text-right">${{ f.pagado|floatformat:2 }}</td><td class="text-right">${{ f.saldo_por_comprometer|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-right"><em>Sin apropiaciones para esta vigencia.</em></td></tr>
+            {% endfor %}
+            <tr class="totales-row">
+                <td>Totales</td><td></td>
+                <td class="text-right">${{ total_gasto_apropiado|floatformat:2 }}</td>
+                <td class="text-right">${{ total_gasto_comprometido|floatformat:2 }}</td>
+                <td class="text-right">${{ total_gasto_obligado|floatformat:2 }}</td>
+                <td class="text-right">${{ total_gasto_pagado|floatformat:2 }}</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Balance de Comprobación</h4>
+    <table class="datos">
+        <thead><tr><th>Cuenta CGC</th><th>Nombre</th><th class="text-right">Total Débitos</th><th class="text-right">Total Créditos</th><th class="text-right">Saldo</th></tr></thead>
+        <tbody>
+            {% for f in filas_balance %}
+            <tr>
+                <td>{{ f.cuenta__codigo }}</td><td>{{ f.cuenta__nombre }}</td>
+                <td class="text-right">${{ f.total_debitos|floatformat:2 }}</td><td class="text-right">${{ f.total_creditos|floatformat:2 }}</td><td class="text-right">${{ f.saldo|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-right"><em>Sin comprobantes contabilizados en esta vigencia.</em></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="footer-nota">Generado por HALU · {{ fecha_generacion|date:"d/m/Y H:i" }} · Fondo de Servicios Educativos (Decreto 1075 de 2015)</p>
+</body>
+</html>

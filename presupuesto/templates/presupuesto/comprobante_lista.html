@@ -19,7 +19,10 @@
             <td>{{ c.vigencia.anio }}</td>
             <td><span class="badge {% if c.estado == 'BORRADOR' %}bg-warning text-dark{% elif c.estado == 'CONTABILIZADO' %}bg-success{% else %}bg-danger{% endif %}">{{ c.get_estado_display }}</span></td>
             <td>{{ c.fecha|date:"d/m/Y" }}</td>
-            <td><a href="{% url 'presupuesto:detalle_comprobante' c.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver</a></td>
+            <td class="d-flex gap-1">
+              <a href="{% url 'presupuesto:detalle_comprobante' c.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver</a>
+              <a href="{% url 'presupuesto:imprimir_comprobante' c.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Imprimir</a>
+            </td>
           </tr>
           {% empty %}
           <tr><td colspan="7" class="text-center text-muted py-4">No hay comprobantes generados todavía.</td></tr>

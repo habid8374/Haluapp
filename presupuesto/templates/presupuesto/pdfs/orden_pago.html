@@ -1,0 +1,42 @@
+{% extends "presupuesto/pdfs/_base_pdf.html" %}
+{% block titulo_pagina %}Orden de Pago No. {{ orden.numero }}{% endblock %}
+{% block doc_titulo %}ORDEN DE PAGO{% endblock %}
+{% block doc_numero %}{{ orden.numero }}{% endblock %}
+{% block cuerpo %}
+<table class="info-table">
+    <tr>
+        <td class="label">Fecha:</td>
+        <td>{{ orden.fecha|date:"d \d\e F \d\e Y" }}</td>
+        <td class="label">Obligación de respaldo:</td>
+        <td>No. {{ orden.obligacion.numero }}</td>
+    </tr>
+    <tr>
+        <td class="label">Beneficiario:</td>
+        <td colspan="3">{{ orden.beneficiario.nombre }}{% if orden.beneficiario.nit_o_cedula %} — NIT/CC {{ orden.beneficiario.nit_o_cedula }}{% endif %}</td>
+    </tr>
+    <tr>
+        <td class="label">Concepto:</td>
+        <td colspan="3">{{ orden.obligacion.rp.objeto_contrato }}</td>
+    </tr>
+    <tr>
+        <td class="label">Estado:</td>
+        <td colspan="3">{{ orden.get_estado_display }}</td>
+    </tr>
+</table>
+<table class="items-table">
+    <thead><tr><th>Concepto</th><th class="text-right">Valor</th></tr></thead>
+    <tbody>
+        <tr><td>Valor bruto</td><td class="text-right">${{ orden.valor_bruto|floatformat:2 }}</td></tr>
+        {% for r in orden.retenciones.all %}
+        <tr><td>(-) {{ r.concepto.nombre }} ({{ r.tarifa_porcentaje }}% sobre ${{ r.base_gravable|floatformat:2 }})</td><td class="text-right">-${{ r.valor|floatformat:2 }}</td></tr>
+        {% endfor %}
+        <tr><td><strong>Valor neto a pagar</strong></td><td class="text-right"><strong>${{ orden.valor_neto|floatformat:2 }}</strong></td></tr>
+    </tbody>
+</table>
+<p class="valor-letras">{{ valor_letras }}</p>
+{% endblock %}
+{% block firmas %}
+<td>Elaborado por<br>{% if orden.creado_por %}{{ orden.creado_por.get_full_name|default:orden.creado_por.username }}{% endif %}</td>
+<td>Aprobado por</td>
+<td>Recibí conforme<br>{{ orden.beneficiario.nombre }}</td>
+{% endblock %}

@@ -528,3 +528,89 @@ class ReportesEjecucionTest(TestCase):
             response['Content-Type'],
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         )
+
+    def test_exportar_pdf_devuelve_pdf(self):
+        from django.urls import reverse
+        self.client.force_login(self.user_a)
+        response = self.client.get(reverse('presupuesto:exportar_reporte_ejecucion_pdf'), {'vigencia': self.vigencia.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertTrue(response.content.startswith(b'%PDF'))
+
+
+class DocumentosImprimiblesTest(TestCase):
+    """Cada documento del ciclo (CDP, RP, Obligación, Orden de Pago,
+    Comprobante) debe poder imprimirse en PDF, y solo por instituciones
+    con acceso al documento (IDOR)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from .models import CatalogoGeneralCuentas, CuentaBancaria
+
+        cls.inst_a = _crear_institucion("FSE Imprimibles A", "900666666-6")
+        cls.inst_b = _crear_institucion("FSE Imprimibles B", "900777777-7")
+        cls.user_a = _crear_usuario("admin_imprimibles_a", "imp_a@fse.test", cls.inst_a)
+        cls.user_b = _crear_usuario("admin_imprimibles_b", "imp_b@fse.test", cls.inst_b)
+        cls.proveedor_a = Proveedor.objects.create(institucion=cls.inst_a, nombre="Ferretería El Martillo")
+
+        cls.cuenta_gasto = CatalogoGeneralCuentas.objects.create(codigo='5120-I', nombre='Materiales', naturaleza='DEBITO')
+        cls.cuenta_bancos_cgc = CatalogoGeneralCuentas.objects.create(codigo='1110-I', nombre='Bancos', naturaleza='DEBITO')
+        cls.cuenta_bancaria = CuentaBancaria.objects.create(
+            institucion=cls.inst_a, banco='Banco Imprimibles', numero_cuenta='555-1',
+            cuenta_cgc=cls.cuenta_bancos_cgc, saldo_inicial=Decimal('5000000.00'),
+        )
+        cls.vigencia = VigenciaFiscal.objects.create(institucion=cls.inst_a, anio=2026)
+        cls.rubro = RubroPresupuestalGasto.objects.create(
+            institucion=cls.inst_a, codigo="2.3.7", nombre="Ferretería", tipo=RubroPresupuestalGasto.Tipo.FUNCIONAMIENTO,
+            cuenta_cgc_gasto=cls.cuenta_gasto,
+        )
+        cls.apropiacion = Apropiacion.objects.create(
+            institucion=cls.inst_a, vigencia=cls.vigencia, rubro=cls.rubro, valor_inicial=Decimal('1000000.00'),
+        )
+        cls.cdp = services.expedir_cdp(apropiacion=cls.apropiacion, valor=Decimal('500000.00'), objeto="Compra", usuario=cls.user_a)
+        cls.rp = services.crear_rp(cdp=cls.cdp, tercero=cls.proveedor_a, objeto_contrato="Materiales varios", valor=Decimal('400000.00'), usuario=cls.user_a)
+        cls.obligacion = services.causar_obligacion(rp=cls.rp, valor=Decimal('400000.00'), soporte=None, usuario=cls.user_a)
+        cls.orden = services.generar_orden_pago(obligacion=cls.obligacion, usuario=cls.user_a)
+        cls.comprobante = services.generar_comprobante_contable(orden_pago=cls.orden, cuenta_bancaria=cls.cuenta_bancaria, usuario=cls.user_a)
+
+    def _assert_es_pdf(self, response):
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertTrue(response.content.startswith(b'%PDF'))
+
+    def test_imprimir_cdp(self):
+        from django.urls import reverse
+        self.client.force_login(self.user_a)
+        self._assert_es_pdf(self.client.get(reverse('presupuesto:imprimir_cdp', args=[self.cdp.pk])))
+
+    def test_imprimir_rp(self):
+        from django.urls import reverse
+        self.client.force_login(self.user_a)
+        self._assert_es_pdf(self.client.get(reverse('presupuesto:imprimir_rp', args=[self.rp.pk])))
+
+    def test_imprimir_obligacion(self):
+        from django.urls import reverse
+        self.client.force_login(self.user_a)
+        self._assert_es_pdf(self.client.get(reverse('presupuesto:imprimir_obligacion', args=[self.obligacion.pk])))
+
+    def test_imprimir_orden_pago(self):
+        from django.urls import reverse
+        self.client.force_login(self.user_a)
+        self._assert_es_pdf(self.client.get(reverse('presupuesto:imprimir_orden_pago', args=[self.orden.pk])))
+
+    def test_imprimir_comprobante(self):
+        from django.urls import reverse
+        self.client.force_login(self.user_a)
+        self._assert_es_pdf(self.client.get(reverse('presupuesto:imprimir_comprobante', args=[self.comprobante.pk])))
+
+    def test_institucion_b_no_puede_imprimir_documentos_de_a(self):
+        """IDOR: la institución B no debe poder imprimir documentos de la A."""
+        from django.urls import reverse
+        self.client.force_login(self.user_b)
+        for url_name, pk in [
+            ('imprimir_cdp', self.cdp.pk), ('imprimir_rp', self.rp.pk),
+            ('imprimir_obligacion', self.obligacion.pk), ('imprimir_orden_pago', self.orden.pk),
+            ('imprimir_comprobante', self.comprobante.pk),
+        ]:
+            response = self.client.get(reverse(f'presupuesto:{url_name}', args=[pk]))
+            self.assertEqual(response.status_code, 404, f'{url_name} debería dar 404 para otra institución')

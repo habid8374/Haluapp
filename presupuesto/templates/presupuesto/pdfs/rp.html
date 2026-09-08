@@ -1,0 +1,44 @@
+{% extends "presupuesto/pdfs/_base_pdf.html" %}
+{% block titulo_pagina %}RP No. {{ rp.numero }}{% endblock %}
+{% block doc_titulo %}REGISTRO PRESUPUESTAL{% endblock %}
+{% block doc_numero %}{{ rp.numero }}{% endblock %}
+{% block cuerpo %}
+<table class="info-table">
+    <tr>
+        <td class="label">Fecha de registro:</td>
+        <td>{{ rp.fecha|date:"d \d\e F \d\e Y" }}</td>
+        <td class="label">CDP de respaldo:</td>
+        <td>No. {{ rp.cdp.numero }}/{{ rp.cdp.vigencia.anio }}</td>
+    </tr>
+    <tr>
+        <td class="label">Tercero / Contratista:</td>
+        <td colspan="3">{{ rp.tercero.nombre }}{% if rp.tercero.nit_o_cedula %} — NIT/CC {{ rp.tercero.nit_o_cedula }}{% endif %}</td>
+    </tr>
+    <tr>
+        <td class="label">Objeto del contrato:</td>
+        <td colspan="3">{{ rp.objeto_contrato }}</td>
+    </tr>
+    {% if rp.categoria_cpc %}
+    <tr>
+        <td class="label">Clasificación CPC:</td>
+        <td colspan="3">{{ rp.categoria_cpc.codigo }} — {{ rp.categoria_cpc.titulo }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td class="label">Estado:</td>
+        <td colspan="3">{{ rp.get_estado_display }}</td>
+    </tr>
+</table>
+<table class="items-table">
+    <thead><tr><th>Concepto</th><th class="text-right">Valor</th></tr></thead>
+    <tbody>
+        <tr><td>Valor del compromiso</td><td class="text-right"><strong>${{ rp.valor|floatformat:2 }}</strong></td></tr>
+        <tr><td>Saldo por obligar</td><td class="text-right">${{ rp.saldo_disponible|floatformat:2 }}</td></tr>
+    </tbody>
+</table>
+<p class="valor-letras">{{ valor_letras }}</p>
+{% endblock %}
+{% block firmas %}
+<td>Elaborado por<br>{% if rp.creado_por %}{{ rp.creado_por.get_full_name|default:rp.creado_por.username }}{% endif %}</td>
+<td>Aprobado por</td>
+{% endblock %}

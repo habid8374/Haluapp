@@ -1,0 +1,60 @@
+{% extends "presupuesto/pdfs/_base_pdf.html" %}
+{% block titulo_pagina %}Comprobante No. {{ comprobante.numero }}{% endblock %}
+{% block doc_titulo %}{% if comprobante.tipo == 'AJUSTE' %}COMPROBANTE DE AJUSTE{% else %}COMPROBANTE DE EGRESO{% endif %}{% endblock %}
+{% block doc_numero %}{{ comprobante.numero }}{% endblock %}
+{% block cuerpo %}
+<table class="info-table">
+    <tr>
+        <td class="label">Fecha:</td>
+        <td>{{ comprobante.fecha|date:"d \d\e F \d\e Y" }}</td>
+        <td class="label">Vigencia fiscal:</td>
+        <td>{{ comprobante.vigencia.anio }}</td>
+    </tr>
+    {% if comprobante.orden_pago %}
+    <tr>
+        <td class="label">Orden de Pago de origen:</td>
+        <td>No. {{ comprobante.orden_pago.numero }}</td>
+        <td class="label">Beneficiario:</td>
+        <td>{{ comprobante.orden_pago.beneficiario.nombre }}</td>
+    </tr>
+    {% endif %}
+    {% if comprobante.comprobante_que_reversa %}
+    <tr>
+        <td class="label">Reversa al comprobante:</td>
+        <td colspan="3">No. {{ comprobante.comprobante_que_reversa.numero }} — {{ comprobante.anulado_motivo }}</td>
+    </tr>
+    {% endif %}
+    {% if comprobante.cuenta_bancaria %}
+    <tr>
+        <td class="label">Cuenta bancaria de pago:</td>
+        <td colspan="3">{{ comprobante.cuenta_bancaria }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td class="label">Estado:</td>
+        <td colspan="3">{{ comprobante.get_estado_display }}{% if comprobante.fecha_contabilizacion %} — contabilizado el {{ comprobante.fecha_contabilizacion|date:"d/m/Y H:i" }}{% endif %}</td>
+    </tr>
+</table>
+<table class="items-table">
+    <thead><tr><th>Cuenta (CGC)</th><th>Descripción</th><th class="text-right">Débito</th><th class="text-right">Crédito</th></tr></thead>
+    <tbody>
+        {% for m in comprobante.movimientos.all %}
+        <tr>
+            <td>{{ m.cuenta.codigo }} — {{ m.cuenta.nombre }}</td>
+            <td>{{ m.descripcion }}</td>
+            <td class="text-right">{% if m.valor_debito %}${{ m.valor_debito|floatformat:2 }}{% endif %}</td>
+            <td class="text-right">{% if m.valor_credito %}${{ m.valor_credito|floatformat:2 }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="2"><strong>Totales</strong></td>
+            <td class="text-right"><strong>${{ comprobante.total_debitos|floatformat:2 }}</strong></td>
+            <td class="text-right"><strong>${{ comprobante.total_creditos|floatformat:2 }}</strong></td>
+        </tr>
+    </tbody>
+</table>
+{% endblock %}
+{% block firmas %}
+<td>Elaborado por</td>
+<td>Contabilizado por<br>{% if comprobante.contabilizado_por %}{{ comprobante.contabilizado_por.get_full_name|default:comprobante.contabilizado_por.username }}{% else %}(pendiente){% endif %}</td>
+{% endblock %}

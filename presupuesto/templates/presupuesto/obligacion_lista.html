@@ -18,7 +18,8 @@
             <td class="fw-bold">{{ o.numero }}</td><td>#{{ o.rp.numero }}</td><td>{{ o.rp.tercero }}</td>
             <td>${{ o.valor|floatformat:2 }}</td><td>${{ o.saldo_disponible|floatformat:2 }}</td>
             <td><span class="badge {% if o.estado == 'VIGENTE' %}bg-success{% elif o.estado == 'PAGADA' %}bg-secondary{% else %}bg-danger{% endif %}">{{ o.get_estado_display }}</span></td>
-            <td>
+            <td class="d-flex gap-1">
+              <a href="{% url 'presupuesto:imprimir_obligacion' o.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Imprimir</a>
               {% if o.estado == 'VIGENTE' %}
               <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnular" data-action="{% url 'presupuesto:anular_obligacion' o.pk %}" data-nombre="Obligación #{{ o.numero }}">
                 <i class="bi bi-x-circle me-1"></i>Anular

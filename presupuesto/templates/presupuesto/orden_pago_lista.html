@@ -20,6 +20,7 @@
             <td><span class="badge {% if o.estado == 'GENERADA' %}bg-warning text-dark{% elif o.estado == 'PAGADA' %}bg-success{% else %}bg-danger{% endif %}">{{ o.get_estado_display }}</span></td>
             <td class="d-flex gap-1">
               <a href="{% url 'presupuesto:detalle_orden_pago' o.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye me-1"></i>Ver</a>
+              <a href="{% url 'presupuesto:imprimir_orden_pago' o.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Imprimir</a>
               {% if o.estado == 'GENERADA' %}
               <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnular" data-action="{% url 'presupuesto:anular_orden_pago' o.pk %}" data-nombre="Orden de Pago #{{ o.numero }}">
                 <i class="bi bi-x-circle me-1"></i>Anular

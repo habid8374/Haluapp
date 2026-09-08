@@ -18,7 +18,8 @@
             <td class="fw-bold">{{ c.numero }}</td><td>{{ c.apropiacion.rubro }}</td><td>{{ c.objeto }}</td>
             <td>${{ c.valor|floatformat:2 }}</td><td>${{ c.saldo_disponible|floatformat:2 }}</td>
             <td><span class="badge {% if c.estado == 'VIGENTE' %}bg-success{% elif c.estado == 'AGOTADO' %}bg-secondary{% else %}bg-danger{% endif %}">{{ c.get_estado_display }}</span></td>
-            <td>
+            <td class="d-flex gap-1">
+              <a href="{% url 'presupuesto:imprimir_cdp' c.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-printer me-1"></i>Imprimir</a>
               {% if c.estado == 'VIGENTE' %}
               <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnular" data-action="{% url 'presupuesto:anular_cdp' c.pk %}" data-nombre="CDP #{{ c.numero }}">
                 <i class="bi bi-x-circle me-1"></i>Anular

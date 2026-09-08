@@ -19,6 +19,9 @@
     <a href="{% url 'presupuesto:exportar_reporte_ejecucion_excel' %}?vigencia={{ vigencia_actual.pk }}" class="btn btn-outline-success">
       <i class="bi bi-file-earmark-excel me-1"></i>Exportar a Excel
     </a>
+    <a href="{% url 'presupuesto:exportar_reporte_ejecucion_pdf' %}?vigencia={{ vigencia_actual.pk }}" target="_blank" class="btn btn-outline-danger">
+      <i class="bi bi-file-earmark-pdf me-1"></i>Exportar a PDF
+    </a>
     {% endif %}
   </form>
 

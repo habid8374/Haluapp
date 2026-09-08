@@ -1,0 +1,38 @@
+{% extends "presupuesto/pdfs/_base_pdf.html" %}
+{% block titulo_pagina %}CDP No. {{ cdp.numero }}{% endblock %}
+{% block doc_titulo %}CERTIFICADO DE DISPONIBILIDAD{% endblock %}
+{% block doc_numero %}{{ cdp.numero }}/{{ cdp.vigencia.anio }}{% endblock %}
+{% block cuerpo %}
+<table class="info-table">
+    <tr>
+        <td class="label">Fecha de expedición:</td>
+        <td>{{ cdp.fecha_expedicion|date:"d \d\e F \d\e Y" }}</td>
+        <td class="label">Vigencia fiscal:</td>
+        <td>{{ cdp.vigencia.anio }}</td>
+    </tr>
+    <tr>
+        <td class="label">Rubro presupuestal:</td>
+        <td colspan="3">{{ cdp.apropiacion.rubro.codigo }} — {{ cdp.apropiacion.rubro.nombre }}</td>
+    </tr>
+    <tr>
+        <td class="label">Objeto:</td>
+        <td colspan="3">{{ cdp.objeto }}</td>
+    </tr>
+    <tr>
+        <td class="label">Estado:</td>
+        <td colspan="3">{{ cdp.get_estado_display }}</td>
+    </tr>
+</table>
+<table class="items-table">
+    <thead><tr><th>Concepto</th><th class="text-right">Valor</th></tr></thead>
+    <tbody>
+        <tr><td>Valor certificado y apartado del rubro</td><td class="text-right"><strong>${{ cdp.valor|floatformat:2 }}</strong></td></tr>
+        <tr><td>Saldo disponible de la apropiación tras este CDP</td><td class="text-right">${{ cdp.apropiacion.saldo_disponible|floatformat:2 }}</td></tr>
+    </tbody>
+</table>
+<p class="valor-letras">{{ valor_letras }}</p>
+{% endblock %}
+{% block firmas %}
+<td>Expedido por<br>{% if cdp.creado_por %}{{ cdp.creado_por.get_full_name|default:cdp.creado_por.username }}{% endif %}</td>
+<td>Vo.Bo. Rector(a)</td>
+{% endblock %}

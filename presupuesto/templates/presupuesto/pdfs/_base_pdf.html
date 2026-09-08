@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>{% block titulo_pagina %}Documento{% endblock %}</title>
+<style>
+    @page { size: letter; margin: 1.5cm; }
+    body { font-family: Arial, sans-serif; font-size: 11pt; color: #333; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .header-table .logo-cell { width: 20%; text-align: left; vertical-align: top; }
+    .header-table .info-cell { width: 50%; text-align: center; }
+    .header-table .doc-cell { width: 30%; text-align: right; vertical-align: top; }
+    .header-table .logo { max-width: 100px; max-height: 80px; }
+    .header-table h2 { margin: 0; font-size: 14pt; }
+    .header-table p { margin: 2px 0; font-size: 9pt; }
+    .doc-box { border: 1px solid #333; padding: 10px; display: inline-block; }
+    .doc-box h3 { margin: 0 0 5px 0; font-size: 12pt; }
+    .info-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #333; }
+    .info-table td { padding: 8px; border: 1px solid #333; }
+    .info-table .label { font-weight: bold; width: 170px; }
+    .items-table { margin-top: 20px; width: 100%; border-collapse: collapse; }
+    .items-table th, .items-table td { border: 1px solid #333; padding: 8px; }
+    .items-table th { background-color: #f2f2f2; }
+    .text-right { text-align: right; }
+    .badge-estado { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9pt; font-weight: bold; color: #fff; }
+    .valor-letras { margin-top: 10px; font-size: 9pt; font-style: italic; }
+    .signatures { margin-top: 80px; width: 100%; }
+    .signatures td { width: 33%; text-align: center; padding-top: 40px; border-top: 1px solid #333; font-size: 9pt; }
+    .footer-nota { margin-top: 20px; font-size: 8pt; color: #777; }
+</style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td class="logo-cell">
+                {% if institucion.logo %}<img src="{{ institucion.logo.path }}" class="logo" alt="Logo">{% endif %}
+            </td>
+            <td class="info-cell">
+                <h2>{{ institucion.nombre }}</h2>
+                <p>NIT: {{ institucion.nit }}</p>
+                <p>{{ institucion.ciudad_departamento|default:"" }}</p>
+            </td>
+            <td class="doc-cell">
+                <div class="doc-box">
+                    <h3>{% block doc_titulo %}{% endblock %}</h3>
+                    <p><strong>No. {% block doc_numero %}{% endblock %}</strong></p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {% block cuerpo %}{% endblock %}
+
+    <table class="signatures">
+        <tr>
+            {% block firmas %}
+            <td>Elaborado por</td>
+            <td>Aprobado por</td>
+            {% endblock %}
+        </tr>
+    </table>
+    <p class="footer-nota">Generado por HALU · {{ fecha_generacion|date:"d/m/Y H:i" }} · Fondo de Servicios Educativos (Decreto 1075 de 2015)</p>
+</body>
+</html>

@@ -1,0 +1,42 @@
+{% extends "presupuesto/pdfs/_base_pdf.html" %}
+{% block titulo_pagina %}Obligación No. {{ obligacion.numero }}{% endblock %}
+{% block doc_titulo %}CAUSACIÓN DE OBLIGACIÓN{% endblock %}
+{% block doc_numero %}{{ obligacion.numero }}{% endblock %}
+{% block cuerpo %}
+<table class="info-table">
+    <tr>
+        <td class="label">Fecha de registro:</td>
+        <td>{{ obligacion.fecha|date:"d \d\e F \d\e Y" }}</td>
+        <td class="label">RP de respaldo:</td>
+        <td>No. {{ obligacion.rp.numero }}</td>
+    </tr>
+    <tr>
+        <td class="label">Tercero / Contratista:</td>
+        <td colspan="3">{{ obligacion.rp.tercero.nombre }}</td>
+    </tr>
+    <tr>
+        <td class="label">Objeto:</td>
+        <td colspan="3">{{ obligacion.rp.objeto_contrato }}</td>
+    </tr>
+    <tr>
+        <td class="label">Soporte de recibido a satisfacción:</td>
+        <td colspan="3">{% if obligacion.soporte_recibido_satisfaccion %}Adjunto en el sistema{% else %}No se adjuntó soporte{% endif %}</td>
+    </tr>
+    <tr>
+        <td class="label">Estado:</td>
+        <td colspan="3">{{ obligacion.get_estado_display }}</td>
+    </tr>
+</table>
+<table class="items-table">
+    <thead><tr><th>Concepto</th><th class="text-right">Valor</th></tr></thead>
+    <tbody>
+        <tr><td>Se declara recibido a satisfacción por valor de</td><td class="text-right"><strong>${{ obligacion.valor|floatformat:2 }}</strong></td></tr>
+        <tr><td>Saldo por pagar</td><td class="text-right">${{ obligacion.saldo_disponible|floatformat:2 }}</td></tr>
+    </tbody>
+</table>
+<p class="valor-letras">{{ valor_letras }}</p>
+{% endblock %}
+{% block firmas %}
+<td>Elaborado por<br>{% if obligacion.creado_por %}{{ obligacion.creado_por.get_full_name|default:obligacion.creado_por.username }}{% endif %}</td>
+<td>Recibí a satisfacción</td>
+{% endblock %}
