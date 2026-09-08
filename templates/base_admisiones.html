@@ -289,6 +289,12 @@
   panel.addEventListener('scroll', function () {
     sessionStorage.setItem(SCROLL_KEY, panel.scrollTop);
   });
+  /* Respaldo: si el usuario hace scroll y hace clic casi de inmediato, el
+     evento 'scroll' puede no alcanzar a guardar antes de que la página
+     navegue. beforeunload garantiza que quede guardada la última posición. */
+  window.addEventListener('beforeunload', function () {
+    sessionStorage.setItem(SCROLL_KEY, panel.scrollTop);
+  });
   /*
    * Usamos panel.style.setProperty(..., 'important') para que el inline style
    * con !important gane SIEMPRE sobre cualquier regla CSS con !important.

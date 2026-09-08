@@ -305,6 +305,12 @@
   panel.addEventListener('scroll', function () {
     sessionStorage.setItem(SCROLL_KEY, panel.scrollTop);
   });
+  /* Respaldo: si el usuario hace scroll y hace clic casi de inmediato, el
+     evento 'scroll' puede no alcanzar a guardar antes de que la página
+     navegue. beforeunload garantiza que quede guardada la última posición. */
+  window.addEventListener('beforeunload', function () {
+    sessionStorage.setItem(SCROLL_KEY, panel.scrollTop);
+  });
   function isMobile() { return window.innerWidth < 992; }
   btn.addEventListener('click', function (e) {
     e.stopPropagation();
