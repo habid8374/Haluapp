@@ -297,11 +297,20 @@
           Admisiones
         </a>
         {% endif %}
-        {% if perms.finanzas.acceso_modulo_finanzas and institucion_actual.usa_modulo_financiero %}
-        <a href="{% url 'finanzas:dashboard_financiero' %}" class="qa-btn qa-purple">
-          <i class="bi bi-currency-dollar" style="color:#7c3aed"></i>
-          Finanzas
-        </a>
+        {% if perms.finanzas.acceso_modulo_finanzas or user.rol in 'rector,tesoreria,administrador' %}
+          {% if institucion_actual.tipo_institucion == 'publico' %}
+            {% if user.is_superuser or 'presupuesto' in modulos_activos %}
+            <a href="{% url 'presupuesto:dashboard' %}" class="qa-btn qa-purple">
+              <i class="bi bi-bank2" style="color:#047857"></i>
+              Presupuesto FSE
+            </a>
+            {% endif %}
+          {% elif institucion_usa_finanzas %}
+            <a href="{% url 'finanzas:dashboard_financiero' %}" class="qa-btn qa-purple">
+              <i class="bi bi-currency-dollar" style="color:#7c3aed"></i>
+              Finanzas
+            </a>
+          {% endif %}
         {% endif %}
         <a href="{% url 'gestion_academica:dashboard_bienestar' %}" class="qa-btn">
           <i class="bi bi-heart-pulse-fill" style="color:#db2777"></i>
@@ -412,7 +421,22 @@
           </div>
         </a>
       </div>
-      {% if institucion_actual.usa_modulo_financiero %}
+      {% if institucion_actual.tipo_institucion == 'publico' %}
+        {% if user.is_superuser or 'presupuesto' in modulos_activos %}
+        <div class="col-6 col-md-3">
+          <a href="{% url 'presupuesto:dashboard' %}"
+             class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
+             style="background:#d1fae5;color:#065f46;transition:background .18s"
+             onmouseover="this.style.background='#a7f3d0'" onmouseout="this.style.background='#d1fae5'">
+            <i class="bi bi-bank2 fs-3" style="color:#047857"></i>
+            <div>
+              <div class="fw-700 small">Presupuesto FSE</div>
+              <div style="font-size:.72rem;opacity:.7">Ciclo presupuestal del Fondo</div>
+            </div>
+          </a>
+        </div>
+        {% endif %}
+      {% elif institucion_usa_finanzas %}
       <div class="col-6 col-md-3">
         <a href="{% url 'finanzas:dashboard_financiero' %}"
            class="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none"
