@@ -1,0 +1,306 @@
+{% extends "base_presupuesto.html" %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+  .manual-seccion { background:#fff; border:1px solid #e2e8f0; border-radius:14px; margin-bottom:1.1rem; overflow:hidden; }
+  .manual-seccion-header {
+    background:#f0fdf4; padding:.85rem 1.25rem; border-bottom:1px solid #d1fae5;
+    display:flex; align-items:center; gap:.6rem;
+  }
+  .manual-seccion-header i { color:#047857; font-size:1.15rem; }
+  .manual-seccion-header h3 { margin:0; font-size:1.02rem; font-weight:800; color:#065f46; }
+  .manual-item {
+    display:flex; gap:.9rem; padding:1rem 1.25rem; border-bottom:1px solid #f1f5f9;
+  }
+  .manual-item:last-child { border-bottom:none; }
+  .manual-item-icono {
+    flex:0 0 auto; width:38px; height:38px; border-radius:10px; background:#ecfdf5;
+    display:flex; align-items:center; justify-content:center; color:#047857; font-size:1.05rem;
+  }
+  .manual-item-texto { flex:1 1 auto; min-width:0; }
+  .manual-item-texto .nombre { font-weight:700; color:#0f172a; font-size:.94rem; margin-bottom:.15rem; }
+  .manual-item-texto .desc { color:#475569; font-size:.86rem; line-height:1.45; margin-bottom:0; }
+  .manual-item-ir { flex:0 0 auto; align-self:center; }
+  .manual-flujo {
+    display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; margin:1rem 0 0;
+  }
+  .manual-flujo .paso {
+    background:#ecfdf5; color:#065f46; font-weight:700; font-size:.8rem;
+    padding:.4rem .75rem; border-radius:999px; border:1px solid #a7d7c5;
+  }
+  .manual-flujo .flecha { color:#94a3b8; font-size:1rem; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3">
+  <div style="background:linear-gradient(135deg,#065f46 0%,#047857 100%);border-radius:16px;padding:1.5rem 1.75rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.4rem;color:#fff;"><i class="bi bi-book-half me-2"></i>Manual de Uso — Presupuesto FSE</h2>
+    <p class="mb-0" style="opacity:.9;font-size:.9rem;color:#fff;">Qué hace cada herramienta del menú, explicado en palabras sencillas. No necesitas saber de contabilidad para entender cada pantalla.</p>
+  </div>
+
+  <div class="alert alert-success d-flex align-items-start gap-2" style="border-radius:12px;">
+    <i class="bi bi-signpost-split-fill mt-1"></i>
+    <div>
+      <strong>Idea general:</strong> el módulo sigue siempre el mismo camino para cada gasto — primero se
+      <strong>aparta</strong> la plata (CDP), luego se <strong>compromete</strong> con un proveedor (RP), después se
+      <strong>certifica</strong> que ya se recibió el bien o servicio (Obligación) y por último se <strong>paga</strong>
+      (Orden de Pago). Cada paso no puede pasarse del saldo que le dejó el paso anterior — el sistema lo controla solo.
+      <div class="manual-flujo">
+        <span class="paso">1. CDP</span><span class="flecha"><i class="bi bi-arrow-right"></i></span>
+        <span class="paso">2. RP</span><span class="flecha"><i class="bi bi-arrow-right"></i></span>
+        <span class="paso">3. Obligación</span><span class="flecha"><i class="bi bi-arrow-right"></i></span>
+        <span class="paso">4. Orden de Pago</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ PRINCIPAL ═══════════════════ -->
+  <div class="manual-seccion">
+    <div class="manual-seccion-header"><i class="bi bi-speedometer2"></i><h3>Principal</h3></div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-speedometer2"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Resumen</div>
+        <p class="desc">La pantalla de inicio del módulo. Eliges la vigencia fiscal (el año) arriba y ves, rubro por
+          rubro, cuánto se apropió, cuánto ya está comprometido y cuánto saldo disponible queda — es el "estado de
+          cuenta" del presupuesto en cualquier momento.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:dashboard' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-clipboard-data"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Reportes (CHIP/SIA)</div>
+        <p class="desc">Genera el reporte de ejecución presupuestal (ingresos y gastos de la vigencia) en el formato
+          que se usa para rendir cuentas ante el Estado — puedes exportarlo a Excel o a PDF para presentarlo o
+          archivarlo.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:reporte_ejecucion' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CONFIGURACIÓN ═══════════════════ -->
+  <div class="manual-seccion">
+    <div class="manual-seccion-header"><i class="bi bi-gear-fill"></i><h3>Configuración</h3></div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-calendar-range"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Vigencias Fiscales</div>
+        <p class="desc">El año presupuestal (ej. 2026). Todo lo demás — rubros, apropiaciones, CDP, RP, etc. — se
+          registra siempre dentro de una vigencia. Se abre una al iniciar el año y se cierra cuando termina; una vez
+          cerrada, ya no se le pueden agregar movimientos nuevos.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_vigencias' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-arrow-down-circle"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Rubros de Ingreso</div>
+        <p class="desc">El catálogo de "de dónde entra la plata": transferencias del MEN o la Secretaría, recursos
+          propios del colegio, rendimientos financieros, etc. Se crean una vez y luego se usan cada año para
+          presupuestar cuánto se espera recaudar por cada uno.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_rubros_ingreso' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-arrow-up-circle"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Rubros de Gasto</div>
+        <p class="desc">El catálogo de "en qué se puede gastar" — dotación, mantenimiento, servicios públicos,
+          etc. — clasificados como Funcionamiento (gasto de operación normal) o Inversión (mejoras, compras de
+          mayor duración). Cada gasto del ciclo presupuestal debe apuntar a uno de estos rubros.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_rubros_gasto' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-percent"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Retenciones</div>
+        <p class="desc">Las tarifas de retención que aplican al pagarle a un proveedor: Retención en la Fuente,
+          ReteICA, estampillas territoriales, u otras propias de tu municipio/departamento. Se configuran una sola
+          vez con su porcentaje, y luego se seleccionan al crear una Orden de Pago — el sistema calcula el valor
+          automáticamente.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_conceptos_retencion' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-journal-bookmark"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Catálogo CGC</div>
+        <p class="desc">El Catálogo General de Cuentas (el "plan de cuentas" contable) que usa el sistema para
+          armar automáticamente el comprobante contable de cada pago. Es de consulta — no necesitas crear ni editar
+          nada aquí para el uso normal del día a día.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_catalogo_cgc' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CICLO PRESUPUESTAL ═══════════════════ -->
+  <div class="manual-seccion">
+    <div class="manual-seccion-header"><i class="bi bi-arrow-repeat"></i><h3>Ciclo Presupuestal</h3></div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-cash-coin"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Presupuesto de Ingresos</div>
+        <p class="desc">Cuánto esperas recaudar, por cada Rubro de Ingreso, durante la vigencia (ej. "$5.000.000 en
+          Transferencias del MEN para 2026"). Cuando llega la plata de verdad, se registra el "recaudo" desde el
+          botón correspondiente en cada fila, y el sistema lleva la cuenta de lo presupuestado vs. lo realmente
+          recibido.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_presupuesto_ingreso' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-piggy-bank"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Apropiaciones</div>
+        <p class="desc">Cuánto se autoriza gastar, por cada Rubro de Gasto, durante la vigencia — es el "techo" que
+          no se puede superar. Toda la cadena CDP → RP → Obligación → Orden de Pago se descuenta de aquí, así que
+          esta pantalla es la que muestra el saldo disponible real de cada rubro en todo momento.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_apropiaciones' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-arrow-left-right"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Modificaciones</div>
+        <p class="desc">Cambios a una Apropiación ya aprobada, cuando la plata autorizada no alcanza o sobra:
+          <strong>Adición</strong> (se le agrega valor), <strong>Reducción</strong> (se le quita), o
+          <strong>Traslado</strong> (se mueve valor de un rubro a otro). Toda modificación necesita el soporte de un
+          acto administrativo (ej. una resolución del Consejo Directivo) — el sistema lo pide al crearla.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_modificaciones' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-file-earmark-lock"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">CDP — Certificado de Disponibilidad Presupuestal</div>
+        <p class="desc"><strong>Paso 1 del ciclo.</strong> Antes de comprometerte con un proveedor, "apartas" un
+          monto del saldo disponible de un rubro — es la garantía de que sí hay plata para lo que estás por
+          contratar. Si un CDP ya no se va a usar, se anula para liberar ese saldo de nuevo.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_cdp' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-file-earmark-text"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">RP — Registro Presupuestal</div>
+        <p class="desc"><strong>Paso 2 del ciclo.</strong> Formaliza el compromiso real con un proveedor o contrato
+          específico, a partir de un CDP ya expedido — el valor del RP no puede superar lo que ese CDP apartó. Es
+          la prueba de que "ya se firmó" el compromiso.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_rp' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-file-earmark-check"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Obligaciones</div>
+        <p class="desc"><strong>Paso 3 del ciclo.</strong> Se registra cuando el bien o servicio del RP ya se
+          recibió a satisfacción y, por lo tanto, ya se le debe la plata al proveedor. Es el "recibido conforme" que
+          habilita el pago.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_obligaciones' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-cash-stack"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Órdenes de Pago</div>
+        <p class="desc"><strong>Paso 4 del ciclo — el pago final.</strong> Autoriza el desembolso de una
+          Obligación, aplicando las Retenciones que correspondan. Al crearla, el sistema genera automáticamente el
+          Comprobante Contable y el movimiento de egreso en Tesorería — no hay que registrar nada de eso a mano.
+          Desde cada orden puedes imprimirla o generar su comprobante.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_ordenes_pago' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ CONTABILIDAD ═══════════════════ -->
+  <div class="manual-seccion">
+    <div class="manual-seccion-header"><i class="bi bi-journal-text"></i><h3>Contabilidad</h3></div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-journal-text"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Comprobantes</div>
+        <p class="desc">El registro contable de cada pago, generado automáticamente al crear una Orden de Pago.
+          Nace en <strong>Borrador</strong> para que el contador lo revise; al darle <strong>"Contabilizar"</strong>
+          queda en firme y ya no se puede editar ni borrar. Si hay un error, nunca se corrige el original — se crea
+          un comprobante nuevo de <strong>Reversión</strong> que lo anula contablemente.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_comprobantes' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ TESORERÍA ═══════════════════ -->
+  <div class="manual-seccion">
+    <div class="manual-seccion-header"><i class="bi bi-bank"></i><h3>Tesorería</h3></div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-bank"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Cuentas Bancarias</div>
+        <p class="desc">Las cuentas bancarias del Fondo de Servicios Educativos donde entra y sale la plata.
+          Se registran una vez; luego cada pago y cada recaudo queda asociado a una de ellas.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_cuentas_bancarias' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-arrow-left-right"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Movimientos</div>
+        <p class="desc">El historial de ingresos y egresos de cada cuenta bancaria — se crean solos (un egreso al
+          generar el comprobante de una Orden de Pago, un ingreso al reversarlo), no se registran a mano. Lo único
+          manual aquí es marcar <strong>"Conciliar"</strong> cada movimiento cuando lo cuadras contra el extracto
+          que envía el banco.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_movimientos_tesoreria' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ ALMACÉN ═══════════════════ -->
+  <div class="manual-seccion">
+    <div class="manual-seccion-header"><i class="bi bi-box-seam"></i><h3>Almacén</h3></div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-box-seam"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Elementos</div>
+        <p class="desc">El inventario de bienes que administra el FSE: de consumo (se gastan, ej. papelería) o
+          devolutivos (se prestan y se devuelven, ej. equipos). Cada elemento se crea una vez aquí antes de poder
+          registrarle entradas o salidas.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_elementos_almacen' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+
+    <div class="manual-item">
+      <div class="manual-item-icono"><i class="bi bi-arrow-left-right"></i></div>
+      <div class="manual-item-texto">
+        <div class="nombre">Movimientos</div>
+        <p class="desc"><strong>Entradas</strong> (algo que llegó al almacén, normalmente de una compra ya
+          registrada con su RP) y <strong>Salidas</strong> (algo que se entregó o se consumió) de cada elemento —
+          así el inventario siempre queda al día.</p>
+      </div>
+      <div class="manual-item-ir"><a href="{% url 'presupuesto:lista_movimientos_almacen' %}" class="btn btn-sm btn-outline-success">Ir</a></div>
+    </div>
+  </div>
+
+  <div class="text-center text-muted mb-4" style="font-size:.82rem;">
+    <i class="bi bi-question-circle me-1"></i>¿Tienes una duda que no está aquí?
+    <a href="{% url 'gestion_academica:ayuda_soporte' %}">Abre un ticket de soporte</a>.
+  </div>
+</div>
+{% endblock %}

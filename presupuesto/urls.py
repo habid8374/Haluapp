@@ -6,6 +6,7 @@ app_name = 'presupuesto'
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    path('manual/', views.manual_uso, name='manual_uso'),
 
     path('vigencias/', views.lista_vigencias, name='lista_vigencias'),
     path('vigencias/nueva/', views.crear_vigencia, name='crear_vigencia'),

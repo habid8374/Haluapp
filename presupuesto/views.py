@@ -118,6 +118,20 @@ def dashboard(request):
     return render(request, 'presupuesto/dashboard.html', context)
 
 
+@login_required
+def manual_uso(request):
+    """Explicación en lenguaje sencillo de cada herramienta del módulo,
+    agrupada en las mismas secciones que el menú lateral — para que un
+    rector/tesorero no técnico entienda qué hace cada pantalla sin
+    necesitar soporte técnico."""
+    guard = _requiere_gestor(request)
+    if guard:
+        return guard
+    return render(request, 'presupuesto/manual_uso.html', {
+        'titulo_pagina': 'Manual de Uso — Presupuesto FSE',
+    })
+
+
 # ─────────────────────────────────────────────────────────────────────────
 # Vigencias fiscales
 # ─────────────────────────────────────────────────────────────────────────
