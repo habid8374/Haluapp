@@ -126,13 +126,24 @@ def calcular_corte_preventivo_task(self, corte_id, user_id=None):
     channel_layer = get_channel_layer()
 
     def _notify(uid, tipo, titulo, mensaje, extra=None):
-        if not uid or not channel_layer:
+        if not uid:
+            return
+        extra = extra or {}
+        try:
+            Notificacion.objects.create(
+                destinatario_id=uid, institucion=inst,
+                mensaje=mensaje, enlace=extra.get('url', ''),
+            )
+        except Exception:
+            logger.exception("No se pudo guardar la Notificacion de corte preventivo para uid=%s", uid)
+        if not channel_layer:
             return
         try:
-            payload = {'type': 'staff_notification', 'tipo': tipo,
-                       'titulo': titulo, 'mensaje': mensaje}
-            if extra:
-                payload.update(extra)
+            payload = {
+                'type': 'send_notification', 'kind': 'corte_preventivo',
+                'title': titulo, 'message': mensaje, 'severity': tipo,
+            }
+            payload.update(extra)
             async_to_sync(channel_layer.group_send)(
                 f'user_{uid}', payload
             )
