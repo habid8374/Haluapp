@@ -1621,10 +1621,10 @@ class Noticia(models.Model):
     
 class RegistroAsistencia(models.Model):
     ESTADOS = (
-        ('PRESENTE', 'Presente'),
-        ('AUSENTE', 'Ausente'),
-        ('TARDANZA', 'Tardanza'),
-        ('JUSTIFICADO', 'Justificado')
+        ('PRESENTE', _('Presente')),
+        ('AUSENTE', _('Ausente')),
+        ('TARDANZA', _('Tardanza')),
+        ('JUSTIFICADO', _('Justificado'))
     )
 
     estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='asistencias')

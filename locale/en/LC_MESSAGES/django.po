@@ -13100,3 +13100,87 @@ msgid ""
 msgstr ""
 "“%(titulo)s” assigned to the course. You can now grade it from the Grade "
 "Book."
+
+msgid "Ver reporte / historial de esta materia"
+msgstr "View report / history for this subject"
+
+msgid "Guardar Cambios en la Asistencia"
+msgstr "Save Attendance Changes"
+
+msgid "Desde (opcional):"
+msgstr "From (optional):"
+
+msgid "Hasta (opcional):"
+msgstr "To (optional):"
+
+msgid "Explorar rango de fechas"
+msgstr "Explore date range"
+
+msgid ""
+"Sin fechas, el reporte muestra el histórico completo del periodo "
+"seleccionado. Usa el rango para ver solo un mes u otro intervalo."
+msgstr ""
+"Without dates, the report shows the full history of the selected period. "
+"Use the range to view just one month or another interval."
+
+msgid "Histórico completo del periodo"
+msgstr "Full history of the period"
+
+msgid "Periodo Activo"
+msgstr "Active Period"
+
+msgid "Ver solo mis cursos"
+msgstr "View only my courses"
+
+msgid "Cubrir un curso ajeno"
+msgstr "Cover another teacher's course"
+
+msgid "No hay cursos activos en el periodo académico actual."
+msgstr "There are no active courses in the current academic period."
+
+msgid "No tienes cursos asignados para el periodo académico actual."
+msgstr "You have no courses assigned for the current academic period."
+
+msgid "No hay un periodo académico activo configurado en el sistema."
+msgstr "There is no active academic period configured in the system."
+
+msgid "Cubrir Asistencia"
+msgstr "Cover Attendance"
+
+msgid "No tienes permiso para pasar lista en este curso."
+msgstr "You don't have permission to take attendance in this course."
+
+msgid "La lista de asistencia ha sido actualizada."
+msgstr "The attendance list has been updated."
+
+msgid "Acceso denegado. Solo para docentes o coordinación."
+msgstr "Access denied. For teachers or coordination staff only."
+
+msgid "Tomar Asistencia"
+msgstr "Take Attendance"
+
+msgid "Cubrir Asistencia de Otro Curso"
+msgstr "Cover Attendance for Another Course"
+
+msgid "Pasar Lista: %(curso)s"
+msgstr "Take Attendance: %(curso)s"
+
+msgid "%(dia_semana)s de %(mes_anio)s"
+msgstr "%(dia_semana)s %(mes_anio)s"
+
+msgid "Del %(fecha_inicio)s al %(fecha_fin)s"
+msgstr "From %(fecha_inicio)s to %(fecha_fin)s"
+
+msgid "Desde el %(fecha_inicio)s"
+msgstr "From %(fecha_inicio)s"
+
+msgid "Hasta el %(fecha_fin)s"
+msgstr "Until %(fecha_fin)s"
+
+msgid ""
+"La asistencia se carga automáticamente como \"Presente\" si el estudiante "
+"ingresó a la institución. Modifica únicamente los casos de ausencia o "
+"tardanza."
+msgstr ""
+"Attendance is automatically loaded as \"Present\" if the student entered "
+"the institution. Only edit cases of absence or lateness."

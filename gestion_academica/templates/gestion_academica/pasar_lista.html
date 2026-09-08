@@ -39,7 +39,7 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h1 class="h3 mb-0">{{ titulo_pagina }}</h1>
-        <span class="badge bg-primary fs-6">{% trans "Fecha" %}: {{ fecha|date:"l, d \d\e F" }}</span>
+        <span class="badge bg-primary fs-6">{% trans "Fecha" %}: {% blocktrans with dia_semana=fecha|date:"l, d" mes_anio=fecha|date:"F Y" %}{{ dia_semana }} de {{ mes_anio }}{% endblocktrans %}</span>
     </div>
     <div class="d-flex justify-content-end mb-3">
         <a href="{% url 'gestion_academica:reporte_asistencia_materia' %}?grado={{ curso.grado_id }}&periodo={{ curso.periodo_academico_id }}&materia={{ curso.materia_id }}"

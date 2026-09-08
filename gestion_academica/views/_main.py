@@ -4396,7 +4396,7 @@ def seleccionar_curso_asistencia(request):
     rol = getattr(request.user, 'rol', '') or ''
     es_coordinacion = rol in ('coordinador', 'administrador')
     if not (es_docente or es_coordinacion or request.user.is_superuser):
-        messages.error(request, "Acceso denegado. Solo para docentes o coordinación.")
+        messages.error(request, _("Acceso denegado. Solo para docentes o coordinación."))
         return redirect('gestion_academica:inicio_academico')
 
     # Coordinación no tiene "mis cursos" propios: siempre ve todos.
@@ -4422,7 +4422,7 @@ def seleccionar_curso_asistencia(request):
         'periodo_activo': periodo_activo,
         'ver_todos': ver_todos,
         'es_docente': es_docente,
-        'titulo_pagina': "Tomar Asistencia" if not ver_todos else "Cubrir Asistencia de Otro Curso",
+        'titulo_pagina': _("Tomar Asistencia") if not ver_todos else _("Cubrir Asistencia de Otro Curso"),
     }
     return render(request, 'gestion_academica/seleccionar_curso_asistencia.html', context)
 
@@ -16526,7 +16526,7 @@ def pasar_lista_view(request, curso_pk):
         or hasattr(request.user, 'docente')
         or rol in ('coordinador', 'administrador')
     ):
-        messages.error(request, "No tienes permiso para pasar lista en este curso.")
+        messages.error(request, _("No tienes permiso para pasar lista en este curso."))
         return redirect('gestion_academica:dashboard_docente')
 
     if request.method == 'POST':
@@ -16542,7 +16542,7 @@ def pasar_lista_view(request, curso_pk):
                         asistencia.save()
                 except RegistroAsistencia.DoesNotExist:
                     continue
-        messages.success(request, "La lista de asistencia ha sido actualizada.")
+        messages.success(request, _("La lista de asistencia ha sido actualizada."))
         return redirect('gestion_academica:pasar_lista', curso_pk=curso.pk)
 
     # 3. Aseguramos que la lista de estudiantes también esté filtrada por la
@@ -16567,13 +16567,13 @@ def pasar_lista_view(request, curso_pk):
         asistencias_hoy.append(registro)
 
     context = {
-        'titulo_pagina': f"Pasar Lista: {curso}",
+        'titulo_pagina': _("Pasar Lista: %(curso)s") % {'curso': curso},
         'curso': curso,
         'asistencias': asistencias_hoy,
         'fecha': hoy,
         'estados': RegistroAsistencia.ESTADOS
     }
-    return render(request, 'gestion_academica/pasar_lista.html', context)    
+    return render(request, 'gestion_academica/pasar_lista.html', context)
 
 
 class MaterialRefuerzoView(LoginRequiredMixin, View):
