@@ -125,7 +125,7 @@ class ModificacionPresupuestalForm(_InstitucionScopedFormMixin, forms.ModelForm)
             'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'apropiacion_destino': forms.Select(attrs={'class': 'form-select'}),
             'acto_administrativo': forms.TextInput(attrs={'class': 'form-control'}),
-            'soporte': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'soporte': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
         }
 
 

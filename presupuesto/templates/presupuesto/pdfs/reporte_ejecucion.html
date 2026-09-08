@@ -16,8 +16,8 @@
     .doc-box { border: 1px solid #333; padding: 8px; display: inline-block; }
     .doc-box h3 { margin: 0 0 4px 0; font-size: 11pt; }
     h4 { margin: 16px 0 6px; font-size: 11pt; color: #065f46; border-bottom: 2px solid #065f46; padding-bottom: 3px; }
-    table.datos { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
-    table.datos th, table.datos td { border: 1px solid #333; padding: 5px; }
+    table.datos { border-collapse: collapse; margin-bottom: 4px; }
+    table.datos th, table.datos td { border: 1px solid #333; padding: 5px; word-wrap: break-word; overflow-wrap: break-word; }
     table.datos th { background-color: #065f46; color: #fff; }
     .text-right { text-align: right; }
     .totales-row { font-weight: bold; background-color: #f2f2f2; }
@@ -43,58 +43,79 @@
 
     <h4>Ejecución de Ingresos</h4>
     <table class="datos">
-        <thead><tr><th>Rubro</th><th>Fuente de Financiación (CHIP)</th><th class="text-right">Presupuestado</th><th class="text-right">Recaudado</th><th class="text-right">Saldo por Recaudar</th></tr></thead>
+        <thead><tr>
+            <th style="width:140px;">Rubro</th>
+            <th style="width:280px;">Fuente de Financiación (CHIP)</th>
+            <th class="text-right" style="width:130px;">Presupuestado</th>
+            <th class="text-right" style="width:130px;">Recaudado</th>
+            <th class="text-right" style="width:140px;">Saldo por Recaudar</th>
+        </tr></thead>
         <tbody>
             {% for f in filas_ingresos %}
             <tr>
-                <td>{{ f.rubro }}</td><td>{{ f.fuente_financiacion|default:"Sin asignar" }}</td>
-                <td class="text-right">${{ f.presupuestado|floatformat:2 }}</td><td class="text-right">${{ f.recaudado|floatformat:2 }}</td><td class="text-right">${{ f.saldo_por_recaudar|floatformat:2 }}</td>
+                <td style="width:140px;">{{ f.rubro|truncatechars:24 }}</td><td style="width:280px;">{{ f.fuente_financiacion|default:"Sin asignar"|truncatechars:60 }}</td>
+                <td class="text-right" style="width:130px;">${{ f.presupuestado|floatformat:2 }}</td><td class="text-right" style="width:130px;">${{ f.recaudado|floatformat:2 }}</td><td class="text-right" style="width:140px;">${{ f.saldo_por_recaudar|floatformat:2 }}</td>
             </tr>
             {% empty %}
             <tr><td colspan="5" class="text-right"><em>Sin presupuesto de ingresos para esta vigencia.</em></td></tr>
             {% endfor %}
             <tr class="totales-row">
-                <td colspan="2">Totales</td>
-                <td class="text-right">${{ total_ingreso_presupuestado|floatformat:2 }}</td>
-                <td class="text-right">${{ total_ingreso_recaudado|floatformat:2 }}</td>
-                <td></td>
+                <td style="width:140px;">Totales</td>
+                <td style="width:280px;"></td>
+                <td class="text-right" style="width:130px;">${{ total_ingreso_presupuestado|floatformat:2 }}</td>
+                <td class="text-right" style="width:130px;">${{ total_ingreso_recaudado|floatformat:2 }}</td>
+                <td style="width:140px;"></td>
             </tr>
         </tbody>
     </table>
 
     <h4>Ejecución de Gastos</h4>
     <table class="datos">
-        <thead><tr><th>Rubro</th><th class="text-right">Apr. Inicial</th><th class="text-right">Apr. Definitiva</th><th class="text-right">Comprometido</th><th class="text-right">Obligado</th><th class="text-right">Pagado</th><th class="text-right">Saldo por Comprometer</th></tr></thead>
+        <thead><tr>
+            <th style="width:190px;">Rubro</th>
+            <th class="text-right" style="width:95px;">Apr. Inicial</th>
+            <th class="text-right" style="width:95px;">Apr. Definitiva</th>
+            <th class="text-right" style="width:95px;">Comprometido</th>
+            <th class="text-right" style="width:85px;">Obligado</th>
+            <th class="text-right" style="width:85px;">Pagado</th>
+            <th class="text-right" style="width:120px;">Saldo por Comprometer</th>
+        </tr></thead>
         <tbody>
             {% for f in filas_gastos %}
             <tr>
-                <td>{{ f.rubro }}</td>
-                <td class="text-right">${{ f.apropiacion_inicial|floatformat:2 }}</td><td class="text-right">${{ f.apropiacion_definitiva|floatformat:2 }}</td>
-                <td class="text-right">${{ f.comprometido|floatformat:2 }}</td><td class="text-right">${{ f.obligado|floatformat:2 }}</td>
-                <td class="text-right">${{ f.pagado|floatformat:2 }}</td><td class="text-right">${{ f.saldo_por_comprometer|floatformat:2 }}</td>
+                <td style="width:190px;">{{ f.rubro|truncatechars:34 }}</td>
+                <td class="text-right" style="width:95px;">${{ f.apropiacion_inicial|floatformat:2 }}</td><td class="text-right" style="width:95px;">${{ f.apropiacion_definitiva|floatformat:2 }}</td>
+                <td class="text-right" style="width:95px;">${{ f.comprometido|floatformat:2 }}</td><td class="text-right" style="width:85px;">${{ f.obligado|floatformat:2 }}</td>
+                <td class="text-right" style="width:85px;">${{ f.pagado|floatformat:2 }}</td><td class="text-right" style="width:120px;">${{ f.saldo_por_comprometer|floatformat:2 }}</td>
             </tr>
             {% empty %}
             <tr><td colspan="7" class="text-right"><em>Sin apropiaciones para esta vigencia.</em></td></tr>
             {% endfor %}
             <tr class="totales-row">
-                <td>Totales</td><td></td>
-                <td class="text-right">${{ total_gasto_apropiado|floatformat:2 }}</td>
-                <td class="text-right">${{ total_gasto_comprometido|floatformat:2 }}</td>
-                <td class="text-right">${{ total_gasto_obligado|floatformat:2 }}</td>
-                <td class="text-right">${{ total_gasto_pagado|floatformat:2 }}</td>
-                <td></td>
+                <td style="width:190px;">Totales</td><td style="width:95px;"></td>
+                <td class="text-right" style="width:95px;">${{ total_gasto_apropiado|floatformat:2 }}</td>
+                <td class="text-right" style="width:95px;">${{ total_gasto_comprometido|floatformat:2 }}</td>
+                <td class="text-right" style="width:85px;">${{ total_gasto_obligado|floatformat:2 }}</td>
+                <td class="text-right" style="width:85px;">${{ total_gasto_pagado|floatformat:2 }}</td>
+                <td style="width:120px;"></td>
             </tr>
         </tbody>
     </table>
 
     <h4>Balance de Comprobación</h4>
     <table class="datos">
-        <thead><tr><th>Cuenta CGC</th><th>Nombre</th><th class="text-right">Total Débitos</th><th class="text-right">Total Créditos</th><th class="text-right">Saldo</th></tr></thead>
+        <thead><tr>
+            <th style="width:90px;">Cuenta CGC</th>
+            <th style="width:320px;">Nombre</th>
+            <th class="text-right" style="width:120px;">Total Débitos</th>
+            <th class="text-right" style="width:120px;">Total Créditos</th>
+            <th class="text-right" style="width:110px;">Saldo</th>
+        </tr></thead>
         <tbody>
             {% for f in filas_balance %}
             <tr>
-                <td>{{ f.cuenta__codigo }}</td><td>{{ f.cuenta__nombre }}</td>
-                <td class="text-right">${{ f.total_debitos|floatformat:2 }}</td><td class="text-right">${{ f.total_creditos|floatformat:2 }}</td><td class="text-right">${{ f.saldo|floatformat:2 }}</td>
+                <td style="width:90px;">{{ f.cuenta__codigo }}</td><td style="width:320px;">{{ f.cuenta__nombre|truncatechars:65 }}</td>
+                <td class="text-right" style="width:120px;">${{ f.total_debitos|floatformat:2 }}</td><td class="text-right" style="width:120px;">${{ f.total_creditos|floatformat:2 }}</td><td class="text-right" style="width:110px;">${{ f.saldo|floatformat:2 }}</td>
             </tr>
             {% empty %}
             <tr><td colspan="5" class="text-right"><em>Sin comprobantes contabilizados en esta vigencia.</em></td></tr>

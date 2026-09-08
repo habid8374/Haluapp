@@ -23,8 +23,11 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models import Sum
+
+SOPORTE_EXTENSIONES_PERMITIDAS = ['pdf', 'jpg', 'jpeg', 'png']
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -325,7 +328,11 @@ class ModificacionPresupuestal(models.Model):
         'Acto administrativo', max_length=255, blank=True,
         help_text='Ej: Resolución 014 del 12/03/2026 del Consejo Directivo.',
     )
-    soporte = models.FileField('Soporte (PDF)', upload_to='presupuesto/modificaciones/', blank=True, null=True)
+    soporte = models.FileField(
+        'Soporte (PDF, JPG o PNG)', upload_to='presupuesto/modificaciones/', blank=True, null=True,
+        validators=[FileExtensionValidator(allowed_extensions=SOPORTE_EXTENSIONES_PERMITIDAS)],
+        help_text='Sube el acto administrativo (ej. resolución del Consejo Directivo) en PDF, o una foto/escaneo en JPG o PNG si no tienes el PDF.',
+    )
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
     )

@@ -11,7 +11,7 @@
   <div class="card">
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light"><tr><th>Fecha</th><th>Tipo</th><th>Rubro origen</th><th>Rubro destino</th><th>Valor</th><th>Acto administrativo</th></tr></thead>
+        <thead class="table-light"><tr><th>Fecha</th><th>Tipo</th><th>Rubro origen</th><th>Rubro destino</th><th>Valor</th><th>Acto administrativo</th><th>Soporte</th></tr></thead>
         <tbody>
           {% for m in modificaciones %}
           <tr>
@@ -21,9 +21,18 @@
             <td>{{ m.apropiacion_destino.rubro|default:"—" }}</td>
             <td>${{ m.valor|floatformat:2 }}</td>
             <td>{{ m.acto_administrativo|default:"—" }}</td>
+            <td>
+              {% if m.soporte %}
+                <a href="{{ m.soporte.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
+                  <i class="bi bi-file-earmark-arrow-down me-1"></i>Ver
+                </a>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="6" class="text-center text-muted py-4">No hay modificaciones registradas.</td></tr>
+          <tr><td colspan="7" class="text-center text-muted py-4">No hay modificaciones registradas.</td></tr>
           {% endfor %}
         </tbody>
       </table>
