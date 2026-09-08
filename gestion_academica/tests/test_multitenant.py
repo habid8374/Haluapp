@@ -16,6 +16,10 @@ from django.test import TestCase
 from django.urls import reverse
 
 from finanzas.models import InstitucionEducativa
+from gestion_academica.legal import (
+    POLITICA_TRATAMIENTO_DATOS_VERSION,
+    hash_politica_vigente,
+)
 from gestion_academica.models import (
     Curso,
     Estudiante,
@@ -49,6 +53,12 @@ def _crear_usuario(username, email, rol, institucion, is_staff=False):
         rol=rol,
         institucion_asociada=institucion,
         is_staff=is_staff,
+        # Sin esto, el PoliticaDatosMiddleware redirige (302) cualquier
+        # petición autenticada de este usuario a la pantalla de aceptación
+        # antes de que la vista bajo prueba se ejecute siquiera.
+        acepto_tratamiento_datos=True,
+        version_politica_aceptada=POLITICA_TRATAMIENTO_DATOS_VERSION,
+        hash_politica_aceptada=hash_politica_vigente(),
     )
     return user
 
