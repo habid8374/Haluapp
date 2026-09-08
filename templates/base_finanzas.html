@@ -354,6 +354,15 @@
   var btn   = document.getElementById('sidebarToggleBtnFin');
   var panel = document.getElementById('mainMenuPanel');
   if (!btn || !panel) return;
+  /* Recordar la posición de scroll del menú entre una página y la
+     siguiente: sin esto, cada clic en una pestaña recarga la página y el
+     menú vuelve a mostrarse desde arriba, obligando a bajar de nuevo. */
+  var SCROLL_KEY = 'halu_sidebar_scroll_finanzas';
+  var savedScroll = sessionStorage.getItem(SCROLL_KEY);
+  if (savedScroll !== null) { panel.scrollTop = parseInt(savedScroll, 10) || 0; }
+  panel.addEventListener('scroll', function () {
+    sessionStorage.setItem(SCROLL_KEY, panel.scrollTop);
+  });
   function isMobile() { return window.innerWidth < 992; }
   btn.addEventListener('click', function (e) {
     e.stopPropagation();
