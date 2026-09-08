@@ -13280,7 +13280,7 @@ def editar_area_academica(request, pk):
     else:
         materias_disponibles = Materia.objects.filter(
             institucion=request.user.institucion_asociada
-        ).exclude(areacademica=area)
+        ).exclude(areaacademica=area)
 
     return render(request, 'gestion_academica/areaacademica_form.html', {
         'form': form,
