@@ -13,10 +13,14 @@
 ## 0) CÓMO USAR ESTE BRIEF
 
 - Es la **evolución** del brochure "Propuesta HALU v2 2026" (16 páginas, 14 módulos).
-- Ahora la propuesta pasa a **17 módulos** e incorpora todo lo construido en 2026.
+- Ahora la propuesta pasa a **18 módulos** e incorpora todo lo construido en 2026,
+  incluido el nuevo **módulo de Presupuesto FSE para instituciones educativas oficiales**.
 - Estructura sugerida: **1 portada + 1 página "¿Qué es HALU?" + 1 página de novedades
   2026 + 1 página por módulo + 1 página de infraestructura + 1 página de precios/cierre.**
 - Cada módulo ocupa **una página** con el mismo patrón visual del brochure actual.
+- El **Módulo 18 (Presupuesto FSE)** es el único pensado exclusivamente para colegios
+  **oficiales/públicos** (no aplica a colegios privados) — dejar esa aclaración visible
+  en su página, en un chip o nota corta, para que no se lea como un módulo universal.
 
 ---
 
@@ -68,7 +72,7 @@ finanzas, las admisiones, el **bienestar estudiantil** y la **evaluación con in
 artificial** — eliminando el trabajo manual y el papel del día a día escolar.
 
 **Cifras (tarjetas grandes):**
-- **17** MÓDULOS ACTIVOS
+- **18** MÓDULOS ACTIVOS
 - **100%** EN LA NUBE
 - **∞** INSTITUCIONES EN PARALELO
 - **2** IDIOMAS (Español / Inglés)  ★ NUEVO 2026
@@ -91,6 +95,7 @@ artificial** — eliminando el trabajo manual y el papel del día a día escolar
 15. Seguridad y Cumplimiento
 16. Administración, Soporte y Copias de Seguridad
 17. **Plataforma Bilingüe (Español / Inglés)** ★ NUEVO
+18. **Presupuesto FSE — Instituciones Oficiales** ★ NUEVO
 
 ---
 
@@ -111,6 +116,9 @@ Tarjetas (6, con ícono):
   historial y edición para el estudiante.
 - **Avisos automáticos al crear actividades.** Correo a las familias y a coordinación/rectoría
   con las credenciales propias de cada colegio.
+- **Presupuesto FSE para colegios oficiales.** Ciclo presupuestal público completo —
+  Apropiación, CDP, Registro Presupuestal, Obligación y Orden de Pago — con reportes de
+  ejecución listos para los entes de control. *(Exclusivo instituciones oficiales.)*
 
 ---
 
@@ -326,6 +334,26 @@ en **español o inglés**, ideal para colegios bilingües e internacionales.
 - ✓ **Cobertura total** — incluidos los portales de docente, estudiante y familia, y las evaluaciones interactivas.
 - ✓ **Base preparada para más idiomas** en el futuro.
 
+### Módulo 18 — Presupuesto FSE (Fondo de Servicios Educativos) ★ NUEVO
+*Chip aparte, junto al título:* **EXCLUSIVO INSTITUCIONES EDUCATIVAS OFICIALES**
+*Subtítulo:* El ciclo presupuestal público, de la partida al pago, sin salir de la plataforma
+*Intro:* Diseñado para las reglas de presupuesto público colombiano (Decreto 1075 de 2015 /
+Ley 715) que rigen el Fondo de Servicios Educativos de los colegios oficiales. Cada paso del
+ciclo — apropiación, compromiso, obligación y pago — queda topado por el saldo disponible del
+paso anterior, así que es matemáticamente imposible comprometer o pagar más de lo presupuestado.
+Todo por interfaz, con botones y reportes en PDF listos para los entes de control; el personal
+administrativo nunca necesita comandos ni hojas de cálculo externas.
+**Funcionalidades:**
+- ✓ **Ciclo presupuestal completo y topado** — Apropiación → CDP (Certificado de Disponibilidad) → RP (Registro Presupuestal) → Obligación → Orden de Pago; cada etapa valida contra el saldo disponible de la anterior.
+- ✓ **Vigencias fiscales y rubros oficiales** — apertura de vigencia, rubros de ingreso y de gasto según el catálogo presupuestal público.
+- ✓ **Modificaciones presupuestales con soporte documental** — adiciones, reducciones y traslados entre rubros, con carga del acto administrativo en PDF, JPG o PNG. ★ NUEVO 2026
+- ✓ **Reportes de ejecución presupuestal en PDF** — ingresos, gastos y balance, listos para presentar a los entes de control.
+- ✓ **Catálogo General de Cuentas (CGC) y comprobantes contables** — contabilidad pública integrada al ciclo presupuestal.
+- ✓ **Conceptos de retención** — ReteFuente, ReteICA y estampillas territoriales, con tarifa y cuenta contable de pasivo configurables.
+- ✓ **Cuentas bancarias de tesorería** — control del saldo real desde donde se pagan las órdenes de pago.
+- ✓ **Control de almacén** — elementos de consumo y devolutivos, con alerta automática de stock mínimo.
+- ✓ **Manual de uso integrado** — explicación en lenguaje sencillo de cada herramienta del módulo, dentro del propio menú.
+
 ---
 
 ## 6) PÁGINA DE INFRAESTRUCTURA (fondo azul, tabla)
@@ -357,9 +385,9 @@ Subtítulo: *Pago mensual o anual por institución según el número de estudian
 Todos los módulos incluidos desde el primer día. Sin costos ocultos.*
 
 Cuatro tarjetas:
-- **¿Qué incluye el plan?** Los 17 módulos, acceso ilimitado de usuarios (docentes,
+- **¿Qué incluye el plan?** Los 18 módulos, acceso ilimitado de usuarios (docentes,
   coordinadores, estudiantes, acudientes), plataforma bilingüe, actualizaciones automáticas y
-  soporte por tickets.
+  soporte por tickets. *(El módulo de Presupuesto FSE se activa para instituciones oficiales.)*
 - **¿Cómo funciona el precio?** Se ajusta al tamaño de la institución según estudiantes
   activos; a mayor número, menor costo por estudiante.
 - **¿Hay contrato mínimo?** No. Servicio mes a mes; plan anual con descuento; cancelable
@@ -380,6 +408,6 @@ Cuatro tarjetas:
 - Íconos sugeridos por módulo (Bootstrap Icons): 1 mortarboard, 2 diagram-3, 3 clipboard-check,
   4 chat-dots, 5 person-plus, 6 cash-coin, 7 receipt, 8 patch-question, 9 universal-access,
   10 ui-checks-grid, 11 controller, 12 shield-check (HALU Sentinel), 13 clipboard-data,
-  14 robot, 15 shield-lock, 16 gear, 17 translate.
-- Longitud objetivo: **~20 páginas**. Portada + ¿Qué es? + Novedades + 17 módulos + Infra + Precios.
+  14 robot, 15 shield-lock, 16 gear, 17 translate, 18 bank2 (Presupuesto FSE).
+- Longitud objetivo: **~21 páginas**. Portada + ¿Qué es? + Novedades + 18 módulos + Infra + Precios.
 - Exporta en **PDF A4 vertical**, alta resolución, listo para enviar a colegios.
