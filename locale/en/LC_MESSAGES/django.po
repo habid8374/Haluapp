@@ -13184,3 +13184,16 @@ msgid ""
 msgstr ""
 "Attendance is automatically loaded as \"Present\" if the student entered "
 "the institution. Only edit cases of absence or lateness."
+
+msgid "Últimas Lecciones Registradas"
+msgstr "Latest Lessons Logged"
+
+msgid ""
+"Si faltaste a alguna clase, aquí puedes ponerte al día con el resumen que "
+"dejó tu docente."
+msgstr ""
+"If you missed a class, you can catch up here with the summary your "
+"teacher left."
+
+msgid "Ver clase"
+msgstr "View lesson"
