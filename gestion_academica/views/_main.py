@@ -5321,7 +5321,9 @@ def registrar_leccion_diaria(request, curso_pk):
             leccion = form.save(commit=False)
             leccion.creado_por = request.user
             # Aseguramos que la institución se guarde si no viene en el form
-            if not leccion.institucion:
+            # (usamos institucion_id: acceder a leccion.institucion sin asignar
+            # lanzaría RelatedObjectDoesNotExist, ya que el FK es obligatorio)
+            if not leccion.institucion_id:
                 leccion.institucion = curso.institucion
             leccion.save()
             messages.success(request, f"Lección para '{curso.materia}' del {leccion.fecha} registrada exitosamente.")
