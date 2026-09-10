@@ -240,14 +240,36 @@ def _aplicar_efecto_contable(nota, monto):
 
 
 def disparar_emision_automatica(pago):
-    """Hook seguro para el flujo de pagos (efectivo / Mercado Pago).
+    """Hook seguro para el flujo de pagos (efectivo / Mercado Pago, desde
+    finanzas o desde el webhook de matrícula/inscripción de admisiones).
 
-    No hace NADA salvo que la institución tenga el módulo operativo Y la
-    emisión automática activada. Encola la tarea Celery (Modo B).
-    Nunca lanza excepción (no debe romper el registro del pago).
+    No hace NADA salvo que se cumplan las condiciones del negocio:
+      1) La institución puede usar Finanzas: es privada Y tiene el módulo
+         financiero activo. Un colegio público nunca cobra a sus estudiantes,
+         así que jamás debe facturar (mismo criterio que ya usan
+         ModuloFinancieroMiddleware y finanzas.mixins._finanzas_no_disponible).
+      2) El pago NO es de un concepto de pensión. Las pensiones se facturan
+         por otra vía: la emisión masiva mensual (finanzas.views.facturacion_masiva
+         → emitir_facturas_masivas_async → emitir_para_cuenta), que emite UNA
+         factura por cuenta al causar el cobro mensual, sin esperar el pago.
+         Si esta función también facturara aquí al confirmarse el pago,
+         quedarían dos facturas (CUENTA-<id> y PAGO-<id>) para la misma
+         pensión. Inscripción y matrícula SÍ se facturan aquí (no tienen
+         emisión masiva: se cobran una sola vez, al pagar).
+      3) Tiene el módulo de Facturación Electrónica operativo (activo +
+         credenciales completas + rango DIAN) Y la emisión automática
+         encendida (Modo B) — si está apagada, la factura solo se emite con
+         el botón manual.
+    Si se cumplen, encola la tarea Celery. Nunca lanza excepción (no debe
+    romper el registro del pago).
     """
     try:
-        config = ConfiguracionFactus.objects.filter(institucion=pago.institucion).first()
+        institucion = pago.institucion
+        if institucion.tipo_institucion == 'publico' or not getattr(institucion, 'usa_modulo_financiero', True):
+            return
+        if pago.cuenta.concepto_pago.es_pago_pension:
+            return
+        config = ConfiguracionFactus.objects.filter(institucion=institucion).first()
         if not (config and config.operativo and config.emision_automatica):
             return
         from .tasks import emitir_factura_async

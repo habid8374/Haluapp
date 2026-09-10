@@ -1706,6 +1706,20 @@ def mercadopago_webhook(request):
                         institucion=institucion,
                         observacion=f"Pago confirmado automáticamente vía MP. ID: {payment_id}",
                     )
+
+                    # Modo B (facturación electrónica automática): no-op salvo
+                    # que la institución pueda usar Finanzas y tenga el módulo
+                    # operativo con emisión automática activada. Cubre tanto
+                    # el pago de inscripción como el de matrícula, ya que
+                    # ambos crean su PagoRegistrado aquí mismo. Se dispara
+                    # tras el commit para no emitir si la transacción se
+                    # revierte (mismo patrón que el webhook de finanzas).
+                    try:
+                        from facturacion_electronica.emision import disparar_emision_automatica
+                        transaction.on_commit(lambda p=pago_registrado_obj: disparar_emision_automatica(p))
+                    except Exception:
+                        pass
+
                     logger.info(
                         "Webhook: PagoRegistrado creado para cuenta #%s (institución %s).",
                         cuenta.id, institucion.id,
