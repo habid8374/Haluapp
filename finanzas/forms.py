@@ -84,8 +84,12 @@ def choices_conceptos_agrupados(institucion):
     from .services import nombre_base_concepto, tokens_niveles_y_grados
 
     tokens = tokens_niveles_y_grados(institucion)
+    # Solo pensiones: Inscripción y Matrícula se facturan una sola vez, al
+    # pagar (vía el webhook/registro manual de esos pagos), nunca por esta
+    # vía masiva — si alguien facturara aquí una matrícula antes de que se
+    # pague, quedaría una factura DIAN duplicada cuando el pago sí llegue.
     qs = _conceptos_pago_orden_por_nivel(
-        ConceptoPago.objects.filter(institucion=institucion)
+        ConceptoPago.objects.filter(institucion=institucion, es_pago_pension=True)
     )
     grupos = OrderedDict()
     for c in qs:
@@ -94,7 +98,7 @@ def choices_conceptos_agrupados(institucion):
         grupos.setdefault(clave, []).append(c)
 
     # ── Orden cronológico + ocultar meses ya pasados (solo en el MASIVO) ──
-    # Inscripción → Matrícula → Pensiones (por mes calendario), no alfabético.
+    # Pensiones por mes calendario, no alfabético.
     # Las pensiones de meses ANTERIORES al mes en curso se ocultan del masivo
     # (facturar masivo un mes pasado no aplica; los cobros atrasados de un
     # alumno puntual se hacen por su cuenta individual, que SÍ los muestra).
