@@ -17,6 +17,10 @@ urlpatterns = [
     path('progreso/', views.progreso_grupo, name='progreso_grupo'),
     path('progreso/<int:estudiante_pk>/', views.progreso_estudiante, name='progreso_estudiante'),
 
+    # Actividades calificables de Halu Math (libro de notas)
+    path('actividades/crear/', views.crear_actividad_halu_math, name='crear_actividad_halu_math'),
+    path('actividades/<int:actividad_pk>/recalcular/', views.recalcular_calificaciones_actividad, name='recalcular_calificaciones_actividad'),
+
     # Estudiante
     path('practicar/', views.elegir_dba, name='elegir_dba'),
     path('practicar/<int:dba_pk>/', views.practicar_dba, name='practicar_dba'),

@@ -70,6 +70,10 @@ def procesar_respuesta(dominio: DominioDBA, es_correcta: bool, es_fluido: bool =
         dominio.racha_actual = 0
         dominio.racha_fluida_actual = 0
     dominio.save()
+
+    from .calificacion import sincronizar_calificaciones_para_dominio
+    sincronizar_calificaciones_para_dominio(dominio)
+
     return dominio
 
 

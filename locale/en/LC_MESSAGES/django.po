@@ -13197,3 +13197,62 @@ msgstr ""
 
 msgid "Ver clase"
 msgstr "View lesson"
+
+msgid "Actividad calificable"
+msgstr "Gradable activity"
+
+msgid "DBA a dominar"
+msgstr "DBA to master"
+
+msgid "Actividad de Halu Math"
+msgstr "Halu Math activity"
+
+msgid "Actividades de Halu Math"
+msgstr "Halu Math activities"
+
+msgid "El estudiante debe alcanzar el nivel Alto o dominar cada DBA elegido para obtener la nota máxima."
+msgstr "The student must reach the High level or master each chosen DBA to earn the top grade."
+
+msgid ""
+"Opcional. Después de esta fecha la nota deja de actualizarse sola — solo "
+"cambia con el botón «Recalcular notas ahora» o editándola a mano."
+msgstr ""
+"Optional. After this date the grade stops updating on its own — it only "
+"changes with the «Recalculate grades now» button or a manual edit."
+
+msgid "Curso (Matemáticas)"
+msgstr "Course (Mathematics)"
+
+msgid "Actividad creada. Se calcularon notas iniciales para %(total)s estudiante(s)."
+msgstr "Activity created. Initial grades were calculated for %(total)s student(s)."
+
+msgid "Se recalcularon %(total)s nota(s)."
+msgstr "%(total)s grade(s) were recalculated."
+
+msgid "Halu Math — Nueva actividad calificable"
+msgstr "Halu Math — New gradable activity"
+
+msgid ""
+"La nota se calcula sola a partir del progreso del estudiante en los DBA "
+"que elijas — no hay que subir ni corregir nada."
+msgstr ""
+"The grade is calculated automatically from the student's progress on the "
+"DBA you choose — there's nothing to upload or grade by hand."
+
+msgid "Fecha de publicación"
+msgstr "Publication date"
+
+msgid "Crear actividad"
+msgstr "Create activity"
+
+msgid "Crear actividad calificable"
+msgstr "Create gradable activity"
+
+msgid "La nota de cada estudiante se calcula sola a partir de su dominio en estos DBA:"
+msgstr "Each student's grade is calculated automatically from their mastery of these DBA:"
+
+msgid "Recalcular notas ahora"
+msgstr "Recalculate grades now"
+
+msgid "Calculada automáticamente por Halu Math según el dominio de los DBA asignados."
+msgstr "Automatically calculated by Halu Math based on mastery of the assigned DBA."

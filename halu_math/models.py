@@ -229,3 +229,35 @@ class IntentoManipulativo(models.Model):
 
     def __str__(self):
         return f"{self.estudiante} — {self.get_tipo_display()} ({'✓' if self.es_correcta else '✗'})"
+
+
+class ActividadHaluMath(models.Model):
+    """Une una ActividadCalificable del libro de notas (gestion_academica)
+    con un conjunto de DBA de Halu Math. No tiene banco de contenido
+    propio: la nota se deriva del DominioDBA de cada estudiante en los DBA
+    asignados (ver halu_math.calificacion)."""
+
+    actividad = models.OneToOneField(
+        'gestion_academica.ActividadCalificable', on_delete=models.CASCADE,
+        related_name='halu_math', verbose_name=_("Actividad calificable"),
+    )
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='actividades_halu_math', verbose_name=_("Institución"),
+    )
+    dbas = models.ManyToManyField(
+        'gestion_academica.DBAPredefinido', related_name='actividades_halu_math',
+        verbose_name=_("DBA a dominar"),
+    )
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='actividades_halu_math_creadas', verbose_name=_("Creado por"),
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Actividad de Halu Math")
+        verbose_name_plural = _("Actividades de Halu Math")
+
+    def __str__(self):
+        return f"Halu Math — {self.actividad.titulo}"

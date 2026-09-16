@@ -4,6 +4,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -11,10 +12,12 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 
-from gestion_academica.models import DBAPredefinido, Estudiante, Grado
+from gestion_academica.models import Curso, DBAPredefinido, Estudiante, Grado, TipoActividad
 
+from .calificacion import recalcular_todas
+from .forms import ActividadHaluMathForm
 from .models import (
-    DominioDBA, Dificultad, EjercicioMath, IntentoEjercicioMath, IntentoManipulativo,
+    ActividadHaluMath, DominioDBA, Dificultad, EjercicioMath, IntentoEjercicioMath, IntentoManipulativo,
     OpcionEjercicioMath, TipoManipulativo,
 )
 from .motor import (
@@ -431,6 +434,72 @@ def progreso_estudiante(request, estudiante_pk):
         'dominios': dominios,
         'titulo_pagina': _('Progreso — %(nombre)s') % {'nombre': estudiante.usuario.get_full_name() or estudiante.usuario.username},
     })
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ACTIVIDADES CALIFICABLES DE HALU MATH (libro de notas)
+# ──────────────────────────────────────────────────────────────────────────────
+
+@login_required
+def crear_actividad_halu_math(request):
+    if not _es_docente_o_coordinador(request.user):
+        messages.error(request, _("Acceso restringido."))
+        return redirect('gestion_academica:inicio_academico')
+
+    institucion = _get_institucion(request)
+
+    if request.method == 'POST':
+        form = ActividadHaluMathForm(request.POST, institucion=institucion)
+        if form.is_valid():
+            tipo_actividad, _creado = TipoActividad.objects.get_or_create(
+                nombre='Halu Math', institucion=institucion, defaults={'porcentaje': 0},
+            )
+            with transaction.atomic():
+                actividad = form.save(commit=False)
+                actividad.institucion = institucion
+                actividad.tipo_actividad = tipo_actividad
+                actividad.save()
+                actividad_halu_math = ActividadHaluMath.objects.create(
+                    actividad=actividad, institucion=institucion, creado_por=request.user,
+                )
+                actividad_halu_math.dbas.set(form.cleaned_data['dbas'])
+
+            total = recalcular_todas(actividad_halu_math)
+            messages.success(request, _(
+                "Actividad creada. Se calcularon notas iniciales para %(total)s estudiante(s)."
+            ) % {'total': total})
+            return redirect('gestion_academica:detalle_actividad_calificable', pk=actividad.pk)
+    else:
+        grado_sel = request.GET.get('grado', '')
+        initial = {}
+        if grado_sel:
+            primer_curso = Curso.objects.filter(
+                institucion=institucion, grado_id=grado_sel, materia__nombre_materia__icontains='matemát',
+            ).order_by('-periodo_academico__año_escolar').first()
+            if primer_curso:
+                initial['curso'] = primer_curso
+        form = ActividadHaluMathForm(institucion=institucion, initial=initial)
+
+    return render(request, 'halu_math/crear_actividad_halu_math.html', {
+        'form': form,
+        'titulo_pagina': _('Halu Math — Nueva actividad calificable'),
+    })
+
+
+@login_required
+@require_POST
+def recalcular_calificaciones_actividad(request, actividad_pk):
+    if not _es_docente_o_coordinador(request.user):
+        messages.error(request, _("Acceso restringido."))
+        return redirect('gestion_academica:inicio_academico')
+
+    institucion = _get_institucion(request)
+    actividad_halu_math = get_object_or_404(
+        ActividadHaluMath, actividad_id=actividad_pk, institucion=institucion,
+    )
+    total = recalcular_todas(actividad_halu_math)
+    messages.success(request, _("Se recalcularon %(total)s nota(s).") % {'total': total})
+    return redirect('gestion_academica:detalle_actividad_calificable', pk=actividad_pk)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

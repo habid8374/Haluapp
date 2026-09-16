@@ -30,6 +30,13 @@
         {% for grado in grados %}<option value="{{ grado.pk }}" {% if grado_sel == grado.pk|stringformat:"s" %}selected{% endif %}>{{ grado.nombre }}</option>{% endfor %}
       </select>
     </div>
+    {% if grado_sel %}
+    <div class="col-md-4 ms-auto text-md-end">
+      <a href="{% url 'halu_math:crear_actividad_halu_math' %}?grado={{ grado_sel }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-clipboard-check me-1"></i>{% trans "Crear actividad calificable" %}
+      </a>
+    </div>
+    {% endif %}
   </form>
   {% if grado_sel %}
   <div class="row g-3 mb-3">

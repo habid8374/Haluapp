@@ -1,0 +1,76 @@
+{% extends "base_academico.html" %}
+{% load i18n %}
+{% block titulo %}{{ titulo_pagina }}{% endblock %}
+{% block extrastyles %}{{ block.super }}
+<style>
+  .dba-checklist { max-height:340px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:12px; padding:.9rem 1rem; background:#f8fafc; }
+  .dba-checklist .form-check { padding:.25rem 0; }
+  .dba-checklist .form-check-label { font-size:.85rem; }
+</style>
+{% endblock %}
+{% block contenido %}
+<div class="container-fluid mt-3" style="max-width:760px;">
+  <div style="background:linear-gradient(135deg,#0d3b66 0%,#1d4ed8 100%);border-radius:16px;padding:1.5rem;color:#fff;margin-bottom:1.25rem;">
+    <h2 class="fw-bold mb-1" style="font-size:1.3rem;color:#fff;"><i class="bi bi-clipboard-check me-2"></i>{{ titulo_pagina }}</h2>
+    <p class="mb-0" style="opacity:.85;font-size:.88rem;color:#fff;">{% trans "La nota se calcula sola a partir del progreso del estudiante en los DBA que elijas — no hay que subir ni corregir nada." %}</p>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="mb-3">
+          <label for="{{ form.curso.id_for_label }}" class="form-label fw-semibold">{{ form.curso.label }}</label>
+          {{ form.curso }}
+          {% if form.curso.errors %}<div class="text-danger small mt-1">{{ form.curso.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.titulo.id_for_label }}" class="form-label fw-semibold">{% trans "Título" %}</label>
+          {{ form.titulo }}
+          {% if form.titulo.errors %}<div class="text-danger small mt-1">{{ form.titulo.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-semibold">{% trans "Descripción" %} <span class="text-muted fw-normal">({% trans "opcional" %})</span></label>
+          {{ form.descripcion }}
+        </div>
+        <div class="row g-3 mb-1">
+          <div class="col-sm-6">
+            <label for="{{ form.fecha_publicacion.id_for_label }}" class="form-label fw-semibold">{% trans "Fecha de publicación" %}</label>
+            {{ form.fecha_publicacion }}
+          </div>
+          <div class="col-sm-6">
+            <label for="{{ form.fecha_entrega_limite.id_for_label }}" class="form-label fw-semibold">{% trans "Fecha límite" %} <span class="text-muted fw-normal">({% trans "opcional" %})</span></label>
+            {{ form.fecha_entrega_limite }}
+            <div class="form-text">{{ form.fecha_entrega_limite.help_text }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <label class="form-label fw-semibold">{{ form.dbas.label }}</label>
+        <div class="form-text mb-2">{{ form.dbas.help_text }}</div>
+        {% if form.dbas.errors %}<div class="text-danger small mb-2">{{ form.dbas.errors }}</div>{% endif %}
+        <div class="dba-checklist">
+          {% for casilla in form.dbas %}
+          <div class="form-check">
+            {{ casilla.tag }}
+            <label class="form-check-label" for="{{ casilla.id_for_label }}">{{ casilla.choice_label }}</label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mb-4">
+      <a href="{% url 'halu_math:progreso_grupo' %}" class="btn btn-outline-secondary">{% trans "Cancelar" %}</a>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{% trans "Crear actividad" %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

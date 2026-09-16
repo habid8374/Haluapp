@@ -56,6 +56,30 @@
             {% endif %}
         </div>
     </div>
+
+    {% if actividad.halu_math %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header" style="background:#eef2ff;">
+            <h5 class="mb-0"><i class="bi bi-grid-3x3-gap-fill me-2"></i>{% trans "Actividad de Halu Math" %}</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-2">{% trans "La nota de cada estudiante se calcula sola a partir de su dominio en estos DBA:" %}</p>
+            <ul class="mb-3">
+                {% for dba in actividad.halu_math.dbas.all %}
+                <li>{{ dba.get_grado_display }} — DBA #{{ dba.numero }}: {{ dba.enunciado|truncatechars:110 }}</li>
+                {% endfor %}
+            </ul>
+            {% if perms.gestion_academica.change_actividadcalificable %}
+            <form method="post" action="{% url 'halu_math:recalcular_calificaciones_actividad' actividad.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-arrow-repeat me-1"></i>{% trans "Recalcular notas ahora" %}
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
     {% else %}
         <div class="alert alert-warning text-center" role="alert">
             <i class="bi bi-info-circle-fill me-2"></i> No se encontró la información de la actividad calificable.
