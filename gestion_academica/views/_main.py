@@ -4882,11 +4882,19 @@ def ver_mi_perfil(request):
         cuentas_pendientes = CuentaPorCobrarEstudiante.objects.filter(
             estudiante=estudiante_profile
         ).exclude(estado='PAGADO')
-        
-        saldo_total = cuentas_pendientes.aggregate(
-            total=Sum('monto_asignado') - Sum('pagos__valor_pagado')
-        )['total'] or 0
-        
+
+        # Nunca combinar Sum(monto_asignado) - Sum(pagos__valor_pagado) en un
+        # solo aggregate(): si alguna cuenta pendiente no tiene NINGÚN pago
+        # registrado, el JOIN hace que Sum(pagos__valor_pagado) sea NULL en
+        # SQL, y NULL en la resta vuelve NULL todo el resultado — el `or 0`
+        # lo convertía en "$0" aunque el estudiante sí debiera. Se reutiliza
+        # la propiedad saldo_pendiente del modelo (ya descuenta pagos
+        # anulados correctamente, uno por cuenta).
+        saldo_total = sum(
+            (c.saldo_pendiente for c in cuentas_pendientes),
+            Decimal('0.00'),
+        )
+
         context['saldo_pendiente'] = saldo_total
         context['esta_en_mora'] = cuentas_pendientes.filter(estado='VENCIDO').exists()
         # Perfil completo: caracterización SIMAT (si existe) y acudientes.

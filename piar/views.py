@@ -14,7 +14,7 @@ from django.db import IntegrityError
 from xhtml2pdf import pisa
 
 from .models import PIAR, AjustePIAR
-from gestion_academica.models import Estudiante, Grado, Materia
+from gestion_academica.models import Estudiante, Grado, Materia, PerfilAccesibilidad
 
 logger = logging.getLogger(__name__)
 
@@ -372,8 +372,24 @@ def eliminar_piar(request, pk):
     institucion = _get_institucion(request)
     piar = get_object_or_404(PIAR, pk=pk, institucion=institucion)
     nombre = str(piar)
+    estudiante = piar.estudiante
     piar.delete()
     messages.success(request, _('PIAR "%(nombre)s" eliminado.') % {'nombre': nombre})
+
+    # El Perfil de Accesibilidad (contraste, fuente, tiempo extra…) es un
+    # registro aparte que la plataforma sigue aplicando aunque el PIAR que lo
+    # originó se borre — es intencional (el estudiante puede seguir
+    # necesitando el apoyo). Si este era su último PIAR y el perfil sigue
+    # activo, avisamos para que coordinación decida si también lo desactiva.
+    if not estudiante.piars.exists():
+        perfil = PerfilAccesibilidad.objects.filter(estudiante=estudiante, activo=True).first()
+        if perfil:
+            messages.warning(request, _(
+                '%(est)s ya no tiene ningún PIAR, pero sigue teniendo un Perfil de Accesibilidad activo '
+                '(contraste, fuente, tiempo extra…) — no se desactiva solo. Si ya no lo necesita, ve a la '
+                'ficha del estudiante → Accesibilidad y apaga "Perfil activo".'
+            ) % {'est': estudiante.usuario.get_full_name() or str(estudiante)})
+
     return redirect('piar:lista_piars')
 
 
