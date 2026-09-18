@@ -5047,6 +5047,13 @@ def dashboard_estudiante(request):
         (c.saldo_pendiente for c in cuentas_vencidas_lista),
         Decimal('0.00'),
     )
+    # Saldo pendiente TOTAL (vencido + no vencido aún) — para que el banner
+    # "sin pagos vencidos" nunca dé a entender que el saldo es $0 cuando en
+    # realidad hay meses futuros ya asignados y por pagar.
+    saldo_pendiente_total = sum(
+        (c.saldo_pendiente for c in cuentas_no_pagadas_qs),
+        Decimal('0.00'),
+    )
 
     # --- LÓGICA DE NOTIFICACIONES Y PERIODO ---
     notificaciones_sin_leer = Notificacion.objects.filter(
@@ -5083,6 +5090,7 @@ def dashboard_estudiante(request):
         'cuentas_proximas_a_vencer_count': cuentas_proximas_a_vencer_count,
         'dias_atraso_max': dias_atraso_max,
         'saldo_total_vencido': saldo_total_vencido,
+        'saldo_pendiente_total': saldo_pendiente_total,
         'notificaciones_sin_leer': notificaciones_sin_leer,
         'elecciones_activas': elecciones_activas,
         'votos_emitidos_ids': list(votos_emitidos),

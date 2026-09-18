@@ -13256,3 +13256,13 @@ msgstr "Recalculate grades now"
 
 msgid "Calculada automáticamente por Halu Math según el dominio de los DBA asignados."
 msgstr "Automatically calculated by Halu Math based on mastery of the assigned DBA."
+
+msgid "No tienes pagos vencidos."
+msgstr "You have no overdue payments."
+
+msgid "Sin mora"
+msgstr "No arrears"
+
+#, python-format
+msgid "Tienes $%(monto)s pendiente(s) para próximos meses — aún no vencen."
+msgstr "You have $%(monto)s pending for upcoming months — not due yet."

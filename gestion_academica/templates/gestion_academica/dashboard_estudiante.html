@@ -3,6 +3,7 @@
 {% load static %}
 {% load horario_filters %}
 {% load tz %}
+{% load humanize %}
 {# Hero con branding del colegio → se oculta la cinta global aquí. #}
 {% block cinta_institucion %}{% endblock %}
 {% block titulo %}{% if titulo_pagina %}{{ titulo_pagina }}{% else %}{% trans "Mi Panel de Estudiante" %}{% endif %}{% endblock %}
@@ -331,7 +332,7 @@
         {% if cuentas_vencidas_count == 0 %}<i class="bi bi-check-circle-fill"></i>{% else %}<i class="bi bi-wallet-fill"></i>{% endif %}
       </div>
       <div class="kpi-val">{% if cuentas_vencidas_count == 0 %}✓{% else %}{{ cuentas_vencidas_count }}{% endif %}</div>
-      <div class="kpi-lbl">{% if cuentas_vencidas_count == 0 %}{% trans "Cartera al día" %}{% else %}{% trans "Pago(s) vencido(s)" %}{% endif %}</div>
+      <div class="kpi-lbl">{% if cuentas_vencidas_count == 0 %}{% trans "Sin mora" %}{% else %}{% trans "Pago(s) vencido(s)" %}{% endif %}</div>
     </div>
     {% endif %}
     <div class="est-kpi kpi-amber">
@@ -460,9 +461,13 @@
     <div class="flex-grow-1">
       <div class="pcb-title">
         {% if cuentas_vencidas_count > 0 %}{% blocktrans with count=cuentas_vencidas_count %}Tienes {{ count }} pago(s) vencido(s){% endblocktrans %}
-        {% else %}{% trans "¡Felicitaciones! Estás al día con tus pagos." %}{% endif %}
+        {% else %}{% trans "No tienes pagos vencidos." %}{% endif %}
       </div>
+      {% if cuentas_vencidas_count == 0 and saldo_pendiente_total > 0 %}
+      <div class="pcb-sub">{% blocktrans with monto=saldo_pendiente_total|intcomma %}Tienes ${{ monto }} pendiente(s) para próximos meses — aún no vencen.{% endblocktrans %}</div>
+      {% else %}
       <div class="pcb-sub">{% trans "Estado de cartera · Periodo activo" %}</div>
+      {% endif %}
     </div>
     <a href="{% url 'finanzas:mi_estado_de_cuenta' %}" class="btn btn-sm {% if cuentas_vencidas_count > 0 %}btn-danger{% else %}btn-outline-success{% endif %} flex-shrink-0">
       {% if cuentas_vencidas_count > 0 %}{% trans "Ver y Pagar Urgente" %}{% else %}{% trans "Ver Historial de Pagos" %}{% endif %}
