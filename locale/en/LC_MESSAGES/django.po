@@ -13257,6 +13257,38 @@ msgstr "Recalculate grades now"
 msgid "Calculada automáticamente por Halu Math según el dominio de los DBA asignados."
 msgstr "Automatically calculated by Halu Math based on mastery of the assigned DBA."
 
+msgid "Ítem de malla (logro) vinculado"
+msgstr "Linked curriculum map item (learning goal)"
+
+msgid "El logro de la malla curricular del colegio que esta actividad evalúa — lo que realmente se reporta en el boletín."
+msgstr "The learning goal from the school's curriculum map that this activity assesses — what actually gets reported on the report card."
+
+msgid "Logro de la malla que evalúa esta actividad"
+msgstr "Curriculum map learning goal this activity assesses"
+
+msgid ""
+"El logro que tu colegio definió en su malla curricular para este grado, materia y periodo. "
+"Si no aparece el que buscas, ve a Planeación Curricular › Mallas y agrégalo allí primero."
+msgstr ""
+"The learning goal your school defined in its curriculum map for this grade, subject and term. "
+"If the one you need isn't listed, go to Curriculum Planning › Curriculum Maps and add it there first."
+
+msgid "Este ítem de malla no corresponde al grado/materia del curso elegido arriba."
+msgstr "This curriculum map item doesn't match the grade/subject of the course selected above."
+
+msgid ""
+"Aún no tienes ítems de malla curricular para Matemáticas en el piloto de Halu Math "
+"(grados 3° a 5°). Ve a Planeación Curricular › Mallas y créalos antes de continuar."
+msgstr ""
+"You don't have any curriculum map items for Mathematics yet in the Halu Math pilot "
+"(grades 3-5). Go to Curriculum Planning › Curriculum Maps and create them before continuing."
+
+msgid "Logro evaluado:"
+msgstr "Learning goal assessed:"
+
+msgid "DBA de referencia (MEN) usados por el motor de Halu Math:"
+msgstr "Reference DBA (Ministry of Education) used by the Halu Math engine:"
+
 msgid "No tienes pagos vencidos."
 msgstr "You have no overdue payments."
 

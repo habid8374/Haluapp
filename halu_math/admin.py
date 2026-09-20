@@ -52,7 +52,7 @@ class IntentoManipulativoAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
 
 @admin.register(ActividadHaluMath)
 class ActividadHaluMathAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
-    list_display = ('actividad', 'institucion', 'creado_por', 'creado_en')
+    list_display = ('actividad', 'institucion', 'item_malla', 'creado_por', 'creado_en')
     ordering = ('-creado_en',)
-    raw_id_fields = ('institucion', 'actividad', 'creado_por')
+    raw_id_fields = ('institucion', 'actividad', 'item_malla', 'creado_por')
     filter_horizontal = ('dbas',)

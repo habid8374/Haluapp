@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from gestion_academica.models import ActividadCalificable, Curso, DBAPredefinido
+from gestion_academica.models import ActividadCalificable, Curso, DBAPredefinido, ItemMalla
 
 # Debe coincidir con halu_math.views.GRADOS_PILOTO — el piloto de Halu Math
 # solo cubre Matemáticas, grados 3°-5°.
@@ -12,6 +12,12 @@ class _DBAChoiceField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, dba):
         texto = dba.enunciado if len(dba.enunciado) <= 110 else dba.enunciado[:110] + '…'
         return f"{dba.get_grado_display()} — DBA #{dba.numero}: {texto}"
+
+
+class _ItemMallaChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, item):
+        logro = item.logro if len(item.logro) <= 90 else item.logro[:90] + '…'
+        return f"{item.malla.grado.nombre} · Periodo {item.periodo} — {item.eje_tematico}: {logro}"
 
 
 class ActividadHaluMathForm(forms.ModelForm):
@@ -25,6 +31,16 @@ class ActividadHaluMathForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
         label=_("DBA a dominar"),
         help_text=_("El estudiante debe alcanzar el nivel Alto o dominar cada DBA elegido para obtener la nota máxima."),
+    )
+
+    item_malla = _ItemMallaChoiceField(
+        queryset=ItemMalla.objects.none(),  # se fija en __init__ con la institución
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label=_("Logro de la malla que evalúa esta actividad"),
+        help_text=_(
+            "El logro que tu colegio definió en su malla curricular para este grado, materia y periodo. "
+            "Si no aparece el que buscas, ve a Planeación Curricular › Mallas y agrégalo allí primero."
+        ),
     )
 
     class Meta:
@@ -50,3 +66,18 @@ class ActividadHaluMathForm(forms.ModelForm):
             institucion=institucion, materia__nombre_materia__icontains='matemát',
         ).select_related('materia', 'grado', 'periodo_academico').order_by('grado__nombre', 'periodo_academico__nombre')
         self.fields['curso'].label = _("Curso (Matemáticas)")
+        self.fields['item_malla'].queryset = ItemMalla.objects.filter(
+            malla__institucion=institucion, malla__materia__nombre_materia__icontains='matemát',
+        ).select_related('malla', 'malla__grado').order_by('malla__grado__nombre', 'periodo', 'orden')
+
+    def clean(self):
+        cleaned = super().clean()
+        curso = cleaned.get('curso')
+        item_malla = cleaned.get('item_malla')
+        if curso and item_malla and (
+            item_malla.malla.grado_id != curso.grado_id or item_malla.malla.materia_id != curso.materia_id
+        ):
+            self.add_error('item_malla', _(
+                "Este ítem de malla no corresponde al grado/materia del curso elegido arriba."
+            ))
+        return cleaned

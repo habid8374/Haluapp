@@ -461,6 +461,7 @@ def crear_actividad_halu_math(request):
                 actividad.save()
                 actividad_halu_math = ActividadHaluMath.objects.create(
                     actividad=actividad, institucion=institucion, creado_por=request.user,
+                    item_malla=form.cleaned_data['item_malla'],
                 )
                 actividad_halu_math.dbas.set(form.cleaned_data['dbas'])
 
@@ -479,6 +480,11 @@ def crear_actividad_halu_math(request):
             if primer_curso:
                 initial['curso'] = primer_curso
         form = ActividadHaluMathForm(institucion=institucion, initial=initial)
+        if not form.fields['item_malla'].queryset.exists():
+            messages.warning(request, _(
+                "Aún no tienes ítems de malla curricular para Matemáticas en el piloto de Halu Math "
+                "(grados 3° a 5°). Ve a Planeación Curricular › Mallas y créalos antes de continuar."
+            ))
 
     return render(request, 'halu_math/crear_actividad_halu_math.html', {
         'form': form,

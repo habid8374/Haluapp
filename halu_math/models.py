@@ -249,6 +249,11 @@ class ActividadHaluMath(models.Model):
         'gestion_academica.DBAPredefinido', related_name='actividades_halu_math',
         verbose_name=_("DBA a dominar"),
     )
+    item_malla = models.ForeignKey(
+        'gestion_academica.ItemMalla', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='actividades_halu_math', verbose_name=_("Ítem de malla (logro) vinculado"),
+        help_text=_("El logro de la malla curricular del colegio que esta actividad evalúa — lo que realmente se reporta en el boletín."),
+    )
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='actividades_halu_math_creadas', verbose_name=_("Creado por"),
