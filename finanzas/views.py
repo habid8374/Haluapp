@@ -3863,6 +3863,48 @@ def generar_cargos_mora(request):
     return redirect('finanzas:reporte_mora')
 
 
+@require_POST
+@login_required
+@permission_required('finanzas.acceso_modulo_finanzas', raise_exception=True)
+def enviar_recordatorios_ahora(request):
+    """Envía por correo los recordatorios de pago (próximo a vencer / ya
+    vencido) de la institución del usuario, ahora mismo. Equivale al comando
+    'enviar_recordatorios' (que corre solo cada mañana vía Celery Beat), pero
+    limitado a la institución del usuario y disparado manualmente."""
+    from .recordatorios import enviar_recordatorios_pago
+
+    institucion = getattr(request.user, 'institucion_asociada', None)
+    if not institucion and not request.user.is_superuser:
+        messages.error(request, "Tu usuario no tiene institución asociada.")
+        return redirect('finanzas:reporte_mora')
+
+    cuentas = CuentaPorCobrarEstudiante.objects.filter(
+        estado__in=['PENDIENTE', 'VENCIDO'],
+        estudiante__activo=True,
+    )
+    if not request.user.is_superuser:
+        cuentas = cuentas.filter(institucion=institucion)
+
+    resultado = enviar_recordatorios_pago(cuentas)
+
+    if resultado['sin_canal']:
+        messages.warning(
+            request,
+            "No se pudo enviar: tu institución no tiene configurado Brevo ni SMTP. "
+            "Ve a Configuración › Datos de la Institución y configura un canal de correo."
+        )
+    if resultado['enviados']:
+        messages.success(request, f"Se enviaron {resultado['enviados']} recordatorio(s) de pago por correo.")
+    elif not resultado['sin_canal']:
+        messages.info(
+            request,
+            "No había nada que enviar hoy — los recordatorios solo salen 3 días antes del "
+            "vencimiento, o cuando la cuenta ya está vencida."
+        )
+
+    return redirect('finanzas:reporte_mora')
+
+
 # ═══════════════════════════════════════════════════════════════
 # ITEM 7 — Auditoría de Acciones sobre Pagos
 # ═══════════════════════════════════════════════════════════════

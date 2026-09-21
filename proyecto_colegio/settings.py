@@ -712,6 +712,13 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'finanzas.calcular_moras_task',
         'schedule': crontab(hour=3, minute=0),
     },
+    # Recordatorios de pago (correo) — próximos a vencer y vencidos, 8:00 AM
+    # hora Colombia. Antes el comando existía pero nadie lo ejecutaba: sin
+    # programación ni botón, no le llegaba a ningún acudiente.
+    'recordatorios-pago-diarios': {
+        'task': 'finanzas.enviar_recordatorios_task',
+        'schedule': crontab(hour=8, minute=0),
+    },
 }
 
 # ── SENTRY — monitoreo de errores en producción ───────────────────────────────

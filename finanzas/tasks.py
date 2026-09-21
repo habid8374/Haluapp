@@ -359,3 +359,29 @@ def calcular_moras_task(self):
         logger.error("calcular_moras_task: falló el cálculo automático de mora: %s", exc, exc_info=True)
         raise self.retry(exc=exc)
     logger.info("calcular_moras_task: %s", salida.getvalue().strip().replace("\n", " | "))
+
+
+@shared_task(
+    bind=True,
+    name="finanzas.enviar_recordatorios_task",
+    soft_time_limit=600,
+    time_limit=660,
+    max_retries=1,
+    default_retry_delay=300,
+)
+def enviar_recordatorios_task(self):
+    """Corre el envío de recordatorios de pago (correo) de TODAS las
+    instituciones automáticamente (Celery Beat, diario). Antes existía el
+    comando pero nadie lo ejecutaba — sin programación ni botón, no le
+    llegaba a ningún acudiente. Reutiliza el mismo comando/lógica que el
+    botón "Enviar recordatorios ahora" del Reporte de Mora."""
+    from django.core.management import call_command
+    from io import StringIO
+
+    salida = StringIO()
+    try:
+        call_command('enviar_recordatorios', stdout=salida)
+    except Exception as exc:
+        logger.error("enviar_recordatorios_task: falló el envío automático de recordatorios: %s", exc, exc_info=True)
+        raise self.retry(exc=exc)
+    logger.info("enviar_recordatorios_task: %s", salida.getvalue().strip().replace("\n", " | "))

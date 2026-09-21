@@ -565,6 +565,12 @@ class CuentaPorCobrarEstudiante(models.Model):
     mes = models.PositiveIntegerField(null=True, blank=True, verbose_name="Mes del Cobro (2-11)")
     motivo_castigo = models.TextField(blank=True, null=True, verbose_name="Motivo de castigo (incobrable)")
     fecha_castigo = models.DateField(null=True, blank=True, verbose_name="Fecha de castigo")
+    ultimo_recordatorio_pago_enviado = models.DateField(
+        null=True, blank=True, editable=False,
+        verbose_name="Fecha del último recordatorio de pago enviado",
+        help_text="Evita mandar el recordatorio dos veces el mismo día si el "
+                   "envío automático y el botón manual coinciden.",
+    )
     aspirante = models.ForeignKey(
         'admisiones.Aspirante', 
         on_delete=models.CASCADE, 
