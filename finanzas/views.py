@@ -2713,6 +2713,7 @@ def facturacion_masiva(request):
             CuentaPorCobrarEstudiante.objects
             .filter(pk__in=ultimo_lote_ids, institucion=institucion)
             .select_related('estudiante__usuario', 'concepto_pago')
+            .prefetch_related('facturas_electronicas')
             .order_by('estudiante__usuario__last_name')
         )
     else:
@@ -2723,6 +2724,7 @@ def facturacion_masiva(request):
         CuentaPorCobrarEstudiante.objects
         .filter(institucion=institucion)
         .select_related('estudiante__usuario', 'concepto_pago')
+        .prefetch_related('facturas_electronicas')
         .order_by('-fecha_creacion')[:40]
     )
 
@@ -2734,9 +2736,24 @@ def facturacion_masiva(request):
     # ¿Módulo de facturación electrónica operativo? (para mostrar la opción)
     fe_operativo = False
     try:
-        from facturacion_electronica.models import ConfiguracionFactus
+        from facturacion_electronica.models import ConfiguracionFactus, FacturaElectronica
         cfg = ConfiguracionFactus.objects.filter(institucion=institucion).first()
         fe_operativo = bool(cfg and cfg.operativo)
+
+        # Anotar en cada cuenta su factura electrónica DIAN ya validada (si
+        # existe), para que el botón "Factura" del historial muestre el
+        # documento oficial ante la DIAN en vez del PDF interno cuando ya
+        # fue emitida (el interno solo queda como respaldo si aún no hay FE).
+        for lote in (ultimo_lote, cuentas_recientes):
+            if not lote:
+                continue
+            for cuenta in lote:
+                cuenta.fe_validada = next(
+                    (f for f in cuenta.facturas_electronicas.all()
+                     if f.tipo == FacturaElectronica.Tipo.FACTURA
+                     and f.estado == FacturaElectronica.Estado.VALIDADA),
+                    None,
+                )
     except Exception:
         fe_operativo = False
 

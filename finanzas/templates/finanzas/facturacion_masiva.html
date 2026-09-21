@@ -339,10 +339,17 @@
                         </td>
                         <td class="text-center pe-3">
                             <div class="d-flex gap-1 justify-content-center">
+                                {% if cuenta.fe_validada %}
+                                <a href="{% url 'facturacion_electronica:factura_pdf' factura_id=cuenta.fe_validada.pk %}" target="_blank"
+                                   class="btn btn-sm btn-outline-success" style="border-radius:7px;" title="Factura electrónica validada por la DIAN">
+                                    <i class="bi bi-patch-check-fill"></i> Factura DIAN
+                                </a>
+                                {% else %}
                                 <a href="{% url 'finanzas:generar_factura_venta' cuenta.pk %}" target="_blank"
                                    class="btn btn-sm btn-outline-primary" style="border-radius:7px;" title="Descargar factura PDF">
                                     <i class="bi bi-file-earmark-pdf"></i> Factura
                                 </a>
+                                {% endif %}
                                 <a href="{% url 'finanzas:volante_mensualidad' cuenta.pk %}" target="_blank"
                                    class="btn btn-sm btn-outline-secondary" style="border-radius:7px;" title="Reimprimir Orden de Pago">
                                     <i class="bi bi-receipt"></i> Orden de Pago
@@ -409,10 +416,17 @@
                         </td>
                         <td class="text-center pe-3">
                             <div class="d-flex gap-1 justify-content-center">
+                                {% if cuenta.fe_validada %}
+                                <a href="{% url 'facturacion_electronica:factura_pdf' factura_id=cuenta.fe_validada.pk %}" target="_blank"
+                                   class="btn btn-sm btn-outline-success" style="border-radius:7px;" title="Factura electrónica validada por la DIAN">
+                                    <i class="bi bi-patch-check-fill"></i> Factura DIAN
+                                </a>
+                                {% else %}
                                 <a href="{% url 'finanzas:generar_factura_venta' cuenta.pk %}" target="_blank"
                                    class="btn btn-sm btn-outline-primary" style="border-radius:7px;" title="Factura PDF">
                                     <i class="bi bi-file-earmark-pdf"></i> Factura
                                 </a>
+                                {% endif %}
                                 <a href="{% url 'finanzas:volante_mensualidad' cuenta.pk %}" target="_blank"
                                    class="btn btn-sm btn-outline-secondary" style="border-radius:7px;" title="Reimprimir Orden de Pago">
                                     <i class="bi bi-receipt"></i> Orden de Pago
