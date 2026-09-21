@@ -7,6 +7,12 @@
   .fe-kpi { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: .85rem 1rem; }
   .fe-kpi .v { font-size: 1.35rem; font-weight: 800; color: #0d3b66; line-height: 1.2; display: block; }
   .fe-kpi .l { font-size: .72rem; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; display: block; margin-top: 2px; }
+  a.fe-kpi-link { display: block; text-decoration: none; }
+  .fe-kpi-link .fe-kpi { cursor: pointer; transition: box-shadow .15s, border-color .15s, transform .1s; }
+  .fe-kpi-link .fe-kpi:hover { border-color: #94a3b8; box-shadow: 0 2px 10px rgba(15,23,42,.1); transform: translateY(-1px); }
+  .fe-kpi-active { border-color: #1d4ed8 !important; background: #eef2ff !important; box-shadow: 0 0 0 2px rgba(29,78,216,.15); }
+  .fe-kpi-alerta { border-color: #fca5a5 !important; background: #fef2f2 !important; }
+  .fe-kpi-alerta.fe-kpi-active { border-color: #dc2626 !important; background: #fee2e2 !important; box-shadow: 0 0 0 2px rgba(220,38,38,.2); }
   .fe-filtros { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem; }
   .fe-table th { font-size: .74rem; text-transform: uppercase; letter-spacing: .03em; color: #475569; background: #f8fafc; }
   .fe-table td { font-size: .86rem; vertical-align: middle; color: #1e293b; }
@@ -53,45 +59,66 @@
   {% if not modulo_activo %}
   <div class="alert alert-warning"><i class="bi bi-lock-fill me-1"></i> Módulo <strong>inactivo</strong> — servicio adicional. Contacta al administrador de la plataforma.</div>
   {% endif %}
-  <!-- KPIs -->
+  <!-- KPIs — cada tarjeta es un acceso directo que filtra la tabla de abajo -->
   <div class="row g-2 mb-3">
     <div class="col-6 col-md-2">
-      <div class="fe-kpi">
-        <span class="v">{{ stats.facturas }}</span>
-        <span class="l">Facturas</span>
-      </div>
+      <a href="?tipo=FACTURA&amp;estado=VALIDADA" class="fe-kpi-link" title="Ver solo las facturas validadas por la DIAN">
+        <div class="fe-kpi {% if filtros.tipo == 'FACTURA' and filtros.estado == 'VALIDADA' %}fe-kpi-active{% endif %}">
+          <span class="v"><i class="bi bi-file-earmark-check-fill me-1" style="font-size:1rem;"></i>{{ stats.facturas }}</span>
+          <span class="l">Facturas</span>
+        </div>
+      </a>
     </div>
     <div class="col-6 col-md-2">
-      <div class="fe-kpi">
-        <span class="v" style="color:#0891b2;">{{ stats.notas_credito }}</span>
-        <span class="l">Notas Crédito</span>
-      </div>
+      <a href="?tipo=NOTA_CREDITO&amp;estado=VALIDADA" class="fe-kpi-link" title="Ver solo las notas crédito validadas">
+        <div class="fe-kpi {% if filtros.tipo == 'NOTA_CREDITO' and filtros.estado == 'VALIDADA' %}fe-kpi-active{% endif %}">
+          <span class="v" style="color:#0891b2;">{{ stats.notas_credito }}</span>
+          <span class="l">Notas Crédito</span>
+        </div>
+      </a>
     </div>
     <div class="col-6 col-md-2">
-      <div class="fe-kpi">
-        <span class="v" style="color:#1e293b;">{{ stats.notas_debito }}</span>
-        <span class="l">Notas Débito</span>
-      </div>
+      <a href="?tipo=NOTA_DEBITO&amp;estado=VALIDADA" class="fe-kpi-link" title="Ver solo las notas débito validadas">
+        <div class="fe-kpi {% if filtros.tipo == 'NOTA_DEBITO' and filtros.estado == 'VALIDADA' %}fe-kpi-active{% endif %}">
+          <span class="v" style="color:#1e293b;">{{ stats.notas_debito }}</span>
+          <span class="l">Notas Débito</span>
+        </div>
+      </a>
     </div>
     <div class="col-6 col-md-2">
-      <div class="fe-kpi">
-        <span class="v" style="color:#dc2626;">{{ stats.errores }}</span>
-        <span class="l">Errores</span>
-      </div>
+      <a href="?estado=ERROR" class="fe-kpi-link" title="Ver solo los documentos que quedaron con error (necesitan revisión)">
+        <div class="fe-kpi {% if stats.errores %}fe-kpi-alerta{% endif %} {% if filtros.estado == 'ERROR' and not filtros.tipo %}fe-kpi-active{% endif %}">
+          <span class="v" style="color:#dc2626;"><i class="bi bi-exclamation-triangle-fill me-1" style="font-size:1rem;"></i>{{ stats.errores }}</span>
+          <span class="l">Errores</span>
+        </div>
+      </a>
     </div>
     <div class="col-6 col-md-2">
-      <div class="fe-kpi">
-        <span class="v" style="color:#16a34a;">${{ monto_facturado|floatformat:0 }}</span>
-        <span class="l">Facturado</span>
-      </div>
+      <a href="?tipo=FACTURA&amp;estado=VALIDADA" class="fe-kpi-link" title="Ver las facturas que suman este monto">
+        <div class="fe-kpi">
+          <span class="v" style="color:#16a34a;">${{ monto_facturado|floatformat:0 }}</span>
+          <span class="l">Facturado</span>
+        </div>
+      </a>
     </div>
     <div class="col-6 col-md-2">
-      <div class="fe-kpi">
+      <div class="fe-kpi" title="Documentos consumidos del plan de Factus (histórico total, incluye reintentos)">
         <span class="v">{{ consumo }}</span>
         <span class="l">Consumo (docs)</span>
       </div>
     </div>
   </div>
+  {% if filtros.tipo or filtros.estado %}
+  <div class="mb-3">
+    <span class="badge rounded-pill" style="background:#eef2ff; color:#1d4ed8; font-weight:600; font-size:.78rem; padding:.45em .9em;">
+      <i class="bi bi-funnel-fill me-1"></i>Filtro activo:
+      {% if filtros.tipo == 'FACTURA' %}Facturas{% elif filtros.tipo == 'NOTA_CREDITO' %}Notas Crédito{% elif filtros.tipo == 'NOTA_DEBITO' %}Notas Débito{% endif %}
+      {% if filtros.tipo and filtros.estado %}&middot;{% endif %}
+      {% if filtros.estado == 'VALIDADA' %}Validadas{% elif filtros.estado == 'ERROR' %}Con error{% elif filtros.estado == 'PENDIENTE' %}Pendientes{% endif %}
+    </span>
+    <a href="{% url 'facturacion_electronica:lista_facturas' %}" class="ms-1" style="font-size:.78rem;">Quitar filtro</a>
+  </div>
+  {% endif %}
   <!-- FILTROS -->
   <form method="get" class="fe-filtros mb-3">
     <div class="row g-2 align-items-end">
