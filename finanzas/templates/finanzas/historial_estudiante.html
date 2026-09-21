@@ -87,10 +87,17 @@
                                                 <div class="accordion-body">
                                                     <ul class="list-group">
                                                         {% for pago in cuenta.pagos.all %}
-                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <li class="list-group-item d-flex justify-content-between align-items-center {% if pago.anulado %}opacity-75{% endif %}">
                                                             <div>
-                                                                Pago de <strong>${{ pago.valor_pagado|floatformat:2 }}</strong>
+                                                                Pago de <strong class="{% if pago.anulado %}text-decoration-line-through text-muted{% endif %}">${{ pago.valor_pagado|floatformat:2 }}</strong>
                                                                 <small class="text-muted"> ({{ pago.fecha_pago|date:"d M, Y" }} - {{ pago.get_metodo_pago_display }})</small>
+                                                                {% if pago.anulado %}
+                                                                <div class="mt-1">
+                                                                    <span class="badge bg-secondary" title="{{ pago.anulado_motivo }}">
+                                                                        <i class="bi bi-x-circle"></i> Anulado{% if pago.anulado_en %} el {{ pago.anulado_en|date:"d M, Y" }}{% endif %}
+                                                                    </span>
+                                                                </div>
+                                                                {% endif %}
                                                                 {% if pago.fe_validada %}
                                                                 <div class="mt-1">
                                                                     <span class="badge bg-success" title="Factura electrónica validada por la DIAN">
@@ -104,7 +111,7 @@
                                                                 <a href="{% url 'finanzas:generar_recibo_pago' pago_id=pago.pk %}" target="_blank" class="btn btn-sm btn-outline-primary" title="Ver / imprimir recibo">
                                                                     <i class="bi bi-receipt"></i> Recibo
                                                                 </a>
-                                                                {% if factura_electronica_activa and not pago.fe_validada %}
+                                                                {% if factura_electronica_activa and not pago.fe_validada and not pago.anulado %}
                                                                 <form method="post" action="{% url 'facturacion_electronica:emitir_factura' pago_id=pago.pk %}" style="display:inline;">
                                                                     {% csrf_token %}
                                                                     <button type="submit" class="btn btn-sm btn-outline-success" title="Emitir factura electrónica (DIAN)">
@@ -123,12 +130,14 @@
                                                                     </button>
                                                                 </form>
                                                                 {% endif %}
+                                                                {% if not pago.anulado %}
                                                                 <a href="{% url 'finanzas:editar_pago' pago_id=pago.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar este pago">
                                                                     <i class="bi bi-pencil-fill"></i> Editar
                                                                 </a>
                                                                 <a href="{% url 'finanzas:eliminar_pago' pago_id=pago.pk %}" class="btn btn-sm btn-outline-danger" title="Eliminar este pago">
                                                                     <i class="bi bi-trash-fill"></i> Eliminar
                                                                 </a>
+                                                                {% endif %}
                                                             </div>
                                                         </li>
                                                         {% endfor %}

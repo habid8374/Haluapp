@@ -332,3 +332,30 @@ def enviar_avisos_cobro_masivo_task(self, cuenta_ids: list, institucion_id: int,
         institucion_id, enviados, sin_email, errores,
     )
     return {"enviados": enviados, "sin_email": sin_email, "errores": errores}
+
+
+@shared_task(
+    bind=True,
+    name="finanzas.calcular_moras_task",
+    soft_time_limit=600,
+    time_limit=660,
+    max_retries=1,
+    default_retry_delay=300,
+)
+def calcular_moras_task(self):
+    """Corre el cálculo de mora de TODAS las instituciones automáticamente
+    (Celery Beat, diario). Antes solo existía el comando manual y el botón
+    "Aplicar intereses ahora" en Reporte de Mora — si nadie entraba a darle
+    clic, la mora nunca se generaba. Reutiliza el mismo comando de gestión
+    (misma lógica que el botón, sin duplicarla) para no divergir del cálculo
+    manual."""
+    from django.core.management import call_command
+    from io import StringIO
+
+    salida = StringIO()
+    try:
+        call_command('calcular_moras', stdout=salida)
+    except Exception as exc:
+        logger.error("calcular_moras_task: falló el cálculo automático de mora: %s", exc, exc_info=True)
+        raise self.retry(exc=exc)
+    logger.info("calcular_moras_task: %s", salida.getvalue().strip().replace("\n", " | "))

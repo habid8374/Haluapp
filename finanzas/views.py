@@ -172,9 +172,12 @@ def _movimientos_contables_rango(
     movimientos = []
 
     if tipo_transaccion in ("TODOS", "INGRESOS"):
+        # anulado=False: un pago revertido (nota crédito o eliminación
+        # manual) no es un movimiento contable real de ingreso.
         ingresos = PagoRegistrado.objects.filter(
             institucion=institucion,
             fecha_pago__range=[fecha_inicio, fecha_fin],
+            anulado=False,
         ).select_related(
             "estudiante__usuario",
             "cuenta__concepto_pago__cuenta_contable",
@@ -383,11 +386,13 @@ def dashboard_financiero(request):
     proximos_vencimientos = []
 
     if request.user.is_superuser:
-        pagos_qs = PagoRegistrado.objects.all()
+        # anulado=False: un pago anulado (revertido por nota crédito o
+        # eliminado manualmente) no debe seguir contando como ingreso real.
+        pagos_qs = PagoRegistrado.objects.filter(anulado=False)
         gastos_qs = Gasto.objects.all()
         cuentas_qs = CuentaPorCobrarEstudiante.objects.all()
     elif institucion_usuario:
-        pagos_qs = PagoRegistrado.objects.filter(institucion=institucion_usuario)
+        pagos_qs = PagoRegistrado.objects.filter(institucion=institucion_usuario, anulado=False)
         gastos_qs = Gasto.objects.filter(institucion=institucion_usuario)
         cuentas_qs = CuentaPorCobrarEstudiante.objects.filter(institucion=institucion_usuario)
     else:
@@ -819,6 +824,10 @@ def eliminar_pago(request, pago_id):
     pago = get_object_or_404(PagoRegistrado, id=pago_id, institucion=request.user.institucion_asociada)
     estudiante_id = pago.estudiante.pk
 
+    if pago.anulado:
+        messages.info(request, "Este pago ya estaba eliminado/anulado — no hay nada más que hacer.")
+        return redirect('finanzas:historial_cuentas_estudiante', estudiante_id=estudiante_id)
+
     if request.method == 'POST':
         pago_info = {
             'valor': pago.valor_pagado,
@@ -845,7 +854,17 @@ def eliminar_pago(request, pago_id):
                 'concepto': pago.cuenta.concepto_pago.nombre_concepto,
             },
         )
-        pago.delete()
+        # Se ANULA en vez de borrar físicamente: el pago sigue existiendo
+        # para el rastro contable (por qué la cuenta volvió a quedar
+        # pendiente), igual que ya se hace con los reembolsos de Mercado
+        # Pago y las notas crédito. El signal de PagoRegistrado recalcula
+        # la cuenta al guardar (vuelve a PENDIENTE/VENCIDO según corresponda).
+        pago.anulado = True
+        pago.anulado_en = timezone.now()
+        pago.anulado_motivo = (
+            f"Eliminado manualmente por {request.user.get_full_name() or request.user.username}"
+        )
+        pago.save()
 
         try:
             # --- ✅ Lógica corregida para obtener el email del destinatario ---
@@ -2239,7 +2258,9 @@ def reporte_estado_resultados(request):
     fecha_fin = request.GET.get('fecha_fin', fecha_fin_defecto)
 
     # --- QuerySet Base con Seguridad Multi-institución ---
-    pagos_qs = PagoRegistrado.objects.all()
+    # anulado=False: un pago anulado (nota crédito o eliminación manual) no
+    # debe seguir contando como ingreso en el estado de resultados.
+    pagos_qs = PagoRegistrado.objects.filter(anulado=False)
     gastos_qs = Gasto.objects.all()
     if not request.user.is_superuser:
         institucion_usuario = getattr(request.user, 'institucion_asociada', None)
@@ -2393,13 +2414,15 @@ def reporte_flujo_caja(request):
     fecha_fin = datetime.strptime(fecha_fin_str, '%Y-%m-%d').date()
 
     # QuerySets base con seguridad
+    # anulado=False: un pago anulado (nota crédito o eliminación manual) no
+    # debe seguir contando como ingreso en el flujo de caja.
     if request.user.is_superuser:
-        pagos_qs = PagoRegistrado.objects.all()
+        pagos_qs = PagoRegistrado.objects.filter(anulado=False)
         gastos_qs = Gasto.objects.all()
     else:
         institucion_usuario = getattr(request.user, 'institucion_asociada', None)
         if institucion_usuario:
-            pagos_qs = PagoRegistrado.objects.filter(institucion=institucion_usuario)
+            pagos_qs = PagoRegistrado.objects.filter(institucion=institucion_usuario, anulado=False)
             gastos_qs = Gasto.objects.filter(institucion=institucion_usuario)
         else:
             pagos_qs = PagoRegistrado.objects.none()

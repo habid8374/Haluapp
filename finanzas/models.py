@@ -323,15 +323,6 @@ class InstitucionEducativa(models.Model):
         verbose_name="Comisión por Transacción (%)",
         help_text="Porcentaje de comisión a cobrar sobre cada pago procesado por la pasarela. Ej: 1.5 para 1.5%"
     )
-    
-    # ✅ CAMBIA la referencia a 'Aspirante' para que sea un texto
-    aspirante = models.ForeignKey(
-        'admisiones.Aspirante', # <-- Así, como texto
-        on_delete=models.CASCADE, 
-        related_name='cuentas_por_cobrar_estudiante', # Nombre de relación único
-        null=True, blank=True
-    )
-    
     def __str__(self):
         return self.nombre
 
@@ -389,6 +380,19 @@ class InstitucionEducativa(models.Model):
             (
                 "acceso_modulo_finanzas",
                 "Puede acceder al módulo de finanzas (panel, reportes y exportaciones)",
+            ),
+        ]
+        constraints = [
+            # Único CUANDO está configurado (varias instituciones pueden dejarlo
+            # vacío mientras no tengan convenio bancario). Evita que dos colegios
+            # queden con el mismo código y sus recibos de recaudo bancario
+            # (código de barras) terminen generando referencias que el banco
+            # no pueda distinguir entre uno y otro — el dinero se aplicaría a
+            # la institución equivocada.
+            models.UniqueConstraint(
+                fields=["codigo_convenio_bancario"],
+                condition=~models.Q(codigo_convenio_bancario="") & models.Q(codigo_convenio_bancario__isnull=False),
+                name="institucion_codigo_convenio_bancario_unico",
             ),
         ]
 
@@ -541,8 +545,8 @@ def default_fecha_vencimiento():
 
 class CuentaPorCobrarEstudiante(models.Model):
     estudiante = models.ForeignKey(
-        'gestion_academica.Estudiante', 
-        on_delete=models.CASCADE, 
+        'gestion_academica.Estudiante',
+        on_delete=models.PROTECT,
         related_name='cuentas_por_cobrar', # Apodo único
         null=True, blank=True
     )
@@ -661,7 +665,7 @@ class PagoRegistrado(models.Model):
         ('OTRO', 'Otro'),
     ]
 
-    cuenta = models.ForeignKey(CuentaPorCobrarEstudiante, on_delete=models.CASCADE, related_name='pagos', verbose_name="Cuenta Asociada")
+    cuenta = models.ForeignKey(CuentaPorCobrarEstudiante, on_delete=models.PROTECT, related_name='pagos', verbose_name="Cuenta Asociada")
     estudiante = models.ForeignKey('gestion_academica.Estudiante', on_delete=models.PROTECT, related_name='pagos_realizados', verbose_name="Estudiante que Paga")
     fecha_pago = models.DateField(verbose_name="Fecha del Pago", default=timezone.now)
     valor_pagado = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor Pagado")
@@ -916,7 +920,7 @@ class ReciboRecaudoBancario(models.Model):
         related_name='recibos_recaudo_bancario', verbose_name="Institución",
     )
     estudiante = models.ForeignKey(
-        'gestion_academica.Estudiante', on_delete=models.CASCADE,
+        'gestion_academica.Estudiante', on_delete=models.PROTECT,
         related_name='recibos_recaudo_bancario', verbose_name="Estudiante",
     )
     referencia = models.CharField(max_length=25, editable=False, verbose_name="Referencia de pago")

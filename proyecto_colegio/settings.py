@@ -705,6 +705,13 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'gestion_academica.tasks.generar_alertas_piar_task',
         'schedule': crontab(hour=7, minute=0),
     },
+    # Cálculo automático de mora sobre cuentas vencidas, 3:00 AM hora Colombia.
+    # Antes solo se generaba si alguien entraba a la pantalla de Reporte de
+    # Mora y le daba clic al botón "Aplicar intereses ahora".
+    'calculo-mora-diario': {
+        'task': 'finanzas.calcular_moras_task',
+        'schedule': crontab(hour=3, minute=0),
+    },
 }
 
 # ── SENTRY — monitoreo de errores en producción ───────────────────────────────

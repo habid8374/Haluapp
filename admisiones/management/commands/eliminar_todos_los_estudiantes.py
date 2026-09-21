@@ -13,6 +13,7 @@ EntregaDeber = apps.get_model('gestion_academica', 'EntregaDeber')
 Aspirante = apps.get_model('admisiones', 'Aspirante')
 PagoRegistrado = apps.get_model('finanzas', 'PagoRegistrado')
 CuentaPorCobrarEstudiante = apps.get_model('finanzas', 'CuentaPorCobrarEstudiante')
+ReciboRecaudoBancario = apps.get_model('finanzas', 'ReciboRecaudoBancario')
 
 class Command(BaseCommand):
     help = 'Elimina TODOS los estudiantes, sus usuarios y todos los datos asociados (financieros, académicos, etc.).'
@@ -48,6 +49,9 @@ class Command(BaseCommand):
         
         self.stdout.write(f'Eliminando {PagoRegistrado.objects.filter(estudiante__in=estudiantes_a_eliminar).count()} registros de pagos...')
         PagoRegistrado.objects.filter(estudiante__in=estudiantes_a_eliminar).delete()
+
+        self.stdout.write(f'Eliminando {ReciboRecaudoBancario.objects.filter(estudiante__in=estudiantes_a_eliminar).count()} recibos de recaudo bancario...')
+        ReciboRecaudoBancario.objects.filter(estudiante__in=estudiantes_a_eliminar).delete()
 
         self.stdout.write(f'Eliminando {CuentaPorCobrarEstudiante.objects.filter(estudiante__in=estudiantes_a_eliminar).count()} cuentas por cobrar...')
         CuentaPorCobrarEstudiante.objects.filter(estudiante__in=estudiantes_a_eliminar).delete()

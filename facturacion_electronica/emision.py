@@ -40,6 +40,19 @@ def extraer_datos_respuesta(respuesta: dict) -> dict:
     }
 
 
+def _exigir_datos_completos(datos: dict) -> None:
+    """Factus puede responder 200/201 (sin lanzar FactusError) pero con el
+    payload incompleto (visto en sandbox: sin CUFE ni número). Si se marcara
+    VALIDADA igual, quedaría una "factura electrónica" sin respaldo real ante
+    la DIAN pero mostrada como exitosa en la plataforma. Se trata como error
+    de comunicación (reintentable) en vez de éxito."""
+    if not datos.get("numero") or not datos.get("cufe"):
+        raise FactusError(
+            "Factus respondió sin número o CUFE — el documento no quedó "
+            "validado ante la DIAN aunque la petición no falló."
+        )
+
+
 def emitir_para_pago(pago) -> FacturaElectronica:
     """Emite (o recupera) la factura electrónica de un ``PagoRegistrado``.
 
@@ -73,6 +86,8 @@ def emitir_para_pago(pago) -> FacturaElectronica:
 
     try:
         respuesta = FactusClient(config).crear_factura(payload)
+        datos = extraer_datos_respuesta(respuesta)
+        _exigir_datos_completos(datos)
     except (FactusError, FactusNoConfigurado) as exc:
         factura.estado = FacturaElectronica.Estado.ERROR
         factura.mensaje = str(exc)[:2000]
@@ -80,7 +95,6 @@ def emitir_para_pago(pago) -> FacturaElectronica:
         logger.error("Factura electrónica pago %s falló: %s", pago.pk, exc)
         raise
 
-    datos = extraer_datos_respuesta(respuesta)
     factura.marcar_validada(respuesta=respuesta, **datos)
 
     ConfiguracionFactus.objects.filter(pk=config.pk).update(
@@ -120,13 +134,14 @@ def emitir_para_cuenta(cuenta) -> FacturaElectronica:
 
     try:
         respuesta = FactusClient(config).crear_factura(payload)
+        datos = extraer_datos_respuesta(respuesta)
+        _exigir_datos_completos(datos)
     except (FactusError, FactusNoConfigurado) as exc:
         factura.estado = FacturaElectronica.Estado.ERROR
         factura.mensaje = str(exc)[:2000]
         factura.save(update_fields=["estado", "mensaje"])
         raise
 
-    datos = extraer_datos_respuesta(respuesta)
     factura.marcar_validada(respuesta=respuesta, **datos)
     ConfiguracionFactus.objects.filter(pk=config.pk).update(
         facturas_emitidas=config.facturas_emitidas + 1
@@ -184,6 +199,8 @@ def emitir_nota(factura_origen, tipo: str, correction_code: str, monto=None) -> 
     client = FactusClient(config)
     try:
         respuesta = getattr(client, metodo)(payload)
+        datos = extraer_datos_respuesta(respuesta)
+        _exigir_datos_completos(datos)
     except (FactusError, FactusNoConfigurado) as exc:
         nota.estado = FacturaElectronica.Estado.ERROR
         nota.mensaje = str(exc)[:2000]
@@ -191,7 +208,6 @@ def emitir_nota(factura_origen, tipo: str, correction_code: str, monto=None) -> 
         logger.error("Nota %s sobre factura %s falló: %s", prefijo, factura_origen.numero, exc)
         raise
 
-    datos = extraer_datos_respuesta(respuesta)
     nota.marcar_validada(respuesta=respuesta, **datos)
     ConfiguracionFactus.objects.filter(pk=config.pk).update(
         facturas_emitidas=config.facturas_emitidas + 1
