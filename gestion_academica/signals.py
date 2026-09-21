@@ -14,7 +14,7 @@ import json
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, get_connection
 
-from .models import Calificacion, ArchivoPlanAcademico, Notificacion, AnotacionObservador, Usuario, Candidato, TicketSoporte, RegistroAsistencia, NivelEscolaridad, Familiar, CitaReunion, CasoConvivencia, InvolucradoCaso, Estudiante, Deber, ActividadCalificable
+from .models import Calificacion, ArchivoPlanAcademico, Notificacion, AnotacionObservador, Usuario, Candidato, TicketSoporte, RegistroAsistencia, NivelEscolaridad, Familiar, CitaReunion, CasoConvivencia, InvolucradoCaso, Estudiante, Deber, ActividadCalificable, PeriodoAcademico, HistorialMatriculaAnual
 from finanzas.models import InstitucionEducativa
 from finanzas.institucion_credentials import google_api_key as get_inst_google_api_key
 
@@ -576,3 +576,41 @@ def notificar_coordinacion_nueva_actividad(sender, instance, created, **kwargs):
         )
 
     transaction.on_commit(_on_commit)
+
+
+@receiver(post_save, sender=Estudiante)
+def registrar_historial_matricula_anual(sender, instance, created, **kwargs):
+    """Cada vez que se guarda un Estudiante con grado_actual, asegura que
+    exista el registro de HistorialMatriculaAnual del año escolar activo
+    de su institución — así no hay que acordarse de llamarlo manualmente en
+    cada punto donde se matricule un estudiante nuevo o se le corrija el
+    grado a mano.
+
+    Deliberadamente usa get_or_create (nunca update_or_create): si el
+    registro de ese año YA existe, no se toca. Esto es clave durante la
+    promoción anual — promocion_anual_view cambia grado_actual al grado
+    SIGUIENTE mientras el período "activo" de la institución puede seguir
+    siendo el del año que termina; si este signal sobrescribiera el
+    registro existente, corrompería el historial del año saliente con el
+    grado nuevo. La creación explícita del registro del año NUEVO la hace
+    promocion_anual_view directamente (conoce con certeza a qué año se
+    está promoviendo, sin depender de cuál período esté marcado 'activo')."""
+    if not instance.grado_actual_id or not instance.institucion_id:
+        return
+    año_activo = (
+        PeriodoAcademico.objects
+        .filter(institucion_id=instance.institucion_id, activo=True)
+        .values_list('año_escolar', flat=True)
+        .first()
+    )
+    if not año_activo:
+        return
+    HistorialMatriculaAnual.objects.get_or_create(
+        estudiante=instance, año_escolar=año_activo,
+        defaults={
+            'institucion_id': instance.institucion_id,
+            'grado_id': instance.grado_actual_id,
+            'grupo_id': instance.grupo_id,
+            'origen': HistorialMatriculaAnual.Origen.MATRICULA,
+        },
+    )

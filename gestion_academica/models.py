@@ -938,6 +938,62 @@ class CaracterizacionEstudiante(models.Model):
         self.segundo_apellido = (' '.join(pa[1:]))[:60]
 
 
+class HistorialMatriculaAnual(models.Model):
+    """Registro inmutable de qué grado (y grupo) tuvo un estudiante en cada
+    año escolar. Estudiante.grado_actual se sobrescribe en cada promoción,
+    así que sin esto no hay forma de saber qué grado cursó un estudiante en
+    un año anterior una vez que fue promovido, retirado o graduado — y por
+    lo tanto no se puede generar correctamente su boletín/certificado de
+    ese año."""
+
+    class Origen(models.TextChoices):
+        MATRICULA = 'MATRICULA', _('Matrícula/inscripción')
+        PROMOCION = 'PROMOCION', _('Promoción anual')
+        INFERIDO = 'INFERIDO', _('Inferido de calificaciones (backfill)')
+
+    class Confianza(models.TextChoices):
+        ALTA = 'ALTA', _('Alta')
+        DUDOSA = 'DUDOSA', _('Dudosa — revisar manualmente')
+
+    institucion = models.ForeignKey(
+        'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
+        related_name='historial_matricula_anual', verbose_name=_("Institución"),
+    )
+    estudiante = models.ForeignKey(
+        'Estudiante', on_delete=models.PROTECT,
+        related_name='historial_matricula', verbose_name=_("Estudiante"),
+    )
+    año_escolar = models.PositiveIntegerField(verbose_name=_("Año Escolar"))
+    grado = models.ForeignKey(
+        'Grado', on_delete=models.PROTECT,
+        related_name='historial_matricula', verbose_name=_("Grado cursado ese año"),
+    )
+    grupo = models.ForeignKey(
+        'Grupo', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='historial_matricula', verbose_name=_("Grupo/Sección"),
+    )
+    origen = models.CharField(
+        max_length=20, choices=Origen.choices, verbose_name=_("Origen del registro"),
+    )
+    confianza_backfill = models.CharField(
+        max_length=10, choices=Confianza.choices, blank=True,
+        verbose_name=_("Confianza (solo si es inferido)"),
+        help_text=_("Se marca 'Dudosa' cuando se infirió automáticamente y el "
+                     "estudiante no tenía suficientes calificaciones ese año "
+                     "para determinar el grado con certeza."),
+    )
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Historial de Matrícula Anual")
+        verbose_name_plural = _("Historial de Matrícula Anual")
+        unique_together = ('estudiante', 'año_escolar')
+        ordering = ['-año_escolar']
+
+    def __str__(self):
+        return f"{self.estudiante} — {self.grado} ({self.año_escolar})"
+
+
 class Docente(models.Model):
     class ModalidadLiquidacion(models.TextChoices):
         POR_HORA = 'POR_HORA', _('Por horas laboradas')

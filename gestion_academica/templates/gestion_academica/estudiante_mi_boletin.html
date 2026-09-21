@@ -10,6 +10,18 @@
             <p class="text-muted mb-0">{% trans "Periodo:" %} <strong>{{ periodo_activo.nombre }} ({{ periodo_activo.año_escolar }})</strong></p>
         </div>
         <div class="d-flex align-items-center gap-2">
+            {% if periodos_historicos %}
+            <div class="flex-shrink-0">
+                <form method="get" class="d-flex align-items-center gap-1">
+                    <label for="selectPeriodoHistorico" class="form-label mb-0 small text-muted">{% trans "Año:" %}</label>
+                    <select id="selectPeriodoHistorico" name="periodo" class="form-select" onchange="this.form.submit()">
+                        {% for p in periodos_historicos %}
+                        <option value="{{ p.pk }}" {% if p.pk == periodo_activo.pk %}selected{% endif %}>{{ p.nombre }} ({{ p.año_escolar }})</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+            {% endif %}
             <div class="flex-shrink-0">
                 <select id="selectFormatoPapel" class="form-select">
                     <option value="carta" selected>{% trans "Tamaño Carta" %}</option>

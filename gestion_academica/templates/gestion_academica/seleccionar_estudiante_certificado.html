@@ -6,11 +6,20 @@
     <h1 class="h2 mb-4"><i class="bi bi-file-earmark-pdf-fill me-2"></i> {{ titulo_pagina }}</h1>
     <div class="card shadow-sm mb-4">
         <div class="card-header">
-            <i class="bi bi-filter"></i> Paso 1: Selecciona un Grado
+            <i class="bi bi-filter"></i> {% trans "Paso 1: Selecciona el año escolar y el grado" %}
         </div>
         <div class="card-body">
             <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-8">
+                <div class="col-md-4">
+                    <label for="año-select" class="form-label">{% trans "Año escolar" %}</label>
+                    <select name="año" id="año-select" class="form-select">
+                        {% for año_option in años_escolares %}
+                            <option value="{{ año_option }}" {% if año_seleccionado == año_option %}selected{% endif %}>{{ año_option }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">{% trans "También sirve para un estudiante que ya fue promovido, se retiró o se graduó — busca el año en que cursó ese grado." %}</small>
+                </div>
+                <div class="col-md-5">
                     <label for="grado-select" class="form-label">{% trans "Grado" %}</label>
                     <select name="grado" id="grado-select" class="form-select" required>
                         <option value="">{% trans "--- Elige un grado para ver los estudiantes ---" %}</option>
@@ -21,8 +30,8 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary w-100">Mostrar Estudiantes</button>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">{% trans "Mostrar Estudiantes" %}</button>
                 </div>
             </form>
         </div>
@@ -30,15 +39,15 @@
     {% if grado_seleccionado %}
     <div class="card shadow-sm">
         <div class="card-header">
-           <i class="bi bi-people-fill"></i> {% trans "Paso 2: Genera el certificado para un estudiante de" %} <strong>{{ grado_seleccionado.nombre }}</strong>
+           <i class="bi bi-people-fill"></i> {% blocktrans with grado=grado_seleccionado.nombre año=año_seleccionado %}Paso 2: Genera el certificado para un estudiante de {{ grado }} en {{ año }}{% endblocktrans %}
         </div>
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
                         <th>{% trans "Estudiante" %}</th>
-                        <th>Documento</th>
-                        <th class="text-center">Acciones</th>
+                        <th>{% trans "Documento" %}</th>
+                        <th class="text-center">{% trans "Acciones" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,14 +57,17 @@
                         <td>{{ estudiante.documento_identidad }}</td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
-        <a href="{% url 'gestion_academica:generar_certificado_estudios' estudiante.pk %}" class="btn btn-outline-success" target="_blank">
-            <i class="bi bi-patch-check-fill me-1"></i> De Estudios
+        <a href="{% url 'gestion_academica:generar_certificado_estudios' estudiante.pk %}?año={{ año_seleccionado }}" class="btn btn-outline-success" target="_blank">
+            <i class="bi bi-patch-check-fill me-1"></i> {% trans "De Estudios" %}
         </a>
         <a href="{% url 'gestion_academica:generar_constancia_matricula' estudiante.pk %}" class="btn btn-outline-primary" target="_blank">
-            <i class="bi bi-person-badge me-1"></i> De Matrícula
+            <i class="bi bi-person-badge me-1"></i> {% trans "De Matrícula" %}
         </a>
         <a href="{% url 'gestion_academica:generar_paz_y_salvo' estudiante.pk %}" class="btn btn-outline-info" target="_blank">
-            <i class="bi bi-cash-stack me-1"></i> Paz y Salvo
+            <i class="bi bi-cash-stack me-1"></i> {% trans "Paz y Salvo" %}
+        </a>
+        <a href="{% url 'gestion_academica:ficha_historica_estudiante' estudiante.pk %}?año={{ año_seleccionado }}" class="btn btn-outline-dark" title="{% trans 'Ver ficha histórica completa (boletines, observador, cualquier año)' %}">
+            <i class="bi bi-clock-history me-1"></i> {% trans "Ficha Histórica" %}
         </a>
         </div>
                         </td>

@@ -34,6 +34,7 @@ from .models import (
     Insignia, InsigniaObtenida,
     SimulacionSTEAM, AsignacionSimulacionSTEAM,
     RetoSTEAM,
+    HistorialMatriculaAnual,
 )
 from import_export import resources
 
@@ -409,6 +410,16 @@ class EstudianteAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return TemplateResponse(request, 'admin/gestion_academica/estudiante/asignar_enfasis.html', context)
+
+
+@admin.register(HistorialMatriculaAnual)
+class HistorialMatriculaAnualAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('estudiante', 'año_escolar', 'grado', 'grupo', 'origen', 'confianza_backfill', 'institucion')
+    search_fields = ('estudiante__usuario__first_name', 'estudiante__usuario__last_name', 'estudiante__documento_identidad')
+    list_filter = ('año_escolar', 'origen', 'confianza_backfill', 'institucion')
+    ordering = ('-año_escolar', 'estudiante__usuario__last_name')
+    raw_id_fields = ('estudiante', 'grado', 'grupo', 'institucion')
+    readonly_fields = ('origen', 'fecha_registro')
 
 
 class RegistroAsistenciaResource(resources.ModelResource):

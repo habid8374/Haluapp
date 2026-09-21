@@ -17,8 +17,8 @@ from .models import (
     Calificacion, ActividadCalificable, TipoActividad, 
     EscalaValorativa, RegistroAsistenciaDocente, Docente, 
     PeriodoAcademico, Estudiante, Grado, Materia, Curso,
-    AnotacionObservador, RegistroAsistencia, LeccionDiaria, BloqueHorario, 
-    PlaneacionClase, Familiar, Deber, EntregaDeber
+    AnotacionObservador, RegistroAsistencia, LeccionDiaria, BloqueHorario,
+    PlaneacionClase, Familiar, Deber, EntregaDeber, HistorialMatriculaAnual
 )
 
 from finanzas.models import CuentaPorCobrarEstudiante
@@ -88,15 +88,31 @@ def docente_asignado_a_actividad(user, actividad):
 
 logger = logging.getLogger(__name__)
 
-def cursos_visibles_para_estudiante(estudiante, periodo_academico, queryset=None):
+def grado_de_estudiante_en_año(estudiante, año_escolar):
+    """Grado que tuvo el estudiante en un año escolar dado, según el
+    historial de matrícula (HistorialMatriculaAnual) — NO el grado_actual,
+    que se sobrescribe en cada promoción y por lo tanto solo refleja el
+    grado de HOY. Devuelve None si no hay registro para ese año (p. ej. un
+    año anterior a la existencia de esta tabla que aún no se ha backfilleado)."""
+    registro = estudiante.historial_matricula.filter(año_escolar=año_escolar).first()
+    return registro.grado if registro else None
+
+
+def cursos_visibles_para_estudiante(estudiante, periodo_academico, queryset=None, grado=None):
     """Cursos de un estudiante para un período, respetando énfasis/talleres
     (modalidad técnica): incluye los cursos sin énfasis (todo el grado, el
     caso normal) más los del propio énfasis del estudiante, si tiene uno.
-    Usado por las distintas vistas de boletín para no duplicar el filtro."""
+    Usado por las distintas vistas de boletín para no duplicar el filtro.
+
+    ``grado``: opcional — el grado a usar en vez de ``estudiante.grado_actual``.
+    Necesario para generar el boletín de un período de un año anterior,
+    donde el estudiante ya fue promovido y su grado_actual ya no es el que
+    tenía en ese período (ver grado_de_estudiante_en_año)."""
     base = queryset if queryset is not None else Curso.objects.all()
+    grado_a_usar = grado if grado is not None else estudiante.grado_actual
     return base.filter(
         Q(enfasis__isnull=True) | Q(enfasis_id=estudiante.enfasis_id),
-        grado=estudiante.grado_actual, periodo_academico=periodo_academico,
+        grado=grado_a_usar, periodo_academico=periodo_academico,
     )
 
 

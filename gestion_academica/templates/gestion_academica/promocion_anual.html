@@ -31,6 +31,7 @@
     {% if lista_para_promocion %}
     <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="periodo_saliente_id" value="{{ periodo_seleccionado_id }}">
         <div class="card shadow-sm">
             <div class="card-header">Paso 2: Confirmar Estudiantes a Promover</div>
             <div class="table-responsive">

@@ -60,6 +60,7 @@ from xhtml2pdf import pisa
 from ..utils import (
     calcular_estado_academico_curso,
     cursos_visibles_para_estudiante,
+    grado_de_estudiante_en_año,
     obtener_desempeno,
     analizar_riesgo_academico_curso,
     analizar_riesgo_academico_en_lote,
@@ -126,6 +127,7 @@ from ..models import (
     PlanSemanal,
     CaracterizacionEstudiante,
     JustificacionInasistencia,
+    HistorialMatriculaAnual,
 )
 
 from finanzas.models import InstitucionEducativa 
@@ -3380,15 +3382,22 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
     if not periodo.boletines_publicados and not _puede_previsualizar_boletin_sin_publicar(request.user):
         return render(request, 'gestion_academica/boletin_no_disponible.html', {'periodo': periodo}, status=200)
 
+    # 3.5 Resuelve el grado que el estudiante tenía en ESE período — no el
+    # grado_actual, que ya puede ser otro si fue promovido, retirado o
+    # graduado desde entonces (grado_actual se sobrescribe en cada
+    # promoción). Sin esto, el boletín de un año anterior sale vacío: se
+    # cruzan cursos del grado NUEVO con el período VIEJO, que no existen.
+    grado_del_periodo = grado_de_estudiante_en_año(estudiante_actual, periodo.año_escolar) or estudiante_actual.grado_actual
+
     # 4. Consulta principal para obtener los cursos y pre-cargar datos relacionados
     cursos = cursos_visibles_para_estudiante(
-        estudiante_actual, periodo
+        estudiante_actual, periodo, grado=grado_del_periodo
     ).select_related('materia').prefetch_related(
         'materia__areaacademica_set',
         Prefetch('materia__descriptores', queryset=DescriptorLogro.objects.filter(
             periodo_academico=periodo,
         ).filter(
-            Q(grado=estudiante_actual.grado_actual) | Q(grado__isnull=True)
+            Q(grado=grado_del_periodo) | Q(grado__isnull=True)
         ), to_attr='descriptores_del_periodo')
     )
     
@@ -3430,7 +3439,7 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
     promedio_general = total_puntos_ponderados_general / total_ihs_general if total_ihs_general > 0 else None
     
     director_de_grupo = DirectorCurso.objects.select_related('docente__usuario').filter(
-        grado=estudiante_actual.grado_actual, periodo_academico=periodo
+        grado=grado_del_periodo, periodo_academico=periodo
     ).first()
     
     observacion_obj = ObservacionBoletin.objects.filter(estudiante=estudiante_actual, periodo=periodo).first()
@@ -3441,6 +3450,7 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
         'institucion': estudiante_actual.institucion,
         'periodo': periodo,
         'estudiante': estudiante_actual,
+        'grado_del_periodo': grado_del_periodo,
         'boletin_data': boletin_data_ordenado,
         'promedio_general': promedio_general,
         'director_de_grupo': director_de_grupo,
@@ -3656,10 +3666,30 @@ def familiar_ver_boletin_estudiante(request, estudiante_pk):
         messages.error(request, "No tienes permiso para ver el boletín de este estudiante.")
         return redirect('gestion_academica:portal_familiar_inicio')
 
-    periodo_activo = PeriodoAcademico.objects.filter(
-        activo=True,
-        institucion=estudiante_seleccionado.institucion
-    ).first()
+    # Por defecto, el período activo de la institución. Con ?periodo=<pk> el
+    # acudiente puede pedir el boletín de un período anterior (de un año en
+    # que el estudiante ya fue promovido, se retiró o se graduó desde
+    # entonces) — solo entre los períodos donde el estudiante tiene
+    # historial de matrícula, para no filtrar boletines de otro grado/curso.
+    periodo_id = request.GET.get('periodo')
+    años_con_historial = list(
+        estudiante_seleccionado.historial_matricula.values_list('año_escolar', flat=True)
+    )
+    periodos_historicos = PeriodoAcademico.objects.filter(
+        institucion=estudiante_seleccionado.institucion,
+        año_escolar__in=años_con_historial,
+        boletines_publicados=True,
+    ).order_by('-año_escolar', '-fecha_inicio')
+
+    if periodo_id:
+        periodo_activo = get_object_or_404(
+            PeriodoAcademico, pk=periodo_id, institucion=estudiante_seleccionado.institucion,
+        )
+    else:
+        periodo_activo = PeriodoAcademico.objects.filter(
+            activo=True,
+            institucion=estudiante_seleccionado.institucion
+        ).first()
 
     # El boletín SOLO se muestra a la familia cuando el coordinador lo publica.
     if periodo_activo and not periodo_activo.boletines_publicados and not _puede_previsualizar_boletin_sin_publicar(request.user):
@@ -3669,11 +3699,16 @@ def familiar_ver_boletin_estudiante(request, estudiante_pk):
     promedio_general_periodo = None
     total_puntos_ponderados_general = Decimal('0.0')
     total_ihs_general = 0
+    grado_del_periodo = None
 
     if estudiante_seleccionado.grado_actual and periodo_activo:
+        grado_del_periodo = grado_de_estudiante_en_año(
+            estudiante_seleccionado, periodo_activo.año_escolar
+        ) or estudiante_seleccionado.grado_actual
         cursos_del_estudiante = cursos_visibles_para_estudiante(
             estudiante_seleccionado, periodo_activo,
             Curso.objects.filter(institucion=estudiante_seleccionado.institucion),
+            grado=grado_del_periodo,
         ).select_related('materia', 'grado', 'periodo_academico').prefetch_related('docentes_asignados__usuario').order_by('materia__nombre_materia')
 
         for curso_iter in cursos_del_estudiante:
@@ -3705,6 +3740,8 @@ def familiar_ver_boletin_estudiante(request, estudiante_pk):
         'titulo_pagina': f"Boletín de {estudiante_seleccionado.usuario.get_full_name()}",
         'estudiante': estudiante_seleccionado,
         'periodo_activo': periodo_activo,
+        'periodos_historicos': periodos_historicos,
+        'grado_del_periodo': grado_del_periodo,
         'cursos_con_detalle': cursos_con_detalle,
         'promedio_general_periodo': promedio_general_periodo,
         'observacion_boletin': observacion_obj,
@@ -10504,33 +10541,54 @@ def exportar_acta_cita_orientacion_pdf(request, pk):
 @permission_required('gestion_academica.view_estudiante')
 def seleccionar_estudiante_certificado_view(request):
     """
-    Permite al administrador seleccionar primero un grado y luego un
-    estudiante de ese grado para generar un certificado.
+    Permite al administrador seleccionar un año escolar y un grado para
+    generar un certificado. El año es el primer filtro (no solo el grado):
+    un estudiante promovido, retirado o graduado ya no tiene ese grado como
+    su grado_actual, así que listar solo por grado_actual lo haría
+    desaparecer — se usa el historial de matrícula de ese año en su lugar.
     """
-    # Obtenemos los grados de la institución del usuario para el filtro
     grados = get_filtered_queryset(Grado, request.user).order_by('nombre')
-    
-    estudiantes = Estudiante.objects.none() # Por defecto, no mostramos ningún estudiante
+    años_escolares = get_filtered_queryset(PeriodoAcademico, request.user).values_list(
+        'año_escolar', flat=True
+    ).distinct().order_by('-año_escolar')
+
+    estudiantes = Estudiante.objects.none()
     grado_seleccionado = None
-    
-    # Verificamos si el usuario ha seleccionado un grado desde el formulario
+
     grado_id = request.GET.get('grado')
+    año_id = request.GET.get('año') or request.GET.get('ano')
+    año_actual = timezone.now().year
+    año_seleccionado = int(año_id) if año_id else año_actual
+
     if grado_id:
-        # Filtramos los estudiantes para mostrar solo los del grado seleccionado
-        estudiantes = get_filtered_queryset(Estudiante, request.user).filter(
-            grado_actual_id=grado_id
-        ).select_related('usuario', 'grado_actual').order_by('usuario__last_name')
-        
-        # También obtenemos el objeto del grado para mostrar su nombre
         grado_seleccionado = get_object_or_404(get_filtered_queryset(Grado, request.user), pk=grado_id)
+        registros = get_filtered_queryset(HistorialMatriculaAnual, request.user).filter(
+            grado_id=grado_id, año_escolar=año_seleccionado,
+        ).select_related('estudiante__usuario', 'estudiante__grado_actual').order_by(
+            'estudiante__usuario__last_name'
+        )
+        estudiantes = [r.estudiante for r in registros]
+        # Fallback: si ese año todavía no tiene historial (institución recién
+        # empieza a usar esta funcionalidad y aún no corre el backfill), se
+        # usa grado_actual como antes — para no dejar la pantalla vacía en
+        # el caso más común (año actual, estudiante activo).
+        if not estudiantes and año_seleccionado == año_actual:
+            estudiantes = list(
+                get_filtered_queryset(Estudiante, request.user).filter(
+                    grado_actual_id=grado_id
+                ).select_related('usuario', 'grado_actual').order_by('usuario__last_name')
+            )
 
     context = {
         'titulo_pagina': "Generar Certificados",
         'grados': grados,
+        'años_escolares': años_escolares,
+        'año_seleccionado': año_seleccionado,
+        'año_actual': año_actual,
         'estudiantes': estudiantes,
-        'grado_seleccionado': grado_seleccionado
+        'grado_seleccionado': grado_seleccionado,
     }
-    return render(request, 'gestion_academica/seleccionar_estudiante_certificado.html', context)  
+    return render(request, 'gestion_academica/seleccionar_estudiante_certificado.html', context)
 
 @login_required
 @permission_required('gestion_academica.view_estudiante')
@@ -10546,15 +10604,29 @@ def generar_certificado_estudios_view(request, estudiante_pk):
     institucion = estudiante.institucion
     configuracion_adicional = getattr(institucion, 'configuracioninstitucion', None)
 
+    # Año explícito (?año=2026): usar el grado que el estudiante tenía ESE
+    # año, según el historial de matrícula — no el grado_actual, que puede
+    # ya ser otro si fue promovido, retirado o graduado desde entonces. Sin
+    # año explícito, se mantiene el comportamiento de siempre (último
+    # período del grado actual) por compatibilidad con los enlaces
+    # existentes.
+    año_id = request.GET.get('año') or request.GET.get('ano')
+    if año_id:
+        grado_del_año = grado_de_estudiante_en_año(estudiante, int(año_id))
+        grado_a_usar = grado_del_año or estudiante.grado_actual
+    else:
+        grado_a_usar = estudiante.grado_actual
+
     ultimo_periodo_cursado = PeriodoAcademico.objects.filter(
-        cursos__grado=estudiante.grado_actual,
-        institucion=institucion
+        cursos__grado=grado_a_usar,
+        institucion=institucion,
+        **({'año_escolar': int(año_id)} if año_id else {}),
     ).order_by('-fecha_fin').first()
-    
+
     materias_con_notas = []
     if ultimo_periodo_cursado:
         cursos_del_periodo = Curso.objects.filter(
-            grado=estudiante.grado_actual,
+            grado=grado_a_usar,
             periodo_academico=ultimo_periodo_cursado
         )
         for curso in cursos_del_periodo:
@@ -10662,50 +10734,9 @@ def generar_constancia_matricula_view(request, estudiante_pk):
         return HttpResponse("Error al generar PDF")
     return response
 
-    
-@login_required
-@permission_required('gestion_academica.view_estudiante')
-def generar_paz_y_salvo_view(request, estudiante_pk):
-    """
-    Genera un certificado de Paz y Salvo Financiero, con la lógica
-    de verificación de deudas corregida.
-    """
-    try:
-        estudiante = Estudiante.objects.select_related('usuario', 'institucion').get(pk=estudiante_pk)
-    except Estudiante.DoesNotExist:
-        return HttpResponse("Estudiante no encontrado.", status=404)
-
-    # --- LÓGICA DE VERIFICACIÓN FINANCIERA CORREGIDA ---
-    # Buscamos si existe CUALQUIER cuenta para este estudiante que NO esté en estado 'PAGADO'.
-    cuentas_pendientes = CuentaPorCobrarEstudiante.objects.filter(
-        estudiante=estudiante
-    ).exclude(estado='PAGADO')
-    # --- FIN DE LA CORRECCIÓN ---
-
-    if cuentas_pendientes.exists():
-        messages.error(request, f"No se puede generar el Paz y Salvo. El estudiante {estudiante.usuario.get_full_name()} tiene saldos pendientes.")
-        return redirect('gestion_academica:seleccionar_estudiante_certificado')
-
-    # El resto de la lógica para generar el PDF se mantiene igual
-    context = {
-        'estudiante': estudiante,
-        'institucion': estudiante.institucion,
-        'fecha_generacion': timezone.now(),
-    }
-    template_path = 'gestion_academica/certificados/paz_y_salvo.html'
-    template = get_template(template_path)
-    html = template.render(context)
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="Paz_y_Salvo_{estudiante.usuario.last_name}.pdf"'
-    
-    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
-    if pisa_status.err:
-       return HttpResponse('Ocurrió un error al generar el PDF.')
-    return response
 
 @login_required
-@permission_required('gestion_academica.add_cuentaporcobrarestudiante') # O un permiso de admin
+@permission_required('finanzas.add_cuentaporcobrarestudiante')
 def promocion_anual_view(request):
     """
     Gestiona el proceso de fin de año: ver estado de estudiantes,
@@ -10749,6 +10780,18 @@ def promocion_anual_view(request):
             messages.error(request, "No se encontró un concepto de 'Matrícula' para el periodo de destino. Por favor, créalo primero en el módulo de Finanzas.")
             return redirect(request.path_info)
 
+        # Periodo del año que TERMINA (Paso 1) — se necesita para dejar el
+        # historial de matrícula del año saliente con el grado VIEJO, antes
+        # de sobrescribir grado_actual. Sin esto, el signal
+        # registrar_historial_matricula_anual (que usa el período "activo"
+        # de la institución) podría no haber corrido aún para ese año, y el
+        # boletín/certificado de ese año quedaría sin forma de resolver el
+        # grado correcto.
+        periodo_saliente_id = request.POST.get('periodo_saliente_id')
+        periodo_saliente = get_filtered_queryset(PeriodoAcademico, request.user).filter(
+            pk=periodo_saliente_id
+        ).first()
+
         estudiantes_promovidos = 0
         # A01 (IDOR): los pks vienen crudos del POST. Restringir a la institución
         # del usuario evita promover/crear cuentas de cobro a estudiantes ajenos.
@@ -10758,17 +10801,54 @@ def promocion_anual_view(request):
         with transaction.atomic():
             for estudiante in estudiantes_a_promover:
                 if estudiante.grado_actual and estudiante.grado_actual.siguiente_grado:
-                    estudiante.grado_actual = estudiante.grado_actual.siguiente_grado
+                    grado_viejo = estudiante.grado_actual
+
+                    # Historial del año que TERMINA, con el grado VIEJO —
+                    # get_or_create: si ya existe (lo normal, vía el signal
+                    # de matrícula), no se toca.
+                    if periodo_saliente:
+                        HistorialMatriculaAnual.objects.get_or_create(
+                            estudiante=estudiante, año_escolar=periodo_saliente.año_escolar,
+                            defaults={
+                                'institucion_id': estudiante.institucion_id,
+                                'grado': grado_viejo,
+                                'grupo_id': estudiante.grupo_id,
+                                'origen': HistorialMatriculaAnual.Origen.PROMOCION,
+                            },
+                        )
+
+                    estudiante.grado_actual = grado_viejo.siguiente_grado
                     estudiante.save(update_fields=['grado_actual'])
-                    
+
+                    # Historial del año NUEVO, con el grado nuevo — explícito
+                    # (no depende de que el período "activo" ya sea el nuevo).
+                    HistorialMatriculaAnual.objects.update_or_create(
+                        estudiante=estudiante, año_escolar=siguiente_periodo.año_escolar,
+                        defaults={
+                            'institucion_id': estudiante.institucion_id,
+                            'grado_id': estudiante.grado_actual_id,
+                            'grupo_id': estudiante.grupo_id,
+                            'origen': HistorialMatriculaAnual.Origen.PROMOCION,
+                            'confianza_backfill': '',
+                        },
+                    )
+
                     # Creamos la cuenta de cobro para la matrícula
+                    # fecha_vencimiento_especifica es obligatoria en el modelo (sin
+                    # default) — sin esto, la creación de la cuenta fallaba con
+                    # IntegrityError y la promoción completa se abortaba a mitad
+                    # de camino. Se usa el vencimiento general del concepto si el
+                    # colegio lo configuró; si no, el inicio del nuevo período.
                     CuentaPorCobrarEstudiante.objects.get_or_create(
                         estudiante=estudiante,
                         concepto_pago=concepto_matricula,
                         institucion=user_inst,
                         defaults={
                             'monto_asignado': estudiante.valor_matricula,
-                            'estado': 'PENDIENTE'
+                            'estado': 'PENDIENTE',
+                            'fecha_vencimiento_especifica': (
+                                concepto_matricula.fecha_vencimiento_general or siguiente_periodo.fecha_inicio
+                            ),
                         }
                     )
                     estudiantes_promovidos += 1
@@ -10831,7 +10911,54 @@ def generar_paz_y_salvo_view(request, estudiante_pk):
     pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
     if pisa_status.err:
        return HttpResponse('Ocurrió un error al generar el PDF.')
-    return response  
+    return response
+
+
+@login_required
+@permission_required('gestion_academica.view_estudiante')
+def ficha_historica_estudiante_view(request, estudiante_pk):
+    """
+    Punto único para pedir cualquier documento (boletín, certificado, paz y
+    salvo) u ojear el observador de UN estudiante en CUALQUIER año que haya
+    cursado — sin importar si hoy sigue matriculado, fue promovido, se
+    retiró o se graduó. Complementa (no reemplaza) el portal de Egresados:
+    ese sigue siendo el flujo de solicitud/pago de documentos para
+    graduados; esta ficha es la vía rápida para todo lo demás.
+    """
+    estudiante = get_object_or_404(
+        get_filtered_queryset(Estudiante, request.user).select_related('usuario', 'grado_actual', 'institucion'),
+        pk=estudiante_pk,
+    )
+
+    historial = list(
+        estudiante.historial_matricula.select_related('grado', 'grupo').order_by('-año_escolar')
+    )
+
+    año_id = request.GET.get('año') or request.GET.get('ano')
+    if año_id:
+        año_seleccionado = int(año_id)
+    elif historial:
+        año_seleccionado = historial[0].año_escolar
+    else:
+        año_seleccionado = timezone.now().year
+
+    registro_del_año = next((r for r in historial if r.año_escolar == año_seleccionado), None)
+    grado_del_año = registro_del_año.grado if registro_del_año else estudiante.grado_actual
+
+    periodos_del_año = PeriodoAcademico.objects.filter(
+        institucion=estudiante.institucion, año_escolar=año_seleccionado,
+    ).order_by('fecha_inicio')
+
+    context = {
+        'titulo_pagina': f"Ficha Histórica de {estudiante.usuario.get_full_name()}",
+        'estudiante': estudiante,
+        'historial': historial,
+        'año_seleccionado': año_seleccionado,
+        'grado_del_año': grado_del_año,
+        'periodos_del_año': periodos_del_año,
+    }
+    return render(request, 'gestion_academica/ficha_historica_estudiante.html', context)
+
 
 @login_required
 @permission_required('gestion_academica.change_grado') # Solo usuarios con permiso para cambiar grados pueden acceder

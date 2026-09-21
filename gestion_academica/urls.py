@@ -371,6 +371,7 @@ urlpatterns = [
     path('certificados/generar/estudios/<int:estudiante_pk>/', views.generar_certificado_estudios_view, name='generar_certificado_estudios'),
     path('certificados/generar/matricula/<int:estudiante_pk>/', views.generar_constancia_matricula_view, name='generar_constancia_matricula'),
     path('certificados/generar/paz-y-salvo/<int:estudiante_pk>/', views.generar_paz_y_salvo_view, name='generar_paz_y_salvo'),
+    path('certificados/ficha-historica/<int:estudiante_pk>/', views.ficha_historica_estudiante_view, name='ficha_historica_estudiante'),
     path('promocion-anual/', views.promocion_anual_view, name='promocion_anual'),
     path('configuracion/promocion-grados/', views.gestionar_promocion_grados_view, name='gestionar_promocion_grados'),
     path('convivencia/historial/', views.historial_convivencia_view, name='historial_convivencia'),
