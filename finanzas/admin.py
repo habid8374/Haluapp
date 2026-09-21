@@ -24,6 +24,7 @@ from .models import (
     WebhookEventoMercadoPago,
     LlamadaMercadoPago,
     ConsumoIA,
+    ReciboRecaudoBancario,
 )
 from gestion_academica.models import EscalaValorativa
 
@@ -119,6 +120,7 @@ class InstitucionEducativaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
             'fields': (
                 'cuenta_bancaria',
                 'pagos_digitales',
+                'codigo_convenio_bancario',
                 'mp_public_key_test',
                 'mp_access_token_test',
                 'mp_public_key_prod',
@@ -431,10 +433,20 @@ class ModuloPlataformaAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):
         return {'codigo': ('nombre',)}
 
 
+class ReciboRecaudoBancarioAdmin(InstitucionScopedAdminMixin, admin.ModelAdmin):
+    list_display = ('referencia', 'estudiante', 'monto_total', 'fecha_limite', 'año', 'mes', 'institucion')
+    search_fields = ('referencia', 'estudiante__usuario__username')
+    list_filter = ('año', 'mes', 'institucion')
+    raw_id_fields = ('institucion', 'estudiante')
+    filter_horizontal = ('cuentas',)
+    readonly_fields = ('referencia', 'generado_en')
+
+
 admin.site.register(ModuloPlataforma, ModuloPlataformaAdmin)
 admin.site.register(TipoConceptoPago, TipoConceptoPagoAdmin)
 admin.site.register(CuentaPorCobrarEstudiante, CuentaPorCobrarEstudianteAdmin)
 admin.site.register(PagoRegistrado, PagoRegistradoAdmin)
+admin.site.register(ReciboRecaudoBancario, ReciboRecaudoBancarioAdmin)
 
 
 class PermissionAdmin(SuperuserOnlyAdminMixin, admin.ModelAdmin):

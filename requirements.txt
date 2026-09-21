@@ -20,6 +20,7 @@ pydantic
 pydantic-core
 Pillow
 python-bidi
+python-barcode==0.16.1
 
 # --- REST Framework y Autenticación ---
 djangorestframework==3.16.0

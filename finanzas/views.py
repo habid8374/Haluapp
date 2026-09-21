@@ -58,6 +58,7 @@ from .models import (
     AuditoriaExportacionContable,
     ConsecutivoDocumento,
     AuditoriaAccionPago,
+    ReciboRecaudoBancario,
 )
 
 from gestion_academica.models import TicketSoporte, RespuestaTicket
@@ -922,6 +923,7 @@ def historial_cuentas_estudiante(request, estudiante_id):
         'estudiante': estudiante,
         'historial': cuentas,  # Cambiamos 'cuentas' por 'historial' para que coincida con la plantilla
         'factura_electronica_activa': factura_electronica_activa,
+        'recibo_recaudo_bancario': ReciboRecaudoBancario.objects.filter(estudiante=estudiante).order_by('-año', '-mes').first(),
     }
 
     return render(request, 'finanzas/historial_estudiante.html', context)
@@ -2586,6 +2588,10 @@ def facturacion_masiva(request):
             existentes = 0
             sin_concepto = 0
             ids_nuevas = []
+            generar_recaudo_bancario = (
+                form.cleaned_data.get('generar_recaudo_bancario') and institucion.codigo_convenio_bancario
+            )
+            recibos_generados = 0
 
             for estudiante in estudiantes_a_facturar:
                 # A cada estudiante se le cobra el concepto de SU nivel.
@@ -2615,6 +2621,36 @@ def facturacion_masiva(request):
                 else:
                     existentes += 1
 
+                # ── Recibo con código de barras (recaudo referenciado) ──
+                # Consolida TODO lo pendiente del estudiante (no solo la cuenta
+                # de este mes) en un solo recibo con un solo código de barras,
+                # igual que el recibo real que originó esta funcionalidad.
+                if generar_recaudo_bancario:
+                    cuentas_pendientes_est = CuentaPorCobrarEstudiante.objects.filter(
+                        estudiante=estudiante, institucion=institucion,
+                    ).exclude(estado='PAGADO')
+                    monto_total_est = sum(
+                        (c.saldo_pendiente for c in cuentas_pendientes_est), Decimal('0.00'),
+                    )
+                    if monto_total_est > 0:
+                        recibo, recibo_nuevo = ReciboRecaudoBancario.objects.get_or_create(
+                            estudiante=estudiante, año=año_cobro, mes=mes_cobro,
+                            defaults={
+                                'institucion': institucion,
+                                'referencia': str(ConsecutivoDocumento.obtener_siguiente(
+                                    institucion.pk, 'recibo_recaudo_bancario',
+                                )),
+                                'monto_total': monto_total_est,
+                                'fecha_limite': fecha_vencimiento,
+                            },
+                        )
+                        if not recibo_nuevo:
+                            recibo.monto_total = monto_total_est
+                            recibo.fecha_limite = fecha_vencimiento
+                            recibo.save(update_fields=['monto_total', 'fecha_limite'])
+                        recibo.cuentas.set(cuentas_pendientes_est)
+                        recibos_generados += 1
+
             msg = (
                 f"Proceso completado: Se crearon {creadas} nuevas cuentas. "
                 f"{existentes} estudiantes ya tenían este cobro para {mes_cobro}/{año_cobro}."
@@ -2624,6 +2660,8 @@ def facturacion_masiva(request):
                     f" {sin_concepto} estudiante(s) se omitieron porque su nivel de "
                     f"escolaridad no tiene un concepto equivalente configurado."
                 )
+            if generar_recaudo_bancario:
+                msg += f" Se generaron/actualizaron {recibos_generados} recibo(s) con código de barras."
 
             if notificar_correo and ids_nuevas:
                 if institucion.email_host_user and institucion.email_host_password:
@@ -2712,6 +2750,56 @@ def facturacion_masiva(request):
     }
     return render(request, 'finanzas/facturacion_masiva.html', context)
 
+
+@login_required
+def descargar_recibo_recaudo_bancario(request, pk):
+    """PDF del recibo con código de barras (recaudo referenciado) para
+    que el acudiente pague en efectivo en el banco de la institución."""
+    if request.user.is_superuser:
+        recibo = get_object_or_404(
+            ReciboRecaudoBancario.objects.select_related('institucion', 'estudiante__usuario'),
+            pk=pk,
+        )
+    else:
+        institucion_usuario = getattr(request.user, 'institucion_asociada', None)
+        recibo = get_object_or_404(
+            ReciboRecaudoBancario.objects.select_related('institucion', 'estudiante__usuario'),
+            pk=pk, institucion=institucion_usuario,
+        )
+
+    if not recibo.institucion.codigo_convenio_bancario:
+        messages.error(request, "Este colegio ya no tiene configurado el código de convenio bancario.")
+        return redirect('finanzas:historial_cuentas_estudiante', estudiante_id=recibo.estudiante_id)
+
+    from .recaudo_bancario import construir_datos_gs1, generar_imagen_barcode_png
+    import base64
+
+    datos_gs1 = construir_datos_gs1(
+        recibo.institucion.codigo_convenio_bancario, recibo.referencia,
+        recibo.monto_total, recibo.fecha_limite,
+    )
+    barcode_b64 = base64.b64encode(generar_imagen_barcode_png(datos_gs1)).decode('ascii')
+
+    cuentas = recibo.cuentas.select_related('concepto_pago').order_by('fecha_vencimiento_especifica')
+
+    context = {
+        'recibo': recibo,
+        'institucion': recibo.institucion,
+        'estudiante': recibo.estudiante,
+        'cuentas': cuentas,
+        'barcode_data_uri': f"data:image/png;base64,{barcode_b64}",
+        'copias': ['banco', 'acudiente'],
+    }
+    template = get_template('finanzas/recibo_recaudo_bancario.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    nombre_archivo = f"Recibo_{recibo.referencia}_{recibo.estudiante.usuario.get_full_name().replace(' ', '_')}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{nombre_archivo}"'
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Ocurrió un error generando el PDF.', status=500)
+    return response
 
 
 @login_required

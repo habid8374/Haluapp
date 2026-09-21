@@ -1,0 +1,86 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Recibo {{ recibo.referencia }} — {{ estudiante.usuario.get_full_name }}</title>
+<style>
+@page { size: letter; margin: 1cm 1.2cm; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 8.5pt; color: #1e293b; }
+.copia { border: 1px solid #94a3b8; border-radius: 4px; padding: 10px 12px; margin-bottom: 14px; }
+.header-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+.inst-name { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; }
+.inst-sub { font-size: 8pt; color: #475569; }
+.titulo-recibo { text-align: right; font-size: 11pt; font-weight: bold; }
+.datos-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+.datos-table td { padding: 2px 0; font-size: 8.5pt; }
+.datos-table .lbl { color: #475569; }
+.conceptos-table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+.conceptos-table th { border-bottom: 1px solid #1e293b; text-align: left; padding: 3px 4px; font-size: 8pt; }
+.conceptos-table th.num, .conceptos-table td.num { text-align: right; }
+.conceptos-table td { padding: 3px 4px; font-size: 8.5pt; border-bottom: 1px solid #e2e8f0; }
+.total-row td { border-top: 2px solid #1e293b; border-bottom: none; font-weight: bold; font-size: 9.5pt; padding-top: 5px; }
+.barcode-box { text-align: center; margin: 10px 0 6px; }
+.barcode-box img { height: 46px; }
+.barcode-box .ref-text { font-size: 7.5pt; letter-spacing: 1px; margin-top: 2px; }
+.legal { font-size: 7pt; color: #475569; margin-top: 6px; }
+.copia-label { text-align: center; font-size: 7.5pt; font-weight: bold; color: #475569; margin-top: 6px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+{% for etiqueta_copia in copias %}
+<div class="copia">
+  <table class="header-table">
+    <tr>
+      <td>
+        <div class="inst-name">{{ institucion.nombre }}</div>
+        {% if institucion.cuenta_bancaria %}<div class="inst-sub">{{ institucion.cuenta_bancaria }}</div>{% endif %}
+      </td>
+      <td class="titulo-recibo">Recibo de Pago</td>
+    </tr>
+  </table>
+
+  <table class="datos-table">
+    <tr>
+      <td class="lbl" style="width:15%;">Estudiante:</td>
+      <td style="width:35%;"><strong>{{ estudiante.usuario.get_full_name }}</strong></td>
+      <td class="lbl" style="width:15%;">Código:</td>
+      <td style="width:35%;">{{ estudiante.codigo_estudiante|default:"—" }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Grado:</td>
+      <td>{{ estudiante.grado_actual.nombre|default:"—" }}</td>
+      <td class="lbl">Pagar hasta:</td>
+      <td>{{ recibo.fecha_limite|date:"d/m/Y" }}</td>
+    </tr>
+  </table>
+
+  <table class="conceptos-table">
+    <thead>
+      <tr><th>Concepto</th><th class="num">Valor</th></tr>
+    </thead>
+    <tbody>
+      {% for cuenta in cuentas %}
+      <tr><td>{{ cuenta.concepto_pago.nombre_concepto }}</td><td class="num">${{ cuenta.saldo_pendiente|floatformat:0|intcomma }}</td></tr>
+      {% endfor %}
+      <tr class="total-row"><td>Total a pagar</td><td class="num">${{ recibo.monto_total|floatformat:0|intcomma }}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="barcode-box">
+    <img src="{{ barcode_data_uri }}" alt="Código de barras de pago">
+    <div class="ref-text">Referencia: {{ recibo.referencia }}</div>
+  </div>
+
+  <p class="legal">
+    Realiza el pago en efectivo, en cualquier oficina del banco, presentando o escaneando este código de
+    barras. No se reciben valores diferentes al total indicado. Conserva el comprobante que te entregue el banco.
+  </p>
+  <p class="copia-label">
+    {% if etiqueta_copia == "banco" %}Copia para el Banco{% else %}Copia para el Acudiente{% endif %}
+  </p>
+</div>
+{% endfor %}
+</body>
+</html>

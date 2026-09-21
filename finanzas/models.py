@@ -143,6 +143,13 @@ class InstitucionEducativa(models.Model):
     eslogan = models.CharField(max_length=255, blank=True, null=True, verbose_name="Eslogan (Opcional)")
     cuenta_bancaria = models.CharField(max_length=255, blank=True, null=True, verbose_name="Información Cuenta Bancaria", help_text="Ej: Ahorros Bancolombia 123-456789-00")
     pagos_digitales = models.CharField(max_length=255, blank=True, null=True, verbose_name="Información Nequi/Daviplata", help_text="Ej: Nequi 300-123-4567")
+    codigo_convenio_bancario = models.CharField(
+        max_length=13, blank=True, null=True,
+        verbose_name="Código de Convenio Bancario (Recaudo Referenciado)",
+        help_text="Los 13 dígitos que tu banco (Bancolombia u otro con recaudo referenciado GS1) "
+                   "te asigna al abrir ese servicio. Sin esto, los recibos con código de barras "
+                   "para pagar en el banco no se generan — la facturación masiva sigue funcionando igual.",
+    )
     TIPO_INSTITUCION_CHOICES = [
         ('privado', 'Privado'),
         ('publico', 'Público'),
@@ -894,6 +901,43 @@ class ItemCuenta(models.Model):
     class Meta:
         verbose_name = "Ítem de Cuenta"
         verbose_name_plural = "Ítems de Cuenta"
+
+
+class ReciboRecaudoBancario(models.Model):
+    """Recibo consolidado con código de barras GS1-128 (recaudo
+    referenciado) para pagar en efectivo en las oficinas del banco de la
+    institución. Se genera una vez por estudiante por corrida de
+    Facturación Masiva, consolidando TODO lo que el estudiante tenga
+    pendiente en ese momento (no solo la cuenta del mes en curso) —
+    igual que el modelo real de recibo bancario que lo originó."""
+
+    institucion = models.ForeignKey(
+        InstitucionEducativa, on_delete=models.CASCADE,
+        related_name='recibos_recaudo_bancario', verbose_name="Institución",
+    )
+    estudiante = models.ForeignKey(
+        'gestion_academica.Estudiante', on_delete=models.CASCADE,
+        related_name='recibos_recaudo_bancario', verbose_name="Estudiante",
+    )
+    referencia = models.CharField(max_length=25, editable=False, verbose_name="Referencia de pago")
+    monto_total = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Monto total")
+    fecha_limite = models.DateField(verbose_name="Fecha límite de pago")
+    cuentas = models.ManyToManyField(
+        'CuentaPorCobrarEstudiante', related_name='recibos_recaudo_bancario',
+        verbose_name="Cuentas incluidas",
+    )
+    año = models.PositiveIntegerField(verbose_name="Año")
+    mes = models.PositiveSmallIntegerField(verbose_name="Mes")
+    generado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Recibo de Recaudo Bancario"
+        verbose_name_plural = "Recibos de Recaudo Bancario"
+        unique_together = ('estudiante', 'año', 'mes')
+        ordering = ['-año', '-mes']
+
+    def __str__(self):
+        return f"Recibo {self.referencia} — {self.estudiante} (${self.monto_total})"
 
 
 class AuditoriaExportacionContable(models.Model):

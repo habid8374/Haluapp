@@ -588,6 +588,14 @@ class FacturacionMasivaForm(forms.Form):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
 
+    generar_recaudo_bancario = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="También generar recibos con código de barras para pago en banco",
+        help_text="Un recibo por estudiante con TODO lo que tenga pendiente (código de barras para pagar en efectivo en el banco).",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
     def __init__(self, *args, **kwargs):
         # Sacamos el 'user' que le pasamos desde la vista
         user = kwargs.pop('user', None)
@@ -620,6 +628,14 @@ class FacturacionMasivaForm(forms.Form):
             if institucion:
                 self.fields['concepto_pago'].choices = choices_conceptos_agrupados(institucion)
                 self.fields['grados'].queryset = Grado.objects.filter(institucion=institucion).order_by('nombre')
+                if not institucion.codigo_convenio_bancario:
+                    self.fields['generar_recaudo_bancario'].initial = False
+                    self.fields['generar_recaudo_bancario'].disabled = True
+                    self.fields['generar_recaudo_bancario'].help_text = (
+                        "Tu colegio aún no tiene configurado un código de convenio bancario. "
+                        "Pídele a tu banco el «recaudo referenciado» y configúralo en el admin, "
+                        "en Instituciones Educativas › Configuración de Pagos."
+                    )
 
     def clean(self):
         cleaned_data = super().clean()

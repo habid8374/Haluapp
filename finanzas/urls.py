@@ -16,6 +16,7 @@ urlpatterns = [
     # ---- 2. Gestión de Cuentas por Estudiante (Acciones) ----
     # Estas URLs se llaman desde la lista de estudiantes o desde el historial de uno
     path('historial-estudiante/<int:estudiante_id>/', views.historial_cuentas_estudiante, name='historial_cuentas_estudiante'),
+    path('recibo-recaudo-bancario/<int:pk>/', views.descargar_recibo_recaudo_bancario, name='descargar_recibo_recaudo_bancario'),
     path('historial-estudiante/<int:estudiante_pk>/sincronizar/', views.sincronizar_cuentas_estudiante, name='sincronizar_cuentas'),
     
     # El CRUD para una cuenta individual se mantiene, usualmente se accede desde el historial
