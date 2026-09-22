@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 
 from ..models import Docente, Estudiante, EventoInstitucional
+from ..utils import base_template_academico
 
 
 def _institucion(user):
@@ -116,6 +117,7 @@ def cartelera_eventos(request):
         'titulo_pagina': 'Cartelera de Eventos',
         'items': items,
         'puede_administrar': _es_coordinador_o_admin(request.user),
+        'base_template': base_template_academico(request),
     })
 
 

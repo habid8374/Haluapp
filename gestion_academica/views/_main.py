@@ -4959,7 +4959,8 @@ def ver_mi_perfil(request):
 
     elif familiar_profile:
         context['familiar_profile'] = familiar_profile
-    
+
+    context['base_template'] = base_template_academico(request)
     return render(request, 'gestion_academica/mi_perfil.html', context)
 
 

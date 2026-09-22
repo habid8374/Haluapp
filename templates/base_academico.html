@@ -285,7 +285,10 @@
     </li>
     <li class="nav-item item-color-4">
       <a class="nav-link {% if '/eventos/' in request.path %}active{% endif %}"
-         href="{% url 'gestion_academica:cartelera_eventos' %}">
+         href="{% url 'gestion_academica:cartelera_eventos' %}"
+         data-nav-pilot="cartelera_eventos"
+         hx-get="{% url 'gestion_academica:cartelera_eventos' %}"
+         hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
         <i class="bi bi-calendar-event-fill"></i> {% trans "Cartelera de Eventos" %}
       </a>
     </li>
@@ -1507,7 +1510,10 @@
     <h5 class="menu-section-title">{% trans "Cuenta" %}</h5>
     <li class="nav-item item-color-2">
       <a class="nav-link {% if request.resolver_match.url_name == 'ver_mi_perfil' %}active{% endif %}"
-         href="{% url 'gestion_academica:ver_mi_perfil' %}">
+         href="{% url 'gestion_academica:ver_mi_perfil' %}"
+         data-nav-pilot="ver_mi_perfil"
+         hx-get="{% url 'gestion_academica:ver_mi_perfil' %}"
+         hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
         <i class="bi bi-person-lines-fill"></i> {% trans "Mi Perfil" %}
       </a>
     </li>
@@ -1573,7 +1579,9 @@
     'mis_quices': "{% url 'quiz_audio:mis_quices' %}",
     'mis_secuencias': "{% url 'secuencias:mis_secuencias' %}",
     'mis_tableros': "{% url 'trazado:mis_tableros' %}",
-    'mis_rompecabezas': "{% url 'rompecabezas:mis_rompecabezas' %}"
+    'mis_rompecabezas': "{% url 'rompecabezas:mis_rompecabezas' %}",
+    'ver_mi_perfil': "{% url 'gestion_academica:ver_mi_perfil' %}",
+    'cartelera_eventos': "{% url 'gestion_academica:cartelera_eventos' %}"
   };
   function reconciliarActivos() {
     var path = window.location.pathname;
