@@ -4993,6 +4993,7 @@ def cambiar_mi_contrasena(request):
     return render(request, 'gestion_academica/cambiar_contrasena.html', {
         'form': form,
         'titulo_pagina': _("Cambiar Contraseña"),
+        'base_template': base_template_academico(request),
     })
 
 
