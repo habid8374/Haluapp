@@ -116,6 +116,7 @@ def banco_ejercicios(request):
         'dba_sel': dba_sel,
         'nivel_sel': nivel_sel,
         'titulo_pagina': _('Halu Math — Banco de Ejercicios'),
+        'base_template': base_template_academico(request),
     })
 
 
@@ -415,6 +416,7 @@ def progreso_grupo(request):
         'total_dominados': total_dominados,
         'pct_acierto': pct_acierto,
         'titulo_pagina': _('Halu Math — Progreso del grupo'),
+        'base_template': base_template_academico(request),
     })
 
 

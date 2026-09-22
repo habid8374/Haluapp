@@ -36,6 +36,7 @@ from ..models import (
     PlanSemanal,
     TipoActividad,
 )
+from ..utils import base_template_academico
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -577,6 +578,7 @@ def mis_planes_semanales(request):
         'semana_actual_fin': viernes,
         'semana_actual_label': _label_semana(lunes, viernes),
         'plan_semana_actual': plan_semana_actual,
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/mis_planes_semanales.html', context)
 

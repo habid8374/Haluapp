@@ -24,6 +24,7 @@ from ..models import (
     AsignacionSimulacionSTEAM, Enfasis, Estudiante, Insignia, InsigniaObtenida,
     ItemMalla, ProyectoSTEAM, RetoSTEAM, SimulacionSTEAM,
 )
+from ..utils import base_template_academico
 from ._main import get_current_institution
 
 
@@ -74,5 +75,6 @@ def panel_steam(request):
         'total_simulaciones_catalogo': total_simulaciones_catalogo,
         'total_simulaciones_asignadas': total_simulaciones_asignadas,
         'total_retos_catalogo': total_retos_catalogo,
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/panel_steam.html', context)

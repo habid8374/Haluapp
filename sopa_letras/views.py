@@ -125,6 +125,7 @@ def lista(request):
     return render(request, 'sopa_letras/lista.html', {
         'titulo_pagina': _('Sopas de letras'),
         'sopas': sopas,
+        'base_template': base_template_academico(request),
     })
 
 

@@ -131,6 +131,7 @@ def lista(request):
     return render(request, 'memoria/lista.html', {
         'titulo_pagina': _('Juegos de Memoria'),
         'juegos': juegos,
+        'base_template': base_template_academico(request),
     })
 
 

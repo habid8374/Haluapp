@@ -139,6 +139,7 @@ def lista(request):
     return render(request, 'flashcards/lista.html', {
         'titulo_pagina': _('Flash Cards'),
         'mazos': mazos,
+        'base_template': base_template_academico(request),
     })
 
 

@@ -13,6 +13,7 @@ from django.views.decorators.http import require_POST
 from .models import (
     CampanaEvaluacion, CriterioEvaluacion, RespuestaEvaluacion, ValoracionCriterio,
 )
+from gestion_academica.utils import base_template_academico
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -391,4 +392,5 @@ def mi_desempeno(request):
     return render(request, 'evaluacion_docente/mi_desempeno.html', {
         'titulo_pagina': _('Mi Evaluación Docente'),
         'campanas': campanas,
+        'base_template': base_template_academico(request),
     })

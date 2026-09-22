@@ -22,6 +22,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 
 from gestion_academica.decorators import requiere_pagos_al_dia, estudiante_esta_al_dia
+from gestion_academica.utils import base_template_academico
 
 from gestion_academica.models import (
     ActividadCalificable,
@@ -125,6 +126,7 @@ def lista_recursos_docente(request):
         'recursos': recursos,
         'docente': docente,
         'titulo_pagina': _('Recursos Educativos 3D'),
+        'base_template': base_template_academico(request),
     })
 
 
@@ -405,6 +407,7 @@ def galeria_directa(request):
         'titulo_pagina': _('Galería 3D — Cuerpo Humano'),
         'actividad': None,
         'recurso': None,
+        'base_template': base_template_academico(request),
     })
 
 

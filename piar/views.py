@@ -15,6 +15,7 @@ from xhtml2pdf import pisa
 
 from .models import PIAR, AjustePIAR
 from gestion_academica.models import Estudiante, Grado, Materia, PerfilAccesibilidad
+from gestion_academica.utils import base_template_academico
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,7 @@ def lista_piars(request):
         'años': años,
         'estados': PIAR.Estado.choices,
         'filtros': filtros,
+        'base_template': base_template_academico(request),
     })
 
 

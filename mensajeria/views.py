@@ -28,6 +28,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .models import Conversacion, Mensaje
+from gestion_academica.utils import base_template_academico
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +158,7 @@ def inbox(request):
     return render(request, 'mensajeria/inbox.html', {
         'conversaciones': conversaciones,
         'mostrar_archivadas': mostrar_archivadas,
+        'base_template': base_template_academico(request),
     })
 
 

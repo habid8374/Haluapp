@@ -513,6 +513,7 @@ def lista_simulacros(request):
     return render(request, 'simulacros/lista_simulacros.html', {
         'simulacros': simulacros,
         'titulo_pagina': _('Simulacros Saber'),
+        'base_template': base_template_academico(request),
     })
 
 

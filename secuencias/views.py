@@ -105,6 +105,7 @@ def lista(request):
         actividades = actividades.filter(curso__docentes_asignados=docente) if docente else actividades.none()
     return render(request, 'secuencias/lista.html', {
         'titulo_pagina': 'Ordenar Secuencias', 'actividades': actividades,
+        'base_template': base_template_academico(request),
     })
 
 

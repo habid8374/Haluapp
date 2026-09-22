@@ -65,6 +65,7 @@ from ._main import get_filtered_queryset, link_callback
 
 # ── Herramientas (tools) para el Asistente HALU ──────────────────────────────
 from ..utils import (
+    base_template_academico,
     # Admin / Coordinador
     obtener_promedio_materia_por_grado,
     obtener_conteo_estudiantes_por_grado,
@@ -1044,7 +1045,8 @@ def planeacion_clases_view(request):
     context = {
         'titulo_pagina': _("Planeador de Clases con IA"),
         'form': form,
-        'planeaciones': planeaciones_existentes
+        'planeaciones': planeaciones_existentes,
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/planeacion_clases.html', context)
   
@@ -1282,7 +1284,8 @@ def seleccionar_curso_para_lecciones(request):
 
     context = {
         'titulo_pagina': _("Seleccionar Curso para Ver Lecciones"),
-        'cursos': cursos
+        'cursos': cursos,
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/seleccionar_curso_lecciones.html', context)
 
@@ -1574,9 +1577,10 @@ class HistorialEntregasView(LoginRequiredMixin, View):
         context = {
             'titulo_pagina': _('Historial de Entregas y Evaluaciones'),
             'entregas': todas_las_entregas,
-            'intentos': todos_los_intentos
+            'intentos': todos_los_intentos,
+            'base_template': base_template_academico(request),
         }
-        
+
         return render(request, self.template_name, context)
 
 class SincronizarPermisosView(LoginRequiredMixin, View):

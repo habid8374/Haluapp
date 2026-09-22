@@ -98,6 +98,7 @@ def lista(request):
     return render(request, 'rompecabezas/lista.html', {
         'titulo_pagina': _('Rompecabezas'),
         'items': rompecabezas_qs,
+        'base_template': base_template_academico(request),
     })
 
 

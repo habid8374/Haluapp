@@ -2105,6 +2105,7 @@ class DeberListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo_pagina'] = _("Listado de Deberes / Tareas")
+        context['base_template'] = base_template_academico(self.request)
         return context
 
 class DeberDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
@@ -2229,6 +2230,7 @@ def centro_ayuda_docente(request):
     audios con subtítulos, lectura fácil y evaluaciones accesibles."""
     return render(request, 'gestion_academica/ayuda_docente.html', {
         'titulo_pagina': _("Centro de Ayuda del Docente"),
+        'base_template': base_template_academico(request),
     })
 
 
@@ -4037,7 +4039,8 @@ def docente_seleccionar_curso_libro_notas(request):
         'cursos': cursos_del_docente,
         'periodos_disponibles': periodos_disponibles,
         'periodo_seleccionado': periodo_a_mostrar,
-        'titulo_pagina': _("Seleccionar Curso para Calificar")
+        'titulo_pagina': _("Seleccionar Curso para Calificar"),
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/seleccionar_curso_libro_notas.html', context)
 
@@ -4463,6 +4466,7 @@ def seleccionar_curso_asistencia(request):
         'ver_todos': ver_todos,
         'es_docente': es_docente,
         'titulo_pagina': _("Tomar Asistencia") if not ver_todos else _("Cubrir Asistencia de Otro Curso"),
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/seleccionar_curso_asistencia.html', context)
 
@@ -5859,6 +5863,7 @@ def dashboard_docente(request):
                 cursos_del_grado,
             )
 
+    context['base_template'] = base_template_academico(request)
     return render(request, 'gestion_academica/dashboard_docente.html', context)
 
 @require_POST
@@ -6261,6 +6266,7 @@ class DocenteMaterialListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo_pagina'] = _("Mis Archivos y Materiales")
+        context['base_template'] = base_template_academico(self.request)
         return context
 
 class DocenteMaterialCreateView(LoginRequiredMixin, CreateView):
@@ -6369,6 +6375,7 @@ class DocenteDescriptorListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['upload_form'] = UploadFileForm()
+        context['base_template'] = base_template_academico(self.request)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -6511,6 +6518,11 @@ class DocenteMencionListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         # Muestra solo las menciones creadas por el docente logueado
         return MencionReconocimiento.objects.filter(otorgado_por=self.request.user.docente).order_by('-fecha_otorgamiento')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['base_template'] = base_template_academico(self.request)
+        return context
 
 class DocenteMencionCreateView(LoginRequiredMixin, CreateView):
     model = MencionReconocimiento
@@ -6917,6 +6929,11 @@ class DocenteActividadListView(LoginRequiredMixin, ListView):
             ).order_by('curso', 'titulo')
         return ActividadCalificable.objects.none()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['base_template'] = base_template_academico(self.request)
+        return context
+
 class DocenteActividadCreateView(LoginRequiredMixin, CreateView):
     model = ActividadCalificable
     form_class = DocenteActividadForm
@@ -6985,6 +7002,7 @@ class DocenteTipoActividadListView(LoginRequiredMixin, ListView):
         # --- FIN DE LA NUEVA LÓGICA ---
         
         context['titulo_pagina'] = _("Gestionar Categorías de Calificación")
+        context['base_template'] = base_template_academico(self.request)
         return context
 
 
@@ -7059,7 +7077,8 @@ def seleccionar_curso_reporte_nota_minima(request):
         'cursos': cursos_del_docente,
         'periodos_disponibles': periodos_disponibles,
         'periodo_seleccionado': periodo_a_mostrar,
-        'titulo_pagina': _("Generar Reporte de Nota Mínima")
+        'titulo_pagina': _("Generar Reporte de Nota Mínima"),
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/seleccionar_curso_reporte.html', context)
 
@@ -7476,9 +7495,10 @@ class TareasPorCalificarView(LoginRequiredMixin, View):
         context = {
             'titulo_pagina': _('Actividades Pendientes por Calificar'),
             'entregas_pendientes': entregas_pendientes,
-            'intentos_pendientes': intentos_pendientes
+            'intentos_pendientes': intentos_pendientes,
+            'base_template': base_template_academico(request),
         }
-        
+
         return render(request, self.template_name, context)
       
 
@@ -7809,6 +7829,7 @@ def reporte_riesgo_global_view(request):
         'grados': grados,
         'periodo_seleccionado_id': periodo_seleccionado_id,
         'grado_seleccionado_id': grado_seleccionado_id,
+        'base_template': base_template_academico(request),
     }
 
     return render(request, 'gestion_academica/reporte_riesgo_global.html', context)
@@ -9299,6 +9320,7 @@ def gestionar_disponibilidad_view(request):
         'titulo_pagina': _("Gestionar mi Disponibilidad para Reuniones"),
         'form': form,
         'disponibilidades': disponibilidades_actuales,
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/gestionar_disponibilidad.html', context)
 

@@ -34,8 +34,7 @@
     --brand-primary: #4f46e5;
     --brand-primary-dark: #4338ca;
     --brand-accent-2: #7c3aed;
-    --sidebar-bg: #262441;
-    --sidebar-text: #c7c7d9;
+    --sidebar-bg: #ffffff;
     --font-heading-academico: 'Sora', sans-serif;
   }
   body.layout-academico .top-navbar {
@@ -57,7 +56,7 @@
     height: calc(100vh - 3.4rem) !important;
     border-radius: 0 !important;
     border: none !important;
-    border-right: 1px solid rgba(255,255,255,.06) !important;
+    border-right: 1px solid var(--border-color, #dbe5f4) !important;
     opacity: 1 !important;
     visibility: visible !important;
     transform: none !important;
@@ -72,7 +71,7 @@
   /* Scrollbar delgado */
   body.layout-academico #mainMenuPanel::-webkit-scrollbar { width: 4px; }
   body.layout-academico #mainMenuPanel::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,.14); border-radius: 4px;
+    background: #c5d8f5; border-radius: 4px;
   }
   /* Empujar contenido principal */
   body.layout-academico {
@@ -83,21 +82,18 @@
   body.layout-academico #mainMenuPanel .nav-link {
     padding-left: .75rem !important;
     border-radius: .5rem;
-    color: var(--sidebar-text) !important;
     transition: background .15s, padding-left .15s, color .15s;
   }
   body.layout-academico #mainMenuPanel .nav-link:hover {
-    background-color: rgba(255,255,255,.06) !important;
-    color: #ffffff !important;
+    background-color: #eaf2ff !important;
+    color: #0b5ed7 !important;
     padding-left: 1rem !important;
   }
   body.layout-academico #mainMenuPanel .nav-link.active {
-    background: linear-gradient(90deg, var(--brand-primary), var(--brand-accent-2)) !important;
-    color: #ffffff !important;
+    background-color: #dbeafe !important;
+    color: #0b5ed7 !important;
     font-weight: 600 !important;
     padding-left: 1rem !important;
-    border-radius: 999px !important;
-    box-shadow: 0 4px 14px rgba(79,70,229,.35);
   }
   body.layout-academico #mainMenuPanel .nav-link.sub-item {
     font-size: .82rem !important;
@@ -109,14 +105,14 @@
     align-items: center;
     gap: .5rem;
     padding: .2rem .35rem .8rem;
-    border-bottom: 1px solid rgba(255,255,255,.08);
+    border-bottom: 1px solid #dbe5f4;
     margin-bottom: .5rem;
   }
   body.layout-academico .sidebar-brand-row .sb-label {
     font-family: var(--font-heading-academico);
     font-size: .73rem;
     font-weight: 800;
-    color: var(--brand-accent-2);
+    color: #0b5ed7;
     text-transform: uppercase;
     letter-spacing: .06em;
   }
@@ -126,18 +122,6 @@
   body.layout-academico #mainMenuPanel h3,
   body.layout-academico .top-navbar .navbar-brand {
     font-family: var(--font-heading-academico);
-  }
-  /* Alto contraste: el sidebar oscuro necesita su propia excepción,
-     si no el modo alto-contraste global (base.html) deja el texto
-     casi invisible sobre el fondo oscuro. */
-  html.acc-contrast body.layout-academico #mainMenuPanel {
-    background: #ffffff !important;
-  }
-  html.acc-contrast body.layout-academico #mainMenuPanel .nav-link {
-    color: #000000 !important;
-  }
-  html.acc-contrast body.layout-academico .sidebar-brand-row {
-    border-bottom-color: #000000;
   }
   /* Botón toggle en navbar */
   .btn-sidebar-toggle {
@@ -832,20 +816,29 @@
       <h5 class="menu-section-title">{% trans "Panel de Docente" %}</h5>
       <li class="nav-item item-color-1">
         <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_docente' %}active{% endif %}"
-           href="{% url 'gestion_academica:dashboard_docente' %}">
+           href="{% url 'gestion_academica:dashboard_docente' %}"
+           data-nav-pilot="dashboard_docente"
+           hx-get="{% url 'gestion_academica:dashboard_docente' %}"
+           hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
           <i class="bi bi-grid-fill"></i> {% trans "Mi Panel Principal" %}
         </a>
       </li>
       <li class="nav-item item-color-3">
         <a class="nav-link {% if request.resolver_match.namespace == 'mensajeria' %}active{% endif %}"
-           href="{% url 'mensajeria:inbox' %}">
+           href="{% url 'mensajeria:inbox' %}"
+           data-nav-pilot="inbox"
+           hx-get="{% url 'mensajeria:inbox' %}"
+           hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
           <i class="bi bi-chat-dots-fill"></i> {% trans "Mensajes" %}
           <span id="nav-mensajes-badge" class="badge bg-danger ms-1" style="display:none"></span>
         </a>
       </li>
       <li class="nav-item item-color-4">
         <a class="nav-link {% if request.resolver_match.url_name == 'centro_ayuda_docente' %}active{% endif %}"
-           href="{% url 'gestion_academica:centro_ayuda_docente' %}">
+           href="{% url 'gestion_academica:centro_ayuda_docente' %}"
+           data-nav-pilot="centro_ayuda_docente"
+           hx-get="{% url 'gestion_academica:centro_ayuda_docente' %}"
+           hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
           <i class="bi bi-life-preserver"></i> {% trans "Centro de Ayuda" %}
         </a>
       </li>
@@ -861,60 +854,93 @@
           <ul class="nav flex-column ps-3">
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'planeador' in request.path %}active{% endif %}"
-                 href="{% url 'gestion_academica:planeador_clases' %}">
+                 href="{% url 'gestion_academica:planeador_clases' %}"
+                 data-nav-pilot="planeador_clases"
+                 hx-get="{% url 'gestion_academica:planeador_clases' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-robot"></i> {% trans "Planeador de Clases (IA)" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'planes-semanales' in request.path %}active{% endif %}"
-                 href="{% url 'gestion_academica:mis_planes_semanales' %}">
+                 href="{% url 'gestion_academica:mis_planes_semanales' %}"
+                 data-nav-pilot="mis_planes_semanales"
+                 hx-get="{% url 'gestion_academica:mis_planes_semanales' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-calendar-week-fill"></i> {% trans "Mis Planes Semanales" %}
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'docente_lista_tipos_actividad' %}active{% endif %}"
+                 href="{% url 'gestion_academica:docente_lista_tipos_actividad' %}"
+                 data-nav-pilot="docente_lista_tipos_actividad"
+                 hx-get="{% url 'gestion_academica:docente_lista_tipos_actividad' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-tags-fill"></i> {% trans "Categorías de Actividad" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if request.resolver_match.url_name == 'docente_lista_actividades' or 'cuestionarios' in request.path %}active{% endif %}"
-                 href="{% url 'gestion_academica:docente_lista_actividades' %}">
+                 href="{% url 'gestion_academica:docente_lista_actividades' %}"
+                 data-nav-pilot="docente_lista_actividades"
+                 hx-get="{% url 'gestion_academica:docente_lista_actividades' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-patch-question-fill"></i> {% trans "Evaluaciones" %}
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:lista_deberes' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'lista_deberes' %}active{% endif %}"
+                 href="{% url 'gestion_academica:lista_deberes' %}"
+                 data-nav-pilot="lista_deberes"
+                 hx-get="{% url 'gestion_academica:lista_deberes' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-journal-check"></i> {% trans "Gestionar Deberes" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if request.resolver_match.url_name == 'tareas_por_calificar' or request.resolver_match.url_name == 'calificar_entrega' %}active{% endif %}"
-                 href="{% url 'gestion_academica:tareas_por_calificar' %}">
+                 href="{% url 'gestion_academica:tareas_por_calificar' %}"
+                 data-nav-pilot="tareas_por_calificar"
+                 hx-get="{% url 'gestion_academica:tareas_por_calificar' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-pencil-square"></i> {% trans "Entregas por Calificar" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if request.resolver_match.url_name == 'historial_entregas' %}active{% endif %}"
-                 href="{% url 'gestion_academica:historial_entregas' %}">
+                 href="{% url 'gestion_academica:historial_entregas' %}"
+                 data-nav-pilot="historial_entregas"
+                 hx-get="{% url 'gestion_academica:historial_entregas' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-archive-fill"></i> {% trans "Historial de Entregas" %}
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_descriptores' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'docente_lista_descriptores' %}active{% endif %}"
+                 href="{% url 'gestion_academica:docente_lista_descriptores' %}"
+                 data-nav-pilot="docente_lista_descriptores"
+                 hx-get="{% url 'gestion_academica:docente_lista_descriptores' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-card-list"></i> {% trans "Gestionar Descriptores" %}
               </a>
             </li>
             {% if 'steam' in modulos_activos and perms.gestion_academica.view_proyectosteam %}
             <li class="nav-item">
               <a class="nav-link sub-item {% if request.resolver_match.url_name == 'panel_steam' %}active{% endif %}"
-                 href="{% url 'gestion_academica:panel_steam' %}">
+                 href="{% url 'gestion_academica:panel_steam' %}"
+                 data-nav-pilot="panel_steam"
+                 hx-get="{% url 'gestion_academica:panel_steam' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-stars"></i> {% trans "Panel STEAM" %}
               </a>
             </li>
             {% if perms.gestion_academica.view_simulacionsteam %}
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'simulaciones-steam' in request.path %}active{% endif %}"
-                 href="{% url 'gestion_academica:catalogo_simulaciones_steam' %}">
+                 href="{% url 'gestion_academica:catalogo_simulaciones_steam' %}"
+                 data-nav-pilot="catalogo_simulaciones_steam"
+                 hx-get="{% url 'gestion_academica:catalogo_simulaciones_steam' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-graph-up-arrow"></i> {% trans "Simulaciones STEAM" %}
               </a>
             </li>
@@ -922,7 +948,10 @@
             {% if perms.gestion_academica.view_retosteam %}
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'retos-steam' in request.path %}active{% endif %}"
-                 href="{% url 'gestion_academica:catalogo_retos_steam' %}">
+                 href="{% url 'gestion_academica:catalogo_retos_steam' %}"
+                 data-nav-pilot="catalogo_retos_steam"
+                 hx-get="{% url 'gestion_academica:catalogo_retos_steam' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-cone-striped"></i> {% trans "Retos STEAM" %}
               </a>
             </li>
@@ -931,19 +960,28 @@
             {% if 'halu_math' in modulos_activos %}
             <li class="nav-item">
               <a class="nav-link sub-item {% if request.resolver_match.url_name == 'banco_ejercicios' %}active{% endif %}"
-                 href="{% url 'halu_math:banco_ejercicios' %}">
+                 href="{% url 'halu_math:banco_ejercicios' %}"
+                 data-nav-pilot="banco_ejercicios"
+                 hx-get="{% url 'halu_math:banco_ejercicios' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-calculator-fill"></i> {% trans "Banco de Ejercicios" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if request.resolver_match.url_name == 'progreso_grupo' %}active{% endif %}"
-                 href="{% url 'halu_math:progreso_grupo' %}">
+                 href="{% url 'halu_math:progreso_grupo' %}"
+                 data-nav-pilot="progreso_grupo"
+                 hx-get="{% url 'halu_math:progreso_grupo' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-graph-up-arrow"></i> {% trans "Progreso del Grupo" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'laboratorio' in request.path %}active{% endif %}"
-                 href="{% url 'halu_math:laboratorio_index' %}">
+                 href="{% url 'halu_math:laboratorio_index' %}"
+                 data-nav-pilot="laboratorio_index"
+                 hx-get="{% url 'halu_math:laboratorio_index' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Laboratorio Matemático" %}
               </a>
             </li>
@@ -951,7 +989,10 @@
             {% if 'simulacros' in modulos_activos %}
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'simulacros' in request.path %}active{% endif %}"
-                 href="{% url 'simulacros:lista_simulacros' %}">
+                 href="{% url 'simulacros:lista_simulacros' %}"
+                 data-nav-pilot="lista_simulacros"
+                 hx-get="{% url 'simulacros:lista_simulacros' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-journal-check"></i> {% trans "Simulacros Saber" %}
               </a>
             </li>
@@ -959,54 +1000,92 @@
             {% if 'piar' in modulos_activos %}
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'piar' in request.path %}active{% endif %}"
-                 href="{% url 'piar:lista_piars' %}">
+                 href="{% url 'piar:lista_piars' %}"
+                 data-nav-pilot="lista_piars"
+                 hx-get="{% url 'piar:lista_piars' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-person-hearts"></i> {% trans "PIARs / Inclusión" %}
               </a>
             </li>
             {% endif %}
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'docente_seleccionar_curso_libro_notas' %}active{% endif %}"
+                 href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}"
+                 data-nav-pilot="docente_seleccionar_curso_libro_notas"
+                 hx-get="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-pencil-square"></i> {% trans "Libro de Notas" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/evaluacion-docente/' in request.path %}active{% endif %}"
-                 href="{% url 'evaluacion_docente:mi_desempeno' %}">
+                 href="{% url 'evaluacion_docente:mi_desempeno' %}"
+                 data-nav-pilot="mi_desempeno"
+                 hx-get="{% url 'evaluacion_docente:mi_desempeno' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-graph-up-arrow"></i> {% trans "Mi Evaluación" %}
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_materiales' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'docente_lista_materiales' %}active{% endif %}"
+                 href="{% url 'gestion_academica:docente_lista_materiales' %}"
+                 data-nav-pilot="docente_lista_materiales"
+                 hx-get="{% url 'gestion_academica:docente_lista_materiales' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-folder-plus"></i> {% trans "Materiales de Apoyo" %}
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:docente_lista_menciones' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'docente_lista_menciones' %}active{% endif %}"
+                 href="{% url 'gestion_academica:docente_lista_menciones' %}"
+                 data-nav-pilot="docente_lista_menciones"
+                 hx-get="{% url 'gestion_academica:docente_lista_menciones' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-award"></i> {% trans "Menciones y Honores" %}
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'seleccionar_estudiante_observador' or request.resolver_match.url_name == 'historial_observador' %}active{% endif %}"
+                 href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}"
+                 data-nav-pilot="seleccionar_estudiante_observador historial_observador"
+                 hx-get="{% url 'gestion_academica:seleccionar_estudiante_observador' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-eye"></i> {% trans "Observador" %}
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'seleccionar_curso_reporte_nota_minima' %}active{% endif %}"
+                 href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}"
+                 data-nav-pilot="seleccionar_curso_reporte_nota_minima"
+                 hx-get="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-graph-up-arrow"></i> {% trans "Reporte Nota Mínima" %}
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:reporte_riesgo_global' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'reporte_riesgo_global' %}active{% endif %}"
+                 href="{% url 'gestion_academica:reporte_riesgo_global' %}"
+                 data-nav-pilot="reporte_riesgo_global"
+                 hx-get="{% url 'gestion_academica:reporte_riesgo_global' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-graph-up-arrow"></i> {% trans "Reporte Global de Riesgo" %}
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:gestionar_disponibilidad' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'gestionar_disponibilidad' %}active{% endif %}"
+                 href="{% url 'gestion_academica:gestionar_disponibilidad' %}"
+                 data-nav-pilot="gestionar_disponibilidad"
+                 hx-get="{% url 'gestion_academica:gestionar_disponibilidad' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-clock-history"></i> {% trans "Mi Disponibilidad" %}
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link sub-item" href="{% url 'gestion_academica:seleccionar_curso_para_lecciones' %}">
+              <a class="nav-link sub-item {% if request.resolver_match.url_name == 'seleccionar_curso_para_lecciones' %}active{% endif %}"
+                 href="{% url 'gestion_academica:seleccionar_curso_para_lecciones' %}"
+                 data-nav-pilot="seleccionar_curso_para_lecciones"
+                 hx-get="{% url 'gestion_academica:seleccionar_curso_para_lecciones' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-calendar-week"></i> {% trans "Historial de Lecciones" %}
               </a>
             </li>
@@ -1025,61 +1104,91 @@
           <ul class="nav flex-column ps-3">
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/crucigramas/' in request.path %}active{% endif %}"
-                 href="{% url 'crucigramas:lista' %}">
+                 href="{% url 'crucigramas:lista' %}"
+                 data-nav-pilot="crucigramas_lista"
+                 hx-get="{% url 'crucigramas:lista' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-grid-3x3-gap-fill"></i> {% trans "Crucigramas" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/sopa-letras/' in request.path %}active{% endif %}"
-                 href="{% url 'sopa_letras:lista' %}">
+                 href="{% url 'sopa_letras:lista' %}"
+                 data-nav-pilot="sopa_letras_lista"
+                 hx-get="{% url 'sopa_letras:lista' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-search-heart"></i> {% trans "Sopas de Letras" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/memoria/' in request.path %}active{% endif %}"
-                 href="{% url 'memoria:lista' %}">
+                 href="{% url 'memoria:lista' %}"
+                 data-nav-pilot="memoria_lista"
+                 hx-get="{% url 'memoria:lista' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-images"></i> {% trans "Juegos de Memoria" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/flashcards/' in request.path %}active{% endif %}"
-                 href="{% url 'flashcards:lista' %}">
+                 href="{% url 'flashcards:lista' %}"
+                 data-nav-pilot="flashcards_lista"
+                 hx-get="{% url 'flashcards:lista' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-card-image"></i> {% trans "Flash Cards" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/quiz-audio/' in request.path %}active{% endif %}"
-                 href="{% url 'quiz_audio:lista' %}">
+                 href="{% url 'quiz_audio:lista' %}"
+                 data-nav-pilot="quiz_audio_lista"
+                 hx-get="{% url 'quiz_audio:lista' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-volume-up-fill"></i> {% trans "Quiz de Audio" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/secuencias/' in request.path %}active{% endif %}"
-                 href="{% url 'secuencias:lista' %}">
+                 href="{% url 'secuencias:lista' %}"
+                 data-nav-pilot="secuencias_lista"
+                 hx-get="{% url 'secuencias:lista' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-sort-numeric-down"></i> {% trans "Ordenar Secuencias" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/trazado/' in request.path %}active{% endif %}"
-                 href="{% url 'trazado:lista' %}">
+                 href="{% url 'trazado:lista' %}"
+                 data-nav-pilot="trazado_lista"
+                 hx-get="{% url 'trazado:lista' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-pencil-fill"></i> {% trans "Trazado de Letras" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if '/rompecabezas/' in request.path %}active{% endif %}"
-                 href="{% url 'rompecabezas:lista' %}">
+                 href="{% url 'rompecabezas:lista' %}"
+                 data-nav-pilot="rompecabezas_lista"
+                 hx-get="{% url 'rompecabezas:lista' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-puzzle-fill"></i> {% trans "Rompecabezas" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if 'galeria' in request.path %}active{% endif %}"
-                 href="{% url 'recursos_educativos:galeria_directa' %}">
+                 href="{% url 'recursos_educativos:galeria_directa' %}"
+                 data-nav-pilot="recursos_galeria_directa"
+                 hx-get="{% url 'recursos_educativos:galeria_directa' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-images"></i> {% trans "Galería 3D" %}
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link sub-item {% if request.path == '/academico/recursos/' or '/recursos/crear' in request.path or '/entregas' in request.path %}active{% endif %}"
-                 href="{% url 'recursos_educativos:lista' %}">
+                 href="{% url 'recursos_educativos:lista' %}"
+                 data-nav-pilot="recursos_lista_docente"
+                 hx-get="{% url 'recursos_educativos:lista' %}"
+                 hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
                 <i class="bi bi-boxes"></i> {% trans "Actividades 3D" %}
               </a>
             </li>
@@ -1088,7 +1197,10 @@
       </li>
       <li class="nav-item item-color-3">
         <a class="nav-link {% if 'asistencia/seleccionar-curso' in request.path or 'pasar-lista' in request.path %}active{% endif %}"
-           href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}">
+           href="{% url 'gestion_academica:seleccionar_curso_asistencia' %}"
+           data-nav-pilot="seleccionar_curso_asistencia"
+           hx-get="{% url 'gestion_academica:seleccionar_curso_asistencia' %}"
+           hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
           <i class="bi bi-person-check-fill"></i> {% trans "Tomar Asistencia" %}
         </a>
       </li>
@@ -1582,7 +1694,44 @@
     'mis_rompecabezas': "{% url 'rompecabezas:mis_rompecabezas' %}",
     'ver_mi_perfil': "{% url 'gestion_academica:ver_mi_perfil' %}",
     'cartelera_eventos': "{% url 'gestion_academica:cartelera_eventos' %}",
-    'cambiar_mi_contrasena': "{% url 'gestion_academica:cambiar_mi_contrasena' %}"
+    'cambiar_mi_contrasena': "{% url 'gestion_academica:cambiar_mi_contrasena' %}",
+    'dashboard_docente': "{% url 'gestion_academica:dashboard_docente' %}",
+    'inbox': "{% url 'mensajeria:inbox' %}",
+    'centro_ayuda_docente': "{% url 'gestion_academica:centro_ayuda_docente' %}",
+    'planeador_clases': "{% url 'gestion_academica:planeador_clases' %}",
+    'mis_planes_semanales': "{% url 'gestion_academica:mis_planes_semanales' %}",
+    'docente_lista_tipos_actividad': "{% url 'gestion_academica:docente_lista_tipos_actividad' %}",
+    'docente_lista_actividades': "{% url 'gestion_academica:docente_lista_actividades' %}",
+    'lista_deberes': "{% url 'gestion_academica:lista_deberes' %}",
+    'tareas_por_calificar': "{% url 'gestion_academica:tareas_por_calificar' %}",
+    'historial_entregas': "{% url 'gestion_academica:historial_entregas' %}",
+    'docente_lista_descriptores': "{% url 'gestion_academica:docente_lista_descriptores' %}",
+    'panel_steam': "{% url 'gestion_academica:panel_steam' %}",
+    'catalogo_simulaciones_steam': "{% url 'gestion_academica:catalogo_simulaciones_steam' %}",
+    'catalogo_retos_steam': "{% url 'gestion_academica:catalogo_retos_steam' %}",
+    'banco_ejercicios': "{% url 'halu_math:banco_ejercicios' %}",
+    'progreso_grupo': "{% url 'halu_math:progreso_grupo' %}",
+    'lista_simulacros': "{% url 'simulacros:lista_simulacros' %}",
+    'lista_piars': "{% url 'piar:lista_piars' %}",
+    'docente_seleccionar_curso_libro_notas': "{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}",
+    'mi_desempeno': "{% url 'evaluacion_docente:mi_desempeno' %}",
+    'docente_lista_materiales': "{% url 'gestion_academica:docente_lista_materiales' %}",
+    'docente_lista_menciones': "{% url 'gestion_academica:docente_lista_menciones' %}",
+    'seleccionar_curso_reporte_nota_minima': "{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}",
+    'reporte_riesgo_global': "{% url 'gestion_academica:reporte_riesgo_global' %}",
+    'gestionar_disponibilidad': "{% url 'gestion_academica:gestionar_disponibilidad' %}",
+    'seleccionar_curso_para_lecciones': "{% url 'gestion_academica:seleccionar_curso_para_lecciones' %}",
+    'seleccionar_curso_asistencia': "{% url 'gestion_academica:seleccionar_curso_asistencia' %}",
+    'crucigramas_lista': "{% url 'crucigramas:lista' %}",
+    'sopa_letras_lista': "{% url 'sopa_letras:lista' %}",
+    'memoria_lista': "{% url 'memoria:lista' %}",
+    'flashcards_lista': "{% url 'flashcards:lista' %}",
+    'quiz_audio_lista': "{% url 'quiz_audio:lista' %}",
+    'secuencias_lista': "{% url 'secuencias:lista' %}",
+    'trazado_lista': "{% url 'trazado:lista' %}",
+    'rompecabezas_lista': "{% url 'rompecabezas:lista' %}",
+    'recursos_galeria_directa': "{% url 'recursos_educativos:galeria_directa' %}",
+    'recursos_lista_docente': "{% url 'recursos_educativos:lista' %}"
   };
   function reconciliarActivos() {
     var path = window.location.pathname;

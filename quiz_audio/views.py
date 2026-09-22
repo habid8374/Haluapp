@@ -150,6 +150,7 @@ def lista(request):
         quices = quices.filter(curso__docentes_asignados=docente) if docente else quices.none()
     return render(request, 'quiz_audio/lista.html', {
         'titulo_pagina': _('Quiz de Audio'), 'quices': quices,
+        'base_template': base_template_academico(request),
     })
 
 

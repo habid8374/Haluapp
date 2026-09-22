@@ -106,6 +106,7 @@ def catalogo_simulaciones_steam(request):
         'area_seleccionada': area,
         'asignar_form': AsignacionSimulacionSTEAMForm(request=request),
         'titulo_pagina': _("Catálogo de Simulaciones STEAM"),
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/catalogo_simulaciones_steam.html', context)
 

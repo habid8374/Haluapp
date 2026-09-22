@@ -133,6 +133,7 @@ def lista(request):
     return render(request, 'crucigramas/lista.html', {
         'titulo_pagina': _('Crucigramas'),
         'crucigramas': crucigramas,
+        'base_template': base_template_academico(request),
     })
 
 

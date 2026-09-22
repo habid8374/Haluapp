@@ -112,6 +112,7 @@ def lista(request):
         tableros = tableros.filter(curso__docentes_asignados=docente) if docente else tableros.none()
     return render(request, 'trazado/lista.html', {
         'titulo_pagina': _('Trazado de Letras'), 'tableros': tableros,
+        'base_template': base_template_academico(request),
     })
 
 

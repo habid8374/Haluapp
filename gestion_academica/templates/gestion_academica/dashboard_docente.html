@@ -1,4 +1,4 @@
-{% extends "base_academico.html" %}
+{% extends base_template %}
 {% load i18n %}
 {% load static %}
 {% load horario_filters %}
@@ -873,7 +873,8 @@
     el.textContent = now.toLocaleDateString(_locale, opts);
   }
   updateDate();
-  setInterval(updateDate, 60000);
+  if (window.__haluDocDateInterval) { clearInterval(window.__haluDocDateInterval); }
+  window.__haluDocDateInterval = setInterval(updateDate, 60000);
 })();
 </script>
 {% endblock %}

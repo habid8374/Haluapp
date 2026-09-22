@@ -16,6 +16,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 
 from ..models import RetoSTEAM
+from ..utils import base_template_academico
 
 
 def _retos_visibles_para(user):
@@ -39,6 +40,7 @@ def catalogo_retos_steam(request):
         'categorias': RetoSTEAM.Categoria.choices,
         'categoria_seleccionada': categoria,
         'titulo_pagina': _("Catálogo de Retos STEAM"),
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/catalogo_retos_steam.html', context)
 
