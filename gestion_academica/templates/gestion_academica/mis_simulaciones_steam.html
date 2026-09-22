@@ -1,7 +1,7 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
 {% load gestion_academica_filters %}
-{% block titulo %}{{ titulo_pagina|default:"Mis Simulaciones STEAM" }}{% endblock %}
+{% block titulo %}{% trans "Mis Simulaciones STEAM" as titulo_fallback %}{{ titulo_pagina|default:titulo_fallback }}{% endblock %}
 
 {% block contenido %}
 {% trans "Mis Simulaciones STEAM" as titulo_mis_sim_steam %}

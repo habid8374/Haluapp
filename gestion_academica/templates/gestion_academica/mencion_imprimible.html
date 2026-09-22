@@ -79,7 +79,7 @@
                 {% if mencion.institucion.firma_rectora %}<img src="{{ mencion.institucion.firma_rectora.url }}" class="firma-img" alt="Firma del rector"><br>{% endif %}
                 <div class="firma-line"></div>
                 {% if mencion.institucion.nombre_rectora %}<div class="firma-name">{{ mencion.institucion.nombre_rectora }}</div>{% else %}<div class="firma-name">&nbsp;</div>{% endif %}
-                <div class="firma-role">Rector(a)</div>
+                <div class="firma-role">{% trans "Rector(a)" %}</div>
             </td>
         </tr>
     </table>

@@ -601,7 +601,7 @@
               </div>
               <div>
                 <div class="pulse-sched-name">{{ bloque.curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and bloque.curso.materia.nombre_idioma_secundario %} / {{ bloque.curso.materia.nombre_idioma_secundario }}{% endif %}</div>
-                <div class="pulse-sched-meta">{{ bloque.curso.grado.nombre }} &nbsp;·&nbsp; <i class="bi bi-door-closed me-1"></i>{{ bloque.aula.nombre|default:"Sin aula" }}</div>
+                <div class="pulse-sched-meta">{{ bloque.curso.grado.nombre }} &nbsp;·&nbsp; <i class="bi bi-door-closed me-1"></i>{% trans "Sin aula" as sin_aula_default1 %}{{ bloque.aula.nombre|default:sin_aula_default1 }}</div>
               </div>
             </div>
             {% empty %}
@@ -704,7 +704,7 @@
           <div class="pcc-materia">{{ curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and curso.materia.nombre_idioma_secundario %}<br><span style="font-size:.75em;opacity:.8;font-style:italic;">{{ curso.materia.nombre_idioma_secundario }}</span>{% endif %}</div>
           <div class="pcc-meta">
             <i class="bi bi-mortarboard-fill me-1"></i>{{ curso.grado.nombre }}
-            &nbsp;·&nbsp;<i class="bi bi-door-closed-fill me-1"></i>{{ curso.aula.nombre|default:"Sin aula" }}
+            &nbsp;·&nbsp;<i class="bi bi-door-closed-fill me-1"></i>{% trans "Sin aula" as sin_aula_default2 %}{{ curso.aula.nombre|default:sin_aula_default2 }}
           </div>
         </div>
         <div class="pcc-body">
@@ -861,6 +861,7 @@
 {% endblock %}
 {% block extra_js %}
 {{ block.super }}
+{% get_current_language as LANGUAGE_CODE %}
 <script>
 (function () {
   function updateDate() {
@@ -868,7 +869,8 @@
     if (!el) return;
     var now = new Date();
     var opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    el.textContent = now.toLocaleDateString('es-ES', opts);
+    var _locale = '{{ LANGUAGE_CODE }}' === 'en' ? 'en-US' : 'es-ES';
+    el.textContent = now.toLocaleDateString(_locale, opts);
   }
   updateDate();
   setInterval(updateDate, 60000);

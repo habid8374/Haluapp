@@ -2372,7 +2372,7 @@ def mis_cursos_y_calificaciones_resumen(request):
     try:
         estudiante_actual = Estudiante.objects.get(usuario=request.user)
     except Estudiante.DoesNotExist:
-        messages.error(request, "Tu perfil de estudiante no está configurado.")
+        messages.error(request, _("Tu perfil de estudiante no está configurado."))
         return redirect('gestion_academica:inicio_academico')
 
     periodo_activo = PeriodoAcademico.objects.filter(
@@ -2448,16 +2448,16 @@ def detalle_mis_calificaciones_por_curso(request, curso_pk):
     try:
         estudiante_actual = get_filtered_queryset(Estudiante, request.user).get(usuario=request.user)
     except Estudiante.DoesNotExist:
-        messages.error(request, "Tu perfil de estudiante no está configurado correctamente o no tienes permiso para acceder.")
+        messages.error(request, _("Tu perfil de estudiante no está configurado correctamente o no tienes permiso para acceder."))
         return redirect('gestion_academica:inicio_academico')
-    
+
     curso = get_object_or_404(
-        get_filtered_queryset(Curso, request.user), 
+        get_filtered_queryset(Curso, request.user),
         pk=curso_pk
     )
-    
+
     if estudiante_actual.grado_actual != curso.grado or estudiante_actual.institucion != curso.institucion:
-        messages.error(request, "No tienes permiso para ver las calificaciones de este curso.")
+        messages.error(request, _("No tienes permiso para ver las calificaciones de este curso."))
         return redirect('gestion_academica:mis_cursos_calificaciones')
     
     actividades_del_curso = ActividadCalificable.objects.filter(curso=curso).order_by('fecha_publicacion', 'titulo')
@@ -2476,9 +2476,9 @@ def mis_deberes_lista(request):
     try:
         estudiante_actual = get_filtered_queryset(Estudiante, request.user).get(usuario=request.user)
     except Estudiante.DoesNotExist:
-        messages.error(request, "Tu perfil de estudiante no está configurado correctamente o no tienes permiso para acceder.")
+        messages.error(request, _("Tu perfil de estudiante no está configurado correctamente o no tienes permiso para acceder."))
         return redirect('gestion_academica:inicio_academico')
-    
+
     if not estudiante_actual.grado_actual:
         messages.info(request, _("Aún no estás asignado a un grado, por lo que no tienes deberes asignados."))
         context = {'titulo_pagina': _("Mis Deberes"), 'deberes_con_estado_entrega': []}
@@ -2525,13 +2525,13 @@ def realizar_entrega_deber(request, deber_pk):
     try:
         estudiante_actual = request.user.estudiante
     except Estudiante.DoesNotExist:
-        messages.error(request, "Tu perfil de estudiante no está configurado.")
+        messages.error(request, _("Tu perfil de estudiante no está configurado."))
         return redirect('gestion_academica:inicio_academico')
 
     deber = get_object_or_404(get_filtered_queryset(Deber, request.user, Deber.objects.select_related('curso__grado')), pk=deber_pk)
 
     if estudiante_actual.grado_actual != deber.curso.grado:
-        messages.error(request, "No tienes permiso para realizar una entrega para este deber.")
+        messages.error(request, _("No tienes permiso para realizar una entrega para este deber."))
         return redirect('gestion_academica:dashboard_estudiante')
 
     entrega_obj, created = EntregaDeber.objects.get_or_create(
@@ -2541,7 +2541,7 @@ def realizar_entrega_deber(request, deber_pk):
 
     esta_vencido = timezone.now().date() > deber.fecha_entrega
     if esta_vencido and not entrega_obj.archivo_adjunto_estudiante:
-        messages.warning(request, f"La fecha límite para '{deber.titulo}' ya ha pasado.")
+        messages.warning(request, _("La fecha límite para '%(titulo)s' ya ha pasado.") % {'titulo': deber.titulo})
         return redirect('gestion_academica:dashboard_estudiante')
 
     if request.method == 'POST':
@@ -2985,11 +2985,11 @@ def mi_boletin_periodo_actual(request):
     try:
         estudiante_actual = Estudiante.objects.select_related('usuario', 'grado_actual', 'institucion').get(usuario=request.user)
     except Estudiante.DoesNotExist:
-        messages.error(request, "Tu perfil de estudiante no está configurado.")
+        messages.error(request, _("Tu perfil de estudiante no está configurado."))
         return redirect('gestion_academica:inicio_academico')
 
     if not estudiante_actual.grado_actual:
-        messages.info(request, "Aún no estás asignado a un grado para generar el boletín.")
+        messages.info(request, _("Aún no estás asignado a un grado para generar el boletín."))
         return render(request, 'gestion_academica/estudiante_mi_boletin.html', {'estudiante': estudiante_actual, 'cursos_con_detalle': []})
 
     periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=estudiante_actual.institucion).first()
@@ -3363,7 +3363,7 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
             pk=periodo_pk, institucion=estudiante_actual.institucion
         )
     except (Estudiante.DoesNotExist, PeriodoAcademico.DoesNotExist):
-        messages.error(request, "El estudiante o periodo académico solicitado no es válido.")
+        messages.error(request, _("El estudiante o periodo académico solicitado no es válido."))
         return redirect('gestion_academica:inicio_academico') # Ajusta esta URL si es necesario
 
     # 3. Verifica los permisos de acceso al boletín
@@ -3376,7 +3376,7 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
     es_familiar = hasattr(request.user, 'familiar') and request.user.familiar.estudiantes_asociados.filter(pk=estudiante_pk).exists()
 
     if not (es_el_mismo_estudiante or es_staff or es_familiar):
-        messages.error(request, "No tienes permiso para ver este boletín.")
+        messages.error(request, _("No tienes permiso para ver este boletín."))
         return redirect('gestion_academica:inicio_academico') # Ajusta esta URL si es necesario
 
     if not periodo.boletines_publicados and not _puede_previsualizar_boletin_sin_publicar(request.user):
@@ -3443,7 +3443,7 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
     ).first()
     
     observacion_obj = ObservacionBoletin.objects.filter(estudiante=estudiante_actual, periodo=periodo).first()
-    observaciones_texto = observacion_obj.observacion if observacion_obj else "No hay observaciones registradas para este periodo."
+    observaciones_texto = observacion_obj.observacion if observacion_obj else _("No hay observaciones registradas para este periodo.")
     
     # 7. Construye el contexto final para la plantilla
     context = {

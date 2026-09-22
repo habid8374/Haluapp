@@ -91,21 +91,21 @@
         <div class="accordion-item border-0 shadow-sm mb-2" style="border-radius:10px!important;overflow:hidden;">
           <h2 class="accordion-header">
             <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCompromisos" style="font-size:.88rem;">
-              <i class="bi bi-handshake-fill text-success me-2"></i>Compromisos
+              <i class="bi bi-handshake-fill text-success me-2"></i>{% trans "Compromisos" %}
             </button>
           </h2>
           <div id="collapseCompromisos" class="accordion-collapse collapse">
             <div class="accordion-body" style="font-size:.82rem;">
-              {% if piar.compromisos_familia %}<p class="mb-2"><strong>Familia:</strong><br>{{ piar.compromisos_familia }}</p>{% endif %}
-              {% if piar.compromisos_docentes %}<p class="mb-2"><strong>Docentes:</strong><br>{{ piar.compromisos_docentes }}</p>{% endif %}
-              {% if piar.compromisos_institucion %}<p class="mb-0"><strong>Institución:</strong><br>{{ piar.compromisos_institucion }}</p>{% endif %}
+              {% if piar.compromisos_familia %}<p class="mb-2"><strong>{% trans "Familia:" %}</strong><br>{{ piar.compromisos_familia }}</p>{% endif %}
+              {% if piar.compromisos_docentes %}<p class="mb-2"><strong>{% trans "Docentes:" %}</strong><br>{{ piar.compromisos_docentes }}</p>{% endif %}
+              {% if piar.compromisos_institucion %}<p class="mb-0"><strong>{% trans "Institución:" %}</strong><br>{{ piar.compromisos_institucion }}</p>{% endif %}
             </div>
           </div>
         </div>
         {% endif %}
         {% if piar.condicion_descripcion %}
         <div class="card shadow-sm p-3" style="font-size:.82rem;border-radius:10px;">
-          <p class="fw-bold mb-1 text-muted" style="font-size:.75rem;text-transform:uppercase;">Descripción diagnóstica</p>
+          <p class="fw-bold mb-1 text-muted" style="font-size:.75rem;text-transform:uppercase;">{% trans "Descripción diagnóstica" %}</p>
           <p class="mb-0" style="white-space:pre-wrap;">{{ piar.condicion_descripcion }}</p>
         </div>
         {% endif %}
@@ -113,16 +113,16 @@
     </div>
     <!-- COLUMNA DERECHA: Ajustes por período -->
     <div class="col-lg-8">
-      <h5 class="fw-bold mb-3"><i class="bi bi-card-list me-1 text-primary"></i>Ajustes Curriculares por Período</h5>
+      <h5 class="fw-bold mb-3"><i class="bi bi-card-list me-1 text-primary"></i>{% trans "Ajustes Curriculares por Período" %}</h5>
       {% for periodo_num in "1234" %}
       {% with periodo_int=periodo_num|add:0 ajustes_periodo=ajustes_por_periodo|default:'' %}
       {% with p_ajustes=ajustes_por_periodo %}
       <div class="mb-3">
         <div class="periodo-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-bookmark-fill me-1"></i>Período {{ periodo_num }}</span>
+          <span><i class="bi bi-bookmark-fill me-1"></i>{% blocktrans %}Período {{ periodo_num }}{% endblocktrans %}</span>
           <button class="btn btn-sm btn-outline-light fw-bold" type="button"
                   data-bs-toggle="collapse" data-bs-target="#addAjuste{{ periodo_num }}">
-            <i class="bi bi-plus-circle me-1"></i>Agregar ajuste
+            <i class="bi bi-plus-circle me-1"></i>{% trans "Agregar ajuste" %}
           </button>
         </div>
         <div class="periodo-body">
@@ -135,44 +135,44 @@
                   <input type="hidden" name="periodo" value="{{ periodo_num }}">
                   <div class="row g-2 mb-2">
                     <div class="col-md-6">
-                      <label class="form-label small fw-bold mb-1">Área / Materia</label>
+                      <label class="form-label small fw-bold mb-1">{% trans "Área / Materia" %}</label>
                       <select name="materia_id" class="form-select form-select-sm">
-                        <option value="">— Ajuste general —</option>
+                        <option value="">{% trans "— Ajuste general —" %}</option>
                         {% for m in materias %}<option value="{{ m.pk }}">{{ m.nombre_materia }}</option>{% endfor %}
                       </select>
                     </div>
                   </div>
                   <div class="row g-2 mb-2">
                     <div class="col-md-4">
-                      <label class="form-label small fw-bold mb-1">Logro ajustado *</label>
-                      <textarea name="logro_ajustado" class="form-control form-control-sm" rows="3" required placeholder="Meta de aprendizaje adaptada..."></textarea>
+                      <label class="form-label small fw-bold mb-1">{% trans "Logro ajustado *" %}</label>
+                      <textarea name="logro_ajustado" class="form-control form-control-sm" rows="3" required placeholder="{% trans 'Meta de aprendizaje adaptada...' %}"></textarea>
                     </div>
                     <div class="col-md-4">
-                      <label class="form-label small fw-bold mb-1">Estrategias flexibles *</label>
-                      <textarea name="estrategias_flexibles" class="form-control form-control-sm" rows="3" required placeholder="Cómo se enseñará diferente..."></textarea>
+                      <label class="form-label small fw-bold mb-1">{% trans "Estrategias flexibles *" %}</label>
+                      <textarea name="estrategias_flexibles" class="form-control form-control-sm" rows="3" required placeholder="{% trans 'Cómo se enseñará diferente...' %}"></textarea>
                     </div>
                     <div class="col-md-4">
-                      <label class="form-label small fw-bold mb-1">Ajuste evaluativo *</label>
-                      <textarea name="ajuste_evaluativo" class="form-control form-control-sm" rows="3" required placeholder="Cómo se evaluará diferente..."></textarea>
+                      <label class="form-label small fw-bold mb-1">{% trans "Ajuste evaluativo *" %}</label>
+                      <textarea name="ajuste_evaluativo" class="form-control form-control-sm" rows="3" required placeholder="{% trans 'Cómo se evaluará diferente...' %}"></textarea>
                     </div>
                   </div>
                   <div class="mb-2">
-                    <label class="form-label small fw-bold mb-1">Recursos de apoyo</label>
-                    <input type="text" name="recursos_apoyo" class="form-control form-control-sm" placeholder="Materiales, tecnología, personas de apoyo...">
+                    <label class="form-label small fw-bold mb-1">{% trans "Recursos de apoyo" %}</label>
+                    <input type="text" name="recursos_apoyo" class="form-control form-control-sm" placeholder="{% trans 'Materiales, tecnología, personas de apoyo...' %}">
                   </div>
                   <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm fw-bold"><i class="bi bi-save me-1"></i>Guardar ajuste</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#addAjuste{{ periodo_num }}">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold"><i class="bi bi-save me-1"></i>{% trans "Guardar ajuste" %}</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#addAjuste{{ periodo_num }}">{% trans "Cancelar" %}</button>
                   </div>
                 </form>
               </div>
             </div>
           </div>
           <!-- Lista de ajustes del período -->
-          {% if periodo_num == "1" %}{% for ajuste in ajustes_por_periodo.1 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">Sin ajustes registrados.</p>{% endfor %}
-          {% elif periodo_num == "2" %}{% for ajuste in ajustes_por_periodo.2 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">Sin ajustes registrados.</p>{% endfor %}
-          {% elif periodo_num == "3" %}{% for ajuste in ajustes_por_periodo.3 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">Sin ajustes registrados.</p>{% endfor %}
-          {% elif periodo_num == "4" %}{% for ajuste in ajustes_por_periodo.4 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">Sin ajustes registrados.</p>{% endfor %}
+          {% if periodo_num == "1" %}{% for ajuste in ajustes_por_periodo.1 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">{% trans "Sin ajustes registrados." %}</p>{% endfor %}
+          {% elif periodo_num == "2" %}{% for ajuste in ajustes_por_periodo.2 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">{% trans "Sin ajustes registrados." %}</p>{% endfor %}
+          {% elif periodo_num == "3" %}{% for ajuste in ajustes_por_periodo.3 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">{% trans "Sin ajustes registrados." %}</p>{% endfor %}
+          {% elif periodo_num == "4" %}{% for ajuste in ajustes_por_periodo.4 %}{% include "piar/_ajuste_card.html" %}{% empty %}<p class="text-muted small mb-0">{% trans "Sin ajustes registrados." %}</p>{% endfor %}
           {% endif %}
         </div>
       </div>
@@ -193,14 +193,14 @@
         <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body pt-2">
-        <h5 class="fw-bold mb-1">¿Eliminar este ajuste?</h5>
-        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>Esta acción no se puede deshacer.</p>
+        <h5 class="fw-bold mb-1">{% trans "¿Eliminar este ajuste?" %}</h5>
+        <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Esta acción no se puede deshacer." %}</p>
       </div>
       <div class="modal-footer border-0">
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
         <form id="form-eliminar-ajuste" method="post">
           {% csrf_token %}
-          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>Sí, eliminar</button>
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button>
         </form>
       </div>
     </div>
@@ -209,6 +209,8 @@
 {% endblock %}
 {% block extra_js %}{{ block.super }}
 <script>
+const TXT_ALCANZADO = '{% trans "Alcanzado" %}';
+const TXT_PENDIENTE = '{% trans "Pendiente" %}';
 // Conectar botones de eliminar ajuste
 document.querySelectorAll('.btn-eliminar-ajuste').forEach(btn => {
   btn.addEventListener('click', function() {

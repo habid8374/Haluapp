@@ -94,6 +94,9 @@
 {% block extra_js %}{{ block.super }}
 <script>
 // Timer
+const MSG_SIN_RESPONDER_PREFIX = '{% trans "Tienes" %}';
+const MSG_SIN_RESPONDER_SUFFIX = '{% trans "pregunta(s) sin responder. Puedes volver a revisarlas." %}';
+const MSG_TODAS_RESPONDIDAS = '{% trans "¡Respondiste todas las preguntas!" %}';
 let segundos = {{ tiempo_segundos }};
 const display = document.getElementById('timer-display');
 const timerBox = document.getElementById('timer-box');
@@ -124,8 +127,8 @@ document.querySelectorAll('.respuesta-radio').forEach(r => r.addEventListener('c
 document.getElementById('btn-finalizar').addEventListener('click', () => {
   const sinResp = totalPreguntas - document.querySelectorAll('.respuesta-radio:checked').length;
   document.getElementById('msg-sin-resp').textContent = sinResp > 0
-    ? `Tienes ${sinResp} pregunta(s) sin responder. Puedes volver a revisarlas.`
-    : '¡Respondiste todas las preguntas!';
+    ? `${MSG_SIN_RESPONDER_PREFIX} ${sinResp} ${MSG_SIN_RESPONDER_SUFFIX}`
+    : MSG_TODAS_RESPONDIDAS;
   new bootstrap.Modal(document.getElementById('modalFinalizar')).show();
 });
 document.getElementById('btn-confirmar-finalizar').addEventListener('click', () => {

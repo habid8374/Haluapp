@@ -1,7 +1,7 @@
 {% extends "base_academico.html" %}
 {% load i18n %}
 {% load gestion_academica_filters %}
-{% block titulo %}{{ titulo_pagina|default:"Mi Portafolio STEAM" }}{% endblock %}
+{% block titulo %}{% trans "Mi Portafolio STEAM" as titulo_fallback %}{{ titulo_pagina|default:titulo_fallback }}{% endblock %}
 {% block contenido %}
 {% trans "Mi Portafolio STEAM" as titulo_portafolio_steam %}
 <div style="background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);border-radius:18px;padding:2rem;color:white;margin-bottom:1.5rem;">

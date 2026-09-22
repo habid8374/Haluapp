@@ -584,12 +584,12 @@ def practicar_dba(request, dba_pk):
 @require_POST
 def responder_ejercicio(request, dba_pk):
     if not _es_estudiante(request.user):
-        return JsonResponse({'ok': False, 'error': 'Sin permiso.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin permiso.')}, status=403)
 
     institucion = _get_institucion(request)
     estudiante = getattr(request.user, 'estudiante', None)
     if not estudiante:
-        return JsonResponse({'ok': False, 'error': 'Sin perfil de estudiante.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin perfil de estudiante.')}, status=403)
 
     dba = get_object_or_404(_dbas_piloto(), pk=dba_pk)
     dominio = get_object_or_404(DominioDBA, estudiante=estudiante, dba=dba, institucion=institucion)
@@ -598,7 +598,7 @@ def responder_ejercicio(request, dba_pk):
     # IDOR: el ejercicio debe ser público o de la propia institución del estudiante
     # (mismo guard que simulacros/views.py:596-610 — nunca confiar en el pk sin re-filtrar).
     if not (ejercicio.es_publica or (institucion and ejercicio.institucion_id == institucion.id)):
-        return JsonResponse({'ok': False, 'error': 'Ejercicio no disponible.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Ejercicio no disponible.')}, status=403)
 
     opcion_id = request.POST.get('opcion_id')
     opcion = OpcionEjercicioMath.objects.filter(pk=opcion_id, ejercicio=ejercicio).first() if opcion_id else None
@@ -744,15 +744,15 @@ def reto_recta_numerica(request):
 @require_POST
 def responder_reto_recta_numerica(request):
     if not _es_estudiante(request.user):
-        return JsonResponse({'ok': False, 'error': 'Sin permiso.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin permiso.')}, status=403)
     institucion = _get_institucion(request)
     estudiante = getattr(request.user, 'estudiante', None)
     if not estudiante:
-        return JsonResponse({'ok': False, 'error': 'Sin perfil de estudiante.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin perfil de estudiante.')}, status=403)
 
     reto = request.session.get('reto_math_RECTA_NUMERICA')
     if not reto:
-        return JsonResponse({'ok': False, 'error': 'No hay un reto pendiente. Pide uno nuevo.'}, status=404)
+        return JsonResponse({'ok': False, 'error': _('No hay un reto pendiente. Pide uno nuevo.')}, status=404)
 
     dba = _dba_recta_numerica()
     dominio = get_object_or_404(DominioDBA, estudiante=estudiante, dba=dba, institucion=institucion)
@@ -760,7 +760,7 @@ def responder_reto_recta_numerica(request):
     try:
         valor_final = int(request.POST.get('valor_final', ''))
     except (TypeError, ValueError):
-        return JsonResponse({'ok': False, 'error': 'Valor inválido.'}, status=400)
+        return JsonResponse({'ok': False, 'error': _('Valor inválido.')}, status=400)
 
     es_correcta = valor_final == reto['objetivo']
     del request.session['reto_math_RECTA_NUMERICA']
@@ -822,15 +822,15 @@ def reto_bloques_base10(request):
 @require_POST
 def responder_reto_bloques_base10(request):
     if not _es_estudiante(request.user):
-        return JsonResponse({'ok': False, 'error': 'Sin permiso.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin permiso.')}, status=403)
     institucion = _get_institucion(request)
     estudiante = getattr(request.user, 'estudiante', None)
     if not estudiante:
-        return JsonResponse({'ok': False, 'error': 'Sin perfil de estudiante.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin perfil de estudiante.')}, status=403)
 
     reto = request.session.get('reto_math_BLOQUES_BASE10')
     if not reto:
-        return JsonResponse({'ok': False, 'error': 'No hay un reto pendiente. Pide uno nuevo.'}, status=404)
+        return JsonResponse({'ok': False, 'error': _('No hay un reto pendiente. Pide uno nuevo.')}, status=404)
 
     dba = _dba_bloques_base10()
     dominio = get_object_or_404(DominioDBA, estudiante=estudiante, dba=dba, institucion=institucion)
@@ -838,7 +838,7 @@ def responder_reto_bloques_base10(request):
     try:
         total_final = int(request.POST.get('total_final', ''))
     except (TypeError, ValueError):
-        return JsonResponse({'ok': False, 'error': 'Valor inválido.'}, status=400)
+        return JsonResponse({'ok': False, 'error': _('Valor inválido.')}, status=400)
 
     es_correcta = total_final == reto['objetivo']
     del request.session['reto_math_BLOQUES_BASE10']

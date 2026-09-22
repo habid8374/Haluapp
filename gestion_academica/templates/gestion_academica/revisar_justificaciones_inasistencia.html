@@ -75,24 +75,24 @@
                                     data-bs-toggle="modal" data-bs-target="#modalAprobar"
                                     data-action="{% url 'gestion_academica:aprobar_justificacion_inasistencia' j.pk %}"
                                     data-nombre="{{ j.estudiante.usuario.get_full_name }}">
-                                <i class="bi bi-check-lg"></i> Aprobar
+                                <i class="bi bi-check-lg"></i> {% trans "Aprobar" %}
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-danger"
                                     data-bs-toggle="modal" data-bs-target="#modalRechazar"
                                     data-action="{% url 'gestion_academica:rechazar_justificacion_inasistencia' j.pk %}"
                                     data-nombre="{{ j.estudiante.usuario.get_full_name }}">
-                                <i class="bi bi-x-lg"></i> Rechazar
+                                <i class="bi bi-x-lg"></i> {% trans "Rechazar" %}
                             </button>
                         {% else %}
                             <span class="text-muted small">
-                                {{ j.get_estado_revision_display }} por {{ j.revisado_por.get_full_name|default:j.revisado_por.username }}
+                                {% blocktrans with estado=j.get_estado_revision_display revisor=j.revisado_por.get_full_name|default:j.revisado_por.username %}{{ estado }} por {{ revisor }}{% endblocktrans %}
                             </span>
                         {% endif %}
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" class="text-center text-muted p-4">No hay justificaciones en este filtro.</td>
+                    <td colspan="8" class="text-center text-muted p-4">{% trans "No hay justificaciones en este filtro." %}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -138,17 +138,17 @@
                 <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body pt-2">
-                <h5 class="fw-800 mb-1">¿Rechazar esta justificación?</h5>
+                <h5 class="fw-800 mb-1">{% trans "¿Rechazar esta justificación?" %}</h5>
                 <p id="modal-rechazar-nombre" class="text-muted mb-2" style="font-size:.88rem;"></p>
                 <form id="form-rechazar" method="post">
                     {% csrf_token %}
-                    <label class="form-label small">Motivo del rechazo</label>
+                    <label class="form-label small">{% trans "Motivo del rechazo" %}</label>
                     <textarea name="observaciones" class="form-control" rows="2" required></textarea>
                 </form>
             </div>
             <div class="modal-footer border-0">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" form="form-rechazar" class="btn btn-danger btn-sm"><i class="bi bi-x-lg me-1"></i>Sí, rechazar</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+                <button type="submit" form="form-rechazar" class="btn btn-danger btn-sm"><i class="bi bi-x-lg me-1"></i>{% trans "Sí, rechazar" %}</button>
             </div>
         </div>
     </div>
