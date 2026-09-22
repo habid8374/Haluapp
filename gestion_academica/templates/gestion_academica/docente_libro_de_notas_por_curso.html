@@ -444,20 +444,20 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       <div class="ln-hero-title">{{ curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and curso.materia.nombre_idioma_secundario %} <span style="font-size:.65em;opacity:.8;font-style:italic;">/ {{ curso.materia.nombre_idioma_secundario }}</span>{% endif %}</div>
       <div class="ln-hero-sub">
         <i class="bi bi-mortarboard-fill me-1"></i>{{ curso.grado.nombre }}
-        &nbsp;·&nbsp;<i class="bi bi-people-fill me-1"></i>{{ libro_notas_data|length }} estudiantes
+        &nbsp;·&nbsp;<i class="bi bi-people-fill me-1"></i>{% blocktrans with n=libro_notas_data|length %}{{ n }} estudiantes{% endblocktrans %}
       </div>
     </div>
     <div class="ln-hero-actions">
       <button type="button" class="ln-ha-btn ln-glass" id="btn-toggle-view"
-              title="Cambiar entre vista por alumno y hoja de cálculo">
+              title="{% trans 'Cambiar entre vista por alumno y hoja de cálculo' %}">
         <i class="bi bi-table"></i>
-        <span class="d-none d-sm-inline ms-1">Hoja de Cálculo</span>
+        <span class="d-none d-sm-inline ms-1">{% trans "Hoja de Cálculo" %}</span>
       </button>
       <a href="{% url 'gestion_academica:exportar_libro_de_notas_excel' curso_pk=curso.pk %}" class="ln-ha-btn ln-green">
         <i class="bi bi-file-earmark-excel-fill"></i> Excel
       </a>
       <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="ln-ha-btn ln-glass">
-        <i class="bi bi-arrow-left"></i> Volver
+        <i class="bi bi-arrow-left"></i> {% trans "Volver" %}
       </a>
     </div>
   </div>
@@ -472,13 +472,13 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
     <button class="ln-tab-btn" id="tab-btn-anual" role="tab"
             aria-selected="false" aria-controls="tab-anual" data-tab="tab-anual">
       <i class="bi bi-bar-chart-steps"></i>
-      <span class="d-none d-sm-inline">Vista Anual</span>
-      <span class="d-sm-none">Anual</span>
+      <span class="d-none d-sm-inline">{% trans "Vista Anual" %}</span>
+      <span class="d-sm-none">{% trans "Anual" %}</span>
       <span class="ln-tab-badge">{{ año_escolar }}</span>
     </button>
   </div>
   <div class="ln-chips" id="chips-periodo">
-    <span class="ln-chip"><i class="bi bi-diagram-3-fill"></i> Categorías:</span>
+    <span class="ln-chip"><i class="bi bi-diagram-3-fill"></i> {% trans "Categorías:" %}</span>
     {% for categoria, actividades_lista in actividades_agrupadas.items %}
     <span class="ln-chip cat">
       <i class="bi bi-tag-fill"></i> {{ categoria.nombre }} <strong>({{ categoria.porcentaje }}%)</strong>
@@ -486,16 +486,16 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
     {% empty %}
     <span class="ln-chip" style="color:#dc2626;border-color:#fca5a5;background:#fef2f2;">
       <i class="bi bi-exclamation-triangle-fill"></i>
-      Sin categorías — Ve a Centro de Gestión → Categorías de Actividad
+      {% trans "Sin categorías — Ve a Centro de Gestión → Categorías de Actividad" %}
     </span>
     {% endfor %}
     <a href="https://www.mineducacion.gov.co/1759/articles-187765_archivo_pdf_decreto_1290.pdf"
        target="_blank" rel="noopener noreferrer"
        class="ln-chip ms-auto"
        style="background:#f0fdf4;border-color:#86efac;color:#15803d;text-decoration:none;"
-       title="Ver Decreto 1290 de 2009 — Ministerio de Educación Nacional">
+       title="{% trans 'Ver Decreto 1290 de 2009 — Ministerio de Educación Nacional' %}">
       <i class="bi bi-patch-check-fill"></i>
-      Decreto 1290 / 2009 · MEN
+      {% trans "Decreto 1290 / 2009 · MEN" %}
     </a>
   </div>
   {% if messages %}
@@ -519,12 +519,13 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
                 {{ categoria.nombre }}&nbsp;<span style="font-size:.68rem;font-weight:500;opacity:.85;">({{ categoria.porcentaje }}%)</span>
               </th>
               {% endfor %}
-              <th class="ln-cat-hdr final-col" rowspan="2">Definitiva</th>
+              <th class="ln-cat-hdr final-col" rowspan="2">{% trans "Definitiva" %}</th>
             </tr>
             <tr>
               {% for categoria, actividades_lista in actividades_agrupadas.items %}
               {% for actividad in actividades_lista %}
-              <th class="ln-act-hdr" title="{{ actividad.descripcion|default:'Sin descripción adicional' }}">
+              {% trans "Sin descripción adicional" as sin_desc_adicional_default %}
+              <th class="ln-act-hdr" title="{{ actividad.descripcion|default:sin_desc_adicional_default }}">
                 {{ actividad.titulo|truncatechars:18 }}
               </th>
               {% endfor %}
@@ -565,7 +566,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
             <tr>
               <td colspan="100%" style="text-align:center;padding:2.5rem;color:#94a3b8;">
                 <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-                No hay estudiantes en este curso.
+                {% trans "No hay estudiantes en este curso." %}
               </td>
             </tr>
             {% endif %}
@@ -574,15 +575,15 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       </div>
       <div class="ln-action-bar">
         <a href="{% url 'gestion_academica:exportar_libro_de_notas_excel' curso_pk=curso.pk %}" class="btn btn-outline-success">
-          <i class="bi bi-file-earmark-excel-fill me-2"></i>Exportar Excel
+          <i class="bi bi-file-earmark-excel-fill me-2"></i>{% trans "Exportar Excel" %}
         </a>
         {% if not es_coordinador %}
         <button type="submit" class="btn btn-primary">
-          <i class="bi bi-save-fill me-2"></i>Guardar Todas las Notas
+          <i class="bi bi-save-fill me-2"></i>{% trans "Guardar Todas las Notas" %}
         </button>
         {% else %}
-        <span class="btn btn-secondary disabled" style="opacity:.6;" title="Vista de solo lectura para coordinadores">
-          <i class="bi bi-eye-fill me-2"></i>Solo lectura
+        <span class="btn btn-secondary disabled" style="opacity:.6;" title="{% trans 'Vista de solo lectura para coordinadores' %}">
+          <i class="bi bi-eye-fill me-2"></i>{% trans "Solo lectura" %}
         </span>
         {% endif %}
       </div>
@@ -600,11 +601,11 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
               {{ item.estudiante.usuario.get_full_name }}
             </div>
             <div class="ln-sc-final">
-              Definitiva:
+              {% trans "Definitiva:" %}
               {% if item.nota_final_curso is not None %}
                 <strong>{{ item.nota_final_curso|floatformat:2 }}</strong>
               {% else %}
-                <span style="opacity:.65;">sin notas</span>
+                <span style="opacity:.65;">{% trans "sin notas" %}</span>
               {% endif %}
             </div>
           </div>
@@ -634,7 +635,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
           {% endfor %}
           {% endfor %}
           <div class="ln-sc-final-row">
-            <span class="ln-sc-label"><i class="bi bi-check-circle-fill me-1"></i>Definitiva</span>
+            <span class="ln-sc-label"><i class="bi bi-check-circle-fill me-1"></i>{% trans "Definitiva" %}</span>
             <span class="ln-final-val">
               {% if item.nota_final_curso is not None %}
                 {{ item.nota_final_curso|floatformat:2 }}
@@ -648,13 +649,13 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       {% empty %}
       <div class="text-center p-4" style="color:#94a3b8;">
         <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-        No hay estudiantes en este curso.
+        {% trans "No hay estudiantes en este curso." %}
       </div>
       {% endfor %}
     </div>
     {% if not es_coordinador %}
     <button type="submit" class="btn btn-primary btn-lg ln-save-fab">
-      <i class="bi bi-save-fill me-2"></i>Guardar Notas
+      <i class="bi bi-save-fill me-2"></i>{% trans "Guardar Notas" %}
     </button>
     {% endif %}
   </form>
@@ -662,13 +663,13 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
   <div id="tab-anual" role="tabpanel" style="display:none;">
     {% with aprobados=datos_anuales|length %}
     <div class="la-resumen-bar">
-      <span class="la-chip la-chip-año"><i class="bi bi-calendar-fill"></i> Año {{ año_escolar }}</span>
+      <span class="la-chip la-chip-año"><i class="bi bi-calendar-fill"></i> {% blocktrans with año=año_escolar %}Año {{ año }}{% endblocktrans %}</span>
       <span class="la-chip la-chip-mat"><i class="bi bi-book-fill"></i> {{ curso.materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and curso.materia.nombre_idioma_secundario %} / {{ curso.materia.nombre_idioma_secundario }}{% endif %}</span>
       <span class="la-chip la-chip-nd"><i class="bi bi-mortarboard-fill"></i> {{ curso.grado.nombre }}</span>
       <span class="la-chip la-chip-nd"><i class="bi bi-person-fill"></i> {{ datos_anuales|length }} estudiantes</span>
       <span class="la-chip la-chip-nd ms-auto" style="font-size:.72rem;">
         <i class="bi bi-patch-check-fill text-success"></i>
-        Mín. aprobación: <strong>{{ nota_minima }}</strong>
+        {% trans "Mín. aprobación:" %} <strong>{{ nota_minima }}</strong>
       </span>
     </div>
     {% endwith %}

@@ -236,11 +236,11 @@ document.querySelectorAll('.toggle-alcanzado').forEach(el => {
         if (data.alcanzado) {
           this.classList.replace('btn-outline-secondary','btn-success');
           icon.className = 'bi bi-check-circle-fill me-1';
-          span.textContent = 'Alcanzado';
+          span.textContent = TXT_ALCANZADO;
         } else {
           this.classList.replace('btn-success','btn-outline-secondary');
           icon.className = 'bi bi-circle me-1';
-          span.textContent = 'Pendiente';
+          span.textContent = TXT_PENDIENTE;
         }
       }
     });

@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
@@ -24,14 +25,14 @@
       <!-- COLUMNA IZQUIERDA: Datos del simulacro -->
       <div class="col-md-4">
         <div class="card shadow-sm h-100">
-          <div class="card-header fw-bold">Datos del simulacro</div>
+          <div class="card-header fw-bold">{% trans "Datos del simulacro" %}</div>
           <div class="card-body">
             <div class="mb-3">
-              <label class="form-label small fw-bold">Título *</label>
-              <input type="text" name="titulo" class="form-control form-control-sm" required value="{{ simulacro.titulo|default:'' }}" placeholder="Ej: Simulacro Saber 11 — Matemáticas">
+              <label class="form-label small fw-bold">{% trans "Título" %} *</label>
+              <input type="text" name="titulo" class="form-control form-control-sm" required value="{{ simulacro.titulo|default:'' }}" placeholder="{% trans "Ej: Simulacro Saber 11 — Matemáticas" %}">
             </div>
             <div class="mb-3">
-              <label class="form-label small fw-bold">Dirigido a *</label>
+              <label class="form-label small fw-bold">{% trans "Dirigido a" %} *</label>
               <select name="grado_nivel" class="form-select form-select-sm" id="sel-grado">
                 {% for val, label in grados %}
                 <option value="{{ val }}" {% if simulacro.grado_nivel == val %}selected{% endif %}>{{ label }}</option>
@@ -39,34 +40,34 @@
               </select>
             </div>
             <div class="mb-3">
-              <label class="form-label small fw-bold">Tiempo límite (minutos)</label>
+              <label class="form-label small fw-bold">{% trans "Tiempo límite (minutos)" %}</label>
               <input type="number" name="tiempo_minutos" class="form-control form-control-sm" value="{{ simulacro.tiempo_minutos|default:60 }}" min="5" max="300">
             </div>
             <div class="mb-3">
-              <label class="form-label small fw-bold">Disponible desde *</label>
+              <label class="form-label small fw-bold">{% trans "Disponible desde" %} *</label>
               <input type="datetime-local" name="fecha_inicio" class="form-control form-control-sm" required
                      value="{% if simulacro.fecha_inicio %}{{ simulacro.fecha_inicio|date:'Y-m-d\TH:i' }}{% endif %}">
             </div>
             <div class="mb-3">
-              <label class="form-label small fw-bold">Cierra el *</label>
+              <label class="form-label small fw-bold">{% trans "Cierra el" %} *</label>
               <input type="datetime-local" name="fecha_cierre" class="form-control form-control-sm" required
                      value="{% if simulacro.fecha_cierre %}{{ simulacro.fecha_cierre|date:'Y-m-d\TH:i' }}{% endif %}">
             </div>
             <div class="mb-3">
-              <label class="form-label small fw-bold">Instrucciones <span class="fw-normal text-muted">(opcional)</span></label>
-              <textarea name="descripcion" class="form-control form-control-sm" rows="3" placeholder="Instrucciones generales para el estudiante…">{{ simulacro.descripcion|default:'' }}</textarea>
+              <label class="form-label small fw-bold">{% trans "Instrucciones" %} <span class="fw-normal text-muted">({% trans "opcional" %})</span></label>
+              <textarea name="descripcion" class="form-control form-control-sm" rows="3" placeholder="{% trans "Instrucciones generales para el estudiante…" %}">{{ simulacro.descripcion|default:'' }}</textarea>
             </div>
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="mostrar_respuestas" id="chk-resp"
                      {% if not simulacro or simulacro.mostrar_respuestas %}checked{% endif %}>
-              <label class="form-check-label small" for="chk-resp">Mostrar respuestas al finalizar</label>
+              <label class="form-check-label small" for="chk-resp">{% trans "Mostrar respuestas al finalizar" %}</label>
             </div>
           </div>
           <div class="card-footer d-flex gap-2 justify-content-end">
-            <a href="{% url 'simulacros:lista_simulacros' %}" class="btn btn-outline-secondary btn-sm">Cancelar</a>
+            <a href="{% url 'simulacros:lista_simulacros' %}" class="btn btn-outline-secondary btn-sm">{% trans "Cancelar" %}</a>
             <button type="submit" class="btn btn-primary fw-bold btn-sm">
-              <i class="bi bi-save me-1"></i>{{ accion }} simulacro
-              <span id="contador-sel" class="badge bg-warning text-dark ms-1">0</span> preguntas
+              <i class="bi bi-save me-1"></i>{{ accion }} {% trans "simulacro" %}
+              <span id="contador-sel" class="badge bg-warning text-dark ms-1">0</span> {% trans "preguntas" %}
             </button>
           </div>
         </div>
@@ -75,26 +76,26 @@
       <div class="col-md-8">
         <div class="card shadow-sm">
           <div class="card-header fw-bold d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-bank me-1"></i>Selecciona preguntas del banco</span>
-            <span id="label-sel" class="badge bg-primary">0 seleccionadas</span>
+            <span><i class="bi bi-bank me-1"></i>{% trans "Selecciona preguntas del banco" %}</span>
+            <span id="label-sel" class="badge bg-primary">{% trans "0 seleccionadas" %}</span>
           </div>
           <div class="card-body">
             <!-- Filtros del banco -->
             <div class="filtro-banco mb-3 row g-2">
               <div class="col-md-4">
                 <select id="fil-grado" class="form-select form-select-sm">
-                  <option value="">Todos los grados</option>
+                  <option value="">{% trans "Todos los grados" %}</option>
                   {% for val, label in grados %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
                 </select>
               </div>
               <div class="col-md-4">
                 <select id="fil-area" class="form-select form-select-sm">
-                  <option value="">Todas las áreas</option>
+                  <option value="">{% trans "Todas las áreas" %}</option>
                   {% for val, label in areas %}<option value="{{ val }}">{{ label }}</option>{% endfor %}
                 </select>
               </div>
               <div class="col-md-4">
-                <input type="text" id="fil-texto" class="form-control form-control-sm" placeholder="Buscar en enunciado…">
+                <input type="text" id="fil-texto" class="form-control form-control-sm" placeholder="{% trans "Buscar en enunciado…" %}">
               </div>
             </div>
             <div id="lista-banco" style="max-height:520px;overflow-y:auto;" class="vstack gap-2">
@@ -121,7 +122,7 @@
                        {% if pregunta.pk in seleccionadas %}checked{% endif %}>
               </div>
               {% empty %}
-              <p class="text-muted text-center py-3">No hay preguntas en el banco aún. <a href="{% url 'simulacros:banco_preguntas' %}">Agregar preguntas →</a></p>
+              <p class="text-muted text-center py-3">{% trans "No hay preguntas en el banco aún." %} <a href="{% url 'simulacros:banco_preguntas' %}">{% trans "Agregar preguntas →" %}</a></p>
               {% endfor %}
             </div>
           </div>
@@ -133,10 +134,11 @@
 {% endblock %}
 {% block extra_js %}{{ block.super }}
 <script>
+const SUFIJO_SELECCIONADAS = '{% trans "seleccionada(s)" %}';
 function actualizarContador() {
   const n = document.querySelectorAll('.pregunta-selector.seleccionada').length;
   document.getElementById('contador-sel').textContent = n;
-  document.getElementById('label-sel').textContent = n + ' seleccionada(s)';
+  document.getElementById('label-sel').textContent = n + ' ' + SUFIJO_SELECCIONADAS;
 }
 document.querySelectorAll('.pregunta-selector').forEach(el => {
   el.addEventListener('click', () => {

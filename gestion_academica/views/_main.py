@@ -3472,8 +3472,8 @@ def boletin_imprimible(request, estudiante_pk, periodo_pk):
     
     if pisa_status.err:
         logger.error("Error al generar PDF con xhtml2pdf (pisa.err=%s)", pisa_status.err)
-        return HttpResponse('Error al generar el PDF. Por favor, inténtelo de nuevo.', status=500)
-        
+        return HttpResponse(_('Error al generar el PDF. Por favor, inténtelo de nuevo.'), status=500)
+
     return response
 
 
@@ -4474,7 +4474,7 @@ def mi_historial_asistencia(request):
         estudiante = request.user.estudiante
     except Estudiante.DoesNotExist:
         # Esto previene errores si un usuario no estudiante intenta acceder.
-        messages.error(request, "Tu perfil de estudiante no está configurado.")
+        messages.error(request, _("Tu perfil de estudiante no está configurado."))
         return redirect('gestion_academica: ')
 
     periodo_activo = PeriodoAcademico.objects.filter(
@@ -4522,7 +4522,7 @@ class CrearJustificacionInasistenciaView(LoginRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated and not hasattr(request.user, 'estudiante'):
-            messages.error(request, "Tu perfil de estudiante no está configurado.")
+            messages.error(request, _("Tu perfil de estudiante no está configurado."))
             return redirect('gestion_academica:inicio_academico')
         return super().dispatch(request, *args, **kwargs)
 
@@ -4532,7 +4532,7 @@ class CrearJustificacionInasistenciaView(LoginRequiredMixin, CreateView):
         form.instance.institucion = estudiante.institucion
         messages.success(
             self.request,
-            "Tu justificación fue enviada. Quedará pendiente hasta que un docente o coordinación la revise."
+            _("Tu justificación fue enviada. Quedará pendiente hasta que un docente o coordinación la revise.")
         )
         response = super().form_valid(form)
         from django.db import transaction
@@ -4573,7 +4573,7 @@ class EditarJustificacionInasistenciaView(LoginRequiredMixin, UpdateView):
         return ctx
 
     def form_valid(self, form):
-        messages.success(self.request, "Tu justificación fue actualizada.")
+        messages.success(self.request, _("Tu justificación fue actualizada."))
         return super().form_valid(form)
 
 
@@ -4585,18 +4585,18 @@ def eliminar_justificacion_inasistencia(request, pk):
     try:
         estudiante = request.user.estudiante
     except (AttributeError, Estudiante.DoesNotExist):
-        messages.error(request, "Acción no permitida.")
+        messages.error(request, _("Acción no permitida."))
         return redirect('gestion_academica:inicio_academico')
 
     justificacion = get_object_or_404(
         JustificacionInasistencia, pk=pk, estudiante=estudiante,
     )
     if justificacion.estado_revision != JustificacionInasistencia.EstadoRevision.PENDIENTE:
-        messages.warning(request, "No puedes eliminar una justificación que ya fue revisada.")
+        messages.warning(request, _("No puedes eliminar una justificación que ya fue revisada."))
         return redirect('gestion_academica:mis_justificaciones_inasistencia')
 
     justificacion.delete()
-    messages.success(request, "Tu justificación fue eliminada.")
+    messages.success(request, _("Tu justificación fue eliminada."))
     return redirect('gestion_academica:mis_justificaciones_inasistencia')
 
 
@@ -5054,7 +5054,7 @@ def dashboard_estudiante(request):
     try:
         estudiante = Estudiante.objects.select_related('usuario', 'grado_actual', 'institucion').get(usuario=request.user)
     except Estudiante.DoesNotExist:
-        messages.error(request, "Tu perfil de estudiante no está configurado. Contacta a la administración.")
+        messages.error(request, _("Tu perfil de estudiante no está configurado. Contacta a la administración."))
         return redirect('gestion_academica:inicio_academico')
 
     # --- LÓGICA FINANCIERA ---
@@ -6581,7 +6581,7 @@ def generar_mencion_pdf(request, mencion_pk):
             'institucion'
         ).get(pk=mencion_pk)
     except MencionReconocimiento.DoesNotExist:
-        return HttpResponse("La mención solicitada no existe.", status=404)
+        return HttpResponse(_("La mención solicitada no existe."), status=404)
 
     # Lógica de seguridad: Solo el estudiante, su familiar o un staff pueden verla
     es_el_mismo_estudiante = (request.user.pk == mencion.estudiante.usuario.pk)
@@ -6598,8 +6598,8 @@ def generar_mencion_pdf(request, mencion_pk):
     if not (es_el_mismo_estudiante or es_familiar_asociado or request.user.is_staff):
         url = reverse('gestion_academica:inicio_academico')
         return _respuesta_no_disponible(
-            'Acceso denegado',
-            'No tienes permiso para ver este reconocimiento.',
+            _('Acceso denegado'),
+            _('No tienes permiso para ver este reconocimiento.'),
             url,
         )
 
@@ -6616,10 +6616,12 @@ def generar_mencion_pdf(request, mencion_pk):
             else:
                 volver = reverse('gestion_academica:dashboard_estudiante')
             return _respuesta_no_disponible(
-                'Diploma no disponible por atrasos en pagos',
-                'Mientras existan obligaciones vencidas sin regularizar, el certificado no se puede '
-                'descargar desde el portal. Puedes pagar en «Pagos en línea» / estado de cuenta; '
-                'si ya pagaste, espera unos minutos y vuelve a intentar.',
+                _('Diploma no disponible por atrasos en pagos'),
+                _(
+                    'Mientras existan obligaciones vencidas sin regularizar, el certificado no se puede '
+                    'descargar desde el portal. Puedes pagar en «Pagos en línea» / estado de cuenta; '
+                    'si ya pagaste, espera unos minutos y vuelve a intentar.'
+                ),
                 volver,
             )
 
@@ -12742,7 +12744,7 @@ def votar_view(request, eleccion_id):
     eleccion = get_object_or_404(get_filtered_queryset(Eleccion, request.user), pk=eleccion_id)
 
     if Voto.objects.filter(eleccion=eleccion, votante=request.user.estudiante).exists():
-        messages.info(request, "Ya has votado en esta elección.")
+        messages.info(request, _("Ya has votado en esta elección."))
         return redirect('gestion_academica:dashboard_estudiante')
 
     candidatos = Candidato.objects.filter(eleccion=eleccion)
@@ -12751,7 +12753,7 @@ def votar_view(request, eleccion_id):
         candidato_id = request.POST.get('candidato')
         candidato = get_object_or_404(Candidato, pk=candidato_id, eleccion=eleccion)
         Voto.objects.create(eleccion=eleccion, votante=request.user.estudiante, candidato=candidato)
-        messages.success(request, "Tu voto ha sido registrado exitosamente.")
+        messages.success(request, _("Tu voto ha sido registrado exitosamente."))
         return redirect('gestion_academica:dashboard_estudiante')
 
     return render(request, 'gestion_academica/votar.html', {
