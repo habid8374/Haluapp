@@ -683,7 +683,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
                 {% if item_p.es_actual %}
                 <th class="la-hdr actual" title="{% trans 'Período actual — en curso' %}">
                   {{ item_p.periodo.nombre }}
-                  <span style="display:block;font-size:.62rem;opacity:.8;font-weight:500;">▶ actual</span>
+                  <span style="display:block;font-size:.62rem;opacity:.8;font-weight:500;">▶ {% trans "actual" %}</span>
                 </th>
                 {% else %}
                 <th class="la-hdr periodo">{{ item_p.periodo.nombre }}</th>
@@ -760,12 +760,12 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
               {{ item.estudiante.usuario.get_full_name }}
             </div>
             <div class="la-sc-sub">
-              Definitiva:
+              {% trans "Definitiva:" %}
               {% if item.promedio_anual is not None %}
                 <strong>{{ item.promedio_anual|floatformat:2 }}</strong>
-                — {% if item.aprueba %}✓ Aprueba{% else %}✗ Reprueba{% endif %}
+                — {% if item.aprueba %}✓ {% trans "Aprueba" %}{% else %}✗ {% trans "Reprueba" %}{% endif %}
               {% else %}
-                <span style="opacity:.65;">sin datos suficientes</span>
+                <span style="opacity:.65;">{% trans "sin datos suficientes" %}</span>
               {% endif %}
             </div>
           </div>
@@ -776,7 +776,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
           <div class="la-per-row {% if np.es_actual %}actual{% endif %}">
             <span class="la-per-label">
               {{ np.periodo.nombre }}
-              {% if np.es_actual %}<span class="la-actual-tag">actual</span>{% endif %}
+              {% if np.es_actual %}<span class="la-actual-tag">{% trans "actual" %}</span>{% endif %}
             </span>
             {% if np.nota is not None %}
               <span class="la-nota {% if np.nota >= nota_minima %}ok{% else %}fail{% endif %}">
@@ -789,7 +789,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
           {% endfor %}
           <div class="la-def-row {% if item.aprueba == False %}fail{% endif %}">
             <span class="la-def-row-label">
-              <i class="bi bi-trophy-fill me-1"></i>Definitiva Anual
+              <i class="bi bi-trophy-fill me-1"></i>{% trans "Definitiva Anual" %}
             </span>
             <span class="la-def-row-val">
               {% if item.promedio_anual is not None %}{{ item.promedio_anual|floatformat:2 }}{% else %}—{% endif %}
@@ -800,7 +800,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       {% empty %}
       <div class="text-center p-4" style="color:#94a3b8;">
         <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-        No hay estudiantes en este curso.
+        {% trans "No hay estudiantes en este curso." %}
       </div>
       {% endfor %}
     </div>
@@ -845,7 +845,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
         document.body.classList.remove('ln-fab-active');
       }
       if (viewToggleBtn) viewToggleBtn.innerHTML =
-        '<i class="bi bi-person-lines-fill"></i><span class="d-none d-sm-inline ms-1">Por Alumno</span>';
+        '<i class="bi bi-person-lines-fill"></i><span class="d-none d-sm-inline ms-1">{% trans "Por Alumno" %}</span>';
     } else {
       if (tableCard)    tableCard.style.display    = 'none';
       if (cardsSection) cardsSection.style.display = 'block';
@@ -854,7 +854,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
         document.body.classList.add('ln-fab-active');
       }
       if (viewToggleBtn) viewToggleBtn.innerHTML =
-        '<i class="bi bi-table"></i><span class="d-none d-sm-inline ms-1">Hoja de Cálculo</span>';
+        '<i class="bi bi-table"></i><span class="d-none d-sm-inline ms-1">{% trans "Hoja de Cálculo" %}</span>';
     }
     if (persist !== false) {
       try { sessionStorage.setItem('ln_view', view); } catch(e) {}
