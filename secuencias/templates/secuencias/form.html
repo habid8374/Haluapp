@@ -42,23 +42,24 @@
   </div>
 
   <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
-    <div class="card-header bg-white border-0 fw-800" style="border-radius:14px 14px 0 0;"><i class="bi bi-list-ol me-1"></i> Elementos en orden (mínimo 3, máximo 8)</div>
+    <div class="card-header bg-white border-0 fw-800" style="border-radius:14px 14px 0 0;"><i class="bi bi-list-ol me-1"></i> {% trans "Elementos en orden (mínimo 3, máximo 8)" %}</div>
     <div class="card-body">
       <div id="items-cont"></div>
-      <button type="button" id="agregar-item" class="btn btn-outline-success btn-sm mt-1"><i class="bi bi-plus-circle me-1"></i> Agregar elemento</button>
-      <p class="text-muted mt-2 mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>El número de la izquierda es la posición correcta. Cada elemento necesita imagen o texto. Imágenes hasta 2 MB.</p>
+      <button type="button" id="agregar-item" class="btn btn-outline-success btn-sm mt-1"><i class="bi bi-plus-circle me-1"></i> {% trans "Agregar elemento" %}</button>
+      <p class="text-muted mt-2 mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>{% trans "El número de la izquierda es la posición correcta. Cada elemento necesita imagen o texto. Imágenes hasta 2 MB." %}</p>
     </div>
   </div>
 
   <div class="d-flex justify-content-end gap-2">
-    <a href="{% url 'secuencias:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
-    <button type="submit" class="btn" style="background:#7e22ce;color:#fff;"><i class="bi bi-save me-1"></i> Guardar secuencia</button>
+    <a href="{% url 'secuencias:lista' %}" class="btn btn-outline-secondary">{% trans "Cancelar" %}</a>
+    <button type="submit" class="btn" style="background:#7e22ce;color:#fff;"><i class="bi bi-save me-1"></i> {% trans "Guardar secuencia" %}</button>
   </div>
 </form>
 
 <script>
 (function(){
   const cont = document.getElementById('items-cont');
+  const TXT_PLACEHOLDER = "{% trans "Texto (opcional si hay imagen)" %}";
   let idx = 0;
   function renumerar(){
     cont.querySelectorAll('.seq-fila .pos').forEach(function(el, k){ el.textContent = (k + 1); });
@@ -70,7 +71,7 @@
     div.innerHTML = '<input type="hidden" name="fila" value="' + i + '">'
       + '<span class="badge pos" style="background:#7e22ce;font-size:.95rem;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;">1</span>'
       + '<input type="file" name="imagen_' + i + '" class="form-control form-control-sm" accept="image/*" style="max-width:230px;">'
-      + '<input type="text" name="texto_' + i + '" class="form-control form-control-sm" maxlength="60" placeholder="Texto (opcional si hay imagen)">'
+      + '<input type="text" name="texto_' + i + '" class="form-control form-control-sm" maxlength="60" placeholder="' + TXT_PLACEHOLDER + '">'
       + '<button type="button" class="btn btn-sm btn-outline-danger quitar"><i class="bi bi-trash"></i></button>';
     cont.appendChild(div); renumerar();
   }

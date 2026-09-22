@@ -141,27 +141,27 @@
             ar-modes="webxr scene-viewer quick-look"
           ></model-viewer>
 
-          <button id="btn-exit-fullscreen" class="exit-fullscreen" title="Salir de pantalla completa">
+          <button id="btn-exit-fullscreen" class="exit-fullscreen" title="{% trans 'Salir de pantalla completa' %}">
             <i data-lucide="minimize-2"></i>
-            <span>Salir</span>
+            <span>{% trans "Salir" %}</span>
           </button>
         </div>
 
         <div class="viewer-actions">
           <div class="viewer-actions__group">
-            <button id="btn-reset" title="Restablecer vista">
-              <i data-lucide="rotate-ccw"></i><span>Restablecer</span>
+            <button id="btn-reset" title="{% trans 'Restablecer vista' %}">
+              <i data-lucide="rotate-ccw"></i><span>{% trans "Restablecer" %}</span>
             </button>
-            <button id="btn-zoom-in" title="Acercar">
-              <i data-lucide="zoom-in"></i><span>Acercar</span>
+            <button id="btn-zoom-in" title="{% trans 'Acercar' %}">
+              <i data-lucide="zoom-in"></i><span>{% trans "Acercar" %}</span>
             </button>
-            <button id="btn-zoom-out" title="Alejar">
-              <i data-lucide="zoom-out"></i><span>Alejar</span>
+            <button id="btn-zoom-out" title="{% trans 'Alejar' %}">
+              <i data-lucide="zoom-out"></i><span>{% trans "Alejar" %}</span>
             </button>
           </div>
           <div class="viewer-actions__group">
-            <button id="btn-fullscreen" title="Pantalla completa">
-              <i data-lucide="maximize"></i><span>Pantalla completa</span>
+            <button id="btn-fullscreen" title="{% trans 'Pantalla completa' %}">
+              <i data-lucide="maximize"></i><span>{% trans "Pantalla completa" %}</span>
             </button>
           </div>
         </div>
@@ -170,20 +170,20 @@
       <div class="center-bottom">
         <article class="card collapsible" data-key="galeria">
           <header class="card__head">
-            <h2 class="card__title">Galería educativa</h2>
-            <button class="card__toggle" aria-expanded="true" aria-label="Mostrar u ocultar galería">
+            <h2 class="card__title">{% trans "Galería educativa" %}</h2>
+            <button class="card__toggle" aria-expanded="true" aria-label="{% trans 'Mostrar u ocultar galería' %}">
               <i data-lucide="chevron-down"></i>
             </button>
           </header>
           <div class="card__body">
             <div class="gallery">
               <button class="gallery__item" data-gallery="anatomia">
-                <img id="gallery-anatomy" alt="Anatomía" />
-                <span>Anatomía</span>
+                <img id="gallery-anatomy" alt="{% trans 'Anatomía' %}" />
+                <span>{% trans "Anatomía" %}</span>
               </button>
               <button class="gallery__item" data-gallery="ficha">
-                <img id="gallery-facts" alt="Ficha visual" />
-                <span>Ficha visual</span>
+                <img id="gallery-facts" alt="{% trans 'Ficha visual' %}" />
+                <span>{% trans "Ficha visual" %}</span>
               </button>
             </div>
           </div>
@@ -191,8 +191,8 @@
 
         <article class="card compare-card collapsible" data-key="comparar">
           <header class="card__head">
-            <h2 class="card__title">Comparar órganos</h2>
-            <button class="card__toggle" aria-expanded="true" aria-label="Mostrar u ocultar comparador">
+            <h2 class="card__title">{% trans "Comparar órganos" %}</h2>
+            <button class="card__toggle" aria-expanded="true" aria-label="{% trans 'Mostrar u ocultar comparador' %}">
               <i data-lucide="chevron-down"></i>
             </button>
           </header>
@@ -204,7 +204,7 @@
                 <small id="compare-a-system">—</small>
                 <select id="compare-a-select"></select>
               </div>
-              <div class="compare-vs">VS</div>
+              <div class="compare-vs">{% trans "VS" %}</div>
               <div class="compare-chip">
                 <img id="compare-b-thumb" alt="" />
                 <strong id="compare-b-name">—</strong>
@@ -212,7 +212,7 @@
                 <select id="compare-b-select"></select>
               </div>
             </div>
-            <button class="compare-open" id="btn-compare">Abrir comparación</button>
+            <button class="compare-open" id="btn-compare">{% trans "Abrir comparación" %}</button>
           </div>
         </article>
       </div>
@@ -220,7 +220,7 @@
 
     <aside class="right-column">
       <section class="card detail-card">
-        <h2 class="card__title">Detalles del órgano</h2>
+        <h2 class="card__title">{% trans "Detalles del órgano" %}</h2>
         <div class="detail-card__header">
           <img id="detail-avatar" class="detail-card__avatar" alt="" />
           <div class="detail-card__name">
@@ -233,8 +233,8 @@
 
       <section class="card notes-card collapsible" data-key="notas">
         <header class="card__head">
-          <h2 class="card__title">Notas clínicas</h2>
-          <button class="card__toggle" aria-expanded="true" aria-label="Mostrar u ocultar notas">
+          <h2 class="card__title">{% trans "Notas clínicas" %}</h2>
+          <button class="card__toggle" aria-expanded="true" aria-label="{% trans 'Mostrar u ocultar notas' %}">
             <i data-lucide="chevron-down"></i>
           </button>
         </header>
@@ -252,7 +252,7 @@
 <div class="modal" id="modal-image">
   <div class="modal__panel modal__panel--image">
     <div class="modal__head">
-      <h2 id="modal-image-title">Galería</h2>
+      <h2 id="modal-image-title">{% trans "Galería" %}</h2>
       <button class="modal__close" data-close aria-label="{% trans "Cerrar" %}">
         <i data-lucide="x"></i>
       </button>
@@ -265,7 +265,7 @@
 <div class="modal" id="modal-compare">
   <div class="modal__panel">
     <div class="modal__head">
-      <h2>Comparar órganos</h2>
+      <h2>{% trans "Comparar órganos" %}</h2>
       <button class="modal__close" data-close aria-label="{% trans "Cerrar" %}">
         <i data-lucide="x"></i>
       </button>
@@ -286,7 +286,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast">Listo</div>
+<div class="toast" id="toast">{% trans "Listo" %}</div>
 
 <!-- Scripts: model-viewer CDN → lucide → app.js (importa data.js internamente) -->
 <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>

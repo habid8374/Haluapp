@@ -135,28 +135,28 @@ document.querySelectorAll('[data-bs-target="#modalBorrarItem"]').forEach(functio
 
 <div class="modal fade" id="modalCerrar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
-    <div class="modal-header"><h5 class="modal-title fw-800">¿Cerrar la secuencia?</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-    <div class="modal-body"><p class="mb-0">Los estudiantes ya no podrán resolverla. Las notas registradas se conservan.</p></div>
+    <div class="modal-header"><h5 class="modal-title fw-800">{% trans "¿Cerrar la secuencia?" %}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><p class="mb-0">{% trans "Los estudiantes ya no podrán resolverla. Las notas registradas se conservan." %}</p></div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-      <form method="post" action="{% url 'secuencias:cerrar' actividad.pk %}">{% csrf_token %}<button class="btn btn-secondary">Sí, cerrar</button></form>
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+      <form method="post" action="{% url 'secuencias:cerrar' actividad.pk %}">{% csrf_token %}<button class="btn btn-secondary">{% trans "Sí, cerrar" %}</button></form>
     </div>
   </div></div>
 </div>
 <div class="modal fade" id="modalFechas" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <form method="post" action="{% url 'secuencias:editar_fechas' actividad.pk %}">{% csrf_token %}
-    <div class="modal-header"><h5 class="modal-title fw-800">Rango de fechas</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-header"><h5 class="modal-title fw-800">{% trans "Rango de fechas" %}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
-      <div class="mb-3"><label class="form-label">Disponible desde</label>
+      <div class="mb-3"><label class="form-label">{% trans "Disponible desde" %}</label>
         <input type="datetime-local" name="fecha_inicio" class="form-control" value="{{ actividad.fecha_inicio|date:'Y-m-d\TH:i' }}"></div>
-      <div class="mb-2"><label class="form-label">Plazo final</label>
+      <div class="mb-2"><label class="form-label">{% trans "Plazo final" %}</label>
         <input type="datetime-local" name="fecha_fin" class="form-control" value="{{ actividad.fecha_fin|date:'Y-m-d\TH:i' }}"></div>
-      <p class="text-muted mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>Déjalas vacías para que no haya límite.</p>
+      <p class="text-muted mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Déjalas vacías para que no haya límite." %}</p>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-      <button class="btn btn-success">Guardar fechas</button>
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+      <button class="btn btn-success">{% trans "Guardar fechas" %}</button>
     </div>
     </form>
   </div></div>
@@ -169,12 +169,12 @@ document.querySelectorAll('[data-bs-target="#modalBorrarItem"]').forEach(functio
       <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
     </div>
     <div class="modal-body pt-2">
-      <h5 class="fw-800 mb-1">¿Eliminar esta secuencia?</h5>
-      <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>Se eliminarán también los intentos. Esta acción no se puede deshacer.</p>
+      <h5 class="fw-800 mb-1">{% trans "¿Eliminar esta secuencia?" %}</h5>
+      <p class="text-danger mt-2 mb-0" style="font-size:.78rem;"><i class="bi bi-info-circle me-1"></i>{% trans "Se eliminarán también los intentos. Esta acción no se puede deshacer." %}</p>
     </div>
     <div class="modal-footer border-0">
-      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-      <form method="post" action="{% url 'secuencias:eliminar' actividad.pk %}">{% csrf_token %}<button class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>Sí, eliminar</button></form>
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+      <form method="post" action="{% url 'secuencias:eliminar' actividad.pk %}">{% csrf_token %}<button class="btn btn-danger btn-sm"><i class="bi bi-trash-fill me-1"></i>{% trans "Sí, eliminar" %}</button></form>
     </div>
   </div></div>
 </div>
