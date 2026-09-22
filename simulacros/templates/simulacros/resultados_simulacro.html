@@ -55,12 +55,12 @@
                   {{ intento.puntaje|floatformat:1 }}%
                 </td>
                 <td class="text-end pe-3">
-                  {% if intento.completado %}<span class="badge bg-success">Completado</span>
-                  {% else %}<span class="badge bg-warning text-dark">En progreso</span>{% endif %}
+                  {% if intento.completado %}<span class="badge bg-success">{% trans "Completado" %}</span>
+                  {% else %}<span class="badge bg-warning text-dark">{% trans "En progreso" %}</span>{% endif %}
                 </td>
               </tr>
               {% empty %}
-              <tr><td colspan="3" class="text-center text-muted py-3">Ningún estudiante ha presentado el simulacro aún.</td></tr>
+              <tr><td colspan="3" class="text-center text-muted py-3">{% trans "Ningún estudiante ha presentado el simulacro aún." %}</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -70,10 +70,10 @@
     <!-- Análisis por pregunta -->
     <div class="col-md-6">
       <div class="card shadow-sm">
-        <div class="card-header fw-bold">Análisis por pregunta</div>
+        <div class="card-header fw-bold">{% trans "Análisis por pregunta" %}</div>
         <div class="card-body p-0">
           <table class="table table-sm mb-0" style="font-size:.83rem;">
-            <thead class="table-light"><tr><th class="ps-3">#</th><th>Pregunta</th><th class="text-end pe-3">Aciertos</th></tr></thead>
+            <thead class="table-light"><tr><th class="ps-3">#</th><th>{% trans "Pregunta" %}</th><th class="text-end pe-3">{% trans "Aciertos" %}</th></tr></thead>
             <tbody>
               {% for s in stats_preguntas %}
               <tr>
@@ -90,7 +90,7 @@
                 </td>
               </tr>
               {% empty %}
-              <tr><td colspan="3" class="text-center text-muted py-2">Sin datos aún.</td></tr>
+              <tr><td colspan="3" class="text-center text-muted py-2">{% trans "Sin datos aún." %}</td></tr>
               {% endfor %}
             </tbody>
           </table>

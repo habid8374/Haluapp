@@ -681,7 +681,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
               <th class="la-hdr name-col"><i class="bi bi-person-fill me-1"></i>{% trans "Estudiante" %}</th>
               {% for item_p in datos_anuales.0.notas_periodos %}
                 {% if item_p.es_actual %}
-                <th class="la-hdr actual" title="Período actual — en curso">
+                <th class="la-hdr actual" title="{% trans 'Período actual — en curso' %}">
                   {{ item_p.periodo.nombre }}
                   <span style="display:block;font-size:.62rem;opacity:.8;font-weight:500;">▶ actual</span>
                 </th>
@@ -689,7 +689,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
                 <th class="la-hdr periodo">{{ item_p.periodo.nombre }}</th>
                 {% endif %}
               {% endfor %}
-              <th class="la-hdr final-col"><i class="bi bi-trophy-fill me-1"></i>Definitiva</th>
+              <th class="la-hdr final-col"><i class="bi bi-trophy-fill me-1"></i>{% trans "Definitiva" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -714,12 +714,12 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
                 {% if item.promedio_anual is not None %}
                 <div class="la-definitiva {% if item.aprueba %}la-def-ok{% else %}la-def-fail{% endif %}">
                   <span class="la-dval">{{ item.promedio_anual|floatformat:2 }}</span>
-                  <span class="la-dest">{% if item.aprueba %}✓ Aprueba{% else %}✗ Reprueba{% endif %}</span>
+                  <span class="la-dest">{% if item.aprueba %}✓ {% trans "Aprueba" %}{% else %}✗ {% trans "Reprueba" %}{% endif %}</span>
                 </div>
                 {% else %}
                 <div class="la-definitiva la-def-nd">
                   <span class="la-dval">—</span>
-                  <span class="la-dest">Sin datos</span>
+                  <span class="la-dest">{% trans "Sin datos" %}</span>
                 </div>
                 {% endif %}
               </td>
@@ -728,7 +728,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
             <tr>
               <td colspan="100%" style="text-align:center;padding:2.5rem;color:#94a3b8;">
                 <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-                No hay estudiantes en este curso.
+                {% trans "No hay estudiantes en este curso." %}
               </td>
             </tr>
             {% endfor %}
@@ -736,10 +736,10 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
         </table>
       </div>
       <div class="la-leyenda">
-        <span><span class="la-dot" style="background:#86efac;"></span> ≥ {{ nota_minima }} Aprueba</span>
-        <span><span class="la-dot" style="background:#fca5a5;"></span> &lt; {{ nota_minima }} Reprueba</span>
+        <span><span class="la-dot" style="background:#86efac;"></span> {% blocktrans with min=nota_minima %}≥ {{ min }} Aprueba{% endblocktrans %}</span>
+        <span><span class="la-dot" style="background:#fca5a5;"></span> {% blocktrans with min=nota_minima %}&lt; {{ min }} Reprueba{% endblocktrans %}</span>
         <span><span class="la-dot" style="background:#e2e8f0;"></span> {% trans "Sin calificar" %}</span>
-        <span style="border:2px solid #93c5fd;width:12px;height:12px;display:inline-block;border-radius:3px;vertical-align:middle;"></span> Período actual
+        <span style="border:2px solid #93c5fd;width:12px;height:12px;display:inline-block;border-radius:3px;vertical-align:middle;"></span> {% trans "Período actual" %}
         <span class="ms-auto" style="font-size:.72rem;">
           <i class="bi bi-patch-check-fill text-success me-1"></i>
           Conforme al <a href="https://www.mineducacion.gov.co/1759/articles-187765_archivo_pdf_decreto_1290.pdf"
