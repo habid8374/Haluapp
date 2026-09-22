@@ -28,7 +28,7 @@
 </div>
 
 <div class="card fc-card">
-  <img id="fc-imagen" class="fc-img d-none" src="" alt="tarjeta">
+  <img id="fc-imagen" class="fc-img d-none" src="" alt="{% trans 'tarjeta' %}">
   <div class="card-body text-center">
     <p id="fc-pista" class="fc-pista mb-2"></p>
     <button type="button" id="fc-audio-btn" class="btn btn-outline-primary btn-sm fc-audio-btn d-none mb-3">
@@ -58,6 +58,12 @@
   const urlResponder = '{{ url_responder }}';
   const urlResultado = '{{ url_resultado }}';
   const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const txtCorrecto = '{% trans "¡Correcto! 🎉" %}';
+  const txtRespuestaEraPre = '{% trans "La respuesta era: «" %}';
+  const txtRespuestaEraPost = '{% trans "»" %}';
+  const txtErrorEnvio = '{% trans "No pudimos enviar tu respuesta. Revisa tu conexión e inténtalo de nuevo." %}';
+  const txtVerNota = '{% trans "Ver mi nota" %}';
+  const txtSiguienteBtn = '{% trans "Siguiente" %}';
   const pendientes = tarjetas.filter(function(t){ return !t.respondida; });
   const respondidasPrevias = tarjetas.length - pendientes.length;
   let idx = 0;
@@ -101,12 +107,12 @@
       if (datos.error){ mostrarFeedback(false, datos.error, false); return; }
       pendientes[idx].terminado = datos.terminado;
       if (datos.correcto){
-        mostrarFeedback(true, '¡Correcto! 🎉', datos.terminado);
+        mostrarFeedback(true, txtCorrecto, datos.terminado);
       } else {
-        mostrarFeedback(false, 'La respuesta era: «' + datos.respuesta_correcta + '»', datos.terminado);
+        mostrarFeedback(false, txtRespuestaEraPre + datos.respuesta_correcta + txtRespuestaEraPost, datos.terminado);
       }
     } catch (e) {
-      mostrarFeedback(false, 'No pudimos enviar tu respuesta. Revisa tu conexión e inténtalo de nuevo.', false);
+      mostrarFeedback(false, txtErrorEnvio, false);
       enviando = false; return;
     }
     enviando = false;
@@ -118,7 +124,7 @@
     f.textContent = texto;
     f.className = 'fc-feedback mb-3 ' + (ok ? 'ok' : 'bad');
     const btn = document.getElementById('btn-siguiente');
-    btn.innerHTML = terminado ? '<i class="bi bi-award me-1"></i> Ver mi nota' : 'Siguiente <i class="bi bi-arrow-right ms-1"></i>';
+    btn.innerHTML = terminado ? '<i class="bi bi-award me-1"></i> ' + txtVerNota : txtSiguienteBtn + ' <i class="bi bi-arrow-right ms-1"></i>';
     document.getElementById('zona-feedback').classList.remove('d-none');
   }
 

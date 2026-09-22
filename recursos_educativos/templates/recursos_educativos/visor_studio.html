@@ -233,59 +233,59 @@
 <div class="r3d-context-bar">
   <a href="{% url 'gestion_academica:dashboard_estudiante' %}">
     <i class="bi bi-house-fill"></i>
-    <span class="r3d-breadcrumb-text"> Inicio</span>
+    <span class="r3d-breadcrumb-text"> {% trans "Inicio" %}</span>
   </a>
   <span class="r3d-sep">›</span>
   <span style="color:#1e1b4b;font-weight:700;" class="r3d-breadcrumb-text">{{ actividad.titulo }}</span>
   <span style="color:#5b21b6;font-weight:600;">
-    <i class="bi bi-boxes me-1"></i>Studio 3D
+    <i class="bi bi-boxes me-1"></i>{% trans "Studio 3D" %}
   </span>
   {% if recurso.tiene_galeria %}
     <a href="{% url 'recursos_educativos:galeria' recurso.pk %}" class="r3d-galeria-btn">
-      <i class="bi bi-images"></i> Galería
+      <i class="bi bi-images"></i> {% trans "Galería" %}
     </a>
   {% endif %}
   <div class="r3d-progress-pill" id="halu-progress-pill">
     <i class="bi bi-boxes"></i>
-    <span id="halu-piezas-label">{{ entrega.piezas_colocadas }}/13 piezas</span>
+    <span id="halu-piezas-label">{% blocktrans with colocadas=entrega.piezas_colocadas %}{{ colocadas }}/13 piezas{% endblocktrans %}</span>
   </div>
 </div>
 
 <div class="studio-app">
   <main class="studio-workspace">
 
-    <aside class="tool-rail" aria-label="Herramientas">
-      <button class="is-active" id="btn-place" title="Colocar piezas">
-        <i data-lucide="box"></i><span>Colocar</span>
+    <aside class="tool-rail" aria-label="{% trans 'Herramientas' %}">
+      <button class="is-active" id="btn-place" title="{% trans 'Colocar piezas' %}">
+        <i data-lucide="box"></i><span>{% trans "Colocar" %}</span>
       </button>
-      <button id="btn-focus" title="Centrar vista">
-        <i data-lucide="scan"></i><span>Centrar</span>
+      <button id="btn-focus" title="{% trans 'Centrar vista' %}">
+        <i data-lucide="scan"></i><span>{% trans "Centrar" %}</span>
       </button>
-      <button id="btn-hints" class="is-active" title="Mostrar pistas">
-        <i data-lucide="sparkles"></i><span>Pistas</span>
+      <button id="btn-hints" class="is-active" title="{% trans 'Mostrar pistas' %}">
+        <i data-lucide="sparkles"></i><span>{% trans "Pistas" %}</span>
       </button>
-      <button id="btn-zoom-in" title="Acercar">
-        <i data-lucide="zoom-in"></i><span>Zoom +</span>
+      <button id="btn-zoom-in" title="{% trans 'Acercar' %}">
+        <i data-lucide="zoom-in"></i><span>{% trans "Zoom +" %}</span>
       </button>
-      <button id="btn-zoom-out" title="Alejar">
-        <i data-lucide="zoom-out"></i><span>Zoom -</span>
+      <button id="btn-zoom-out" title="{% trans 'Alejar' %}">
+        <i data-lucide="zoom-out"></i><span>{% trans "Zoom -" %}</span>
       </button>
     </aside>
 
     <section class="scene-shell">
       <div class="scene-canvas-wrap">
-        <canvas id="assembly-canvas" aria-label="Escena 3D para armar el cuerpo humano"></canvas>
+        <canvas id="assembly-canvas" aria-label="{% trans 'Escena 3D para armar el cuerpo humano' %}"></canvas>
       </div>
       <footer class="scene-actions">
         <section class="lesson-panel" aria-live="polite">
           <div class="lesson-panel__main">
-            <span class="lesson-panel__eyebrow">Aprende mientras armas</span>
-            <h3 id="lesson-title">Cerebro</h3>
+            <span class="lesson-panel__eyebrow">{% trans "Aprende mientras armas" %}</span>
+            <h3 id="lesson-title">{% trans "Cerebro" %}</h3>
             <p id="lesson-summary"></p>
           </div>
           <dl class="lesson-panel__meta">
-            <div><dt>Función</dt><dd id="lesson-function"></dd></div>
-            <div><dt>Ubicación</dt><dd id="lesson-location"></dd></div>
+            <div><dt>{% trans "Función" %}</dt><dd id="lesson-function"></dd></div>
+            <div><dt>{% trans "Ubicación" %}</dt><dd id="lesson-location"></dd></div>
           </dl>
           <div class="lesson-panel__fact">
             <i data-lucide="lightbulb"></i>
@@ -293,11 +293,11 @@
           </div>
         </section>
         <div class="scene-actions__buttons">
-          <button id="btn-undo" title="Deshacer última pieza">
-            <i data-lucide="undo-2"></i><span>Deshacer</span>
+          <button id="btn-undo" title="{% trans 'Deshacer última pieza' %}">
+            <i data-lucide="undo-2"></i><span>{% trans "Deshacer" %}</span>
           </button>
-          <button id="btn-reset" title="Reiniciar armado">
-            <i data-lucide="rotate-ccw"></i><span>Reiniciar</span>
+          <button id="btn-reset" title="{% trans 'Reiniciar armado' %}">
+            <i data-lucide="rotate-ccw"></i><span>{% trans "Reiniciar" %}</span>
           </button>
         </div>
       </footer>
@@ -306,31 +306,31 @@
     <aside class="piece-panel">
       <div class="piece-panel__header">
         <div>
-          <h2>Piezas</h2>
-          <span id="piece-counter" class="piece-counter">0 / 13 colocadas</span>
+          <h2>{% trans "Piezas" %}</h2>
+          <span id="piece-counter" class="piece-counter">{% blocktrans %}0 / 13 colocadas{% endblocktrans %}</span>
         </div>
-        <button id="btn-shuffle" title="Elegir pieza pendiente al azar">
+        <button id="btn-shuffle" title="{% trans 'Elegir pieza pendiente al azar' %}">
           <i data-lucide="shuffle"></i>
         </button>
       </div>
       <div class="completion-banner" id="completion-banner">
-        <strong>Cuerpo armado</strong>
-        <span>Completaste las 13 piezas.</span>
+        <strong>{% trans "Cuerpo armado" %}</strong>
+        <span>{% blocktrans %}Completaste las 13 piezas.{% endblocktrans %}</span>
       </div>
       <div class="piece-grid" id="piece-grid"></div>
       <div class="scene-toggles" role="group">
         <label class="scene-toggle">
-          <span><i data-lucide="layers"></i> Sombras</span>
+          <span><i data-lucide="layers"></i> {% trans "Sombras" %}</span>
           <input type="checkbox" id="toggle-shadows">
           <span class="switch" aria-hidden="true"></span>
         </label>
         <label class="scene-toggle">
-          <span><i data-lucide="grid-3x3"></i> Cuadrícula</span>
+          <span><i data-lucide="grid-3x3"></i> {% trans "Cuadrícula" %}</span>
           <input type="checkbox" id="toggle-grid" checked>
           <span class="switch" aria-hidden="true"></span>
         </label>
         <label class="scene-toggle">
-          <span><i data-lucide="tag"></i> Etiquetas</span>
+          <span><i data-lucide="tag"></i> {% trans "Etiquetas" %}</span>
           <input type="checkbox" id="toggle-labels">
           <span class="switch" aria-hidden="true"></span>
         </label>
@@ -340,7 +340,7 @@
   </main>
 </div>
 
-<div class="toast" id="studio-toast">Listo</div>
+<div class="toast" id="studio-toast">{% trans "Listo" %}</div>
 
 <script src="https://unpkg.com/lucide@latest"></script>
 <script type="module" src="{% static 'recursos_educativos/cuerpo-humano/js/studio.js' %}"></script>

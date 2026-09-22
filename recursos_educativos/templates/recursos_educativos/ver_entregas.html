@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
 {% block contenido %}
@@ -81,19 +82,19 @@
           <h1 class="ps-hero-title"><i class="bi bi-people-fill me-2" style="opacity:.85"></i>{{ recurso.actividad.titulo }}</h1>
           <p class="ps-hero-sub">
             {{ recurso.actividad.curso.materia.nombre_materia }} · {{ recurso.actividad.curso.grado.nombre }}
-            &nbsp;·&nbsp; Nota máx: {{ recurso.valor_maximo }}
+            &nbsp;·&nbsp; {% blocktrans with valor_max=recurso.valor_maximo %}Nota máx: {{ valor_max }}{% endblocktrans %}
           </p>
         </div>
       </div>
       <div class="d-flex gap-2 flex-wrap">
         {% with total=filas|length completas=0 %}
-          <span class="ps-hero-badge"><i class="bi bi-people me-1"></i>{{ filas|length }} estudiantes</span>
+          <span class="ps-hero-badge"><i class="bi bi-people me-1"></i>{% blocktrans with total_est=filas|length %}{{ total_est }} estudiantes{% endblocktrans %}</span>
         {% endwith %}
         {% if recurso.tiene_galeria %}
-          <span class="ps-hero-badge"><i class="bi bi-images me-1"></i>Galería</span>
+          <span class="ps-hero-badge"><i class="bi bi-images me-1"></i>{% trans "Galería" %}</span>
         {% endif %}
         {% if recurso.tiene_studio %}
-          <span class="ps-hero-badge"><i class="bi bi-boxes me-1"></i>Studio</span>
+          <span class="ps-hero-badge"><i class="bi bi-boxes me-1"></i>{% trans "Studio" %}</span>
         {% endif %}
       </div>
     </div>
@@ -104,13 +105,13 @@
       <table class="ps-table">
         <thead>
           <tr>
-            <th>Estudiante</th>
-            <th class="text-center">Estado</th>
+            <th>{% trans "Estudiante" %}</th>
+            <th class="text-center">{% trans "Estado" %}</th>
             {% if recurso.tiene_studio %}
-              <th class="text-center">Piezas Studio</th>
+              <th class="text-center">{% trans "Piezas Studio" %}</th>
             {% endif %}
-            <th class="text-center">Nota actual</th>
-            <th class="text-center">Ajustar nota</th>
+            <th class="text-center">{% trans "Nota actual" %}</th>
+            <th class="text-center">{% trans "Ajustar nota" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -133,12 +134,12 @@
             <td class="text-center">
               {% if fila.entrega %}
                 {% if fila.entrega.completado %}
-                  <span class="ps-badge ps-badge-ok"><i class="bi bi-check-circle-fill"></i> Completado</span>
+                  <span class="ps-badge ps-badge-ok"><i class="bi bi-check-circle-fill"></i> {% trans "Completado" %}</span>
                 {% else %}
-                  <span class="ps-badge ps-badge-prog"><i class="bi bi-clock-fill"></i> En progreso</span>
+                  <span class="ps-badge ps-badge-prog"><i class="bi bi-clock-fill"></i> {% trans "En progreso" %}</span>
                 {% endif %}
               {% else %}
-                <span class="ps-badge ps-badge-pending"><i class="bi bi-dash-circle"></i> Pendiente</span>
+                <span class="ps-badge ps-badge-pending"><i class="bi bi-dash-circle"></i> {% trans "Pendiente" %}</span>
               {% endif %}
             </td>
 
@@ -162,9 +163,9 @@
               {% if fila.calificacion %}
                 <span style="font-weight:800;color:#1e1b4b;font-size:1rem;">{{ fila.calificacion.valor_numerico }}</span>
                 {% if fila.calificacion.registrada_por %}
-                  <div style="font-size:.72rem;color:#94a3b8;">Ajustada manualmente</div>
+                  <div style="font-size:.72rem;color:#94a3b8;">{% trans "Ajustada manualmente" %}</div>
                 {% else %}
-                  <div style="font-size:.72rem;color:#94a3b8;">Auto-calculada</div>
+                  <div style="font-size:.72rem;color:#94a3b8;">{% trans "Auto-calculada" %}</div>
                 {% endif %}
               {% else %}
                 <span style="color:#cbd5e1;">—</span>
@@ -179,7 +180,7 @@
                        step="0.01" min="0" max="{{ recurso.valor_maximo }}"
                        value="{{ fila.calificacion.valor_numerico|default:'' }}"
                        placeholder="0.00">
-                <button type="submit" class="nota-btn" title="Guardar nota">
+                <button type="submit" class="nota-btn" title="{% trans 'Guardar nota' %}">
                   <i class="bi bi-check-lg"></i>
                 </button>
               </form>
@@ -189,7 +190,7 @@
           <tr>
             <td colspan="5" style="text-align:center;padding:2.5rem;color:#94a3b8;">
               <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.4;"></i>
-              No hay estudiantes en este grado.
+              {% trans "No hay estudiantes en este grado." %}
             </td>
           </tr>
           {% endfor %}

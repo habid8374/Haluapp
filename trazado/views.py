@@ -91,10 +91,10 @@ def _leer_plantillas(request):
         if not texto:
             continue
         if audio and not _audio_valido(audio):
-            return None, "Cada audio debe pesar máximo 3 MB."
+            return None, _("Cada audio debe pesar máximo 3 MB.")
         plantillas.append({'texto': texto, 'audio': audio})
         if len(plantillas) > MAX_PLANTILLAS:
-            return None, f"Máximo {MAX_PLANTILLAS} letras/palabras por tablero."
+            return None, _("Máximo %(max_plantillas)s letras/palabras por tablero.") % {'max_plantillas': MAX_PLANTILLAS}
     return plantillas, None
 
 
@@ -438,24 +438,24 @@ def guardar_trazo(request, pk):
     tablero = _tablero_para_estudiante(pk, estudiante)
     disp, _m = tablero.estado_disponibilidad()
     if disp != 'disponible':
-        return JsonResponse({'error': 'Esta actividad ya no está disponible.'}, status=403)
+        return JsonResponse({'error': _('Esta actividad ya no está disponible.')}, status=403)
 
     try:
         datos = json.loads(request.body or '{}')
         plantilla_id = int(datos.get('plantilla'))
         data_url = str(datos.get('imagen') or '')
     except (TypeError, ValueError):
-        return JsonResponse({'error': 'Datos inválidos.'}, status=400)
+        return JsonResponse({'error': _('Datos inválidos.')}, status=400)
 
     if ';base64,' not in data_url or not data_url.startswith('data:image/'):
-        return JsonResponse({'error': 'Imagen inválida.'}, status=400)
+        return JsonResponse({'error': _('Imagen inválida.')}, status=400)
     cabecera, b64 = data_url.split(';base64,', 1)
     try:
         binario = base64.b64decode(b64)
     except (binascii.Error, ValueError):
-        return JsonResponse({'error': 'Imagen inválida.'}, status=400)
+        return JsonResponse({'error': _('Imagen inválida.')}, status=400)
     if len(binario) > MAX_TRAZO:
-        return JsonResponse({'error': 'El dibujo es demasiado grande.'}, status=400)
+        return JsonResponse({'error': _('El dibujo es demasiado grande.')}, status=400)
 
     plantilla = get_object_or_404(PlantillaTrazado, pk=plantilla_id, tablero=tablero)
 
@@ -470,7 +470,7 @@ def guardar_trazo(request, pk):
                 total=tablero.plantillas.count(),
             )
         if intento.completado:
-            return JsonResponse({'error': 'Ya completaste esta actividad.'}, status=403)
+            return JsonResponse({'error': _('Ya completaste esta actividad.')}, status=403)
 
         trazo, _created = TrazoEstudiante.objects.get_or_create(
             intento=intento, plantilla=plantilla,

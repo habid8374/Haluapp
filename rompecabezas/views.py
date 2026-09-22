@@ -374,7 +374,7 @@ def _registrar_calificacion(rc, estudiante, puntaje):
         institucion=rc.institucion,
         defaults={
             'valor_numerico': puntaje,
-            'observaciones': "Rompecabezas autocorregido: armado correctamente.",
+            'observaciones': _("Rompecabezas autocorregido: armado correctamente."),
         },
     )
 

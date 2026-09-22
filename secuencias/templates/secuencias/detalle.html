@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
@@ -13,42 +14,43 @@
     <h2 style="color:#fff;" class="mb-1"><i class="bi bi-sort-numeric-down"></i> {{ actividad.titulo }}</h2>
     <p style="color:#fff;" class="mb-0">
       {{ actividad.curso.materia.nombre_materia }} · {{ actividad.curso.grado.nombre }} ·
-      {% if actividad.estado == 'PUBLICADO' %}<span class="badge bg-light text-success">Publicado</span>
-      {% elif actividad.estado == 'CERRADO' %}<span class="badge bg-light text-secondary">Cerrado</span>
-      {% else %}<span class="badge bg-light text-dark">Borrador</span>{% endif %}
+      {% if actividad.estado == 'PUBLICADO' %}<span class="badge bg-light text-success">{% trans "Publicado" %}</span>
+      {% elif actividad.estado == 'CERRADO' %}<span class="badge bg-light text-secondary">{% trans "Cerrado" %}</span>
+      {% else %}<span class="badge bg-light text-dark">{% trans "Borrador" %}</span>{% endif %}
     </p>
   </div>
-  <a href="{% url 'secuencias:lista' %}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> Volver</a>
+  <a href="{% url 'secuencias:lista' %}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> {% trans "Volver" %}</a>
 </div>
 
 <div class="d-flex flex-wrap gap-2 mb-3">
   {% if actividad.estado == 'BORRADOR' %}
     <form method="post" action="{% url 'secuencias:publicar' actividad.pk %}">{% csrf_token %}
-      <button class="btn btn-success"><i class="bi bi-send me-1"></i> Publicar</button>
+      <button class="btn btn-success"><i class="bi bi-send me-1"></i> {% trans "Publicar" %}</button>
     </form>
   {% elif actividad.estado == 'PUBLICADO' %}
-    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCerrar"><i class="bi bi-stop-circle me-1"></i> Cerrar</button>
+    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCerrar"><i class="bi bi-stop-circle me-1"></i> {% trans "Cerrar" %}</button>
   {% endif %}
-  <a href="{% url 'secuencias:resultados' actividad.pk %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> Resultados</a>
-  <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalDatos"><i class="bi bi-pencil-square me-1"></i> Editar datos</button>
-  <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalFechas"><i class="bi bi-calendar-range me-1"></i> Fechas</button>
-  <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"><i class="bi bi-trash me-1"></i> Eliminar</button>
+  <a href="{% url 'secuencias:resultados' actividad.pk %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-1"></i> {% trans "Resultados" %}</a>
+  <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalDatos"><i class="bi bi-pencil-square me-1"></i> {% trans "Editar datos" %}</button>
+  <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalFechas"><i class="bi bi-calendar-range me-1"></i> {% trans "Fechas" %}</button>
+  <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar"><i class="bi bi-trash me-1"></i> {% trans "Eliminar" %}</button>
 </div>
 
 {% if actividad.estado != 'BORRADOR' %}
 <div class="alert alert-warning d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.85rem;">
   <i class="bi bi-exclamation-triangle-fill"></i>
-  <span>Esta secuencia ya está publicada. Puedes editarla, pero los cambios pueden afectar a estudiantes que aún no la han resuelto (las notas ya registradas se conservan).</span>
+  <span>{% trans "Esta secuencia ya está publicada. Puedes editarla, pero los cambios pueden afectar a estudiantes que aún no la han resuelto (las notas ya registradas se conservan)." %}</span>
 </div>
 {% endif %}
 
 <div class="alert alert-light border d-flex align-items-center gap-2 mb-3" style="border-radius:12px;font-size:.88rem;">
   <i class="bi bi-calendar-range text-success"></i>
-  <span><b>Disponible desde:</b> {{ actividad.fecha_inicio|date:"d/m/Y H:i"|default:"sin límite" }} · <b>Plazo final:</b> {{ actividad.fecha_fin|date:"d/m/Y H:i"|default:"sin límite" }}</span>
+  {% trans "sin límite" as sin_limite %}
+  <span><b>{% trans "Disponible desde:" %}</b> {{ actividad.fecha_inicio|date:"d/m/Y H:i"|default:sin_limite }} · <b>{% trans "Plazo final:" %}</b> {{ actividad.fecha_fin|date:"d/m/Y H:i"|default:sin_limite }}</span>
 </div>
 
 <div class="card mb-3" style="border-radius:14px;border:none;box-shadow:0 2px 12px rgba(0,0,0,.07);">
-  <div class="card-header bg-white border-0 fw-800">Orden correcto ({{ items|length }}) — editable</div>
+  <div class="card-header bg-white border-0 fw-800">{% blocktrans with n=items|length %}Orden correcto ({{ n }}) — editable{% endblocktrans %}</div>
   <div class="card-body">
     {% for it in items %}
       <div class="d-flex align-items-center gap-2 mb-2" style="border:1px solid #e9d5ff;border-radius:10px;padding:.4rem;">
@@ -61,26 +63,26 @@
         </div>
         {% if it.imagen %}<img src="{{ it.imagen.url }}" class="seq-thumb" alt="">{% endif %}
         <form method="post" enctype="multipart/form-data" action="{% url 'secuencias:editar_item' actividad.pk it.pk %}" class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">{% csrf_token %}
-          <input type="text" name="texto" class="form-control form-control-sm" value="{{ it.texto }}" placeholder="Texto (opc.)" style="max-width:160px;">
+          <input type="text" name="texto" class="form-control form-control-sm" value="{{ it.texto }}" placeholder="{% trans "Texto (opc.)" %}" style="max-width:160px;">
           <input type="file" name="imagen" class="form-control form-control-sm" accept="image/*" style="max-width:170px;">
-          {% if it.imagen %}<span class="form-check" style="font-size:.72rem;"><input type="checkbox" name="quitar_imagen" class="form-check-input"> quitar</span>{% endif %}
-          <button class="btn btn-sm btn-outline-success ms-auto" title="Guardar"><i class="bi bi-check-lg"></i></button>
+          {% if it.imagen %}<span class="form-check" style="font-size:.72rem;"><input type="checkbox" name="quitar_imagen" class="form-check-input"> {% trans "quitar" %}</span>{% endif %}
+          <button class="btn btn-sm btn-outline-success ms-auto" title="{% trans "Guardar" %}"><i class="bi bi-check-lg"></i></button>
         </form>
-        <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar"
+        <button type="button" class="btn btn-sm btn-outline-danger" title="{% trans "Eliminar" %}"
                 data-bs-toggle="modal" data-bs-target="#modalBorrarItem"
                 data-action="{% url 'secuencias:eliminar_item' actividad.pk it.pk %}"><i class="bi bi-trash"></i></button>
       </div>
     {% empty %}
-      <p class="text-center py-2 text-muted mb-0">Sin elementos todavía.</p>
+      <p class="text-center py-2 text-muted mb-0">{% trans "Sin elementos todavía." %}</p>
     {% endfor %}
     <hr>
     <form method="post" enctype="multipart/form-data" action="{% url 'secuencias:agregar_item' actividad.pk %}" class="d-flex align-items-center gap-2 flex-wrap">{% csrf_token %}
       <i class="bi bi-plus-circle text-success"></i>
-      <input type="text" name="texto" class="form-control form-control-sm" placeholder="Texto (opc.)" style="max-width:160px;">
+      <input type="text" name="texto" class="form-control form-control-sm" placeholder="{% trans "Texto (opc.)" %}" style="max-width:160px;">
       <input type="file" name="imagen" class="form-control form-control-sm" accept="image/*" style="max-width:170px;">
-      <button class="btn btn-sm" style="background:#7e22ce;color:#fff;"><i class="bi bi-plus-lg me-1"></i>Agregar al final</button>
+      <button class="btn btn-sm" style="background:#7e22ce;color:#fff;"><i class="bi bi-plus-lg me-1"></i>{% trans "Agregar al final" %}</button>
     </form>
-    <p class="text-muted mt-2 mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>El número es la posición correcta. Usa las flechas para reordenar.</p>
+    <p class="text-muted mt-2 mb-0" style="font-size:.8rem;"><i class="bi bi-info-circle me-1"></i>{% trans "El número es la posición correcta. Usa las flechas para reordenar." %}</p>
   </div>
 </div>
 
@@ -88,24 +90,24 @@
 <div class="modal fade" id="modalDatos" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <form method="post" action="{% url 'secuencias:editar_datos' actividad.pk %}">{% csrf_token %}
-    <div class="modal-header"><h5 class="modal-title fw-800">Editar datos</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-header"><h5 class="modal-title fw-800">{% trans "Editar datos" %}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
-      <div class="mb-2"><label class="form-label">Título</label>
+      <div class="mb-2"><label class="form-label">{% trans "Título" %}</label>
         <input type="text" name="titulo" class="form-control" value="{{ actividad.titulo }}" required></div>
-      <div class="mb-2"><label class="form-label">Instrucciones</label>
+      <div class="mb-2"><label class="form-label">{% trans "Instrucciones" %}</label>
         <input type="text" name="instrucciones" class="form-control" value="{{ actividad.instrucciones }}"></div>
       <div class="row g-2">
-        <div class="col-7"><label class="form-label">Categoría (libro de notas)</label>
+        <div class="col-7"><label class="form-label">{% trans "Categoría (libro de notas)" %}</label>
           <select name="tipo_actividad" class="form-select">
             {% for t in tipos %}<option value="{{ t.pk }}" {% if t.pk == actividad.tipo_actividad_id %}selected{% endif %}>{{ t.nombre }}</option>{% endfor %}
           </select></div>
-        <div class="col-5"><label class="form-label">Nota máxima</label>
+        <div class="col-5"><label class="form-label">{% trans "Nota máxima" %}</label>
           <input type="number" step="0.1" min="1" max="5" name="nota_maxima" class="form-control" value="{{ actividad.nota_maxima|floatformat:'-2' }}"></div>
       </div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-      <button class="btn btn-primary">Guardar</button>
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+      <button class="btn btn-primary">{% trans "Guardar" %}</button>
     </div>
     </form>
   </div></div>
@@ -118,10 +120,10 @@
         <i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;font-size:1.2rem;"></i></div>
       <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
     </div>
-    <div class="modal-body pt-2"><h5 class="fw-800 mb-1">¿Eliminar este elemento?</h5></div>
+    <div class="modal-body pt-2"><h5 class="fw-800 mb-1">{% trans "¿Eliminar este elemento?" %}</h5></div>
     <div class="modal-footer border-0">
-      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-      <form id="form-borrar-item" method="post">{% csrf_token %}<button class="btn btn-danger btn-sm">Sí, eliminar</button></form>
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+      <form id="form-borrar-item" method="post">{% csrf_token %}<button class="btn btn-danger btn-sm">{% trans "Sí, eliminar" %}</button></form>
     </div>
   </div></div>
 </div>

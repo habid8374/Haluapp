@@ -15,39 +15,40 @@ Multi-institución: TODO se filtra por `institucion`.
 """
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class JuegoMemoria(models.Model):
     class Estado(models.TextChoices):
-        BORRADOR = 'BORRADOR', 'Borrador'
-        PUBLICADO = 'PUBLICADO', 'Publicado'
-        CERRADO = 'CERRADO', 'Cerrado'
+        BORRADOR = 'BORRADOR', _('Borrador')
+        PUBLICADO = 'PUBLICADO', _('Publicado')
+        CERRADO = 'CERRADO', _('Cerrado')
 
     class ModoNota(models.TextChoices):
-        COMPLETAR = 'COMPLETAR', 'Completar el juego = nota máxima'
-        EFICIENCIA = 'EFICIENCIA', 'Por eficiencia (menos intentos, mejor nota)'
+        COMPLETAR = 'COMPLETAR', _('Completar el juego = nota máxima')
+        EFICIENCIA = 'EFICIENCIA', _('Por eficiencia (menos intentos, mejor nota)')
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='juegos_memoria', verbose_name="Institución",
+        related_name='juegos_memoria', verbose_name=_("Institución"),
     )
     curso = models.ForeignKey(
         'gestion_academica.Curso', on_delete=models.CASCADE,
-        related_name='juegos_memoria', verbose_name="Curso",
+        related_name='juegos_memoria', verbose_name=_("Curso"),
     )
-    titulo = models.CharField(max_length=200, verbose_name="Título")
-    instrucciones = models.TextField(blank=True, default='', verbose_name="Instrucciones")
+    titulo = models.CharField(max_length=200, verbose_name=_("Título"))
+    instrucciones = models.TextField(blank=True, default='', verbose_name=_("Instrucciones"))
 
     tipo_actividad = models.ForeignKey(
         'gestion_academica.TipoActividad', on_delete=models.PROTECT,
-        verbose_name="Categoría (para el libro de notas)",
+        verbose_name=_("Categoría (para el libro de notas)"),
     )
     nota_maxima = models.DecimalField(
-        max_digits=4, decimal_places=2, default=5.0, verbose_name="Nota máxima",
+        max_digits=4, decimal_places=2, default=5.0, verbose_name=_("Nota máxima"),
     )
     modo_nota = models.CharField(
         max_length=12, choices=ModoNota.choices, default=ModoNota.COMPLETAR,
-        verbose_name="Cómo se califica",
+        verbose_name=_("Cómo se califica"),
     )
     actividad_calificable = models.OneToOneField(
         'gestion_academica.ActividadCalificable', null=True, blank=True,
@@ -56,11 +57,11 @@ class JuegoMemoria(models.Model):
 
     estado = models.CharField(
         max_length=10, choices=Estado.choices, default=Estado.BORRADOR,
-        verbose_name="Estado",
+        verbose_name=_("Estado"),
     )
-    fecha_inicio = models.DateTimeField(null=True, blank=True, verbose_name="Disponible desde")
-    fecha_fin = models.DateTimeField(null=True, blank=True, verbose_name="Plazo final")
-    fecha_cierre = models.DateTimeField(null=True, blank=True, verbose_name="Cierre")
+    fecha_inicio = models.DateTimeField(null=True, blank=True, verbose_name=_("Disponible desde"))
+    fecha_fin = models.DateTimeField(null=True, blank=True, verbose_name=_("Plazo final"))
+    fecha_cierre = models.DateTimeField(null=True, blank=True, verbose_name=_("Cierre"))
 
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
@@ -70,8 +71,8 @@ class JuegoMemoria(models.Model):
 
     class Meta:
         ordering = ['-creado_en']
-        verbose_name = "Juego de memoria"
-        verbose_name_plural = "Juegos de memoria"
+        verbose_name = _("Juego de memoria")
+        verbose_name_plural = _("Juegos de memoria")
 
     def __str__(self):
         return f"{self.titulo} ({self.get_estado_display()})"
@@ -80,13 +81,15 @@ class JuegoMemoria(models.Model):
         """('disponible'|'proximo'|'vencido'|'cerrado', mensaje) para el estudiante."""
         from django.utils import timezone
         if self.estado != self.Estado.PUBLICADO:
-            return ('cerrado', 'No disponible')
+            return ('cerrado', _('No disponible'))
         ahora = timezone.now()
         if self.fecha_inicio and ahora < self.fecha_inicio:
-            return ('proximo', f"Disponible desde el {timezone.localtime(self.fecha_inicio):%d/%m/%Y %H:%M}")
+            fecha = timezone.localtime(self.fecha_inicio).strftime('%d/%m/%Y %H:%M')
+            return ('proximo', _("Disponible desde el %(fecha)s") % {'fecha': fecha})
         if self.fecha_fin and ahora > self.fecha_fin:
-            return ('vencido', f"El plazo venció el {timezone.localtime(self.fecha_fin):%d/%m/%Y %H:%M}")
-        return ('disponible', 'Disponible')
+            fecha = timezone.localtime(self.fecha_fin).strftime('%d/%m/%Y %H:%M')
+            return ('vencido', _("El plazo venció el %(fecha)s") % {'fecha': fecha})
+        return ('disponible', _('Disponible'))
 
 
 class ParejaMemoria(models.Model):
@@ -107,8 +110,8 @@ class ParejaMemoria(models.Model):
 
     class Meta:
         ordering = ['orden', 'id']
-        verbose_name = "Pareja de memoria"
-        verbose_name_plural = "Parejas de memoria"
+        verbose_name = _("Pareja de memoria")
+        verbose_name_plural = _("Parejas de memoria")
 
     def __str__(self):
         return f"Pareja {self.orden} — juego {self.juego_id}"
@@ -124,7 +127,7 @@ class IntentoMemoria(models.Model):
         related_name='intentos_memoria',
     )
     completado = models.BooleanField(default=False)
-    movimientos = models.PositiveIntegerField(default=0, verbose_name="Volteos de 2 tarjetas")
+    movimientos = models.PositiveIntegerField(default=0, verbose_name=_("Volteos de 2 tarjetas"))
     parejas_total = models.PositiveIntegerField(default=0)
     porcentaje = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     puntaje = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
@@ -134,8 +137,8 @@ class IntentoMemoria(models.Model):
     class Meta:
         unique_together = ('juego', 'estudiante')
         ordering = ['-inicio']
-        verbose_name = "Intento de memoria"
-        verbose_name_plural = "Intentos de memoria"
+        verbose_name = _("Intento de memoria")
+        verbose_name_plural = _("Intentos de memoria")
 
     def __str__(self):
         return f"Intento {self.estudiante_id} — juego {self.juego_id}"

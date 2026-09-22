@@ -504,7 +504,9 @@ def _registrar_calificacion(sopa, estudiante, puntaje, encontradas, total):
         institucion=sopa.institucion,
         defaults={
             'valor_numerico': puntaje,
-            'observaciones': f"Sopa de letras autocorregida: {encontradas}/{total} palabras.",
+            'observaciones': _("Sopa de letras autocorregida: %(encontradas)s/%(total)s palabras.") % {
+                'encontradas': encontradas, 'total': total,
+            },
         },
     )
 

@@ -250,16 +250,16 @@ def editar_item(request, pk, item_pk):
     imagen = request.FILES.get('imagen')
     if imagen:
         if not _imagen_valida(imagen):
-            messages.error(request, "La imagen debe pesar máximo 2 MB.")
+            messages.error(request, _("La imagen debe pesar máximo 2 MB."))
             return redirect('secuencias:detalle', pk=act.pk)
         item.imagen = imagen
     elif request.POST.get('quitar_imagen') == 'on':
         item.imagen = None
     if not item.texto and not item.imagen:
-        messages.error(request, "El elemento necesita imagen o texto.")
+        messages.error(request, _("El elemento necesita imagen o texto."))
         return redirect('secuencias:detalle', pk=act.pk)
     item.save()
-    messages.success(request, "Elemento actualizado.")
+    messages.success(request, _("Elemento actualizado."))
     return redirect('secuencias:detalle', pk=act.pk)
 
 
@@ -290,7 +290,7 @@ def eliminar_item(request, pk, item_pk):
     item = get_object_or_404(ItemSecuencia, pk=item_pk, actividad=act)
     item.delete()
     _renumerar(act)
-    messages.success(request, "Elemento eliminado.")
+    messages.success(request, _("Elemento eliminado."))
     return redirect('secuencias:detalle', pk=act.pk)
 
 
@@ -300,7 +300,7 @@ def publicar(request, pk):
     _solo_docente_coord(request.user)
     act = get_object_or_404(_scope(SecuenciaActividad.objects.all(), request.user), pk=pk)
     if act.items.count() < MIN_ITEMS:
-        messages.error(request, f"Necesitas al menos {MIN_ITEMS} elementos para publicar.")
+        messages.error(request, _("Necesitas al menos %(min)s elementos para publicar.") % {'min': MIN_ITEMS})
         return redirect('secuencias:detalle', pk=act.pk)
     from gestion_academica.models import ActividadCalificable
     with transaction.atomic():
@@ -313,7 +313,7 @@ def publicar(request, pk):
             act.actividad_calificable = ac
         act.estado = SecuenciaActividad.Estado.PUBLICADO
         act.save(update_fields=['actividad_calificable', 'estado'])
-    messages.success(request, "¡Secuencia publicada! Ya aparece a los estudiantes del curso.")
+    messages.success(request, _("¡Secuencia publicada! Ya aparece a los estudiantes del curso."))
     return redirect('secuencias:detalle', pk=act.pk)
 
 
@@ -325,7 +325,7 @@ def cerrar(request, pk):
     act.estado = SecuenciaActividad.Estado.CERRADO
     act.fecha_cierre = timezone.now()
     act.save(update_fields=['estado', 'fecha_cierre'])
-    messages.success(request, "Secuencia cerrada.")
+    messages.success(request, _("Secuencia cerrada."))
     return redirect('secuencias:detalle', pk=act.pk)
 
 
@@ -337,7 +337,7 @@ def editar_fechas(request, pk):
     act.fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
     act.fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
     act.save(update_fields=['fecha_inicio', 'fecha_fin'])
-    messages.success(request, "Fechas actualizadas.")
+    messages.success(request, _("Fechas actualizadas."))
     return redirect('secuencias:detalle', pk=act.pk)
 
 
@@ -347,7 +347,7 @@ def eliminar(request, pk):
     _solo_docente_coord(request.user)
     act = get_object_or_404(_scope(SecuenciaActividad.objects.all(), request.user), pk=pk)
     act.delete()
-    messages.success(request, "Secuencia eliminada.")
+    messages.success(request, _("Secuencia eliminada."))
     return redirect('secuencias:lista')
 
 
@@ -464,7 +464,7 @@ def resolver(request, pk):
                 },
             )
             _registrar_calificacion(act, estudiante, puntaje, aciertos, total)
-        messages.success(request, "¡Listo! Aquí está tu resultado.")
+        messages.success(request, _("¡Listo! Aquí está tu resultado."))
         return redirect('secuencias:resultado', pk=act.pk)
 
     return render(request, 'secuencias/resolver.html', {

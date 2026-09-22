@@ -25,11 +25,11 @@
               {% if i.completado %}<span class="badge {% if i.puntaje >= 3 %}bg-success{% else %}bg-danger{% endif %}" style="font-size:.9rem;">{{ i.puntaje|floatformat:1 }}</span>
               {% else %}<span class="text-muted">—</span>{% endif %}
             </td>
-            <td class="text-center">{% if i.completado %}<span class="badge bg-success">Completado</span>{% else %}<span class="badge bg-warning text-dark">En progreso</span>{% endif %}</td>
+            <td class="text-center">{% if i.completado %}<span class="badge bg-success">{% trans "Completado" %}</span>{% else %}<span class="badge bg-warning text-dark">{% trans "En progreso" %}</span>{% endif %}</td>
             <td class="text-center" style="font-size:.82rem;">{{ i.fin|date:"d/m/Y H:i"|default:"—" }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="6" class="text-center py-4 text-muted">Todavía nadie lo ha resuelto.</td></tr>
+          <tr><td colspan="6" class="text-center py-4 text-muted">{% trans "Todavía nadie lo ha resuelto." %}</td></tr>
         {% endfor %}
         </tbody>
       </table>

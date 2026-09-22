@@ -12,6 +12,9 @@
 .tz-borrar { background:linear-gradient(135deg,#64748b,#94a3b8); }
 .tz-listo { background:linear-gradient(135deg,#16a34a,#4ade80); }
 .tz-audio { border:none; border-radius:2rem; background:#e0f2fe; color:#0369a1; font-weight:700; padding:.5rem 1.1rem; }
+.tz-feedback { border-radius:12px; padding:.8rem 1rem; font-weight:700; }
+.tz-feedback.ok { background:#dcfce7; color:#15803d; }
+.tz-feedback.bad { background:#fee2e2; color:#b91c1c; }
 </style>
 {% endblock %}
 {% block contenido %}
@@ -36,6 +39,7 @@
     <button type="button" id="btn-borrar" class="tz-btn tz-borrar"><i class="bi bi-eraser-fill me-1"></i>{% trans "Borrar" %}</button>
     <button type="button" id="btn-listo" class="tz-btn tz-listo"><i class="bi bi-check-lg me-1"></i>{% trans "¡Terminé!" %}</button>
   </div>
+  <div id="tz-feedback" class="tz-feedback bad d-none mt-3" role="alert"></div>
 </div>
 
 <div class="text-center mt-3">
@@ -48,6 +52,7 @@
   const urlGuardar = '{{ url_guardar }}';
   const urlResultado = '{{ url_resultado }}';
   const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const txtErrorEnvio = '{% trans "No pudimos guardar tu trazo. Revisa tu conexión e inténtalo de nuevo." %}';
   const pendientes = plantillas.filter(function(p){ return !p.hecha; });
   const previas = plantillas.length - pendientes.length;
   if (!pendientes.length){ window.location.href = urlResultado; return; }
@@ -115,7 +120,17 @@
     const ab = document.getElementById('tz-audio-btn');
     if (pendientes[idx].audio){ ab.classList.remove('d-none'); ab.dataset.src = pendientes[idx].audio; }
     else { ab.classList.add('d-none'); }
+    ocultarFeedback();
     guia();
+  }
+
+  function mostrarFeedback(texto){
+    const f = document.getElementById('tz-feedback');
+    f.textContent = texto;
+    f.classList.remove('d-none');
+  }
+  function ocultarFeedback(){
+    document.getElementById('tz-feedback').classList.add('d-none');
   }
 
   document.getElementById('tz-audio-btn').addEventListener('click', function(){
@@ -134,13 +149,17 @@
         body: JSON.stringify({ plantilla: pendientes[idx].id, imagen: imagen }),
       });
       const datos = await resp.json();
-      if (datos.error){ alert(datos.error); window.location.href = urlResultado; return; }
+      if (datos.error){
+        mostrarFeedback(datos.error);
+        setTimeout(function(){ window.location.href = urlResultado; }, 1800);
+        return;
+      }
       if (datos.terminado){ window.location.href = urlResultado; return; }
       idx++;
       if (idx >= pendientes.length){ window.location.href = urlResultado; return; }
       mostrar();
     } catch (e) {
-      alert('No pudimos guardar tu trazo. Revisa tu conexión e inténtalo de nuevo.');
+      mostrarFeedback(txtErrorEnvio);
     }
     guardando = false;
   });
