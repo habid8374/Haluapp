@@ -10,6 +10,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from .models import IntentoSecuencia, ItemSecuencia, SecuenciaActividad
@@ -83,10 +84,10 @@ def _leer_items(request):
         if not texto and not imagen:
             continue
         if imagen and not _imagen_valida(imagen):
-            return None, "Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen."
+            return None, _("Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
         items.append({'texto': texto, 'imagen': imagen})
         if len(items) > MAX_ITEMS:
-            return None, f"Máximo {MAX_ITEMS} elementos por secuencia."
+            return None, _("Máximo %(max)s elementos por secuencia.") % {'max': MAX_ITEMS}
     return items, None
 
 
@@ -133,11 +134,11 @@ def crear(request):
 
         items, error = _leer_items(request)
         if not titulo or not curso or not tipo:
-            messages.error(request, "Completa el título, el curso y la categoría.")
+            messages.error(request, _("Completa el título, el curso y la categoría."))
         elif error:
             messages.error(request, error)
         elif items is None or len(items) < MIN_ITEMS:
-            messages.error(request, f"Agrega al menos {MIN_ITEMS} elementos en el orden correcto.")
+            messages.error(request, _("Agrega al menos %(min)s elementos en el orden correcto.") % {'min': MIN_ITEMS})
         else:
             with transaction.atomic():
                 act = SecuenciaActividad.objects.create(
@@ -151,7 +152,7 @@ def crear(request):
                         actividad=act, posicion_correcta=pos,
                         texto=it['texto'], imagen=it['imagen'],
                     )
-            messages.success(request, "Secuencia creada. Revísala y publícala para los estudiantes.")
+            messages.success(request, _("Secuencia creada. Revísala y publícala para los estudiantes."))
             return redirect('secuencias:detalle', pk=act.pk)
 
     return render(request, 'secuencias/form.html', {
@@ -191,7 +192,7 @@ def editar_datos(request, pk):
     act = get_object_or_404(_scope(SecuenciaActividad.objects.all(), request.user), pk=pk)
     titulo = (request.POST.get('titulo') or '').strip()
     if not titulo:
-        messages.error(request, "El título no puede quedar vacío.")
+        messages.error(request, _("El título no puede quedar vacío."))
         return redirect('secuencias:detalle', pk=act.pk)
     act.titulo = titulo
     act.instrucciones = (request.POST.get('instrucciones') or '').strip()
@@ -209,7 +210,7 @@ def editar_datos(request, pk):
         a.tipo_actividad = act.tipo_actividad
         a.descripcion = act.instrucciones or None
         a.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
-    messages.success(request, "Datos actualizados.")
+    messages.success(request, _("Datos actualizados."))
     return redirect('secuencias:detalle', pk=act.pk)
 
 
@@ -221,20 +222,20 @@ def agregar_item(request, pk):
     texto = (request.POST.get('texto') or '').strip()[:60]
     imagen = request.FILES.get('imagen')
     if not texto and not imagen:
-        messages.error(request, "El elemento necesita imagen o texto.")
+        messages.error(request, _("El elemento necesita imagen o texto."))
         return redirect('secuencias:detalle', pk=act.pk)
     if imagen and not _imagen_valida(imagen):
-        messages.error(request, "La imagen debe pesar máximo 2 MB.")
+        messages.error(request, _("La imagen debe pesar máximo 2 MB."))
         return redirect('secuencias:detalle', pk=act.pk)
     if act.items.count() >= MAX_ITEMS:
-        messages.error(request, f"Máximo {MAX_ITEMS} elementos por secuencia.")
+        messages.error(request, _("Máximo %(max)s elementos por secuencia.") % {'max': MAX_ITEMS})
         return redirect('secuencias:detalle', pk=act.pk)
     ultimo = act.items.order_by('-posicion_correcta').first()
     ItemSecuencia.objects.create(
         actividad=act, posicion_correcta=(ultimo.posicion_correcta + 1) if ultimo else 1,
         texto=texto, imagen=imagen,
     )
-    messages.success(request, "Elemento agregado al final.")
+    messages.success(request, _("Elemento agregado al final."))
     return redirect('secuencias:detalle', pk=act.pk)
 
 

@@ -10,31 +10,32 @@ Multi-institución: TODO se filtra por `institucion`.
 """
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class QuizAudio(models.Model):
     class Estado(models.TextChoices):
-        BORRADOR = 'BORRADOR', 'Borrador'
-        PUBLICADO = 'PUBLICADO', 'Publicado'
-        CERRADO = 'CERRADO', 'Cerrado'
+        BORRADOR = 'BORRADOR', _('Borrador')
+        PUBLICADO = 'PUBLICADO', _('Publicado')
+        CERRADO = 'CERRADO', _('Cerrado')
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='quices_audio', verbose_name="Institución",
+        related_name='quices_audio', verbose_name=_("Institución"),
     )
     curso = models.ForeignKey(
         'gestion_academica.Curso', on_delete=models.CASCADE,
-        related_name='quices_audio', verbose_name="Curso",
+        related_name='quices_audio', verbose_name=_("Curso"),
     )
-    titulo = models.CharField(max_length=200, verbose_name="Título")
-    instrucciones = models.TextField(blank=True, default='', verbose_name="Instrucciones")
+    titulo = models.CharField(max_length=200, verbose_name=_("Título"))
+    instrucciones = models.TextField(blank=True, default='', verbose_name=_("Instrucciones"))
 
     tipo_actividad = models.ForeignKey(
         'gestion_academica.TipoActividad', on_delete=models.PROTECT,
-        verbose_name="Categoría (para el libro de notas)",
+        verbose_name=_("Categoría (para el libro de notas)"),
     )
     nota_maxima = models.DecimalField(
-        max_digits=4, decimal_places=2, default=5.0, verbose_name="Nota máxima",
+        max_digits=4, decimal_places=2, default=5.0, verbose_name=_("Nota máxima"),
     )
     actividad_calificable = models.OneToOneField(
         'gestion_academica.ActividadCalificable', null=True, blank=True,
@@ -43,11 +44,11 @@ class QuizAudio(models.Model):
 
     estado = models.CharField(
         max_length=10, choices=Estado.choices, default=Estado.BORRADOR,
-        verbose_name="Estado",
+        verbose_name=_("Estado"),
     )
-    fecha_inicio = models.DateTimeField(null=True, blank=True, verbose_name="Disponible desde")
-    fecha_fin = models.DateTimeField(null=True, blank=True, verbose_name="Plazo final")
-    fecha_cierre = models.DateTimeField(null=True, blank=True, verbose_name="Cierre")
+    fecha_inicio = models.DateTimeField(null=True, blank=True, verbose_name=_("Disponible desde"))
+    fecha_fin = models.DateTimeField(null=True, blank=True, verbose_name=_("Plazo final"))
+    fecha_cierre = models.DateTimeField(null=True, blank=True, verbose_name=_("Cierre"))
 
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
@@ -57,8 +58,8 @@ class QuizAudio(models.Model):
 
     class Meta:
         ordering = ['-creado_en']
-        verbose_name = "Quiz de audio"
-        verbose_name_plural = "Quices de audio"
+        verbose_name = _("Quiz de audio")
+        verbose_name_plural = _("Quices de audio")
 
     def __str__(self):
         return f"{self.titulo} ({self.get_estado_display()})"
@@ -66,25 +67,29 @@ class QuizAudio(models.Model):
     def estado_disponibilidad(self):
         from django.utils import timezone
         if self.estado != self.Estado.PUBLICADO:
-            return ('cerrado', 'No disponible')
+            return ('cerrado', _('No disponible'))
         ahora = timezone.now()
         if self.fecha_inicio and ahora < self.fecha_inicio:
-            return ('proximo', f"Disponible desde el {timezone.localtime(self.fecha_inicio):%d/%m/%Y %H:%M}")
+            return ('proximo', _("Disponible desde el %(fecha)s") % {
+                'fecha': f"{timezone.localtime(self.fecha_inicio):%d/%m/%Y %H:%M}",
+            })
         if self.fecha_fin and ahora > self.fecha_fin:
-            return ('vencido', f"El plazo venció el {timezone.localtime(self.fecha_fin):%d/%m/%Y %H:%M}")
-        return ('disponible', 'Disponible')
+            return ('vencido', _("El plazo venció el %(fecha)s") % {
+                'fecha': f"{timezone.localtime(self.fecha_fin):%d/%m/%Y %H:%M}",
+            })
+        return ('disponible', _('Disponible'))
 
 
 class PreguntaAudio(models.Model):
     quiz = models.ForeignKey(QuizAudio, on_delete=models.CASCADE, related_name='preguntas')
     orden = models.PositiveIntegerField(default=0)
     audio = models.FileField(upload_to='quiz_audio/audios/')
-    enunciado = models.CharField(max_length=200, blank=True, default='', verbose_name="Texto (opcional)")
+    enunciado = models.CharField(max_length=200, blank=True, default='', verbose_name=_("Texto (opcional)"))
 
     class Meta:
         ordering = ['orden', 'id']
-        verbose_name = "Pregunta de audio"
-        verbose_name_plural = "Preguntas de audio"
+        verbose_name = _("Pregunta de audio")
+        verbose_name_plural = _("Preguntas de audio")
 
     def __str__(self):
         return f"Pregunta {self.orden} — quiz {self.quiz_id}"
@@ -99,8 +104,8 @@ class OpcionAudio(models.Model):
 
     class Meta:
         ordering = ['orden', 'id']
-        verbose_name = "Opción de audio"
-        verbose_name_plural = "Opciones de audio"
+        verbose_name = _("Opción de audio")
+        verbose_name_plural = _("Opciones de audio")
 
     def __str__(self):
         return f"Opción {self.orden} (pregunta {self.pregunta_id})"
@@ -126,8 +131,8 @@ class IntentoQuizAudio(models.Model):
     class Meta:
         unique_together = ('quiz', 'estudiante')
         ordering = ['-inicio']
-        verbose_name = "Intento de quiz de audio"
-        verbose_name_plural = "Intentos de quiz de audio"
+        verbose_name = _("Intento de quiz de audio")
+        verbose_name_plural = _("Intentos de quiz de audio")
 
     def __str__(self):
         return f"Intento {self.estudiante_id} — quiz {self.quiz_id}"

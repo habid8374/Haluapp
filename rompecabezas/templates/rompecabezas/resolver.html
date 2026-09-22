@@ -67,6 +67,8 @@
   const FILAS = {{ rc.filas }};
   const COLUMNAS = {{ rc.columnas }};
   const IMAGEN_URL = "{{ rc.imagen.url|escapejs }}";
+  const AYUDA_PREFIX = '{% trans "Todavía hay" %}';
+  const AYUDA_SUFFIX = '{% trans "pieza(s) fuera de lugar — se resaltaron en rojo (aunque se vean parecidas a simple vista)." %}';
   const N = FILAS * COLUMNAS;
   const tablero = document.getElementById('rc-tablero');
   const inicio = Date.now();
@@ -185,7 +187,7 @@
         setTimeout(function(){ div.classList.remove('rc-incorrecta'); }, 1800);
       }
     });
-    ayuda.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i>Todavía hay ' + faltan + ' pieza(s) fuera de lugar — se resaltaron en rojo (aunque se vean parecidas a simple vista).';
+    ayuda.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1 text-danger"></i>' + AYUDA_PREFIX + ' ' + faltan + ' ' + AYUDA_SUFFIX;
   });
 })();
 </script>

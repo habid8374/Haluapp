@@ -111,16 +111,16 @@ def _leer_tarjetas(request):
         if not any([pista, respuesta, imagen, audio]):
             continue  # fila vacía
         if not respuesta:
-            return None, "Cada tarjeta necesita su respuesta correcta."
+            return None, _("Cada tarjeta necesita su respuesta correcta.")
         if not pista and not imagen:
-            return None, "Cada tarjeta necesita una imagen o una descripción/pista."
+            return None, _("Cada tarjeta necesita una imagen o una descripción/pista.")
         if imagen and not _imagen_valida(imagen):
-            return None, "Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen."
+            return None, _("Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
         if audio and not _audio_valido(audio):
-            return None, "Cada audio debe pesar máximo 3 MB."
+            return None, _("Cada audio debe pesar máximo 3 MB.")
         tarjetas.append({'pista': pista, 'respuesta': respuesta, 'imagen': imagen, 'audio': audio})
         if len(tarjetas) > MAX_TARJETAS:
-            return None, f"Máximo {MAX_TARJETAS} tarjetas por mazo."
+            return None, _("Máximo %(max_tarjetas)s tarjetas por mazo.") % {'max_tarjetas': MAX_TARJETAS}
     return tarjetas, None
 
 
@@ -480,14 +480,14 @@ def responder(request, pk):
     mazo = _mazo_para_estudiante(pk, estudiante)
     disp, _msg = mazo.estado_disponibilidad()
     if disp != 'disponible':
-        return JsonResponse({'error': 'El plazo de esta actividad ya no está disponible.'}, status=403)
+        return JsonResponse({'error': _('El plazo de esta actividad ya no está disponible.')}, status=403)
 
     try:
         datos = json.loads(request.body or '{}')
         tarjeta_id = int(datos.get('tarjeta'))
         texto = str(datos.get('respuesta') or '')[:120]
     except (TypeError, ValueError):
-        return JsonResponse({'error': 'Datos inválidos.'}, status=400)
+        return JsonResponse({'error': _('Datos inválidos.')}, status=400)
 
     tarjeta = get_object_or_404(TarjetaFlashcard, pk=tarjeta_id, mazo=mazo)
 
@@ -502,7 +502,7 @@ def responder(request, pk):
                 total=mazo.tarjetas.count(),
             )
         if intento.completado:
-            return JsonResponse({'error': 'Ya completaste esta actividad.'}, status=403)
+            return JsonResponse({'error': _('Ya completaste esta actividad.')}, status=403)
 
         clave = str(tarjeta.id)
         previo = intento.respuestas.get(clave)

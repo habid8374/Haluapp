@@ -99,28 +99,28 @@ def _leer_preguntas(request):
             texto = (request.POST.get(f'txt_{i}_{j}') or '').strip()[:60]
             if imagen or texto:
                 if imagen and not _imagen_valida(imagen):
-                    return None, "Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen."
+                    return None, _("Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
                 opciones.append({'j': j, 'imagen': imagen, 'texto': texto})
         if not audio and not enunciado and not opciones:
             continue  # fila vacía
         if not audio:
-            return None, "Cada pregunta necesita su audio."
+            return None, _("Cada pregunta necesita su audio.")
         if not _audio_valido(audio):
-            return None, "Cada audio debe pesar máximo 3 MB."
+            return None, _("Cada audio debe pesar máximo 3 MB.")
         if len(opciones) < 2:
-            return None, "Cada pregunta necesita al menos 2 opciones (imagen o texto)."
+            return None, _("Cada pregunta necesita al menos 2 opciones (imagen o texto).")
         try:
             correcta = int(correcta_raw)
         except (TypeError, ValueError):
             correcta = -1
         if correcta not in [o['j'] for o in opciones]:
-            return None, "Marca cuál es la opción correcta en cada pregunta."
+            return None, _("Marca cuál es la opción correcta en cada pregunta.")
         preguntas.append({
             'audio': audio, 'enunciado': enunciado,
             'correcta': correcta, 'opciones': opciones,
         })
         if len(preguntas) > MAX_PREGUNTAS:
-            return None, f"Máximo {MAX_PREGUNTAS} preguntas por quiz."
+            return None, _("Máximo %(max_preguntas)s preguntas por quiz.") % {'max_preguntas': MAX_PREGUNTAS}
     return preguntas, None
 
 
@@ -488,14 +488,14 @@ def responder(request, pk):
     quiz = _quiz_para_estudiante(pk, estudiante)
     disp, _m = quiz.estado_disponibilidad()
     if disp != 'disponible':
-        return JsonResponse({'error': 'Esta actividad ya no está disponible.'}, status=403)
+        return JsonResponse({'error': _('Esta actividad ya no está disponible.')}, status=403)
 
     try:
         datos = json.loads(request.body or '{}')
         pregunta_id = int(datos.get('pregunta'))
         opcion_id = int(datos.get('opcion'))
     except (TypeError, ValueError):
-        return JsonResponse({'error': 'Datos inválidos.'}, status=400)
+        return JsonResponse({'error': _('Datos inválidos.')}, status=400)
 
     pregunta = get_object_or_404(PreguntaAudio, pk=pregunta_id, quiz=quiz)
     opcion = get_object_or_404(OpcionAudio, pk=opcion_id, pregunta=pregunta)
@@ -512,7 +512,7 @@ def responder(request, pk):
                 total=quiz.preguntas.count(),
             )
         if intento.completado:
-            return JsonResponse({'error': 'Ya completaste esta actividad.'}, status=403)
+            return JsonResponse({'error': _('Ya completaste esta actividad.')}, status=403)
 
         clave = str(pregunta.id)
         if clave not in intento.respuestas:

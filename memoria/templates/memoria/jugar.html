@@ -37,7 +37,7 @@
         <div class="mem-inner">
           <div class="mem-face mem-back"><i class="bi bi-question-lg"></i></div>
           <div class="mem-face mem-front">
-            {% if c.imagen %}<img src="{{ c.imagen }}" alt="tarjeta">{% else %}<span>{{ c.texto }}</span>{% endif %}
+            {% if c.imagen %}<img src="{{ c.imagen }}" alt="{% trans "tarjeta" %}">{% else %}<span>{{ c.texto }}</span>{% endif %}
           </div>
         </div>
       </div>

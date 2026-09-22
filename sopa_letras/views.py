@@ -10,6 +10,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from .layout import generar_sopa, normalizar
@@ -121,7 +122,7 @@ def lista(request):
         docente = getattr(request.user, 'docente', None)
         sopas = sopas.filter(curso__docentes_asignados=docente) if docente else sopas.none()
     return render(request, 'sopa_letras/lista.html', {
-        'titulo_pagina': 'Sopas de letras',
+        'titulo_pagina': _('Sopas de letras'),
         'sopas': sopas,
     })
 
@@ -155,9 +156,9 @@ def crear(request):
         palabras_validas = [t.strip() for t in textos if t.strip() and len(normalizar(t)) >= 2]
 
         if not titulo or not curso or not tipo:
-            messages.error(request, "Completa el título, el curso y la categoría.")
+            messages.error(request, _("Completa el título, el curso y la categoría."))
         elif len(palabras_validas) < 3:
-            messages.error(request, "Agrega al menos 3 palabras (de 2 letras o más, sin espacios).")
+            messages.error(request, _("Agrega al menos 3 palabras (de 2 letras o más, sin espacios)."))
         else:
             with transaction.atomic():
                 sopa = Sopa.objects.create(
@@ -170,11 +171,11 @@ def crear(request):
                     PalabraSopa(sopa=sopa, texto=t, orden=i)
                     for i, t in enumerate(palabras_validas, start=1)
                 ])
-            messages.success(request, "Sopa creada. Revísala y publícala para los estudiantes.")
+            messages.success(request, _("Sopa creada. Revísala y publícala para los estudiantes."))
             return redirect('sopa_letras:detalle', pk=sopa.pk)
 
     return render(request, 'sopa_letras/form.html', {
-        'titulo_pagina': 'Nueva sopa de letras',
+        'titulo_pagina': _('Nueva sopa de letras'),
         'cursos': cursos, 'tipos': tipos,
     })
 
@@ -207,7 +208,7 @@ def publicar(request, pk):
     sopa = get_object_or_404(_scope(Sopa.objects.all(), request.user), pk=pk)
     palabras = list(sopa.palabras.all())
     if len(palabras) < 3:
-        messages.error(request, "Necesitas al menos 3 palabras para publicar.")
+        messages.error(request, _("Necesitas al menos 3 palabras para publicar."))
         return redirect('sopa_letras:detalle', pk=sopa.pk)
 
     from gestion_academica.models import ActividadCalificable
@@ -215,7 +216,7 @@ def publicar(request, pk):
         [{'id': p.id, 'texto': p.texto} for p in palabras]
     )
     if not grid:
-        messages.error(request, "No se pudo generar la sopa. Prueba con palabras más cortas o menos palabras.")
+        messages.error(request, _("No se pudo generar la sopa. Prueba con palabras más cortas o menos palabras."))
         return redirect('sopa_letras:detalle', pk=sopa.pk)
 
     by_id = {pl['id']: pl for pl in placements}
@@ -236,7 +237,7 @@ def publicar(request, pk):
             sopa.actividad_calificable = act
         sopa.estado = Sopa.Estado.PUBLICADO
         sopa.save(update_fields=['grid', 'tamano', 'actividad_calificable', 'estado'])
-    messages.success(request, "¡Sopa publicada! Ya aparece a los estudiantes del curso.")
+    messages.success(request, _("¡Sopa publicada! Ya aparece a los estudiantes del curso."))
     return redirect('sopa_letras:detalle', pk=sopa.pk)
 
 
@@ -248,7 +249,7 @@ def cerrar(request, pk):
     sopa.estado = Sopa.Estado.CERRADO
     sopa.fecha_cierre = timezone.now()
     sopa.save(update_fields=['estado', 'fecha_cierre'])
-    messages.success(request, "Sopa cerrada.")
+    messages.success(request, _("Sopa cerrada."))
     return redirect('sopa_letras:detalle', pk=sopa.pk)
 
 
@@ -279,7 +280,7 @@ def editar_datos(request, pk):
     sopa = get_object_or_404(_scope(Sopa.objects.all(), request.user), pk=pk)
     titulo = (request.POST.get('titulo') or '').strip()
     if not titulo:
-        messages.error(request, "El título no puede quedar vacío.")
+        messages.error(request, _("El título no puede quedar vacío."))
         return redirect('sopa_letras:detalle', pk=sopa.pk)
     sopa.titulo = titulo
     sopa.instrucciones = (request.POST.get('instrucciones') or '').strip()
@@ -297,7 +298,7 @@ def editar_datos(request, pk):
         act.tipo_actividad = sopa.tipo_actividad
         act.descripcion = sopa.instrucciones or None
         act.save(update_fields=['titulo', 'tipo_actividad', 'descripcion'])
-    messages.success(request, "Datos actualizados.")
+    messages.success(request, _("Datos actualizados."))
     return redirect('sopa_letras:detalle', pk=sopa.pk)
 
 
@@ -308,13 +309,13 @@ def agregar_palabra(request, pk):
     sopa = get_object_or_404(_scope(Sopa.objects.all(), request.user), pk=pk)
     texto = (request.POST.get('texto') or '').strip()
     if not texto or len(normalizar(texto)) < 2:
-        messages.error(request, "Escribe una palabra de 2 letras o más (sin espacios).")
+        messages.error(request, _("Escribe una palabra de 2 letras o más (sin espacios)."))
         return redirect('sopa_letras:detalle', pk=sopa.pk)
     ultimo = sopa.palabras.order_by('-orden').first()
     PalabraSopa.objects.create(sopa=sopa, texto=texto, orden=(ultimo.orden + 1) if ultimo else 1)
     if sopa.estado == Sopa.Estado.PUBLICADO:
         _regenerar_sopa(sopa)
-    messages.success(request, "Palabra agregada.")
+    messages.success(request, _("Palabra agregada."))
     return redirect('sopa_letras:detalle', pk=sopa.pk)
 
 
@@ -326,13 +327,13 @@ def editar_palabra(request, pk, palabra_pk):
     palabra = get_object_or_404(PalabraSopa, pk=palabra_pk, sopa=sopa)
     texto = (request.POST.get('texto') or '').strip()
     if not texto or len(normalizar(texto)) < 2:
-        messages.error(request, "Escribe una palabra de 2 letras o más (sin espacios).")
+        messages.error(request, _("Escribe una palabra de 2 letras o más (sin espacios)."))
         return redirect('sopa_letras:detalle', pk=sopa.pk)
     palabra.texto = texto
     palabra.save(update_fields=['texto'])
     if sopa.estado == Sopa.Estado.PUBLICADO:
         _regenerar_sopa(sopa)
-    messages.success(request, "Palabra actualizada.")
+    messages.success(request, _("Palabra actualizada."))
     return redirect('sopa_letras:detalle', pk=sopa.pk)
 
 
@@ -345,7 +346,7 @@ def eliminar_palabra(request, pk, palabra_pk):
     palabra.delete()
     if sopa.estado == Sopa.Estado.PUBLICADO:
         _regenerar_sopa(sopa)
-    messages.success(request, "Palabra eliminada.")
+    messages.success(request, _("Palabra eliminada."))
     return redirect('sopa_letras:detalle', pk=sopa.pk)
 
 
@@ -357,7 +358,7 @@ def editar_fechas(request, pk):
     sopa.fecha_inicio = _parse_dt(request.POST.get('fecha_inicio'))
     sopa.fecha_fin = _parse_dt(request.POST.get('fecha_fin'))
     sopa.save(update_fields=['fecha_inicio', 'fecha_fin'])
-    messages.success(request, "Fechas actualizadas.")
+    messages.success(request, _("Fechas actualizadas."))
     return redirect('sopa_letras:detalle', pk=sopa.pk)
 
 
@@ -367,7 +368,7 @@ def eliminar(request, pk):
     _solo_docente_coord(request.user)
     sopa = get_object_or_404(_scope(Sopa.objects.all(), request.user), pk=pk)
     sopa.delete()
-    messages.success(request, "Sopa eliminada.")
+    messages.success(request, _("Sopa eliminada."))
     return redirect('sopa_letras:lista')
 
 
@@ -380,7 +381,7 @@ def resultados(request, pk):
     intentos = sopa.intentos.select_related('estudiante__usuario').order_by(
         '-porcentaje', 'estudiante__usuario__first_name')
     return render(request, 'sopa_letras/resultados.html', {
-        'titulo_pagina': f'Resultados: {sopa.titulo}',
+        'titulo_pagina': _('Resultados: %(titulo)s') % {'titulo': sopa.titulo},
         'sopa': sopa,
         'intentos': intentos,
     })
@@ -398,7 +399,7 @@ def mis_sopas(request):
         raise PermissionDenied
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'sopa_letras/mis_sopas.html', {'titulo_pagina': 'Sopas de letras', 'items': []})
+        return render(request, 'sopa_letras/mis_sopas.html', {'titulo_pagina': _('Sopas de letras'), 'items': []})
 
     sopas = Sopa.objects.filter(
         institucion=estudiante.institucion,
@@ -414,7 +415,7 @@ def mis_sopas(request):
         disp, msg = s.estado_disponibilidad()
         items.append({'sopa': s, 'intento': hechos.get(s.id), 'disp': disp, 'msg': msg})
     return render(request, 'sopa_letras/mis_sopas.html', {
-        'titulo_pagina': 'Sopas de letras', 'items': items,
+        'titulo_pagina': _('Sopas de letras'), 'items': items,
     })
 
 
@@ -479,7 +480,7 @@ def resolver(request, pk):
                 },
             )
             _registrar_calificacion(sopa, estudiante, puntaje, n, total)
-        messages.success(request, "¡Enviado! Aquí está tu resultado.")
+        messages.success(request, _("¡Enviado! Aquí está tu resultado."))
         return redirect('sopa_letras:resultado', pk=sopa.pk)
 
     grilla = _grid_view(sopa, con_solucion=False)
@@ -518,7 +519,7 @@ def resultado(request, pk):
     sopa = get_object_or_404(Sopa, pk=pk, institucion=estudiante.institucion)
     intento = get_object_or_404(IntentoSopa, sopa=sopa, estudiante=estudiante)
     return render(request, 'sopa_letras/resultado.html', {
-        'titulo_pagina': f'Resultado: {sopa.titulo}',
+        'titulo_pagina': _('Resultado: %(titulo)s') % {'titulo': sopa.titulo},
         'sopa': sopa,
         'intento': intento,
     })

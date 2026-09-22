@@ -57,12 +57,15 @@
 (function(){
   const cont = document.getElementById('filas-palabras');
   let idx = 0;
+  const PLACEHOLDER_PALABRA = '{% trans "Palabra (respuesta)" %}';
+  const PLACEHOLDER_PISTA = '{% trans "Pista" %}';
+  const TITLE_IMAGEN = '{% trans "Imagen de pista (opcional)" %}';
 
   function filaHtml(i){
     return '<input type="hidden" name="fila" value="' + i + '">'
-      + '<div class="col-md-3"><input type="text" name="respuesta_' + i + '" class="form-control" placeholder="Palabra (respuesta)"></div>'
-      + '<div class="col-md-5"><input type="text" name="pista_' + i + '" class="form-control" placeholder="Pista"></div>'
-      + '<div class="col-md-3"><input type="file" name="imagen_' + i + '" class="form-control form-control-sm" accept="image/*" title="Imagen de pista (opcional)"></div>'
+      + '<div class="col-md-3"><input type="text" name="respuesta_' + i + '" class="form-control" placeholder="' + PLACEHOLDER_PALABRA + '"></div>'
+      + '<div class="col-md-5"><input type="text" name="pista_' + i + '" class="form-control" placeholder="' + PLACEHOLDER_PISTA + '"></div>'
+      + '<div class="col-md-3"><input type="file" name="imagen_' + i + '" class="form-control form-control-sm" accept="image/*" title="' + TITLE_IMAGEN + '"></div>'
       + '<div class="col-md-1 d-grid"><button type="button" class="btn btn-outline-danger quitar-fila"><i class="bi bi-x-lg"></i></button></div>';
   }
 

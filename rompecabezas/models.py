@@ -14,35 +14,36 @@ Multi-institución: TODO se filtra por `institucion`.
 """
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class Rompecabezas(models.Model):
     class Estado(models.TextChoices):
-        BORRADOR = 'BORRADOR', 'Borrador'
-        PUBLICADO = 'PUBLICADO', 'Publicado'
-        CERRADO = 'CERRADO', 'Cerrado'
+        BORRADOR = 'BORRADOR', _('Borrador')
+        PUBLICADO = 'PUBLICADO', _('Publicado')
+        CERRADO = 'CERRADO', _('Cerrado')
 
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa', on_delete=models.CASCADE,
-        related_name='rompecabezas', verbose_name="Institución",
+        related_name='rompecabezas', verbose_name=_("Institución"),
     )
     curso = models.ForeignKey(
         'gestion_academica.Curso', on_delete=models.CASCADE,
-        related_name='rompecabezas', verbose_name="Curso",
+        related_name='rompecabezas', verbose_name=_("Curso"),
     )
-    titulo = models.CharField(max_length=200, verbose_name="Título")
-    instrucciones = models.TextField(blank=True, default='', verbose_name="Instrucciones")
-    imagen = models.ImageField(upload_to='rompecabezas/imagenes/', verbose_name="Imagen")
+    titulo = models.CharField(max_length=200, verbose_name=_("Título"))
+    instrucciones = models.TextField(blank=True, default='', verbose_name=_("Instrucciones"))
+    imagen = models.ImageField(upload_to='rompecabezas/imagenes/', verbose_name=_("Imagen"))
 
-    filas = models.PositiveIntegerField(default=3, verbose_name="Filas")
-    columnas = models.PositiveIntegerField(default=3, verbose_name="Columnas")
+    filas = models.PositiveIntegerField(default=3, verbose_name=_("Filas"))
+    columnas = models.PositiveIntegerField(default=3, verbose_name=_("Columnas"))
 
     tipo_actividad = models.ForeignKey(
         'gestion_academica.TipoActividad', on_delete=models.PROTECT,
-        verbose_name="Categoría (para el libro de notas)",
+        verbose_name=_("Categoría (para el libro de notas)"),
     )
     nota_maxima = models.DecimalField(
-        max_digits=4, decimal_places=2, default=5.0, verbose_name="Nota máxima",
+        max_digits=4, decimal_places=2, default=5.0, verbose_name=_("Nota máxima"),
     )
     actividad_calificable = models.OneToOneField(
         'gestion_academica.ActividadCalificable', null=True, blank=True,
@@ -51,11 +52,11 @@ class Rompecabezas(models.Model):
 
     estado = models.CharField(
         max_length=10, choices=Estado.choices, default=Estado.BORRADOR,
-        verbose_name="Estado",
+        verbose_name=_("Estado"),
     )
-    fecha_inicio = models.DateTimeField(null=True, blank=True, verbose_name="Disponible desde")
-    fecha_fin = models.DateTimeField(null=True, blank=True, verbose_name="Plazo final")
-    fecha_cierre = models.DateTimeField(null=True, blank=True, verbose_name="Cierre")
+    fecha_inicio = models.DateTimeField(null=True, blank=True, verbose_name=_("Disponible desde"))
+    fecha_fin = models.DateTimeField(null=True, blank=True, verbose_name=_("Plazo final"))
+    fecha_cierre = models.DateTimeField(null=True, blank=True, verbose_name=_("Cierre"))
 
     creado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
@@ -65,8 +66,8 @@ class Rompecabezas(models.Model):
 
     class Meta:
         ordering = ['-creado_en']
-        verbose_name = "Rompecabezas"
-        verbose_name_plural = "Rompecabezas"
+        verbose_name = _("Rompecabezas")
+        verbose_name_plural = _("Rompecabezas")
 
     def __str__(self):
         return f"{self.titulo} ({self.get_estado_display()})"
@@ -79,13 +80,15 @@ class Rompecabezas(models.Model):
         """('disponible'|'proximo'|'vencido'|'cerrado', mensaje) para el estudiante."""
         from django.utils import timezone
         if self.estado != self.Estado.PUBLICADO:
-            return ('cerrado', 'No disponible')
+            return ('cerrado', _('No disponible'))
         ahora = timezone.now()
         if self.fecha_inicio and ahora < self.fecha_inicio:
-            return ('proximo', f"Disponible desde el {timezone.localtime(self.fecha_inicio):%d/%m/%Y %H:%M}")
+            fecha = timezone.localtime(self.fecha_inicio).strftime('%d/%m/%Y %H:%M')
+            return ('proximo', _("Disponible desde el %(fecha)s") % {'fecha': fecha})
         if self.fecha_fin and ahora > self.fecha_fin:
-            return ('vencido', f"El plazo venció el {timezone.localtime(self.fecha_fin):%d/%m/%Y %H:%M}")
-        return ('disponible', 'Disponible')
+            fecha = timezone.localtime(self.fecha_fin).strftime('%d/%m/%Y %H:%M')
+            return ('vencido', _("El plazo venció el %(fecha)s") % {'fecha': fecha})
+        return ('disponible', _('Disponible'))
 
 
 class IntentoRompecabezas(models.Model):
@@ -96,8 +99,8 @@ class IntentoRompecabezas(models.Model):
         related_name='intentos_rompecabezas',
     )
     completado = models.BooleanField(default=False)
-    movimientos = models.PositiveIntegerField(default=0, verbose_name="Movimientos")
-    tiempo_segundos = models.PositiveIntegerField(null=True, blank=True, verbose_name="Tiempo (segundos)")
+    movimientos = models.PositiveIntegerField(default=0, verbose_name=_("Movimientos"))
+    tiempo_segundos = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Tiempo (segundos)"))
     puntaje = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     inicio = models.DateTimeField(auto_now_add=True)
     fin = models.DateTimeField(null=True, blank=True)
@@ -105,8 +108,8 @@ class IntentoRompecabezas(models.Model):
     class Meta:
         unique_together = ('rompecabezas', 'estudiante')
         ordering = ['-inicio']
-        verbose_name = "Intento de rompecabezas"
-        verbose_name_plural = "Intentos de rompecabezas"
+        verbose_name = _("Intento de rompecabezas")
+        verbose_name_plural = _("Intentos de rompecabezas")
 
     def __str__(self):
         return f"Intento {self.estudiante_id} — rompecabezas {self.rompecabezas_id}"

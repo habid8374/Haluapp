@@ -75,7 +75,7 @@
   function cardHtml(lado, i, etiqueta){
     return '<div class="col-md-6"><div class="mem-card-box">'
       + '<div class="fw-700 mb-1" style="font-size:.8rem;color:#7e22ce;">' + etiqueta + '</div>'
-      + '<input type="text" name="texto_' + lado + '_' + i + '" class="form-control form-control-sm mb-1" maxlength="60" placeholder="Texto (opcional si hay imagen)">'
+      + '<input type="text" name="texto_' + lado + '_' + i + '" class="form-control form-control-sm mb-1" maxlength="60" placeholder="{% trans "Texto (opcional si hay imagen)" %}">'
       + '<input type="file" name="imagen_' + lado + '_' + i + '" class="form-control form-control-sm mb-1" accept="image/*">'
       + '<div class="d-flex align-items-center gap-1 rec-widget">'
       + '<input type="file" name="audio_' + lado + '_' + i + '" class="d-none rec-input" accept="audio/*">'

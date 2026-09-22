@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load static %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 
 {% block extrastyles %}
@@ -209,8 +210,8 @@
 <!-- Loading overlay — se oculta cuando Three.js empieza a renderizar -->
 <div id="studio-loading-overlay">
   <div class="studio-loader-ring"></div>
-  <div class="studio-loader-text">Cargando Studio 3D…</div>
-  <div class="studio-loader-sub">Preparando los modelos del cuerpo humano</div>
+  <div class="studio-loader-text">{% trans "Cargando Studio 3D…" %}</div>
+  <div class="studio-loader-sub">{% trans "Preparando los modelos del cuerpo humano" %}</div>
 </div>
 
 <!-- Variables antes de todo -->

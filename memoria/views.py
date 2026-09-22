@@ -100,19 +100,19 @@ def _leer_parejas(request):
         if not any([ta, ia, aa, tb, ib, ab]):
             continue  # fila vacía
         if (not ta and not ia) or (not tb and not ib):
-            return None, "Cada tarjeta de una pareja necesita al menos una imagen o un texto."
+            return None, _("Cada tarjeta de una pareja necesita al menos una imagen o un texto.")
         for img in (ia, ib):
             if img and not _imagen_valida(img):
-                return None, "Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen."
+                return None, _("Cada imagen debe pesar máximo 2 MB y ser un archivo de imagen.")
         for aud in (aa, ab):
             if aud and not _audio_valido(aud):
-                return None, "Cada audio debe pesar máximo 3 MB."
+                return None, _("Cada audio debe pesar máximo 3 MB.")
         parejas.append({
             'texto_a': ta, 'imagen_a': ia, 'audio_a': aa,
             'texto_b': tb, 'imagen_b': ib, 'audio_b': ab,
         })
         if len(parejas) > MAX_PAREJAS:
-            return None, f"Máximo {MAX_PAREJAS} parejas por juego."
+            return None, _("Máximo %(max_parejas)s parejas por juego.") % {'max_parejas': MAX_PAREJAS}
     return parejas, None
 
 
