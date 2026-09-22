@@ -8841,6 +8841,10 @@ def dashboard_bienestar_view(request):
     from django.utils import timezone as _tz
     inicio_mes = _tz.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     kpi_cerrados_mes   = casos_qs.filter(estado=CasoConvivencia.Estado.CERRADO, fecha_cierre__gte=inicio_mes).count()
+    kpi_ciberacoso     = casos_qs.filter(
+        es_ciberacoso=True,
+        estado__in=[CasoConvivencia.Estado.ABIERTO, CasoConvivencia.Estado.EN_SEGUIMIENTO, CasoConvivencia.Estado.VENCIDO],
+    ).count()
 
     # ── Casos activos (tabla principal) ───────────────────────────────
     casos_activos = (
@@ -8903,6 +8907,7 @@ def dashboard_bienestar_view(request):
             {'valor': kpi_seguimiento,   'label': 'Seguimiento',   'color': 'info'},
             {'valor': kpi_vencidos,      'label': 'Vencidos',      'color': 'danger'},
             {'valor': kpi_tipo3_activos, 'label': 'Tipo III',      'color': 'dark'},
+            {'valor': kpi_ciberacoso,    'label': _('Canal digital'), 'color': 'info'},
             {'valor': kpi_cerrados_mes,  'label': 'Cerrados/mes',  'color': 'success'},
             {'valor': len(alertas_sin_caso), 'label': 'Sin expediente', 'color': 'secondary'},
         ],
@@ -12713,7 +12718,9 @@ def historial_convivencia_view(request):
         return redirect('gestion_academica:inicio_academico')
 
     # Excluir las situaciones sin clasificación
-    anotaciones_convivencia = AnotacionObservador.objects.exclude(
+    anotaciones_convivencia = get_filtered_queryset(
+        AnotacionObservador, request.user
+    ).exclude(
         Q(tipo_situacion_ia='NINGUNO') | Q(tipo_situacion_ia__isnull=True)
     ).select_related(
         'estudiante__usuario', 'estudiante__grado_actual'

@@ -1345,6 +1345,7 @@ def _crear_caso_convivencia(anotacion, tipo_situacion, ai_data):
             descripcion_detalle=anotacion.descripcion,
             protocolo_ia=ai_data.get('protocolo_sugerido', ''),
             fecha_limite=fecha_limite,
+            es_ciberacoso=bool(ai_data.get('es_ciberacoso', False)),
         )
         InvolucradoCaso.objects.create(
             caso=caso, estudiante=anotacion.estudiante,
@@ -1417,6 +1418,8 @@ def analizar_observacion_convivencia_task(anotacion_id):
 
         REGLA CLAVE (no sobre-clasificar): el acoso, el ciberacoso, la exclusión social y las burlas —aunque sean graves, repetidos y afecten emocionalmente— son TIPO II mientras NO constituyan un presunto delito. Ante la duda entre TIPO II y TIPO III, elige TIPO II, salvo que exista un presunto delito claro y explícito.
 
+        CANAL DIGITAL / CIBERACOSO: además del tipo, determina si el hecho ocurrió o se difundió por un MEDIO DIGITAL (redes sociales, WhatsApp/chats, mensajería, foros, videojuegos en línea, publicación o reenvío de fotos/videos/memes/capturas ofensivas). Marca "es_ciberacoso": true SOLO si el medio digital es parte central de los hechos descritos (no basta con que se mencione un celular de pasada). Si la situación es presencial y no hay evidencia de un canal digital, marca false.
+
         PROTOCOLOS OFICIALES (Decreto 1965, arts. 42-44). Para "protocolo_sugerido" usa EXACTAMENTE los pasos del protocolo del tipo que asignes, adaptados al caso concreto (menciona a los involucrados y los hechos). En cada paso importante recuerda "dejar constancia":
 
         PROTOCOLO TIPO I (art. 42):
@@ -1451,7 +1454,8 @@ def analizar_observacion_convivencia_task(anotacion_id):
             "justificacion": "Frase breve indicando el criterio de la Ley 1620 / Decreto 1965 por el que corresponde ese tipo.",
             "resumen": "Un resumen objetivo y conciso de los hechos.",
             "protocolo_sugerido": "Lista numerada con los pasos del protocolo oficial del tipo asignado, adaptados a este caso." | "No se requiere protocolo.",
-            "requiere_revision": true | false
+            "requiere_revision": true | false,
+            "es_ciberacoso": true | false
         }}
 
         Anotación: "{anotacion.descripcion}"
@@ -1471,6 +1475,7 @@ def analizar_observacion_convivencia_task(anotacion_id):
             analisis_ia=_sanitize_ai(ai_data.get('resumen', 'No se generó resumen.')),
             acciones_protocolo_ia=_sanitize_ai(ai_data.get('protocolo_sugerido', 'No se sugirieron acciones.')),
             requiere_revision=requiere_revision,
+            es_ciberacoso=bool(ai_data.get('es_ciberacoso', False)),
         )
         if tipo_situacion in ['TIPO II', 'TIPO III']:
             _crear_caso_convivencia(anotacion, tipo_situacion, ai_data)

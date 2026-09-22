@@ -2163,7 +2163,12 @@ class AnotacionObservador(models.Model):
         blank=True, null=True,
         verbose_name=_("Protocolo Sugerido por IA")
     )
-    
+    es_ciberacoso = models.BooleanField(
+        default=False,
+        verbose_name=_("¿Canal digital / ciberacoso?"),
+        help_text=_("Marcado automáticamente por la IA cuando la situación ocurre o se difunde por redes sociales, chats u otro medio digital (Decreto 0769 de 2026)."),
+    )
+
     class Meta:
         verbose_name = _("Anotación en Observador")
         verbose_name_plural = _("Anotaciones en Observador")
@@ -2904,6 +2909,11 @@ class CasoConvivencia(models.Model):
     resolucion_final = models.TextField(
         blank=True, verbose_name=_('Resolución y compromisos finales'),
         help_text='Completar al cerrar el caso.',
+    )
+    es_ciberacoso = models.BooleanField(
+        default=False,
+        verbose_name=_('Canal digital / ciberacoso'),
+        help_text=_('Indica si el hecho ocurrió o se difundió por un medio digital (redes sociales, chats, mensajería). Requerido para la ruta de atención al ciberacoso del Decreto 0769 de 2026.'),
     )
 
     class Meta:

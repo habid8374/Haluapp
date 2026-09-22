@@ -1,5 +1,6 @@
 {% extends "base_academico.html" %}
 {% load humanize %}
+{% load i18n %}
 {% block titulo %}HALU Sentinel – Ruta de Convivencia{% endblock %}
 {% block extrastyles %}{{ block.super }}
 <style>
@@ -303,6 +304,7 @@
                   {% if caso.tipo_situacion == 'TIPO I' %}<span class="badge bg-success">Tipo I</span>
                   {% elif caso.tipo_situacion == 'TIPO II' %}<span class="badge bg-warning text-dark">Tipo II</span>
                   {% else %}<span class="badge bg-danger">Tipo III</span>{% endif %}
+                  {% if caso.es_ciberacoso %}<span class="badge d-block mt-1" style="background:#e0e7ff;color:#4f46e5;"><i class="bi bi-phone me-1"></i>{% trans "Digital" %}</span>{% endif %}
                 </td>
                 <td>
                   {% if caso.estado == 'ABIERTO' %}<span class="badge bg-warning text-dark">Abierto</span>
@@ -355,6 +357,7 @@
                   {% elif caso.estado == 'EN_SEGUIMIENTO' %}<span class="badge bg-info text-dark">Seguimiento</span>
                   {% elif caso.estado == 'VENCIDO' %}<span class="badge bg-danger"><i class="bi bi-alarm-fill me-1"></i>Vencido</span>
                   {% elif caso.estado == 'CERRADO' %}<span class="badge bg-success">Cerrado</span>{% endif %}
+                  {% if caso.es_ciberacoso %}<span class="badge" style="background:#e0e7ff;color:#4f46e5;"><i class="bi bi-phone me-1"></i>{% trans "Digital" %}</span>{% endif %}
                 </div>
               </div>
               <a href="{% url 'gestion_academica:detalle_caso_convivencia' caso.pk %}"

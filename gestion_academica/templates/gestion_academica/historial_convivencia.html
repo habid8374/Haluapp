@@ -27,7 +27,9 @@
                                 <div class="accordion-body">
                                     {% for caso in lista_casos %}
                                     <div class="list-group-item list-group-item-action {% if caso.tipo_situacion_ia == 'TIPO III' %}list-group-item-danger{% elif caso.tipo_situacion_ia == 'TIPO II' %}list-group-item-warning{% endif %}">
-                                        <p><strong>Clasificación: {{ caso.get_tipo_situacion_ia_display }}</strong></p>
+                                        <p><strong>Clasificación: {{ caso.get_tipo_situacion_ia_display }}</strong>
+                                        {% if caso.es_ciberacoso %}<span class="badge ms-1" style="background:#e0e7ff;color:#4f46e5;"><i class="bi bi-phone me-1"></i>Digital</span>{% endif %}
+                                        </p>
                                         <p><small class="text-muted">"{{ caso.descripcion|truncatewords:30 }}"</small></p>
                                         <a href="{% url 'gestion_academica:detalle_alerta_bienestar' caso.pk %}" class="btn btn-sm btn-outline-dark">Ver Protocolo Sugerido</a>
                                     </div>
