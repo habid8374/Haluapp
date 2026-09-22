@@ -659,7 +659,7 @@
   {% if citas_estudiante %}
   <div class="pulse-sec-hdr">
     <div class="psh-icon" style="background:#f0fdf4;color:#15803d;"><i class="bi bi-calendar2-heart-fill"></i></div>
-    <h2>Reuniones con Docentes</h2>
+    <h2>{% trans "Reuniones con Docentes" %}</h2>
   </div>
   <div class="mb-4">
     {% for cita in citas_estudiante %}
@@ -670,20 +670,20 @@
       </div>
       <div class="flex-grow-1 overflow-hidden">
         <div class="fw-semibold text-truncate">
-          <i class="bi bi-person-video3 me-1 text-muted"></i>Prof. {{ cita.docente.usuario.get_full_name|default:cita.docente.usuario.username }}
+          <i class="bi bi-person-video3 me-1 text-muted"></i>{% trans "Prof." %} {{ cita.docente.usuario.get_full_name|default:cita.docente.usuario.username }}
         </div>
         <small class="text-muted d-block text-truncate">{{ cita.asunto|truncatechars:100 }}</small>
         {% if cita.enlace_virtual and cita.estado == 'CONFIRMADA' %}
         <a href="{{ cita.enlace_virtual }}" target="_blank" rel="noopener" class="small text-primary">
-          <i class="bi bi-camera-video-fill me-1"></i>Unirse a videollamada
+          <i class="bi bi-camera-video-fill me-1"></i>{% trans "Unirse a videollamada" %}
         </a>
         {% endif %}
       </div>
       <div class="flex-shrink-0">
         {% if cita.estado == 'PENDIENTE' %}
-        <span class="badge bg-warning text-dark">Pendiente</span>
+        <span class="badge bg-warning text-dark">{% trans "Pendiente" %}</span>
         {% else %}
-        <span class="badge bg-success">Confirmada</span>
+        <span class="badge bg-success">{% trans "Confirmada" %}</span>
         {% endif %}
       </div>
     </div>
@@ -729,6 +729,9 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Idioma activo del usuario (para saludo, fecha y calendario)
   var HALU_IS_EN = "{{ LANGUAGE_CODE }}".indexOf('en') === 0;
+  const GREETING_MORNING = '{% trans "Buenos días" %}';
+  const GREETING_AFTERNOON = '{% trans "Buenas tardes" %}';
+  const GREETING_EVENING = '{% trans "Buenas noches" %}';
   // ── Live date ──
   function updateLiveDate() {
     const el = document.getElementById('est-live-date');
@@ -736,9 +739,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const now = new Date();
     const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const h = now.getHours();
-    const saludo = h < 12 ? (HALU_IS_EN ? 'Good morning' : 'Buenos días')
-                 : h < 19 ? (HALU_IS_EN ? 'Good afternoon' : 'Buenas tardes')
-                          : (HALU_IS_EN ? 'Good evening' : 'Buenas noches');
+    const saludo = h < 12 ? GREETING_MORNING
+                 : h < 19 ? GREETING_AFTERNOON
+                          : GREETING_EVENING;
     el.textContent = saludo + ' · ' + now.toLocaleDateString(HALU_IS_EN ? 'en-US' : 'es-ES', opts);
   }
   updateLiveDate();

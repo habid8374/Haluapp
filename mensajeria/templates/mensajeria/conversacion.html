@@ -247,11 +247,11 @@
           if (d.id) idsRendered.add(d.id);
         } else {
           chatMessages.lastElementChild?.remove();
-          alert('Error al enviar el mensaje. Intenta de nuevo.');
+          alert('{% trans "Error al enviar el mensaje. Intenta de nuevo." %}');
         }
       } catch {
         chatMessages.lastElementChild?.remove();
-        alert('Sin conexión. El mensaje no pudo enviarse.');
+        alert('{% trans "Sin conexión. El mensaje no pudo enviarse." %}');
       }
     }
     chatInput.value = '';

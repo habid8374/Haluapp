@@ -1090,7 +1090,7 @@ def cancelar_generacion_planeacion(request, pk):
     # Solo actuamos si la planeación está efectivamente "generando"
     if planeacion.estado_generacion == PlaneacionClase.EstadoGeneracion.GENERANDO:
         planeacion.estado_generacion = PlaneacionClase.EstadoGeneracion.FALLIDO
-        planeacion.error_generacion = "El proceso de generación fue cancelado manualmente por el usuario."
+        planeacion.error_generacion = _("El proceso de generación fue cancelado manualmente por el usuario.")
         planeacion.save()
         messages.warning(request, _("El proceso de generación de la planeación ha sido detenido."))
     else:
@@ -1127,18 +1127,22 @@ def get_planeacion_status_api(request, pk):
 
         # Mensaje listo para mostrarse como toast en el frontend
         if estado == "COMPLETADO":
-            data['mensaje'] = (
-                f"¡Planeación generada con éxito! Se crearon "
-                f"{detalles_count} clase{'s' if detalles_count != 1 else ''} para '{planeacion.titulo}'."
-            )
+            data['mensaje'] = _(
+                "¡Planeación generada con éxito! Se crearon "
+                "%(detalles_count)s clase%(s)s para '%(titulo)s'."
+            ) % {
+                'detalles_count': detalles_count,
+                's': 's' if detalles_count != 1 else '',
+                'titulo': planeacion.titulo,
+            }
         elif estado == "FALLIDO":
-            data['mensaje'] = (
-                f"La generación falló: {planeacion.error_generacion or 'error desconocido'}."
-            )
+            data['mensaje'] = _("La generación falló: %(error)s.") % {
+                'error': planeacion.error_generacion or _('error desconocido')
+            }
         elif estado == "GENERANDO":
-            data['mensaje'] = "La IA sigue procesando tu planeación. Por favor espera…"
+            data['mensaje'] = _("La IA sigue procesando tu planeación. Por favor espera…")
         else:
-            data['mensaje'] = "Pendiente de iniciar la generación."
+            data['mensaje'] = _("Pendiente de iniciar la generación.")
 
         return JsonResponse(data)
     except PlaneacionClase.DoesNotExist:
@@ -1184,7 +1188,7 @@ def generar_planeacion_pdf(request, pk):
 
     except Exception as e:
         logger.error(f"Error al generar el PDF de la planeación {pk}: {e}", exc_info=True)
-        messages.error(request, "No se pudo generar el PDF de la planeación.")
+        messages.error(request, _("No se pudo generar el PDF de la planeación."))
         return redirect('gestion_academica:planeacion_detalle', pk=pk)
 
 
@@ -1273,11 +1277,11 @@ def seleccionar_curso_para_lecciones(request):
         else:
             cursos = Curso.objects.none()
     except AttributeError:
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect('gestion_academica:inicio_academico')
 
     context = {
-        'titulo_pagina': "Seleccionar Curso para Ver Lecciones",
+        'titulo_pagina': _("Seleccionar Curso para Ver Lecciones"),
         'cursos': cursos
     }
     return render(request, 'gestion_academica/seleccionar_curso_lecciones.html', context)
@@ -1291,13 +1295,13 @@ def lista_lecciones_diarias(request, curso_pk):
     curso = get_object_or_404(get_filtered_queryset(Curso, request.user), pk=curso_pk)
     # Validamos que el docente que solicita tenga permiso sobre este curso
     if not curso.docentes_asignados.filter(pk=request.user.docente.pk).exists():
-        messages.error(request, "No tienes permiso para ver las lecciones de este curso.")
+        messages.error(request, _("No tienes permiso para ver las lecciones de este curso."))
         return redirect('gestion_academica:seleccionar_curso_para_lecciones')
 
     lecciones = LeccionDiaria.objects.filter(curso=curso).order_by('fecha')
 
     context = {
-        'titulo_pagina': f"Historial de Lecciones para {curso}",
+        'titulo_pagina': _("Historial de Lecciones para %(curso)s") % {'curso': curso},
         'curso': curso,
         'lecciones': lecciones
     }
@@ -1324,7 +1328,7 @@ def detalle_leccion(request, leccion_pk):
         tiene_permiso = (user.estudiante.grado_actual == curso.grado)
 
     if not tiene_permiso:
-        messages.error(request, "No tienes permiso para acceder a esta lección.")
+        messages.error(request, _("No tienes permiso para acceder a esta lección."))
         return redirect('gestion_academica:inicio_academico')
 
     # --- FORMULARIO ---

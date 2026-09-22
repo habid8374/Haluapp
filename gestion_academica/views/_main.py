@@ -3815,7 +3815,7 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
 
     # Verificar que el usuario es docente, coordinador o superusuario
     if not (hasattr(request.user, 'docente') or es_coordinador or request.user.is_superuser):
-        messages.error(request, "Acceso denegado.")
+        messages.error(request, _("Acceso denegado."))
         return redirect('gestion_academica:inicio_academico')
 
     curso = get_object_or_404(get_filtered_queryset(Curso, request.user, Curso.objects.select_related('materia', 'grado', 'periodo_academico')), pk=curso_pk)
@@ -3823,7 +3823,7 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
     # Los coordinadores de la misma institución pueden ver cualquier curso; los docentes sólo los suyos
     if not es_coordinador and not request.user.is_superuser:
         if not hasattr(request.user, 'docente') or not curso.docentes_asignados.filter(pk=request.user.docente.pk).exists():
-            messages.error(request, "No tienes permiso para ver el libro de notas de este curso.")
+            messages.error(request, _("No tienes permiso para ver el libro de notas de este curso."))
             return redirect('gestion_academica:dashboard_docente')
 
     estudiantes_del_curso = Estudiante.objects.filter(
@@ -3840,12 +3840,12 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
     if request.method == 'POST':
         # Los coordinadores acceden en modo sólo lectura — no pueden guardar notas
         if es_coordinador and not request.user.is_superuser:
-            messages.warning(request, "Los coordinadores pueden consultar el libro de notas pero no modificar calificaciones.")
+            messages.warning(request, _("Los coordinadores pueden consultar el libro de notas pero no modificar calificaciones."))
             return redirect('gestion_academica:docente_libro_de_notas_por_curso', curso_pk=curso.pk)
         # Bloqueo de notas: si el período activo tiene notas cerradas, solo superusuario puede editar
         _periodo_activo = PeriodoAcademico.objects.filter(institucion=curso.institucion, activo=True).first()
         if _periodo_activo and _periodo_activo.notas_cerradas and not request.user.is_superuser:
-            messages.error(request, f"Las notas del {_periodo_activo.nombre} están cerradas. No se pueden modificar calificaciones.")
+            messages.error(request, _("Las notas del %(periodo)s están cerradas. No se pueden modificar calificaciones.") % {'periodo': _periodo_activo.nombre})
             return redirect('gestion_academica:docente_libro_de_notas_por_curso', curso_pk=curso.pk)
         with transaction.atomic():
             calificaciones_a_actualizar = []
@@ -3874,7 +3874,7 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
                                     )
                                 )
                         except (ValueError, Inexact):
-                            messages.warning(request, f"El valor '{nota_str}' para {estudiante} no es una nota válida.")
+                            messages.warning(request, _("El valor '%(nota_str)s' para %(estudiante)s no es una nota válida.") % {'nota_str': nota_str, 'estudiante': estudiante})
 
             if calificaciones_a_actualizar:
                 Calificacion.objects.bulk_update(calificaciones_a_actualizar, ['valor_numerico'])
@@ -3885,7 +3885,7 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
                 for cal in calificaciones_creadas:
                     calificaciones_ids_para_revisar.append(cal.id)
             
-            messages.success(request, "¡Notas guardadas exitosamente!")
+            messages.success(request, _("¡Notas guardadas exitosamente!"))
 
         # Encolar en segundo plano el análisis de IA (consejos de refuerzo) para
         # NO bloquear el guardado con llamadas síncronas a Gemini (antes se hacía
@@ -3993,7 +3993,7 @@ def docente_libro_de_notas_por_curso(request, curso_pk):
         'periodos_del_año': periodos_del_año,
         'año_escolar': año_escolar,
         'nota_minima': nota_minima,
-        'titulo_pagina': f"Libro de Notas: {curso}",
+        'titulo_pagina': _("Libro de Notas: %(curso)s") % {'curso': curso},
         'es_coordinador': es_coordinador,
     }
     return render(request, 'gestion_academica/docente_libro_de_notas_por_curso.html', context)
@@ -4673,11 +4673,11 @@ def aprobar_justificacion_inasistencia(request, pk):
     filtro_institucion = {} if request.user.is_superuser else {'institucion': request.user.institucion_asociada}
     justificacion = get_object_or_404(JustificacionInasistencia, pk=pk, **filtro_institucion)
     if not _puede_revisar_justificacion(request.user, justificacion):
-        messages.error(request, "No tienes permiso para revisar esta justificación.")
+        messages.error(request, _("No tienes permiso para revisar esta justificación."))
         return redirect('gestion_academica:revisar_justificaciones_inasistencia')
 
     if justificacion.estado_revision != JustificacionInasistencia.EstadoRevision.PENDIENTE:
-        messages.warning(request, "Esta justificación ya fue revisada.")
+        messages.warning(request, _("Esta justificación ya fue revisada."))
         return redirect('gestion_academica:revisar_justificaciones_inasistencia')
 
     total = justificacion.registros_relacionados().update(estado='JUSTIFICADO')
@@ -4690,7 +4690,7 @@ def aprobar_justificacion_inasistencia(request, pk):
     ])
     messages.success(
         request,
-        f"Justificación aprobada. {total} registro(s) de asistencia se marcaron como Justificado."
+        _("Justificación aprobada. %(total)s registro(s) de asistencia se marcaron como Justificado.") % {'total': total}
     )
     _notificar_revision_justificacion_inasistencia(justificacion.pk)
     return redirect('gestion_academica:revisar_justificaciones_inasistencia')
@@ -4702,11 +4702,11 @@ def rechazar_justificacion_inasistencia(request, pk):
     filtro_institucion = {} if request.user.is_superuser else {'institucion': request.user.institucion_asociada}
     justificacion = get_object_or_404(JustificacionInasistencia, pk=pk, **filtro_institucion)
     if not _puede_revisar_justificacion(request.user, justificacion):
-        messages.error(request, "No tienes permiso para revisar esta justificación.")
+        messages.error(request, _("No tienes permiso para revisar esta justificación."))
         return redirect('gestion_academica:revisar_justificaciones_inasistencia')
 
     if justificacion.estado_revision != JustificacionInasistencia.EstadoRevision.PENDIENTE:
-        messages.warning(request, "Esta justificación ya fue revisada.")
+        messages.warning(request, _("Esta justificación ya fue revisada."))
         return redirect('gestion_academica:revisar_justificaciones_inasistencia')
 
     justificacion.estado_revision = JustificacionInasistencia.EstadoRevision.RECHAZADA
@@ -4716,7 +4716,7 @@ def rechazar_justificacion_inasistencia(request, pk):
     justificacion.save(update_fields=[
         'estado_revision', 'revisado_por', 'fecha_revision', 'observaciones_revision'
     ])
-    messages.success(request, "Justificación rechazada.")
+    messages.success(request, _("Justificación rechazada."))
     _notificar_revision_justificacion_inasistencia(justificacion.pk)
     return redirect('gestion_academica:revisar_justificaciones_inasistencia')
 
@@ -5118,7 +5118,7 @@ def dashboard_estudiante(request):
     context = {
         'estudiante': estudiante,
         'periodo_activo': periodo_activo,
-        'titulo_pagina': "Mi Panel de Inicio",
+        'titulo_pagina': _("Mi Panel de Inicio"),
         'estudiante_moroso': estudiante_moroso,
         'portal_bloqueado_por_mora': portal_bloqueado_por_mora,
         'cuentas_vencidas_count': cuentas_vencidas_count,
@@ -5185,7 +5185,7 @@ def dashboard_estudiante(request):
         limite_agenda = hoy + timedelta(days=14)
         eventos_agenda = []
         for deber in Deber.objects.filter(curso__in=cursos_del_estudiante, fecha_entrega__range=(hoy, limite_agenda)):
-            eventos_agenda.append({'fecha': deber.fecha_entrega, 'titulo': f"Entrega: {deber.titulo}", 'tipo': 'tarea', 'url': reverse('gestion_academica:realizar_entrega_deber', args=[deber.pk]), 'target_blank': False})
+            eventos_agenda.append({'fecha': deber.fecha_entrega, 'titulo': _("Entrega: %(titulo)s") % {'titulo': deber.titulo}, 'tipo': 'tarea', 'url': reverse('gestion_academica:realizar_entrega_deber', args=[deber.pk]), 'target_blank': False})
         acts_agenda = ActividadCalificable.objects.filter(
             curso__in=cursos_del_estudiante,
             fecha_entrega_limite__range=(hoy, limite_agenda),
@@ -5211,7 +5211,7 @@ def dashboard_estudiante(request):
                 target_blank = False
             eventos_agenda.append({
                 'fecha': act.fecha_entrega_limite,
-                'titulo': f"Actividad: {act.titulo}",
+                'titulo': _("Actividad: %(titulo)s") % {'titulo': act.titulo},
                 'tipo': 'evaluacion',
                 'url': url,
                 'target_blank': target_blank,
@@ -5279,14 +5279,14 @@ class CalendarioEventosAPIView(APIView):
                 'startTime': bloque.hora_inicio.strftime('%H:%M:%S'),
                 'endTime': bloque.hora_fin.strftime('%H:%M:%S'),
                 'color': '#0d6efd',
-                'description': f"Aula: {bloque.aula.nombre}" if bloque.aula else ""
+                'description': _("Aula: %(aula)s") % {'aula': bloque.aula.nombre} if bloque.aula else ""
             })
 
         # 2. Deberes (eventos de día completo)
         deberes = Deber.objects.filter(curso__grado=estudiante.grado_actual, curso__periodo_academico=periodo_activo)
         for deber in deberes:
             eventos.append({
-                'title': f"Entrega: {deber.titulo}",
+                'title': _("Entrega: %(titulo)s") % {'titulo': deber.titulo},
                 'start': deber.fecha_entrega.isoformat(), # formato YYYY-MM-DD
                 'allDay': True,
                 'color': '#dc3545',
@@ -5315,7 +5315,7 @@ class CalendarioEventosAPIView(APIView):
             else:
                 act_url = None
             ev = {
-                'title': f"Evaluación: {actividad.titulo}",
+                'title': _("Evaluación: %(titulo)s") % {'titulo': actividad.titulo},
                 'start': actividad.fecha_entrega_limite.isoformat(),  # formato YYYY-MM-DD
                 'allDay': True,
                 'color': '#ffc107',
@@ -5986,7 +5986,7 @@ def detalle_riesgo_estudiante_view(request, estudiante_pk):
         estudiante = Estudiante.objects.get(pk=estudiante_pk, institucion=docente.institucion)
         direccion_grupo = DirectorCurso.objects.get(docente=docente, periodo_academico=periodo_activo, grado=estudiante.grado_actual)
     except (Exception):
-        messages.error(request, "Acceso denegado o datos no válidos.")
+        messages.error(request, _("Acceso denegado o datos no válidos."))
         return redirect('gestion_academica:reporte_riesgo_academico')
 
     cursos_del_grado = list(
@@ -6125,11 +6125,11 @@ def detalle_leccion_diaria(request, leccion_pk):
     try:
         estudiante = request.user.estudiante
         if estudiante.grado_actual != leccion.curso.grado:
-            messages.error(request, "No tienes permiso para ver esta lección.")
+            messages.error(request, _("No tienes permiso para ver esta lección."))
             return redirect('gestion_academica:dashboard_estudiante')
     except AttributeError:
         if not request.user.is_staff:
-            messages.error(request, "Acceso denegado.")
+            messages.error(request, _("Acceso denegado."))
             return redirect('gestion_academica:inicio_academico')
             
     # ================================================================
@@ -6140,7 +6140,7 @@ def detalle_leccion_diaria(request, leccion_pk):
     
     context = {
         'leccion': leccion,
-        'titulo_pagina': f"Clase del {fecha_formateada}"
+        'titulo_pagina': _("Clase del %(fecha)s") % {'fecha': fecha_formateada}
     }
     # ================================================================
     #   FIN: CORRECCIÓN
@@ -6158,7 +6158,7 @@ def detalle_calificaciones_por_materia(request, materia_pk):
     try:
         estudiante = request.user.estudiante
     except Estudiante.DoesNotExist:
-        messages.error(request, "Tu perfil de estudiante no está configurado.")
+        messages.error(request, _("Tu perfil de estudiante no está configurado."))
         return redirect('gestion_academica:dashboard_estudiante')
 
     periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=estudiante.institucion).first()
@@ -6173,7 +6173,7 @@ def detalle_calificaciones_por_materia(request, materia_pk):
         ).select_related('actividad_calificable').order_by('-fecha_registro')
 
     context = {
-        'titulo_pagina': f"Mis Notas en {materia.nombre_materia}",
+        'titulo_pagina': _("Mis Notas en %(materia)s") % {'materia': materia.nombre_materia},
         'materia': materia,
         'periodo_activo': periodo_activo,
         'calificaciones': calificaciones_materia,
@@ -7075,19 +7075,19 @@ def generar_reporte_nota_minima(request, curso_pk):
         if porcentaje_restante <= 0:
             # ✅ Nuevo: Verificar si aprobó o reprobó al finalizar el curso
             if puntos_acumulados >= NOTA_OBJETIVO:
-                estado = "Curso finalizado"
+                estado = _("Curso finalizado")
             else:
-                estado = "Reprobado"
+                estado = _("Reprobado")
         else:
             puntos_necesarios = (NOTA_OBJETIVO - puntos_acumulados) * (Decimal('100.0') / porcentaje_restante)
             nota_requerida = puntos_necesarios.quantize(Decimal('0.01'))
 
             if nota_requerida <= 0:
-                estado = "Aprobado (No necesita más puntos)"
+                estado = _("Aprobado (No necesita más puntos)")
             elif nota_requerida > 5.0:
-                estado = "Situación Crítica (Imposible aprobar)"
+                estado = _("Situación Crítica (Imposible aprobar)")
             else:
-                estado = "En Riesgo"
+                estado = _("En Riesgo")
 
         reporte_data.append({
             'estudiante': estudiante,
@@ -7101,7 +7101,7 @@ def generar_reporte_nota_minima(request, curso_pk):
     context = {
         'curso': curso,
         'reporte_data': reporte_data,
-        'titulo_pagina': f"Reporte de Nota Mínima para {curso.materia}",
+        'titulo_pagina': _("Reporte de Nota Mínima para %(materia)s") % {'materia': curso.materia},
         'nota_objetivo': NOTA_OBJETIVO
     }
     return render(request, 'gestion_academica/reporte_nota_minima.html', context) 
@@ -7141,7 +7141,7 @@ def _get_panel_director_data(docente, periodo_activo):
         'direccion_grupo': direccion_grupo,
         'cursos': cursos,
         'panel_data': panel_data,
-        'titulo_pagina': f"Panel del Director de Grupo: {grado.nombre}"
+        'titulo_pagina': _("Panel del Director de Grupo: %(grado)s") % {'grado': grado.nombre}
     }        
 
 @login_required
@@ -7522,12 +7522,12 @@ class CalificarEntregaView(LoginRequiredMixin, UpdateView):
             }
         )
         
-        messages.success(self.request, f"La tarea de {self.object.estudiante} ha sido calificada y sincronizada.")
+        messages.success(self.request, _("La tarea de %(estudiante)s ha sido calificada y sincronizada.") % {'estudiante': self.object.estudiante})
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['titulo_pagina'] = f"Calificar Tarea: {self.object.deber.titulo}"
+        context['titulo_pagina'] = _("Calificar Tarea: %(titulo)s") % {'titulo': self.object.deber.titulo}
         return context   
 
 @login_required
@@ -7807,7 +7807,7 @@ def exportar_reporte_riesgo_global_view(request):
     grado_id = request.GET.get('grado')
 
     if not (periodo_id and grado_id):
-        return HttpResponse("Faltan filtros.", status=400)
+        return HttpResponse(_("Faltan filtros."), status=400)
     
     try:
         periodo = get_object_or_404(get_filtered_queryset(PeriodoAcademico, request.user), pk=periodo_id)
@@ -7823,7 +7823,7 @@ def exportar_reporte_riesgo_global_view(request):
             es_director_del_grupo = DirectorCurso.objects.filter(docente=user.docente, grado=grado, periodo_academico=periodo).exists()
 
         if not (es_superusuario or es_admin_o_coordinador or es_director_del_grupo):
-            return HttpResponse("Acceso denegado.", status=403)
+            return HttpResponse(_("Acceso denegado."), status=403)
         # --- FIN DE LA LÓGICA DE PERMISOS ---
         
         # El resto del código de exportación...
@@ -8767,7 +8767,7 @@ def lista_notificaciones_view(request):
     pagina = paginador.get_page(request.GET.get('page'))
 
     context = {
-        'titulo_pagina': "Mis Notificaciones",
+        'titulo_pagina': _("Mis Notificaciones"),
         'notificaciones': pagina,           # objeto Page: se itera igual en la plantilla
         'total_notificaciones': paginador.count,
     }
@@ -9289,9 +9289,9 @@ def eliminar_disponibilidad_view(request, pk):
         docente = request.user.docente
         disponibilidad = get_object_or_404(DisponibilidadDocente, pk=pk, docente=docente)
         disponibilidad.delete()
-        messages.success(request, "El bloque de disponibilidad ha sido eliminado.")
+        messages.success(request, _("El bloque de disponibilidad ha sido eliminado."))
     except (AttributeError, Docente.DoesNotExist):
-        messages.error(request, "Acción no permitida.")
+        messages.error(request, _("Acción no permitida."))
     
     return redirect('gestion_academica:gestionar_disponibilidad')         
 
@@ -9454,7 +9454,7 @@ def mis_citas_view(request):
     try:
         docente = request.user.docente
     except (AttributeError, Docente.DoesNotExist):
-        messages.error(request, "Acceso denegado. Esta sección es solo para docentes.")
+        messages.error(request, _("Acceso denegado. Esta sección es solo para docentes."))
         return redirect('gestion_academica:inicio_academico')
 
     # Buscamos todas las citas del docente que no estén canceladas o ya realizadas
@@ -9466,7 +9466,7 @@ def mis_citas_view(request):
     ).order_by('fecha_hora_inicio')
 
     context = {
-        'titulo_pagina': "Mis Citas Agendadas",
+        'titulo_pagina': _("Mis Citas Agendadas"),
         'citas': citas_agendadas,
     }
     return render(request, 'gestion_academica/docente_mis_citas.html', context)        
@@ -9485,13 +9485,13 @@ def gestionar_cita_view(request, pk):
         form = GestionCitaForm(request.POST, instance=cita)
         if form.is_valid():
             form.save()
-            messages.success(request, "La información de la cita ha sido actualizada.")
+            messages.success(request, _("La información de la cita ha sido actualizada."))
             return redirect('gestion_academica:docente_mis_citas')
     else:
         form = GestionCitaForm(instance=cita)
 
     context = {
-        'titulo_pagina': "Gestionar Cita",
+        'titulo_pagina': _("Gestionar Cita"),
         'form': form,
         'cita': cita,
     }

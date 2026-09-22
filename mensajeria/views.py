@@ -25,6 +25,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.contrib import messages as flash
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .models import Conversacion, Mensaje
 
@@ -60,10 +61,10 @@ ROLES_PERSONAL = {
 }
 ROLES_ALUMNO = {'estudiante', 'familiar'}
 _ROL_ETIQUETA = {
-    'rector': 'Rector(a) / Directivo', 'coordinador': 'Coordinador(a)',
-    'administrador': 'Administrador(a)', 'administrativo': 'Administrativo(a)',
-    'admin_institucion': 'Administrador(a)', 'tesoreria': 'Tesorería',
-    'secretaria': 'Secretaría', 'psicologo': 'Psicoorientador(a)', 'docente': 'Docente',
+    'rector': _('Rector(a) / Directivo'), 'coordinador': _('Coordinador(a)'),
+    'administrador': _('Administrador(a)'), 'administrativo': _('Administrativo(a)'),
+    'admin_institucion': _('Administrador(a)'), 'tesoreria': _('Tesorería'),
+    'secretaria': _('Secretaría'), 'psicologo': _('Psicoorientador(a)'), 'docente': _('Docente'),
 }
 
 
@@ -83,7 +84,7 @@ def _directorio_personal(institucion, exclude_user):
     out = []
     for u in qs:
         nombre = u.get_full_name() or u.username
-        etiqueta_rol = _ROL_ETIQUETA.get(u.rol or '', 'Personal')
+        etiqueta_rol = _ROL_ETIQUETA.get(u.rol or '', _('Personal'))
         out.append({
             'usuario': u,
             'etiqueta': nombre,
@@ -172,7 +173,7 @@ def detalle_conversacion(request, conversacion_id):
 
     # Verificar que el usuario es participante
     if request.user.pk not in (conv.participante_a_id, conv.participante_b_id):
-        flash.error(request, "No tienes acceso a esta conversación.")
+        flash.error(request, _("No tienes acceso a esta conversación."))
         return redirect('mensajeria:inbox')
 
     # Marcar mensajes como leídos
@@ -215,7 +216,7 @@ def iniciar_conversacion(request, destinatario_pk):
     institucion = _get_institucion(request.user)
 
     if not institucion:
-        flash.error(request, "Tu cuenta no está asociada a ninguna institución.")
+        flash.error(request, _("Tu cuenta no está asociada a ninguna institución."))
         return redirect('mensajeria:inbox')
 
     # Aislamiento multi-institución: solo se puede iniciar conversación con
@@ -226,13 +227,13 @@ def iniciar_conversacion(request, destinatario_pk):
     destinatario = get_object_or_404(destinatario_qs, pk=destinatario_pk)
 
     if destinatario == request.user:
-        flash.error(request, "No puedes enviarte mensajes a ti mismo.")
+        flash.error(request, _("No puedes enviarte mensajes a ti mismo."))
         return redirect('mensajeria:inbox')
 
     # Reglas de categoría: personal↔personal, y docente↔alumno. Un administrativo
     # no puede iniciar chat con estudiantes/familias, ni un alumno con otro alumno.
     if not _puede_conversar(request.user, destinatario):
-        flash.error(request, "No puedes iniciar una conversación con este usuario.")
+        flash.error(request, _("No puedes iniciar una conversación con este usuario."))
         return redirect('mensajeria:inbox')
 
     # Normalizar: participante_a siempre el de menor pk para evitar duplicados
@@ -414,14 +415,18 @@ def nuevo_mensaje(request):
         destinatarios = _directorio_personal(institucion, user)
 
     # Título contextual
-    titulo = 'Nuevo mensaje'
+    titulo = _('Nuevo mensaje')
     subtitulo = None
     if user.rol == 'estudiante' and destinatarios:
-        subtitulo = f"Tus docentes en {destinatarios[0]['sub'].split(' · ')[-1]}"
+        subtitulo = _("Tus docentes en %(nivel)s") % {
+            'nivel': destinatarios[0]['sub'].split(' · ')[-1]
+        }
     elif filtro_estudiante_pk and destinatarios:
         partes = destinatarios[0]['sub'].split(' · ')
         if len(partes) >= 3:
-            subtitulo = f"Docentes de {partes[-1]} — {partes[-2]}"
+            subtitulo = _("Docentes de %(grado)s — %(grupo)s") % {
+                'grado': partes[-1], 'grupo': partes[-2]
+            }
 
     return render(request, 'mensajeria/nuevo_mensaje.html', {
         'destinatarios':  destinatarios,

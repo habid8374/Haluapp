@@ -9,9 +9,9 @@
             <h1 class="mb-4">{{ titulo_pagina }}</h1>
             {% if entrega.alerta_plagio %}
                 <div class="alert alert-danger shadow-sm" role="alert">
-                    <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>¡Alerta de Posible Plagio Detectada!</h4>
+                    <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>{% trans "¡Alerta de Posible Plagio Detectada!" %}</h4>
                     <p>
-                        El sistema HALU ha detectado una similitud del <strong>{{ entrega.porcentaje_similitud }}%</strong> en este trabajo al compararlo con otras entregas.
+                        {% blocktrans with porcentaje=entrega.porcentaje_similitud %}El sistema HALU ha detectado una similitud del <strong>{{ porcentaje }}%</strong> en este trabajo al compararlo con otras entregas.{% endblocktrans %}
                     </p>
                     <hr>
                     <p class="mb-0">{% trans "Se recomienda revisar el contenido cuidadosamente antes de asignar una calificación." %}</p>
@@ -26,9 +26,9 @@
                     <p><strong>{% trans "Tarea:" %}</strong> {{ entrega.deber.titulo }}</p>
                     {% if entrega.archivo_adjunto_estudiante %}
                         <p>
-                            <strong>Archivo Entregado:</strong> 
+                            <strong>{% trans "Archivo Entregado:" %}</strong>
                             <a href="{{ entrega.archivo_adjunto_estudiante.url }}" target="_blank" class="btn btn-sm btn-info">
-                                <i class="bi bi-download me-1"></i> Descargar Tarea
+                                <i class="bi bi-download me-1"></i> {% trans "Descargar Tarea" %}
                             </a>
                         </p>
                     {% endif %}

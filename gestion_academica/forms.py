@@ -2227,7 +2227,7 @@ class JustificacionInasistenciaForm(forms.ModelForm):
         cleaned = super().clean()
         inicio, fin = cleaned.get('fecha_inicio'), cleaned.get('fecha_fin')
         if inicio and fin and fin < inicio:
-            raise ValidationError("La fecha 'Hasta' no puede ser anterior a la fecha 'Desde'.")
+            raise ValidationError(_("La fecha 'Hasta' no puede ser anterior a la fecha 'Desde'."))
         return cleaned
 
     def clean_documento_soporte(self):
@@ -2236,12 +2236,12 @@ class JustificacionInasistenciaForm(forms.ModelForm):
             return archivo  # sin archivo nuevo, o no se modificó
 
         if archivo.size > JUSTIFICACION_INASISTENCIA_MAX_BYTES:
-            raise ValidationError("El archivo supera el tamaño máximo permitido (10 MB).")
+            raise ValidationError(_("El archivo supera el tamaño máximo permitido (10 MB)."))
 
         nombre = (archivo.name or "").lower()
         extension = nombre.rsplit(".", 1)[-1] if "." in nombre else ""
         if extension not in JUSTIFICACION_INASISTENCIA_EXTENSIONES:
-            raise ValidationError("Formato no permitido. Usa PDF, imagen (JPG/PNG/WEBP) o Word (DOC/DOCX).")
+            raise ValidationError(_("Formato no permitido. Usa PDF, imagen (JPG/PNG/WEBP) o Word (DOC/DOCX)."))
 
         try:
             import magic as _magic
@@ -2251,11 +2251,12 @@ class JustificacionInasistenciaForm(forms.ModelForm):
             mime_real = _magic.from_buffer(header, mime=True)
             if mime_real not in JUSTIFICACION_INASISTENCIA_MIME_REALES:
                 raise ValidationError(
-                    f"El contenido del archivo no corresponde al formato declarado. Tipo detectado: {mime_real}."
+                    _("El contenido del archivo no corresponde al formato declarado. Tipo detectado: %(mime_real)s.")
+                    % {'mime_real': mime_real}
                 )
         except ImportError:
             content_type = (getattr(archivo, "content_type", "") or "").lower()
             valid_mime_fallback = JUSTIFICACION_INASISTENCIA_MIME_REALES | {"application/octet-stream"}
             if content_type and content_type not in valid_mime_fallback:
-                raise ValidationError("El tipo de archivo no coincide con los formatos permitidos.")
+                raise ValidationError(_("El tipo de archivo no coincide con los formatos permitidos."))
         return archivo

@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container mt-4">
@@ -6,16 +7,16 @@
         <div>
             <h1 class="h2">{{ materia.nombre_materia }}{% if request.user.institucion_asociada.es_bilingue and materia.nombre_idioma_secundario %} <small style="font-size:.55em;color:#0369a1;font-style:italic;">/ {{ materia.nombre_idioma_secundario }}</small>{% endif %}</h1>
             <p class="text-muted mb-0">
-                Mostrando tus calificaciones para el periodo: <strong>{{ periodo_activo.nombre|default:"N/A" }}</strong>
+                {% blocktrans with periodo=periodo_activo.nombre|default:"N/A" %}Mostrando tus calificaciones para el periodo: <strong>{{ periodo }}</strong>{% endblocktrans %}
             </p>
         </div>
         <a href="{% url 'gestion_academica:dashboard_estudiante' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Volver al Panel
+            <i class="bi bi-arrow-left"></i> {% trans "Volver al Panel" %}
         </a>
     </div>
     <div class="card shadow-sm">
         <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-card-checklist me-2"></i>Historial de Calificaciones</h5>
+            <h5 class="mb-0"><i class="bi bi-card-checklist me-2"></i>{% trans "Historial de Calificaciones" %}</h5>
         </div>
         <div class="card-body">
             {% if calificaciones %}
@@ -31,12 +32,12 @@
                                     <span class="badge bg-primary fs-5 rounded-pill">{{ calificacion.valor_numerico|floatformat:2 }}</span>
                                 </div>
                                 <div class="col-md-3 text-md-end text-muted">
-                                    <small>Registrada: {{ calificacion.fecha_registro|date:"d M, Y" }}</small>
+                                    <small>{% trans "Registrada:" %} {{ calificacion.fecha_registro|date:"d M, Y" }}</small>
                                 </div>
                             </div>
                             {% if calificacion.observaciones %}
                                 <div class="mt-2 p-2 bg-light border rounded">
-                                    <small><strong>Observación del docente:</strong> {{ calificacion.observaciones }}</small>
+                                    <small><strong>{% trans "Observación del docente:" %}</strong> {{ calificacion.observaciones }}</small>
                                 </div>
                             {% endif %}
                         </li>
@@ -44,7 +45,7 @@
                 </ul>
             {% else %}
                 <div class="alert alert-info text-center">
-                    No se encontraron calificaciones para esta materia en el periodo activo.
+                    {% trans "No se encontraron calificaciones para esta materia en el periodo activo." %}
                 </div>
             {% endif %}
         </div>

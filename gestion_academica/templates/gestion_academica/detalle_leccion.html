@@ -9,32 +9,32 @@
                 <h2 class="h3 mb-0">{{ titulo_pagina }}</h2>
                 {% if user.estudiante %}
                     <a href="{% url 'gestion_academica:dashboard_estudiante' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Volver al Panel
+                        <i class="bi bi-arrow-left"></i> {% trans "Volver al Panel" %}
                     </a>
                 {% else %}
                     <a href="{% url 'gestion_academica:lista_lecciones_diarias' leccion.curso.pk %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Volver al Historial
+                        <i class="bi bi-arrow-left"></i> {% trans "Volver al Historial" %}
                     </a>
                 {% endif %}
             </div>
             <p class="text-muted mb-0">
-                Tema: <strong>{{ leccion.tema_tratado }}</strong>
+                {% trans "Tema:" %} <strong>{{ leccion.tema_tratado }}</strong>
             </p>
         </div>
         <div class="card-body p-4">
-            <h5 class="card-title">Resumen de la Clase</h5>
+            <h5 class="card-title">{% trans "Resumen de la Clase" %}</h5>
             <p class="card-text" style="white-space: pre-wrap;">{{ leccion.resumen_clase|linebreaksbr }}</p>
             {% if leccion.archivo_adjunto %}
                 <hr>
-                <h5 class="card-title">Material Adicional</h5>
+                <h5 class="card-title">{% trans "Material Adicional" %}</h5>
                 <a href="{{ leccion.archivo_adjunto.url }}" target="_blank" class="btn btn-primary">
-                    <i class="bi bi-download me-2"></i> Descargar Archivo Adjunto
+                    <i class="bi bi-download me-2"></i> {% trans "Descargar Archivo Adjunto" %}
                 </a>
             {% endif %}
         </div>
         <div class="card-footer text-muted">
             <div class="d-flex justify-content-between">
-                <span>Registrado por: Prof. {{ leccion.creado_por.get_full_name|default:leccion.creado_por.username }}</span>
+                <span>{% trans "Registrado por: Prof." %} {{ leccion.creado_por.get_full_name|default:leccion.creado_por.username }}</span>
                 <span>{% trans "Materia:" %} <strong>{{ leccion.curso.materia }}</strong></span>
             </div>
         </div>

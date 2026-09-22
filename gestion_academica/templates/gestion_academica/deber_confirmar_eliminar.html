@@ -1,10 +1,10 @@
 {% extends "base_academico.html" %}
 {% load static %}
 {% load i18n %}
-{% block titulo %}{{ titulo_pagina|default:"Confirmar Eliminación de Deber" }}{% endblock titulo %}
+{% block titulo %}{% trans "Confirmar Eliminación de Deber" as titulo_deber_del_default %}{{ titulo_pagina|default:titulo_deber_del_default }}{% endblock titulo %}
 {% block contenido %}
 <div class="container mt-4">
-    <h1 class="mb-4">{{ titulo_pagina|default:"Confirmar Eliminación de Deber" }}</h1>
+    <h1 class="mb-4">{% trans "Confirmar Eliminación de Deber" as titulo_deber_del_default2 %}{{ titulo_pagina|default:titulo_deber_del_default2 }}</h1>
     <hr>
     {% if deber %}
         <div class="alert alert-warning shadow-sm" role="alert">

@@ -19,7 +19,8 @@
           <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button"
                   data-bs-toggle="collapse" data-bs-target="#grado-{{ forloop.counter }}">
             <i class="bi bi-mortarboard-fill me-2" style="color:#1d4ed8;"></i>
-            <strong>{{ grupo.grouper.nombre|default:"Sin grado asignado" }}</strong>
+            {% trans "Sin grado asignado" as sin_grado_asignado_default %}
+            <strong>{{ grupo.grouper.nombre|default:sin_grado_asignado_default }}</strong>
             <span class="badge bg-primary ms-2">{{ grupo.list|length }}</span>
           </button>
         </h2>

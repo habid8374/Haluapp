@@ -24,16 +24,16 @@
         </div>
         <div class="d-flex gap-3 flex-wrap" style="font-size:.85rem;opacity:.9;">
           {% if piar.grado %}<span><i class="bi bi-mortarboard me-1"></i>{{ piar.grado.nombre }}</span>{% endif %}
-          <span><i class="bi bi-calendar me-1"></i>Año {{ piar.año_lectivo }}</span>
+          <span><i class="bi bi-calendar me-1"></i>{% blocktrans with anio=piar.año_lectivo %}Año {{ anio }}{% endblocktrans %}</span>
           <span><i class="bi bi-heart-pulse me-1"></i>{{ piar.get_condicion_display }}</span>
           {% if piar.docente_lider %}<span><i class="bi bi-person-badge me-1"></i>{{ piar.docente_lider.get_full_name }}</span>{% endif %}
-          {% if piar.fecha_revision %}<span><i class="bi bi-arrow-clockwise me-1"></i>Revisión: {{ piar.fecha_revision|date:"d/m/Y" }}</span>{% endif %}
+          {% if piar.fecha_revision %}<span><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Revisión:" %} {{ piar.fecha_revision|date:"d/m/Y" }}</span>{% endif %}
         </div>
       </div>
       <div class="d-flex gap-2">
         {% if request.user.rol == 'coordinador' or request.user.rol == 'administrador' or request.user.is_superuser %}
         <a href="{% url 'piar:editar_piar' piar.pk %}" class="btn btn-warning btn-sm fw-bold">
-          <i class="bi bi-pencil me-1"></i>Editar PIAR
+          <i class="bi bi-pencil me-1"></i>{% trans "Editar PIAR" %}
         </a>
         <a href="{% url 'gestion_academica:editar_perfil_accesibilidad' piar.estudiante.pk %}" class="btn btn-light btn-sm fw-bold">
           <i class="bi bi-universal-access-circle me-1"></i>{% trans "Accesibilidad" %}
@@ -45,7 +45,7 @@
         </a>
         {% endif %}
         <a href="{% url 'piar:lista_piars' %}" class="btn btn-outline-light btn-sm">
-          <i class="bi bi-arrow-left me-1"></i>Volver
+          <i class="bi bi-arrow-left me-1"></i>{% trans "Volver" %}
         </a>
       </div>
     </div>
@@ -60,7 +60,7 @@
         <div class="accordion-item border-0 shadow-sm mb-2" style="border-radius:10px!important;overflow:hidden;">
           <h2 class="accordion-header">
             <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFortalezas" style="font-size:.88rem;">
-              <i class="bi bi-star-fill text-warning me-2"></i>Fortalezas
+              <i class="bi bi-star-fill text-warning me-2"></i>{% trans "Fortalezas" %}
             </button>
           </h2>
           <div id="collapseFortalezas" class="accordion-collapse collapse show" data-bs-parent="#accordionCaracterizacion">
@@ -70,7 +70,7 @@
         <div class="accordion-item border-0 shadow-sm mb-2" style="border-radius:10px!important;overflow:hidden;">
           <h2 class="accordion-header">
             <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBarreras" style="font-size:.88rem;">
-              <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Barreras
+              <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>{% trans "Barreras" %}
             </button>
           </h2>
           <div id="collapseBarreras" class="accordion-collapse collapse" data-bs-parent="#accordionCaracterizacion">
@@ -80,7 +80,7 @@
         <div class="accordion-item border-0 shadow-sm mb-2" style="border-radius:10px!important;overflow:hidden;">
           <h2 class="accordion-header">
             <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseApoyos" style="font-size:.88rem;">
-              <i class="bi bi-tools text-info me-2"></i>Apoyos requeridos
+              <i class="bi bi-tools text-info me-2"></i>{% trans "Apoyos requeridos" %}
             </button>
           </h2>
           <div id="collapseApoyos" class="accordion-collapse collapse" data-bs-parent="#accordionCaracterizacion">

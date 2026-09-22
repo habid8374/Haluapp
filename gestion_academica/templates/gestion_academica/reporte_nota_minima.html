@@ -1,4 +1,5 @@
 {% extends "base_academico.html" %}
+{% load i18n %}
 {% block titulo %}{{ titulo_pagina }}{% endblock %}
 {% block contenido %}
 <div class="container-fluid mt-4">
@@ -6,25 +7,25 @@
     <h1 class="mb-0">{{ titulo_pagina }}</h1>
     <div class="btn-group">
         <a href="{% url 'gestion_academica:exportar_reporte_nota_minima_excel' curso_pk=curso.pk %}" class="btn btn-success">
-            <i class="bi bi-file-earmark-excel-fill"></i> Exportar a Excel
+            <i class="bi bi-file-earmark-excel-fill"></i> {% trans "Exportar a Excel" %}
         </a>
         <a href="{% url 'gestion_academica:seleccionar_curso_reporte_nota_minima' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Volver
+            <i class="bi bi-arrow-left"></i> {% trans "Volver" %}
         </a>
     </div>
 </div>
-    <p class="text-muted">Este reporte calcula la nota promedio que cada estudiante necesita obtener en el <strong>{{ reporte.porcentaje_restante|floatformat:2 }}%</strong> restante de la materia...</p>
+    <p class="text-muted">{% blocktrans with porcentaje=reporte.porcentaje_restante|floatformat:2 %}Este reporte calcula la nota promedio que cada estudiante necesita obtener en el <strong>{{ porcentaje }}%</strong> restante de la materia...{% endblocktrans %}</p>
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>Estudiante</th>
-                            <th class="text-center">Promedio Actual</th>
-                            <th class="text-center">% Evaluado</th>
-                            <th class="text-center">Nota Requerida en el % Restante</th>
-                            <th class="text-center">Estado</th>
+                            <th>{% trans "Estudiante" %}</th>
+                            <th class="text-center">{% trans "Promedio Actual" %}</th>
+                            <th class="text-center">{% trans "% Evaluado" %}</th>
+                            <th class="text-center">{% trans "Nota Requerida en el % Restante" %}</th>
+                            <th class="text-center">{% trans "Estado" %}</th>
                         </tr>
                     </thead>
                     <tbody>

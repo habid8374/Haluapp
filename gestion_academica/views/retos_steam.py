@@ -38,7 +38,7 @@ def catalogo_retos_steam(request):
         'retos': qs.order_by('categoria', 'titulo'),
         'categorias': RetoSTEAM.Categoria.choices,
         'categoria_seleccionada': categoria,
-        'titulo_pagina': "Catálogo de Retos STEAM",
+        'titulo_pagina': _("Catálogo de Retos STEAM"),
     }
     return render(request, 'gestion_academica/catalogo_retos_steam.html', context)
 

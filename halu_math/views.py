@@ -233,7 +233,7 @@ def eliminar_ejercicio(request, pk):
 @ratelimit(key='user', rate='10/h', method='POST', block=True)
 def generar_ia(request):
     if not _es_docente_o_coordinador(request.user):
-        return JsonResponse({'ok': False, 'error': 'Sin permiso.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin permiso.')}, status=403)
 
     dba_id = request.POST.get('dba_id')
     try:
@@ -244,7 +244,7 @@ def generar_ia(request):
 
     dba = _dbas_piloto().filter(pk=dba_id).first()
     if not dba:
-        return JsonResponse({'ok': False, 'error': 'DBA inválido.'}, status=400)
+        return JsonResponse({'ok': False, 'error': _('DBA inválido.')}, status=400)
     dif_label = dict(Dificultad.choices).get(dificultad, dificultad)
 
     prompt = f"""Eres un experto en pedagogía de las matemáticas para educación básica en Colombia.
@@ -280,7 +280,7 @@ Reglas:
         institucion = getattr(request.user, 'institucion_asociada', None)
         _api_key = get_google_api_key(institucion) if institucion else None
         if not _api_key:
-            return JsonResponse({'ok': False, 'error': 'La institución no tiene Google API Key configurada.'}, status=400)
+            return JsonResponse({'ok': False, 'error': _('La institución no tiene Google API Key configurada.')}, status=400)
         try:
             resp = _ia_gate.gemini_generate(institucion, 'gemini-2.0-flash', prompt)
         except _ia_gate.IATopeSuperado as _e:
@@ -303,7 +303,7 @@ Reglas:
         return JsonResponse({'ok': True, 'ejercicios': ejercicios_data, 'dba_id': dba.pk, 'dificultad': dificultad})
     except Exception as exc:
         logger.error("halu_math.generar_ia error: %s", exc, exc_info=True)
-        return JsonResponse({'ok': False, 'error': 'Error al generar ejercicios. Intenta de nuevo.'}, status=500)
+        return JsonResponse({'ok': False, 'error': _('Error al generar ejercicios. Intenta de nuevo.')}, status=500)
 
 
 @login_required
@@ -312,24 +312,24 @@ Reglas:
 def guardar_ia(request):
     """Guarda en el banco los ejercicios generados por IA tras revisión del docente."""
     if not _es_docente_o_coordinador(request.user):
-        return JsonResponse({'ok': False, 'error': 'Sin permiso.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin permiso.')}, status=403)
 
     institucion = _get_institucion(request)
     try:
         data = json.loads(request.body)
         ejercicios_raw = data.get('ejercicios', [])
         if not isinstance(ejercicios_raw, list) or not ejercicios_raw:
-            return JsonResponse({'ok': False, 'error': 'Datos inválidos.'}, status=400)
+            return JsonResponse({'ok': False, 'error': _('Datos inválidos.')}, status=400)
 
         # A02/A08 — validar valores contra choices/catálogo permitidos
         dif_validas = {v for v, _lbl in Dificultad.choices}
         dificultad = data.get('dificultad', Dificultad.BASICO)
         if dificultad not in dif_validas:
-            return JsonResponse({'ok': False, 'error': 'Parámetros inválidos.'}, status=400)
+            return JsonResponse({'ok': False, 'error': _('Parámetros inválidos.')}, status=400)
 
         dba = _dbas_piloto().filter(pk=data.get('dba_id')).first()
         if not dba:
-            return JsonResponse({'ok': False, 'error': 'DBA inválido.'}, status=400)
+            return JsonResponse({'ok': False, 'error': _('DBA inválido.')}, status=400)
 
         creados = 0
         for e in ejercicios_raw[:10]:  # máximo 10 ejercicios por llamada
@@ -358,7 +358,7 @@ def guardar_ia(request):
                 OpcionEjercicioMath.objects.create(
                     ejercicio=ejercicio,
                     letra=letra,
-                    texto=texto_opcion or f'Opción {letra}',
+                    texto=texto_opcion or _('Opción %(letra)s') % {'letra': letra},
                     es_correcta=(letra == correcta),
                 )
             creados += 1
@@ -366,7 +366,7 @@ def guardar_ia(request):
         return JsonResponse({'ok': True, 'creados': creados})
     except Exception as exc:
         logger.error("halu_math.guardar_ia error: %s", exc, exc_info=True)
-        return JsonResponse({'ok': False, 'error': 'Error al guardar ejercicios.'}, status=500)
+        return JsonResponse({'ok': False, 'error': _('Error al guardar ejercicios.')}, status=500)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

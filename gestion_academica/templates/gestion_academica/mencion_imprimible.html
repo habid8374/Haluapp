@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -46,19 +47,19 @@
 <div class="content">
 
     <!-- Encabezado: UNA imagen con escudo (izq) y escarapela (der) integrados. -->
-    <img src="{% static 'img/mencion_encabezado.png' %}" alt="Escudo de Colombia y Menci&oacute;n de Honor">
+    <img src="{% static 'img/mencion_encabezado.png' %}" alt="{% trans "Escudo de Colombia y Menci&oacute;n de Honor" %}">
 
-    <div class="country">Rep&uacute;blica de Colombia</div>
+    <div class="country">{% trans "Rep&uacute;blica de Colombia" %}</div>
     <div class="school">{{ mencion.institucion.nombre }}</div>
     {% if mencion.institucion.ciudad_departamento %}<div class="place-top">{{ mencion.institucion.ciudad_departamento }}</div>{% endif %}
 
     <div class="rule">&#9670; &#9670; &#9670;</div>
 
-    <div class="eyebrow">{% if es_preescolar %}&iexcl;Felicitaciones!{% else %}Confiere la presente{% endif %}</div>
-    <div class="title">MENCI&Oacute;N DE HONOR</div>
-    <div class="to">{% if es_preescolar %}Con mucho cari&ntilde;o para:{% else %}a:{% endif %}</div>
+    <div class="eyebrow">{% if es_preescolar %}{% trans "&iexcl;Felicitaciones!" %}{% else %}{% trans "Confiere la presente" %}{% endif %}</div>
+    <div class="title">{% trans "MENCI&Oacute;N DE HONOR" %}</div>
+    <div class="to">{% if es_preescolar %}{% trans "Con mucho cari&ntilde;o para:" %}{% else %}{% trans "a:" %}{% endif %}</div>
     <div class="student">{{ mencion.estudiante.usuario.get_full_name|default:mencion.estudiante }}</div>
-    <div class="reason">Por: <b>{{ mencion.tipo }}</b></div>
+    <div class="reason">{% trans "Por:" %} <b>{{ mencion.tipo }}</b></div>
     {% if mencion.descripcion %}<div class="desc">&ldquo;{{ mencion.descripcion }}&rdquo;</div>{% endif %}
 
     <div class="place">{{ mencion.institucion.ciudad_departamento|default:"" }}{% if mencion.institucion.ciudad_departamento %}, {% endif %}{{ mencion.fecha_otorgamiento|date:"d \d\e F \d\e Y" }}</div>
@@ -72,7 +73,7 @@
                 {% if mencion.otorgado_por.firma_docente %}<img src="{{ mencion.otorgado_por.firma_docente.url }}" class="firma-img" alt="Firma del docente"><br>{% endif %}
                 <div class="firma-line"></div>
                 {% if mencion.otorgado_por %}<div class="firma-name">{{ mencion.otorgado_por.usuario.get_full_name|default:mencion.otorgado_por.usuario.username }}</div>{% else %}<div class="firma-name">&nbsp;</div>{% endif %}
-                <div class="firma-role">Docente / Director(a) de Grupo</div>
+                <div class="firma-role">{% trans "Docente / Director(a) de Grupo" %}</div>
             </td>
             <td>
                 {% if mencion.institucion.firma_rectora %}<img src="{{ mencion.institucion.firma_rectora.url }}" class="firma-img" alt="Firma del rector"><br>{% endif %}

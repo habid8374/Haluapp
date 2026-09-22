@@ -93,7 +93,7 @@ def crear_pregunta(request):
         'areas': BancoPregunta.Area.choices,
         'dificultades': BancoPregunta.Dificultad.choices,
         'titulo_pagina': _('Nueva Pregunta'),
-        'accion': 'Crear',
+        'accion': _('Crear'),
     })
 
 
@@ -123,7 +123,7 @@ def editar_pregunta(request, pk):
         'areas': BancoPregunta.Area.choices,
         'dificultades': BancoPregunta.Dificultad.choices,
         'titulo_pagina': _('Editar Pregunta'),
-        'accion': 'Guardar',
+        'accion': _('Guardar'),
     })
 
 
@@ -289,7 +289,7 @@ def importar_preguntas(request):
                 creadas += 1
             except Exception as exc:
                 logger.warning("importar_preguntas fila %s: %s", i, exc)
-                errores.append(f"Fila {i}: datos incorrectos o incompletos.")
+                errores.append(_("Fila %(fila)s: datos incorrectos o incompletos.") % {'fila': i})
 
         if creadas:
             messages.success(request, _("✅ %(creadas)s pregunta(s) importada(s) correctamente.") % {'creadas': creadas})
@@ -360,7 +360,7 @@ def descargar_plantilla_excel(request):
 @ratelimit(key='user', rate='10/h', method='POST', block=True)
 def generar_preguntas_ia(request):
     if not _es_docente_o_coordinador(request.user):
-        return JsonResponse({'ok': False, 'error': 'Sin permiso.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin permiso.')}, status=403)
 
     grado    = request.POST.get('grado', 'GRADO_11')
     area     = request.POST.get('area', 'MATEMATICAS')
@@ -399,7 +399,7 @@ Reglas:
         institucion = getattr(request.user, 'institucion_asociada', None)
         _api_key = get_google_api_key(institucion) if institucion else None
         if not _api_key:
-            return JsonResponse({'ok': False, 'error': 'La institución no tiene Google API Key configurada.'}, status=400)
+            return JsonResponse({'ok': False, 'error': _('La institución no tiene Google API Key configurada.')}, status=400)
         try:
             resp = _ia_gate.gemini_generate(institucion, 'gemini-2.0-flash', prompt)
         except _ia_gate.IATopeSuperado as _e:
@@ -423,7 +423,7 @@ Reglas:
         return JsonResponse({'ok': True, 'preguntas': preguntas_data, 'grado': grado, 'area': area, 'dificultad': dificultad})
     except Exception as exc:
         logger.error("generar_preguntas_ia error: %s", exc, exc_info=True)
-        return JsonResponse({'ok': False, 'error': 'Error al generar preguntas. Intenta de nuevo.'}, status=500)
+        return JsonResponse({'ok': False, 'error': _('Error al generar preguntas. Intenta de nuevo.')}, status=500)
 
 
 @login_required
@@ -432,14 +432,14 @@ Reglas:
 def guardar_preguntas_ia(request):
     """Guarda en el banco las preguntas generadas por IA tras revisión del docente."""
     if not _es_docente_o_coordinador(request.user):
-        return JsonResponse({'ok': False, 'error': 'Sin permiso.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin permiso.')}, status=403)
 
     institucion = _get_institucion(request)
     try:
         data = json.loads(request.body)
         preguntas_raw = data.get('preguntas', [])
         if not isinstance(preguntas_raw, list) or not preguntas_raw:
-            return JsonResponse({'ok': False, 'error': 'Datos inválidos.'}, status=400)
+            return JsonResponse({'ok': False, 'error': _('Datos inválidos.')}, status=400)
 
         # A02/A08 — validar valores de grado/area/dificultad contra choices permitidos
         grado_validos = {v for v, _ in BancoPregunta.GradoNivel.choices}
@@ -451,7 +451,7 @@ def guardar_preguntas_ia(request):
         dificultad = data.get('dificultad', 'MEDIO')
 
         if grado not in grado_validos or area not in area_validas or dificultad not in dif_validas:
-            return JsonResponse({'ok': False, 'error': 'Parámetros inválidos.'}, status=400)
+            return JsonResponse({'ok': False, 'error': _('Parámetros inválidos.')}, status=400)
 
         creadas = 0
         for p in preguntas_raw[:10]:  # máximo 10 preguntas por llamada
@@ -483,7 +483,7 @@ def guardar_preguntas_ia(request):
                 OpcionPregunta.objects.create(
                     pregunta=pregunta,
                     letra=letra,
-                    texto=texto_opcion or f'Opción {letra}',
+                    texto=texto_opcion or _('Opción %(letra)s') % {'letra': letra},
                     es_correcta=(letra == correcta),
                 )
             creadas += 1
@@ -491,7 +491,7 @@ def guardar_preguntas_ia(request):
         return JsonResponse({'ok': True, 'creadas': creadas})
     except Exception as exc:
         logger.error("guardar_preguntas_ia error: %s", exc, exc_info=True)
-        return JsonResponse({'ok': False, 'error': 'Error al guardar preguntas.'}, status=500)
+        return JsonResponse({'ok': False, 'error': _('Error al guardar preguntas.')}, status=500)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -533,7 +533,7 @@ def crear_simulacro(request):
         'preguntas_banco': preguntas_banco,
         'areas': BancoPregunta.Area.choices,
         'titulo_pagina': _('Nuevo Simulacro'),
-        'accion': 'Crear',
+        'accion': _('Crear'),
     })
 
 
@@ -560,7 +560,7 @@ def editar_simulacro(request, pk):
         'seleccionadas': seleccionadas,
         'areas': BancoPregunta.Area.choices,
         'titulo_pagina': _('Editar Simulacro'),
-        'accion': 'Guardar',
+        'accion': _('Guardar'),
     })
 
 
