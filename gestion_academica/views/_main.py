@@ -7492,7 +7492,7 @@ class CalificarEntregaView(LoginRequiredMixin, UpdateView):
         # categoría, caemos a "Tareas" (0%) para no romper — esos no ponderan.
         tipo_actividad = entrega.deber.tipo_actividad
         if tipo_actividad is None:
-            tipo_actividad, _ = TipoActividad.objects.get_or_create(
+            tipo_actividad, _creada_tareas = TipoActividad.objects.get_or_create(
                 nombre='Tareas',
                 institucion=self.request.user.institucion_asociada,
                 defaults={'porcentaje': 0}

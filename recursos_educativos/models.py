@@ -15,6 +15,7 @@ import decimal
 
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 class RecursoEducativo3D(models.Model):
@@ -28,9 +29,9 @@ class RecursoEducativo3D(models.Model):
     MODO_AMBOS   = 'ambos'
 
     MODO_CHOICES = [
-        (MODO_GALERIA, 'Solo Galería'),
-        (MODO_STUDIO,  'Solo Studio'),
-        (MODO_AMBOS,   'Galería + Studio'),
+        (MODO_GALERIA, _('Solo Galería')),
+        (MODO_STUDIO,  _('Solo Studio')),
+        (MODO_AMBOS,   _('Galería + Studio')),
     ]
 
     TOTAL_PIEZAS = 13  # Órganos del cuerpo humano incluidos en el Studio
@@ -39,31 +40,31 @@ class RecursoEducativo3D(models.Model):
         'gestion_academica.ActividadCalificable',
         on_delete=models.CASCADE,
         related_name='recurso_3d',
-        verbose_name='Actividad Calificable',
+        verbose_name=_('Actividad Calificable'),
     )
     modo = models.CharField(
         max_length=10,
         choices=MODO_CHOICES,
         default=MODO_AMBOS,
-        verbose_name='Modo del Recurso',
+        verbose_name=_('Modo del Recurso'),
     )
     valor_maximo = models.DecimalField(
         max_digits=5,
         decimal_places=2,
         default=decimal.Decimal('5.00'),
-        verbose_name='Nota Máxima',
-        help_text='Nota máxima que puede obtener el estudiante (ej: 5.00)',
+        verbose_name=_('Nota Máxima'),
+        help_text=_('Nota máxima que puede obtener el estudiante (ej: 5.00)'),
     )
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa',
         on_delete=models.CASCADE,
-        verbose_name='Institución',
+        verbose_name=_('Institución'),
         related_name='recursos_3d',
     )
 
     class Meta:
-        verbose_name = 'Recurso Educativo 3D'
-        verbose_name_plural = 'Recursos Educativos 3D'
+        verbose_name = _('Recurso Educativo 3D')
+        verbose_name_plural = _('Recursos Educativos 3D')
         ordering = ['-actividad__fecha_publicacion']
 
     def __str__(self):
@@ -93,36 +94,36 @@ class EntregaRecurso3D(models.Model):
         RecursoEducativo3D,
         on_delete=models.CASCADE,
         related_name='entregas',
-        verbose_name='Recurso 3D',
+        verbose_name=_('Recurso 3D'),
     )
     estudiante = models.ForeignKey(
         'gestion_academica.Estudiante',
         on_delete=models.CASCADE,
         related_name='entregas_3d',
-        verbose_name='Estudiante',
+        verbose_name=_('Estudiante'),
     )
     piezas_colocadas = models.PositiveSmallIntegerField(
         default=0,
-        verbose_name='Piezas Colocadas',
-        help_text='Número de órganos correctamente colocados en el Studio (0–13)',
+        verbose_name=_('Piezas Colocadas'),
+        help_text=_('Número de órganos correctamente colocados en el Studio (0–13)'),
     )
     completado = models.BooleanField(
         default=False,
-        verbose_name='Studio Completado',
+        verbose_name=_('Studio Completado'),
     )
     fecha_inicio = models.DateTimeField(
         auto_now_add=True,
-        verbose_name='Fecha de Primer Acceso',
+        verbose_name=_('Fecha de Primer Acceso'),
     )
     fecha_completado = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name='Fecha de Completado',
+        verbose_name=_('Fecha de Completado'),
     )
     institucion = models.ForeignKey(
         'finanzas.InstitucionEducativa',
         on_delete=models.CASCADE,
-        verbose_name='Institución',
+        verbose_name=_('Institución'),
         related_name='entregas_3d',
     )
 
@@ -133,12 +134,12 @@ class EntregaRecurso3D(models.Model):
                 name='unique_entrega_por_recurso_estudiante_institucion',
             ),
         ]
-        verbose_name = 'Entrega de Recurso 3D'
-        verbose_name_plural = 'Entregas de Recursos 3D'
+        verbose_name = _('Entrega de Recurso 3D')
+        verbose_name_plural = _('Entregas de Recursos 3D')
         ordering = ['-fecha_inicio']
 
     def __str__(self):
-        estado = 'Completado' if self.completado else f'{self.piezas_colocadas}/13 piezas'
+        estado = _('Completado') if self.completado else _('%(piezas)s/13 piezas') % {'piezas': self.piezas_colocadas}
         return f"{self.estudiante} — {self.recurso.actividad.titulo} ({estado})"
 
     def registrar_progreso(self, piezas: int) -> bool:
@@ -165,7 +166,7 @@ class EntregaRecurso3D(models.Model):
                 defaults={
                     'valor_numerico': nota,
                     'registrada_por': None,
-                    'observaciones': 'Calificación automática — Studio 3D completado.',
+                    'observaciones': _('Calificación automática — Studio 3D completado.'),
                 },
             )
 

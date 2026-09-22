@@ -171,11 +171,11 @@ def crear_recurso_3d(request):
 
         errores = []
         if not curso_id:
-            errores.append('Debes seleccionar un curso.')
+            errores.append(_('Debes seleccionar un curso.'))
         if not titulo:
-            errores.append('El título es obligatorio.')
+            errores.append(_('El título es obligatorio.'))
         if modo not in dict(RecursoEducativo3D.MODO_CHOICES):
-            errores.append('Modo inválido.')
+            errores.append(_('Modo inválido.'))
 
         # El input HTML envía 'YYYY-MM-DD'; lo convertimos a date para no pasar
         # un string al modelo (los signals esperan un objeto fecha).
@@ -183,14 +183,14 @@ def crear_recurso_3d(request):
         if fecha_limite_raw:
             fecha_limite = parse_date(fecha_limite_raw)
             if fecha_limite is None:
-                errores.append('La fecha límite no tiene un formato válido.')
+                errores.append(_('La fecha límite no tiene un formato válido.'))
 
         try:
             valor_maximo = decimal.Decimal(valor_maximo)
             if valor_maximo <= 0:
                 raise ValueError
         except (decimal.InvalidOperation, ValueError):
-            errores.append('El valor máximo debe ser un número positivo.')
+            errores.append(_('El valor máximo debe ser un número positivo.'))
 
         if errores:
             for e in errores:
@@ -250,15 +250,21 @@ def crear_recurso_3d(request):
             from gestion_academica.models import Notificacion
             Notificacion.objects.create(
                 destinatario=est.usuario,
-                mensaje=f'Nueva actividad 3D: "{titulo}" en {curso.materia.nombre_materia}.',
+                mensaje=_('Nueva actividad 3D: "%(titulo)s" en %(materia)s.') % {
+                    'titulo': titulo,
+                    'materia': curso.materia.nombre_materia,
+                },
                 enlace=url_actividad,
                 institucion=institucion,
             )
             _push_ws(
                 f'user_{est.usuario.pk}',
                 kind='recurso_3d',
-                title='🧠 Nueva actividad 3D disponible',
-                message=f'{titulo} · {curso.materia.nombre_materia}',
+                title=_('🧠 Nueva actividad 3D disponible'),
+                message=_('%(titulo)s · %(materia)s') % {
+                    'titulo': titulo,
+                    'materia': curso.materia.nombre_materia,
+                },
                 url=url_actividad,
                 severity='info',
             )
@@ -324,7 +330,7 @@ def ver_entregas_recurso(request, pk):
                 defaults={
                     'valor_numerico': nota_decimal,
                     'registrada_por': docente,
-                    'observaciones': 'Nota ajustada manualmente por el docente.',
+                    'observaciones': _('Nota ajustada manualmente por el docente.'),
                 },
             )
             messages.success(request, _('Nota actualizada para %(estudiante_usuario_g)s.') % {'estudiante_usuario_g': estudiante.usuario.get_full_name()})
@@ -441,7 +447,7 @@ def abrir_visor_studio(request, pk):
         messages.error(request, _('No tienes un perfil de estudiante en esta institución.'))
         return redirect('gestion_academica:inicio_academico')
 
-    entrega, _ = EntregaRecurso3D.objects.get_or_create(
+    entrega, _creada = EntregaRecurso3D.objects.get_or_create(
         recurso=recurso,
         estudiante=estudiante,
         institucion=institucion,
@@ -470,16 +476,16 @@ def api_registrar_progreso(request, pk):
     """
     institucion = _get_institucion(request)
     if not institucion:
-        return JsonResponse({'ok': False, 'error': 'Sin institución asociada.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('Sin institución asociada.')}, status=403)
 
     estudiante = _get_estudiante_o_403(request, institucion)
     if not estudiante:
-        return JsonResponse({'ok': False, 'error': 'No eres estudiante.'}, status=403)
+        return JsonResponse({'ok': False, 'error': _('No eres estudiante.')}, status=403)
 
-    al_dia, _ = estudiante_esta_al_dia(request)
+    al_dia, _motivo = estudiante_esta_al_dia(request)
     if not al_dia:
         return JsonResponse(
-            {'ok': False, 'error': 'Tu portal está bloqueado por pagos vencidos.'},
+            {'ok': False, 'error': _('Tu portal está bloqueado por pagos vencidos.')},
             status=402,
         )
 
@@ -489,9 +495,9 @@ def api_registrar_progreso(request, pk):
         body = json.loads(request.body)
         piezas = int(body.get('piezas_colocadas', 0))
     except (json.JSONDecodeError, ValueError):
-        return JsonResponse({'ok': False, 'error': 'Datos inválidos.'}, status=400)
+        return JsonResponse({'ok': False, 'error': _('Datos inválidos.')}, status=400)
 
-    entrega, _ = EntregaRecurso3D.objects.get_or_create(
+    entrega, _creada = EntregaRecurso3D.objects.get_or_create(
         recurso=recurso,
         estudiante=estudiante,
         institucion=institucion,
@@ -508,8 +514,11 @@ def api_registrar_progreso(request, pk):
             _push_ws(
                 f'user_{request.user.pk}',
                 kind='studio_completado',
-                title='🎉 ¡Cuerpo armado!',
-                message=f'Completaste el Studio de "{recurso.actividad.titulo}". Nota: {nota}',
+                title=_('🎉 ¡Cuerpo armado!'),
+                message=_('Completaste el Studio de "%(titulo)s". Nota: %(nota)s') % {
+                    'titulo': recurso.actividad.titulo,
+                    'nota': nota,
+                },
                 severity='success',
             )
 
