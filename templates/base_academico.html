@@ -7,6 +7,7 @@
 {% block body_class %}layout-academico{% endblock %}
 {% block extrastyles %}
 {{ block.super }}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap">
 <style>
   /* ══════════════════════════════════════════════════════
      HALU STEAM — Wordmark degradado (ver filtro `steamify`)
@@ -30,8 +31,15 @@
   ══════════════════════════════════════════════════════ */
   body.layout-academico {
     --sidebar-w: 245px;
-    --brand-primary: #0b5ed7;
-    --brand-primary-dark: #0a4db4;
+    --brand-primary: #4f46e5;
+    --brand-primary-dark: #4338ca;
+    --brand-accent-2: #7c3aed;
+    --sidebar-bg: #14141F;
+    --sidebar-text: #c7c7d9;
+    --font-heading-academico: 'Sora', sans-serif;
+  }
+  body.layout-academico .top-navbar {
+    background: linear-gradient(120deg, var(--brand-primary-dark), var(--brand-accent-2)) !important;
   }
   /* Ocultar botón flotante original */
   body.layout-academico #floatingMenuToggle {
@@ -49,7 +57,7 @@
     height: calc(100vh - 3.4rem) !important;
     border-radius: 0 !important;
     border: none !important;
-    border-right: 1px solid var(--border-color, #dbe5f4) !important;
+    border-right: 1px solid rgba(255,255,255,.06) !important;
     opacity: 1 !important;
     visibility: visible !important;
     transform: none !important;
@@ -58,13 +66,13 @@
     padding: .75rem .65rem 2rem !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    background-color: #ffffff !important;
+    background-color: var(--sidebar-bg) !important;
     transition: transform .28s ease !important;
   }
   /* Scrollbar delgado */
   body.layout-academico #mainMenuPanel::-webkit-scrollbar { width: 4px; }
   body.layout-academico #mainMenuPanel::-webkit-scrollbar-thumb {
-    background: #c5d8f5; border-radius: 4px;
+    background: rgba(255,255,255,.14); border-radius: 4px;
   }
   /* Empujar contenido principal */
   body.layout-academico {
@@ -75,38 +83,61 @@
   body.layout-academico #mainMenuPanel .nav-link {
     padding-left: .75rem !important;
     border-radius: .5rem;
+    color: var(--sidebar-text) !important;
     transition: background .15s, padding-left .15s, color .15s;
   }
   body.layout-academico #mainMenuPanel .nav-link:hover {
-    background-color: #eaf2ff !important;
-    color: #0b5ed7 !important;
+    background-color: rgba(255,255,255,.06) !important;
+    color: #ffffff !important;
     padding-left: 1rem !important;
   }
   body.layout-academico #mainMenuPanel .nav-link.active {
-    background-color: #dbeafe !important;
-    color: #0b5ed7 !important;
+    background: linear-gradient(90deg, var(--brand-primary), var(--brand-accent-2)) !important;
+    color: #ffffff !important;
     font-weight: 600 !important;
     padding-left: 1rem !important;
+    border-radius: 999px !important;
+    box-shadow: 0 4px 14px rgba(79,70,229,.35);
   }
   body.layout-academico #mainMenuPanel .nav-link.sub-item {
     font-size: .82rem !important;
     padding: .42rem .75rem !important;
   }
   /* Cabecera dentro del sidebar */
-  .sidebar-brand-row {
+  body.layout-academico .sidebar-brand-row {
     display: flex;
     align-items: center;
     gap: .5rem;
     padding: .2rem .35rem .8rem;
-    border-bottom: 1px solid #dbe5f4;
+    border-bottom: 1px solid rgba(255,255,255,.08);
     margin-bottom: .5rem;
   }
-  .sidebar-brand-row .sb-label {
+  body.layout-academico .sidebar-brand-row .sb-label {
+    font-family: var(--font-heading-academico);
     font-size: .73rem;
     font-weight: 800;
-    color: #0b5ed7;
+    color: var(--brand-accent-2);
     text-transform: uppercase;
     letter-spacing: .06em;
+  }
+  /* Tipografía de encabezados dentro del sidebar/topbar */
+  body.layout-academico #mainMenuPanel h1,
+  body.layout-academico #mainMenuPanel h2,
+  body.layout-academico #mainMenuPanel h3,
+  body.layout-academico .top-navbar .navbar-brand {
+    font-family: var(--font-heading-academico);
+  }
+  /* Alto contraste: el sidebar oscuro necesita su propia excepción,
+     si no el modo alto-contraste global (base.html) deja el texto
+     casi invisible sobre el fondo oscuro. */
+  html.acc-contrast body.layout-academico #mainMenuPanel {
+    background: #ffffff !important;
+  }
+  html.acc-contrast body.layout-academico #mainMenuPanel .nav-link {
+    color: #000000 !important;
+  }
+  html.acc-contrast body.layout-academico .sidebar-brand-row {
+    border-bottom-color: #000000;
   }
   /* Botón toggle en navbar */
   .btn-sidebar-toggle {
@@ -980,7 +1011,11 @@
       <hr class="menu-divider">
       <h5 class="menu-section-title">Panel de Coordinación</h5>
       <li class="nav-item item-color-5">
-        <a class="nav-link" href="{% url 'gestion_academica:dashboard_coordinador' %}">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_coordinador' %}active{% endif %}"
+           href="{% url 'gestion_academica:dashboard_coordinador' %}"
+           data-nav-pilot="dashboard_coordinador"
+           hx-get="{% url 'gestion_academica:dashboard_coordinador' %}"
+           hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
           <i class="bi bi-person-video3"></i> Dashboard Principal
         </a>
       </li>
@@ -1130,14 +1165,20 @@
       </li>
       <li class="nav-item item-color-7">
         <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_bienestar' %}active{% endif %}"
-           href="{% url 'gestion_academica:dashboard_bienestar' %}">
+           href="{% url 'gestion_academica:dashboard_bienestar' %}"
+           data-nav-pilot="dashboard_bienestar"
+           hx-get="{% url 'gestion_academica:dashboard_bienestar' %}"
+           hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
           <i class="bi bi-shield-check"></i> Convivencia y Bienestar (HALU Sentinel)
           <span class="badge bg-danger ms-1 sentinel-badge" style="display:none"></span>
         </a>
       </li>
       <li class="nav-item item-color-8">
         <a class="nav-link {% if request.resolver_match.url_name == 'seleccionar_estudiante_observador' or request.resolver_match.url_name == 'historial_observador' %}active{% endif %}"
-           href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}">
+           href="{% url 'gestion_academica:seleccionar_estudiante_observador' %}"
+           data-nav-pilot="seleccionar_estudiante_observador historial_observador"
+           hx-get="{% url 'gestion_academica:seleccionar_estudiante_observador' %}"
+           hx-target="#contenido-principal" hx-swap="innerHTML" hx-push-url="true">
           <i class="bi bi-journal-bookmark-fill"></i> Observador de Estudiantes
         </a>
       </li>
@@ -1406,6 +1447,53 @@
 {% endblock %}
 {% block extra_js %}
 {{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+<script>
+/* ── Piloto htmx: navegación sin recarga de página (coordinador) ──
+   Alcance: solo los enlaces marcados con [data-nav-pilot] en el sidebar
+   (Dashboard Principal, Convivencia y Bienestar, Observador de
+   Estudiantes). El resto del sidebar sigue siendo navegación normal. */
+(function () {
+  if (!window.htmx) return;
+
+  /* CSRF: mismo mecanismo que static/js/halu.js (cookie 'csrftoken'). */
+  document.body.addEventListener('htmx:configRequest', function (evt) {
+    function getCookie(name) {
+      var m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return m ? decodeURIComponent(m.pop()) : null;
+    }
+    var token = getCookie('csrftoken');
+    if (token) evt.detail.headers['X-CSRFToken'] = token;
+  });
+
+  /* Tras cada swap (incluida la restauración de historial), resincroniza
+     qué enlace del sidebar se ve activo — el sidebar mismo no se
+     re-renderiza en una navegación htmx. */
+  var PILOT_MAP = {
+    'dashboard_coordinador': "{% url 'gestion_academica:dashboard_coordinador' %}",
+    'dashboard_bienestar': "{% url 'gestion_academica:dashboard_bienestar' %}",
+    'seleccionar_estudiante_observador': "{% url 'gestion_academica:seleccionar_estudiante_observador' %}"
+  };
+  function reconciliarActivos() {
+    var path = window.location.pathname;
+    document.querySelectorAll('#mainMenuPanel [data-nav-pilot]').forEach(function (a) {
+      var keys = a.getAttribute('data-nav-pilot').split(' ');
+      var isActive = keys.some(function (k) {
+        if (k === 'historial_observador') {
+          return path.indexOf('/docente/gestion/observador/') === 0 &&
+                 path !== PILOT_MAP.seleccionar_estudiante_observador;
+        }
+        return path === PILOT_MAP[k];
+      });
+      a.classList.toggle('active', isActive);
+    });
+  }
+  document.body.addEventListener('htmx:afterSettle', function (evt) {
+    if (evt.target && evt.target.id === 'contenido-principal') reconciliarActivos();
+  });
+  document.body.addEventListener('htmx:historyRestore', reconciliarActivos);
+})();
+</script>
 <script>
 (function () {
   var body  = document.body;

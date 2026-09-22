@@ -221,6 +221,14 @@ def get_current_institution(request_user):
         return request_user.institucion_asociada
     return None
 
+def base_template_academico(request):
+    """Piloto htmx: nombre de la plantilla base a extender — la parcial
+    (sin sidebar/topbar) cuando la navegación viene de un enlace hx-get,
+    la completa en cualquier otro caso."""
+    if request.headers.get('HX-Request') == 'true':
+        return 'base_academico_partial.html'
+    return 'base_academico.html'
+
 
 def link_callback(uri, rel):
     """Resuelve URIs de recursos para xhtml2pdf con protección contra path traversal."""
@@ -6714,6 +6722,7 @@ def seleccionar_estudiante_observador(request):
         'titulo_pagina': _('Seleccionar Estudiante para Observador'),
         'es_staff_observador': es_staff,
     }
+    context['base_template'] = base_template_academico(request)
     return render(request, 'gestion_academica/seleccionar_estudiante_observador.html', context)
 
 
@@ -6750,6 +6759,7 @@ def historial_observador_estudiante(request, estudiante_pk):
         'anotaciones': anotaciones,
         'titulo_pagina': _("Observador de %(estudiante)s") % {'estudiante': estudiante}
     }
+    context['base_template'] = base_template_academico(request)
     return render(request, 'gestion_academica/historial_observador_estudiante.html', context)
 
 
@@ -8720,6 +8730,7 @@ def dashboard_coordinador_view(request):
         },
         'planes_pendientes_count': planes_pendientes_count,
     }
+    context['base_template'] = base_template_academico(request)
 
     try:
         return render(request, 'gestion_academica/dashboard_coordinador.html', context)
@@ -8918,6 +8929,7 @@ def dashboard_bienestar_view(request):
         'resumenes_ia':     resumenes_ia,
         'CasoConvivencia':  CasoConvivencia,
     }
+    context['base_template'] = base_template_academico(request)
     return render(request, 'gestion_academica/dashboard_bienestar.html', context)
 
 
