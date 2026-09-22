@@ -18,6 +18,8 @@ from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+
+from gestion_academica.utils import base_template_academico
 from django.utils.translation import gettext as _
 
 from ..forms import AsignacionSimulacionSTEAMForm
@@ -238,5 +240,6 @@ def mis_simulaciones_steam(request):
     context = {
         'asignaciones': asignaciones,
         'titulo_pagina': _("Mis Simulaciones STEAM"),
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/mis_simulaciones_steam.html', context)

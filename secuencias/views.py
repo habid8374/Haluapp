@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
+from gestion_academica.utils import base_template_academico
 
 from .models import IntentoSecuencia, ItemSecuencia, SecuenciaActividad
 
@@ -374,9 +375,10 @@ def _estudiante(user):
 def mis_secuencias(request):
     if not _es_estudiante(request.user):
         raise PermissionDenied
+    base_template = base_template_academico(request)
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'secuencias/mis_secuencias.html', {'titulo_pagina': 'Ordenar Secuencias', 'items': []})
+        return render(request, 'secuencias/mis_secuencias.html', {'titulo_pagina': 'Ordenar Secuencias', 'items': [], 'base_template': base_template})
 
     actividades = SecuenciaActividad.objects.filter(
         institucion=estudiante.institucion,
@@ -392,7 +394,7 @@ def mis_secuencias(request):
         disp, msg = a.estado_disponibilidad()
         items.append({'actividad': a, 'intento': hechos.get(a.id), 'disp': disp, 'msg': msg})
     return render(request, 'secuencias/mis_secuencias.html', {
-        'titulo_pagina': 'Ordenar Secuencias', 'items': items,
+        'titulo_pagina': 'Ordenar Secuencias', 'items': items, 'base_template': base_template,
     })
 
 

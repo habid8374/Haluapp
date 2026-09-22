@@ -1,4 +1,4 @@
-{% extends "base_academico.html" %}
+{% extends base_template %}
 {% load i18n %}
 {% load static %}
 {% load horario_filters %}
@@ -726,7 +726,7 @@
 {% get_current_language as LANGUAGE_CODE %}
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+function initDashboardEstudiante() {
   // Idioma activo del usuario (para saludo, fecha y calendario)
   var HALU_IS_EN = "{{ LANGUAGE_CODE }}".indexOf('en') === 0;
   const GREETING_MORNING = '{% trans "Buenos días" %}';
@@ -778,6 +778,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-});
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDashboardEstudiante);
+} else {
+  initDashboardEstudiante();
+}
 </script>
 {% endblock %}

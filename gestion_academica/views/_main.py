@@ -68,6 +68,7 @@ from ..utils import (
     ESTADOS_RIESGO_ACADEMICO_CURSO,
     generar_boletin_pdf_en_memoria,
     crear_lecciones_diarias_desde_planeacion,
+    base_template_academico,
 )
 import pandas as pd 
 import datetime
@@ -220,15 +221,6 @@ def get_current_institution(request_user):
     if hasattr(request_user, 'institucion_asociada') and request_user.institucion_asociada:
         return request_user.institucion_asociada
     return None
-
-def base_template_academico(request):
-    """Piloto htmx: nombre de la plantilla base a extender — la parcial
-    (sin sidebar/topbar) cuando la navegación viene de un enlace hx-get,
-    la completa en cualquier otro caso."""
-    if request.headers.get('HX-Request') == 'true':
-        return 'base_academico_partial.html'
-    return 'base_academico.html'
-
 
 def link_callback(uri, rel):
     """Resuelve URIs de recursos para xhtml2pdf con protección contra path traversal."""
@@ -2990,6 +2982,7 @@ class ArchivoPlanAcademicoDeleteView(LoginRequiredMixin, PermissionRequiredMixin
 @login_required
 @requiere_pagos_al_dia
 def mi_boletin_periodo_actual(request):
+    base_template = base_template_academico(request)
     try:
         estudiante_actual = Estudiante.objects.select_related('usuario', 'grado_actual', 'institucion').get(usuario=request.user)
     except Estudiante.DoesNotExist:
@@ -2998,7 +2991,7 @@ def mi_boletin_periodo_actual(request):
 
     if not estudiante_actual.grado_actual:
         messages.info(request, _("Aún no estás asignado a un grado para generar el boletín."))
-        return render(request, 'gestion_academica/estudiante_mi_boletin.html', {'estudiante': estudiante_actual, 'cursos_con_detalle': []})
+        return render(request, 'gestion_academica/estudiante_mi_boletin.html', {'estudiante': estudiante_actual, 'cursos_con_detalle': [], 'base_template': base_template})
 
     periodo_activo = PeriodoAcademico.objects.filter(activo=True, institucion=estudiante_actual.institucion).first()
 
@@ -3006,7 +2999,7 @@ def mi_boletin_periodo_actual(request):
     # botón del dashboard y la vista del familiar). Si no está publicado y el
     # usuario no puede previsualizar, mostramos la pantalla "no disponible".
     if periodo_activo and not periodo_activo.boletines_publicados and not _puede_previsualizar_boletin_sin_publicar(request.user):
-        return render(request, 'gestion_academica/boletin_no_disponible.html', {'periodo': periodo_activo}, status=200)
+        return render(request, 'gestion_academica/boletin_no_disponible.html', {'periodo': periodo_activo, 'base_template': base_template}, status=200)
 
     cursos_con_detalle = []
     total_puntos_ponderados_general = Decimal('0.0')
@@ -3049,7 +3042,8 @@ def mi_boletin_periodo_actual(request):
         'promedio_general_periodo': promedio_general_periodo,
         'observacion_boletin': observacion_obj,
         'auto_lectura_facil': auto_lectura_facil,
-        'titulo_pagina': _('Resumen de Calificaciones')
+        'titulo_pagina': _('Resumen de Calificaciones'),
+        'base_template': base_template,
     }
     return render(request, 'gestion_academica/estudiante_mi_boletin.html', context)
 
@@ -3332,6 +3326,7 @@ def mi_progreso_academico(request):
         resp['Pragma'] = 'no-cache'
         return resp
 
+    context['base_template'] = base_template_academico(request)
     return render(request, 'gestion_academica/mi_progreso_academico.html', context)
 
 
@@ -4483,12 +4478,12 @@ def mi_historial_asistencia(request):
     except Estudiante.DoesNotExist:
         # Esto previene errores si un usuario no estudiante intenta acceder.
         messages.error(request, _("Tu perfil de estudiante no está configurado."))
-        return redirect('gestion_academica: ')
+        return redirect('gestion_academica:inicio_academico')
 
     periodo_activo = PeriodoAcademico.objects.filter(
         activo=True, institucion=estudiante.institucion
     ).first()
-    
+
     historial_asistencia = []
     if periodo_activo:
         # Buscamos todos los registros del estudiante en el periodo activo y los ordenamos por fecha.
@@ -4501,8 +4496,9 @@ def mi_historial_asistencia(request):
         'titulo_pagina': _("Mi Historial de Asistencia"),
         'periodo_activo': periodo_activo,
         'historial': historial_asistencia,
+        'base_template': base_template_academico(request),
     }
-    
+
     # Esta vista usará la plantilla 'mi_historial_asistencia.html' que ya creamos.
     return render(request, 'gestion_academica/mi_historial_asistencia.html', context)
 
@@ -4520,6 +4516,11 @@ class MisJustificacionesInasistenciaListView(LoginRequiredMixin, ListView):
         except Estudiante.DoesNotExist:
             return JustificacionInasistencia.objects.none()
         return JustificacionInasistencia.objects.filter(estudiante=estudiante)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['base_template'] = base_template_academico(self.request)
+        return context
 
 
 class CrearJustificacionInasistenciaView(LoginRequiredMixin, CreateView):
@@ -5249,6 +5250,7 @@ def dashboard_estudiante(request):
     else:
         context['bloqueo_secciones'] = []
 
+    context['base_template'] = base_template_academico(request)
     return render(request, 'gestion_academica/dashboard_estudiante.html', context)
 
 
@@ -6572,6 +6574,7 @@ def estudiante_mis_menciones(request):
         'menciones': menciones,
         'estudiante_moroso': estudiante_moroso,
         'titulo_pagina': _("Mis Menciones"),
+        'base_template': base_template_academico(request),
     })
 
 

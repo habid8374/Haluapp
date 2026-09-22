@@ -13,6 +13,7 @@ from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 
 from gestion_academica.models import Curso, DBAPredefinido, Estudiante, Grado, TipoActividad
+from gestion_academica.utils import base_template_academico
 
 from .calificacion import recalcular_todas
 from .forms import ActividadHaluMathForm
@@ -547,6 +548,7 @@ def elegir_dba(request):
     return render(request, 'halu_math/elegir_dba.html', {
         'filas': filas,
         'titulo_pagina': _('Halu Math — Practicar'),
+        'base_template': base_template_academico(request),
     })
 
 
@@ -670,6 +672,7 @@ def laboratorio_index(request):
     return render(request, 'halu_math/laboratorio_index.html', {
         'volver_url': _volver_url_halu_math(request.user),
         'titulo_pagina': _('Halu Math — Laboratorio Matemático'),
+        'base_template': base_template_academico(request),
     })
 
 

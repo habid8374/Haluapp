@@ -13,6 +13,7 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
 
 from .layout import generar_layout, normalizar
+from gestion_academica.utils import base_template_academico
 from .models import Crucigrama, IntentoCrucigrama, PalabraCrucigrama
 
 MAX_IMAGEN = 2 * 1024 * 1024  # 2 MB
@@ -439,10 +440,11 @@ def _estudiante(user):
 def mis_crucigramas(request):
     if not _es_estudiante(request.user):
         raise PermissionDenied
+    base_template = base_template_academico(request)
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
         return render(request, 'crucigramas/mis_crucigramas.html', {
-            'titulo_pagina': _('Crucigramas'), 'items': [],
+            'titulo_pagina': _('Crucigramas'), 'items': [], 'base_template': base_template,
         })
 
     crucigramas = Crucigrama.objects.filter(
@@ -462,6 +464,7 @@ def mis_crucigramas(request):
     return render(request, 'crucigramas/mis_crucigramas.html', {
         'titulo_pagina': _('Crucigramas'),
         'items': items,
+        'base_template': base_template,
     })
 
 

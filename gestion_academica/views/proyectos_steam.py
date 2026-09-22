@@ -18,6 +18,8 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+
+from gestion_academica.utils import base_template_academico
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -564,6 +566,7 @@ def mi_portafolio_steam(request):
         'participaciones': participaciones,
         'insignias': insignias,
         'titulo_pagina': _("Mi Portafolio STEAM"),
+        'base_template': base_template_academico(request),
     }
     return render(request, 'gestion_academica/mi_portafolio_steam.html', context)
 

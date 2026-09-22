@@ -1,4 +1,4 @@
-{% extends "base_academico.html" %}
+{% extends base_template %}
 {% load static %}
 {% load i18n %}
 {% block titulo %}{% blocktrans with periodo=periodo_activo.nombre %}Resumen de Calificaciones - {{ periodo }}{% endblocktrans %}{% endblock %}
@@ -131,7 +131,7 @@
 {% block extra_js %}
 {{ block.super }}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    function initEstudianteMiBoletin() {
         const selectFormato = document.getElementById('selectFormatoPapel');
         const botonImprimir = document.getElementById('botonImprimirBoletin');
         if (selectFormato && botonImprimir) {
@@ -143,6 +143,11 @@
             }
             selectFormato.addEventListener('change', actualizarEnlace);
         }
-    });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initEstudianteMiBoletin);
+    } else {
+        initEstudianteMiBoletin();
+    }
 </script>
 {% endblock %}

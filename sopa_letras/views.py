@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
+from gestion_academica.utils import base_template_academico
 
 from .layout import generar_sopa, normalizar
 from .models import IntentoSopa, PalabraSopa, Sopa
@@ -397,9 +398,10 @@ def _estudiante(user):
 def mis_sopas(request):
     if not _es_estudiante(request.user):
         raise PermissionDenied
+    base_template = base_template_academico(request)
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'sopa_letras/mis_sopas.html', {'titulo_pagina': _('Sopas de letras'), 'items': []})
+        return render(request, 'sopa_letras/mis_sopas.html', {'titulo_pagina': _('Sopas de letras'), 'items': [], 'base_template': base_template})
 
     sopas = Sopa.objects.filter(
         institucion=estudiante.institucion,
@@ -415,7 +417,7 @@ def mis_sopas(request):
         disp, msg = s.estado_disponibilidad()
         items.append({'sopa': s, 'intento': hechos.get(s.id), 'disp': disp, 'msg': msg})
     return render(request, 'sopa_letras/mis_sopas.html', {
-        'titulo_pagina': _('Sopas de letras'), 'items': items,
+        'titulo_pagina': _('Sopas de letras'), 'items': items, 'base_template': base_template,
     })
 
 

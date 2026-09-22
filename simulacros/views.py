@@ -17,6 +17,7 @@ from .models import (
     BancoPregunta, IntentoSimulacro, OpcionPregunta,
     PreguntaSimulacro, RespuestaSimulacro, Simulacro,
 )
+from gestion_academica.utils import base_template_academico
 
 logger = logging.getLogger(__name__)
 
@@ -714,6 +715,7 @@ def simulacros_estudiante(request):
     return render(request, 'simulacros/simulacros_estudiante.html', {
         'simulacros_info': simulacros_info,
         'titulo_pagina': _('Simulacros Saber'),
+        'base_template': base_template_academico(request),
     })
 
 

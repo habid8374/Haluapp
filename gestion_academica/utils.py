@@ -817,3 +817,14 @@ def obtener_resumen_hijos_familiar(familiar_usuario_id: int) -> str:
         return "Estudiantes a tu cargo:\n" + "\n".join(resultados)
     except Exception as e:
         return f"Error al consultar tus acudidos: {str(e)}"
+
+
+def base_template_academico(request):
+    """Piloto htmx: nombre de la plantilla base a extender — la parcial
+    (sin sidebar/topbar) cuando la navegación viene de un enlace hx-get,
+    la completa en cualquier otro caso. Compartida entre gestion_academica
+    y las apps que enlazan desde el sidebar académico (simulacros,
+    halu_math, mini-juegos)."""
+    if request.headers.get('HX-Request') == 'true':
+        return 'base_academico_partial.html'
+    return 'base_academico.html'

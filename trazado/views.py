@@ -13,6 +13,7 @@ from django.core.files.base import ContentFile
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from gestion_academica.utils import base_template_academico
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -357,9 +358,10 @@ def _estudiante(user):
 def mis_tableros(request):
     if not _es_estudiante(request.user):
         raise PermissionDenied
+    base_template = base_template_academico(request)
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'trazado/mis_tableros.html', {'titulo_pagina': _('Trazado de Letras'), 'items': []})
+        return render(request, 'trazado/mis_tableros.html', {'titulo_pagina': _('Trazado de Letras'), 'items': [], 'base_template': base_template})
 
     tableros = TableroTrazado.objects.filter(
         institucion=estudiante.institucion,
@@ -375,7 +377,7 @@ def mis_tableros(request):
         disp, msg = t.estado_disponibilidad()
         items.append({'tablero': t, 'intento': hechos.get(t.id), 'disp': disp, 'msg': msg})
     return render(request, 'trazado/mis_tableros.html', {
-        'titulo_pagina': _('Trazado de Letras'), 'items': items,
+        'titulo_pagina': _('Trazado de Letras'), 'items': items, 'base_template': base_template,
     })
 
 

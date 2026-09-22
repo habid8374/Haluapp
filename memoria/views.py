@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
+from gestion_academica.utils import base_template_academico
 
 from .models import IntentoMemoria, JuegoMemoria, ParejaMemoria
 
@@ -389,9 +390,10 @@ def _estudiante(user):
 def mis_juegos(request):
     if not _es_estudiante(request.user):
         raise PermissionDenied
+    base_template = base_template_academico(request)
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'memoria/mis_juegos.html', {'titulo_pagina': _('Juegos de Memoria'), 'items': []})
+        return render(request, 'memoria/mis_juegos.html', {'titulo_pagina': _('Juegos de Memoria'), 'items': [], 'base_template': base_template})
 
     juegos = JuegoMemoria.objects.filter(
         institucion=estudiante.institucion,
@@ -407,7 +409,7 @@ def mis_juegos(request):
         disp, msg = j.estado_disponibilidad()
         items.append({'juego': j, 'intento': hechos.get(j.id), 'disp': disp, 'msg': msg})
     return render(request, 'memoria/mis_juegos.html', {
-        'titulo_pagina': _('Juegos de Memoria'), 'items': items,
+        'titulo_pagina': _('Juegos de Memoria'), 'items': items, 'base_template': base_template,
     })
 
 

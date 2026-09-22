@@ -13,6 +13,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from gestion_academica.utils import base_template_academico
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
 
@@ -391,9 +392,10 @@ def _estudiante(user):
 def mis_mazos(request):
     if not _es_estudiante(request.user):
         raise PermissionDenied
+    base_template = base_template_academico(request)
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'flashcards/mis_mazos.html', {'titulo_pagina': _('Flash Cards'), 'items': []})
+        return render(request, 'flashcards/mis_mazos.html', {'titulo_pagina': _('Flash Cards'), 'items': [], 'base_template': base_template})
 
     mazos = MazoFlashcard.objects.filter(
         institucion=estudiante.institucion,
@@ -409,7 +411,7 @@ def mis_mazos(request):
         disp, msg = m.estado_disponibilidad()
         items.append({'mazo': m, 'intento': hechos.get(m.id), 'disp': disp, 'msg': msg})
     return render(request, 'flashcards/mis_mazos.html', {
-        'titulo_pagina': _('Flash Cards'), 'items': items,
+        'titulo_pagina': _('Flash Cards'), 'items': items, 'base_template': base_template,
     })
 
 

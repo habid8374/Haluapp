@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
+from gestion_academica.utils import base_template_academico
 
 from .models import IntentoRompecabezas, Rompecabezas
 
@@ -277,9 +278,10 @@ def _estudiante(user):
 def mis_rompecabezas(request):
     if not _es_estudiante(request.user):
         raise PermissionDenied
+    base_template = base_template_academico(request)
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'rompecabezas/mis_rompecabezas.html', {'titulo_pagina': _('Rompecabezas'), 'items': []})
+        return render(request, 'rompecabezas/mis_rompecabezas.html', {'titulo_pagina': _('Rompecabezas'), 'items': [], 'base_template': base_template})
 
     rompecabezas_qs = Rompecabezas.objects.filter(
         institucion=estudiante.institucion,
@@ -295,7 +297,7 @@ def mis_rompecabezas(request):
         disp, msg = rc.estado_disponibilidad()
         items.append({'rc': rc, 'intento': hechos.get(rc.id), 'disp': disp, 'msg': msg})
     return render(request, 'rompecabezas/mis_rompecabezas.html', {
-        'titulo_pagina': _('Rompecabezas'), 'items': items,
+        'titulo_pagina': _('Rompecabezas'), 'items': items, 'base_template': base_template,
     })
 
 

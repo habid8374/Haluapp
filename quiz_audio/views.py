@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from gestion_academica.utils import base_template_academico
 from django.views.decorators.http import require_POST
 
 from .models import IntentoQuizAudio, OpcionAudio, PreguntaAudio, QuizAudio
@@ -394,9 +395,10 @@ def _estudiante(user):
 def mis_quices(request):
     if not _es_estudiante(request.user):
         raise PermissionDenied
+    base_template = base_template_academico(request)
     estudiante = _estudiante(request.user)
     if estudiante is None or not estudiante.grado_actual_id:
-        return render(request, 'quiz_audio/mis_quices.html', {'titulo_pagina': _('Quiz de Audio'), 'items': []})
+        return render(request, 'quiz_audio/mis_quices.html', {'titulo_pagina': _('Quiz de Audio'), 'items': [], 'base_template': base_template})
 
     quices = QuizAudio.objects.filter(
         institucion=estudiante.institucion,
@@ -412,7 +414,7 @@ def mis_quices(request):
         disp, msg = q.estado_disponibilidad()
         items.append({'quiz': q, 'intento': hechos.get(q.id), 'disp': disp, 'msg': msg})
     return render(request, 'quiz_audio/mis_quices.html', {
-        'titulo_pagina': _('Quiz de Audio'), 'items': items,
+        'titulo_pagina': _('Quiz de Audio'), 'items': items, 'base_template': base_template,
     })
 
 
