@@ -7455,6 +7455,98 @@ def exportar_libro_de_notas_excel(request, curso_pk):
     return response
 
 
+@login_required
+def exportar_libro_de_notas_pdf(request, curso_pk):
+    """
+    Exporta el libro de notas del período actual del curso a PDF —
+    se abre en el navegador (Content-Disposition: inline) para que el
+    propio visor de PDF del navegador sirva también como diálogo de
+    impresión, sin necesitar JS adicional en la plantilla.
+    """
+    es_coordinador = request.user.is_staff and getattr(request.user, 'rol', None) in ['administrador', 'coordinador']
+    if not (hasattr(request.user, 'docente') or es_coordinador or request.user.is_superuser):
+        messages.error(request, _("Acceso denegado."))
+        return redirect('gestion_academica:inicio_academico')
+
+    curso = get_object_or_404(
+        get_filtered_queryset(Curso, request.user, Curso.objects.select_related('materia', 'grado', 'periodo_academico', 'institucion')),
+        pk=curso_pk,
+    )
+
+    if not es_coordinador and not request.user.is_superuser:
+        if not hasattr(request.user, 'docente') or not curso.docentes_asignados.filter(pk=request.user.docente.pk).exists():
+            messages.error(request, _("No tienes permiso para ver el libro de notas de este curso."))
+            return redirect('gestion_academica:dashboard_docente')
+
+    estudiantes_del_curso = Estudiante.objects.filter(
+        grado_actual=curso.grado, institucion=curso.institucion
+    )
+    if curso.enfasis_id:
+        estudiantes_del_curso = estudiantes_del_curso.filter(enfasis_id=curso.enfasis_id)
+    estudiantes_del_curso = estudiantes_del_curso.select_related('usuario').order_by('usuario__last_name', 'usuario__first_name')
+
+    actividades_del_curso = ActividadCalificable.objects.filter(
+        curso=curso
+    ).select_related('tipo_actividad').order_by('tipo_actividad__orden', 'titulo')
+
+    calificaciones_existentes = Calificacion.objects.filter(actividad_calificable__in=actividades_del_curso)
+    calificaciones_map = defaultdict(dict)
+    for cal in calificaciones_existentes:
+        calificaciones_map[cal.estudiante_id][cal.actividad_calificable_id] = cal.valor_numerico
+
+    actividades_agrupadas = defaultdict(list)
+    for actividad in actividades_del_curso:
+        actividades_agrupadas[actividad.tipo_actividad].append(actividad)
+
+    libro_notas_data = []
+    for estudiante in estudiantes_del_curso:
+        nota_final_curso = Decimal('0.0')
+        for categoria, actividades_en_categoria in actividades_agrupadas.items():
+            notas_de_la_categoria = [
+                calificaciones_map.get(estudiante.pk, {}).get(act.pk)
+                for act in actividades_en_categoria
+                if calificaciones_map.get(estudiante.pk, {}).get(act.pk) is not None
+            ]
+            if notas_de_la_categoria:
+                promedio_categoria = sum(notas_de_la_categoria) / len(notas_de_la_categoria)
+                if categoria and categoria.porcentaje:
+                    nota_final_curso += promedio_categoria * (categoria.porcentaje / Decimal('100.0'))
+        notas_por_actividad = {
+            actividad.pk: calificaciones_map.get(estudiante.pk, {}).get(actividad.pk)
+            for actividad in actividades_del_curso
+        }
+        libro_notas_data.append({
+            'estudiante': estudiante,
+            'notas_por_actividad': notas_por_actividad,
+            'nota_final_curso': nota_final_curso if nota_final_curso > 0 else None,
+        })
+
+    nota_minima = getattr(curso.institucion, 'nota_minima_aprobacion', Decimal('3.0'))
+
+    context = {
+        'institucion': curso.institucion,
+        'curso': curso,
+        'actividades_agrupadas': dict(actividades_agrupadas),
+        'libro_notas_data': libro_notas_data,
+        'nota_minima': nota_minima,
+        'fecha_emision': timezone.now(),
+        'generado_por': request.user.get_full_name() or request.user.username,
+    }
+
+    template = get_template('gestion_academica/libro_de_notas_imprimible.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Libro_de_Notas_{curso}.pdf"'
+
+    pisa_status = pisa.CreatePDF(html, dest=response, link_callback=link_callback)
+    if pisa_status.err:
+        logger.error("Error al generar PDF del libro de notas (pisa.err=%s)", pisa_status.err)
+        return HttpResponse(_('Error al generar el PDF. Por favor, inténtelo de nuevo.'), status=500)
+
+    return response
+
+
 class TareasPorCalificarView(LoginRequiredMixin, View):
     template_name = 'gestion_academica/tareas_por_calificar_lista.html'
 

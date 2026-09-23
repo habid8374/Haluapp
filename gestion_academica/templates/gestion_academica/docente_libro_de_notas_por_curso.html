@@ -156,6 +156,11 @@
 .ln-input:not(:placeholder-shown) {
   border-color: #93c5fd; background: #f0f7ff;
 }
+/* Solo lectura (coordinador): mismo tamaño que el input, sin borde de foco */
+.ln-input-readonly {
+  background: #f1f5f9 !important; border-color: #e2e8f0 !important;
+  color: #64748b !important; cursor: default; user-select: text;
+}
 /* Final grade cell */
 .ln-final-cell {
   font-weight: 800; font-size: .92rem; color: #15803d;
@@ -456,6 +461,9 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       <a href="{% url 'gestion_academica:exportar_libro_de_notas_excel' curso_pk=curso.pk %}" class="ln-ha-btn ln-green">
         <i class="bi bi-file-earmark-excel-fill"></i> Excel
       </a>
+      <a href="{% url 'gestion_academica:exportar_libro_de_notas_pdf' curso_pk=curso.pk %}" target="_blank" rel="noopener" class="ln-ha-btn ln-glass" title="{% trans 'Ver, imprimir o guardar como PDF' %}">
+        <i class="bi bi-file-earmark-pdf-fill"></i> <span class="d-none d-sm-inline">{% trans "Imprimir / PDF" %}</span><span class="d-sm-none">PDF</span>
+      </a>
       <a href="{% url 'gestion_academica:docente_seleccionar_curso_libro_notas' %}" class="ln-ha-btn ln-glass">
         <i class="bi bi-arrow-left"></i> {% trans "Volver" %}
       </a>
@@ -542,6 +550,9 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
               {% for categoria, actividades_lista in actividades_agrupadas.items %}
               {% for actividad in actividades_lista %}
               <td style="padding:.3rem .4rem;">
+                {% if es_coordinador %}
+                <span class="ln-input ln-input-readonly" aria-label="{% trans 'Solo lectura' %}">{{ notas_map|get_item:item.estudiante.pk|get_item:actividad.pk|stringformat:'.2f'|default_if_none:'—' }}</span>
+                {% else %}
                 <input type="text"
                        name="nota-E{{ item.estudiante.pk }}-A{{ actividad.pk }}"
                        id="nota-E{{ item.estudiante.pk }}-A{{ actividad.pk }}"
@@ -550,6 +561,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
                        autocomplete="off"
                        inputmode="decimal"
                        placeholder="—">
+                {% endif %}
               </td>
               {% endfor %}
               {% endfor %}
@@ -576,6 +588,9 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
       <div class="ln-action-bar">
         <a href="{% url 'gestion_academica:exportar_libro_de_notas_excel' curso_pk=curso.pk %}" class="btn btn-outline-success">
           <i class="bi bi-file-earmark-excel-fill me-2"></i>{% trans "Exportar Excel" %}
+        </a>
+        <a href="{% url 'gestion_academica:exportar_libro_de_notas_pdf' curso_pk=curso.pk %}" target="_blank" rel="noopener" class="btn btn-outline-danger">
+          <i class="bi bi-file-earmark-pdf-fill me-2"></i>{% trans "Imprimir / PDF" %}
         </a>
         {% if not es_coordinador %}
         <button type="submit" class="btn btn-primary">
@@ -623,6 +638,9 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
                    title="{{ actividad.titulo }}">
               {{ actividad.titulo }}
             </label>
+            {% if es_coordinador %}
+            <span class="ln-input-mobile ln-input-readonly" aria-label="{% trans 'Solo lectura' %}">{{ notas_map|get_item:item.estudiante.pk|get_item:actividad.pk|stringformat:'.2f'|default_if_none:'—' }}</span>
+            {% else %}
             <input type="text"
                    name="nota-E{{ item.estudiante.pk }}-A{{ actividad.pk }}"
                    id="mob-nota-E{{ item.estudiante.pk }}-A{{ actividad.pk }}"
@@ -631,6 +649,7 @@ body.ln-fab-active { padding-bottom: 7rem !important; }
                    autocomplete="off"
                    inputmode="decimal"
                    placeholder="0.0">
+            {% endif %}
           </div>
           {% endfor %}
           {% endfor %}

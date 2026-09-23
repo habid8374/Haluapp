@@ -1,0 +1,157 @@
+{% load gestion_academica_filters %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Libro de Notas — {{ curso }}</title>
+<style>
+@page {
+    size: letter landscape;
+    margin: 1.4cm 1.2cm 1.8cm 1.2cm;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8pt;
+    color: #1e293b;
+    line-height: 1.35;
+}
+/* ── BARRA SUPERIOR ── */
+.top-bar { background: #0f3460; height: 6px; width: 100%; margin-bottom: 10px; }
+/* ── ENCABEZADO INSTITUCIÓN ── */
+.header-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.header-table td { vertical-align: middle; }
+.logo-cell { width: 66px; }
+.logo-cell img { width: 60px; height: auto; }
+.inst-cell { padding: 0 10px; }
+.inst-name { font-size: 12pt; font-weight: bold; color: #0f3460; }
+.inst-sub { font-size: 7pt; color: #64748b; margin-top: 3px; line-height: 1.6; }
+.doc-cell { width: 210px; }
+.doc-box { border: 2px solid #0f3460; border-radius: 5px; overflow: hidden; text-align: center; }
+.doc-box-header {
+    background: #0f3460; color: white; font-size: 8pt; font-weight: bold;
+    padding: 5px 8px; text-transform: uppercase; letter-spacing: 1px;
+}
+.doc-box-body { padding: 6px 8px; }
+.doc-box-body p { font-size: 7.5pt; color: #475569; margin: 2px 0; }
+.doc-box-body strong { color: #0f3460; font-size: 8pt; }
+/* ── TABLA DE NOTAS ── */
+.notas-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.notas-table thead tr.cat-row th {
+    background: linear-gradient(120deg, #0a3d8c, #1a56db);
+    color: #fff; font-size: 6.8pt; font-weight: bold; text-transform: uppercase;
+    letter-spacing: .3px; padding: 4px 3px; border: 1px solid #0a3d8c; white-space: nowrap;
+}
+.notas-table thead tr.cat-row th.name-col { background: #07285f !important; text-align: left; padding-left: 6px; }
+.notas-table thead tr.cat-row th.final-col { background: #15803d !important; }
+.notas-table thead tr.act-row th {
+    background: #eaf2ff; color: #1d4ed8; font-size: 6.6pt; font-weight: bold;
+    padding: 3px 2px; border: 1px solid #bfdbfe; white-space: nowrap;
+}
+.notas-table thead tr.act-row th.name-col { background: #f7faff; color: #64748b; text-align: left; padding-left: 6px; }
+.notas-table thead tr.act-row th.final-col { background: #f0fdf4; color: #15803d; }
+.notas-table tbody td {
+    border: 1px solid #e2e8f0; padding: 3px 2px; text-align: center; font-size: 7.8pt;
+}
+.notas-table tbody tr:nth-child(even) { background: #f8faff; }
+.notas-table tbody td.name-col { text-align: left; padding-left: 6px; font-weight: 600; color: #0f3460; white-space: nowrap; }
+.notas-table tbody td.final-col { font-weight: bold; color: #15803d; background: #f0fdf4; }
+.notas-table tbody td.nd { color: #94a3b8; }
+/* ── PIE FIJO ── */
+.page-footer {
+    position: fixed; bottom: 0.4cm; left: 0; right: 0;
+    border-top: 1px solid #e2e8f0; padding-top: 4px; text-align: center;
+    font-size: 6.5pt; color: #94a3b8;
+}
+/* ── LEYENDA ── */
+.leyenda { margin-top: 6px; font-size: 6.8pt; color: #64748b; }
+</style>
+</head>
+<body>
+<!-- PIE FIJO -->
+<div class="page-footer">
+    {{ institucion.nombre }}
+    &nbsp;·&nbsp; NIT: {{ institucion.nit }}
+    &nbsp;·&nbsp; Libro de Notas — {{ curso.materia.nombre_materia }} · {{ curso.grado.nombre }}
+    &nbsp;·&nbsp; Generado el {{ fecha_emision|date:"d/m/Y H:i" }} por {{ generado_por }}
+    &nbsp;·&nbsp; Página <pdf:pagenumber> de <pdf:pagecount>
+</div>
+<!-- BARRA SUPERIOR -->
+<div class="top-bar"></div>
+<!-- ENCABEZADO -->
+<table class="header-table">
+    <tr>
+        <td class="logo-cell">
+            {% if institucion.logo %}
+            <img src="{{ institucion.logo.url }}" alt="{{ institucion.nombre }}">
+            {% endif %}
+        </td>
+        <td class="inst-cell">
+            <div class="inst-name">{{ institucion.nombre }}</div>
+            <div class="inst-sub">
+                NIT: {{ institucion.nit }}
+                {% if institucion.codigo_dane %} &nbsp;|&nbsp; DANE: {{ institucion.codigo_dane }}{% endif %}
+                {% if institucion.ciudad_departamento %} &nbsp;|&nbsp; {{ institucion.ciudad_departamento }}{% endif %}
+            </div>
+        </td>
+        <td class="doc-cell">
+            <div class="doc-box">
+                <div class="doc-box-header">Libro de Notas</div>
+                <div class="doc-box-body">
+                    <p>Materia: <strong>{{ curso.materia.nombre_materia }}</strong></p>
+                    <p>Grado: <strong>{{ curso.grado.nombre }}</strong></p>
+                    <p>Período: <strong>{{ curso.periodo_academico.nombre }}</strong></p>
+                    <p>Estudiantes: <strong>{{ libro_notas_data|length }}</strong></p>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+<!-- TABLA DE NOTAS -->
+<table class="notas-table">
+    <thead>
+        <tr class="cat-row">
+            <th class="name-col" rowspan="2">Estudiante</th>
+            {% for categoria, actividades_lista in actividades_agrupadas.items %}
+            <th colspan="{{ actividades_lista|length }}">{{ categoria.nombre }} ({{ categoria.porcentaje }}%)</th>
+            {% endfor %}
+            <th class="final-col" rowspan="2">Definitiva</th>
+        </tr>
+        <tr class="act-row">
+            {% for categoria, actividades_lista in actividades_agrupadas.items %}
+            {% for actividad in actividades_lista %}
+            <th>{{ actividad.titulo|truncatechars:16 }}</th>
+            {% endfor %}
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in libro_notas_data %}
+        <tr>
+            <td class="name-col">{{ item.estudiante.usuario.get_full_name }}</td>
+            {% for categoria, actividades_lista in actividades_agrupadas.items %}
+            {% for actividad in actividades_lista %}
+            <td>
+                {% with nota=item.notas_por_actividad|get_item:actividad.pk %}
+                {% if nota is not None %}{{ nota|floatformat:2 }}{% else %}<span class="nd">—</span>{% endif %}
+                {% endwith %}
+            </td>
+            {% endfor %}
+            {% endfor %}
+            <td class="final-col">
+                {% if item.nota_final_curso is not None %}{{ item.nota_final_curso|floatformat:2 }}{% else %}<span class="nd">—</span>{% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="100%" style="text-align:center;padding:16px;color:#94a3b8;">No hay estudiantes en este curso.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="leyenda">
+    Nota mínima de aprobación: <strong>{{ nota_minima }}</strong>
+    &nbsp;·&nbsp; Documento generado automáticamente por la plataforma — uso interno de la institución.
+</div>
+</body>
+</html>

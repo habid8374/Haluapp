@@ -320,6 +320,7 @@ urlpatterns = [
     path('asistencia/exportar/<int:curso_pk>/', views.exportar_asistencia_excel, name='exportar_asistencia_excel'),
     path('docente/gestion/reporte-nota-minima/<int:curso_pk>/exportar/', views.exportar_reporte_nota_minima_excel, name='exportar_reporte_nota_minima_excel'),
     path('docente/gestion/libro-notas/<int:curso_pk>/exportar/', views.exportar_libro_de_notas_excel, name='exportar_libro_de_notas_excel'),
+    path('docente/gestion/libro-notas/<int:curso_pk>/exportar-pdf/', views.exportar_libro_de_notas_pdf, name='exportar_libro_de_notas_pdf'),
     path('docente/gestion/tareas-por-calificar/', views.TareasPorCalificarView.as_view(), name='tareas_por_calificar'),
     path('docente/gestion/calificar-entrega/<int:pk>/', views.CalificarEntregaView.as_view(), name='calificar_entrega'), 
     path('reportes/riesgo-global/exportar/', views.exportar_reporte_riesgo_global_view, name='exportar_reporte_riesgo_global'),
